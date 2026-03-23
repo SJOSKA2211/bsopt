@@ -116,9 +116,32 @@ class Settings(BaseSettings):
     ML_TRAINING_PROMOTE_THRESHOLD_R2: float = 0.95
 
     # Email Configuration
+    EMAIL_SERVICE_API_KEY: str | None = Field(default=None, validation_alias="EMAIL_SERVICE_API_KEY")
     SENDGRID_API_KEY: str | None = Field(default=None, validation_alias="SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL: str = "noreply@bsopt.ai"
     DPA_EMAIL: str = "dpa@bsopt.ai"
+
+    # ML & Orchestration
+    RAY_ADDRESS: str | None = Field(default=None)
+    RAY_NAMESPACE: str = "bsopt"
+    RAY_SHUTDOWN_AFTER_RUN: bool = Field(default=False)
+    MLFLOW_TRACKING_URI: str | None = Field(default=None, validation_alias="MLFLOW_TRACKING_URI")
+    
+    @property
+    def tracking_uri(self) -> str | None:
+        return self.MLFLOW_TRACKING_URI
+
+    # Scrapers & Market Data
+    NSE_CACHE_TTL: int = 300
+    USE_SHM: bool = Field(default=False)
+    USE_GPU: bool = Field(default=False)
+
+    # Observability & Tracing
+    ENABLE_TRACING: bool = False
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://tempo:4317"
+    PUSHGATEWAY_URL: str | None = Field(default=None)
+    GRAFANA_URL: str | None = Field(default=None)
+    CHAOS_MODE: bool = Field(default=False, validation_alias="BSOPT_CHAOS_MODE")
 
     # Rate Limiting Tiers
     RATE_LIMIT_FREE: int = 100

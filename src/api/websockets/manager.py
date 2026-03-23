@@ -9,6 +9,7 @@ from fastapi import WebSocket
 from prometheus_client import REGISTRY, Counter, Gauge  # Import Prometheus client metrics
 
 from .codec import ProtocolType, WebSocketCodec
+from src.shared.config import settings
 
 logger = structlog.get_logger()
 
@@ -71,9 +72,7 @@ class ConnectionManager:
 
     async def _listen_to_shm(self) -> None:
         """High-frequency polling of Ring Buffers for market and Greeks data."""
-        import os
-
-        if os.getenv("USE_SHM") != "1":
+        if not settings.USE_SHM:
             return
 
         logger.info("ws_shm_listener_started_multi_ring")

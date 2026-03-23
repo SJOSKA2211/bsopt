@@ -155,9 +155,19 @@ static_resources:
                   circuit_breakers:
                     thresholds:
                     - max_pending_requests: 500
-                      max_requests: 1000
-                      max_connections: 500
-                      max_retries: 5
+                       max_requests: 1000
+                       max_connections: 500
+                       max_retries: 5
+              
+              # Neural Pricing service
+              - match:
+                  prefix: "/price"
+                route:
+                  cluster: neural_pricing
+                  retry_policy:
+                    retry_on: "5xx,reset,connect-failure"
+                    num_retries: 3
+                  timeout: 60s
               
               # WebSocket routes
               - match:
@@ -394,6 +404,34 @@ static_resources:
       - max_pending_requests: 10
         max_requests: 20
         max_connections: 10
+
+  # Neural Pricing Service Cluster
+  - name: neural_pricing
+    connect_timeout: 5s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: neural_pricing
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: neural-pricing
+                port_value: 8000
+          health_checks:
+          - timeout: 5s
+            interval: 10s
+            unhealthy_threshold: 3
+            healthy_threshold: 2
+            http_health_check:
+              path: "/health"
+    circuit_breakers:
+      thresholds:
+      - max_pending_requests: 100
+        max_requests: 200
+        max_connections: 100
+        max_retries: 3
 
   # OpenTelemetry Collector (gRPC)
   - name: opentelemetry_collector

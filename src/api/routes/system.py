@@ -43,7 +43,9 @@ async def get_deep_health():
         _shm_probe = None  # Reset on failure
 
     # 2. Lazy CUDA Probe
-    if os.getenv("BSOPT_USE_GPU", "0") == "1":
+    from src.shared.config import settings
+
+    if settings.USE_GPU:
         try:
             import torch
 

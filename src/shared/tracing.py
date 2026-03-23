@@ -40,10 +40,9 @@ from opentelemetry.sdk.trace.sampling import (
 from opentelemetry.trace import Span, Status, StatusCode
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
-logger = structlog.get_logger(__name__)
+from src.shared.config import settings
 
-_tracer: trace.Tracer | None = None
-_propagator = TraceContextTextMapPropagator()
+logger = structlog.get_logger(__name__)
 
 
 def setup_tracing(
@@ -65,16 +64,14 @@ def setup_tracing(
     """
     global _tracer
 
-    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "production"))
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
+    env = settings.ENVIRONMENT
+    enable_tracing = settings.ENABLE_TRACING
 
     if not enable_tracing:
         logger.info("tracing_disabled", service=service_name)
         return
 
-    otlp_endpoint = otlp_endpoint or os.getenv(
-        "OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"
-    )
+    otlp_endpoint = otlp_endpoint or settings.OTEL_EXPORTER_OTLP_ENDPOINT
 
     resource = Resource.create(
         {
@@ -132,8 +129,7 @@ def instrument_app(
         app: FastAPI application instance
         excluded_urls: URLs to exclude from tracing
     """
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
-    if not enable_tracing:
+    if not settings.ENABLE_TRACING:
         return
 
     excluded_urls = excluded_urls or [
@@ -168,8 +164,7 @@ def instrument_database(engine: Any) -> None:
     Args:
         engine: SQLAlchemy engine instance
     """
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
-    if not enable_tracing:
+    if not settings.ENABLE_TRACING:
         return
 
     try:
@@ -190,8 +185,7 @@ def instrument_redis(client: Any) -> None:
     Args:
         client: Redis client instance
     """
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
-    if not enable_tracing:
+    if not settings.ENABLE_TRACING:
         return
 
     try:
@@ -207,8 +201,7 @@ def instrument_redis(client: Any) -> None:
 
 def instrument_celery() -> None:
     """Instrument Celery worker with OpenTelemetry."""
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
-    if not enable_tracing:
+    if not settings.ENABLE_TRACING:
         return
 
     try:
@@ -222,8 +215,7 @@ def instrument_celery() -> None:
 
 def instrument_ray() -> None:
     """Instrument Ray tasks and actors."""
-    enable_tracing = os.getenv("ENABLE_TRACING", "false").lower() == "true"
-    if not enable_tracing:
+    if not settings.ENABLE_TRACING:
         return
 
     try:

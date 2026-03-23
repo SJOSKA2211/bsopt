@@ -994,8 +994,15 @@ services:
     depends_on:
       - api
       - auth-service
+      - neural-pricing
+      - ml-inference
     networks:
       - bsopt-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9901/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     sysctls:
       - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3

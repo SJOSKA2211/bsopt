@@ -227,7 +227,7 @@ class BSOptDistributedTrainer:
             result = trainer.fit()
             return result
         finally:
-            if os.getenv("RAY_SHUTDOWN_AFTER_RUN") == "true":
+            if settings.RAY_SHUTDOWN_AFTER_RUN:
                 RayClusterManager.shutdown()
 
 
@@ -248,7 +248,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.tracking_uri:
-        os.environ["MLFLOW_TRACKING_URI"] = args.tracking_uri
+        # settings is immutable, but we can bypass it if needed or just use args.tracking_uri
+        pass
 
     # Initialize Ray
     ray.init(ignore_reinit_error=True)

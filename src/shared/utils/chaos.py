@@ -15,7 +15,8 @@ class ChaosMonkey:
     """
 
     def __init__(self):
-        self.enabled = os.getenv("BSOPT_CHAOS_MODE") == "1"
+        from src.shared.config import settings
+        self.enabled = settings.CHAOS_MODE
         if self.enabled:
             logger.warning("chaos_monkey_enabled_prepare_for_disaster")
 

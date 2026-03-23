@@ -66,7 +66,7 @@ issue_cert() {
     local service_name=$1
     local type=$2 # server or client
     
-    if [[ -f "${KEY_DIR}/${service_name}.crt" ]]; then
+    if [[ -f "${KEY_DIR}/${service_name}.crt" ]] && [[ -f "${KEY_DIR}/${service_name}.key" ]]; then
         echo "⏭️ Certificate for $service_name already exists, skipping."
         return
     fi
@@ -93,7 +93,10 @@ issue_cert() {
 
 # Server Certificates
 issue_cert "postgres" "server"
-issue_cert "envoy_edge" "server"
+issue_cert "envoy" "server"
+issue_cert "redis" "server"
+issue_cert "rabbitmq" "server"
+issue_cert "minio" "server"
 
 # Client Certificates
 CLIENT_SERVICES=(
@@ -102,19 +105,17 @@ CLIENT_SERVICES=(
     "portfolio"
     "ml-inference"
     "worker"
-    "ingestion-service"
-    "transformer"
+    "persistence-worker"
     "nse-scraper"
     "yfinance-scraper"
+    "scraper"
     "neural-pricing"
-    "mlops-worker"
-    "persistence-worker"
-    "mlflow"
+    "test-runner"
+    "pgbouncer"
     "ray-head"
     "ray-worker-1"
     "rl-training-worker"
-    "test-runner"
-    "pgbouncer"
+    "frontend"
 )
 
 for service in "${CLIENT_SERVICES[@]}"; do

@@ -58,6 +58,7 @@ check_prereq openssl
 detect_container_engine() {
     log_info "Detecting container engine..."
     
+    # Try podman first (often preferred in institutional/rootless environments)
     if command -v podman &> /dev/null; then
         CONTAINER_ENGINE="podman"
         if podman compose version &> /dev/null; then
@@ -85,10 +86,11 @@ detect_container_engine() {
     fi
 }
 
-
 # Compose command wrapper
 compose_cmd() {
+    # Ensure secrets are loaded into the environment before we run compose commands
     load_decrypted_secrets
+    
     if [ -f "$ENV_FILE" ]; then
         $COMPOSE_ENGINE --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
     else
@@ -108,11 +110,12 @@ container_exec() {
 # ==============================================================================
 initialize_pki() {
     log_info "Initializing Institutional PKI Layer..."
+    chmod +x ./scripts/setup_pki.sh
     ./scripts/setup_pki.sh
 }
 
 # ==============================================================================
-# 3. .env Orchestration & Encryption
+# 3. .env Orchestration & Encryption (Hardened)
 # ==============================================================================
 setup_env_file() {
     log_info "Setting up .env file..."
@@ -125,8 +128,6 @@ setup_env_file() {
             touch "${ENV_FILE}"
             log_warn "Created empty .env file"
         fi
-    else
-        log_info ".env already exists"
     fi
 }
 
@@ -148,35 +149,33 @@ encrypt_secret() {
 secure_env_file() {
     log_info "Securing sensitive environment variables..."
     
-    # Generate passwords if missing
-    for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET RABBITMQ_PASSWORD MINIO_ROOT_PASSWORD; do
-        if ! grep -q "^${var}=" "${ENV_FILE}" || [[ -z $(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'") ]]; then
-            log_info "Generating $var..."
-            set_env_var "${var}" "$(openssl rand -hex 32)"
-        fi
-    done
-
-    # Encrypt sensitive fields
-    SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
+    # Generate passwords if missing or empty
+    local SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
     
     for var in "${SENSITIVE_VARS[@]}"; do
-        VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
-        if [[ ! "$VAL" =~ ^ENC_ ]]; then
+        local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+        if [ -z "$CURRENT_VAL" ] && ! grep -q "^ENC_${var}=" "${ENV_FILE}"; then
+            log_info "Generating random $var..."
+            local NEW_VAL=$(openssl rand -hex 32)
+            set_env_var "${var}" "$NEW_VAL"
+            CURRENT_VAL="$NEW_VAL"
+        fi
+
+        # Encrypt if not already encrypted
+        if [ -n "$CURRENT_VAL" ] && [[ ! "$CURRENT_VAL" =~ ^ENC_ ]]; then
             log_info "Encrypting $var..."
-            ENC_VAL=$(encrypt_secret "$VAL")
+            local ENC_VAL=$(encrypt_secret "$CURRENT_VAL")
             set_env_var "ENC_${var}" "$ENC_VAL"
-            # Ensure it's available in the current session before removal from file
-            export "$var"="$VAL"
             # Remove plaintext version for security at rest
             sed -i "/^${var}=/d" "${ENV_FILE}"
         fi
     done
     
-    log_success "Secrets vaulted in .env"
+    log_success "Secrets vaulted securely in .env"
 }
 
 # ==============================================================================
-# 4. Sequential Service Startup with Health Checks
+# 4. Sequential Service Startup with Health Gating
 # ==============================================================================
 wait_for_service() {
     local service_name=$1
@@ -184,30 +183,26 @@ wait_for_service() {
     local max_retries=${3:-60}
     local base_interval=${4:-2}
     local retry_count=0
-    local container_id=""
+    
+    log_info "Starting $service_name..."
+    compose_cmd up -d "$service_name"
     
     log_info "Waiting for $service_name to be healthy..."
     
-    compose_cmd up -d "$service_name" 2>/dev/null || true
-    sleep 3
-    container_id=$(compose_cmd ps -q "$service_name" 2>/dev/null | head -n 1)
-    
-    if [ -z "$container_id" ]; then
-        log_error "Could not get container ID for $service_name"
-        return 1
-    fi
-    
     while [ $retry_count -lt $max_retries ]; do
-        if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
-            log_success "$service_name is healthy"
-            return 0
+        local container_id=$(compose_cmd ps -q "$service_name" 2>/dev/null | head -n 1)
+        if [ -n "$container_id" ]; then
+            if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
+                log_success "$service_name is healthy"
+                return 0
+            fi
         fi
         echo -n "."
         sleep $base_interval
         retry_count=$((retry_count+1))
     done
     
-    log_error "$service_name failed to become healthy"
+    log_error "$service_name failed to become healthy. Logs:"
     compose_cmd logs "$service_name" | tail -n 20
     return 1
 }
@@ -217,7 +212,7 @@ wait_for_service() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Advanced Bootstrap v3.1 (Hardened)${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.0 (Enhanced)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
     detect_container_engine
@@ -225,40 +220,41 @@ main() {
     setup_env_file
     secure_env_file
     
-    log_info "Building images with decryption shim..."
-    compose_cmd build api auth-service worker || log_warn "Build failed, continuing with available images..."
+    log_info "Building core images..."
+    compose_cmd build api auth-service worker neural-pricing
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase A: Database Layer (Postgres + PgBouncer)${NC}"
+    echo -e "${BLUE}Phase A: Persistent Database Layer${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "postgres" "pg_isready -U admin -d bsopt"
     wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin"
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Caching & Messaging${NC}"
+    echo -e "${BLUE}Phase B: Performance Caching & Message Bus${NC}"
     echo "------------------------------------------------------------------------------"
-    REDIS_PASS=$(openssl pkeyutl -decrypt -inkey "${KEYS_DIR}/vault/vault.key" -in <(grep "^ENC_REDIS_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'" | base64 -d) 2>/dev/null || echo "bsopt_redis_secret")
-    wait_for_service "redis" "redis-cli -a ${REDIS_PASS} ping"
+    # Note: load_decrypted_secrets ensures REDIS_PASSWORD is in shell env
+    wait_for_service "redis" "redis-cli -a \${REDIS_PASSWORD} ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase C: Application Layer${NC}"
+    echo -e "${BLUE}Phase C: Distributed Application Microservices${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "auth-service" "wget -qO- --spider http://localhost:3001/ || exit 1"
     wait_for_service "api" "wget -qO- --spider http://localhost:8000/health || exit 1"
+    wait_for_service "neural-pricing" "wget -qO- --spider http://localhost:8000/health || exit 1"
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase D: Edge Gateway (Envoy)${NC}"
+    echo -e "${BLUE}Phase D: Edge Orchestration (Envoy)${NC}"
     echo "------------------------------------------------------------------------------"
-    wait_for_service "envoy" "wget -qO- --spider http://localhost:8080/ready || exit 1"
+    wait_for_service "envoy" "wget -qO- --spider http://localhost:9901/ready || exit 1"
     
     echo ""
     echo "=============================================================================="
-    echo -e "${GREEN}✅ EQUAFLOW HARDENED STACK READY${NC}"
+    echo -e "${GREEN}✅ EQUAFLOW INSTITUTIONAL STACK FULLY BOOTSTRAPPED${NC}"
     echo "=============================================================================="
 }
 

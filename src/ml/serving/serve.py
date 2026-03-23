@@ -31,10 +31,11 @@ from src.shared.observability import (
     increment_counter,
     observe_latency,
 )
-from src.shared.utils.circuit_breaker import (  # Import both
+from src.shared.utils.circuit_breaker import (
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,
 )
+from src.shared.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ async def load_xgb_model():
 
     try:
         # Check for Quantized ONNX first
-        int8_path = os.getenv("XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
+        int8_path = settings.XGB_INT8_MODEL_PATH or "models/latest_xgb_pricing.int8.onnx"
         exists_int8 = await anyio.to_thread.run_sync(os.path.exists, int8_path)
         if exists_int8:
             state["xgb_ort_session"] = ONNXInferenceEngine(int8_path)
@@ -134,7 +135,7 @@ async def load_xgb_model():
             return
 
         # Fallback to standard ONNX
-        onnx_path = os.getenv("XGB_ONNX_MODEL_PATH", "models/latest_xgb_pricing.onnx")
+        onnx_path = settings.XGB_ONNX_MODEL_PATH or "models/latest_xgb_pricing.onnx"
         exists_onnx = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
         if exists_onnx:
             state["xgb_ort_session"] = ONNXInferenceEngine(onnx_path)
@@ -142,7 +143,7 @@ async def load_xgb_model():
             MODEL_LOAD_STATUS.labels(model_type="xgb_onnx").set(1)
             return
 
-        model_uri = os.getenv("XGB_MODEL_URI", "models:/XGBoostOptionPricer/Production")
+        model_uri = settings.XGB_MODEL_URI or "models:/XGBoostOptionPricer/Production"
         logger.info(f"Loading XGBoost model from {model_uri} via MLflow...")
         state["xgb_model"] = mlflow.pyfunc.load_model(model_uri)
         MODEL_LOAD_STATUS.labels(model_type="xgb").set(1)
@@ -159,7 +160,7 @@ async def load_onnx_model():
         abs_path = await anyio.to_thread.run_sync(os.path.abspath, __file__)
         base_dir = os.path.dirname(abs_path)
         default_onnx_path = os.path.join(base_dir, "models", "nn_option_pricer.onnx")
-        onnx_path = os.getenv("NN_MODEL_PATH", default_onnx_path)
+        onnx_path = settings.NN_MODEL_PATH or default_onnx_path
 
         exists = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
         if exists:
