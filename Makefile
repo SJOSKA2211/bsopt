@@ -4,45 +4,23 @@
 # Unified Orchestration for Rust, Python, gRPC, and Envoy.
 # ==============================================================================
 
-# Unified Orchestration: Prioritize V2 plugins (podman compose) over V1 (podman-compose)
-PODMAN_V2 := $(shell podman compose version >/dev/null 2>&1 && podman system info >/dev/null 2>&1 && echo "podman compose")
-PODMAN_V1 := $(shell which podman-compose 2>/dev/null)
-DOCKER_V2 := $(shell docker compose version >/dev/null 2>&1 && echo "docker compose")
-DOCKER_V1 := $(shell which docker-compose 2>/dev/null)
+# Simplified Orchestration Detection (Prioritizes Podman)
+CONTAINER_ENGINE := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
+COMPOSE_ENGINE := $(shell if [ "$(CONTAINER_ENGINE)" = "podman" ]; then \
+    (podman compose version >/dev/null 2>&1 && echo "podman compose") || echo "podman-compose"; \
+else \
+    (docker compose version >/dev/null 2>&1 && echo "docker compose") || echo "docker-compose"; \
+fi)
 
-# Prioritize Docker in CI environments to avoid Podman socket issues
-ifdef GITHUB_ACTIONS
-  ifneq ($(DOCKER_V2),)
-    DOCKER_COMPOSE := $(DOCKER_V2)
-    CONTAINER_ENGINE := docker
-  else ifneq ($(DOCKER_V1),)
-    DOCKER_COMPOSE := $(DOCKER_V1)
-    CONTAINER_ENGINE := docker
-  endif
-endif
-
-# Fallback to standard detection if not in CI or Docker not found
-ifeq ($(DOCKER_COMPOSE),)
-  ifneq ($(PODMAN_V2),)
-    DOCKER_COMPOSE := $(PODMAN_V2)
-    CONTAINER_ENGINE := podman
-  else ifneq ($(PODMAN_V1),)
-    DOCKER_COMPOSE := $(PODMAN_V1)
-    CONTAINER_ENGINE := podman
-  else ifneq ($(DOCKER_V2),)
-    DOCKER_COMPOSE := $(DOCKER_V2)
-    CONTAINER_ENGINE := docker
-  else ifneq ($(DOCKER_V1),)
-    DOCKER_COMPOSE := $(DOCKER_V1)
-    CONTAINER_ENGINE := docker
-  else
-    $(error "No container orchestration found (podman compose, podman-compose, or docker compose)")
-  endif
-endif
+# Export for use in sub-processes and scripts
+export CONTAINER_ENGINE
+export COMPOSE_ENGINE
 
 # Centralized Orchestration Manifest
 ENV_FILE := .env
 COMPOSE_FILE := infrastructure/orchestration/docker-compose.yml
+
+DOCKER_COMPOSE := $(COMPOSE_ENGINE)
 
 ifneq ($(wildcard $(ENV_FILE)),)
   DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file $(ENV_FILE) -f $(COMPOSE_FILE)

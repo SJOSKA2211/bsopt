@@ -1,0 +1,51 @@
+# ==============================================================================
+# EQUAFLOW: THE INSTITUTIONAL-GRADE BASE (v1.0)
+# ==============================================================================
+# High-performance, secure, and lean foundation for all EquaFlow microservices.
+# Powered by Astral UV.
+# ==============================================================================
+
+# --- RUNTIME BASE ---
+FROM docker.io/library/python:3.12-slim-bookworm AS runtime
+
+# Institutional Environment
+ENV PYTHON_JIT=all \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=2 \
+    UV_LINK_MODE=copy \
+    PATH="/opt/venv/bin:$PATH"
+
+# System Dependencies & Hardening
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    tini \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Security: Dedicated Non-Root User
+RUN groupadd -g 1000 equaflow && \
+    useradd -r -u 1000 -g equaflow -m -d /home/equaflow equaflow
+
+WORKDIR /app
+RUN chown -R equaflow:equaflow /app
+
+# --- BUILDER FOUNDATION ---
+FROM runtime AS builder
+
+# Build-time dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install UV
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+ENV PATH="/uv/bin:$PATH"
+
+# Persistent UV Cache
+ENV UV_CACHE_DIR=/root/.cache/uv

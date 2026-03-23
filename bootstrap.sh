@@ -55,51 +55,16 @@ check_prereq openssl
 # ==============================================================================
 # 1. Container Engine & Compose Detection
 # ==============================================================================
-detect_container_engine() {
-    log_info "Detecting container engine..."
-    
-    # Try podman first (often preferred in institutional/rootless environments)
-    if command -v podman &> /dev/null; then
-        CONTAINER_ENGINE="podman"
-        if podman compose version &> /dev/null; then
-            COMPOSE_ENGINE="podman compose"
-        elif command -v podman-compose &> /dev/null; then
-            COMPOSE_ENGINE="podman-compose"
-        else
-            COMPOSE_ENGINE="podman compose"
-        fi
-        log_success "Detected: podman ($COMPOSE_ENGINE)"
-    elif command -v docker &> /dev/null; then
-        CONTAINER_ENGINE="docker"
-        if docker compose version &> /dev/null; then
-            COMPOSE_ENGINE="docker compose"
-        elif command -v docker-compose &> /dev/null; then
-            COMPOSE_ENGINE="docker-compose"
-        else
-            log_error "Docker found but no compose engine detected."
-            exit 1
-        fi
-        log_success "Detected: docker ($COMPOSE_ENGINE)"
-    else
-        log_error "No container engine (podman/docker) found."
-        exit 1
-    fi
-}
-
-# Compose command wrapper
-compose_cmd() {
-    # Ensure secrets are loaded into the environment before we run compose commands
-    load_decrypted_secrets
-    
-    if [ -f "$ENV_FILE" ]; then
-        $COMPOSE_ENGINE --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
-    else
-        $COMPOSE_ENGINE -f "$COMPOSE_FILE" "$@"
-    fi
-}
+# ==============================================================================
+# 1. Container Engine & Compose Detection
+# ==============================================================================
+# Handled by scripts/utils_env.sh detect_container_engine
 
 # Container exec wrapper
 container_exec() {
+    if [ -z "$CONTAINER_ENGINE" ]; then
+        detect_container_engine
+    fi
     local container_id=$1
     shift
     $CONTAINER_ENGINE exec "$container_id" "$@"
@@ -134,6 +99,7 @@ setup_env_file() {
 set_env_var() {
     local key=$1
     local value=$2
+    # Ensure value is quoted correctly in sed
     if grep -q "^${key}=" "${ENV_FILE}"; then
         sed -i "s|^${key}=.*|${key}=\"${value}\"|g" "${ENV_FILE}"
     else
@@ -149,11 +115,17 @@ encrypt_secret() {
 secure_env_file() {
     log_info "Securing sensitive environment variables..."
     
+    # Ensure PKI is initialized first (needed for vault.pub)
+    if [ ! -f "${KEYS_DIR}/vault/vault.pub" ]; then
+        initialize_pki
+    fi
+
     # Generate passwords if missing or empty
     local SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
     
     for var in "${SENSITIVE_VARS[@]}"; do
-        local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+        # Use grep to find the exact key, avoid partial matches
+        local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
         if [ -z "$CURRENT_VAL" ] && ! grep -q "^ENC_${var}=" "${ENV_FILE}"; then
             log_info "Generating random $var..."
             local NEW_VAL=$(openssl rand -hex 32)
@@ -185,15 +157,23 @@ wait_for_service() {
     local retry_count=0
     
     log_info "Starting $service_name..."
-    compose_cmd up -d "$service_name"
+    compose_cmd -f "$COMPOSE_FILE" up -d "$service_name"
     
     log_info "Waiting for $service_name to be healthy..."
     
     while [ $retry_count -lt $max_retries ]; do
-        local container_id=$(compose_cmd ps -q "$service_name" 2>/dev/null | head -n 1)
+        local container_id=$(compose_cmd -f "$COMPOSE_FILE" ps -q "$service_name" 2>/dev/null | head -n 1)
         if [ -n "$container_id" ]; then
+            # Use inspect to check health status if container engine supports it
+            local state=$($CONTAINER_ENGINE inspect -f '{{.State.Health.Status}}' "$container_id" 2>/dev/null)
+            if [ "$state" == "healthy" ]; then
+                log_success "$service_name is healthy (reported by engine)"
+                return 0
+            fi
+            
+            # Fallback to manual health command
             if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
-                log_success "$service_name is healthy"
+                log_success "$service_name is healthy (manual check)"
                 return 0
             fi
         fi
@@ -203,7 +183,7 @@ wait_for_service() {
     done
     
     log_error "$service_name failed to become healthy. Logs:"
-    compose_cmd logs "$service_name" | tail -n 20
+    compose_cmd -f "$COMPOSE_FILE" logs "$service_name" | tail -n 20
     return 1
 }
 
@@ -212,30 +192,32 @@ wait_for_service() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.0 (Enhanced)${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.1 (Zero-Touch Edition)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
     detect_container_engine
-    initialize_pki
     setup_env_file
     secure_env_file
     
+    # Reload secrets in case initial load missed newly generated ones
+    load_decrypted_secrets
+
     log_info "Building core images..."
-    compose_cmd build api auth-service worker neural-pricing
+    compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
     
     echo ""
     echo "------------------------------------------------------------------------------"
     echo -e "${BLUE}Phase A: Persistent Database Layer${NC}"
     echo "------------------------------------------------------------------------------"
-    wait_for_service "postgres" "pg_isready -U admin -d bsopt"
-    wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin"
+    # Postgres uses the decrypted environment variables
+    wait_for_service "postgres" "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"
+    wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"
     
     echo ""
     echo "------------------------------------------------------------------------------"
     echo -e "${BLUE}Phase B: Performance Caching & Message Bus${NC}"
     echo "------------------------------------------------------------------------------"
-    # Note: load_decrypted_secrets ensures REDIS_PASSWORD is in shell env
-    wait_for_service "redis" "redis-cli -a \${REDIS_PASSWORD} ping"
+    wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
     echo ""

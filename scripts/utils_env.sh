@@ -40,20 +40,41 @@ load_decrypted_secrets() {
     done < "$ENV_FILE"
 }
 
-# Wrapper for docker compose that ensures secrets are loaded
+# Detect container engine (podman/docker)
+detect_container_engine() {
+    if command -v podman >/dev/null 2>&1; then
+        CONTAINER_ENGINE="podman"
+        if podman compose version >/dev/null 2>&1; then
+            COMPOSE_ENGINE="podman compose"
+        else
+            COMPOSE_ENGINE="podman-compose"
+        fi
+    elif command -v docker >/dev/null 2>&1; then
+        CONTAINER_ENGINE="docker"
+        if docker compose version >/dev/null 2>&1; then
+            COMPOSE_ENGINE="docker compose"
+        else
+            COMPOSE_ENGINE="docker-compose"
+        fi
+    else
+        echo "[ERROR] No container engine (podman/docker) found."
+        exit 1
+    fi
+    export CONTAINER_ENGINE
+    export COMPOSE_ENGINE
+}
+
+# Wrapper for container compose that ensures secrets are loaded
 compose_cmd() {
+    if [ -z "$COMPOSE_ENGINE" ]; then
+        detect_container_engine
+    fi
     load_decrypted_secrets
     
-    # Detect docker compose or docker-compose
-    local DOCKER_COMPOSE_CMD=""
-    if docker compose version >/dev/null 2>&1; then
-        DOCKER_COMPOSE_CMD="docker compose"
-    elif command -v docker-compose >/dev/null 2>&1; then
-        DOCKER_COMPOSE_CMD="docker-compose"
+    local ENV_FILE=".env"
+    if [ -f "$ENV_FILE" ]; then
+        $COMPOSE_ENGINE --env-file "$ENV_FILE" "$@"
     else
-        echo "[ERROR] Docker Compose not found."
-        return 1
+        $COMPOSE_ENGINE "$@"
     fi
-    
-    $DOCKER_COMPOSE_CMD "$@"
 }

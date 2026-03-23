@@ -1,40 +1,32 @@
-# === Stage 1: Builder ===
-FROM docker.io/library/python:3.12-slim-bookworm AS builder
-RUN pip install uv
+# ==============================================================================
+# EQUAFLOW: SCRAPER MANIFOLD (v11.1)
+# ==============================================================================
+# Playwright-backed market data ingestion for the BSOPT platform.
+# Rebased on Institutional Base.
+# ==============================================================================
 
+# --- BUILDER ---
+FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=0
-ENV UV_LINK_MODE=copy
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_RETRIES=10
+COPY pyproject.toml README.md ./
+COPY src ./src
 
+# Install Playwright + App into venv
 RUN uv venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY pyproject.toml README.md ./
-COPY src /app/src
-
-# Install Python dependencies only in builder
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install . && uv pip install playwright
+    uv pip install playwright && \
+    uv pip install .
 
-
-# === Stage 2: Development ===
-FROM docker.io/library/python:3.12-slim-bookworm AS development
-
+# --- DEVELOPMENT ---
+FROM equaflow-base:latest AS development
 WORKDIR /app
 
-# Install build dependencies for dev (including Playwright system deps)
+# Install Playwright system dependencies (This stays in dev/production because it's runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gcc \
-    git \
-    curl \
-    # Playwright deps
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 \
@@ -44,56 +36,47 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Playwright browsers natively in development stage
+# Install Playwright browsers
 RUN playwright install --with-deps chromium
 
-# Copy everything for dev (hot-reloading)
+# Copy everything for dev (hot-reloading via volumes)
 COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "services/scrapers/engine.py"]
+CMD ["python", "src/ingestion/scrapers/engine.py"]
 
-
-# === Stage 3: Production ===
-FROM docker.io/library/python:3.12-slim-bookworm AS production
-
+# --- PRODUCTION ---
+FROM equaflow-base:latest AS production
 WORKDIR /app
 
-#  OPTIMIZED: Optimized performance flags
-ENV PYTHON_JIT=all
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONOPTIMIZE=2
-
-# Create a non-root user for security
-RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    curl \
-    tini \
-    # Playwright deps
+# Install Playwright system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 \
-    && rm -rf /var/lib/apt/lists/* \
-    && chown -R bsopt:bsopt /app
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy virtualenv from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Playwright browsers natively in production stage
+# Install Playwright browsers (production layer)
 RUN playwright install --with-deps chromium
 
-COPY src /app/src
-RUN chown -R bsopt:bsopt /app
+# Copy source + entrypoint
+COPY src ./src
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-USER bsopt
+# Institutional Security & Performance
+USER equaflow
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import sys; sys.exit(0)" || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["python", "src/scrapers/engine.py"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
+CMD ["python", "src/ingestion/scrapers/engine.py"]

@@ -1,6 +1,13 @@
 name: bsopt
 
 services:
+  # === Institutional Foundation ===
+  base:
+    image: equaflow-base:latest
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.base
+
   # === Database Service ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
