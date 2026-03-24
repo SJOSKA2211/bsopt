@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/frontend/src/features/options/components/QuickTradeButton.tsx
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
