@@ -61,6 +61,13 @@ check_prereq openssl
 # Handled by scripts/utils_env.sh detect_container_engine
 
 # Container exec wrapper
+compose_cmd() {
+    if [ -z "${COMPOSE_ENGINE:-}" ]; then
+        detect_container_engine
+    fi
+    $COMPOSE_ENGINE "$@"
+}
+
 container_exec() {
     if [ -z "$CONTAINER_ENGINE" ]; then
         detect_container_engine
