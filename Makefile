@@ -20,6 +20,10 @@ setup:
 	@$(MAKE) gen-all
 	@echo "🎯 System Fully Initialized."
 
+# bootstrap: Fully Autonomous "Zero-Touch" Initialization
+# It enforces executable permissions on all system scripts and initializes PKI, Secrets, and core Infra.
+bootstrap: setup
+
 revamp: clean setup
 	@echo "🔄 Full System Revamp Complete."
 

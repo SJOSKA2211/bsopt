@@ -15,12 +15,15 @@ from src.shared.observability import (
     setup_logging,
 )
 
+from src.ml.aiops.autonomous_guardian import AutonomousGuardian
+
 logger = structlog.get_logger(__name__)
 
-class SelfHealingOrchestrator:
+class AutonomousEngine:
     """
     Autonomous orchestrator that combines real-time anomaly detection
-    with distribution-based drift analysis and automated remediation.
+    with distribution-based drift analysis, automated remediation,
+    and high-level guardian oversight.
     """
 
     def __init__(
@@ -66,6 +69,9 @@ class SelfHealingOrchestrator:
         )
         self.max_history = 1000
         self.last_baseline_update = time.time()
+        
+        # 4. Guardian Oversight
+        self.guardian = AutonomousGuardian(self)
 
     async def _process_redis_anomalies(self):
         """Polls Redis for externally reported anomalies (e.g. from Webhooks)."""
@@ -247,9 +253,12 @@ class SelfHealingOrchestrator:
         return system_anomalies
 
     async def start(self, data_source: Any):
-        """Start the autonomous self-healing loop."""
+        """Start the autonomous self-healing loop and guardian oversight."""
         self.is_running = True
-        logger.info("self_healing_orchestrator_started")
+        logger.info("autonomous_engine_started")
+
+        # Start Guardian in a separate task
+        asyncio.create_task(self.guardian.monitor_integrity())
 
         while self.is_running:
             try:

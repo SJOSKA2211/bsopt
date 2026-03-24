@@ -5,6 +5,13 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# 0. Autonomous Script Management
+echo "📂 Enforcing executable permissions for system scripts..."
+chmod +x scripts/*.sh scripts/*.py
+
+# 0.1 Dependency Verification
+command -v openssl >/dev/null 2>&1 || { echo >&2 "❌ Error: openssl is required but not installed."; exit 1; }
+
 # 1. Detect Container Engine
 if command -v podman &> /dev/null; then
     CONTAINER_CMD="podman"

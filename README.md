@@ -74,15 +74,20 @@ The BS-OPT platform requires several low-level toolchains for its "Hardware-Flui
 - **Numba & LLVM**: For JIT-compiling Python-based mathematical kernels.
 - **Docker**: For containerized orchestration.
 
-##  Quick Start
+## 🚀 Quick Start (Zero-Touch)
+The BS-OPT platform is designed for autonomous, "Zero-Touch" initialization.
+
 ```bash
-# Start the Stack
+# 1. Autonomous Bootstrap (PKI, Secrets, Database, Infra)
+make bootstrap
+
+# 2. Start Full Application Ecosystem
 make up
 
-# Run Tests
+# 3. Run Comprehensive Verification
 make test-all
 
-# Access CLI
+# 4. Access Administrative CLI
 make cli ARGS="status"
 ```
 
