@@ -83,7 +83,6 @@ quant = [
 distributed = [
     "ray[default,train,tune]>=2.30.0",
     "celery>=5.4.0",
-    "confluent-kafka>=2.3.0",
 ]
 dev = [
     "pytest>=8.2.0,<9.0.0",

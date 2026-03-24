@@ -32,7 +32,7 @@ _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
 
-def msgspec_dumps(obj: Any) -> str:
+def msgspec_dumps(obj: object) -> str:
     return _encoder.encode(obj).decode()
 
 
@@ -272,8 +272,10 @@ def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
 
 
 # Legacy Lazy Loaders
+from typing import Callable
+
 class LazySessionFactory:
-    def __init__(self, getter: Any) -> None:
+    def __init__(self, getter: Callable[[], Any]) -> None:
         self._getter = getter
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:

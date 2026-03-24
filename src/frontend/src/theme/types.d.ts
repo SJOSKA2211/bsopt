@@ -23,9 +23,9 @@ declare module '@mui/material/styles' {
         rho: string;
       };
       qfd: {
-        nebula: string;
-        quantum: string;
-        electrum: string;
+        emerald: string;
+        amber: string;
+        sky: string;
         iridescent: string;
       };
     };
@@ -53,9 +53,9 @@ declare module '@mui/material/styles' {
         rho?: string;
       };
       qfd?: {
-        nebula?: string;
-        quantum?: string;
-        electrum?: string;
+        emerald?: string;
+        amber?: string;
+        sky?: string;
         iridescent?: string;
       };
     };

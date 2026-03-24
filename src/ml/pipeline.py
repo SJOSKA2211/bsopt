@@ -102,13 +102,8 @@ class DataPipeline:
                 break
 
         if not records:
-            from src.ml.training.data_gen import (
-                generate_synthetic_data_numba as generate_synthetic_data,
-            )
-
-            logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
-            X, y, features = generate_synthetic_data(self.config.min_samples)
-            return X, y, features, {"data_source": "synthetic_numba", "count": len(X)}
+            logger.error("data_pipeline_no_real_data_found", symbols=self.config.symbols)
+            raise ValueError(f"No real market data found in Postgres for symbols: {self.config.symbols}")
 
         # Load into Pandas for vectorized cleaning and robust cross-sectional manipulation
         df = pd.DataFrame(records)

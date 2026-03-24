@@ -25,6 +25,7 @@ from services.api.routes import (
     pricing_router,
     users_router,
     websocket_router,
+    market_router,
 )
 from src.auth.auth import RoleChecker
 from src.config import settings
@@ -199,6 +200,7 @@ api_router.include_router(ml_router)
 api_router.include_router(options_router)
 api_router.include_router(portfolio_router)
 api_router.include_router(users_router)
+api_router.include_router(market_router)
 api_router.include_router(websocket_router)  # Include websocket router
 
 if settings.ENVIRONMENT not in ("prod", "production"):

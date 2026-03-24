@@ -37,8 +37,8 @@ import type { Ticker } from '../../api/types';
 // ---------------------------------------------------------------------------
 const TickerStrip: React.FC = () => {
   const theme = useTheme();
-  const financial = (theme.palette as any).financial;
-  const qfd = financial?.qfd as any;
+  const financial = theme.palette.financial;
+  const qfd = financial?.qfd;
   
   const { data: tickers, isLoading } = useMarketTickers();
 

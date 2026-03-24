@@ -59,6 +59,16 @@ class RabbitMQManager:
             message, routing_key=self.queue_name
         )
 
+    async def publish_batch(self, batch: list[dict]):
+        """Publish a batch of market ticks to the queue."""
+        if not self.channel:
+            await self.connect()
+            
+        # Use a transaction-like approach or just gather the publishes
+        # For aio-pika, simple gather is often sufficient for performance
+        tasks = [self.publish_tick(data) for data in batch]
+        await asyncio.gather(*tasks)
+
     async def consume_ticks(self, callback: Callable[[dict], Any]):
         """Consume ticks from the queue and trigger callback."""
         if not self.channel:

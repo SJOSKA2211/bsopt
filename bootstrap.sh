@@ -237,14 +237,10 @@ main() {
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Performance Backplane (Redis/RabbitMQ/Kafka)${NC}"
+    echo -e "${BLUE}Phase B: Performance Backplane (Redis/RabbitMQ)${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
-    
-    if grep -q "kafka-1:" "$COMPOSE_FILE"; then
-        wait_for_service "kafka-1" "echo > /dev/tcp/localhost/9092"
-    fi
     
     echo ""
     echo "------------------------------------------------------------------------------"

@@ -1,8 +1,3 @@
-"""
-
-Application configuration management.
-"""
-
 import os
 from typing import Annotated
 
@@ -426,9 +421,11 @@ class Settings(BaseSettings):
         """Validate security-critical settings and apply environment defaults."""
 
         # 0. Master Secret and Key Derivation
-        if self.is_production and not self.BETTER_AUTH_SECRET:
-            # Node.js auth-service also enforces this.
-            raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
+        if self.is_production:
+            if not self.BETTER_AUTH_SECRET:
+                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
+            if len(self.BETTER_AUTH_SECRET) < 32:
+                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters for robust key derivation.")
 
         # Derivation logic (Shared between dev and prod if master secret exists)
         if self.BETTER_AUTH_SECRET:

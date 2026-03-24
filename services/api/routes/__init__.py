@@ -11,6 +11,7 @@ Modular API route definitions:
 
 from services.api.routes.auth import router as auth_router
 from services.api.routes.debug import router as debug_router
+from services.api.routes.market import router as market_router
 from services.api.routes.ml import router as ml_router
 from services.api.routes.options import router as options_router
 from services.api.routes.portfolio import router as portfolio_router
@@ -31,4 +32,5 @@ __all__ = [
     "debug_router",
     "system_router",
     "websocket_router",
+    "market_router",
 ]

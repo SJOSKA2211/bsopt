@@ -13,7 +13,17 @@ services:
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
     restart: unless-stopped
-    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf' -c 'ident_file=/etc/postgresql/pg_ident.conf'
+    command: >
+      sh -c "
+      cp /etc/postgresql/postgres.key.host /tmp/postgres.key &&
+      chown 70:70 /tmp/postgres.key &&
+      chmod 600 /tmp/postgres.key &&
+      exec docker-entrypoint.sh postgres 
+      -c 'config_file=/etc/postgresql/postgresql.conf' 
+      -c 'hba_file=/etc/postgresql/pg_hba.conf' 
+      -c 'ident_file=/etc/postgresql/pg_ident.conf' 
+      -c 'ssl_key_file=/tmp/postgres.key'
+      "
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-bsopt}
       POSTGRES_USER: ${POSTGRES_USER:-admin}
@@ -29,7 +39,7 @@ services:
       - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
       - ../../.pki/postgres.crt:/etc/postgresql/postgres.crt:ro
-      - ../../.pki/postgres.key:/etc/postgresql/postgres.key:ro
+      - ../../.pki/postgres.key:/etc/postgresql/postgres.key.host:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../configs/pg_ident.conf:/etc/postgresql/pg_ident.conf:ro
     deploy:
@@ -443,36 +453,6 @@ services:
       - bsopt-network
     command: celery -A src.workers.tasks.celery_app worker -l info --concurrency=4 --prefetch-multiplier=1
 
-  # === Persistence Worker (Kafka-to-TimescaleDB) ===
-  persistence-worker:
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.worker
-      target: development
-    volumes:
-      - ../../src/shared:/app/src/shared
-      - ../../.pki/persistence-worker.crt:/etc/postgresql/persistence-worker.crt:ro
-      - ../../.pki/persistence-worker.key:/etc/postgresql/persistence-worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/persistence-worker.crt&sslkey=/etc/postgresql/persistence-worker.key
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      kafka-1:
-        condition: service_started
-    networks:
-      - bsopt-network
-    command: python src/ingestion/consumer.py
 
   # === NSE Scraper Service ===
   nse-scraper:
@@ -700,27 +680,6 @@ services:
       - bsopt-network
     command: python src/blockchain/worker.py
 
-  # === [Specialized] Streaming Service ===
-  kafka-1:
-    image: docker.io/library/confluentinc/cp-kafka:latest
-    environment:
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka-1:9092,CONTROLLER://kafka-1:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    deploy:
-      resources:
-        limits:
-          memory: 2gb
-    networks:
-      - bsopt-network
-    sysctls:
-      - net.core.somaxconn=4096
-      - net.ipv4.tcp_max_syn_backlog=8192
-      - net.ipv4.tcp_tw_reuse=1
 
   # === [Specialized] ML Compute Cluster ===
   ray-head:
@@ -938,10 +897,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
     depends_on:
-      - kafka-1
       - pgbouncer
     networks:
       - bsopt-network
@@ -969,10 +926,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/transformer.crt&sslkey=/etc/postgresql/transformer.key
     depends_on:
-      - kafka-1
       - ingestion-service
       - pgbouncer
     networks:

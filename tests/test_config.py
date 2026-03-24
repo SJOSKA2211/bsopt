@@ -17,7 +17,8 @@ def test_settings_initialization():
         DATABASE_URL="postgresql://user:pass@localhost/db",
         REDIS_URL="redis://localhost:6379/0",
         RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
-        JWT_SECRET="test-secret",
+        JWT_SECRET="test-secret-at-least-32-chars-long-123",
+        BETTER_AUTH_SECRET="test-master-secret-at-least-32-chars-long-123",
     )
     assert_equal(settings.PROJECT_NAME, "Black-Scholes Advanced Option Pricing Platform")
     assert settings.ENVIRONMENT in ["dev", "staging", "prod"]
@@ -33,7 +34,8 @@ def test_settings_validation():
         DATABASE_URL="postgresql://user:pass@localhost/db",
         REDIS_URL="redis://localhost:6379/0",
         RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
-        JWT_SECRET="test-secret",
+        JWT_SECRET="test-secret-at-least-32-chars-long-123",
+        BETTER_AUTH_SECRET="test-master-secret-at-least-32-chars-long-123",
     )
     assert_equal(settings.ACCESS_TOKEN_EXPIRE_MINUTES, 60)
 
@@ -209,9 +211,10 @@ def test_validators_coverage():
 
     # Test JWT secret default in prod
     with patch.dict(os.environ, {"ENVIRONMENT": "prod"}):
-        with pytest.raises(ValueError, match="JWT_SECRET must be changed"):
+        with pytest.raises(ValueError, match="BETTER_AUTH_SECRET must be at least 32 characters"):
             Settings(
-                JWT_SECRET="change-me-in-production",
+                JWT_SECRET="robust-jwt-secret-at-least-32-chars-long",
+                BETTER_AUTH_SECRET="too-short",
                 DATABASE_URL="postgresql://user:pass@localhost/db",
                 REDIS_URL="redis://localhost:6379/0",
                 RABBITMQ_URL="amqp://guest:guest@localhost:5672//",

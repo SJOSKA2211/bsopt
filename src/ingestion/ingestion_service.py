@@ -10,7 +10,7 @@ except ImportError:
 
 
 from src.shared.protos import data_pb2, data_pb2_grpc
-from src.workers.streaming.kafka_producer import MarketDataProducer
+from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
@@ -18,12 +18,12 @@ logger = structlog.get_logger(__name__)
 class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
     """
     gRPC Servicer for Centralized Data Ingestion.
-    Receives ticks from scrapers and publishes to Kafka.
+    Receives ticks from scrapers and publishes to RabbitMQ.
     """
 
     def __init__(self):
-        # Initialize Kafka Producer
-        self.producer = MarketDataProducer()
+        # Initialize RabbitMQ Client
+        self.rmq = get_rabbitmq()
         # In-memory cache for outlier detection
         self.last_price_cache = {}
 
@@ -59,9 +59,9 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                     }
                 )
 
-            # 2. Publish validated batch to Kafka
+            # 2. Publish validated batch to RabbitMQ
             if batch:
-                await self.producer.produce_batch(batch, topic="market-data")
+                await self.rmq.publish_batch(batch)
                 logger.info(
                     "ingestion_batch_processed",
                     count=len(batch),

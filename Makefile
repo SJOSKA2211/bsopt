@@ -45,9 +45,54 @@ ps:
 shell-%:
 	$(CONTAINER_ENGINE) exec -it $(shell $(COMPOSE_CMD) -f $(COMPOSE_FILE) ps -q $*) /bin/bash
 
+# --- Build & Generation ---
+proto-gen:
+	@echo "🧬 Generating gRPC code from protos..."
+	@mkdir -p src/shared/protos
+	python -m grpc_tools.protoc -I./protos --python_out=src/shared/protos --grpc_python_out=src/shared/protos ./protos/*.proto
+	@touch src/shared/protos/__init__.py
+	@echo "Proto generation complete."
+
+fbs-gen:
+	@echo "📦 Generating FlatBuffers code..."
+	@mkdir -p src/shared/fbs
+	flatc --python -o src/shared/fbs protos/market_tick.fbs
+	@touch src/shared/fbs/__init__.py
+	@echo "FlatBuffers generation complete."
+
+clean-gen:
+	@echo "🧹 Removing generated code..."
+	rm -rf src/shared/protos/*_pb2*.py src/shared/fbs/*
+	@echo "Cleanup complete."
+
+gen-all: clean-gen proto-gen fbs-gen
+
 # --- Verification ---
 test-all:
 	@echo "🧪 Running Institutional Test Suite..."
-	# Placeholder for phase 5
+	pytest tests/
 	@echo "Tests verified."
+
+lint:
+	@echo "🔍 Running codebase linting (ruff)..."
+	ruff check .
+	ruff format --check .
+	@echo "Linting complete."
+
+verify-proto: proto-gen
+	@echo "🧪 Verifying generated proto integrity..."
+	python -c "from src.shared.protos import data_pb2; print('Proto Data Engine: Synchronized')"
+	@echo "Proto verification complete."
+
+help:
+	@echo "EquaFlow Institutional Build Factory help:"
+	@echo "  bootstrap    - Run zero-touch bootstrap"
+	@echo "  build        - Build container images"
+	@echo "  up           - Start services"
+	@echo "  down         - Stop services"
+	@echo "  gen-all      - Generate gRPC and FlatBuffers code"
+	@echo "  test-all     - Run full test suite"
+	@echo "  lint         - Run ruff linting and formatting check"
+	@echo "  verify-proto - Verify generated protocol integrity"
+	@echo "  clean        - Deep clean volumes and logs"
 

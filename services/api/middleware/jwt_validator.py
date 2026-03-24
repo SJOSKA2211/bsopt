@@ -20,7 +20,9 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TYPE_CHECKING
+if TYPE_CHECKING:
+    from redis.asyncio import Redis
 
 import jwt
 import structlog
@@ -65,7 +67,7 @@ class JWTValidator:
 
     def __init__(
         self,
-        redis_client: Any | None = None,
+        redis_client: Redis | None = None,
         cache_ttl: int = 300,
         blacklist_ttl: int = 3600,
     ):
@@ -168,7 +170,7 @@ class JWTValidator:
             return settings.JWT_SECRET
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
-    def _decode_token(self, token: str) -> dict[str, Any]:
+    def _decode_token(self, token: str) -> dict[str, object]:
         """Decode token without verification (for header inspection)."""
         return jwt.decode(
             token,
@@ -259,7 +261,7 @@ class JWTValidator:
         tier: str = "free",
         roles: list[str] = None,
         token_type: str = "access",
-        additional_claims: dict[str, Any] = None,
+        additional_claims: dict[str, object] = None,
     ) -> tuple[str, int]:
         """
         Create a new JWT token.
@@ -326,7 +328,7 @@ class JWTValidatorMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        redis_client: Any | None = None,
+        redis_client: Redis | None = None,
         excluded_paths: set[str] | None = None,
     ):
         super().__init__(app)
