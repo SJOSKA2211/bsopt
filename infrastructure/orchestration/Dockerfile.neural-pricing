@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM Manifold-base:builder AS builder
+FROM manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install /tmp/wheels/*.whl
 
 # --- DEVELOPMENT ---
-FROM Manifold-base:builder AS development
+FROM manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -47,7 +47,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -e .
 
 # --- PRODUCTION ---
-FROM Manifold-base:final AS production
+FROM manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the neural builder

@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM Manifold-base:builder AS builder
+FROM manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
@@ -39,7 +39,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install /tmp/wheels/*.whl
 
 # --- RUNNER ---
-FROM Manifold-base:final
+FROM manifold-base:final
 WORKDIR /app
 
 # Copy virtualenv from builder

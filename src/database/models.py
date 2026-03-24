@@ -162,7 +162,7 @@ class AuditLog(Base):
     client_ip: Mapped[str] = mapped_column(INET, nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
+    extra_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
 
     __table_args__ = (
         Index(

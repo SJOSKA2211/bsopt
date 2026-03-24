@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM Manifold-base:builder AS builder
+FROM manifold-base:builder AS builder
 WORKDIR /app
 
 # Install worker-specific dependencies
@@ -19,7 +19,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM Manifold-base:builder AS development
+FROM manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -39,7 +39,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
 
 # --- FINAL RUNTIME ---
-FROM Manifold-base:final AS production
+FROM manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the worker builder

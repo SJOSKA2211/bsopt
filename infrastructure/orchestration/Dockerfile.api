@@ -2,7 +2,7 @@
 # High-performance ASGI gateway for the BSOPT platform.
 
 # --- BUILDER ---
-FROM Manifold-base:builder AS builder
+FROM manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
@@ -15,7 +15,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM Manifold-base:builder AS development
+FROM manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source + requirements
@@ -29,11 +29,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -e .
 
 # --- FINAL RUNTIME ---
-FROM Manifold-base:final AS production
+FROM manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the API builder
-# Note: Manifold-base:final already has the core venv.
+# Note: manifold-base:final already has the core venv.
 # We copy the one from our local builder which has the core + api + app.
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"

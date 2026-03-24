@@ -3,7 +3,7 @@ name: bsopt
 services:
   
   base:
-    image: Manifold-base:latest
+    image: manifold-base:latest
     pull_policy: build
     build:
       context: ../..

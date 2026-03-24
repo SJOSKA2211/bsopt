@@ -220,8 +220,8 @@ main() {
 
     # Ensure base image is up to date
     if [ -f "infrastructure/orchestration/Dockerfile.base" ]; then
-        log_info "Checking base image Manifold-base:latest..."
-        $CONTAINER_ENGINE build -t Manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
+        log_info "Checking base image manifold-base:latest..."
+        $CONTAINER_ENGINE build -t manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
     fi
 
     log_info "Building core operational cluster..."
