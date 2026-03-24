@@ -49,13 +49,13 @@ router = APIRouter(
 )
 
 
-@router.post("/register", response_model=None, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=DataResponseStruct[TokenResponse], status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> Any:
+) -> DataResponseStruct[TokenResponse]:
     """
     Register a new user using High-Performance Native DB procedure.
     """
@@ -95,13 +95,13 @@ async def register(
     )
 
 
-@router.post("/login", response_model=None)
+@router.post("/login", response_model=DataResponseStruct[LoginResponse])
 async def login(
     request: Request,
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> Any:
+) -> DataResponseStruct[LoginResponse]:
     """
     Authenticate via Native DB procedure (High Performance).
     """
@@ -144,11 +144,11 @@ async def login(
         raise HTTPException(status_code=500, detail="Authentication failure")
 
 
-@router.post("/refresh", response_model=None)
+@router.post("/refresh", response_model=DataResponseStruct[TokenResponse])
 async def refresh_token(
     data: RefreshTokenRequest,
     db: AsyncSession = Depends(get_async_db),
-) -> Any:
+) -> DataResponseStruct[TokenResponse]:
     """
     Refresh access token using a valid refresh token.
     Implements Refresh Token Rotation for enhanced security.
@@ -214,12 +214,12 @@ async def logout(
     return SuccessResponse(message="Successfully logged out")
 
 
-@router.post("/mfa/setup", response_model=None)
+@router.post("/mfa/setup", response_model=DataResponseStruct[MFASetupResponse])
 async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> Any:
+) -> DataResponseStruct[MFASetupResponse]:
     """
     Initialize MFA setup for the user.
     """

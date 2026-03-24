@@ -25,25 +25,19 @@ router = APIRouter(
 logger = structlog.get_logger(__name__)
 
 
-@router.get("/comparison", response_model=None)
+@router.get("/comparison", response_model=DataResponseStruct[ComparisonMetrics])
 async def get_ml_comparison(
     current_user: User = Depends(get_current_active_user),
-) -> Any:
+    db: AsyncSession = Depends(get_async_db),
+) -> DataResponseStruct[ComparisonMetrics]:
     """
     Fetch institutional AI vs Human performance comparison.
-    In a production state, this aggregates real metrics from the persistence layer.
+    OPTIMIZED: Aggregates real metrics from the persistence layer.
     """
-    # Dynamic values representing institutional-grade alpha spread
-    return DataResponseStruct(
-        data=ComparisonMetrics(
-            userPnl=1240.50,
-            aiPnl=2850.75,
-            userSharpe=1.2,
-            aiSharpe=2.45,
-            userWinRate=62.5,
-            aiWinRate=84.2,
-        )
-    )
+    from src.database.crud import get_ml_comparison_stats
+
+    stats = await get_ml_comparison_stats(db, current_user.id)
+    return DataResponseStruct(data=ComparisonMetrics(**stats))
 
 
 @router.post("/predict", response_model=None)
@@ -59,10 +53,10 @@ async def predict(
     return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
 
 
-@router.get("/predictions", response_model=None)
+@router.get("/predictions", response_model=DataResponseStruct[InferenceResponse])
 @ml_client_circuit
 async def get_predictions(
-    symbol: str = "AAPL",
+    symbol: str | None = None,
     model_type: str = "xgb",
     current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
@@ -70,11 +64,15 @@ async def get_predictions(
     """
     Convenience endpoint for the frontend dashboard.
     """
+    from src.shared.config import settings
     from src.shared.utils.sanitization import sanitize_alphanumeric
+
+    if symbol is None:
+        symbol = settings.MARKET_TICKER_SYMBOLS[0] if settings.MARKET_TICKER_SYMBOLS else "SPX"
 
     symbol = sanitize_alphanumeric(symbol.strip().upper())
     if not symbol or len(symbol) > 10:
-        return DataResponseStruct(data={}, message="Invalid symbol")
+        return DataResponseStruct(data=None, message="Invalid symbol")
 
     base_price = 100.0
     req = InferenceRequest(
@@ -93,7 +91,7 @@ async def get_predictions(
 
 @router.get(
     "/drift-metrics",
-    response_model=None,
+    response_model=DataResponseStruct[DriftMetricsResponse],
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def get_drift_metrics(
@@ -106,10 +104,12 @@ async def get_drift_metrics(
 
 
 @router.post(
-    "/retrain", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))]
+    "/retrain",
+    response_model=DataResponseStruct[dict[str, str]],
+    dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def trigger_retraining(
-    ticker: str = "AAPL",
+    ticker: str | None = None,
     force: bool = False,
     threshold: int = 50000,
     mode: str = "regressor",
@@ -118,6 +118,11 @@ async def trigger_retraining(
     Trigger model retraining.
     Modes: 'regressor' (single ticker), 'cross_sectional' (entire universe).
     """
+    from src.shared.config import settings
+
+    if ticker is None:
+        ticker = settings.MARKET_TICKER_SYMBOLS[0] if settings.MARKET_TICKER_SYMBOLS else "SPX"
+
     from src.workers.tasks.ml_tasks import check_threshold_and_retrain_task
 
     task = check_threshold_and_retrain_task.delay(

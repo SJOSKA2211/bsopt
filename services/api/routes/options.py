@@ -45,11 +45,11 @@ class OptionChainItem(msgspec.Struct):
     time: str | None = None
 
 
-@router.get("/greeks/{symbol}", response_model=None)
+@router.get("/greeks/{symbol}", response_model=DataResponseStruct[dict[str, float]])
 @db_circuit
 async def get_realtime_greeks(
     symbol: str, current_user: User = Depends(get_current_active_user)
-) -> Any:
+) -> DataResponseStruct[dict[str, float]]:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
     if not data:
@@ -57,11 +57,11 @@ async def get_realtime_greeks(
     return DataResponseStruct(data=data)
 
 
-@router.post("/greeks/batch", response_model=None)
+@router.post("/greeks/batch", response_model=DataResponseStruct[dict[str, dict[str, float]]])
 @db_circuit
 async def get_batch_greeks(
     symbols: list[str], current_user: User = Depends(get_current_active_user)
-) -> Any:
+) -> DataResponseStruct[dict[str, dict[str, float]]]:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}
     for sym in symbols:
@@ -71,15 +71,17 @@ async def get_batch_greeks(
     return DataResponseStruct(data=results)
 
 
-@router.get("/chain", response_model=None)
+@router.get("/chain", response_model=DataResponseStruct[list[OptionChainItem]])
 @db_circuit
 async def get_options_chain(
-    symbol: str = Query("AAPL", description="Underlying symbol"),
+    symbol: str = Query("SPX", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> Any:
+) -> DataResponseStruct[list[OptionChainItem]]:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
+    from src.shared.config import settings
+    
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
         return DataResponseStruct(data=[], message="Invalid symbol format")
@@ -145,42 +147,8 @@ async def get_options_chain(
             )
     except Exception as e:
         import structlog
-
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
-        # We continue to fallback
 
-    # 2. Fallback: Synthetic data generation
-    today = date.today()
-    expiries: list[str] = []
-    if expiry in {"all", "week"}:
-        expiries.append((today + timedelta(days=7)).isoformat())
-    if expiry in {"all", "month"}:
-        expiries.append((today + timedelta(days=30)).isoformat())
-    if expiry in {"all", "quarter"}:
-        expiries.append((today + timedelta(days=90)).isoformat())
-    if not expiries:
-        expiries.append((today + timedelta(days=30)).isoformat())
-
-    underlying_price = 120.0
-    strikes = [110.0, 115.0, 120.0, 125.0, 130.0]
-
-    rows: list[dict[str, Any]] = []
-    for exp in expiries:
-        for strike in strikes:
-            rows.append(
-                {
-                    "id": f"{symbol}-{exp}-{strike}-call",
-                    "strike": strike,
-                    "expiry": exp,
-                    "option_type": "call",
-                    "bid": max(1.0, (underlying_price - strike) * 0.4),
-                    "ask": max(1.2, (underlying_price - strike) * 0.45),
-                    "last": max(1.1, (underlying_price - strike) * 0.43),
-                    "volume": 100,
-                    "iv": 0.25,
-                    "delta": 0.5,
-                }
-            )
-
-    return DataResponseStruct(data=rows, message="Synthetic fallback data")
+    # 2. Institutional Zero-Mock: Return empty instead of synthetic trash
+    return DataResponseStruct(data=[], message="No option chain data found in persistence layer")

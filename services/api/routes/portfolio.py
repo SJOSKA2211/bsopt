@@ -41,13 +41,13 @@ class PortfolioOverview(msgspec.Struct):
     message: str | None = None
 
 
-@router.get("")
-@router.get("/")
+@router.get("", response_model=PortfolioOverview)
+@router.get("/", response_model=PortfolioOverview)
 async def get_portfolio(
     request: Request,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-):
+) -> PortfolioOverview:
     """Return the user's primary portfolio overview including positions (RLS Hardened)."""
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
@@ -73,13 +73,16 @@ async def get_portfolio(
             message="No portfolio found for user",
         )
 
+    from src.database.crud import get_portfolio_total_value
+
+    total_value = await get_portfolio_total_value(db, portfolio.id)
     positions = portfolio.positions
 
     return PortfolioOverview(
         id=str(portfolio.id),
         name=portfolio.name,
         balance=float(portfolio.cash_balance),
-        total_value=float(portfolio.cash_balance),  # Simplified for base case
+        total_value=total_value,
         positions_count=len(positions),
         positions=[
             PositionSchema(
@@ -115,12 +118,18 @@ async def get_portfolio_summary(
     return DataResponseStruct(data=dict(row._mapping))
 
 
-@router.post("/positions", status_code=201)
+class PositionCreate(msgspec.Struct):
+    symbol: str
+    quantity: int
+    entry_price: float
+
+
+@router.post("/positions", status_code=201, response_model=DataResponseStruct[dict[str, str]])
 async def add_position(
-    payload: dict[str, Any],
+    payload: PositionCreate,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-):
+) -> DataResponseStruct[dict[str, str]]:
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
 
@@ -134,9 +143,9 @@ async def add_position(
 
     new_pos = Position(
         portfolio_id=portfolio.id,
-        symbol=payload["symbol"].upper().strip(),
-        quantity=int(payload["quantity"]),
-        entry_price=float(payload["entry_price"]),
+        symbol=payload.symbol.upper().strip(),
+        quantity=payload.quantity,
+        entry_price=payload.entry_price,
         status="open",
     )
 
