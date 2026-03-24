@@ -47,7 +47,7 @@ const LoadingFallback: React.FC = () => (
   </Box>
 );
 
-const SYMBOLS = ['AAPL', 'SPY', 'QQQ', 'NVDA', 'TSLA'];
+const SYMBOLS = ['NIFTY', 'BANKNIFTY', 'SPX', 'NDX', 'VIX'];
 
 
 

@@ -182,4 +182,5 @@ async def run_concurrent_ingestion(us_universe: list[str]):
 
 
 if __name__ == "__main__":
-    asyncio.run(run_concurrent_ingestion(["AAPL", "MSFT", "TSLA"]))
+    from src.shared.config import settings
+    asyncio.run(run_concurrent_ingestion(settings.MARKET_TICKER_SYMBOLS))
