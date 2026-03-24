@@ -693,7 +693,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               >
                 ${lastSpot.toFixed(2)}
               </Typography>
-              {tick?.last_price && tick.last_price > (marketData?.marketData?.last_price || 0) ?
+              {priceData?.price && priceData.price > (marketData?.marketData?.last_price || 0) ?
                 <TrendingUp sx={{ fontSize: 14, color: 'success.main' }} /> :
                 <TrendingDown sx={{ fontSize: 14, color: 'error.main' }} />
               }

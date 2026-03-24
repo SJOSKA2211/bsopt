@@ -15,7 +15,11 @@ command -v openssl >/dev/null 2>&1 || { echo >&2 "❌ Error: openssl is required
 # 1. Detect Container Engine
 if command -v podman &> /dev/null; then
     CONTAINER_CMD="podman"
-    COMPOSE_CMD="podman-compose"
+    if podman compose version &> /dev/null; then
+        COMPOSE_CMD="podman compose"
+    else
+        COMPOSE_CMD="podman-compose"
+    fi
 elif command -v docker &> /dev/null; then
     CONTAINER_CMD="docker"
     if $CONTAINER_CMD compose version &> /dev/null; then
