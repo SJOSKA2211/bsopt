@@ -304,12 +304,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             }}
           >
             <Avatar
+              className="slanted-rect"
               sx={{
                 width: 34,
                 height: 34,
                 background: 'linear-gradient(135deg, #a855f7, #38bdf8)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
+                borderRadius: 0,
               }}
             >
               <PersonIcon sx={{ fontSize: 18 }} />
@@ -353,8 +355,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Live ticker at the very top */}
         <TickerTape />
 
-        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflow: 'auto' }}>
-          {children}
+        <Box
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, md: 4 },
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Box sx={{ width: '100%', maxWidth: 1600 }}>
+            {children}
+          </Box>
         </Box>
       </Box>
     </Box>

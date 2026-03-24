@@ -187,7 +187,7 @@
 .live-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
   background: #10b981;
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
   animation: live-pulse 1.8s ease-in-out infinite;

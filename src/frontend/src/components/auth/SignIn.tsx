@@ -52,10 +52,10 @@ const DecorativeBg: React.FC = () => (
         {sym}
       </Typography>
     ))}
-    {/* Background glow orbs */}
-    <Box sx={{ position: 'absolute', top: '8%', right: '10%', width: 400, height: 400, borderRadius: '50%', bgcolor: alpha('#10b981', 0.07), filter: 'blur(80px)', pointerEvents: 'none' }} />
-    <Box sx={{ position: 'absolute', bottom: '12%', left: '5%', width: 350, height: 350, borderRadius: '50%', bgcolor: alpha('#38bdf8', 0.07), filter: 'blur(70px)', pointerEvents: 'none' }} />
-    <Box sx={{ position: 'absolute', top: '50%', left: '42%', width: 280, height: 280, borderRadius: '50%', bgcolor: alpha('#a855f7', 0.05), filter: 'blur(60px)', pointerEvents: 'none' }} />
+    {/* Background glow slanted rectangles */}
+    <Box className="slanted-rect" sx={{ position: 'absolute', top: '8%', right: '10%', width: 400, height: 400, bgcolor: alpha('#10b981', 0.07), filter: 'blur(80px)', pointerEvents: 'none' }} />
+    <Box className="slanted-rect" sx={{ position: 'absolute', bottom: '12%', left: '5%', width: 350, height: 350, bgcolor: alpha('#38bdf8', 0.07), filter: 'blur(70px)', pointerEvents: 'none' }} />
+    <Box className="slanted-rect" sx={{ position: 'absolute', top: '50%', left: '42%', width: 280, height: 280, bgcolor: alpha('#a855f7', 0.05), filter: 'blur(60px)', pointerEvents: 'none' }} />
     {/* Subtle grid lines */}
     <Box
       sx={{

@@ -269,10 +269,10 @@ export const DashboardPage: React.FC = () => {
       <motion.div variants={variants.slideUp} initial="initial" animate="animate">
         <Stack
           direction={{ xs: 'column', lg: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ xs: 'flex-start', lg: 'center' }}
+          justifyContent="center"
+          alignItems="center"
           className="qfd-glass qfd-holographic"
-          sx={{ mb: 8, p: 4, borderRadius: 6, position: 'relative' }}
+          sx={{ mb: 8, p: 4, borderRadius: 6, position: 'relative', textAlign: 'center' }}
           spacing={4}
         >
           <Box>
@@ -305,7 +305,7 @@ export const DashboardPage: React.FC = () => {
                 Verified
               </Box>
             </Typography>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ opacity: 0.8 }}>
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center" sx={{ opacity: 0.8 }}>
               <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                 Midnight Emerald synchronization complete.
               </Typography>
@@ -323,7 +323,7 @@ export const DashboardPage: React.FC = () => {
                   sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.sky ?? '#38bdf8', 0.3), color: qfd?.sky }}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981', mr: 1, boxShadow: '0 0 8px #10b981' }} />
+                  <Box className="slanted-rect" sx={{ width: 8, height: 8, bgcolor: '#10b981', mr: 1, boxShadow: '0 0 8px #10b981' }} />
                   <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#10b981', letterSpacing: '0.1em' }}>0.42ms RTT</Typography>
                 </Box>
               </Stack>

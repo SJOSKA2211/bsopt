@@ -25,6 +25,7 @@
 body {
   margin: 0;
   display: flex;
+  flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--qfd-bg);
@@ -36,6 +37,13 @@ body {
   background-attachment: fixed;
   overflow-x: hidden;
   color: #f8fafc;
+}
+
+#root {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -112,6 +120,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
+}
+
+/* Slanted rectangle shape requested by user */
+.slanted-rect {
+  clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
 }
 
 /* High-performance scrollbar */
