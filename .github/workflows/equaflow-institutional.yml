@@ -90,7 +90,7 @@ jobs:
 
       - name: Build API Container (Institutional)
         run: |
-          docker build -t equaflow/api:${{ github.sha }} -f docker/Dockerfile.api .
+          docker build -t equaflow/api:${{ github.sha }} -f Dockerfile .
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@master

@@ -79,7 +79,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
             setIsConnected(false);
             wsRef.current = null;
 
-            if (options.enabled && !event.wasClean) {
+            if (options.enabled) {
                 const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
                 console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
                 reconnectCountRef.current += 1;
