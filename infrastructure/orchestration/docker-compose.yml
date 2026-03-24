@@ -86,7 +86,7 @@ services:
       resources:
         limits:
           memory: 512mb
-    command: >
+    entrypoint: >
       sh -c "
       cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
       chown 70:70 /tmp/pgbouncer.key &&

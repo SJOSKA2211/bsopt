@@ -15,8 +15,8 @@
 
 import { test, expect, Page } from "@playwright/test";
 
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:5173";
-const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8000";
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8080";
+const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8080/api/v1";
 
 test.describe("EquaFlow Full Journey", () => {
   let uniqueEmail: string;
@@ -126,27 +126,27 @@ test.describe("EquaFlow Full Journey", () => {
     });
 
     test("should search and select a symbol", async ({ page }) => {
-      await test.step("Search for AAPL", async () => {
+      await test.step("Search for NIFTY", async () => {
         const searchInput = page.locator('[name="symbol"]');
-        await searchInput.fill("AAPL");
+        await searchInput.fill("NIFTY");
         await page.waitForTimeout(500);
       });
 
       await test.step("Select from dropdown", async () => {
-        await page.click('text=AAPL');
+        await page.click('text=NIFTY');
         await page.waitForTimeout(1000);
       });
 
       await test.step("Verify symbol selected", async () => {
-        await expect(page.locator('[name="symbol"]')).toHaveValue(/AAPL/i);
+        await expect(page.locator('[name="symbol"]')).toHaveValue(/NIFTY/i);
       });
     });
 
     test("should execute a buy order", async ({ page }) => {
       await test.step("Select symbol", async () => {
-        await page.fill('[name="symbol"]', "AAPL");
+        await page.fill('[name="symbol"]', "NIFTY");
         await page.waitForTimeout(500);
-        await page.click('text=AAPL');
+        await page.click('text=NIFTY');
       });
 
       await test.step("Enter order details", async () => {

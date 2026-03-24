@@ -65,8 +65,8 @@ class DataPipeline:
     async def load_latest_data(
         self,
     ) -> tuple[
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
+        np.ndarray,
+        np.ndarray,
         list[str],
         dict[str, Any],
     ]:

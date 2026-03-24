@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from src.ml.trainer_v2 import Trainer
+from src.ml.trainer import ModelTrainer as Trainer
 
 
 class SyntheticOptionsDataset(Dataset):
@@ -21,8 +21,10 @@ class SyntheticOptionsDataset(Dataset):
         self.k = torch.rand(self.n, 1) * 100 + 50
         self.t = torch.rand(self.n, 1) * 2
         self.sigma = torch.rand(self.n, 1) * 0.5 + 0.1
+        self.r = torch.full((self.n, 1), 0.05)
+        self.d = torch.full((self.n, 1), 0.01)
 
-        self.features = torch.cat([self.s, self.k, self.t, self.sigma], dim=1)
+        self.features = torch.cat([self.s, self.k, self.t, self.sigma, self.r, self.d], dim=1)
         
         # Mathematical Truth: Labels are derived from the BS pricing kernel
         # instead of a simplistic mean() fallback.
@@ -65,8 +67,9 @@ def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
     """
     train_loader, val_loader = get_dataloaders(n_samples)
 
-    model = torch.nn.Linear(10, 1)
-    optimizer = torch.optim.Adam(model.parameters())
+    from src.ml.architectures.neural_network import OptionPricingNN
+    model = OptionPricingNN(input_dim=6, hidden_dims=[128, 64], num_classes=1)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = torch.nn.MSELoss()
 
     trainer = Trainer(

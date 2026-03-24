@@ -22,6 +22,10 @@ class RabbitMQManager:
         self.exchange_name = "market_data"
         self.queue_name = "market_ticks"
         self.dlq_name = "market_ticks_dlq"
+        self.audit_exchange = "audit_exchange"
+        self.audit_queue = "audit_logs"
+        self.news_topic = "scraper.news"
+        self.signal_topic = "model.signals"
 
     @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def connect(self):
@@ -43,6 +47,15 @@ class RabbitMQManager:
                 }
             )
             
+            # Declare Audit Queue
+            await self.channel.declare_queue(self.audit_queue, durable=True)
+            await self.channel.declare_exchange(self.audit_exchange, type="direct", durable=True)
+            await self.channel.bind_queue(self.audit_queue, self.audit_exchange, routing_key="audit")
+            
+            # Declare Sentiment/News Queues
+            await self.channel.declare_queue(self.news_topic, durable=True)
+            await self.channel.declare_queue(self.signal_topic, durable=True)
+            
             logger.info("rabbitmq_connected_and_queues_declared")
 
     async def publish_tick(self, data: dict):
@@ -57,6 +70,34 @@ class RabbitMQManager:
         
         await self.channel.default_exchange.publish(
             message, routing_key=self.queue_name
+        )
+
+    async def publish_audit(self, payload: dict):
+        """Publish an audit log to the audit queue."""
+        if not self.channel:
+            await self.connect()
+            
+        message = aio_pika.Message(
+            body=json.dumps(payload, default=str).encode(),
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
+        
+        await self.channel.default_exchange.publish(
+            message, routing_key=self.audit_queue
+        )
+
+    async def publish_signal(self, payload: dict):
+        """Publish a sentiment signal to the signals queue."""
+        if not self.channel:
+            await self.connect()
+            
+        message = aio_pika.Message(
+            body=json.dumps(payload, default=str).encode(),
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
+        
+        await self.channel.default_exchange.publish(
+            message, routing_key=self.signal_topic
         )
 
     async def publish_batch(self, batch: list[dict]):

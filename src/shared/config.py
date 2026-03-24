@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = structlog.get_logger(__name__)
 
 # Loaded from environment; never hardcode the actual value in source.
-_DEFAULT_MFA_KEY_SEED = os.environ.get("_DEFAULT_MFA_KEY_SEED", "system-derived-seed-for-dev-only")
+_DEFAULT_MFA_KEY_SEED = os.environ.get("_DEFAULT_MFA_KEY_SEED")
 
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
@@ -84,6 +84,15 @@ class Settings(BaseSettings):
     AUDIT_VAULT_KEY: str = Field(
         default="institutional-grade-vault-key-manifold-secure", validation_alias="AUDIT_VAULT_KEY"
     )
+    
+    @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD", "BLOCKCHAIN_PRIVATE_KEY")
+    @classmethod
+    def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
+        if v is None:
+            return v
+        if len(v) < 32 and not os.environ.get("BSOPT_ALLOW_WEAK_SECRETS"):
+            raise ValueError(f"{info.field_name} must be at least 32 characters for institutional security.")
+        return v
 
     # Blockchain Configuration
     BLOCKCHAIN_RPC_URL: str = Field(

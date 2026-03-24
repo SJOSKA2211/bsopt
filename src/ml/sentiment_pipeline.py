@@ -3,9 +3,8 @@ from typing import Any
 
 import msgspec
 import structlog
-from confluent_kafka import Consumer, Producer
-
 from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
+from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
@@ -13,39 +12,26 @@ logger = structlog.get_logger(__name__)
 class SentimentIngestor:
     """
     Ingests news/social media data, extracts sentiment, and publishes signals.
+    OPTIMIZED: Uses RabbitMQ for high-performance async messaging.
     """
 
-    def __init__(self, bootstrap_servers: str = "localhost:9092", topic: str = "scraper.news"):
-        self.bootstrap_servers = bootstrap_servers
+    def __init__(self, topic: str = "scraper.news"):
         self.topic = topic
-        self.consumer_group = "sentiment-ingestor"
-
+        self.rmq = get_rabbitmq()
         # Initialize ML model
         self.extractor = SentimentExtractor()
 
-        # Initialize Kafka clients
-        # Note: In tests these are patched
-        self.producer = Producer({"bootstrap.servers": self.bootstrap_servers})
-        self.consumer = Consumer(
-            {
-                "bootstrap.servers": self.bootstrap_servers,
-                "group.id": self.consumer_group,
-                "auto.offset.reset": "earliest",
-            }
-        )
-        self.consumer.subscribe([self.topic])
-
-    async def process_batch(self, messages: list[bytes]) -> None:
+    async def process_batch(self, messages: list[dict]) -> None:
         """
         High-Performance: Batch process messages for high throughput.
         """
         results = []
-        for msg in messages:
+        for data in messages:
             try:
-                data = msgspec.json.decode(msg)
                 text = data.get("text", "")
                 if text:
-                    score = self.extractor.get_sentiment_score(text)
+                    # Offload CPU-bound NLP to thread pool
+                    score = await asyncio.to_thread(self.extractor.get_sentiment_score, text)
                     results.append(
                         {
                             "symbol": data.get("symbol", "GLOBAL"),
@@ -56,92 +42,58 @@ class SentimentIngestor:
             except Exception:
                 continue
 
-        if results and self.producer:
-            # High-speed batch publishing
-            for res in results:
-                self.producer.produce(
-                    "model.signals",
-                    key=res["symbol"].encode("utf-8"),
-                    value=msgspec.json.encode(res),
-                )
-            self.producer.flush()
+        if results:
+            # High-speed parallel publishing to RabbitMQ
+            tasks = [self.rmq.publish_signal(res) for res in results]
+            await asyncio.gather(*tasks)
             logger.info("sentiment_batch_processed", count=len(results))
 
     async def run(self, batch_size: int = 10):
         """
-        Main high-performance async consumption loop with batching.
+        Main high-performance async consumption loop from RabbitMQ.
         """
         logger.info("sentiment_ingestor_loop_start", batch_size=batch_size)
-        messages = []
-        try:
-            while True:
-                # Poll Kafka (blocking, but with short timeout)
-                msg = await asyncio.to_thread(self.consumer.poll, 0.1)
-                if msg is not None:
-                    if not msg.error():
-                        messages.append(msg.value())
+        
+        async def callback(data: dict):
+            # For RabbitMQ, we handle messages via callback or iterator
+            # Here we'll wrap it to accumulate batches if needed, or just process immediately
+            await self.process_batch([data])
 
-                if len(messages) >= batch_size or (messages and msg is None):
-                    await self.process_batch(messages)
-                    messages = []
-
-                # Zero-sleep to yield control
-                await asyncio.sleep(0)
-
-        except Exception as e:
-            logger.error("sentiment_ingestor_crashed", error=str(e))
-            raise
-        finally:
-            self.consumer.close()
+        # Consume from the news topic
+        # Note: We need a specialized consumer for news if it's not the default tick stream
+        # RabbitMQManager.consume_ticks uses 'market_ticks' queue.
+        # We'll use a local consumer here for the news topic.
+        
+        if not self.rmq.channel:
+            await self.rmq.connect()
+            
+        queue = await self.rmq.channel.get_queue(self.topic)
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:
+                async with message.process():
+                    try:
+                        data = msgspec.json.decode(message.body)
+                        await self.process_batch([data])
+                    except Exception as e:
+                        logger.error("news_consume_failed", error=str(e))
 
 
 class SentimentPipeline:
     """
     Data Pipeline connecting Scraper Service outputs to Sentiment Oracle.
-    Processes unstructured text into actionable signals for the RL Agent.
     """
 
     def __init__(self):
         self.extractor = SentimentExtractor()
         logger.info("sentiment_pipeline_initialized")
 
-    async def process_scraper_message(self, message: dict[str, Any]) -> dict[str, Any]:
-        """
-        Processes a single message from the scraper.
-
-        Args:
-            message (Dict[str, Any]): Data containing 'text', 'symbol', etc.
-
-        Returns:
-            Dict[str, Any]: Augmented message with 'sentiment' score.
-        """
-        text = message.get("text", "")
-        symbol = message.get("symbol", "GLOBAL")
-
-        if not text:
-            return {**message, "sentiment": 0.0}
-
-        try:
-            # OPTIMIZED: Offload blocking NLP extraction to a thread pool
-            sentiment_score = await asyncio.to_thread(self.extractor.get_sentiment_score, text)
-
-            logger.info("sentiment_extracted", symbol=symbol, score=sentiment_score)
-
-            return {**message, "sentiment": sentiment_score}
-        except Exception as e:
-            logger.error(f"sentiment_extraction_failed: {e}")
-            return {**message, "sentiment": 0.0}
-
     async def run_consumer(self):
         """
-        Runs the Kafka consumer loop for real-time sentiment extraction.
+        Runs the RabbitMQ consumer loop for real-time sentiment extraction.
         """
         logger.info("sentiment_pipeline_starting_consumer")
-        # Initialize and run the ingestor
         ingestor = SentimentIngestor()
-        # Note: SentimentIngestor.run() is synchronous/blocking,
-        # so we run it in a thread to not block the event loop if called from async code
-        await asyncio.to_thread(ingestor.run)
+        await ingestor.run()
 
 
 if __name__ == "__main__":
@@ -150,12 +102,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Sentiment Ingestor")
     parser.add_argument("--batch_size", type=int, default=10)
     parser.add_argument("--topic", type=str, default="scraper.news")
-    parser.add_argument("--broker", type=str, default="kafka-1:9092")
 
     args = parser.parse_args()
 
     async def main():
-        ingestor = SentimentIngestor(bootstrap_servers=args.broker, topic=args.topic)
+        ingestor = SentimentIngestor(topic=args.topic)
         await ingestor.run(batch_size=args.batch_size)
 
     asyncio.run(main())

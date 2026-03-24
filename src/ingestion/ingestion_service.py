@@ -29,7 +29,7 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
 
     async def IngestTicks(self, request, context):
         """
-        Receives a batch of ticks, validates them via Rust, and pushes to Kafka.
+        Receives a batch of ticks, validates them via Rust, and pushes to RabbitMQ.
         """
         try:
             batch = []
@@ -82,7 +82,7 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
         try:
             from src.database.pipeliner import db_engine
 
-            ticker = request.ticker or "AAPL"
+            ticker = request.ticker or settings.DEFAULT_TICKER
             # In a real scenario, we would use start_time and end_time from request
             records = await db_engine.fetch_training_data([ticker], limit=1000)
 

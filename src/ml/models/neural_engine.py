@@ -34,8 +34,8 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
 
     def train_model(
         self,
-        inputs: np.ndarray[Any, np.dtype[np.float64]],
-        targets: np.ndarray[Any, np.dtype[np.float64]],
+        inputs: np.ndarray,
+        targets: np.ndarray,
         epochs: int = 10,
         batch_size: int = 32,
         lr: float = 0.001,
@@ -121,14 +121,14 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
 
     def price_batch(
         self,
-        spots: np.ndarray[Any, np.dtype[np.float64]],
-        strikes: np.ndarray[Any, np.dtype[np.float64]],
-        maturities: np.ndarray[Any, np.dtype[np.float64]],
-        vols: np.ndarray[Any, np.dtype[np.float64]],
-        rates: np.ndarray[Any, np.dtype[np.float64]],
-        dividends: np.ndarray[Any, np.dtype[np.float64]],
-        option_types: np.ndarray[Any, np.dtype[Any]],
-    ) -> np.ndarray[Any, np.dtype[np.float64]]:
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> np.ndarray:
         """
         High-Performance Vectorized Batch Pricing.
         """
@@ -156,19 +156,19 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
 
     def price_batch_greeks(
         self,
-        spots: np.ndarray[Any, np.dtype[np.float64]],
-        strikes: np.ndarray[Any, np.dtype[np.float64]],
-        maturities: np.ndarray[Any, np.dtype[np.float64]],
-        vols: np.ndarray[Any, np.dtype[np.float64]],
-        rates: np.ndarray[Any, np.dtype[np.float64]],
-        dividends: np.ndarray[Any, np.dtype[np.float64]],
-        option_types: np.ndarray[Any, np.dtype[Any]],
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
     ) -> tuple[
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
     ]:
         """
         High-Performance Vectorized Greeks using Autograd Batching.

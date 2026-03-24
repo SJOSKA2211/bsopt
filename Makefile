@@ -49,7 +49,7 @@ shell-%:
 proto-gen:
 	@echo "🧬 Generating gRPC code from protos..."
 	@mkdir -p src/shared/protos
-	python -m grpc_tools.protoc -I./protos --python_out=src/shared/protos --grpc_python_out=src/shared/protos ./protos/*.proto
+	python3 -m grpc_tools.protoc -I./protos --python_out=src/shared/protos --grpc_python_out=src/shared/protos ./protos/*.proto
 	@touch src/shared/protos/__init__.py
 	@echo "Proto generation complete."
 
@@ -68,9 +68,19 @@ clean-gen:
 gen-all: clean-gen proto-gen fbs-gen
 
 # --- Verification ---
-test-all:
-	@echo "🧪 Running Institutional Test Suite..."
-	pytest tests/
+test-unit:
+	@echo "🧪 Running Unit Tests..."
+	pytest tests/unit
+
+test-integration:
+	@echo "🧪 Running Integration Tests (Zero-Mock)..."
+	pytest tests/integration
+
+e2e:
+	@echo "🎭 Running Playwright E2E Tests..."
+	npx playwright test tests/e2e
+
+test-all: test-unit test-integration
 	@echo "Tests verified."
 
 lint:
@@ -81,7 +91,7 @@ lint:
 
 verify-proto: proto-gen
 	@echo "🧪 Verifying generated proto integrity..."
-	python -c "from src.shared.protos import data_pb2; print('Proto Data Engine: Synchronized')"
+	python3 -c "from src.shared.protos import data_pb2; print('Proto Data Engine: Synchronized')"
 	@echo "Proto verification complete."
 
 help:
