@@ -17,6 +17,8 @@ vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls-mock" />,
   PerspectiveCamera: () => <div data-testid="camera-mock" />,
   Text: () => <div data-testid="text-mock" />,
+  Float: ({ children }: { children: React.ReactNode }) => <div data-testid="float-mock">{children}</div>,
+  Billboard: ({ children }: { children: React.ReactNode }) => <div data-testid="billboard-mock">{children}</div>,
 }));
 
 const createWrapper = () => {
