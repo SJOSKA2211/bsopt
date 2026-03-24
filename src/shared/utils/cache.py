@@ -50,7 +50,7 @@ def get_redis() -> Redis | None:
     return _redis
 
 
-def generate_cache_key(prefix: str, **kwargs: Any) -> str:
+def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -> str:
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
     """
@@ -139,16 +139,16 @@ def multi_layer_cache(
     Layer 1: Local In-Memory LRU
     Layer 2: Distributed Redis
     """
-    l1_cache: TTLCache[str, Any] = TTLCache(maxsize=maxsize, ttl=ttl)
+    l1_cache: TTLCache[str, object] = TTLCache(maxsize=maxsize, ttl=ttl)
     # L2 Probabilistic Early Recomputation (X-Fetch) Calibration:
     # beta: 1.0 (Standard). Increase for more aggressive refresh before TTL expiry.
     # delta_ms: Estimated computation time for 'func'. Default: 100ms.
     beta = 1.0
     delta_ms = 100
 
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+    def decorator(func: Callable[..., object]) -> Callable[..., object]:
         @wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        async def wrapper(*args: object, **kwargs: object) -> object:
             import math
             import random
 
@@ -393,7 +393,7 @@ idempotency_manager = IdempotencyManager()
 class DatabaseQueryCache:
     PREFIX = "db:"
 
-    async def get_user(self, user_id: str) -> dict[str, Any] | None:
+    async def get_user(self, user_id: str) -> dict[str, object] | None:
         redis = get_redis()
         if redis is None:
             return None
@@ -404,7 +404,7 @@ class DatabaseQueryCache:
             logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
 
-    async def set_user(self, user_id: str, user_data: dict[str, Any], ttl: int = 300) -> bool:
+    async def set_user(self, user_id: str, user_data: dict[str, object], ttl: int = 300) -> bool:
         redis = get_redis()
         if redis is None:
             return False

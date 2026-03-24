@@ -50,7 +50,7 @@ class DataDriftDetector:
 
     def detect_drift(
         self, reference: np.ndarray, current: np.ndarray
-    ) -> tuple[bool, dict[str, Any]]:
+    ) -> tuple[bool, dict[str, float | int | bool | list[dict[str, float | int | bool]]]]:
         """
         Compare *reference* and *current* distributions.
 
@@ -106,7 +106,7 @@ class DataDriftDetector:
                 }
             )
 
-        info: dict[str, Any] = {
+        info: dict[str, float | int | bool | list[dict[str, float | int | bool]]] = {
             "PSI": float(total_psi / max(n_features, 1)),
             "feature_drifts": feature_drifts,
             "n_features_drifted": sum(1 for f in feature_drifts if f["drifted"]),

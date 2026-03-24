@@ -22,7 +22,7 @@ class PriceTFTModel:
     Temporal Fusion Transformer (TFT) for OPTIMIZED Price Forecasting.
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: dict[str, float | int | str] | None = None):
         self.config = config or {
             "max_prediction_length": 5,
             "max_encoder_length": 24,
@@ -33,7 +33,7 @@ class PriceTFTModel:
         self.model = None
         self._quantized_model = None
 
-    def prepare_data(self, data: pd.DataFrame) -> dict[str, Any]:
+    def prepare_data(self, data: pd.DataFrame) -> dict[str, object]:
         """
         Prepares data for TFT training/validation with OOM protection.
         """
@@ -98,7 +98,7 @@ class PriceTFTModel:
             "group_ids": ["symbol"],
         }
 
-    def train(self, data: dict[str, Any]):
+    def train(self, data: dict[str, object]):
         """
         Train the TFT model with experiment tracking.
         """
@@ -244,7 +244,7 @@ class PriceTFTModel:
 
         return model_to_use.predict(data)
 
-    def get_interpretability_report(self) -> dict[str, Any]:
+    def get_interpretability_report(self) -> dict[str, object]:
         """
         Extracts real feature importance using TFT's built-in attention weights.
         """

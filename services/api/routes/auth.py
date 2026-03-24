@@ -32,7 +32,6 @@ from src.auth.auth import (
     get_current_active_user,
     get_current_user,
 )
-from src.auth.mfa import mfa_service
 from src.auth.password import password_service
 from src.auth.rate_limit import rate_limit
 from src.config import settings
@@ -78,9 +77,15 @@ async def register(
         logger.error(f"registration_native_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Registration failure")
 
-    # 3. Fetch for JWT generation
+    # 3. Fetch for JWT generation and handle E2E bypass
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one()
+
+    # E2E Bypass: Auto-verify @equaflow.test users in testing environments
+    if settings.ALLOW_E2E_EMAIL_BYPASS and user.email.endswith("@equaflow.test"):
+        user.is_verified = True
+        logger.info("e2e_email_bypass_active", user_id=str(user.id), email=user.email)
+        await db.commit()
 
     tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
 
@@ -226,16 +231,16 @@ async def mfa_setup(
 
     if not user.mfa_secret:
         # Generate new plaintext secret
-        plain_secret = mfa_service.generate_secret()
+        plain_secret = auth_service.generate_mfa_secret()
         # Encrypt before saving to DB
-        user.mfa_secret = mfa_service.encrypt_secret(plain_secret)
+        user.mfa_secret = auth_service.encrypt_mfa_secret(plain_secret)
         await db.commit()
     else:
         # Decrypt existing secret for URI generation
-        plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
+        plain_secret = auth_service.decrypt_mfa_secret(user.mfa_secret)
 
     # Generate provisioning URI
-    uri = mfa_service.generate_provisioning_uri(user.email, plain_secret)
+    uri = auth_service.get_totp_uri(user.email, plain_secret)
 
     return DataResponseStruct(
         data=MFASetupResponse(
@@ -262,9 +267,9 @@ async def mfa_verify(
         raise HTTPException(status_code=400, detail="MFA not setup")
 
     # Decrypt secret
-    plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
+    plain_secret = auth_service.decrypt_mfa_secret(user.mfa_secret)
 
-    if not mfa_service.verify_code(plain_secret, data.code):
+    if not auth_service.verify_mfa_code(plain_secret, data.code):
         raise AuthenticationException(message="Invalid MFA code")
 
     # Enable MFA

@@ -95,8 +95,8 @@ export interface Ticker {
   symbol: string;
   price: string;
   change: string;
-  pct?: string;
-  up?: boolean;
+  percentChange: string;
+  up: boolean;
 }
 
 export interface PortfolioSummary {

@@ -175,18 +175,22 @@ class AuthService:
         )
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
-        """Internal helper to create a JWT token with asymmetric support."""
-        to_encode = data.copy()
+        """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
         now = datetime.now(UTC)
         expire = now + expires_delta
-        to_encode.update(
-            {
-                "exp": expire,
-                "iat": now,
-                "jti": secrets.token_hex(16),
-                "iss": "equaflow-auth-v2",
-            }
-        )
+        
+        # Institutional Payload with strict entropy
+        to_encode = {
+            **data,
+            "exp": expire,
+            "iat": now,
+            "jti": secrets.token_hex(24), # Expanded entropy for institutional security
+            "iss": "equaflow-manifold-v2",
+        }
+        
+        # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
+        msgspec.json.encode(to_encode)
+        
         algorithm = settings.JWT_ALGORITHM
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)

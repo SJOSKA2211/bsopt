@@ -34,7 +34,7 @@ class AIOpsOrchestrator:
     - ML-based drift trigger (optional)
     """
 
-    def __init__(self, config: dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, str | int | float | bool | dict[str, str | int]]) -> None:
         self.config = config
 
         # Infrastructure wiring
@@ -51,11 +51,11 @@ class AIOpsOrchestrator:
         )
 
         # Drift detection
-        self.data_drift_detector: Any = _NullDriftDetector()
+        self.data_drift_detector: _NullDriftDetector = _NullDriftDetector()
 
         # Retraining trigger (lazy init to avoid heavy ML imports at test time)
         ml_cfg = config.get("ml_pipeline_config", {})
-        self.ml_pipeline_trigger: Any = _NullTrigger()
+        self.ml_pipeline_trigger: _NullTrigger = _NullTrigger()
         if ml_cfg:
             try:
                 from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
@@ -177,7 +177,7 @@ class AIOpsOrchestrator:
 class _NullDriftDetector:
     """No-op drift detector returned when full setup is unavailable."""
 
-    def detect_drift(self, ref: Any, curr: Any) -> tuple[bool, dict]:  # noqa: ARG002
+    def detect_drift(self, ref: pd.DataFrame, curr: pd.DataFrame) -> tuple[bool, dict[str, float]]:  # noqa: ARG002
         return False, {}
 
 

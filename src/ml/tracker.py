@@ -34,13 +34,13 @@ class ExperimentTracker:
         uri = tracking_uri or settings.tracking_uri
         mlflow.set_tracking_uri(uri)
 
-    def start_run(self, nested: bool = True) -> Any:
+    def start_run(self, nested: bool = True) -> Generator[mlflow.ActiveRun, None, None]:
         """
         Starts an MLflow run, with support for nested runs and environment detection.
         """
 
         @contextmanager
-        def run_context() -> Generator[Any, None, None]:
+        def run_context() -> Generator[mlflow.ActiveRun, None, None]:
             active = mlflow.active_run()
             in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
 
@@ -80,13 +80,13 @@ class ExperimentTracker:
 
         return run_context()
 
-    def log_params(self, params: dict[str, Any]) -> None:
+    def log_params(self, params: dict[str, float | int | str | bool | None]) -> None:
         mlflow.log_params(params)
 
     def set_tags(self, tags: dict[str, str]) -> None:
         mlflow.set_tags(tags)
 
-    def log_dict(self, dictionary: dict[str, Any], artifact_file: str) -> None:
+    def log_dict(self, dictionary: dict[str, object], artifact_file: str) -> None:
         """Logs a dictionary as a JSON artifact."""
         mlflow.log_dict(dictionary, artifact_file)
 
@@ -105,7 +105,7 @@ class ExperimentTracker:
     def log_artifact(self, local_path: str) -> None:
         mlflow.log_artifact(local_path)
 
-    def log_model(self, model: Any, framework: str, artifact_path: str = "model") -> None:
+    def log_model(self, model: object, framework: str, artifact_path: str = "model") -> None:
         """Log the model to MLflow with optional ONNX conversion."""
         import mlflow
         import mlflow.pytorch
@@ -123,7 +123,7 @@ class ExperimentTracker:
         else:
             mlflow.sklearn.log_model(model, artifact_path)
 
-    def register_model(self, model_name: str, run_id: str, artifact_path: str = "model") -> Any:
+    def register_model(self, model_name: str, run_id: str, artifact_path: str = "model") -> object:
         """Register the model in the MLflow Model Registry."""
         model_uri = f"runs:/{run_id}/{artifact_path}"
         return mlflow.register_model(model_uri, model_name)
@@ -133,7 +133,7 @@ class ExperimentTracker:
         model_name: str,
         version: int,
         stage: str,
-        model: Any = None,
+        model: object | None = None,
         framework: str = "sklearn",
     ) -> None:
         """Promote or rollback a model version in the registry."""
@@ -149,7 +149,7 @@ class ExperimentTracker:
         if stage == "Production" and model is not None:
             self.export_to_onnx(model, framework, f"{model_name}_v{version}.onnx")
 
-    def export_to_onnx(self, model: Any, framework: str, filename: str) -> str | None:
+    def export_to_onnx(self, model: object, framework: str, filename: str) -> str | None:
         """Export a model to ONNX format for production inference (Galactic Optimized)."""
 
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -11,10 +11,10 @@ class LogReturnFeature(Feature):
     name: str = "log_return"
     description: str = "Logarithmic return of the closing price"
 
-    def transform(self, data: pd.DataFrame) -> pd.Series[Any]:
+    def transform(self, data: pd.DataFrame) -> pd.Series:
         if "close" not in data.columns:
             raise ValueError("Data missing 'close' column for log_return calculation")
-        return cast(pd.Series[Any], np.log(data["close"] / data["close"].shift(1)).fillna(0))
+        return cast(pd.Series, np.log(data["close"] / data["close"].shift(1)).fillna(0))
 
 
 class NumbaIndicatorFeature(Feature):
@@ -22,12 +22,12 @@ class NumbaIndicatorFeature(Feature):
     High-Performance: High-performance wrapper for JIT-compiled indicators.
     """
 
-    def __init__(self, name: str, func: Callable[..., Any], **kwargs: Any) -> None:
+    def __init__(self, name: str, func: Callable, **kwargs: float | int | str) -> None:
         self.name = name
         self.func = func
         self.kwargs = kwargs
 
-    def transform(self, data: pd.DataFrame) -> pd.Series[Any]:
+    def transform(self, data: pd.DataFrame) -> pd.Series:
         if "close" not in data.columns:
             raise ValueError(f"Data missing 'close' for {self.name}")
 

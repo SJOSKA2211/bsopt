@@ -12,9 +12,14 @@ COMPOSE_CMD ?= $(shell if [ "$(CONTAINER_ENGINE)" = "podman" ]; then \
 # 2. Paths
 COMPOSE_FILE = infrastructure/orchestration/docker-compose.yml
 
-.PHONY: all bootstrap build up down clean logs test-all shell ps
+all: setup
 
-all: bootstrap
+# --- Orchestration & Initialization ---
+setup: bootstrap gen-all
+	@echo "🎯 System Fully Initialized and Generated."
+
+revamp: clean setup
+	@echo "🔄 Full System Revamp Complete."
 
 # --- Lifecycle Management ---
 bootstrap:
@@ -47,16 +52,20 @@ shell-%:
 
 # --- Build & Generation ---
 proto-gen:
-	@echo "🧬 Generating gRPC code from protos..."
+	@echo "🧬 Generating gRPC Python code..."
 	@mkdir -p src/shared/protos
 	python3 -m grpc_tools.protoc -I./protos --python_out=src/shared/protos --grpc_python_out=src/shared/protos ./protos/*.proto
 	@touch src/shared/protos/__init__.py
-	@echo "Proto generation complete."
+	@echo "Proto Python generation complete."
+
+gen-ts:
+	@echo "🧪 Generating Typescript gRPC definitions..."
+	@npx protoc-gen-ts --proto_path=./protos --output_path=src/frontend/src/generated ./protos/*.proto 2>/dev/null || echo "⚠️ Protoc-gen-ts not installed, skipping TS generation."
 
 fbs-gen:
 	@echo "📦 Generating FlatBuffers code..."
 	@mkdir -p src/shared/fbs
-	flatc --python -o src/shared/fbs protos/market_tick.fbs
+	flatc --python -o src/shared/fbs protos/market_tick.fbs 2>/dev/null || echo "⚠️ flatc not found, skipping fbs generation."
 	@touch src/shared/fbs/__init__.py
 	@echo "FlatBuffers generation complete."
 
@@ -65,7 +74,8 @@ clean-gen:
 	rm -rf src/shared/protos/*_pb2*.py src/shared/fbs/*
 	@echo "Cleanup complete."
 
-gen-all: clean-gen proto-gen fbs-gen
+gen-all: clean-gen proto-gen gen-ts fbs-gen verify-proto
+	@echo "✅ All code generation and verification complete."
 
 # --- Verification ---
 test-unit:

@@ -85,16 +85,26 @@ def _pii_masking_processor(
 
 
 def setup_logging() -> None:
-    """Configures structlog for JSON logging (Loki compliant) with optimized processors."""
+    """Configures structlog for JSON or pretty logging with optimized processors."""
+    
+    processors = [
+        _TIME_STAMPER,
+        _LEVEL_ADDER,
+        _CALLSITE_ADDER,
+        _pii_masking_processor,
+        _off_heap_processor,
+    ]
+
+    # Dynamic rendering based on environment
+    if settings.DEBUG and not os.environ.get("BSOPT_FORCE_JSON_LOGS"):
+        # Development: Human-friendly pretty logging
+        processors.append(structlog.dev.ConsoleRenderer(colors=True))
+    else:
+        # Production: Cloud-friendly high-performance JSON
+        processors.append(_JSON_RENDERER)
+
     structlog.configure(
-        processors=[
-            _TIME_STAMPER,
-            _LEVEL_ADDER,
-            _CALLSITE_ADDER,
-            _pii_masking_processor,  # Global PII masking
-            _off_heap_processor,  #  Redirect high-freq logs
-            _JSON_RENDERER,
-        ],
+        processors=processors,
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
         wrapper_class=structlog.BoundLogger,
@@ -422,3 +432,26 @@ async def post_grafana_annotation(message: str, tags: list[str] | None = None) -
     except Exception as e:
         structlog.get_logger().error("grafana_annotation_failed", error=str(e))
         return False
+
+
+# --- Ingestion & Routing Metrics ---
+from prometheus_client import Counter, Histogram
+
+PROXY_FAILURES = Counter(
+    "proxy_failures_total", "Total count of proxy failures", ["proxy_url"]
+)
+PROXY_LATENCY = Histogram(
+    "proxy_latency_seconds", "Latency of proxy requests", ["proxy_url"]
+)
+
+ROUTING_COUNT = Counter(
+    "market_data_routing_total",
+    "Total count of market data requests",
+    ["target", "market"],
+)
+ROUTING_LATENCY = Histogram(
+    "market_data_routing_latency_seconds", "Latency of market data requests", ["target"]
+)
+SCRAPER_PARSE_SUCCESS = Counter(
+    "market_data_scraper_success_total", "Success count of HTML parsing", ["market"]
+)

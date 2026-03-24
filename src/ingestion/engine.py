@@ -19,6 +19,8 @@ from src.ingestion.rust_parser import RustTickParser
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
+    ROUTING_COUNT,
+    ROUTING_LATENCY,
     setup_logging,
     start_system_metrics_loop,
 )
@@ -28,12 +30,13 @@ from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
+from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger()
 
 
 class MarketSource(Protocol):
-    async def get_ticker_data(self, symbol: str) -> dict:
+    async def get_ticker_data(self, symbol: str) -> MarketQuote:
         """Fetch real-time data for a given symbol."""
         ...
 
@@ -361,23 +364,32 @@ class NSEScraper:
             )
         return results
 
-    async def get_ticker_data(self, symbol: str) -> dict:
+    async def get_ticker_data(self, symbol: str) -> MarketQuote:
         """Get ticker data, refreshing cache if necessary."""
         if time.time() - self._last_refresh > self._cache_ttl:
             await self._refresh_cache()
 
         # 1. Primary Lookup (O(1))
         data = self._data_cache.get(symbol)
-        if data:
-            return data
+        if not data:
+            # 2. Optimized Substring Match (Stop at first match)
+            for s, d in self._data_cache.items():
+                if symbol in s or s in symbol:
+                    data = d
+                    break
 
-        # 2. Optimized Substring Match (Stop at first match)
-        for s, d in self._data_cache.items():
-            if symbol in s or s in symbol:
-                return d
+        if data:
+            return MarketQuote.from_price_change(
+                symbol=symbol,
+                price=float(data.get("price", 0.0)),
+                change=float(data.get("change", 0.0)),
+                volume=data.get("volume"),
+                market="NSE",
+                provider="NSE"
+            )
 
         logger.warning("nse_ticker_not_in_cache", symbol=symbol)
-        return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
+        raise Exception(f"Ticker {symbol} not found in NSE cache")
 
     async def shutdown(self):
         """Gracefully close the HTTP client and producers."""

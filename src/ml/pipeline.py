@@ -1,34 +1,27 @@
 import asyncio
 import os
-from typing import Any, cast
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import structlog
+import msgspec
 from numba import njit, prange
 
-from src.shared.config import settings
+from src.config import settings
+from src.ml.training.base import TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
 
 
-class PipelineConfig:
+class PipelineConfig(msgspec.Struct):
     """Configuration for the data pipeline."""
-
-    def __init__(
-        self,
-        symbols: list[str] = [settings.DEFAULT_TICKER],
-        min_samples: int = 1000,
-        max_samples: int = 10000,
-        validate_data: bool = True,
-        output_dir: str = "data/training",
-    ):
-        self.symbols = symbols
-        self.min_samples = min_samples
-        self.max_samples = max_samples
-        self.validate_data = validate_data
-        self.output_dir = output_dir
+    symbols: list[str] = [settings.DEFAULT_TICKER]
+    min_samples: int = 1000
+    max_samples: int = 10000
+    validate_data: bool = True
+    output_dir: str = "data/training"
 
 
 class DataPipeline:
@@ -39,9 +32,9 @@ class DataPipeline:
 
     def __init__(self, config: PipelineConfig):
         self.config = config
-        self.last_run_report: dict[str, Any] = {}
+        self.last_run_report: dict[str, str | int | float] = {}
 
-    async def run(self) -> dict[str, Any]:
+    async def run(self) -> None:
         """
         Run the data collection pipeline.
         """
@@ -53,8 +46,7 @@ class DataPipeline:
 
         self.last_run_report = {
             "samples_available": len(data),
-            "symbols": self.config.symbols,
-            "duration_seconds": 1.0,
+            "symbols": ",".join(self.config.symbols),
             "status": "ready",
         }
 
@@ -68,7 +60,7 @@ class DataPipeline:
         np.ndarray,
         np.ndarray,
         list[str],
-        dict[str, Any],
+        dict[str, str | int],
     ]:
         """
         Load the latest collected data from Postgres (Optimized cross-sectional extraction).
@@ -163,7 +155,6 @@ class DataPipeline:
         metadata = {
             "data_source": "postgres_chunked_pandas",
             "count": len(X),
-            "temporal_split": True,
         }
 
         return X, y, feature_names, metadata
@@ -175,84 +166,54 @@ class MLPipeline:
     Wires together Data Collection, Training, and Evaluation.
     """
 
-    def __init__(self, config: dict[str, Any]):
-        self.config = config
-        self.symbols = [config.get("ticker", settings.DEFAULT_TICKER)]
-        self.data_pipeline = DataPipeline(PipelineConfig(symbols=self.symbols))
+    def __init__(self, training_config: TrainingConfig, pipeline_config: PipelineConfig | None = None):
+        self.training_config = training_config
+        self.pipeline_config = pipeline_config or PipelineConfig(symbols=training_config.metadata.get("ticker", [settings.DEFAULT_TICKER]).split(","))
+        self.data_pipeline = DataPipeline(self.pipeline_config)
+        
         from src.ml.trainer import ModelTrainer
-
         self.trainer = ModelTrainer(
-            study_name=config.get("study_name", "autonomous_pipeline"),
-            tracking_uri=config.get("tracking_uri"),
+            study_name=training_config.metadata.get("study_name", "autonomous_pipeline")
         )
 
-    async def run(self, force: bool = False) -> Any:
+    async def run(self) -> TrainingResult:
         """
         Executes the full pipeline: Data -> Train -> Model.
         """
-        logger.info("ml_pipeline_run_start", ticker=self.symbols[0])
+        logger.info("ml_pipeline_run_start", symbols=self.pipeline_config.symbols)
 
         # 1. Fetch Data
         await self.data_pipeline.run()
         X, y, features, meta = await self.data_pipeline.load_latest_data()
 
         # 2. Train and Evaluate
-        params = self.config.copy()
-        # Default to XGBoost if not specified
-        params["framework"] = self.config.get("framework", "xgboost")
-
-        # Run training
-        score = await asyncio.to_thread(
-            self.trainer.train_and_evaluate, X, y, params, features, meta
+        # Run training strictly typed
+        result = await asyncio.to_thread(
+            self.trainer.train_and_evaluate, X, y, self.training_config, meta
         )
 
-        logger.info("ml_pipeline_run_complete", score=score)
+        logger.info("ml_pipeline_run_complete", score=result.score)
 
         # 3. Model Registration and Promotion
         if self.trainer.model:
             from src.ml.registry.promote import promote_model
+            
+            # Use active run from MLflow
+            run = mlflow.active_run()
+            if run:
+                run_id = run.info.run_id
+                model_name = f"{self.training_config.framework}_pricer_{self.pipeline_config.symbols[0]}"
+                logger.info("promoting_new_champion", model=model_name, run_id=run_id)
+                promote_model(model_name, run_id, stage="Production")
 
-            run_id = self.trainer.tracker.current_run.info.run_id
-            model_name = f"{params['framework']}_pricer_{self.symbols[0]}"
-            logger.info("promoting_new_champion", model=model_name, run_id=run_id)
-
-            promote_model(model_name, run_id, stage="Production")
-
-        return self.trainer.model
+        return result
 
     async def shutdown(self):
         """Cleanup resources."""
-        logger.info("ml_pipeline_shutdown", ticker=self.symbols[0])
+        logger.info("ml_pipeline_shutdown")
         await self.data_pipeline.run_shutdown()
-        if hasattr(self.trainer, "tracker"):
-            self.trainer.tracker.end_run()
-
-
-class AutonomousMLPipeline(MLPipeline):
-    """
-    Production-ready orchestration core.
-    Extends MLPipeline with high-frequency compatibility wrappers.
-    """
-
-    async def run_pipeline(self) -> dict[str, Any]:
-        """
-        Executes the optimized unified pipeline.
-        """
-        try:
-            await self.run()
-            return {"status": "success", "drift_detected": False}
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-
-    def get_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculates indicators using the optimized Feature Store.
-        """
-        from src.ml.feature_store.store import feature_store
-
-        # Synchronous wrapper for feature computation
-        required = ["log_return", "RSI_14", "EMA_20"]
-        return asyncio.run(feature_store.compute_features(data, required))
+        if mlflow.active_run():
+            mlflow.end_run()
 
 
 if __name__ == "__main__":

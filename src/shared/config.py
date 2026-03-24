@@ -235,8 +235,10 @@ class Settings(BaseSettings):
     REQUIRE_EMAIL_VERIFICATION: bool = False
     MFA_ENCRYPTION_KEY: str = Field(
         default=_DEFAULT_MFA_KEY_SEED,
-        validation_alias="MFA_ENCRYPTION_KEY",
-    )
+        return v
+    
+    # E2E & Testing
+    ALLOW_E2E_EMAIL_BYPASS: bool = Field(default=False, validation_alias="ALLOW_E2E_EMAIL_BYPASS")
 
     # Better Auth Configuration
     BETTER_AUTH_SECRET: str = Field(default="", validation_alias="BETTER_AUTH_SECRET")

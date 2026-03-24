@@ -99,11 +99,11 @@ const TickerStrip: React.FC = () => {
                 sx={{
                   fontFamily: 'JetBrains Mono',
                   fontSize: '0.65rem',
-                  color: (t.up ?? parseFloat(t.change) >= 0) ? qfd?.emerald ?? '#10b981' : theme.palette.error.main,
+                  color: t.up ? qfd?.emerald ?? '#10b981' : theme.palette.error.main,
                   fontWeight: 900,
                 }}
               >
-                {t.pct || `${parseFloat(t.change) >= 0 ? '+' : ''}${t.change}`}
+                {t.percentChange}
               </Typography>
             </Box>
           ))}

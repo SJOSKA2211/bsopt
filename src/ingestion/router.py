@@ -6,20 +6,15 @@ from prometheus_client import Counter, Histogram
 
 from services.api.providers import PolygonProvider, YahooProvider
 from src.ingestion.engine import NSEScraper
+from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger()
 
 # 📊 METRICS: Track Data Mesh performance
-ROUTING_COUNT = Counter(
-    "market_data_routing_total",
-    "Total count of market data requests",
-    ["target", "market"],
-)
-ROUTING_LATENCY = Histogram(
-    "market_data_routing_latency_seconds", "Latency of market data requests", ["target"]
-)
-SCRAPER_PARSE_SUCCESS = Counter(
-    "market_data_scraper_success_total", "Success count of HTML parsing", ["market"]
+from src.shared.observability import (
+    ROUTING_COUNT,
+    ROUTING_LATENCY,
+    SCRAPER_PARSE_SUCCESS,
 )
 
 
@@ -75,7 +70,7 @@ class MarketDataRouter:
             except Exception:
                 pass
 
-    async def get_live_quote(self, symbol: str, market: str = "AUTO") -> dict:
+    async def get_live_quote(self, symbol: str, market: str = "AUTO") -> MarketQuote:
         """
         God-Tier: Speculative Concurrency Router.
         Races providers with a staggered start to ensure minimal latency.
@@ -96,9 +91,8 @@ class MarketDataRouter:
         sorted_candidates = sorted(candidates, key=lambda x: latency_map.get(x, 0.1))
 
         # 3.  SPECULATIVE RACE
-        async def _call_provider(provider_name):
+        async def _call_provider(provider_name) -> tuple[MarketQuote, str]:
             try:
-                p_start = time.time()
                 if provider_name == "NSE":
                     res = await self.nse.get_ticker_data(symbol.replace(".NR", ""))
                 elif provider_name == "Polygon":
@@ -106,12 +100,18 @@ class MarketDataRouter:
                 else:
                     res = await self.yahoo.get_ticker_data(symbol)
 
-                if "error" in res:
-                    raise Exception(res["error"])
-
                 # Update EWMA
-                p_latency = time.time() - p_start
+                p_latency = time.time() - start_time
                 await self._update_latency(provider_name, p_latency)
+                
+                # Cache successful result for placeholder fallback
+                if self.redis:
+                    await self.redis.setex(
+                        f"market_cache:{symbol}",
+                        3600, # 1 hour cache
+                        msgspec.json.encode(res)
+                    )
+                
                 return res, provider_name
             except Exception as e:
                 # Penalty for failure
@@ -122,19 +122,15 @@ class MarketDataRouter:
         tasks = []
         for i, provider in enumerate(sorted_candidates):
             tasks.append(asyncio.create_task(_call_provider(provider)))
-            # If this is not the last candidate, wait a bit before starting the next
-            # Threshold: 200ms or 50% of the current fastest latency
             if i < len(sorted_candidates) - 1:
                 wait_time = min(0.2, latency_map.get(sorted_candidates[0], 0.1) * 0.5)
                 done, _ = await asyncio.wait(
                     tasks, timeout=wait_time, return_when=asyncio.FIRST_COMPLETED
                 )
                 if done:
-                    # Someone finished! Check if successful
                     for t in done:
                         try:
                             res, p_name = t.result()
-                            # SUCCESS: Cancel others and return
                             for remaining in tasks:
                                 if not remaining.done():
                                     remaining.cancel()
@@ -144,19 +140,17 @@ class MarketDataRouter:
                             ROUTING_COUNT.labels(target=p_name, market=market).inc()
                             return res
                         except Exception:
-                            continue  # Try next/wait
+                            continue
 
         # 4. Final wait if no one finished during staggered launch
         if not tasks:
-            raise Exception("No providers available")
+            return await self._get_fallback_quote(symbol)
 
-        # Wait for any to complete successfully
         while tasks:
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             for t in done:
                 try:
                     res, p_name = t.result()
-                    # SUCCESS
                     for p in pending:
                         p.cancel()
 
@@ -170,7 +164,23 @@ class MarketDataRouter:
             if not tasks:
                 break
 
-        raise Exception(f"All providers failed for {symbol}")
+        return await self._get_fallback_quote(symbol)
+
+    async def _get_fallback_quote(self, symbol: str) -> MarketQuote:
+        """
+        Zero-Mock Placeholder Fallback: Retrieves the last known successful quote from Redis.
+        Ensures the UI stays alive even if all providers are down.
+        """
+        if self.redis:
+            try:
+                cached = await self.redis.get(f"market_cache:{symbol}")
+                if cached:
+                    logger.info("routing_fallback_to_cache_success", symbol=symbol)
+                    return msgspec.json.decode(cached, type=MarketQuote)
+            except Exception as e:
+                logger.warning("routing_cache_fallback_failed", symbol=symbol, error=str(e))
+
+        raise Exception(f"All providers and cache failed for {symbol}")
 
     async def search_markets(self, query: str) -> list:
         """Global symbol search (Tickers + Metadata) - PARALLELISED."""

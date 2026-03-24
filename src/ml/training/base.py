@@ -3,16 +3,31 @@ Unified Base Trainer for BS-OPT
 Provides shared functionality for MLflow tracking, logging, and experiment management.
 """
 
+import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any
-
+import msgspec
 import mlflow
 import structlog
+from typing import TypeVar, Generic
 
 from src.config import get_settings
 from src.shared.observability import setup_logging
 
 logger = structlog.get_logger(__name__)
+
+class TrainingConfig(msgspec.Struct):
+    framework: str = "xgboost"
+    n_estimators: int = 100
+    max_depth: int = 6
+    learning_rate: float = 0.1
+    epochs: int = 10
+    batch_size: int = 32
+    lr: float = 0.001
+
+class TrainingResult(msgspec.Struct):
+    score: float
+    model_path: str | None = None
+    metadata: dict[str, str] = {}
 
 
 class BaseTrainer(ABC):
@@ -31,11 +46,17 @@ class BaseTrainer(ABC):
         mlflow.set_experiment(self.study_name)
 
     @abstractmethod
-    def train_and_evaluate(self, *args: Any, **kwargs: Any) -> Any:
-        """Execute training and return evaluation metric."""
+    def train_and_evaluate(
+        self, 
+        X: np.ndarray, 
+        y: np.ndarray, 
+        config: TrainingConfig,
+        metadata: dict[str, str] | None = None
+    ) -> TrainingResult:
+        """Execute training and return standardized result."""
         pass
 
-    def log_params(self, params: dict[str, Any]) -> None:
+    def log_params(self, params: dict[str, str | int | float | bool]) -> None:
         """Logs parameters to MLflow."""
         mlflow.log_params(params)
 

@@ -22,21 +22,26 @@ class BacktestEvaluator:
         self.client = MlflowClient()
         mlflow.set_tracking_uri(settings.tracking_uri)
 
-    def get_latest_version(self, stage: str) -> dict[str, Any] | None:
+    def get_latest_version(self, stage: str) -> dict[str, str | dict[str, float]] | None:
         """Fetch model metadata for a specific stage."""
         try:
             versions = self.client.get_latest_versions(self.model_name, stages=[stage])
             if versions:
+                metrics = self.client.get_run(versions[0].run_id).data.metrics
                 return {
-                    "version": versions[0].version,
-                    "run_id": versions[0].run_id,
-                    "metrics": self.client.get_run(versions[0].run_id).data.metrics,
+                    "version": str(versions[0].version),
+                    "run_id": str(versions[0].run_id),
+                    "metrics": cast(dict[str, float], metrics),
                 }
         except Exception as e:
             logger.error("failed_to_fetch_model_version", stage=stage, error=str(e))
         return None
 
-    def evaluate_performance(self, staging_v: dict[str, Any], prod_v: dict[str, Any]) -> bool:
+    def evaluate_performance(
+        self, 
+        staging_v: dict[str, str | dict[str, float]], 
+        prod_v: dict[str, str | dict[str, float]]
+    ) -> bool:
         """
         Compare metrics. Returns True if staging should be promoted.
         Threshold: RMSE must not increase by more than 15%.
