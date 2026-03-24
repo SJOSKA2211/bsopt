@@ -15,18 +15,8 @@ src = root / "src"
 if str(src) not in sys.path:
     sys.path.insert(0, str(src))
 
-# Add tests dir to path for mock_all import
-if str(test_dir) not in sys.path:
-    sys.path.insert(0, str(test_dir))
-
-#  OPTIMIZED: Inject mocks
-try:
-    import tests.mock_all  # noqa: F401
-except ImportError:
-    try:
-        import mock_all  # noqa: F401
-    except ImportError:
-        pass
+# Global fixtures for institutional testing suite
+# Standardized on Zero-Mock architecture.
 
 
 @pytest.fixture(scope="session", autouse=True)
