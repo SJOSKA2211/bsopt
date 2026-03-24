@@ -31,14 +31,11 @@ T = TypeVar("T")
 _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
-
 def msgspec_dumps(obj: object) -> str:
     return _encoder.encode(obj).decode()
 
-
 def msgspec_loads(s: str | bytes) -> Any:
     return _decoder.decode(s)
-
 
 class DatabaseManager:
     """
@@ -171,7 +168,7 @@ class DatabaseManager:
             async_pool_class: type[NullPool] | None = NullPool
             async_pool_kwargs = {}
         else:
-            # OPTIMIZED: SQLAlchemy 2.0 automatically adapts QueuePool for AsyncEngine
+            
             # if we don't specify it explicitly.
             async_pool_class = None
             async_pool_kwargs = {
@@ -250,26 +247,20 @@ class DatabaseManager:
         self._initialized = False
         logger.info("database_engines_disposed")
 
-
 db_manager = DatabaseManager()
-
 
 # --- COMPATIBILITY EXPORTS ---
 def get_engine() -> Engine:
     return db_manager.engine
 
-
 def get_async_engine() -> AsyncEngine:
     return db_manager.async_engine
-
 
 def get_sessionmaker() -> sessionmaker[Session]:
     return db_manager.session_factory
 
-
 def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return db_manager.async_session_factory
-
 
 # Legacy Lazy Loaders
 from typing import Callable
@@ -284,10 +275,8 @@ class LazySessionFactory:
     def __getattr__(self, name: str) -> Any:
         return getattr(self._getter(), name)
 
-
 SessionLocal = LazySessionFactory(get_sessionmaker)
 AsyncSessionLocal = LazySessionFactory(get_async_sessionmaker)
-
 
 # --- DEPENDENCIES ---
 def get_db() -> Generator[Session, None, None]:
@@ -298,16 +287,13 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-
 def get_session() -> Generator[Session, None, None]:
     return get_db()
-
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for asynchronous DB sessions."""
     async with db_manager.async_session_factory() as session:
         yield session
-
 
 @contextmanager
 def get_db_context() -> Generator[Session, None, None]:
@@ -317,12 +303,10 @@ def get_db_context() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-
 @asynccontextmanager
 async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
     async with db_manager.async_session_factory() as session:
         yield session
-
 
 # --- UTILITIES ---
 async def set_user_context(session: AsyncSession, user_id: str) -> None:
@@ -330,7 +314,6 @@ async def set_user_context(session: AsyncSession, user_id: str) -> None:
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
     )
-
 
 async def health_check() -> dict[str, Any]:
     """Enhanced database connectivity health check with retry (Asynchronous)."""
@@ -354,7 +337,6 @@ async def health_check() -> dict[str, Any]:
                 await asyncio.sleep(1)  # Async backoff
     return status
 
-
 def create_tables() -> None:
     """Creates all metadata tables with optimization hooks."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
@@ -377,7 +359,6 @@ def create_tables() -> None:
             logger.info("database_metadata_synchronized")
         except Exception as e:
             logger.error("database_metadata_sync_failed", error=str(e))
-
 
 async def dispose_engine() -> None:
     await db_manager.dispose()

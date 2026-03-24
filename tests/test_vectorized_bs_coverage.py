@@ -3,7 +3,6 @@ import numpy as np
 from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.quant.pricing.models import OptionGreeks
 
-
 def test_vectorized_bs_scalar_greeks():
     # Pass scalar inputs to hit line 71 branch (return from OptionGreeks)
     res = VectorizedBlackScholesEngine.calculate_greeks(
@@ -15,7 +14,6 @@ def test_vectorized_bs_scalar_greeks():
     if isinstance(res.delta, np.ndarray):
         assert res.delta.size == 1
 
-
 def test_vectorized_bs_array_greeks():
     # Pass array inputs to hit line 69 branch (return dict directly)
     S = np.array([100.0, 110.0])
@@ -25,7 +23,6 @@ def test_vectorized_bs_array_greeks():
     # The engine now consistently returns OptionGreeks
     assert isinstance(res, OptionGreeks)
     assert len(res.delta) == 2
-
 
 def test_vectorized_bs_price_options_scalar():
     res = VectorizedBlackScholesEngine.price_options(

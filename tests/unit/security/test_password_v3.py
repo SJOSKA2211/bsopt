@@ -2,13 +2,11 @@ from unittest.mock import patch
 
 from src.auth.password import PasswordService, PasswordValidator
 
-
 def test_validator_length():
     validator = PasswordValidator(min_length=10)
     res = validator.validate("short")
     assert not res.is_valid
     assert any("at least 10 characters" in e for e in res.errors)
-
 
 def test_validator_complexity():
     validator = PasswordValidator(
@@ -31,13 +29,11 @@ def test_validator_complexity():
         res = validator.validate("Enterprise_Secure_Password_Manifold_2026!")
         assert res.is_valid
 
-
 def test_validator_email_similarity():
     validator = PasswordValidator()
     res = validator.validate("engineer@bsopt.com", email="engineer@bsopt.com")
     assert not res.is_valid
     assert any("email" in e.lower() for e in res.errors)
-
 
 @patch("src.auth.password.pwnedpasswords.check")
 def test_validator_pwned(mock_check):
@@ -47,14 +43,12 @@ def test_validator_pwned(mock_check):
     assert not res.is_valid
     assert any("data breach" in e.lower() for e in res.errors)
 
-
 def test_password_service_hash_verify():
     service = PasswordService(rounds=4)
     password = "Enterprise_Secure_Password_Manifold_2026!"
     hashed = service.hash_password(password)
     assert service.verify_password(password, hashed)
     assert not service.verify_password("wrong", hashed)
-
 
 def test_password_service_generate():
     service = PasswordService(rounds=4)

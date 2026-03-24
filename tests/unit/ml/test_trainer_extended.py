@@ -5,13 +5,11 @@ import pytest
 
 from src.ml.trainer import ModelTrainer, PyTorchTrainer
 
-
 @pytest.fixture
 def dummy_data():
     X = np.random.rand(100, 5)
     y = np.random.rand(100)  # Regression targets
     return X, y
-
 
 @pytest.fixture
 def mock_tracker():
@@ -20,7 +18,6 @@ def mock_tracker():
         mock.return_value = tracker
         tracker.start_run.return_value.__enter__.return_value = MagicMock()
         yield tracker
-
 
 def test_xgboost_trainer(mock_tracker, dummy_data):
     X, y = dummy_data
@@ -36,7 +33,6 @@ def test_xgboost_trainer(mock_tracker, dummy_data):
             assert isinstance(r2, float)
             mock_tracker.log_metrics.assert_called()
 
-
 def test_sklearn_trainer(mock_tracker, dummy_data):
     X, y = dummy_data
     trainer = ModelTrainer(study_name="test_sklearn")
@@ -49,7 +45,6 @@ def test_sklearn_trainer(mock_tracker, dummy_data):
             r2 = trainer.train_and_evaluate(X, y, params)
             assert isinstance(r2, float)
 
-
 def test_pytorch_trainer(mock_tracker, dummy_data):
     X, y = dummy_data
     trainer = ModelTrainer(study_name="test_pytorch")
@@ -61,7 +56,6 @@ def test_pytorch_trainer(mock_tracker, dummy_data):
             mock_pred.return_value = np.random.rand(len(y) // 5)
             r2 = trainer.train_and_evaluate(X, y, params)
             assert isinstance(r2, float)
-
 
 def test_optimize(mock_tracker):
     with patch("src.ml.trainer.optuna.create_study") as mock_create:
@@ -77,7 +71,6 @@ def test_optimize(mock_tracker):
         assert study == mock_study
         assert trainer.best_params == {"a": 1}
 
-
 def test_pytorch_wrapper(mock_tracker, dummy_data):
     X, y = dummy_data
     trainer = PyTorchTrainer(study_name="test_wrapper")
@@ -85,7 +78,6 @@ def test_pytorch_wrapper(mock_tracker, dummy_data):
         res = trainer.train(X, y, {"epochs": 1})
         assert res == 0.9
         mock_train.assert_called_once()
-
 
 def test_push_metrics_alias(mock_tracker):
     trainer = ModelTrainer(study_name="test_alias")

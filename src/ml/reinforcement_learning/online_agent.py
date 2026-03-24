@@ -18,7 +18,6 @@ from src.shared.shm_mesh import (
 
 logger = structlog.get_logger()
 
-
 class OnlineRLAgent:
     """
     Advanced Online RL Agent with Neural Plasticity.
@@ -35,7 +34,7 @@ class OnlineRLAgent:
         self.window_size = window_size
 
         #  SILICON BUFFERS
-        # OPTIMIZED: 128-dim state vector for DT-v2 compatibility
+        
         self._window_buffer = np.zeros((window_size, 128), dtype=np.float32)
         self._window_idx = 0
         self._prev_portfolio_value = initial_balance
@@ -45,7 +44,6 @@ class OnlineRLAgent:
         self._execs = ExecutionBuffer(create=False)
         self._last_head = 0
 
-        # OPTIMIZED: Pre-initialize Pricing Engine
         from src.math_kernel.factory import PricingEngineFactory
 
         self._pricing_engine = PricingEngineFactory.get_engine("black_scholes")
@@ -114,7 +112,6 @@ class OnlineRLAgent:
                         prices = np.full(10, current_price, dtype=np.float32)
                         strikes = np.full(10, 100.0, dtype=np.float32)
 
-                        # OPTIMIZED: Re-use pricing engine and parameters
                         params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                         g_vals = self._pricing_engine.calculate_greeks(params)
                         current_delta = g_vals.delta  # Capture for execution
@@ -128,7 +125,6 @@ class OnlineRLAgent:
                             g_vals.rho,
                         ]
 
-                        # OPTIMIZED: Real-time Multi-modal Feature Extraction
                         if not hasattr(self, "_price_ema"):
                             self._price_ema = current_price
                         else:
@@ -213,7 +209,6 @@ class OnlineRLAgent:
                 )
                 self.positions[i] = target_units[i]
                 self.balance -= float(trades[i] * prices[i])
-
 
 if __name__ == "__main__":
     agent = OnlineRLAgent("models/latest_td3.zip")

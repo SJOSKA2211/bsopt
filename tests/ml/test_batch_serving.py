@@ -8,14 +8,12 @@ from src.ml.serving.serve import app, state
 
 client = TestClient(app)
 
-
 @pytest.fixture
 def mock_xgb_model():
     model = MagicMock()
     # Mock predict to return a list of floats
     model.predict.return_value = np.array([10.5, 11.0])
     return model
-
 
 @pytest.fixture
 def mock_onnx_session():
@@ -24,7 +22,6 @@ def mock_onnx_session():
     # Mock run to return a list of lists (standard ONNX output format)
     session.run.return_value = [np.array([[10.5], [11.0]])]
     return session
-
 
 def test_predict_batch_xgb(mock_xgb_model):
     state["xgb_model"] = mock_xgb_model
@@ -64,7 +61,6 @@ def test_predict_batch_xgb(mock_xgb_model):
     assert data["predictions"][0]["price"] == 10.5
     assert data["predictions"][1]["price"] == 11.0
     assert data["predictions"][0]["model_type"] == "xgb"
-
 
 def test_predict_batch_nn(mock_onnx_session):
     state["xgb_model"] = None

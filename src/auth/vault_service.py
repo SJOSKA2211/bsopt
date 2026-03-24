@@ -13,7 +13,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class VaultService:
     """
     Secure client for HashiCorp Vault.
@@ -56,6 +55,5 @@ class VaultService:
             "ECC_PRIVATE": keys.get("ECC_PRIVATE_KEY", ""),
             "ECC_PUBLIC": keys.get("ECC_PUBLIC_KEY", ""),
         }
-
 
 vault_service = VaultService()

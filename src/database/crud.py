@@ -36,7 +36,6 @@ logger = structlog.get_logger()
 
 # USER OPERATIONS
 
-
 async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
     """Get user by ID with portfolios eagerly loaded (Async)."""
     result = await db.execute(
@@ -44,16 +43,14 @@ async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
     )
     return result.scalar_one_or_none()
 
-
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     """Get user by email (Async)."""
     result = await db.execute(select(User).where(User.email == email))
     return result.scalar_one_or_none()
 
-
 async def create_user(db: AsyncSession, email: str, password: str, full_name: str) -> User:
     """Create a new user using Native Postgres Procedure (Async)."""
-    # OPTIMIZED: Hand off hashing to the database layer
+    
     result = await db.execute(
         text("SELECT register_user_native(:email, :password, :full_name)"),
         {"email": email, "password": password, "full_name": full_name},
@@ -69,7 +66,6 @@ async def create_user(db: AsyncSession, email: str, password: str, full_name: st
 
     return user
 
-
 async def get_user_with_portfolios(db: AsyncSession, user_id: UUID) -> User | None:
     """Get user with all portfolios and positions eagerly loaded (Async)."""
     result = await db.execute(
@@ -78,7 +74,6 @@ async def get_user_with_portfolios(db: AsyncSession, user_id: UUID) -> User | No
         .where(User.id == user_id)
     )
     return result.scalar_one_or_none()
-
 
 async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100) -> Sequence[User]:
     """Get active users by tier (Async)."""
@@ -90,21 +85,17 @@ async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100
     )
     return result.scalars().all()
 
-
 async def update_user_last_login(db: AsyncSession, user_id: UUID) -> None:
     """Update user's last login timestamp using native procedure (Async)."""
     await db.execute(text("SELECT update_last_login_native(:uid)"), {"uid": user_id})
     await db.commit()
-
 
 async def update_user_tier(db: AsyncSession, user_id: UUID, tier: str) -> None:
     """Update user's subscription tier (Async)."""
     await db.execute(update(User).where(User.id == user_id).values(tier=tier))
     await db.commit()
 
-
 # PORTFOLIO OPERATIONS
-
 
 async def get_portfolio_by_id(db: AsyncSession, portfolio_id: UUID) -> Portfolio | None:
     """Get portfolio with positions eagerly loaded (Async)."""
@@ -114,7 +105,6 @@ async def get_portfolio_by_id(db: AsyncSession, portfolio_id: UUID) -> Portfolio
         .where(Portfolio.id == portfolio_id)
     )
     return result.scalar_one_or_none()
-
 
 async def get_portfolio_with_open_positions(
     db: AsyncSession, portfolio_id: UUID
@@ -127,7 +117,6 @@ async def get_portfolio_with_open_positions(
         .where(Portfolio.id == portfolio_id)
     )
     return result.scalar_one_or_none()
-
 
 async def get_user_portfolios(
     db: AsyncSession, user_id: UUID, include_positions: bool = True
@@ -143,7 +132,6 @@ async def get_user_portfolios(
     result = await db.execute(stmt)
     return result.scalars().all()
 
-
 async def create_portfolio(
     db: AsyncSession, user_id: UUID, name: str, initial_cash: Decimal = Decimal("0.00")
 ) -> Portfolio:
@@ -153,7 +141,6 @@ async def create_portfolio(
     await db.commit()
     await db.refresh(portfolio)
     return portfolio
-
 
 async def update_portfolio_cash(
     db: AsyncSession, portfolio_id: UUID, amount: Decimal, operation: str = "add"
@@ -181,15 +168,12 @@ async def update_portfolio_cash(
     await db.commit()
     return bool(result.rowcount > 0)
 
-
 # POSITION OPERATIONS
-
 
 async def get_position_by_id(db: AsyncSession, position_id: UUID) -> Position | None:
     """Get position by ID (Async)."""
     result = await db.execute(select(Position).where(Position.id == position_id))
     return result.scalar_one_or_none()
-
 
 async def get_open_positions_by_portfolio(
     db: AsyncSession, portfolio_id: UUID
@@ -201,7 +185,6 @@ async def get_open_positions_by_portfolio(
         .order_by(Position.entry_date.desc())
     )
     return result.scalars().all()
-
 
 async def get_expiring_positions(
     db: AsyncSession, days_until_expiry: int = 7
@@ -222,7 +205,6 @@ async def get_expiring_positions(
     )
     return result.scalars().all()
 
-
 async def get_positions_by_symbol(
     db: AsyncSession, symbol: str, status: str | None = None
 ) -> Sequence[Position]:
@@ -234,7 +216,6 @@ async def get_positions_by_symbol(
 
     result = await db.execute(stmt.order_by(Position.entry_date.desc()))
     return result.scalars().all()
-
 
 async def create_position(
     db: AsyncSession,
@@ -260,7 +241,6 @@ async def create_position(
     await db.commit()
     await db.refresh(position)
     return position
-
 
 async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) -> int:
     """
@@ -324,7 +304,6 @@ async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) ->
         await db.rollback()
         raise
 
-
 async def close_position(
     db: AsyncSession,
     position_id: UUID,
@@ -346,15 +325,12 @@ async def close_position(
     await db.refresh(position)
     return position
 
-
 # ORDER OPERATIONS
-
 
 async def get_order_by_id(db: AsyncSession, order_id: UUID) -> Order | None:
     """Get order by ID (Async)."""
     result = await db.execute(select(Order).where(Order.id == order_id))
     return result.scalar_one_or_none()
-
 
 async def get_user_orders(
     db: AsyncSession, user_id: UUID, status: str | None = None, limit: int = 100
@@ -368,14 +344,12 @@ async def get_user_orders(
     result = await db.execute(stmt.order_by(Order.created_at.desc()).limit(limit))
     return result.scalars().all()
 
-
 async def get_pending_orders(db: AsyncSession, limit: int = 1000) -> Sequence[Order]:
     """Get all pending orders (Async)."""
     result = await db.execute(
         select(Order).where(Order.status == "pending").order_by(Order.created_at).limit(limit)
     )
     return result.scalars().all()
-
 
 async def get_orders_by_broker(
     db: AsyncSession, broker: str, broker_order_id: str | None = None
@@ -388,7 +362,6 @@ async def get_orders_by_broker(
 
     result = await db.execute(stmt)
     return result.scalars().all()
-
 
 async def create_order(
     db: AsyncSession,
@@ -424,7 +397,6 @@ async def create_order(
     await db.refresh(order)
     return order
 
-
 async def update_order_status(
     db: AsyncSession,
     order_id: UUID,
@@ -444,9 +416,7 @@ async def update_order_status(
     await db.commit()
     return bool(result.rowcount > 0)
 
-
 # ML MODEL OPERATIONS
-
 
 async def get_similar_models(
     db: AsyncSession, embedding: list[float], limit: int = 5
@@ -475,7 +445,6 @@ async def get_similar_models(
         logger.error("vector_similarity_search_failed", error=str(e))
         return []
 
-
 async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
     """Get the production version of a model (Async)."""
     result = await db.execute(
@@ -483,14 +452,12 @@ async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
     )
     return result.scalar_one_or_none()
 
-
 async def get_latest_model_version(db: AsyncSession, name: str) -> MLModel | None:
     """Get the latest version of a model (Async)."""
     result = await db.execute(
         select(MLModel).where(MLModel.name == name).order_by(MLModel.version.desc()).limit(1)
     )
     return result.scalar_one_or_none()
-
 
 async def create_model(
     db: AsyncSession,
@@ -519,7 +486,6 @@ async def create_model(
     await db.refresh(model)
     return model
 
-
 async def set_production_model(db: AsyncSession, model_id: UUID) -> bool:
     """Set a model as production (Async)."""
     result = await db.execute(select(MLModel).where(MLModel.id == model_id))
@@ -538,9 +504,7 @@ async def set_production_model(db: AsyncSession, model_id: UUID) -> bool:
     await db.commit()
     return True
 
-
 # OPTION PRICE OPERATIONS
-
 
 async def get_latest_option_price(
     db: AsyncSession, symbol: str, strike: Decimal, expiry: date, option_type: str
@@ -561,7 +525,6 @@ async def get_latest_option_price(
     )
     return result.scalar_one_or_none()
 
-
 async def get_option_chain(
     db: AsyncSession, symbol: str, expiry: date, option_type: str | None = None
 ) -> Sequence[OptionPrice]:
@@ -577,7 +540,6 @@ async def get_option_chain(
 
     result = await db.execute(stmt)
     return result.scalars().all()
-
 
 async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -> int:
     """
@@ -634,7 +596,6 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
                 for row in prices_data
             ]
 
-            # OPTIMIZED: Light staging table
             await db.execute(
                 text("CREATE TEMP TABLE staging_option_prices (LIKE options_prices) ON COMMIT DROP")
             )
@@ -666,7 +627,6 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
         logger.error("option_prices_bulk_copy_failed", error=str(e))
         await db.rollback()
         raise
-
 
 async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> int:
     """
@@ -728,7 +688,6 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
         logger.error("market_ticks_bulk_copy_failed", error=str(e))
         await db.rollback()
         raise
-
 
 async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
     """
@@ -809,7 +768,6 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
         await db.rollback()
         raise
 
-
 async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int:
     """
     High-performance bulk insert for AuditLog using PostgreSQL COPY.
@@ -867,7 +825,6 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         logger.error("audit_logs_bulk_copy_failed", error=str(e))
         await db.rollback()
         raise
-
 
 async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> int:
     """
@@ -933,9 +890,7 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
         await db.rollback()
         raise
 
-
 # AGGREGATION QUERIES
-
 
 async def get_portfolio_summary(db: AsyncSession, user_id: UUID) -> list[dict]:
     """
@@ -951,7 +906,6 @@ async def get_portfolio_summary(db: AsyncSession, user_id: UUID) -> list[dict]:
         logger.warning("mv_query_failed_falling_back_to_realtime", error=str(e))
         # Fallback logic would go here if MV is not available
         return []
-
 
 async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
     """
@@ -989,7 +943,6 @@ async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
         # Original real-time fallback logic could be kept here for safety
         return {"error": "Stats temporarily unavailable"}
 
-
 async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) -> list[dict]:
     """
     Fetch pre-aggregated daily market statistics from the continuous aggregate.
@@ -1014,7 +967,6 @@ async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) 
     except Exception as e:
         logger.error("market_stats_cagg_query_failed", error=str(e))
         return []
-
 
 async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list[dict]:
     """
@@ -1041,7 +993,6 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
         logger.error("ohlcv_cagg_query_failed", error=str(e))
         return []
 
-
 async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[dict]:
     """
     Fetch Implied Volatility surface data from continuous aggregates.
@@ -1067,7 +1018,6 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
         logger.error("iv_surface_query_failed", error=str(e))
         return []
 
-
 async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24) -> list[dict]:
     """
     Fetch hourly market stats from continuous aggregates.
@@ -1092,7 +1042,6 @@ async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24
         logger.error("hourly_stats_query_failed", error=str(e))
         return []
 
-
 async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None) -> list[dict]:
     """
     Fetch pre-aggregated drift metrics from the materialized view.
@@ -1111,7 +1060,6 @@ async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None
         logger.error("model_drift_metrics_mv_query_failed", error=str(e))
         return []
 
-
 async def get_latest_volatility_surface(db: AsyncSession, symbol: str) -> list[dict]:
     """
     Get the most recent volatility surface for a symbol from the optimized MV.
@@ -1125,7 +1073,6 @@ async def get_latest_volatility_surface(db: AsyncSession, symbol: str) -> list[d
     except Exception as e:
         logger.error("latest_vol_surface_query_failed", error=str(e))
         return []
-
 
 async def get_system_health_dashboard(db: AsyncSession) -> dict:
     """
@@ -1155,7 +1102,6 @@ async def get_system_health_dashboard(db: AsyncSession) -> dict:
         logger.error("system_health_dashboard_failed", error=str(e))
         return {"error": str(e)}
 
-
 async def get_io_performance_audit(db: AsyncSession) -> list[dict]:
     """
     Fetches the new PostgreSQL 16 I/O diagnostics summary.
@@ -1166,7 +1112,6 @@ async def get_io_performance_audit(db: AsyncSession) -> list[dict]:
     except Exception as e:
         logger.error("io_performance_audit_failed", error=str(e))
         return []
-
 
 async def get_portfolio_total_value(db: AsyncSession, portfolio_id: UUID) -> float:
     """
@@ -1207,7 +1152,6 @@ async def get_portfolio_total_value(db: AsyncSession, portfolio_id: UUID) -> flo
     except Exception as e:
         logger.error("portfolio_value_calc_failed", error=str(e))
         return 0.0
-
 
 async def get_ml_comparison_stats(db: AsyncSession, user_id: UUID) -> dict[str, float]:
     """

@@ -29,7 +29,6 @@ class TrainingResult(msgspec.Struct):
     model_path: str | None = None
     metadata: dict[str, str] = {}
 
-
 class BaseTrainer(ABC):
     """
     Abstract Base Class for all Model Trainers.

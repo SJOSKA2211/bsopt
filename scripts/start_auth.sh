@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/start_auth.sh - Institutional Auth Service Orchestrator (Zero-Mock)
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,7 +11,6 @@ echo "🔐 Launching Institutional EquaFlow Auth Service..."
 source scripts/utils_env.sh
 load_decrypted_secrets
 
-# Institutional Runtime Environment
 export PORT=${AUTH_PORT:-3001}
 export BETTER_AUTH_SECRET=${AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
 

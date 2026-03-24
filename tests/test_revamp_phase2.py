@@ -5,7 +5,6 @@ import torch
 from src.ml.reinforcement_learning.kernels import _fused_state_kernel
 from src.ml.reinforcement_learning.transformer_policy import CausalSelfAttention
 
-
 class TestRevampPhase2:
     def test_fused_state_kernel_spectral(self):
         balance = 100000.0

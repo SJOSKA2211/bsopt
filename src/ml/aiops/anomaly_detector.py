@@ -12,7 +12,6 @@ logger = structlog.get_logger()
 
 # ─── Neural Network Components ──────────────────────────────────────────────
 
-
 class VAE(nn.Module):
     """Variational Autoencoder for robust anomaly detection."""
 
@@ -47,7 +46,6 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decoder(z), mu, logvar
 
-
 class TimeSeriesTransformerEncoder(nn.Module):
     """Transformer-based encoder for sequential metric analysis."""
 
@@ -73,9 +71,7 @@ class TimeSeriesTransformerEncoder(nn.Module):
         x = self.transformer_encoder(x)
         return self.decoder(x)
 
-
 # ─── Unified Anomaly Detector ───────────────────────────────────────────────
-
 
 class AnomalyDetector:
     """
@@ -102,7 +98,7 @@ class AnomalyDetector:
             self.latent_dim = kwargs.get("latent_dim", 16)
             self.threshold = None
             raw_model = VAE(self.input_dim, self.latent_dim).to(self.device)
-            # OPTIMIZED: Use torch.compile for 2.0+ or JIT for older versions
+            
             try:
                 self.model = torch.compile(raw_model)
             except (AttributeError, Exception):

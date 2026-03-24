@@ -22,7 +22,6 @@ from services.api.graphql.resolvers.trading_service import (
     create_order as service_create_order,
 )
 
-
 @strawberry.type
 class Query:
     @strawberry.field
@@ -32,7 +31,6 @@ class Query:
         # For now, we assume user_id 123 maps to port_123 for backward compatibility but using real DB
         port_id = "port_123" if user_id == "user_123" else user_id
         return await service_get_portfolio(port_id)
-
 
 @strawberry.type
 class Mutation:
@@ -65,7 +63,6 @@ class Mutation:
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         """Persist a new portfolio to the database."""
         return await service_create_portfolio(user_id=user_id, name=name, initial_cash=initial_cash)
-
 
 @strawberry.type
 class Subscription:
@@ -100,6 +97,5 @@ class Subscription:
         finally:
             await pubsub.unsubscribe(channel)
             await pubsub.close()
-
 
 schema = Schema(query=Query, mutation=Mutation, subscription=Subscription)

@@ -6,7 +6,6 @@ import pytest
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
-
 @pytest.fixture
 def pipeline_config():
     return {
@@ -18,7 +17,6 @@ def pipeline_config():
         "framework": "xgboost",
     }
 
-
 def test_pipeline_init(pipeline_config):
     with (
         patch("src.ml.autonomous_pipeline.create_engine"),
@@ -26,7 +24,6 @@ def test_pipeline_init(pipeline_config):
     ):
         pipeline = AutonomousMLPipeline(pipeline_config)
         assert pipeline.ticker == "AAPL"
-
 
 def test_generate_features(pipeline_config):
     with (
@@ -48,7 +45,6 @@ def test_generate_features(pipeline_config):
         featured_df = pipeline.generate_features(df)
         assert "log_return" in featured_df.columns
         assert "volatility" in featured_df.columns
-
 
 @pytest.mark.asyncio
 async def test_get_current_model_performance(pipeline_config):

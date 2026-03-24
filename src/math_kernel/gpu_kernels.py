@@ -17,7 +17,6 @@ try:
 except ImportError:
     equaflow_core = None
 
-
 def gpu_black_scholes(
     S: float | np.ndarray,
     K: float | np.ndarray,
@@ -47,7 +46,6 @@ def gpu_black_scholes(
     R_gpu = cp.asarray(R, dtype=cp.float64)
     V_gpu = cp.asarray(V, dtype=cp.float64)
 
-    # Standard d1, d2 formulation (Institutional Grade)
     d1 = (cp.log(S_gpu / K_gpu) + (R_gpu + 0.5 * V_gpu**2) * T_gpu) / (V_gpu * cp.sqrt(T_gpu))
     d2 = d1 - V_gpu * cp.sqrt(T_gpu)
 
@@ -60,7 +58,6 @@ def gpu_black_scholes(
         price = K_gpu * cp.exp(-R_gpu * T_gpu) * norm_cdf(-d2) - S_gpu * norm_cdf(-d1)
 
     return cast(np.ndarray, cp.asnumpy(price))
-
 
 def runge_kutta_4(
     S0: float | np.ndarray,
@@ -109,7 +106,6 @@ def runge_kutta_4(
 
     return cast(np.ndarray, cp.asnumpy(S))
 
-
 def hybrid_compute_bs(
     S: float | np.ndarray,
     K: float | np.ndarray,
@@ -125,7 +121,6 @@ def hybrid_compute_bs(
         return cast(np.ndarray, equaflow_core.black_scholes_vectorized(S, K, T, R, V))
     else:
         return gpu_black_scholes(S, K, T, R, V)
-
 
 def mmap_accelerated_runge_kutta_4(
     mmap_file_path: str,

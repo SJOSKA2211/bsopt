@@ -10,7 +10,6 @@ except ImportError:
     # This is expected in the RED phase of TDD
     OnlineRLAgent = None
 
-
 @pytest.mark.skipif(OnlineRLAgent is None, reason="OnlineRLAgent not yet implemented")
 class TestOnlineRLAgent:
     @pytest.fixture

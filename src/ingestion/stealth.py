@@ -5,7 +5,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class StealthHttpClient:
     """
     HTTP client using TLS fingerprint mimicry.
@@ -48,12 +47,11 @@ class StealthHttpClient:
         }
 
         if self._has_cffi:
-            # OPTIMIZED: Synchronous-lookalike async call
+            
             response = await self.session.get(url, headers=headers, impersonate=target, **kwargs)
             logger.debug("stealth_request_complete", url=url, target=target)
             return response
         return await self.session.get(url, headers=headers, **kwargs)
-
 
 # Default client instance
 default_stealth_client = StealthHttpClient()

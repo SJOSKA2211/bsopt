@@ -276,8 +276,6 @@ services:
         condition: service_healthy
     command: npx playwright test
 
-
-
   envoy:
     image: envoyproxy/envoy:v1.30-latest
     ports:

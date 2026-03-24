@@ -1,7 +1,6 @@
 import numpy as np
 from numba import njit
 
-
 @njit(cache=True, fastmath=True)
 def run_simulation_kernel(
     option_prices: np.ndarray,
@@ -45,7 +44,6 @@ def run_simulation_kernel(
         prev_pos = pos
 
     return equity_curve, mtm_pnl, commissions
-
 
 @njit(cache=True, fastmath=True)
 def calculate_metrics_kernel(equity_curve: np.ndarray, initial_capital: float):

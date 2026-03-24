@@ -5,7 +5,6 @@ import pytest
 from src.api.routes.websocket import market_data_ws
 from src.api.websockets.codec import ProtocolType
 
-
 @pytest.mark.asyncio
 async def test_market_data_ws_protocol_negotiation():
     # Mock WebSocket
@@ -30,7 +29,6 @@ async def test_market_data_ws_protocol_negotiation():
         assert hasattr(websocket, "metadata")
         assert websocket.metadata.protocol == ProtocolType.PROTO
         assert symbol in websocket.metadata.subscriptions
-
 
 @pytest.mark.asyncio
 async def test_market_data_ws_default_protocol():

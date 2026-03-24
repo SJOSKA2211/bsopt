@@ -4,7 +4,6 @@ from sqlalchemy import select
 from src.database import get_db_context
 from src.database.models import OptionPrice
 
-
 class TimescaleDataProvider:
     """
     Institutional Data Provider for RL Training.

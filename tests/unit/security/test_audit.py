@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 from src.auth.audit import AuditEvent, log_audit
 from src.database.models import User
 
-
 @patch("src.workers.tasks.audit_tasks.persist_audit_log.delay")
 def test_log_audit_basic(mock_delay):
     user = User(id="test-uid", email="test@example.com")
@@ -13,7 +12,6 @@ def test_log_audit_basic(mock_delay):
     args, kwargs = mock_delay.call_args
     assert kwargs["event_type"] == AuditEvent.USER_LOGIN_SUCCESS.value
     assert kwargs["user_id"] == "test-uid"
-
 
 def test_log_audit_with_request():
     mock_request = MagicMock()

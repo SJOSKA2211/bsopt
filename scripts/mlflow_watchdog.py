@@ -11,7 +11,6 @@ MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 RAY_DASHBOARD_URL = os.getenv("RAY_DASHBOARD_URL", "http://ray-head:8265")
 CHECK_INTERVAL = 30
 
-
 class MLflowWatchdog:
     """
     Self-healing watchdog for Ray and MLflow components.
@@ -133,7 +132,6 @@ class MLflowWatchdog:
                     # Potential: shed load or stop low-priority jobs
 
             time.sleep(CHECK_INTERVAL)
-
 
 if __name__ == "__main__":
     watchdog = MLflowWatchdog()

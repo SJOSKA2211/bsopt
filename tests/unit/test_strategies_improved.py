@@ -16,7 +16,6 @@ from src.ml.strategies import (
     get_strategy,
 )
 
-
 class TestStrategies:
     def setUp(self):
         self.X_train = np.random.rand(100, 5)
@@ -61,6 +60,4 @@ class TestStrategies:
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         assert len(preds) == 20
-
-
 

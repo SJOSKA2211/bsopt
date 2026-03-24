@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/utils_env.sh - Institutional Environment & Secret Substrate
+# scripts/utils_env.sh - Environment & Secret Substrate
 set -euo pipefail
 
 # Function to load decrypted secrets from the hardened PKI vault
@@ -19,7 +19,7 @@ load_decrypted_secrets() {
         return 0
     fi
 
-    echo "🔐 Decrypting Institutional Secrets..."
+    echo "🔐 Decrypting Secrets..."
     # Logic to decrypt ENC_ variables if they exist
     while IFS= read -r line; do
         [[ "$line" =~ ^#.*$ ]] && continue
@@ -35,7 +35,7 @@ load_decrypted_secrets() {
     done < "$ENV_FILE"
 }
 
-# Detect container engine with institutional precision
+# Detect container engine
 detect_container_engine() {
     if command -v podman >/dev/null 2>&1; then
         export CONTAINER_ENGINE="podman"
@@ -48,7 +48,7 @@ detect_container_engine() {
             export COMPOSE_ENGINE="docker-compose"
         fi
     else
-        echo "❌ Error: Institutional container engine not detected."
+        echo "❌ Error: Container engine not detected."
         exit 1
     fi
 }

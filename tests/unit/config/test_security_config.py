@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from src.shared.config import DEFAULT_DEV_MFA_KEY, Settings
 
-
 def test_mfa_key_security_dev():
     """Test that default key is allowed in dev environment."""
     settings = Settings(
@@ -16,7 +15,6 @@ def test_mfa_key_security_dev():
     assert settings.MFA_ENCRYPTION_KEY == DEFAULT_DEV_MFA_KEY
     assert settings.ENVIRONMENT == "dev"
 
-
 def test_mfa_key_security_prod_failure():
     """Test that default key is REJECTED in prod environment."""
     with pytest.raises(ValidationError) as excinfo:
@@ -28,7 +26,6 @@ def test_mfa_key_security_prod_failure():
             JWT_SECRET="test-secret",
         )
     assert "CRITICAL SECURITY ERROR" in str(excinfo.value)
-
 
 def test_mfa_key_security_prod_success():
     """Test that CUSTOM key is allowed in prod environment."""

@@ -1,7 +1,6 @@
 import os
 import re
 
-
 def convert_assertions(file_path):
     with open(file_path) as f:
         content = f.read()
@@ -37,7 +36,6 @@ def convert_assertions(file_path):
 
     with open(file_path, "w") as f:
         f.write(content)
-
 
 test_files = [f for f in os.listdir("tests") if f.startswith("test_") and f.endswith(".py")]
 for f in test_files:

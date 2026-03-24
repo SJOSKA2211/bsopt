@@ -3,7 +3,6 @@ import time
 
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 
-
 async def test_data_flow():
     print("Testing Manifold Data Flow...")
 
@@ -37,7 +36,6 @@ async def test_data_flow():
     print("Data Flow Verification: SUCCESS")
     shm.close()
     shm.unlink()
-
 
 if __name__ == "__main__":
     try:

@@ -5,7 +5,6 @@ from sqlalchemy import text
 
 logger = structlog.get_logger()
 
-
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
@@ -25,7 +24,6 @@ async def check_database():
                 print("⚠️ [SCHEMA OK, REVAMP DIAGNOSTICS MISSING]")
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
-
 
 async def check_redis():
     print("Checking Redis Cluster...", end=" ", flush=True)
@@ -57,7 +55,6 @@ async def check_redis():
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
-
 async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
@@ -83,7 +80,6 @@ async def check_shm():
     except Exception as e:
         print(f"❌ [ERROR: {e}]")
 
-
 async def main():
     print("\n" + "=" * 50)
     print("   BS-OPT HIGH-PERFORMANCE SYSTEM SENTINEL")
@@ -92,7 +88,6 @@ async def main():
     await check_redis()
     await check_shm()
     print("=" * 50 + "\n")
-
 
 if __name__ == "__main__":
     asyncio.run(main())

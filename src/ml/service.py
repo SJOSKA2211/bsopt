@@ -18,7 +18,6 @@ from src.shared.protos import inference_pb2, inference_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
-
 class MLService:
     """
     Enhanced ML pricing service with automated hypertable persistence.
@@ -118,7 +117,6 @@ class MLService:
 
             import msgspec
 
-            # OPTIMIZED: Use msgspec.json.encode directly on the Pydantic model for speed
             input_features_json = msgspec.json.encode(request).decode()
 
             # Format for VectorizedDBEngine.insert_predictions_bulk
@@ -145,9 +143,7 @@ class MLService:
             self._channel = None
             self._stub = None
 
-
 _ml_service_instance: MLService | None = None
-
 
 def get_ml_service() -> MLService:
     """Returns the singleton MLService instance."""

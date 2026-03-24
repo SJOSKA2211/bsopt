@@ -14,7 +14,6 @@ from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
 logger = structlog.get_logger(__name__)
 
-
 class OrderExecutor:
     """
     OPTIMIZED: Latency-Optimized Smart Order Executor.
@@ -24,7 +23,7 @@ class OrderExecutor:
     def __init__(self, protocol: DeFiOptionsProtocol):
         self.protocol = protocol
         self._execution_lock = asyncio.Lock()
-        # OPTIMIZED: Multi-dimensional tracker for Delta, Gamma, Vega
+        
         self._risk_tracker = RiskVectorTracker(
             limits=np.array(
                 [settings.MAX_NET_DELTA, settings.MAX_NET_GAMMA, settings.MAX_NET_VEGA],
@@ -201,7 +200,7 @@ class OrderExecutor:
             receipt = await self.protocol.wait_for_receipt(tx_hash)
             if receipt["status"] == 1:
                 logger.info("transaction_confirmed", tx_hash=tx_hash, block=receipt["blockNumber"])
-                # OPTIMIZED: Trigger post-trade analytics or state sync here
+                
             else:
                 logger.error("transaction_failed_on_chain", tx_hash=tx_hash)
         except TimeoutError:

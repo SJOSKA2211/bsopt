@@ -20,7 +20,6 @@ except ImportError:
     WASM_AVAILABLE = False
     logger.warning("wasm_engine_unavailable", reason="wasm_loader_not_found")
 
-
 class WASMPricingEngine(PricingStrategy):
     """
     High-performance bridge to Rust/WASM pricing implementation.

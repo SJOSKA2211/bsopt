@@ -16,7 +16,6 @@ from src.shared.utils.cache import get_redis_client
 
 logger = structlog.get_logger(__name__)
 
-
 class RedisStreamManager:
     """
     Manages Redis Streams for real-time data and internal events.

@@ -16,7 +16,6 @@ try:
 except ImportError:
     ray = None
 
-
 class ExecutionStrategy(ABC):
     """Abstract base class for execution strategies."""
 
@@ -27,7 +26,6 @@ class ExecutionStrategy(ABC):
         executor: concurrent.futures.ProcessPoolExecutor | None = None,
     ) -> np.ndarray:
         pass
-
 
 class MultiprocessingStrategy(ExecutionStrategy):
     """Local parallel execution using ProcessPoolExecutor (Fallback for Ray)."""
@@ -51,7 +49,6 @@ class MultiprocessingStrategy(ExecutionStrategy):
         ]
 
         return await loop.run_in_executor(executor, service._worker_pricing, *args)
-
 
 class SequentialStrategy(ExecutionStrategy):
     """Sequential execution (fallback)."""
@@ -80,7 +77,6 @@ class SequentialStrategy(ExecutionStrategy):
         )
         return out_prices
 
-
 class RayStrategy(ExecutionStrategy):
     """Ray distributed execution."""
 
@@ -107,7 +103,6 @@ class RayStrategy(ExecutionStrategy):
             if asyncio.iscoroutine(ray_future)
             else ray.get(ray_future)
         )
-
 
 class SHMStrategy(ExecutionStrategy):
     """Shared Memory + ProcessPoolExecutor execution."""
@@ -167,7 +162,6 @@ class SHMStrategy(ExecutionStrategy):
             shm_manager.release(shm_in_name)
             shm_manager.release(shm_out_name)
 
-
 class WASMStrategy(ExecutionStrategy):
     """WebAssembly execution strategy."""
 
@@ -191,14 +185,12 @@ class WASMStrategy(ExecutionStrategy):
         )
         return np.array(res, dtype=np.float64)
 
-
 class StrategyFactory:
     @staticmethod
     def get_strategy(count: int, ray_active: bool) -> ExecutionStrategy:
         from src.math_kernel.black_scholes import CORE_AVAILABLE
         from src.math_kernel.wasm_engine import WASM_AVAILABLE
 
-        # OPTIMIZED: Prioritize host-native Rust Core (Multi-threaded Rayon)
         if CORE_AVAILABLE:
             return SequentialStrategy()  # SequentialStrategy uses vectorized Rust call
 

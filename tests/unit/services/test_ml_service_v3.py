@@ -6,13 +6,11 @@ import pytest
 from src.api.schemas.ml import InferenceRequest
 from src.ml_service import MLService
 
-
 @pytest.fixture
 def mock_grpc():
     with patch("src.ml_service.Channel") as mock_chan:
         with patch("src.ml_service.MLInferenceStub") as mock_stub:
             yield mock_chan, mock_stub
-
 
 @pytest.fixture
 def mock_shm():
@@ -20,7 +18,6 @@ def mock_shm():
         shm = mock.return_value
         shm.name = "ml_shm"
         yield shm
-
 
 @pytest.mark.asyncio
 async def test_predict_shm_success(mock_grpc, mock_shm):
@@ -49,7 +46,6 @@ async def test_predict_shm_success(mock_grpc, mock_shm):
     assert res.price == 5.0
     assert mock_shm.write.called
 
-
 @pytest.mark.asyncio
 async def test_predict_shm_failure_fallback(mock_grpc, mock_shm):
     mock_chan, mock_stub_cls = mock_grpc
@@ -77,7 +73,6 @@ async def test_predict_shm_failure_fallback(mock_grpc, mock_shm):
     res = await service.predict(req)
     assert res.price == 4.5
     assert mock_stub.Predict.call_count == 1
-
 
 @pytest.mark.asyncio
 async def test_ml_service_lifecycle(mock_grpc, mock_shm):

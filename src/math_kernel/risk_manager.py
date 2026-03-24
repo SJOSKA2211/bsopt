@@ -6,7 +6,6 @@ from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
 logger = structlog.get_logger(__name__)
 
-
 class RiskManager:
     """
     Orchestrates Local SHM Risk State and Global Redis LUA State.

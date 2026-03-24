@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/bootstrap.sh - Institutional Zero-Touch Bootstrapper
+# scripts/bootstrap.sh - Zero-Touch Bootstrapper
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -23,13 +23,13 @@ fi
 
 echo "🚀 Using container orchestrator: $COMPOSE_CMD"
 
-# 2. Institutional PKI & Secret Generation
+# 2. PKI & Secret Generation
 echo "🔐 Initializing Security Substrate..."
 bash scripts/setup_pki.sh
 
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
-    echo "📝 Generating Institutional Secrets..."
+    echo "📝 Generating Secrets..."
     
     # High-Entropy Database Secrets
     DB_USER="equaflow_admin"
@@ -44,7 +44,7 @@ if [ ! -f "$ENV_FILE" ]; then
     MINIO_ROOT_PASS=$(openssl rand -hex 32)
 
     cat <<EOF > "$ENV_FILE"
-# Institutional Environment Configuration
+# Environment Configuration
 ENVIRONMENT=production
 DEBUG=false
 
@@ -66,7 +66,6 @@ RABBITMQ_PASSWORD=$RABBITMQ_PASS
 MINIO_ROOT_USER=minio_admin
 MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASS
 
-# "Zero-Mock" API Keys (USER MUST PROVIDE THESE)
 ALPHA_VANTAGE_API_KEY=
 POLYGON_API_KEY=
 IBM_QUANTUM_TOKEN=
@@ -80,7 +79,7 @@ else
 fi
 
 # 3. Microservices Lifecycle Management
-echo "📦 Spinning up Core Institutional Stack..."
+echo "📦 Spinning up Core Stack..."
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio
 
 # 4. Robust Healthcheck Polling
@@ -106,4 +105,4 @@ check_health "redis"
 check_health "rabbitmq"
 check_health "minio"
 
-echo "🏁 Phase 0 Bootstrapping Complete. Institutional Stack is Operational."
+echo "🏁 Phase 0 Bootstrapping Complete. Stack is Operational."

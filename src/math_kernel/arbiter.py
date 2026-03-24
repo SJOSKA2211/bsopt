@@ -9,14 +9,12 @@ from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
-
 class PricingModel(StrEnum):
     BLACK_SCHOLES = "black_scholes"
     MONTE_CARLO = "monte_carlo"
     WASM = "wasm"
     QUANTUM = "quantum"
     RUST = "rust"
-
 
 @dataclass
 class PricingRequest:
@@ -26,7 +24,6 @@ class PricingRequest:
     engine_config: dict[str, Any] | None = None
     style: str = "european"  # european, american
     use_gpu: bool = False
-
 
 class EngineArbiter:
     """
@@ -78,7 +75,7 @@ class EngineArbiter:
         """
         Routes batch requests efficiently with smart defaulting.
         """
-        # OPTIMIZED: Respect explicit model choice, otherwise auto-select based on size
+        
         if model is None:
             if len(S) > 10000:
                 engine_name = "rust"

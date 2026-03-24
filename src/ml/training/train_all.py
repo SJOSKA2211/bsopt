@@ -15,7 +15,6 @@ from src.shared.config import get_settings
 
 logger = structlog.get_logger()
 
-
 async def train_all():
     """
     Execute the unified autonomous pipeline.
@@ -50,7 +49,6 @@ async def train_all():
         raise
     finally:
         await pipeline.shutdown()
-
 
 if __name__ == "__main__":
     asyncio.run(train_all())

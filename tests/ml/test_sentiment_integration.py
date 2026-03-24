@@ -4,14 +4,12 @@ import pytest
 
 from src.ml.sentiment_pipeline import SentimentPipeline
 
-
 @pytest.fixture
 def mock_extractor():
     with patch("src.ml.sentiment_pipeline.SentimentExtractor") as mock:
         instance = mock.return_value
         instance.get_sentiment_score.return_value = 0.5
         yield instance
-
 
 @pytest.mark.asyncio
 async def test_sentiment_pipeline_processing(mock_extractor):
@@ -32,14 +30,12 @@ async def test_sentiment_pipeline_processing(mock_extractor):
     assert result["sentiment"] == 0.5
     mock_extractor.get_sentiment_score.assert_called_once_with("Market looks bullish today.")
 
-
 @pytest.mark.asyncio
 async def test_sentiment_pipeline_empty_text():
     """Test that pipeline handles empty text gracefully."""
     pipeline = SentimentPipeline()
     result = await pipeline.process_scraper_message({"text": "", "symbol": "AAPL"})
     assert result["sentiment"] == 0.0
-
 
 @pytest.mark.asyncio
 async def test_sentiment_pipeline_error_handling(mock_extractor):
@@ -49,7 +45,6 @@ async def test_sentiment_pipeline_error_handling(mock_extractor):
 
     result = await pipeline.process_scraper_message({"text": "faulty", "symbol": "AAPL"})
     assert result["sentiment"] == 0.0
-
 
 def test_sentiment_pipeline_initialization():
     """Verify pipeline initializes its components."""

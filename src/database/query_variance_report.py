@@ -13,7 +13,6 @@ from src.database import get_engine
 
 logger = structlog.get_logger(__name__)
 
-
 def run_variance_audit(iterations: int = 100):
     engine = get_engine()
     print("  BSOpt Query Jitter Audit (High-Performance)")
@@ -54,7 +53,6 @@ def run_variance_audit(iterations: int = 100):
         else:
             print("   Stability: EXCELLENT")
         print("")
-
 
 if __name__ == "__main__":
     run_variance_audit()

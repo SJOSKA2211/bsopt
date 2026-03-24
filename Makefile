@@ -1,5 +1,4 @@
 # Makefile
-# EQUAFLOW: Institutional Compute Factory
 
 # 1. Dynamic Engine Detection
 CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)

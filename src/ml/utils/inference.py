@@ -7,7 +7,6 @@ import onnxruntime as ort
 
 logger = logging.getLogger(__name__)
 
-
 class ONNXInferenceEngine:
     """
     High-performance inference engine using ONNX Runtime.
@@ -23,7 +22,6 @@ class ONNXInferenceEngine:
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
 
-        # OPTIMIZED: Threading for 4-core allocation
         sess_options.intra_op_num_threads = 1  # Standard for multi-worker ASGI
         sess_options.inter_op_num_threads = 2  # Balance between latency and concurrency
 
@@ -58,7 +56,6 @@ class ONNXInferenceEngine:
         logger.debug(f"ONNX inference latency: {latency:.2f}ms")
 
         return cast(np.ndarray, outputs[0])
-
 
 def optimize_onnx_model(input_path: str, output_path: str):
     """

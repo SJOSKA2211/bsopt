@@ -6,11 +6,9 @@ from src.workers.tasks.trading_tasks import (
     execute_trade_task,
 )
 
-
 def test_check_risk_limits():
     assert check_risk_limits({"quantity": 10, "limit_price": 100}) is True
     assert not check_risk_limits({"quantity": 1000, "limit_price": 200})
-
 
 def test_execute_trade_task_success():
     # Dig deep to find the naked function
@@ -26,7 +24,6 @@ def test_execute_trade_task_success():
         res = func(mock_self, order)
         assert res["status"] == "filled"
 
-
 def test_execute_trade_task_invalid():
     func = execute_trade_task
     while hasattr(func, "__wrapped__"):
@@ -35,7 +32,6 @@ def test_execute_trade_task_invalid():
     mock_self.request.id = "test-id"
     res = func(mock_self, {})
     assert res["status"] == "failed"
-
 
 def test_backtest_strategy_task_success():
     func = backtest_strategy_task

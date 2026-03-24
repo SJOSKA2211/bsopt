@@ -1,6 +1,5 @@
 import pytest
 
-
 def test_dockerfile_gateway_non_root_user_verification_skipped():
     """
     Verification of Dockerfile.gateway running as non-root user is skipped

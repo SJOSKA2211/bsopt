@@ -4,20 +4,17 @@ def test_ray_import():
 
     assert ray.__version__ is not None
 
-
 def test_sb3_import():
     """Test that stable-baselines3 is installed and can be imported."""
     import stable_baselines3
 
     assert stable_baselines3.__version__ is not None
 
-
 def test_gymnasium_import():
     """Test that gymnasium is installed and can be imported."""
     import gymnasium
 
     assert gymnasium.__version__ is not None
-
 
 def test_ray_distributed_execution():
     """Test that Ray can execute a remote function and return results."""

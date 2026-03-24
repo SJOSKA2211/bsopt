@@ -20,7 +20,6 @@ from numba import njit, prange
 
 logger = structlog.get_logger(__name__)
 
-
 @njit(cache=True, fastmath=True, parallel=True)
 def _euler_maruyama_step(
     s: np.ndarray,
@@ -62,7 +61,6 @@ def _euler_maruyama_step(
             result[i] = 1e-10
 
     return result
-
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _milstein_step(
@@ -106,7 +104,6 @@ def _milstein_step(
             result[i] = 1e-10
 
     return result
-
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _rk4_milstein_step(
@@ -159,7 +156,6 @@ def _rk4_milstein_step(
 
     return result
 
-
 def simulate_gbm_euler(
     s0: np.ndarray,
     mu: np.ndarray,
@@ -203,7 +199,6 @@ def simulate_gbm_euler(
         paths[step + 1] = current
 
     return paths
-
 
 def simulate_gbm_milstein(
     s0: np.ndarray,
@@ -250,7 +245,6 @@ def simulate_gbm_milstein(
         paths[step + 1] = current
 
     return paths
-
 
 def simulate_gbm_rk4(
     s0: np.ndarray,
@@ -299,7 +293,6 @@ def simulate_gbm_rk4(
 
     return paths
 
-
 def simulate_gbm(
     s0: np.ndarray,
     mu: np.ndarray,
@@ -319,7 +312,6 @@ def simulate_gbm(
         return simulate_gbm_milstein(s0, mu, sigma, t, dt, seed=seed)
     else:
         return simulate_gbm_euler(s0, mu, sigma, t, dt, seed=seed)
-
 
 def simulate_gbm_antithetic(
     s0: np.ndarray,
@@ -367,7 +359,6 @@ def simulate_gbm_antithetic(
     full_paths_2 = np.concatenate([paths_negative, paths_positive], axis=1)
 
     return full_paths_1, full_paths_2
-
 
 def monte_carlo_price(
     s0: float,
@@ -435,7 +426,6 @@ def monte_carlo_price(
         "n_steps": int(t / dt),
     }
 
-
 def gbm_parameters_from_historical(
     prices: np.ndarray,
     dt: float = 1 / 252,
@@ -459,7 +449,6 @@ def gbm_parameters_from_historical(
     sigma = np.std(returns) / np.sqrt(dt)
 
     return float(mu), float(sigma)
-
 
 if __name__ == "__main__":
     import time

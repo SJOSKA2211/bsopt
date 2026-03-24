@@ -6,7 +6,7 @@ rule_files:
   - /etc/prometheus/recording_rules.yml
 
 scrape_configs:
-  # --- [Institutional] High-Resolution Hot Path ---
+  
   - job_name: 'manifold-hot-path'
     scrape_interval: 5s
     static_configs:

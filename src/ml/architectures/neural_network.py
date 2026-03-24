@@ -3,7 +3,6 @@ from typing import cast
 import torch
 import torch.nn as nn
 
-
 class OptionPricingNN(nn.Module):  # type: ignore
     """
     Feed-forward Neural Network for Option Pricing.

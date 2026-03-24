@@ -12,7 +12,6 @@ from src.database.models import Base, MarketTick, Portfolio, Position
 # In-memory SQLite for high-speed testing
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-
 @pytest.mark.asyncio
 async def test_user_lifecycle():
     engine = create_async_engine(DATABASE_URL)
@@ -31,7 +30,6 @@ async def test_user_lifecycle():
         assert user.last_login is not None
     await engine.dispose()
 
-
 @pytest.mark.asyncio
 async def test_portfolio_operations():
     engine = create_async_engine(DATABASE_URL)
@@ -47,7 +45,6 @@ async def test_portfolio_operations():
         user_with_p = await crud.get_user_with_portfolios(db_session, user.id)
         assert len(user_with_p.portfolios) == 1
     await engine.dispose()
-
 
 @pytest.mark.asyncio
 async def test_bulk_position_creation():
@@ -85,7 +82,6 @@ async def test_bulk_position_creation():
             )
             assert len(res.scalars().all()) == 2
     await engine.dispose()
-
 
 @pytest.mark.asyncio
 async def test_market_tick_ops():

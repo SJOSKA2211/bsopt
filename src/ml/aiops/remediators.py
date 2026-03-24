@@ -8,7 +8,6 @@ from src.workers.tasks.ml_tasks import monitor_drift_and_retrain_task
 
 logger = structlog.get_logger(__name__)
 
-
 class BaseRemediator(ABC):
     """
     Abstract base class for all automated remediation actions.
@@ -39,7 +38,6 @@ class BaseRemediator(ABC):
     async def update_last_run(self):
         self.last_run = asyncio.get_event_loop().time()
 
-
 class ClearRedisCacheRemediator(BaseRemediator):
     """
     Clears the Redis cache if high latency or stale data is detected.
@@ -65,7 +63,6 @@ class ClearRedisCacheRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_clear_cache_failed", error=str(e), exc_info=True)
             return False
-
 
 class RestartServiceRemediator(BaseRemediator):
     """
@@ -97,7 +94,6 @@ class RestartServiceRemediator(BaseRemediator):
             logger.info("remediator_restart_completed", service=service)
         return success
 
-
 class RetrainModelRemediator(BaseRemediator):
     """
     Triggers the ML retraining pipeline if drift is detected.
@@ -117,7 +113,6 @@ class RetrainModelRemediator(BaseRemediator):
         monitor_drift_and_retrain_task.delay(ticker=ticker)
         logger.info("remediator_retrain_task_queued", ticker=ticker)
         return True
-
 
 class ArgoCDRollbackRemediator(BaseRemediator):
     """
@@ -157,7 +152,6 @@ class ArgoCDRollbackRemediator(BaseRemediator):
                 logger.error("remediator_argocd_rollback_failed", app=service, error=str(e))
                 return False
 
-
 class AutonomousScalerRemediator(BaseRemediator):
     """
     Scales service replicas based on load.
@@ -180,7 +174,6 @@ class AutonomousScalerRemediator(BaseRemediator):
         success = await docker.scale_service(service, target_replicas)
         return success
 
-
 class ModelSwitchRemediator(BaseRemediator):
     """
     Hot-swaps models during drift.
@@ -199,7 +192,6 @@ class ModelSwitchRemediator(BaseRemediator):
         PricingEngineFactory.set_default_engine(fallback)
         return True
 
-
 class SiliconResetRemediator(BaseRemediator):
     """
     Critical reset for low-latency workers (Direct Service Restart).
@@ -217,7 +209,6 @@ class SiliconResetRemediator(BaseRemediator):
         docker = DockerRemediator()
         success = await docker.restart_service("worker")
         return success
-
 
 class KernelTuningRemediator(BaseRemediator):
     """
@@ -252,7 +243,6 @@ class KernelTuningRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_kernel_tuning_error", error=str(e))
             return False
-
 
 class DatabasePoolRemediator(BaseRemediator):
     """
@@ -303,7 +293,6 @@ class DatabasePoolRemediator(BaseRemediator):
             return True
         except Exception:
             return False
-
 
 class RabbitMQCongestionRemediator(BaseRemediator):
     """
@@ -367,7 +356,6 @@ class RabbitMQCongestionRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_rabbitmq_congestion_failed", error=str(e), exc_info=True)
             return False
-
 
 class RemediationPlanner:
     """

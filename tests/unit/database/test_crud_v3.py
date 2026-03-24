@@ -14,7 +14,6 @@ from src.database.models import (
     User,
 )
 
-
 @pytest.mark.asyncio
 async def test_crud_basics():
     db = AsyncMock()
@@ -43,7 +42,6 @@ async def test_crud_basics():
     mock_res.scalar_one_or_none.return_value = mock_order
     assert await crud.get_order_by_id(db, mock_order.id) == mock_order
 
-
 @pytest.mark.asyncio
 async def test_bulk_inserts_all():
     db = AsyncMock()
@@ -67,7 +65,6 @@ async def test_bulk_inserts_all():
     assert db.execute.called
     assert db.commit.called
 
-
 @pytest.mark.asyncio
 async def test_model_ops():
     db = AsyncMock()
@@ -85,7 +82,6 @@ async def test_model_ops():
     # set_prod
     await crud.set_production_model(db, model_id)
     assert db.commit.called
-
 
 @pytest.mark.asyncio
 async def test_mv_queries():
@@ -129,7 +125,6 @@ async def test_mv_queries():
     # Hourly stats
     res = await crud.get_hourly_market_stats(db, "AAPL")
     assert len(res) == 1
-
 
 @pytest.mark.asyncio
 async def test_closing_and_expiring():

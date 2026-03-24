@@ -2,7 +2,6 @@ import numpy as np
 
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
-
 def verify_env():
     print("Verifying TradingEnvironment with Numba JIT...")
     env = TradingEnvironment()
@@ -25,7 +24,6 @@ def verify_env():
         env.step(np.random.uniform(-1, 1, 10).astype(np.float32))
     duration = time.perf_counter() - start
     print(f"Performance: 1000 steps in {duration:.4f}s ({duration / 1000 * 1e6:.2f} us/step)")
-
 
 if __name__ == "__main__":
     try:

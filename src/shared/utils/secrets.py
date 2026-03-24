@@ -8,7 +8,6 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = structlog.get_logger(__name__)
 
-
 class InstitutionalSecretManager:
     """
     Secure Secret Management for Institutional Credentials.
@@ -38,6 +37,5 @@ class InstitutionalSecretManager:
         except Exception as e:
             logger.error("secret_decryption_failed", error=str(e))
             raise
-
 
 secret_manager = InstitutionalSecretManager()

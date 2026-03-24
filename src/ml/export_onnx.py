@@ -5,7 +5,6 @@ from src.ml.cross_sectional_pipeline import CrossSectionalPricingModel
 
 logger = structlog.get_logger(__name__)
 
-
 def export_to_onnx(model_path: str, output_path: str, input_dim: int):
     """
     Exports a trained PyTorch model to ONNX format for high-speed inference.
@@ -39,7 +38,6 @@ def export_to_onnx(model_path: str, output_path: str, input_dim: int):
         logger.error("onnx_export_failed", error=str(e))
         raise
 
-
 def quantize_onnx_model(onnx_path: str, quantized_path: str):
     """
     Apply INT8 quantization to the ONNX model for ultra-fast CPU inference.
@@ -53,7 +51,6 @@ def quantize_onnx_model(onnx_path: str, quantized_path: str):
         logger.warning("onnx_quantization_skipped_missing_dependencies")
     except Exception as e:
         logger.error("onnx_quantization_failed", error=str(e))
-
 
 if __name__ == "__main__":
     # Example usage

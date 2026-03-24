@@ -12,7 +12,6 @@ SERVICES = {
     "Pricing": "http://neural-pricing:8000/health",
 }
 
-
 class SystemSentinel:
     """
     Institutional System Sentinel.
@@ -51,7 +50,6 @@ class SystemSentinel:
                         logger.error("failed_to_send_slack_alert", error=str(e))
 
             await asyncio.sleep(60)
-
 
 if __name__ == "__main__":
     sentinel = SystemSentinel()

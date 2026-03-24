@@ -12,7 +12,7 @@ const palette = {
   mode: 'dark' as const,
 
   primary: {
-    main: '#10b981',      // Institutional Emerald
+    main: '
     light: '#34d399',
     dark: '#059669',
     contrastText: '#020617',
@@ -50,7 +50,7 @@ const palette = {
   },
 
   background: {
-    default: '#020617', // Slate 950 (Institutional Deep)
+    default: '
     paper: 'rgba(15, 23, 42, 0.4)',
     elevation1: '#0f172a',
     elevation2: '#1e293b',

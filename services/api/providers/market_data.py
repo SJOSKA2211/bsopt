@@ -8,7 +8,6 @@ from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger(__name__)
 
-
 class PolygonProvider:
     """
     Polygon.io Data Provider.
@@ -37,8 +36,7 @@ class PolygonProvider:
         res = response.json().get("results", {})
         
         last_price = float(res.get("p", 0.0))
-        
-        # 2. Fetch previous close for change calculation (Zero-Mock Requirement)
+
         prev_url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={self.api_key}"
         prev_resp = await self.client.get(prev_url)
         prev_data = prev_resp.json().get("results", [{}])[0]
@@ -76,7 +74,6 @@ class PolygonProvider:
         except Exception as e:
             logger.error("polygon_search_failed", query=query, error=str(e))
             return []
-
 
 class YahooProvider:
     """

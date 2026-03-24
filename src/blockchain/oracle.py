@@ -5,7 +5,6 @@ from web3 import Web3
 
 logger = structlog.get_logger(__name__)
 
-
 class OnChainOracle:
     """
     On-Chain Volatility Oracle Sync.
@@ -28,6 +27,5 @@ class OnChainOracle:
         logger.info("fetching_external_greeks")
         # Implementation for fetching from on-chain price feeds
         return {"IV": 0.25, "Delta": 0.5}
-
 
 oracle = OnChainOracle()

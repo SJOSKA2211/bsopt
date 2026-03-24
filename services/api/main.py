@@ -34,20 +34,17 @@ from src.shared.observability import logging_middleware, start_system_metrics_lo
 # Initialize logging
 logger = structlog.get_logger()
 
-
 def get_context(request: Request) -> dict[str, Any]:
     """GraphQL Context factory."""
     if os.getenv("TESTING") == "true":
         return {}
     return {"request": request}
 
-
 # Optimized event loop
 try:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except (ImportError, AttributeError):
     pass
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -98,13 +95,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await close_redis_cache()
     logger.info("api_shutdown_complete_database_engines_disposed")
 
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     default_response_class=MsgspecJSONResponse,
     lifespan=lifespan,
 )
-
 
 # Middleware
 app.add_middleware(BrotliMiddleware, minimum_size=1000, quality=4)
@@ -124,9 +119,7 @@ app.add_middleware(
 )
 app.middleware("http")(logging_middleware)
 
-# OPTIMIZED: Single fused security hop
 app.add_middleware(ZeroTrustMiddleware)
-
 
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSONResponse:
@@ -174,7 +167,6 @@ async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSON
         },
     )
 
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
@@ -185,10 +177,8 @@ async def validation_exception_handler(
         content={"detail": exc.errors(), "body": exc.body},
     )
 
-
 app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
-
 
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema)
 
@@ -209,7 +199,6 @@ if settings.ENVIRONMENT not in ("prod", "production"):
 app.include_router(api_router)
 app.include_router(graphql_app, prefix="/graphql")
 
-
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health() -> dict[str, Any]:
@@ -217,16 +206,13 @@ async def health() -> dict[str, Any]:
 
     return {"status": "healthy", "database": await health_check()}
 
-
 @app.get("/api/diagnostics/imports")
 async def diagnostics_imports() -> dict[str, bool]:
     return {"successful_imports": True}
 
-
 @app.get("/admin-only")
 async def admin_only(user: dict[str, Any] = Depends(RoleChecker(["admin"]))) -> dict[str, str]:
     return {"message": "Welcome, Admin"}
-
 
 @app.get("/metrics")
 async def metrics(request: Request) -> Response:
@@ -238,7 +224,6 @@ async def metrics(request: Request) -> Response:
 
             return MsgspecJSONResponse(status_code=401, content={"detail": "Not authenticated"})
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
 
 @app.get("/")
 async def root() -> dict[str, str]:

@@ -18,7 +18,6 @@ router = APIRouter(
     default_response_class=MsgspecJSONResponse,
 )
 
-
 @router.get(
     "/tracemalloc_snapshot",
     response_model=DataResponse[dict],
@@ -54,12 +53,10 @@ async def get_tracemalloc_snapshot():
         message="Tracemalloc snapshot taken successfully.",
     )
 
-
 @router.get("/database/health", response_model=DataResponse[dict])
 async def get_db_health():
     """Detailed database health audit."""
     return DataResponse(data=health_check(), message="Database health audit complete.")
-
 
 @router.get("/database/sluggish_queries", response_model=DataResponse[list[dict]])
 async def get_sluggish_queries(db=Depends(get_async_db)):

@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# EquaFlow Frontend Alignment Script
 # Resolves type and dependency issues in the Next.js/Vite environment.
 
 echo "🎨 Aligning Frontend Environment..."

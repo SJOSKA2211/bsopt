@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/start_mlflow_pipeline.sh - Institutional ML Orchestrator (Zero-Mock)
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -8,7 +8,6 @@ from src.workers.math_worker import (
     recalibrate_symbol,
 )
 
-
 @pytest.mark.asyncio
 async def test_recalibrate_symbol_async_no_data():
     # Mock MarketDataRouter to return no data
@@ -19,7 +18,6 @@ async def test_recalibrate_symbol_async_no_data():
         result = await _recalibrate_symbol_impl("AAPL")
         assert result["status"] == "failed"
         assert result["reason"] == "no_data"
-
 
 @pytest.mark.asyncio
 async def test_recalibrate_symbol_async_success():
@@ -48,7 +46,6 @@ async def test_recalibrate_symbol_async_success():
 
         assert result["status"] == "success"
 
-
 def test_calibration_worker_integration():
     # Test the internal worker function
     mock_calibrator = MagicMock()
@@ -59,7 +56,6 @@ def test_calibration_worker_integration():
         params, metrics, surface = _calibration_worker({"data": "test"})
         assert metrics["rmse"] == 0.01
         assert "1.0" in surface
-
 
 def test_recalibrate_symbol_task_failure():
     # Test the Celery task wrapper failure path

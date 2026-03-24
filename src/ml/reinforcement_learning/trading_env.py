@@ -10,7 +10,6 @@ from .kernels import _fused_state_kernel, _trading_step_kernel
 
 logger = structlog.get_logger()
 
-
 class TradingEnvironment(
     gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]]]
 ):  # type: ignore

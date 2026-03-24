@@ -11,7 +11,6 @@ from src.quant.pricing.execution_strategies import (
     WASMStrategy,
 )
 
-
 @pytest.fixture
 def inputs():
     n = 10
@@ -25,7 +24,6 @@ def inputs():
         "is_call": np.ones(n, dtype=bool),
     }
 
-
 @pytest.mark.asyncio
 async def test_sequential_strategy(inputs):
     strategy = SequentialStrategy()
@@ -37,12 +35,10 @@ async def test_sequential_strategy(inputs):
         assert np.all(prices == 10.5)
         mock_price.assert_called_once()
 
-
 def test_strategy_factory_sequential():
     with patch("src.quant.pricing.wasm_engine.WASM_AVAILABLE", False):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
         assert isinstance(strategy, SequentialStrategy)
-
 
 def test_strategy_factory_wasm():
     with patch("src.quant.pricing.wasm_engine.WASM_AVAILABLE", True):
@@ -50,18 +46,15 @@ def test_strategy_factory_wasm():
             strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
             assert isinstance(strategy, WASMStrategy)
 
-
 def test_strategy_factory_shm():
     with patch("src.shared.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
         assert isinstance(strategy, SHMStrategy)
 
-
 def test_strategy_factory_ray():
     with patch("src.shared.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=True)
         assert isinstance(strategy, RayStrategy)
-
 
 @pytest.mark.asyncio
 async def test_shm_strategy_fallback(inputs):
@@ -76,7 +69,6 @@ async def test_shm_strategy_fallback(inputs):
                 mock_seq.return_value = np.zeros(10)
                 await strategy.execute(inputs)
                 mock_seq.assert_called_once()
-
 
 @pytest.mark.asyncio
 async def test_shm_strategy_success(inputs):
@@ -103,7 +95,6 @@ async def test_shm_strategy_success(inputs):
                     # Result comes from the bytearray buffer (zeros)
                     assert len(prices) == 10
                     assert mock_release.call_count == 2
-
 
 @pytest.mark.asyncio
 async def test_ray_strategy_success(inputs):

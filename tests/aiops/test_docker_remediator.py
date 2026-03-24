@@ -6,7 +6,6 @@ import pytest
 import docker
 from src.ml.aiops.docker_remediator import DockerRemediator
 
-
 @patch("src.ml.aiops.docker_remediator.logger")
 @patch("src.ml.aiops.docker_remediator.docker.from_env")
 class TestDockerRemediator:

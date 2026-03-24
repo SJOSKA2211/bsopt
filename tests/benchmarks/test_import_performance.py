@@ -4,7 +4,6 @@ Benchmark lazy import performance vs eager imports.
 
 import sys
 
-
 class TestImportPerformance:
     """Benchmark import performance."""
 

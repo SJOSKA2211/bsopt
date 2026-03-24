@@ -7,7 +7,7 @@ from src.shared.rabbitmq import get_rabbitmq
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_real_rabbitmq():
     """Verify sentiment ingestor works with RabbitMQ substrate (Zero-Mock)."""
-    # Note: In a true Zero-Mock, we ensure RMQ is up.
+    
     # We use the real SentimentIngestor but we may need to mock the connection 
     # if not running in a full-blown Docker environment during unit test phase.
     # However, for Phase 33, we align to the REAL RabbitMQ.
@@ -23,8 +23,7 @@ async def test_sentiment_ingestor_process_real_rabbitmq():
     
     # We use direct process_batch to verify flow
     await ingestor.process_batch([msg_data])
-    
-    # In a full Zero-Mock integration test, we would consume from 'model.signals' 
+
     # to verify the end-to-end flow.
     # Since we are in the host and might not have full connectivity to the container RMQ 
     # without proper port mapping, we ensure the logic is correctly wired.

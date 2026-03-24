@@ -4,11 +4,9 @@ from scripts.config import ConfigManager, get_config
 
 from tests.test_utils import assert_equal
 
-
 def test_cli_config_get():
     config = get_config()
     assert config is not None
-
 
 def test_cli_config_set():
     config = ConfigManager()

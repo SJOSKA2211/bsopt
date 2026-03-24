@@ -4,7 +4,6 @@ import pytest
 
 from src.api.webhooks.dispatcher import _generate_signature, _verify_signature
 
-
 @pytest.mark.asyncio
 async def test_generate_signature_consistency():
     secret = "webhook_secret"
@@ -17,7 +16,6 @@ async def test_generate_signature_consistency():
     assert sig1 == sig2
     assert sig1.startswith("t=")
     assert "sha256=" in sig1
-
 
 @pytest.mark.asyncio
 async def test_verify_signature_valid():
@@ -38,7 +36,6 @@ async def test_verify_signature_valid():
     assert (
         await _verify_signature(secret, payload, extracted_timestamp, extracted_signature) is True
     )
-
 
 @pytest.mark.asyncio
 async def test_verify_signature_invalid_payload():
@@ -62,7 +59,6 @@ async def test_verify_signature_invalid_payload():
         is False
     )
 
-
 @pytest.mark.asyncio
 async def test_verify_signature_invalid_secret():
     secret = "webhook_secret"
@@ -84,7 +80,6 @@ async def test_verify_signature_invalid_secret():
         await _verify_signature(invalid_secret, payload, extracted_timestamp, extracted_signature)
         is False
     )
-
 
 @pytest.mark.asyncio
 async def test_verify_signature_expired_timestamp():
@@ -108,7 +103,6 @@ async def test_verify_signature_expired_timestamp():
         )
         is False
     )
-
 
 @pytest.mark.asyncio
 async def test_verify_signature_future_timestamp():

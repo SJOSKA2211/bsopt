@@ -5,7 +5,6 @@ from sqlalchemy import text
 from src.database import get_engine
 from src.shared.config import get_settings
 
-
 def verify_connection():
     print("  BSOpt High-Performance Database Verification")
     print("---------------------------------------")
@@ -138,7 +137,6 @@ def verify_connection():
     except Exception as e:
         print(f"❌ Verification Failed: {e}")
         sys.exit(1)
-
 
 # Alias for backward compatibility
 verify_postgres_connection = verify_connection

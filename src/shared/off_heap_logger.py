@@ -11,7 +11,6 @@ LOG_SIZE = LOG_STRUCT.size
 LOG_BUFFER_CAPACITY = 10000
 SHM_LOG_NAME = "bsopt_off_heap_logs"
 
-
 class OffHeapLogger:
     """
     Zero-Latency Off-Heap Logger using Shared Memory.
@@ -75,7 +74,6 @@ class OffHeapLogger:
     def close(self) -> None:
         if self.shm:
             self.shm.close()
-
 
 # Global ultra-fast logger for the hot path
 omega_logger = OffHeapLogger()

@@ -11,13 +11,11 @@ from src.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger(__name__)
 
-
 def sign_payload(secret: str, timestamp: int, payload: str) -> str:
     """Helper to generate the HMAC-SHA256 signature."""
     signed_payload = f"{timestamp}.{payload}".encode()
     h = hmac.new(secret.encode("utf-8"), signed_payload, hashlib.sha256)
     return h.hexdigest()
-
 
 async def generate_signature(secret: str, payload: str, timestamp: int | None = None) -> str:
     """
@@ -29,7 +27,6 @@ async def generate_signature(secret: str, payload: str, timestamp: int | None = 
 
     signature = sign_payload(secret, timestamp, payload)
     return f"t={timestamp},sha256={signature}"
-
 
 async def verify_signature(
     secret: str, payload: str, timestamp: int, signature: str, tolerance: int = 300
@@ -49,7 +46,6 @@ async def verify_signature(
 
     expected_signature = sign_payload(secret, timestamp, payload)
     return hmac.compare_digest(expected_signature, signature)
-
 
 class WebhookDispatcher:
     """

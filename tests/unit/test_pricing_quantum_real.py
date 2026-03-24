@@ -2,11 +2,9 @@ import pytest
 
 from src.math_kernel.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
 
-
 def test_qiskit_availability():
     """Verify Qiskit is installed and detected."""
     assert QISKIT_AVAILABLE is True, "Qiskit should be available in Phase 4"
-
 
 def test_quantum_pricing_aer_execution():
     """Verify that QuantumOptionPricer uses AerSimulator and not fallback."""

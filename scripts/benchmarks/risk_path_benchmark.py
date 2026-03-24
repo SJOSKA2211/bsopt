@@ -6,7 +6,6 @@ from src.math_kernel.risk_kernels import _validate_incremental_delta_kernel, _va
 
 logger = structlog.get_logger()
 
-
 def benchmark_risk_path():
     # 1. Warmup
     for _ in range(1000):
@@ -34,7 +33,6 @@ def benchmark_risk_path():
         delta_check_ns=round(delta_latency_ns, 2),
         total_check_ns=round(order_latency_ns + delta_latency_ns, 2),
     )
-
 
 if __name__ == "__main__":
     benchmark_risk_path()

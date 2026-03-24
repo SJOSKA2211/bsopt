@@ -11,7 +11,6 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-
 class SentimentExtractor:
     """Institutional-grade sentiment extraction using a heuristic-based intensity model."""
 
@@ -40,7 +39,6 @@ class SentimentExtractor:
 
         # Basic normalization to [-1, 1]
         return max(-1.0, min(1.0, score / max(1, len(words) // 2)))
-
 
 class SentimentIngestor:
     def __init__(self) -> None:

@@ -10,7 +10,6 @@ import structlog
 
 logger = structlog.get_logger()
 
-
 def promote_model(model_name: str, run_id: str, stage: str = "Production") -> None:
     client = mlflow.tracking.MlflowClient()
 
@@ -30,7 +29,6 @@ def promote_model(model_name: str, run_id: str, stage: str = "Production") -> No
     # 3. App Dispatch (Notify system of update)
     # This triggers a repository dispatch or a direct API call to reload models
     notify_app_of_update(model_name, version.version)
-
 
 def notify_app_of_update(model_name: str, version: str) -> None:
     """
@@ -74,7 +72,6 @@ def notify_app_of_update(model_name: str, version: str) -> None:
             loop.run_until_complete(trigger())
     except Exception:
         pass
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

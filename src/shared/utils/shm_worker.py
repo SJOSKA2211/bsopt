@@ -4,7 +4,6 @@ from typing import Any
 
 import numpy as np
 
-
 class SHMContextManager:
     """
     Context manager for handling SharedMemory lifecycles in workers.
@@ -37,7 +36,6 @@ class SHMContextManager:
             except Exception:
                 pass
         self.shm_objects.clear()
-
 
 def _generic_shm_worker(
     shm_name_inputs: str,

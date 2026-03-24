@@ -9,7 +9,6 @@ from starlette.responses import StreamingResponse
 
 logger = structlog.get_logger()
 
-
 async def _generate_fingerprint(request: Request) -> str:
     """Calculate a request fingerprint safely."""
     # Use existing fingerprint in state if available (from earlier middleware)
@@ -32,7 +31,6 @@ async def _generate_fingerprint(request: Request) -> str:
         hasher.update(body)
 
     return f"ctx:{hasher.hexdigest()}"
-
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_client, expiry: int = 3600, lock_timeout: int = 60):

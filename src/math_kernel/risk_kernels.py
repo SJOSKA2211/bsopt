@@ -11,7 +11,6 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
-
 @njit(cache=True, fastmath=True)
 def _validate_order_kernel(
     price: float,
@@ -39,7 +38,6 @@ def _validate_order_kernel(
 
     return 1
 
-
 @njit(cache=True, fastmath=True)
 def _validate_delta_kernel(
     state_arr: np.ndarray, trade_delta: float, max_net_delta: float = 10000.0
@@ -55,7 +53,6 @@ def _validate_delta_kernel(
     # Commit state
     state_arr[0] = new_net_delta
     return 1
-
 
 @njit(cache=True, fastmath=True)
 def _full_risk_check_kernel(
@@ -91,7 +88,6 @@ def _full_risk_check_kernel(
     # 3. State Commit
     state_arr[0] = new_net_delta
     return 1
-
 
 class RiskVectorTracker:
     """
@@ -132,7 +128,7 @@ class RiskVectorTracker:
         """
         if CORE_AVAILABLE:
             try:
-                # OPTIMIZED: Direct float conversion in the hot-path is faster
+                
                 # than multi-dimensional array slicing
                 s = self._state
                 limits = self._limits
@@ -161,7 +157,6 @@ class RiskVectorTracker:
             except Exception as e:
                 logger.warning("rust_risk_vector_check_failed", error=str(e))
 
-        # OPTIMIZED: Pass state and limits directly
         return bool(
             _full_risk_check_v2_kernel(
                 price,
@@ -181,7 +176,6 @@ class RiskVectorTracker:
     def reset(self, new_state: np.ndarray):
         """Periodic full-sync to prevent float-point drift."""
         self._state[:] = new_state
-
 
 class IncrementalDeltaTracker:
     """
@@ -288,7 +282,6 @@ class IncrementalDeltaTracker:
     def reset(self, new_delta: float):
         """Periodic full-sync to prevent drift."""
         self._state[0] = new_delta
-
 
 @njit(cache=True, fastmath=True)
 def _full_risk_check_v2_kernel(

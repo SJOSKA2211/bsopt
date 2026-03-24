@@ -7,7 +7,6 @@ sys.path.append(str(Path("/home/h8t3dj4y/bsopt/src")))
 
 from shared.utils.binary_format import EquaReader, EquaRecord, EquaWriter
 
-
 def test_binary_format():
     test_file = "test_data.equa"
     records = [
@@ -51,7 +50,6 @@ def test_binary_format():
     # Clean up
     if os.path.exists(test_file):
         os.remove(test_file)
-
 
 if __name__ == "__main__":
     try:

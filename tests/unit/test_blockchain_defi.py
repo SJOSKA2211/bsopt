@@ -5,11 +5,9 @@ import pytest
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 
-
 @pytest.fixture
 def blockchain_config():
     return {"rpc_url": "http://mock-eth-node:8545", "private_key": "0x" + "a" * 64}
-
 
 @pytest.mark.asyncio
 @patch("src.blockchain.defi_options.AsyncWeb3")
@@ -24,7 +22,6 @@ async def test_defi_options_protocol_initialization(mock_web3_class, blockchain_
     )
     assert await protocol.w3.is_connected()
     assert protocol.address is not None
-
 
 @pytest.mark.asyncio
 @patch("src.blockchain.defi_options.AsyncWeb3")

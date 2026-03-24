@@ -5,7 +5,6 @@ Test lazy loading behavior for the src.blockchain package.
 import sys
 from unittest.mock import MagicMock
 
-
 class TestBlockchainLazyLoading:
     def setup_method(self):
         # Clear any cached imports from previous tests

@@ -14,7 +14,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .common import PaginationMeta
 
-
 class UserResponse(msgspec.Struct):
     """User profile response (OPTIMIZED: msgspec)."""
 
@@ -56,7 +55,6 @@ class UserResponse(msgspec.Struct):
             "mfa_enabled": self.is_mfa_enabled,
         }
 
-
 class UserUpdateRequest(BaseModel):
     """User profile update request (Pydantic V2 for Validation)."""
 
@@ -74,13 +72,11 @@ class UserUpdateRequest(BaseModel):
         },
     )
 
-
 class UserListResponse(msgspec.Struct):
     """Paginated user list response."""
 
     items: list[UserResponse]
     pagination: PaginationMeta
-
 
 class UserStatsResponse(msgspec.Struct):
     """User statistics response."""
@@ -90,7 +86,6 @@ class UserStatsResponse(msgspec.Struct):
     requests_this_month: int
     rate_limit_remaining: int
     rate_limit_reset: datetime
-
 
 class APIKeyCreateRequest(BaseModel):
     """Request to create a new API key."""
@@ -105,7 +100,6 @@ class APIKeyCreateRequest(BaseModel):
             }
         },
     )
-
 
 class APIKeyResponse(msgspec.Struct):
     """Response containing API key metadata."""
@@ -128,7 +122,6 @@ class APIKeyResponse(msgspec.Struct):
             last_used_at=None,  # Not in proto
             raw_key=None,
         )
-
 
 class TierUpgradeRequest(BaseModel):
     """Tier upgrade request."""

@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/start_neural_pricing.sh - Institutional Neural Pricing Orchestrator (Zero-Mock)
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,7 +11,6 @@ echo "🧠 Launching Institutional Neural Pricing Manifold..."
 source scripts/utils_env.sh
 load_decrypted_secrets
 
-# Institutional Runtime Environment
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
 # Production-Grade ASGI Configuration

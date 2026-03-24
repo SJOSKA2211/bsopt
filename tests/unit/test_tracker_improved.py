@@ -12,7 +12,6 @@ sys.modules["matplotlib.pyplot"] = MagicMock()
 
 from src.ml.tracker import ExperimentTracker
 
-
 class TestTracker:
     def setUp(self):
         self.tracker = ExperimentTracker(study_name="test_study")
@@ -43,6 +42,4 @@ class TestTracker:
         importance = {"f1": 0.5, "f2": 0.3}
         self.tracker.log_feature_importance(importance, "xgboost")
         assert mock_artifact.called
-
-
 

@@ -13,7 +13,6 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
-
 def _gaussian_kernel_matrix(
     x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndarray[Any, np.dtype[np.float64]], sigma: float
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
@@ -22,7 +21,6 @@ def _gaussian_kernel_matrix(
     # cdist computes squared Euclidean distance efficiently
     dist_sq = cdist(x, y, "sqeuclidean")
     return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-gamma * dist_sq))
-
 
 def calculate_mmd(
     x: np.ndarray[Any, np.dtype[np.float64]],
@@ -65,7 +63,6 @@ def calculate_mmd(
     val = float(np.sqrt(max(mmd_sq, 0.0)))
     MMD_DRIFT_SCORE.set(val)
     return val
-
 
 class MultivariateDriftDetector:
     """

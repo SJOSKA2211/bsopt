@@ -1,33 +1,7 @@
-from collections import deque
-from typing import Any, cast
-
-import numpy as np
-import structlog
-from scipy.stats import ks_2samp
-
-from src.shared.math_utils import njit_engine
-from src.shared.observability import (
-    DATA_DRIFT_SCORE,
-    KS_TEST_SCORE,
-    PERFORMANCE_DRIFT_ALERT,
-)
-
-try:
-    import bsopt_core
-
-    CORE_AVAILABLE = True
-except ImportError:
-    CORE_AVAILABLE = False
-
-# Initialize structured logger
-logger = structlog.get_logger()
-
-
 class PerformanceDriftMonitor:
     """
-    Monitors model performance (e.g., accuracy, RMSE, R2) for degradation over time.
-    Uses a rolling window of historical performance as a baseline.
-    Supports both 'higher is better' (Accuracy, R2) and 'lower is better' (RMSE, MAE).
+    Monitors model performance metrics for degradation over time.
+    Uses a rolling window of historical values as a baseline.
     """
 
     def __init__(
@@ -107,40 +81,18 @@ class PerformanceDriftMonitor:
                 pass
 
     def detect_drift(self, current_value: float) -> bool:
-        """
-        Detects if the current performance value has drifted (degraded)
-        significantly from the historical baseline.
-        """
+        """Detects performance degradation compared to historical baseline."""
         if len(self.history) < self.window_size:
-            logger.debug("drift_detection_skipped", reason="insufficient_history")
             return False
 
         baseline = sum(self.history) / len(self.history)
-
         if self.higher_is_better:
-            # Degradation: current value is LOWER than baseline - threshold
-            # E.g., R2 dropped from 0.95 to 0.85
             is_drifted = current_value < (baseline - self.threshold)
         else:
-            # Degradation: current value is HIGHER than baseline + threshold
-            # E.g., RMSE increased from 0.02 to 0.08
             is_drifted = current_value > (baseline + self.threshold)
 
         PERFORMANCE_DRIFT_ALERT.set(1 if is_drifted else 0)
-
-        if is_drifted:
-            logger.warning(
-                "performance_drift_detected",
-                baseline=baseline,
-                current=current_value,
-                threshold=self.threshold,
-                higher_is_better=self.higher_is_better,
-            )
-        else:
-            logger.info("performance_check_passed", baseline=baseline, current=current_value)
-
         return bool(is_drifted)
-
 
 def calculate_ks_test(
     expected: np.ndarray[Any, np.dtype[np.float64]],
@@ -170,7 +122,6 @@ def calculate_ks_test(
 
     return float(statistic), float(p_value)
 
-
 @njit_engine(cache=True, fastmath=True)
 def _psi_kernel(
     expected_counts: np.ndarray[Any, np.dtype[np.float64]],
@@ -188,15 +139,14 @@ def _psi_kernel(
         psi_sum += (actual_pct[i] - expected_pct[i]) * np.log(actual_pct[i] / expected_pct[i])
     return float(psi_sum)
 
-
 def calculate_psi(
-    expected: np.ndarray[Any, np.dtype[np.float64]],
-    actual: np.ndarray[Any, np.dtype[np.float64]] | list[float],
+    expected: np.ndarray,
+    actual: np.ndarray | list[float],
     buckets: int = 10,
-    bins: np.ndarray[Any, np.dtype[np.float64]] | None = None,
+    bins: np.ndarray | None = None,
 ) -> float:
     """
-    OPTIMIZED: Population Stability Index with pre-calculated bins.
+    Population Stability Index (PSI) calculation.
     """
     expected_arr = np.asarray(expected)
     actual_arr = np.asarray(actual)
@@ -241,7 +191,6 @@ def calculate_psi(
     # Emit Prometheus metric
     DATA_DRIFT_SCORE.set(psi_score)
     return psi_score
-
 
 class DriftTrigger:
     """

@@ -10,7 +10,6 @@ except ImportError:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
-
 try:
     from qiskit_ibm_provider import IBMProvider
 
@@ -22,7 +21,6 @@ except ImportError:
 from src.config import settings
 
 logger = structlog.get_logger()
-
 
 class QuantumBackendManager:
     """

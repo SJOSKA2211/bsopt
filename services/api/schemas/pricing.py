@@ -11,7 +11,6 @@ from typing import Any, Literal
 import msgspec
 from pydantic import BaseModel
 
-
 class OptionGreeksStruct(msgspec.Struct):
     """Zero-copy greeks structure."""
 
@@ -20,7 +19,6 @@ class OptionGreeksStruct(msgspec.Struct):
     theta: float
     vega: float
     rho: float
-
 
 class PriceResult(msgspec.Struct):
     """Ultra-fast response for single price result."""
@@ -38,7 +36,6 @@ class PriceResult(msgspec.Struct):
     cached: bool = False
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 
-
 class GreeksResult(msgspec.Struct):
     """Ultra-fast response for single greeks result."""
 
@@ -55,7 +52,6 @@ class GreeksResult(msgspec.Struct):
     option_type: str
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 
-
 class BatchPriceResult(msgspec.Struct):
     """Ultra-fast response for batch results."""
 
@@ -64,14 +60,12 @@ class BatchPriceResult(msgspec.Struct):
     computation_time_ms: float
     cached_count: int = 0
 
-
 class BatchGreeksResult(msgspec.Struct):
     """Ultra-fast response for batch greeks results."""
 
     results: list[GreeksResult]
     total_count: int
     computation_time_ms: float
-
 
 class PriceRequest(BaseModel):
     """
@@ -101,13 +95,11 @@ class PriceRequest(BaseModel):
             dividend=self.dividend_yield,
         )
 
-
 # Aliases for backward compatibility
 PriceResponse = PriceResult
 BatchPriceResponse = BatchPriceResult
 GreeksResponse = GreeksResult
 BatchGreeksResponse = BatchGreeksResult
-
 
 class GreeksRequest(BaseModel):
     """Greeks calculation request (Pydantic for Validation)."""
@@ -134,12 +126,10 @@ class GreeksRequest(BaseModel):
             dividend=self.dividend_yield,
         )
 
-
 class BatchGreeksRequest(BaseModel):
     """Batch Greeks calculation request."""
 
     options: list[GreeksRequest]
-
 
 class ImpliedVolatilityRequest(BaseModel):
     """Implied volatility calculation request."""
@@ -152,7 +142,6 @@ class ImpliedVolatilityRequest(BaseModel):
     option_type: Literal["call", "put"] = "call"
     dividend_yield: float = 0.0
 
-
 class ImpliedVolatilityResponse(msgspec.Struct):
     """Implied volatility calculation response."""
 
@@ -162,7 +151,6 @@ class ImpliedVolatilityResponse(msgspec.Struct):
     strike: float
     iterations: int
     converged: bool
-
 
 class ExoticPriceRequest(BaseModel):
     """Exotic option pricing request."""
@@ -183,7 +171,6 @@ class ExoticPriceRequest(BaseModel):
     n_observations: int = 252
     payout: float = 1.0
 
-
 class ExoticPriceResponse(msgspec.Struct):
     """Exotic option pricing response."""
 
@@ -192,12 +179,10 @@ class ExoticPriceResponse(msgspec.Struct):
     confidence_interval: list[float] | None = None
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 
-
 class BatchPriceRequest(BaseModel):
     """Batch option pricing request."""
 
     options: list[PriceRequest]
-
 
 class PricingDataResponse(msgspec.Struct):
     """OPTIMIZED: msgspec equivalent of DataResponse for pricing paths."""

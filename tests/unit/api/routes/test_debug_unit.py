@@ -7,7 +7,6 @@ from src.api.main import app
 
 client = TestClient(app)
 
-
 @pytest.mark.asyncio
 async def test_get_tracemalloc_snapshot_not_active():
     # Deeper bypass: patch the verify_token dependency since it's used in main.py
@@ -28,7 +27,6 @@ async def test_get_tracemalloc_snapshot_not_active():
         response = client.get("/api/v1/debug/tracemalloc_snapshot")
         assert response.status_code == 500
         assert "not active" in response.json()["message"]
-
 
 @pytest.mark.asyncio
 async def test_get_tracemalloc_snapshot_success():

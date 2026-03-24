@@ -5,7 +5,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class VectorizedDBEngine:
     """
     High-throughput database engine using asyncpg via SQLAlchemy's engine.
@@ -124,6 +123,5 @@ class VectorizedDBEngine:
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.close()
-
 
 db_engine = VectorizedDBEngine()

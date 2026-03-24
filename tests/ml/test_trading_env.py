@@ -11,7 +11,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../s
 # Note: We will implement TradingEnvironment in src/ml/reinforcement_learning/trading_env.py
 # For TDD, we write the tests first and expect them to fail until implementation
 
-
 def test_trading_env_initialization():
     """Verify that the environment initializes with correct spaces."""
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment
@@ -26,7 +25,6 @@ def test_trading_env_initialization():
     assert env.action_space.shape == (10,)
     assert env.action_space.low.min() == -1.0
     assert env.action_space.high.max() == 1.0
-
 
 def test_trading_env_reset():
     """Verify that reset returns a valid initial observation."""
@@ -49,7 +47,6 @@ def test_trading_env_reset():
     assert isinstance(obs, np.ndarray)
     assert isinstance(info, dict)
     assert env.current_step == 0
-
 
 def test_trading_env_step():
     """Verify that step function processes actions and returns expected outputs."""
@@ -81,7 +78,6 @@ def test_trading_env_step():
     assert env.current_step == 1
     # portfolio_value ~ 100000, price = 100, weight = 0.01 -> units = 10
     assert np.allclose(env.positions, np.ones(10) * 10.0)
-
 
 def test_trading_env_drawdown_truncation():
     """Verify that the environment truncates on excessive drawdown."""

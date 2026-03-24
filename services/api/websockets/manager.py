@@ -13,13 +13,11 @@ from src.shared.config import settings
 
 logger = structlog.get_logger()
 
-
 # Prometheus Metrics (Idempotent for tests)
 def _get_metric(cls: Any, name: str, documentation: str) -> Any:
     if name in REGISTRY._names_to_collectors:
         return REGISTRY._names_to_collectors[name]
     return cls(name, documentation)
-
 
 WEBSOCKET_CONNECTIONS_TOTAL: Counter = _get_metric(
     Counter, "websocket_connections_total", "Total number of WebSocket connections"
@@ -34,7 +32,6 @@ WEBSOCKET_MESSAGES_SENT_TOTAL: Counter = _get_metric(
     Counter, "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
 )
 
-
 @dataclass
 class ConnectionMetadata:
     user_id: str | None = None
@@ -44,7 +41,6 @@ class ConnectionMetadata:
 
     def update_heartbeat(self) -> None:
         self.last_heartbeat = datetime.utcnow()
-
 
 class ConnectionManager:
     """
@@ -375,7 +371,6 @@ class ConnectionManager:
             for i, res in enumerate(results):
                 if isinstance(res, Exception):
                     logger.debug("ws_send_failed", symbol=symbol, error=str(res))
-
 
 # Global manager instance for reuse across routes
 manager = ConnectionManager()

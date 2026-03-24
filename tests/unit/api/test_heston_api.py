@@ -1,7 +1,6 @@
 import json
 from unittest.mock import AsyncMock, MagicMock
 
-
 class TestPricingAPIHeston:
     def test_heston_pricing_success(self, api_client):
         """Verify Heston pricing when parameters are available in Redis."""

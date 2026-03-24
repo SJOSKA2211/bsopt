@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/deploy_full_db.sh - Institutional Persistent Substrate Orchestrator
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

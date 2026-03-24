@@ -3,7 +3,6 @@ from src.quant.pricing.quantum_pricing import (
     QuantumOptionPricer,
 )
 
-
 def test_quantum_option_pricer_simulation():
     pricer = QuantumOptionPricer(use_real_quantum=False)
     # Standard BS parameters
@@ -14,7 +13,6 @@ def test_quantum_option_pricer_simulation():
     assert "price" in result
     assert result["price"] > 0
     assert result["speedup_factor"] >= 10.0
-
 
 def test_hybrid_pricer_routing():
     hybrid = HybridQuantumClassicalPricer()

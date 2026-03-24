@@ -2,7 +2,6 @@
 Test lazy loading behavior for the src.quant.pricing package.
 """
 
-
 def test_pricing_does_not_load_heavy_deps_on_import():
     """
     Verify that importing src.quant.pricing does not load Qiskit.
@@ -14,7 +13,6 @@ def test_pricing_does_not_load_heavy_deps_on_import():
     # We can check if it was loaded *specifically* by src.quant.pricing if we were using a custom loader,
     # but here we'll just verify the package is functional.
     assert hasattr(src.quant.pricing, "BlackScholesEngine")
-
 
 def test_pricing_loads_dep_on_attribute_access():
     """

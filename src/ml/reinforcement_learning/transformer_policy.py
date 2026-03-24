@@ -7,7 +7,6 @@ from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 
-
 class CausalSelfAttention(nn.Module):  # type: ignore
     def __init__(
         self,
@@ -54,7 +53,6 @@ class CausalSelfAttention(nn.Module):  # type: ignore
         y = self.resid_drop(self.proj(y))
         return y
 
-
 class Block(nn.Module):  # type: ignore
     def __init__(
         self,
@@ -79,7 +77,6 @@ class Block(nn.Module):  # type: ignore
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
         return x
-
 
 class DecisionTransformer(nn.Module):  # type: ignore
     def __init__(
@@ -174,7 +171,6 @@ class DecisionTransformer(nn.Module):  # type: ignore
 
         return state_preds, action_preds, return_preds
 
-
 class TransformerFeatureExtractor(BaseFeaturesExtractor):  # type: ignore
     """Custom transformer feature extractor for RL handling 2D time-series input."""
 
@@ -211,7 +207,6 @@ class TransformerFeatureExtractor(BaseFeaturesExtractor):  # type: ignore
 
         # Take the latent of the *latest* token for RL policy
         return cast(torch.Tensor, self.out(x[:, -1, :]))
-
 
 class TransformerTD3Policy(TD3Policy):  # type: ignore
     """TD3 Policy with Transformer extractor."""

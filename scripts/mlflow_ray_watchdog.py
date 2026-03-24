@@ -17,7 +17,6 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-
 class MLflowRayWatchdog:
     """
     Persistent watchdog for Ray training jobs.
@@ -116,7 +115,6 @@ class MLflowRayWatchdog:
         if val.lower() == "false":
             return False
         return val
-
 
 if __name__ == "__main__":
     watchdog = MLflowRayWatchdog("distributed_dt_v1")

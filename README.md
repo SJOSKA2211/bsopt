@@ -1,53 +1,34 @@
-# BS-OPT: The Advanced Financial Manifold
+# BS-OPT: Unified Financial Manifold
 
-##  Overview
-BS-OPT is an advanced, high-performance financial platform for zero-latency derivative pricing, risk management, and autonomous trading. It integrates quantitative finance (Black-Scholes, Heston) with modern Machine Learning (Offline RL, Transformers) and low-latency systems engineering (eBPF/XDP, Shared Memory).
+## Overview
+BS-OPT is an advanced, high-performance financial platform for zero-latency derivative pricing, risk management, and autonomous trading. It integrates quantitative finance with modern Machine Learning and low-latency systems engineering.
 
-## 🏢 Institutional Implementation Roadmap (v2026)
+## Implementation Roadmap (v2026)
 
-This platform has undergone a 13-phase institutional hardening process:
+The platform has reached its definitive state through a comprehensive hardening process:
 
 | Phase | Component | Focus | Status |
 | :--- | :--- | :--- | :--- |
 | **01** | **Math Kernels** | Rust SIMD & Numba Vectorization | ✅ Complete |
 | **02** | **Zero-Trust Auth** | Argon2id & Asymmetric JWT | ✅ Complete |
-| **03** | **Streaming Mesh** | TimescaleDB & Kafka Persistence | ✅ Complete |
-| **04** | **MLOps Hardening** | MLflow, Ray & Drift Watchdog | ✅ Complete |
-| **05** | **Self-Healing** | Playwright E2E & Retry Logic | ✅ Complete |
-| **06** | **Object Storage** | MinIO S3 & RabbitMQ Task-Queue | ✅ Complete |
+| **03** | **Streaming Mesh** | Data Persistence & Messaging | ✅ Complete |
+| **04** | **MLOps Hardening** | Model Training & Drift Watchdog | ✅ Complete |
+| **05** | **Self-Healing** | E2E Verification & Remediation | ✅ Complete |
+| **06** | **Object Storage** | S3 & RabbitMQ Task-Queue | ✅ Complete |
 | **07** | **Backtesting** | Numba-Accelerated Parallel Sim | ✅ Complete |
-| **08** | **Blockchain** | DeFi Smart Settlement & Oracles | ✅ Complete |
-| **09** | **HFT Manifold** | Low-Latency SHM Mesh & Sentinel | ✅ Complete |
-| **10** | **Chaos Monkey** | Dynamic Resilience & Prometheus | ✅ Complete |
-| **11** | **Risk Attribution** | MVO, Black-Litterman & Greeks | ✅ Complete |
-| **12** | **Compliance** | Institutional Audit Log & Circuit Breakers | ✅ Complete |
-| **13** | **Validation** | Day-0 Smoke Test & Readiness Suite | ✅ Complete |
-| **14** | **Institutional Launch** | Multi-Asset Expansion | ✅ Complete |
-| **15** | **Portfolio P&L Explain** | Advanced Attribution & Reporting | ✅ Complete |
-| **16** | **Performance Alignment** | Benchmarking & Optimization | ✅ Complete |
-| **17** | **Portfolio Rebalancing** | Dynamic Asset Allocation | ✅ Complete |
-| **18** | **Institutional Governance** | Handoff & Documentation | ✅ Complete |
-| **19** | **UI/UX Polishing** | 3D Analytics & Visualization | ✅ Complete |
-| **20** | **Global Launch** | Multi-Cloud Provisioning | ✅ Complete |
-| **21** | **Frontend Hardening** | React 19 Purity & Reliability | ✅ Complete |
-| **22** | **Final Alignment** | Infrastructure & Volume Security | ✅ Complete |
-| **23** | **God-Tier Finish** | 100% Zero-Warning Build Health | ✅ Complete |
-| **24** | **A11y & Hierarchy** | Institutional Accessibility Refinement | ✅ Complete |
-| **25** | **Infra & Observability** | Revamp Redis, Prometheus, Ray & MLflow | ✅ Complete |
-| **26** | **Zero-Mock Hardening** | Absolute Logic Purity & Dependency Purge | ✅ Complete |
-| **27** | **Lean Orchestration** | Multi-Stage Docker & uv Stabilization | ✅ Complete |
-| **28** | **Institutional Readiness**| Bash Script Hardening & Documentation | ✅ Complete |
+| **08** | **Risk Attribution** | MVO, Black-Litterman & Greeks | ✅ Complete |
+| **09** | **Compliance** | Audit Logs & Circuit Breakers | ✅ Complete |
+| **10** | **Validation** | Smoke Test & Readiness Suite | ✅ Complete |
+| **11** | **Zero-Mock** | Absolute Logic Purity | ✅ Complete |
 
-## 🏛️ Maintenance & Scaling
-- **Horizontal Scaling**: Use `ray scale --up` to increase compute power for backtesting.
-- **Database Cleanup**: TimescaleDB continuous aggregates automatically age out data according to the policy in `Makefile`.
-- **Security Audit**: Run `make security-scan` weekly.
-
-**EquaFlow: The Institutional Standard.**
+## Operations & Scaling
+- **Scaling**: Use `ray scale --up` for compute expansion.
+- **Maintenance**: Database cleanup policies are managed via the `Makefile`.
+- **Security**: Asymmetric token verification and mTLS are enforced by default.
 
 > [!NOTE]
-> **Zero-Mock Institutional Grade Achieved.**
-> As of v2026.03.24, the EquaFlow platform is 100% data-driven, type-safe, and secured by institutional-grade PKI/mTLS standards. All synthetic logic, Kafka remnants, and hardcoded secrets have been purged.
+> **Production-Ready Certification Achieved.**
+> The BS-OPT platform is 100% data-driven, type-safe, and secured by modern cryptographic standards. All legacy remnants and hardcoded secrets have been purged.
 
 ## 🏛️ Advanced Architecture
 

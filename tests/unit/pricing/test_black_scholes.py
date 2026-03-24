@@ -8,13 +8,11 @@ from src.math_kernel.black_scholes import (
 )
 from src.math_kernel.models import BSParameters
 
-
 @pytest.fixture
 def sample_params():
     return BSParameters(
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.0
     )
-
 
 def test_price_options_scalar(sample_params):
     engine = BlackScholesEngine()
@@ -27,7 +25,6 @@ def test_price_options_scalar(sample_params):
     put_price = engine.price_options(params=sample_params, option_type="put")
     assert isinstance(put_price, float)
     assert put_price > 0
-
 
 def test_price_options_vectorized():
     spots = np.array([90.0, 100.0, 110.0])
@@ -47,13 +44,11 @@ def test_price_options_vectorized():
     assert len(prices) == 3
     assert np.all(prices > 0)
 
-
 def test_calculate_greeks_scalar(sample_params):
     greeks = BlackScholesEngine.calculate_greeks(params=sample_params, option_type="call")
     assert hasattr(greeks, "delta")
     assert hasattr(greeks, "gamma")
     assert isinstance(greeks.delta, float)
-
 
 def test_put_call_parity(sample_params):
     call_price = BlackScholesEngine.price_call(sample_params)
@@ -69,14 +64,12 @@ def test_put_call_parity(sample_params):
     )
     assert is_valid is True
 
-
 def test_module_level_helpers(sample_params):
     res = black_scholes(params=sample_params)
     assert "price" in res
 
     parity = verify_put_call_parity(sample_params)
     assert parity is True
-
 
 def test_extract_params_missing():
     with pytest.raises(ValueError, match="Missing required parameters"):

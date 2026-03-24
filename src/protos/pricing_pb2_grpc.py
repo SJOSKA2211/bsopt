@@ -24,7 +24,6 @@ if _version_not_supported:
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
-
 class PricingServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -50,7 +49,6 @@ class PricingServiceStub(object):
                 response_deserializer=pricing__pb2.GreeksResponse.FromString,
                 _registered_method=True)
 
-
 class PricingServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -71,7 +69,6 @@ class PricingServiceServicer(object):
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
-
 
 def add_PricingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -95,7 +92,6 @@ def add_PricingServiceServicer_to_server(servicer, server):
             'bsopt.pricing.PricingService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
     server.add_registered_method_handlers('bsopt.pricing.PricingService', rpc_method_handlers)
-
 
  # This class is part of an EXPERIMENTAL API.
 class PricingService(object):

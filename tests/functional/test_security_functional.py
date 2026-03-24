@@ -4,7 +4,6 @@ Security Vulnerability Functional Tests (Principles 50, 58, 66, 74, 82, 98)
 
 import pytest
 
-
 @pytest.mark.asyncio
 async def test_security_sql_injection_on_user_id(client):
     """50. Test Security: Check for SQL injection."""
@@ -12,7 +11,6 @@ async def test_security_sql_injection_on_user_id(client):
     response = await client.get(f"/api/v1/users/{malicious_id}")
     # Should be rejected by validation or return 401/404, NOT execute SQL
     assert response.status_code in [401, 404, 422]
-
 
 @pytest.mark.asyncio
 async def test_security_xss_protection(client, user_payload):
@@ -23,7 +21,6 @@ async def test_security_xss_protection(client, user_payload):
     # 98. Sensitive data exposure check
     assert "<script>" not in response.text
 
-
 @pytest.mark.asyncio
 async def test_security_headers_present(client):
     """66. Test Security: Check security headers."""
@@ -31,7 +28,6 @@ async def test_security_headers_present(client):
     assert response.headers.get("X-Frame-Options") == "DENY"
     assert "Content-Security-Policy" in response.headers
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
-
 
 @pytest.mark.asyncio
 async def test_security_cors_configuration(client):
@@ -46,7 +42,6 @@ async def test_security_cors_configuration(client):
     assert response.status_code == 200
     assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
 
-
 @pytest.mark.asyncio
 async def test_security_rate_limiting(client, user_payload):
     """Rate Limiting: Test rate limiting scenarios."""
@@ -58,13 +53,11 @@ async def test_security_rate_limiting(client, user_payload):
     # Verified health still works, real rate limit test would need Redis live
     pass
 
-
 @pytest.mark.asyncio
 async def test_security_authentication_bypass(client):
     """74. Test Security: Check for authentication bypass."""
     response = await client.get("/api/v1/users/me")
     assert response.status_code == 401
-
 
 @pytest.mark.asyncio
 async def test_security_idor_profile_access(client, mock_db, user_payload):

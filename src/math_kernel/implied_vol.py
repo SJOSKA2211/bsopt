@@ -24,12 +24,10 @@ try:
 except ImportError:
     CORE_AVAILABLE = False
 
-
 class ImpliedVolatilityError(Exception):
     """Exception raised when IV calculation fails to converge."""
 
     pass
-
 
 def _calculate_intrinsic_value(
     spot: float,
@@ -53,7 +51,6 @@ def _calculate_intrinsic_value(
             0.0,
         )
     )
-
 
 def _validate_inputs(
     market_price: float,
@@ -82,7 +79,6 @@ def _validate_inputs(
 
     if market_price < 1e-12:
         raise ImpliedVolatilityError("market price too close to zero")
-
 
 def _newton_raphson_iv(
     market_price: float,
@@ -122,7 +118,6 @@ def _newton_raphson_iv(
 
     raise ImpliedVolatilityError("failed to converge")
 
-
 def _brent_iv(
     market_price: float,
     spot: float,
@@ -144,7 +139,6 @@ def _brent_iv(
         return float(brentq(obj, 1e-6, 5.0, xtol=tolerance))
     except Exception:
         raise ImpliedVolatilityError("failed to converge") from None
-
 
 def implied_volatility(
     market_price: float,
@@ -209,7 +203,6 @@ def implied_volatility(
             )
         raise
 
-
 def vectorized_implied_volatility(
     market_prices: np.ndarray,
     spots: np.ndarray,
@@ -224,7 +217,7 @@ def vectorized_implied_volatility(
     """
     State-of-the-art vectorized IV calculation.
     """
-    # OPTIMIZED: Vectorized type conversion
+    
     is_call = np.char.lower(option_types.astype(str)) == "call"
 
     if CORE_AVAILABLE:

@@ -29,7 +29,6 @@ from src.config import settings
 
 logger = structlog.get_logger(__name__)
 
-
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Add security headers to all responses.
@@ -170,7 +169,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             del response.headers["X-Powered-By"]
 
         return response
-
 
 class CSRFMiddleware(BaseHTTPMiddleware):
     """
@@ -351,7 +349,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
         return response
 
-
 class IPBlockMiddleware(BaseHTTPMiddleware):
     """
     IP blocking middleware for security.
@@ -453,7 +450,6 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
         return cast(Response, await call_next(request))
 
-
 class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     """
     Consolidated authentication middleware.
@@ -532,7 +528,6 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             )
 
         return await call_next(request)
-
 
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
     """

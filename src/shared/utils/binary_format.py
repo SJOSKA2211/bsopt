@@ -14,7 +14,6 @@ HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 RECORD_FORMAT = "<12sdiq"  # Symbol (12s), Price (d), Volume (i), Timestamp (q)
 RECORD_SIZE = struct.calcsize(RECORD_FORMAT)
 
-
 class EquaRecord(BaseModel):
     """
     Represents a single 32-byte record in the EQUA format.
@@ -50,7 +49,6 @@ class EquaRecord(BaseModel):
         symbol = symbol_bytes.decode("utf-8").rstrip("\x00")
         return cls(symbol=symbol, price=price, volume=volume, timestamp_ns=timestamp_ns)
 
-
 class EquaWriter:
     """
     Writes records to a file in EQUA format.
@@ -85,7 +83,6 @@ class EquaWriter:
         """Writes multiple records to the file."""
         for record in records:
             self.write_record(record)
-
 
 class EquaReader:
     """
@@ -135,7 +132,6 @@ class EquaReader:
                 # Potentially truncated file or trailing data
                 break
             yield EquaRecord.unpack(data)
-
 
 def csv_to_equa(csv_path: str | Path, equa_path: str | Path):
     """

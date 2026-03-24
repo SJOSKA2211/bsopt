@@ -4,7 +4,6 @@ import pytest
 
 from src.ml.aiops.aiops_orchestrator import AIOpsOrchestrator
 
-
 @pytest.fixture
 def orchestrator_config():
     return {
@@ -17,7 +16,6 @@ def orchestrator_config():
         "autoencoder_input_dim": None,  # Disable AE for unit test
         "ml_pipeline_config": {"ticker": "AAPL", "framework": "xgboost"},
     }
-
 
 @patch("src.ml.aiops.aiops_orchestrator.PrometheusClient")
 @patch("src.ml.aiops.aiops_orchestrator.post_grafana_annotation")
@@ -47,7 +45,6 @@ def test_orchestrator_remediates_high_error_rate(
     orchestrator.docker_remediator.restart_service.assert_called_with("bsopt-api")
     # Verify notification was sent
     assert mock_notify.called
-
 
 @patch("src.ml.aiops.aiops_orchestrator.PrometheusClient")
 def test_orchestrator_detects_data_drift(mock_prometheus_class, orchestrator_config):

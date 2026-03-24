@@ -22,14 +22,12 @@ router = APIRouter(
     prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse
 )
 
-
 class PositionSchema(msgspec.Struct):
     id: str
     symbol: str
     quantity: int
     entry_price: float
     status: str
-
 
 class PortfolioOverview(msgspec.Struct):
     id: str
@@ -39,7 +37,6 @@ class PortfolioOverview(msgspec.Struct):
     positions_count: int
     positions: list[PositionSchema]
     message: str | None = None
-
 
 @router.get("", response_model=PortfolioOverview)
 @router.get("/", response_model=PortfolioOverview)
@@ -96,7 +93,6 @@ async def get_portfolio(
         ],
     )
 
-
 @router.get("/summary")
 async def get_portfolio_summary(
     db: AsyncSession = Depends(get_async_db),
@@ -117,12 +113,10 @@ async def get_portfolio_summary(
 
     return DataResponseStruct(data=dict(row._mapping))
 
-
 class PositionCreate(msgspec.Struct):
     symbol: str
     quantity: int
     entry_price: float
-
 
 @router.post("/positions", status_code=201, response_model=DataResponseStruct[dict[str, str]])
 async def add_position(
@@ -154,7 +148,6 @@ async def add_position(
     await db.refresh(new_pos)
 
     return DataResponseStruct(data={"id": str(new_pos.id)}, message="position_created__tight")
-
 
 @router.delete("/positions/{position_id}")
 async def delete_position(

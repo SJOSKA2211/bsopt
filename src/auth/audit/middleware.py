@@ -19,7 +19,6 @@ _vault = (
     AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) if _vault_key else None
 )
 
-
 async def _produce_audit_log(payload: dict[str, Any]):
     """Background task to produce audit logs to RabbitMQ with delivery assurance."""
     try:
@@ -36,7 +35,6 @@ async def _produce_audit_log(payload: dict[str, Any]):
         logger.debug("audit_log_published_to_rabbitmq")
     except Exception as e:
         logger.warning("audit_log_production_failed", error=str(e))
-
 
 class AuditMiddleware(BaseHTTPMiddleware):
     """

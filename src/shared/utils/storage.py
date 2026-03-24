@@ -7,7 +7,6 @@ from botocore.client import Config
 
 logger = structlog.get_logger()
 
-
 class ObjectStorageManager:
     """
     Institutional-grade Object Storage Manager (S3/MinIO).
@@ -68,6 +67,5 @@ class ObjectStorageManager:
         except Exception as e:
             logger.error("presigned_url_generation_failed", object=object_name, error=str(e))
             raise
-
 
 storage_manager = ObjectStorageManager()

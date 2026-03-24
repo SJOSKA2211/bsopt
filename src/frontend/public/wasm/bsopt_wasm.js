@@ -1013,14 +1013,11 @@ function __wbg_finalize_init(instance, module) {
     cachedFloat64ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
 
-
-
     return wasm;
 }
 
 function initSync(module) {
     if (wasm !== undefined) return wasm;
-
 
     if (typeof module !== 'undefined') {
         if (Object.getPrototypeOf(module) === Object.prototype) {
@@ -1040,7 +1037,6 @@ function initSync(module) {
 
 async function __wbg_init(module_or_path) {
     if (wasm !== undefined) return wasm;
-
 
     if (typeof module_or_path !== 'undefined') {
         if (Object.getPrototypeOf(module_or_path) === Object.prototype) {

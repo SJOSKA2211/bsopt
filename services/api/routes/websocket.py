@@ -12,7 +12,6 @@ from services.api.websockets.manager import ProtocolType, manager
 logger = structlog.get_logger()
 router = APIRouter()
 
-
 @router.websocket("/ws/market-data")
 async def market_data_ws(
     websocket: WebSocket,
@@ -86,7 +85,6 @@ async def market_data_ws(
         logger.error("ws_route_error", error=str(e))
     finally:
         await manager.disconnect(websocket)
-
 
 @router.websocket("/ws/greeks")
 async def greeks_ws(

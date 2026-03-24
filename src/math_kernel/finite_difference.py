@@ -16,7 +16,6 @@ from src.math_kernel.quant_utils import jit_cn_solver
 
 logger = logging.getLogger(__name__)
 
-
 class CrankNicolsonSolver(PricingStrategy):
     """
     Finite difference solver using the Crank-Nicolson method.

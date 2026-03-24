@@ -8,7 +8,6 @@ from src.ml.feature_store.store import feature_store
 
 logger = structlog.get_logger()
 
-
 class DataNormalizer:
     """
     Normalization Layer to ensure ML models receive consistent data.
@@ -65,7 +64,6 @@ class DataNormalizer:
 
         return False
 
-
 class StreamingDataLoader:
     """
     Optimized data loader for large datasets using chunking and generators.
@@ -112,7 +110,6 @@ class StreamingDataLoader:
             logger.error("chunk_processing_error", error=str(e))
             raise e
 
-
 class DatabaseDataLoader:
     """
     High-Performance ML Data Loader: Fetches training data directly from revamped hypertables.
@@ -136,7 +133,6 @@ class DatabaseDataLoader:
 
             df = pd.DataFrame(data)
             return await feature_store.compute_features(df, ["log_return"])
-
 
 class AIOpsDataLoader:
     """

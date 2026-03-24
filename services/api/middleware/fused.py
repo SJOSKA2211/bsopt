@@ -15,7 +15,6 @@ from src.shared.security import SecurityContext, is_trusted_proxy
 
 logger = structlog.get_logger(__name__)
 
-
 class ZeroTrustMiddleware:
     """
     All-in-one security middleware optimized for speed.
@@ -71,7 +70,6 @@ class ZeroTrustMiddleware:
         
         if settings.is_production:
             self.security_headers.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
-
 
     async def _handle_auth(self, request: Request, path: str, is_trusted: bool, ssl_verify: str | None, ssl_dn: str | None) -> SecurityContext:
         """Dedicated auth layer for Zero-Trust validation."""

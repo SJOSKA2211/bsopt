@@ -2,7 +2,6 @@ import numpy as np
 
 from src.shared.math_utils import calculate_price
 
-
 def generate_synthetic_data_numba(
     n_samples: int = 10000, random_state: int = 42
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:

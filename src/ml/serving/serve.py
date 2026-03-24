@@ -40,7 +40,6 @@ from src.shared.config import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 app = FastAPI(
     title="BSOPT ML Serving",
     version="1.0.0",
@@ -77,7 +76,6 @@ state: dict[str, Any] = {
     "current_model": "xgb",
     "grpc_servicer": None,
 }
-
 
 @app.on_event("startup")
 async def startup():
@@ -119,7 +117,6 @@ async def startup():
     )
     state["grpc_servicer"] = servicer
 
-
 async def load_xgb_model():
     """Load XGBoost model, favoring quantized ONNX for maximum performance."""
     import anyio
@@ -151,7 +148,6 @@ async def load_xgb_model():
         logger.error(f"XGBoost load failed: {e}")
         MODEL_LOAD_STATUS.labels(model_type="xgb").set(0)
 
-
 async def load_onnx_model():
     import anyio
 
@@ -174,7 +170,6 @@ async def load_onnx_model():
         logger.error(f"ONNX load failed: {e}")
         MODEL_LOAD_STATUS.labels(model_type="nn").set(0)
 
-
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
@@ -182,7 +177,6 @@ async def add_request_id(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
     return response
-
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
@@ -197,7 +191,6 @@ async def generic_exception_handler(request: Request, exc: Exception):
             "request_id": request_id,
         },
     )
-
 
 @app.post(
     "/predict",
@@ -280,7 +273,6 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
         increment_counter(PREDICTION_COUNT, labels={"status": "error", "model_type": model_type})
         logger.error(f"Inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal inference error") from e
-
 
 @app.post(
     "/predict/batch",
@@ -378,7 +370,6 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
         logger.error(f"Batch inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal batch inference error") from e
 
-
 @app.post("/ml/reload")
 async def reload_models(request: Request):
     """
@@ -405,12 +396,10 @@ async def reload_models(request: Request):
         logger.error(f"Reload failed: {e}")
         raise HTTPException(status_code=500, detail=f"Reload failed: {str(e)}")
 
-
 @app.get("/metrics")
 async def metrics():
     """Prometheus metrics endpoint."""
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
 
 @app.get("/health")
 async def health():
@@ -423,7 +412,6 @@ async def health():
         },
         "timestamp": datetime.now(UTC).isoformat(),  # Use timezone-aware datetime
     }
-
 
 if __name__ == "__main__":
     import uvicorn

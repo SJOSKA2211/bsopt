@@ -6,7 +6,6 @@ from starlette.responses import Response
 # Core msgspec encoder instance
 _encoder = msgspec.json.Encoder()
 
-
 class MsgspecJSONResponse(Response):
     """
     JSON response class using msgspec for efficient serialization.
@@ -24,7 +23,6 @@ class MsgspecJSONResponse(Response):
             import orjson
 
             return orjson.dumps(content)
-
 
 def get_msgspec_response(content: Any, status_code: int = 200) -> MsgspecJSONResponse:
     """Helper for generating msgspec-powered responses."""

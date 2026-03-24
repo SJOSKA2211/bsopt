@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/start_frontend.sh - Institutional Frontend Dashboard Orchestrator
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -7,7 +7,6 @@ cd "$PROJECT_ROOT"
 
 echo "🎨 Launching Institutional EquaFlow Dashboard..."
 
-# Institutional Runtime Environment
 cd src/frontend
 
 if [ ! -d "node_modules" ]; then

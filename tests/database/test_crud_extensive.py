@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from src.database import crud
 from src.database.models import Base, User
 
-
 # Setup in-memory sqlite for fast CRUD testing
 @pytest_asyncio.fixture
 async def db_session():
@@ -21,7 +20,6 @@ async def db_session():
     async with AsyncSessionLocal() as session:
         yield session
     await engine.dispose()
-
 
 @pytest.mark.asyncio
 async def test_user_crud(db_session):
@@ -36,7 +34,6 @@ async def test_user_crud(db_session):
     await crud.update_user_tier(db_session, user.id, "enterprise")
     updated = await crud.get_user_by_id(db_session, user.id)
     assert updated.tier == "enterprise"
-
 
 @pytest.mark.asyncio
 async def test_portfolio_crud(db_session):
@@ -53,7 +50,6 @@ async def test_portfolio_crud(db_session):
     await db_session.refresh(port)
     assert port.cash_balance == 1500.0
 
-
 @pytest.mark.asyncio
 async def test_position_crud(db_session):
     user = User(email="pos@ex.com", hashed_password="h", full_name="N")
@@ -68,7 +64,6 @@ async def test_position_crud(db_session):
     closed = await crud.close_position(db_session, pos.id, Decimal("160.00"))
     assert closed.status == "closed"
     assert closed.realized_pnl == 100.0  # (160-150)*10
-
 
 @pytest.mark.asyncio
 async def test_order_crud(db_session):
@@ -91,7 +86,6 @@ async def test_order_crud(db_session):
     )
     await db_session.refresh(order)
     assert order.status == "filled"
-
 
 @pytest.mark.asyncio
 async def test_ml_model_crud(db_session):

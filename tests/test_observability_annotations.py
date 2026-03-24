@@ -5,7 +5,6 @@ import httpx
 
 from src.shared.observability import post_grafana_annotation  # Assuming new function
 
-
 @patch("src.shared.observability.httpx.post")
 @patch("src.shared.observability.os.environ.get")
 def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):
@@ -27,7 +26,6 @@ def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):
         timeout=5,
     )
 
-
 @patch("src.shared.observability.httpx.post")
 @patch("src.shared.observability.os.environ.get")
 def test_post_grafana_annotation_no_grafana_url(mock_environ_get, mock_httpx_post):
@@ -41,7 +39,6 @@ def test_post_grafana_annotation_no_grafana_url(mock_environ_get, mock_httpx_pos
     assert not result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_not_called()
-
 
 @patch("src.shared.observability.httpx.post")
 @patch("src.shared.observability.os.environ.get")
@@ -64,7 +61,6 @@ def test_post_grafana_annotation_api_failure(mock_environ_get, mock_httpx_post):
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once()
 
-
 @patch("src.shared.observability.httpx.post", side_effect=Exception("Connection error"))
 @patch("src.shared.observability.os.environ.get")
 def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_post):
@@ -78,7 +74,6 @@ def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_p
     assert not result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once()
-
 
 @patch("src.shared.observability.datetime")
 @patch("src.shared.observability.httpx.post")

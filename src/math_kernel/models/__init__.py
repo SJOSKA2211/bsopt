@@ -4,7 +4,6 @@ from typing import Any
 
 import numpy as np
 
-
 class ModelPool:
     """
     Thread-safe object pool for high-frequency pricing objects.
@@ -45,10 +44,8 @@ class ModelPool:
             if len(self._greeks_pool) < self._max_size:
                 self._greeks_pool.append(obj)
 
-
 # Global pool instance
 global_model_pool = ModelPool()
-
 
 @dataclass(slots=True)
 class BSParameters:
@@ -79,7 +76,6 @@ class BSParameters:
         if np.any(_rate_arr < 0) or np.any(_dividend_arr < 0):
             raise ValueError("Rate and dividend cannot be negative")
 
-
 @dataclass(slots=True)
 class OptionGreeks:
     """
@@ -100,7 +96,6 @@ class OptionGreeks:
 
     def __contains__(self, item: object) -> bool:
         return hasattr(self, str(item))
-
 
 @dataclass(frozen=True, slots=True)
 class HestonParams:
@@ -124,6 +119,5 @@ class HestonParams:
 
         if any(p <= 0 for p in [self.v0, self.kappa, self.theta, self.sigma]):
             raise ValueError("All parameters except rho must be positive")
-
 
 __all__ = ["BSParameters", "OptionGreeks", "HestonParams"]

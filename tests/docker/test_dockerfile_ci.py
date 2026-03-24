@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-
 def test_dockerfile_ci_exists():
     """Verify that the CI runner Dockerfile exists."""
     assert os.path.exists("docker/Dockerfile.ci")

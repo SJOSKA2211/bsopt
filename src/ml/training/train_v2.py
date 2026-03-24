@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader, Dataset
 
 from src.ml.trainer import ModelTrainer as Trainer
 
-
 class SyntheticOptionsDataset(Dataset):
     """
     Structured synthetic dataset for RL feature pre-training.
@@ -46,7 +45,6 @@ class SyntheticOptionsDataset(Dataset):
     def __getitem__(self, idx):
         return self.features[idx], self.labels[idx]
 
-
 def get_dataloaders(n_samples: int = 100) -> tuple[DataLoader, DataLoader]:
     """
     Production-ready dataloaders for the RL training pipeline.
@@ -58,7 +56,6 @@ def get_dataloaders(n_samples: int = 100) -> tuple[DataLoader, DataLoader]:
     val_loader = DataLoader(val_ds, batch_size=32)
 
     return train_loader, val_loader
-
 
 def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
     """
@@ -81,7 +78,6 @@ def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
 
     trainer.train(train_loader, val_loader, epochs=epochs)
     return Path("./outputs/model.pt")
-
 
 if __name__ == "__main__":
     train_neural_network(n_samples=50, epochs=2)

@@ -4,7 +4,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class SelfHealingTestRunner:
     """
     Self-healing test orchestrator.
@@ -40,7 +39,6 @@ class SelfHealingTestRunner:
             # If its a known flake, we could record it or retry specifically
             pass
         # Add more sophisticated healing here
-
 
 if __name__ == "__main__":
     runner = SelfHealingTestRunner("make test-all")

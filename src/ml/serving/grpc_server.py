@@ -13,7 +13,6 @@ from src.protos import inference_pb2, inference_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
-
 class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
     """
     gRPC Servicer for high-performance ML inference.
@@ -33,7 +32,7 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
 
     def _prepare_input(self, request) -> np.ndarray:
         """Consolidated and optimized input preparation."""
-        # OPTIMIZED: Return a flat array, reshape only when needed
+        
         return np.array(
             [
                 request.underlying_price,
@@ -87,7 +86,6 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
             context.set_details(str(e))
             return inference_pb2.InferenceResponse()
 
-
 async def serve_grpc(xgb_model, nn_ort_session):
     """Starts the gRPC server and returns the servicer."""
     options = [
@@ -114,7 +112,6 @@ async def serve_grpc(xgb_model, nn_ort_session):
 
     # We return the servicer so the REST app can update its state
     return servicer
-
 
 if __name__ == "__main__":
     # Example manual execution for testing

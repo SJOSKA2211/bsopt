@@ -5,13 +5,11 @@ from fastapi.testclient import TestClient
 
 from src.quant.pricing.main import app
 
-
 def test_pricing_health():
     client = TestClient(app)
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
-
 
 def test_pricing_graphql_dummy():
     client = TestClient(app)
@@ -21,7 +19,6 @@ def test_pricing_graphql_dummy():
     response = client.post("/graphql", json={"query": query})
     assert response.status_code == 200
     assert response.json()["data"]["dummy"] == "pricing"
-
 
 @pytest.mark.asyncio
 async def test_pricing_graphql_option_reference():

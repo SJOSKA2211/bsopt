@@ -2,7 +2,6 @@ import numpy as np
 
 from src.quant.pricing import quant_utils
 
-
 def test_corrado_miller():
     S = np.array([100.0])
     K = np.array([100.0])
@@ -14,7 +13,6 @@ def test_corrado_miller():
 
     iv = quant_utils.corrado_miller_initial_guess(price, S, K, T, r, q, option_type)
     assert 0.15 < iv[0] < 0.3  # Loosened from 0.25 to account for approx error
-
 
 def test_thomas_algorithm():
     # Solve simple system
@@ -29,7 +27,6 @@ def test_thomas_algorithm():
 
     x = quant_utils.thomas_algorithm(lower, diag, upper, rhs)
     assert np.allclose(x, [1.0, 1.0, 1.0])
-
 
 def test_newton_raphson_iv():
     S = np.array([100.0])
@@ -46,12 +43,10 @@ def test_newton_raphson_iv():
     )
     assert np.isclose(iv[0], 0.2, atol=1e-4)
 
-
 def test_heston_char_func():
     # Just verify it doesn't crash and returns complex
     res = quant_utils.heston_char_func_jit(1.0 + 0.5j, 1.0, 0.05, 0.04, 2.0, 0.04, 0.3, -0.7)
     assert isinstance(res, complex | np.complex128)
-
 
 def test_cn_solver():
     s_grid = np.linspace(0, 200, 21)
@@ -68,12 +63,10 @@ def test_cn_solver():
     assert len(res) == 21
     assert res[-1] > 0  # ITM path has value
 
-
 def test_warmup_jit():
     # Ensure warmup doesn't crash
     quant_utils.warmup_jit()
     assert True
-
 
 def test_batch_bs_price_edge_case():
     S = np.array([100.0])

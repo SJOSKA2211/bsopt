@@ -7,7 +7,6 @@ from src.math_kernel.risk_kernels import IncrementalDeltaTracker, _validate_orde
 
 logger = structlog.get_logger()
 
-
 def benchmark():
     # 1. Benchmark Base Silicon Risk Check
     N = 1000000
@@ -40,7 +39,6 @@ def benchmark():
     print(
         f"Combined God-Tier Risk Kernel: {N} iterations in {duration:.4f}s ({duration / N * 1e9:.2f} ns/op)"
     )
-
 
 if __name__ == "__main__":
     benchmark()

@@ -9,7 +9,6 @@ from src.ml.drift import (
     calculate_psi,
 )
 
-
 class TestDrift:
     def test_performance_drift_monitor(self):
         monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1, higher_is_better=True)
@@ -46,6 +45,4 @@ class TestDrift:
 
         decision, reason = trigger.should_retrain(ref, curr, 0.9)
         assert isinstance(decision, bool)
-
-
 

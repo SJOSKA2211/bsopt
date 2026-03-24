@@ -17,7 +17,6 @@ from src.math_kernel.arbiter import (
     PricingRequest,
 )
 
-
 class TestArbiter:
     def setUp(self):
         # Patch WASMPricingEngine to not try to load real WASM
@@ -62,6 +61,4 @@ class TestArbiter:
         is_call = np.array([True, True])
         prices = self.arbiter.route_batch(S, K, T, sigma, r, is_call)
         assert len(prices) == 2
-
-
 

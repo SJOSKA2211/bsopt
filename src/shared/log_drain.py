@@ -15,7 +15,6 @@ from src.shared.off_heap_logger import (
 # Standard logging for the drainer itself
 logger = structlog.get_logger()
 
-
 class AsyncLogDrain:
     """
     OPTIMIZED: Asynchronous worker that drains the Off-Heap SHM log buffer and batches to Loki.
@@ -81,7 +80,7 @@ class AsyncLogDrain:
             current_head = struct.unpack("q", mv[:8])[0]
 
             if current_head > self.last_head:
-                # OPTIMIZED: Bulk grab from head difference
+                
                 # We still need to unpack for timestamps, but we use memoryview
                 start_idx = max(self.last_head, current_head - LOG_BUFFER_CAPACITY)
 
@@ -109,7 +108,6 @@ class AsyncLogDrain:
 
     def stop(self) -> None:
         self._running = False
-
 
 if __name__ == "__main__":
     drain = AsyncLogDrain()

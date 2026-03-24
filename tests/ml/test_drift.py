@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.drift import calculate_ks_test, calculate_psi
 
-
 @patch("src.ml.drift.logger")
 @patch("src.ml.drift.KS_TEST_SCORE")
 def test_ks_test_instrumentation(mock_gauge, mock_logger):
@@ -19,7 +18,6 @@ def test_ks_test_instrumentation(mock_gauge, mock_logger):
     # Verify prometheus gauge was updated
     mock_gauge.set.assert_called_once()
 
-
 def test_calculate_ks_test_no_drift():
     """Verify that KS test returns high p-value when distributions are identical."""
     np.random.seed(42)
@@ -30,7 +28,6 @@ def test_calculate_ks_test_no_drift():
     # p-value should be high (usually > 0.05 means no significant difference)
     assert p_value > 0.05
 
-
 def test_calculate_ks_test_significant_drift():
     """Verify that KS test returns low p-value when distributions are different."""
     np.random.seed(42)
@@ -40,7 +37,6 @@ def test_calculate_ks_test_significant_drift():
     statistic, p_value = calculate_ks_test(expected, actual)
     # p-value should be very low
     assert p_value < 0.01
-
 
 @patch("src.ml.drift.logger")
 @patch("src.ml.drift.DATA_DRIFT_SCORE")
@@ -55,7 +51,6 @@ def test_drift_instrumentation(mock_gauge, mock_logger):
     # Verify prometheus gauge was updated
     mock_gauge.set.assert_called_once()
 
-
 def test_calculate_psi_no_drift():
     """Verify that PSI is 0 when distributions are identical."""
     expected = np.array([0.1, 0.2, 0.3, 0.4])
@@ -63,7 +58,6 @@ def test_calculate_psi_no_drift():
 
     psi_score = calculate_psi(expected, actual, buckets=4)
     assert psi_score == pytest.approx(0.0)
-
 
 def test_calculate_psi_significant_drift():
     """Verify that PSI detects significant drift."""
@@ -76,7 +70,6 @@ def test_calculate_psi_significant_drift():
     # PSI > 0.2 is usually considered significant drift
     assert psi_score > 0.2
 
-
 def test_calculate_psi_zero_bin_handling():
     """Verify that PSI calculation handles empty buckets gracefully."""
     expected = np.array([1, 2, 3, 4, 5])
@@ -86,7 +79,6 @@ def test_calculate_psi_zero_bin_handling():
     # It should not raise ZeroDivisionError or return NaN
     assert not np.isnan(psi_score)
     assert psi_score > 0
-
 
 def test_performance_drift_monitor():
     """Verify that performance drift is correctly detected."""
@@ -109,7 +101,6 @@ def test_performance_drift_monitor():
     # Improvement should not trigger drift
     assert monitor.detect_drift(0.95) is False
 
-
 @patch("src.ml.drift.PERFORMANCE_DRIFT_ALERT")
 def test_performance_drift_alert_instrumentation(mock_alert):
     """Verify that PerformanceDriftMonitor updates the Prometheus alert gauge."""
@@ -126,7 +117,6 @@ def test_performance_drift_alert_instrumentation(mock_alert):
     # No drift
     monitor.detect_drift(0.9)
     mock_alert.set.assert_called_with(0)
-
 
 def test_performance_drift_insufficient_history():
     """Verify that drift detection is skipped when history is insufficient."""

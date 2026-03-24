@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-
 def test_nginx_config_syntax():
     # If nginx is installed on the runner, we can check syntax
     try:
@@ -17,7 +16,6 @@ def test_nginx_config_syntax():
         # Nginx not installed
         pass
 
-
 def test_nginx_performance_settings():
     conf_path = "docker/nginx/nginx.conf"
     with open(conf_path) as f:
@@ -29,7 +27,6 @@ def test_nginx_performance_settings():
     assert "sendfile on;" in content
     assert "tcp_nodelay on;" in content
     assert "keepalive_requests 500000;" in content
-
 
 def test_websocket_optimizations():
     conf_path = "docker/nginx/nginx.conf"

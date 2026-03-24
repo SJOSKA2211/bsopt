@@ -1,7 +1,6 @@
 from src.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
 from src.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
-
 class TestHestonCalibration:
     """Test suite for Heston calibration engine."""
 

@@ -18,18 +18,15 @@ except ImportError:
 
 setup_logging()
 
-
 app = FastAPI(title="BS-Opt ML Service", default_response_class=ORJSONResponse)
 app.middleware("http")(logging_middleware)
 
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
-
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "healthy"}
-
 
 @app.post("/ml/reload")
 async def reload_models() -> dict[str, str]:

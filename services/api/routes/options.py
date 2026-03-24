@@ -24,7 +24,6 @@ router = APIRouter(prefix="/options", tags=["Options"], default_response_class=M
 # Initialize Greeks Mesh reader (Lock-Free)
 _greeks_mesh = GreeksMesh(create=False)
 
-
 class OptionChainItem(msgspec.Struct):
     id: str
     symbol: str
@@ -44,7 +43,6 @@ class OptionChainItem(msgspec.Struct):
     rho: float | None = None
     time: str | None = None
 
-
 @router.get("/greeks/{symbol}", response_model=DataResponseStruct[dict[str, float]])
 @db_circuit
 async def get_realtime_greeks(
@@ -55,7 +53,6 @@ async def get_realtime_greeks(
     if not data:
         return DataResponseStruct(data={}, message="No live data in manifold", success=False)
     return DataResponseStruct(data=data)
-
 
 @router.post("/greeks/batch", response_model=DataResponseStruct[dict[str, dict[str, float]]])
 @db_circuit
@@ -69,7 +66,6 @@ async def get_batch_greeks(
         if data:
             results[sym] = data
     return DataResponseStruct(data=results)
-
 
 @router.get("/chain", response_model=DataResponseStruct[list[OptionChainItem]])
 @db_circuit
@@ -105,7 +101,7 @@ async def get_options_chain(
         prices = result.scalars().all()
 
         if prices:
-            # OPTIMIZED: Enrich DB records with real-time SHM greeks
+            
             enriched_data = []
             
             # Hoisted exactly O(1) SHM lookup per chain instead of loop bound N calls
@@ -150,5 +146,4 @@ async def get_options_chain(
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
 
-    # 2. Institutional Zero-Mock: Return empty instead of synthetic trash
     return DataResponseStruct(data=[], message="No option chain data found in persistence layer")

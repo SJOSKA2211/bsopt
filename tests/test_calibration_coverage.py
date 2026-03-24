@@ -3,7 +3,6 @@ import pytest
 
 from src.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
 
-
 def test_market_option_spread():
     opt = MarketOption(
         T=1.0,
@@ -18,13 +17,11 @@ def test_market_option_spread():
     )
     assert opt.spread == 2.0
 
-
 def test_heston_calibrator_insufficient_liquid():
     calibrator = HestonCalibrator()
     # Provide empty data to hit line 100
     with pytest.raises(ValueError, match="Insufficient liquid options"):
         calibrator.calibrate([])
-
 
 def test_weighted_objective_feller_penalty():
     calibrator = HestonCalibrator()
@@ -33,7 +30,6 @@ def test_weighted_objective_feller_penalty():
     params = np.array([1.0, 0.01, 1.0, 0.0, 0.04])
     res = calibrator._weighted_objective(params, [])
     assert res == 1e12
-
 
 def test_weighted_objective_put():
     calibrator = HestonCalibrator()
@@ -52,7 +48,6 @@ def test_weighted_objective_put():
     params = np.array([2.0, 0.04, 0.1, 0.0, 0.04])
     res = calibrator._weighted_objective(params, [opt])
     assert res < 1e12
-
 
 def test_weighted_objective_exception_continue():
     calibrator = HestonCalibrator()

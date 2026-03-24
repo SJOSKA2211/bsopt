@@ -7,7 +7,6 @@ import structlog
 
 logger = structlog.get_logger()
 
-
 class MessageBroker:
     """
     Asynchronous Message Broker (RabbitMQ/aio-pika).
@@ -48,6 +47,5 @@ class MessageBroker:
         if self.connection:
             await self.connection.close()
             logger.info("rabbitmq_connection_closed")
-
 
 broker = MessageBroker()

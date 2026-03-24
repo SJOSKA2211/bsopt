@@ -15,7 +15,6 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-
 class BacktestEvaluator:
     def __init__(self, model_name: str):
         self.model_name = model_name
@@ -99,7 +98,6 @@ class BacktestEvaluator:
                 name=self.model_name, version=staging["version"], stage="Archived"
             )
             # Alerting mechanism would be triggered here
-
 
 if __name__ == "__main__":
     evaluator = BacktestEvaluator("OptionPricingModel_v2")

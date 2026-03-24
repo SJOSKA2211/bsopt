@@ -15,7 +15,6 @@ router = MarketDataRouter()
 _shm_reader = SharedMemoryRingBuffer(create=False)
 _greeks_mesh = GreeksMesh(create=False)
 
-
 async def _load_options_vectorized(keys: list[str]) -> list[Option]:
     """Vectorized batch fetcher for DataLoaders using Speculative Concurrency."""
     # 1. Dispatch all fetches concurrently
@@ -77,10 +76,8 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
             results.append(opt)
     return results
 
-
 # Persistent DataLoader for the request context
 option_loader = DataLoader(load_fn=_load_options_vectorized)
-
 
 async def get_option(
     symbol: str, expiry: date | datetime, strike: float, option_type: str
@@ -91,7 +88,6 @@ async def get_option(
     )
     contract_symbol = f"{symbol}_{expiry_str}_{option_type[0].upper()}_{int(strike)}"
     return await get_option_by_id(contract_symbol)
-
 
 async def get_option_by_id(id: str) -> Option | None:
     """Fetch option by its unique manifold ID."""
@@ -144,7 +140,6 @@ async def get_option_by_id(id: str) -> Option | None:
         logger = structlog.get_logger()
         logger.warning("graphql_option_resolve_failure", id=id, error=str(e))
         return None
-
 
 async def search_options_paginated(
     underlying: str,

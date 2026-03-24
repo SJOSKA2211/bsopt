@@ -13,7 +13,6 @@ from src.ml.architectures.neural_network import OptionPricingNN
 
 logger = structlog.get_logger(__name__)
 
-
 class NeuralPricingEngine(BasePricingEngine):  # type: ignore
     """
     Pricing Engine powered by a Neural Network (MLP).

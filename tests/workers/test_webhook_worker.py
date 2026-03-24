@@ -6,13 +6,11 @@ from celery.exceptions import MaxRetriesExceededError
 from src.shared.webhooks.dispatcher import WebhookDispatcher
 from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task
 
-
 @pytest.fixture
 def mock_dispatcher():
     dispatcher = MagicMock(spec=WebhookDispatcher)
     dispatcher.dispatch_webhook = AsyncMock()
     return dispatcher
-
 
 @pytest.mark.asyncio
 async def test_process_webhook_task_success(mock_dispatcher):
@@ -40,7 +38,6 @@ async def test_process_webhook_task_success(mock_dispatcher):
             secret=webhook_data["secret"],
             retries=0,
         )
-
 
 @pytest.mark.asyncio
 async def test_process_webhook_task_failure_and_retry(mock_dispatcher):
@@ -75,7 +72,6 @@ async def test_process_webhook_task_failure_and_retry(mock_dispatcher):
             )
             mock_task_self.retry.assert_called_once()
             mock_dlq_task_delay.assert_not_called()
-
 
 @pytest.mark.asyncio
 async def test_process_webhook_task_max_retries_exceeded(mock_dispatcher):
@@ -115,7 +111,6 @@ async def test_process_webhook_task_max_retries_exceeded(mock_dispatcher):
             args, kwargs = mock_dlq_task_delay.call_args
             assert args[0]["url"] == webhook_data["url"]
             assert "max_retries" in kwargs["reason"]
-
 
 @pytest.mark.asyncio
 async def test_send_to_dlq_task_execution():

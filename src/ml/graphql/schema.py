@@ -5,7 +5,6 @@ import strawberry
 from strawberry.dataloader import DataLoader
 from strawberry.federation import Schema
 
-
 async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     """
     High-Performance: Real batch loader using high-performance gRPC.
@@ -58,7 +57,6 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
         # Fallback to random if gRPC unavailable
         return [15.5 + random.uniform(-0.5, 0.5) for _ in keys]
 
-
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
@@ -76,13 +74,11 @@ class Option:
     def resolve_reference(cls, id: strawberry.ID) -> "Option":
         return cls(id=id)
 
-
 @strawberry.type
 class DriftStatus:
     is_drifted: bool
     psi_score: float
     mmd_score: float
-
 
 @strawberry.type
 class Query:
@@ -101,11 +97,9 @@ class Query:
             mmd_score=float(MMD_DRIFT_SCORE.get()),
         )
 
-
 async def get_context() -> dict[str, Any]:
     return {
         "fair_value_loader": DataLoader(load_fn=load_fair_values),
     }
-
 
 schema = Schema(query=Query, types=[Option])

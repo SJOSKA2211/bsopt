@@ -5,15 +5,13 @@ from httpx import ASGITransport, AsyncClient
 
 from src.api.main import app
 
-
 @pytest.mark.asyncio
 async def test_health_check():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        #  OPTIMIZED: Clean health path
+        
         response = await ac.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] in ["healthy", "degraded"]
-
 
 @pytest.mark.asyncio
 async def test_pricing_rate_limit():
@@ -35,17 +33,16 @@ async def test_pricing_rate_limit():
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = None
-            #  OPTIMIZED: Standardized pricing path
+            
             for _ in range(5):
                 response = await ac.post("/pricing/price", json=payload)
                 # We expect success or rate limit
                 assert response.status_code in [200, 429]
 
-
 @pytest.mark.asyncio
 async def test_error_response_format():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        #  OPTIMIZED: Standardized pricing path
+        
         response = await ac.post("/pricing/price", json={})
 
     assert response.status_code == 422

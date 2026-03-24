@@ -21,7 +21,6 @@ from src.shared.observability import (
 
 logger = structlog.get_logger()
 
-
 class ExperimentTracker:
     """
     Handles all observability, logging, and metrics for ML training.
@@ -48,7 +47,7 @@ class ExperimentTracker:
             if active or in_mlflow_run:
                 if nested:
                     try:
-                        # OPTIMIZED: Use nested run if already in an active run
+                        
                         with mlflow.start_run(nested=True) as nested_run:
                             yield nested_run
                             return
@@ -66,7 +65,6 @@ class ExperimentTracker:
                         logger.warning("set_experiment_failed", error=str(e), study=self.study_name)
 
                 with mlflow.start_run() as new_run:
-                    # Injection of Galactic Governance Tags
                     import socket
 
                     mlflow.set_tags(
@@ -91,7 +89,7 @@ class ExperimentTracker:
         mlflow.log_dict(dictionary, artifact_file)
 
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str) -> None:
-        # OPTIMIZED: Batch MLflow metrics to reduce network overhead
+        
         mlflow.log_metrics({"accuracy": accuracy, "rmse": rmse, "duration": duration})
 
         observe_latency(TRAINING_DURATION, duration, {"framework": framework})
@@ -150,7 +148,7 @@ class ExperimentTracker:
             self.export_to_onnx(model, framework, f"{model_name}_v{version}.onnx")
 
     def export_to_onnx(self, model: object, framework: str, filename: str) -> str | None:
-        """Export a model to ONNX format for production inference (Galactic Optimized)."""
+        """Export a model to ONNX format for production inference."""
 
         with tempfile.TemporaryDirectory() as temp_dir:
             onx_path = os.path.join(temp_dir, filename)
@@ -160,7 +158,7 @@ class ExperimentTracker:
                     import onnxmltools
                     from onnxmltools.convert.common.data_types import FloatTensorType
 
-                    # Institutional Standard: Detect input dimension dynamically
+                    # Detect input dimension dynamically
                     input_dim = getattr(model, "n_features_in_", 10)
                     initial_type = [("float_input", FloatTensorType([None, input_dim]))]
                     onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
@@ -194,7 +192,7 @@ class ExperimentTracker:
                 return None
 
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
-        """Saves and logs feature importance plots (Institutional Standard)."""
+        """Saves and logs feature importance plots."""
         plt.figure(figsize=(12, 8))
         names = list(importance.keys())
         values = list(importance.values())
@@ -202,7 +200,7 @@ class ExperimentTracker:
         # Sort for better visual representation
         sorted_idx = [i for i, _ in sorted(enumerate(values), key=lambda x: x[1])]
         plt.barh([names[i] for i in sorted_idx], [values[i] for i in sorted_idx], color="royalblue")
-        plt.title(f"Galactic Feature Importance ({framework})", fontsize=14)
+        plt.title(f"Feature Importance ({framework})", fontsize=14)
         plt.xlabel("Importance Score")
         plt.grid(axis="x", linestyle="--", alpha=0.7)
 

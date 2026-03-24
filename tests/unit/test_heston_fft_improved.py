@@ -8,7 +8,6 @@ from src.math_kernel.models.heston_fft import (
     batch_heston_price_jit,
 )
 
-
 class TestHestonFFT:
     def setUp(self):
         # 2κθ > σ² => 2 * 2 * 0.04 > 0.1² => 0.16 > 0.01 (Valid)
@@ -53,6 +52,4 @@ class TestHestonFFT:
         )
         self.assertGreater(out[0], 0)
         self.assertGreater(out[0], out[1])
-
-
 

@@ -15,12 +15,10 @@ import orjson
 
 logger = logging.getLogger(__name__)
 
-
 @click.group(name="auth")
 def auth_group():
     """Authentication and session management."""
     pass
-
 
 @auth_group.command(name="login")
 @click.option("--client-id", required=True, help="OAuth2 Client ID")
@@ -40,7 +38,6 @@ def login_command(client_id: str, client_secret: str):
     except AuthenticationError as e:
         click.secho(str(e), fg="red")
 
-
 @auth_group.command(name="logout")
 def logout_command():
     """Log out from the BSOPT API."""
@@ -50,12 +47,10 @@ def logout_command():
     else:
         click.secho("Already logged out.", fg="yellow")
 
-
 class AuthenticationError(Exception):
     """Exception raised for authentication failures."""
 
     pass
-
 
 class AuthManager:
     """Manages CLI authentication state and API interaction."""
@@ -142,7 +137,6 @@ class AuthManager:
         except Exception as e:
             logger.warning(f"Failed to read access token from token file: {e}")
             return None
-
 
 def require_auth(func):
     """Decorator to ensure user is authenticated before running a command."""

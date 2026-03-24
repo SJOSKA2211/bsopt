@@ -9,12 +9,10 @@ from numba import njit
 
 logger = structlog.get_logger(__name__)
 
-
 class StorageBackend(Enum):
     DATABASE = "database"
     FILE = "file"
     MINIO = "minio"
-
 
 @dataclass
 class PipelineConfig:
@@ -25,7 +23,6 @@ class PipelineConfig:
     validate_data: bool = True
     storage_backend: StorageBackend = StorageBackend.DATABASE
     output_dir: str = "data/training"
-
 
 @njit(fastmath=True)
 def _rolling_mean_jit(x, w):
@@ -51,12 +48,10 @@ def _rolling_mean_jit(x, w):
         res[i] = current_sum / w
     return res
 
-
 @njit(fastmath=True)
 def _calculate_maturity_jit(expiry_timestamps, current_timestamps):
     """Vectorized maturity calculation."""
     return (expiry_timestamps - current_timestamps) / (365.0 * 24 * 3600)
-
 
 class DataPipeline:
     """

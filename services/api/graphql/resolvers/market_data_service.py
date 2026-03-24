@@ -11,7 +11,6 @@ router = MarketDataRouter()
 _greeks_mesh = GreeksMesh(create=False)
 _engine = create_engine(settings.DATABASE_URL)
 
-
 async def get_market_data(symbol: str) -> MarketData:
     """Fetch live market data for a symbol (Adaptive Routing)."""
     data = await router.get_live_quote(symbol)
@@ -35,7 +34,6 @@ async def get_market_data(symbol: str) -> MarketData:
         md.rho = shm_greeks["rho"]
 
     return md
-
 
 async def get_historical_data(
     symbol: str, start_time: datetime, end_time: datetime
@@ -70,7 +68,6 @@ async def get_historical_data(
         results.append(await get_market_data(symbol))
 
     return results
-
 
 async def get_historical_ohlcv(
     symbol: str, start_time: datetime, end_time: datetime, interval_minutes: int = 1

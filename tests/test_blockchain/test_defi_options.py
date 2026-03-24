@@ -5,7 +5,6 @@ import pytest
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 
-
 @pytest.fixture
 def mock_web3():
     with patch("src.blockchain.defi_options.AsyncWeb3") as MockW3:
@@ -20,17 +19,14 @@ def mock_web3():
         MockW3.return_value = mock_instance
         yield mock_instance
 
-
 @pytest.fixture
 def protocol(mock_web3):
     return DeFiOptionsProtocol(rpc_url="http://mock-rpc", private_key="0x" + "01" * 32)
-
 
 @pytest.mark.asyncio
 async def test_initialization(protocol):
     assert protocol.rpc_url == "http://mock-rpc"
     assert protocol.address is not None
-
 
 @pytest.mark.asyncio
 async def test_get_option_price_cached(protocol):
@@ -40,7 +36,6 @@ async def test_get_option_price_cached(protocol):
     }
     price = await protocol.get_option_price("0x0000000000000000000000000000000000000001")
     assert price == 100.0
-
 
 @pytest.mark.asyncio
 async def test_get_option_price_fetch(protocol, mock_web3):
@@ -58,7 +53,6 @@ async def test_get_option_price_fetch(protocol, mock_web3):
 
         price = await protocol.get_option_prices_batch([addr])
         assert price[addr] == 50.0
-
 
 @pytest.mark.asyncio
 async def test_buy_option_slippage(protocol, mock_web3):

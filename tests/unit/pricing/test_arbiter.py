@@ -4,11 +4,9 @@ import pytest
 from src.math_kernel.arbiter import EngineArbiter, PricingModel, PricingRequest
 from src.math_kernel.models import BSParameters
 
-
 @pytest.fixture
 def arbiter():
     return EngineArbiter()
-
 
 @pytest.fixture
 def sample_params():
@@ -16,12 +14,10 @@ def sample_params():
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.0
     )
 
-
 def test_route_explicit_bs(arbiter, sample_params):
     req = PricingRequest(params=sample_params, model=PricingModel.BLACK_SCHOLES)
     price = arbiter.route_request(req)
     assert price > 0
-
 
 def test_route_explicit_mc(arbiter, sample_params):
     req = PricingRequest(
@@ -32,13 +28,11 @@ def test_route_explicit_mc(arbiter, sample_params):
     price = arbiter.route_request(req)
     assert price > 0
 
-
 def test_route_smart_american(arbiter, sample_params):
     # Should fallback to MC if WASM is unavailable
     req = PricingRequest(params=sample_params, style="american")
     price = arbiter.route_request(req)
     assert price > 0
-
 
 def test_route_batch(arbiter):
     S = np.array([100.0, 110.0])
@@ -51,7 +45,6 @@ def test_route_batch(arbiter):
     prices = arbiter.route_batch(S, K, T, sigma, r, is_call)
     assert len(prices) == 2
     assert np.all(prices > 0)
-
 
 def test_route_explicit_wasm_fallback(arbiter, sample_params):
     # If WASM instance is None, should fallback to BS

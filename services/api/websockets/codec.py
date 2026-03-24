@@ -5,12 +5,10 @@ import msgspec
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 
-
 class ProtocolType(StrEnum):
     JSON = "json"
     PROTO = "proto"
     MSGPACK = "msgpack"
-
 
 class WebSocketCodec:
     """
@@ -47,7 +45,7 @@ class WebSocketCodec:
         binary_data = data.encode() if isinstance(data, str) else data
 
         if protocol == ProtocolType.MSGPACK:
-            # OPTIMIZED: Use pre-allocated msgspec decoder
+            
             return WebSocketCodec._msgpack_decoder.decode(binary_data)
         if protocol == ProtocolType.PROTO:
             # High-performance binary decoding

@@ -5,7 +5,6 @@ from fastapi import WebSocket
 
 from src.api.websockets.manager import ConnectionManager
 
-
 @pytest.mark.asyncio
 async def test_connection_manager_connect():
     with patch("src.api.websockets.manager.redis") as mock_redis_module:
@@ -32,7 +31,6 @@ async def test_connection_manager_connect():
         await manager.connect(mock_ws2, "AAPL")
         assert not mock_pubsub.subscribe.called
 
-
 @pytest.mark.asyncio
 async def test_connection_manager_broadcast():
     with patch("src.api.websockets.manager.redis"):
@@ -56,7 +54,6 @@ async def test_connection_manager_broadcast():
         assert mock_ws2.send_text.called
         assert mock_ws2.send_text.call_args[0][0] == expected_text
 
-
 @pytest.mark.asyncio
 async def test_broadcast_no_connections():
     with patch("src.api.websockets.manager.redis"):
@@ -65,14 +62,12 @@ async def test_broadcast_no_connections():
         manager.active_connections["AAPL"] = []
         await manager.broadcast_to_symbol("AAPL", {"msg": "test"})
 
-
 @pytest.mark.asyncio
 async def test_broadcast_unknown_symbol():
     with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         # Should return early without error
         await manager.broadcast_to_symbol("UNKNOWN", {"msg": "test"})
-
 
 @pytest.mark.asyncio
 async def test_connection_manager_disconnect():
@@ -91,7 +86,6 @@ async def test_connection_manager_disconnect():
         manager.active_connections["GOOG"] = []
         manager.disconnect(mock_ws, "GOOG")
 
-
 @pytest.mark.asyncio
 async def test_disconnect_multiple_clients():
     with patch("src.api.websockets.manager.redis"):
@@ -108,7 +102,6 @@ async def test_disconnect_multiple_clients():
         # Disconnect last, list should be deleted
         manager.disconnect(mock_ws2, "AAPL")
         assert "AAPL" not in manager.active_connections
-
 
 @pytest.mark.asyncio
 async def test_broadcast_with_exception():

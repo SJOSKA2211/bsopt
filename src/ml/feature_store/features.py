@@ -6,7 +6,6 @@ import pandas as pd
 
 from src.math_kernel.base import Feature
 
-
 class LogReturnFeature(Feature):
     name: str = "log_return"
     description: str = "Logarithmic return of the closing price"
@@ -15,7 +14,6 @@ class LogReturnFeature(Feature):
         if "close" not in data.columns:
             raise ValueError("Data missing 'close' column for log_return calculation")
         return cast(pd.Series, np.log(data["close"] / data["close"].shift(1)).fillna(0))
-
 
 class NumbaIndicatorFeature(Feature):
     """
@@ -39,20 +37,17 @@ class NumbaIndicatorFeature(Feature):
             return pd.Series(result[1], index=data.index)  # Default to mid band
         return pd.Series(result, index=data.index)
 
-
 class RSIPeature(NumbaIndicatorFeature):
     def __init__(self, length: int = 14) -> None:
         from src.ml.indicators import get_rsi
 
         super().__init__(f"RSI_{length}", get_rsi, length=length)
 
-
 class EMAFeature(NumbaIndicatorFeature):
     def __init__(self, span: int = 20) -> None:
         from src.ml.indicators import get_ema
 
         super().__init__(f"EMA_{span}", get_ema, span=span)
-
 
 class MACDFeature(NumbaIndicatorFeature):
     def __init__(self, fast: int = 12, slow: int = 26, signal: int = 9) -> None:

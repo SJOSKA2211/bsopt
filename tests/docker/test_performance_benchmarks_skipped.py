@@ -1,6 +1,5 @@
 import pytest
 
-
 def test_performance_benchmarks_skipped():
     """
     Performance benchmarks verification is skipped due to user instruction

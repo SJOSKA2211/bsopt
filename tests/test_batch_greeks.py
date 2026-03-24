@@ -3,7 +3,6 @@ import numpy as np
 from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.quant.pricing.quant_utils import batch_greeks_jit
 
-
 def test_batch_greeks_vs_single():
     """Verify batch Greeks match single Greeks calculation."""
     spots = np.array([100.0, 110.0, 90.0])
@@ -35,7 +34,6 @@ def test_batch_greeks_vs_single():
         assert np.isclose(vega[i], expected.vega, rtol=1e-5)
         assert np.isclose(theta[i], expected.theta, rtol=1e-5)
         assert np.isclose(rho[i], expected.rho, rtol=1e-5)
-
 
 def test_batch_greeks_edge_cases():
     """Test batch Greeks with near-zero maturity."""

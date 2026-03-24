@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 
-
 @patch("src.ml.aiops.self_healing_orchestrator.logger")
 @patch("src.ml.aiops.self_healing_orchestrator.setup_logging")
 class TestSelfHealingOrchestrator:

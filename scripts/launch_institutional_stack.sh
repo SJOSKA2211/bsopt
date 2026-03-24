@@ -1,11 +1,11 @@
 #!/bin/bash
-# scripts/launch_institutional_stack.sh - Institutional Zero-Touch Orchestrator
+# scripts/launch_stack.sh - Zero-Touch Orchestrator
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🏁 EquaFlow Institutional Launch Orchestrator (v2026)"
+echo "🏁 Launch Orchestrator v2026"
 echo "===================================================="
 
 # 1. Bootstrap State
@@ -17,7 +17,7 @@ echo "📦 Step 2: Launching Microservices Ecosystem..."
 make up-d
 
 # 3. Comprehensive Readiness Audit
-echo "🩺 Step 3: Executing Institutional Readiness Pass..."
+echo "🩺 Step 3: Executing Readiness Audit..."
 MAX_RETRIES=15
 RETRY_COUNT=0
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -31,12 +31,11 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "❌ Fatal: System failed to reach institutional readiness."
+    echo "❌ Fatal: System failed to reach readiness."
     exit 1
 fi
 
 # 4. Final Smoke Test
-echo "🔥 Step 4: Executing Institutional Smoke Test Layer..."
-python3 scripts/institutional_smoke_test.py
+python3 scripts/smoke_test.py
 
-echo "🎉 STACK IS LIVE AND BATTLE-HARDENED."
+echo "🎉 STACK IS LIVE."

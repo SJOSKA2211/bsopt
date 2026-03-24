@@ -1,15 +1,8 @@
 """
-Unified Authentication Service (EquaFlow Phase 2)
+Unified Authentication Service.
 
-Consolidates logic from password.py, oauth2.py, and mfa.py into a high-performance,
+Consolidates login, MFA, and asymmetric JWT logic into a high-performance,
 zero-trust compliant service.
-
-Features:
-- Argon2id password hashing
-- TOTP-based MFA
-- Asymmetric JWT (ES256/RS256)
-- Redis-backed session & revocation
-- mTLS header verification support
 """
 
 import hashlib
@@ -43,7 +36,6 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-
 class TokenData(BaseModel):
     """Standardized Token Data (Pydantic V2)."""
 
@@ -58,7 +50,6 @@ class TokenData(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-
 class TokenPair(BaseModel):
     """Standardized Token Pair (Pydantic V2)."""
 
@@ -67,7 +58,6 @@ class TokenPair(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     requires_mfa: bool = False
-
 
 class AuthService:
     """
@@ -135,7 +125,7 @@ class AuthService:
 
     def get_totp_uri(self, email: str, secret: str) -> str:
         """Generate a provisioning URI for QR codes."""
-        return pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name="EquaFlow")
+        return pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name="Manifold")
 
     def verify_mfa_code(self, secret: str, code: str) -> bool:
         """Verify a TOTP code with clock skew support."""
@@ -187,16 +177,12 @@ class AuthService:
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
-        now = datetime.now(UTC)
-        expire = now + expires_delta
-        
-        # Institutional Payload with strict entropy
         to_encode = {
             **data,
             "exp": expire,
             "iat": now,
-            "jti": secrets.token_hex(24), # Expanded entropy for institutional security
-            "iss": "equaflow-manifold-v2",
+            "jti": secrets.token_hex(24),
+            "iss": "manifold-auth-v2",
         }
         
         # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
@@ -259,7 +245,7 @@ class AuthService:
         user = result.scalar_one_or_none()
 
         if not user:
-            # Timing attack protection: burn CPU time even if user not found
+            # Timing attack protection
             await run_in_threadpool(self.verify_password, password, self.DUMMY_HASH)
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -368,7 +354,6 @@ class AuthService:
     def verify_mtls(self, request: Request) -> bool:
         """
         Verify mTLS headers from trusted proxies.
-        Bit-perfect compatibility with X-SSL-Client-Verify expectations.
         """
         client_verify = request.headers.get("X-SSL-Client-Verify")
         if client_verify != "SUCCESS":
@@ -377,17 +362,13 @@ class AuthService:
 
         return True
 
-
 # Global instance
 auth_service = AuthService()
-
 
 def get_auth_service() -> AuthService:
     return auth_service
 
-
 # --- FastAPI Dependencies ---
-
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
@@ -395,7 +376,6 @@ async def get_token_from_header(
     if credentials:
         return credentials.credentials
     return None
-
 
 async def get_current_user(
     request: Request,
@@ -430,14 +410,12 @@ async def get_current_user(
     request.state.user = user
     return user
 
-
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
     return user
-
 
 class RoleChecker:
     def __init__(self, allowed_roles: list[str]):
@@ -451,7 +429,6 @@ class RoleChecker:
         if not set(self.allowed_roles).intersection(user_roles):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
-
 
 async def get_api_key(
     request: Request,
@@ -472,7 +449,6 @@ async def get_api_key(
     await db.commit()
 
     return key_record.user
-
 
 async def get_current_user_flexible(
     request: Request,

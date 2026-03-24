@@ -6,7 +6,6 @@ import pytest
 
 from src.ml.forecasting.tft_model import PriceTFTModel
 
-
 @pytest.fixture
 def sample_market_data():
     """Create synthetic market data for TFT testing."""
@@ -26,18 +25,15 @@ def sample_market_data():
             )
     return pd.DataFrame(data)
 
-
 def test_tft_data_preparation(sample_market_data):
     model = PriceTFTModel()
     dataset = model.prepare_data(sample_market_data)
     assert dataset is not None
     assert "train_loader" in dataset
 
-
 def test_tft_prediction_no_model():
     model = PriceTFTModel()
     assert model.predict(pd.DataFrame()) is None
-
 
 def test_tft_interpretability_report():
     model = PriceTFTModel()
@@ -58,7 +54,6 @@ def test_tft_interpretability_report():
 
     report = model.get_interpretability_report()
     assert "encoder_variables" in report
-
 
 @pytest.mark.asyncio
 async def test_tft_training_and_prediction(sample_market_data):

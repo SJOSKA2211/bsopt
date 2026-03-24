@@ -2,12 +2,10 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-
 @njit(cache=True, fastmath=True)
 def optimized_normalization_kernel(data: np.ndarray, means: np.ndarray, stds: np.ndarray):
     """Numba kernel for zero-copy feature normalization."""
     return (data - means) / stds
-
 
 class MLPreTrainer:
     """

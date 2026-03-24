@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.scraper import MarketDataScraper
 
-
 @pytest.fixture
 def mock_response():
     mock = MagicMock()
@@ -30,7 +29,6 @@ def mock_response():
     }
     mock.status_code = 200
     return mock
-
 
 @pytest.mark.asyncio
 @patch("src.ml.scraper.HttpClientManager.get_client")
@@ -59,7 +57,6 @@ async def test_fetch_historical_data_success(mock_logger, mock_get_client, mock_
         mock_duration_labels.assert_called_with(api="alpha_vantage")
         assert mock_observe.called
 
-
 @pytest.mark.asyncio
 @patch("src.ml.scraper.HttpClientManager.get_client")
 async def test_fetch_historical_data_retry_logic(mock_get_client, mock_response):
@@ -86,7 +83,6 @@ async def test_fetch_historical_data_retry_logic(mock_get_client, mock_response)
         assert mock_inc.call_count == 2  # 2 failures before success
         # Expect alpha_vantage labels
         mock_error_labels.assert_called_with(api="alpha_vantage", status_code=500)
-
 
 @pytest.mark.asyncio
 @patch("src.ml.scraper.HttpClientManager.get_client")

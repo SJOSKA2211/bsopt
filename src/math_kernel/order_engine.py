@@ -8,7 +8,6 @@ from src.shared.shm_mesh import ExecutionBuffer, OrderBuffer
 
 logger = structlog.get_logger(__name__)
 
-
 class OrderEngine:
     """
     Divine-level Order Execution Engine.

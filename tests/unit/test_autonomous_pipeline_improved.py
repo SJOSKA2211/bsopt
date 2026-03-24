@@ -12,7 +12,6 @@ sys.modules["optuna"] = MagicMock()
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
-
 class TestAutonomousPipeline:
     def setUp(self):
         self.config = {
@@ -74,6 +73,4 @@ class TestAutonomousPipeline:
         assert len(x) == 9
         assert len(y) == 9
         assert "feat1" in names
-
-
 

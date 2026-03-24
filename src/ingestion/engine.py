@@ -34,16 +34,13 @@ from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger()
 
-
 class MarketSource(Protocol):
     async def get_ticker_data(self, symbol: str) -> MarketQuote:
         """Fetch real-time data for a given symbol."""
         ...
 
-
 # Pre-compiled regex for fast numeric extraction
 _CHANGE_RE = re.compile(r"([-+]?\d*\.?\d+)")
-
 
 class ProxyRotator:
     """
@@ -127,7 +124,6 @@ class ProxyRotator:
                 )
             except Exception:
                 pass
-
 
 class NSEScraper:
     """
@@ -263,7 +259,6 @@ class NSEScraper:
                         continue
                     all_items.extend(res)
 
-                # OPTIMIZED: Offload NumPy batch cleaning to a thread pool
                 cleaned_items = await run_sync(self._batch_clean, all_items)
 
                 new_cache = {}
@@ -279,7 +274,6 @@ class NSEScraper:
                     self._last_refresh = time.time()
                     logger.info("nse_cache_updated", count=len(new_cache))
 
-                    # OPTIMIZED: Offload SHM publication to avoid blocking event loop
                     await run_sync(get_market_publisher().publish, new_cache)
 
                     # Decoupled persistence via gRPC Ingestion Service
@@ -450,7 +444,6 @@ class NSEScraper:
                 cleaned.append(self._clean_data(item))
             return cleaned
 
-
 class HighThroughputIngestor:
     """
     High-throughput ingestion engine using Rust-accelerated zero-copy parsing.
@@ -491,7 +484,6 @@ class HighThroughputIngestor:
         Returns a list of validated EquaRecord objects for application-layer use.
         """
         return self.parser.to_pydantic(offset, count)
-
 
 async def main():
     """Scraper service entry point with Graceful Shutdown."""
@@ -537,7 +529,6 @@ async def main():
     finally:
         logger.info("scraper_service_stopping_cleaning_up")
         await scraper.shutdown()
-
 
 if __name__ == "__main__":
     try:

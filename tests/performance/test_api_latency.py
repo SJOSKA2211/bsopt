@@ -7,7 +7,6 @@ from src.api.main import app
 
 client = TestClient(app)
 
-
 @pytest.mark.performance
 def test_pricing_api_latency():
     """Benchmark the latency of the src.shared pricing API endpoint."""

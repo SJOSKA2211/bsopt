@@ -1,16 +1,13 @@
 import os
 from unittest.mock import MagicMock, patch
 
-
 def test_compare_models_script_exists():
     """Verify that the model comparison script exists."""
     assert os.path.exists("src/ml/evaluation/compare_models.py")
 
-
 def test_promote_script_exists():
     """Verify that the model promotion script exists."""
     assert os.path.exists("src/ml/registry/promote.py")
-
 
 @patch("mlflow.register_model")
 @patch("mlflow.tracking.MlflowClient")

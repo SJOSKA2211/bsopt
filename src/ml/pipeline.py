@@ -14,7 +14,6 @@ from src.ml.training.base import TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
 
-
 class PipelineConfig(msgspec.Struct):
     """Configuration for the data pipeline."""
     symbols: list[str] = [settings.DEFAULT_TICKER]
@@ -22,7 +21,6 @@ class PipelineConfig(msgspec.Struct):
     max_samples: int = 10000
     validate_data: bool = True
     output_dir: str = "data/training"
-
 
 class DataPipeline:
     """
@@ -159,7 +157,6 @@ class DataPipeline:
 
         return X, y, feature_names, metadata
 
-
 class MLPipeline:
     """
     Unified Autonomous ML Pipeline.
@@ -215,7 +212,6 @@ class MLPipeline:
         if mlflow.active_run():
             mlflow.end_run()
 
-
 if __name__ == "__main__":
     import argparse
 
@@ -247,11 +243,9 @@ if __name__ == "__main__":
 
     asyncio.run(main())
 
-
 # =============================================================================
 # Helper Functions (Numba JIT)
 # =============================================================================
-
 
 @njit(fastmath=True, parallel=True)
 def _calculate_maturity_jit(
@@ -260,11 +254,9 @@ def _calculate_maturity_jit(
     """Vectorized maturity calculation."""
     return (expiry_timestamps - current_timestamps) / (365.0 * 24 * 3600)
 
-
 # =============================================================================
 # Data Pipeline Implementation
 # =============================================================================
-
 
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
     """Real feature computation using the centralized Feature Store (Optimized)."""

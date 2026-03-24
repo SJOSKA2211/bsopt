@@ -12,7 +12,6 @@ from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
-
 class MarketMeshPublisher:
     """
     Publishes market data to RabbitMQ.
@@ -40,9 +39,7 @@ class MarketMeshPublisher:
         except Exception as e:
             logger.error("market_publish_failed", error=str(e))
 
-
 _publisher = None
-
 
 def get_market_publisher():
     global _publisher

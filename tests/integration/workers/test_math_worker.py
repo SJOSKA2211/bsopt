@@ -12,13 +12,11 @@ with patch("src.shared.config.get_settings") as mock_settings_getter:
 
     # Now we can import the worker
 
-
 @pytest.fixture
 def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
-
 
 class TestMathWorkerIntegration:
     @patch("src.workers.math_worker.HestonCalibrator")

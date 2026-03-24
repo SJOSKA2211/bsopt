@@ -3,7 +3,6 @@ import os
 import pytest
 import yaml
 
-
 @pytest.fixture
 def prod_compose_config():
     """Load the production docker-compose file."""
@@ -14,7 +13,6 @@ def prod_compose_config():
     with open(compose_path) as f:
         return yaml.safe_load(f)
 
-
 def test_neural_pricing_resource_pinning(prod_compose_config):
     """Test that neural-pricing service has CPU pinning (cpuset) configured."""
     src = prod_compose_config.get("src", {})
@@ -24,7 +22,6 @@ def test_neural_pricing_resource_pinning(prod_compose_config):
     # Check for cpuset configuration (Kernel Bypass/Locality optimization)
     assert "cpuset" in pricing_service, "cpuset (CPU pinning) not configured for neural-pricing"
     assert pricing_service["cpuset"] == "0-1", "neural-pricing should be pinned to specific cores"
-
 
 def test_neural_pricing_thread_concurrency(prod_compose_config):
     """Test that thread contention is prevented via environment variables."""
@@ -43,7 +40,6 @@ def test_neural_pricing_thread_concurrency(prod_compose_config):
 
     assert env.get("OMP_NUM_THREADS") == "1", "OMP_NUM_THREADS should be 1 to prevent contention"
     assert env.get("MKL_NUM_THREADS") == "1", "MKL_NUM_THREADS should be 1 to prevent contention"
-
 
 def test_model_quantization_env(prod_compose_config):
     """Test that quantization flags are enabled for neural src."""

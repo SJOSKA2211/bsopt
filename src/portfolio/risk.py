@@ -4,7 +4,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class RiskAttributor:
     """
     Institutional Greeks Risk Attributor.
@@ -61,7 +60,6 @@ class RiskAttributor:
             "gamma_impact": gamma_pnl,
             "vega_impact": vega_pnl,
         }
-
 
 class PnLExplainer:
     """
@@ -129,9 +127,8 @@ class PnLExplainer:
                 )
         return cls(data)
 
-
 if __name__ == "__main__":
-    # Institutional-grade test case
+    
     institutional_portfolio = [
         {
             "symbol": "SPX_260320_C_5200",

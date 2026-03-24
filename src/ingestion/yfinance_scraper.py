@@ -11,7 +11,6 @@ from src.shared.protos import data_pb2, data_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
-
 class YFinanceScraper:
     """
     High-performance yfinance scraper for the institutional universe.
@@ -111,12 +110,10 @@ class YFinanceScraper:
         except Exception as e:
             logger.error("yfinance_batch_failed", batch=batch, error=str(e))
 
-
 async def main():
     # Example usage: Scrape S&P 500
     scraper = YFinanceScraper()
     await scraper.run_forever()
-
 
 if __name__ == "__main__":
     asyncio.run(main())

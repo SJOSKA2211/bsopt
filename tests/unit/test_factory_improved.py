@@ -9,7 +9,6 @@ sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
 from src.math_kernel.factory import PricingEngineFactory, PricingEngineNotFound
 
-
 class TestPricingFactory:
     def setUp(self):
         # Clear instances for testing
@@ -45,6 +44,4 @@ class TestPricingFactory:
         engine = PricingEngineFactory.get_engine("black_scholes")
         assert type(engine).__name__ == "MonteCarloEngine"
         PricingEngineFactory.set_default_engine(None)
-
-
 

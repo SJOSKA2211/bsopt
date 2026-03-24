@@ -3,7 +3,6 @@ from onnxruntime.quantization import QuantType, quantize_dynamic
 
 logger = structlog.get_logger(__name__)
 
-
 def quantize_onnx_model(model_path: str, output_path: str):
     """
     Quantize ONNX model to INT8 for ultra-low latency inference.

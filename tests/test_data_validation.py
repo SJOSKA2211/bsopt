@@ -5,7 +5,6 @@ import pandas as pd
 from src.ingestion.validation import OptionsDataValidator
 from tests.test_utils import assert_equal
 
-
 def test_options_data_validation():
     now = datetime.now(UTC)
     df = pd.DataFrame(

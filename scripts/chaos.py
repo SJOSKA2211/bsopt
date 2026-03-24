@@ -6,7 +6,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class ChaosMonkey:
     """
     EquaFlow Chaos Monkey.
@@ -55,7 +54,6 @@ class ChaosMonkey:
         subprocess.run(f"docker compose pause {container}", shell=True)
         time.sleep(random.randint(5, 15))
         subprocess.run(f"docker compose unpause {container}", shell=True)
-
 
 if __name__ == "__main__":
     monkey = ChaosMonkey()

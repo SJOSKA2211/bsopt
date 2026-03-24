@@ -9,7 +9,6 @@ from src.ml.models.neural_engine import NeuralPricingEngine
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 from src.quant.pricing.models import BSParameters
 
-
 def test_mlproject_integrity():
     """Verify MLproject file defines all required entry points."""
     assert os.path.exists("MLproject")
@@ -28,7 +27,6 @@ def test_mlproject_integrity():
     for ep in required:
         assert ep in entry_points, f"Missing entry point: {ep}"
 
-
 def test_psi_kernel_performance():
     """Verify Numba-optimized PSI kernel produces correct results."""
     expected = np.random.normal(100, 10, 1000)
@@ -37,7 +35,6 @@ def test_psi_kernel_performance():
     psi_val = calculate_psi(expected, actual)
     assert isinstance(psi_val, float)
     assert psi_val >= 0
-
 
 def test_trading_env_silicon_fusion():
     """Verify TradingEnvironment uses silicon buffers and fused kernels."""
@@ -56,7 +53,6 @@ def test_trading_env_silicon_fusion():
 
     assert next_obs.shape == (env.window_size, 128)
     assert isinstance(reward, float)
-
 
 def test_neural_engine_parity_optimization():
     """Verify NeuralPricingEngine Put-Call parity and exact Greeks."""

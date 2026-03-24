@@ -22,7 +22,6 @@ dask.config.set(
     }
 )
 
-
 def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     """
     Get or create a Dask client for distributed training.
@@ -37,7 +36,6 @@ def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     threads_per_worker = settings.DASK_LOCAL_CLUSTER_THREADS_PER_WORKER
     cluster = LocalCluster(n_workers=n_workers, threads_per_worker=threads_per_worker)
     return Client(cluster), True
-
 
 def train_xgboost_distributed(
     X: Any, y: Any, params: dict[str, Any], dask_address: str | None = None
@@ -63,7 +61,6 @@ def train_xgboost_distributed(
     finally:
         if is_local_cluster:  # Only close if it was a locally created cluster
             client.close()
-
 
 def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
     """
@@ -91,7 +88,6 @@ def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
 
     return synced_metrics
 
-
 def check_ray_cluster() -> dict[str, Any]:
     """
     High-Performance: Comprehensive Ray Cluster health and resource check.
@@ -117,7 +113,6 @@ def check_ray_cluster() -> dict[str, Any]:
 
     logger.info("ray_cluster_health_report", **health_report)
     return health_report
-
 
 class RayClusterManager:
     """

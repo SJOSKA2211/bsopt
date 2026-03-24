@@ -9,12 +9,10 @@ from src.shared.circuit_breaker import (
     CircuitBreaker,
 )
 
-
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step
 class MockDlqTask:
     def delay(self, *args, **kwargs):
         pass
-
 
 @pytest.mark.asyncio
 async def test_circuit_breaker_closed_to_open():
@@ -29,7 +27,6 @@ async def test_circuit_breaker_closed_to_open():
     assert cb.is_open
     assert not cb.is_half_open
 
-
 @pytest.mark.asyncio
 async def test_circuit_breaker_open_to_half_open():
     cb = CircuitBreaker(failure_threshold=3, recovery_timeout=1)
@@ -40,7 +37,6 @@ async def test_circuit_breaker_open_to_half_open():
     await asyncio.sleep(cb.recovery_timeout + 0.1)
     assert cb.is_half_open
     assert not cb.is_open
-
 
 @pytest.mark.asyncio
 async def test_circuit_breaker_half_open_success_to_closed():
@@ -54,7 +50,6 @@ async def test_circuit_breaker_half_open_success_to_closed():
     assert cb.is_closed
     assert not cb.is_half_open
 
-
 @pytest.mark.asyncio
 async def test_circuit_breaker_half_open_failure_to_open():
     cb = CircuitBreaker(failure_threshold=3, recovery_timeout=1, expected_successes=1)
@@ -66,7 +61,6 @@ async def test_circuit_breaker_half_open_failure_to_open():
     await cb.record_failure()
     assert cb.is_open
     assert not cb.is_half_open
-
 
 @pytest.mark.asyncio
 async def test_dispatcher_exponential_backoff_retries():
@@ -109,7 +103,6 @@ async def test_dispatcher_exponential_backoff_retries():
         assert mock_client_instance.post.call_count == 3
         assert cb.is_closed  # Should reset after success
 
-
 @pytest.mark.asyncio
 async def test_dispatcher_dlq_routing():
     mock_celery_app = AsyncMock()
@@ -147,7 +140,6 @@ async def test_dispatcher_dlq_routing():
         assert args[0]["payload"] == payload
         assert "circuit_breaker_open" in args[0]["reason"]
 
-
 @pytest.mark.asyncio
 async def test_dispatcher_circuit_breaker_skipped():
     mock_celery_app = AsyncMock()
@@ -178,7 +170,6 @@ async def test_dispatcher_circuit_breaker_skipped():
         args, kwargs = mock_dlq_task.delay.call_args
         assert "circuit_breaker_open" in args[0]["reason"]
 
-
 @pytest.mark.asyncio
 async def test_dispatcher_request_error_retry():
     mock_celery_app = AsyncMock()
@@ -207,7 +198,6 @@ async def test_dispatcher_request_error_retry():
 
         assert mock_client_instance.post.call_count == 3
         assert cb.is_closed  # Should reset after success
-
 
 @pytest.mark.asyncio
 async def test_dispatcher_dlq_on_unexpected_exception():

@@ -9,15 +9,12 @@ import structlog
 
 from src.math_kernel.base import BasePricingEngine
 
-
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
 
     pass
 
-
 logger = structlog.get_logger(__name__)
-
 
 class PricingEngineFactory:
     """
@@ -119,7 +116,6 @@ class PricingEngineFactory:
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))
-
 
 # Auto-initialize with src.shared engines
 PricingEngineFactory._lazy_load("black_scholes")

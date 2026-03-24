@@ -6,19 +6,16 @@ from fastapi.testclient import TestClient
 
 from src.api.main import app
 
-
 def test_root_endpoint():
     with TestClient(app) as client:
         response = client.get("/")
         assert response.status_code == 200
         assert "running" in response.json()["message"]
 
-
 def test_health_endpoints():
     with TestClient(app) as client:
         assert client.get("/health").status_code == 200
         assert client.get("/api/v1/health").status_code == 200
-
 
 def test_diagnostics_imports():
     with TestClient(app) as client:
@@ -26,14 +23,12 @@ def test_diagnostics_imports():
         assert response.status_code == 200
         assert "successful_imports" in response.json()
 
-
 def test_http_exception_handler():
     with TestClient(app) as client:
         # Trigger HTTPException via /admin-only (missing token)
         response = client.get("/admin-only")
         assert response.status_code == 401
         assert response.json()["error"] == "http_error"
-
 
 def test_admin_only_success():
     from src.auth.security import RoleChecker, verify_token
@@ -50,7 +45,6 @@ def test_admin_only_success():
     app.dependency_overrides.pop(verify_token, None)
     app.dependency_overrides.pop(RoleChecker, None)
 
-
 @pytest.mark.asyncio
 async def test_graphql_context():
     from src.api.main import get_context
@@ -65,13 +59,11 @@ async def test_graphql_context():
 
     os.environ["TESTING"] = "true"  # Reset
 
-
 def test_response_time_header():
     with TestClient(app) as client:
         response = client.get("/")
         assert "X-Response-Time" in response.headers
         assert float(response.headers["X-Response-Time"]) >= 0
-
 
 def test_gzip_compression():
     # Create a large response by mocking an endpoint or using one that returns lots of data

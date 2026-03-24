@@ -4,14 +4,12 @@ import pytest
 
 from src.workers.tasks.security_tasks import rehash_legacy_passwords
 
-
 @pytest.fixture
 def mock_db():
     with patch("src.workers.tasks.security_tasks.get_db_session") as mock:
         session = MagicMock()
         mock.return_value = session
         yield session
-
 
 def test_rehash_legacy_passwords_success(mock_db):
     mock_user = MagicMock()
@@ -27,7 +25,6 @@ def test_rehash_legacy_passwords_success(mock_db):
         res = orig_func(MagicMock())  # self
         assert res["status"] == "completed"
         assert mock_db.commit.called
-
 
 def test_rehash_legacy_passwords_failure(mock_db):
     mock_db.execute.side_effect = Exception("Select fail")

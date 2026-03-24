@@ -6,7 +6,6 @@ import time
 
 import pytest
 
-
 @pytest.mark.asyncio
 async def test_pricing_latency(client):
     """33. Performance: Measure latency."""
@@ -27,7 +26,6 @@ async def test_pricing_latency(client):
     assert response.status_code == 200
     print(f"\n[METRIC] Latency: {latency:.2f}ms")
     assert latency < 1000  # Requirement: < 1s
-
 
 @pytest.mark.asyncio
 async def test_pricing_throughput(client):

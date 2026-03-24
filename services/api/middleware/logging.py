@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 # Dedicated logger for request logs (can be configured separately)
 request_logger = logging.getLogger("requests")
 
-
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Log all HTTP requests and responses.
@@ -182,7 +181,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 **self._get_user_info(request),
             }
 
-            # OPTIMIZED: Hand off to Off-Heap Logger for zero-latency persistence
             from src.shared.off_heap_logger import omega_logger
 
             omega_logger.log("api_request", **log_entry)
@@ -203,7 +201,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
                 session = SessionLocal()
                 try:
-                    # OPTIMIZED: Convert query_params dict to string using msgspec
+                    
                     query_params_str = None
                     if log_entry.get("query_params"):
                         query_params_str = msgspec.json.encode(log_entry["query_params"]).decode(
@@ -233,7 +231,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 logger.error(f"Database persistence failed: {e}")
 
         await run_sync(_save)
-
 
 class StructuredLogger:
     """

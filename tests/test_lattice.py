@@ -22,7 +22,6 @@ from src.quant.pricing.lattice import (
 )
 from tests.test_utils import assert_equal
 
-
 class TestLatticeParameters:
     """Test suite for LatticeParameters validation."""
 
@@ -44,7 +43,6 @@ class TestLatticeParameters:
         assert_equal(params.rate, 0.05)
         assert_equal(params.dividend, 0.02)
         assert_equal(params.n_steps, 100)
-
 
 class TestBinomialTreePricer:
     """Test suite for BinomialTreePricer."""
@@ -100,7 +98,6 @@ class TestBinomialTreePricer:
         greeks_put = pricer.calculate_greeks(params, "put")
         assert -1 <= greeks_put.delta <= 0
 
-
 class TestTrinomialTreePricer:
     """Test suite for TrinomialTreePricer."""
 
@@ -115,7 +112,6 @@ class TestTrinomialTreePricer:
         # Should be within 0.1% of BS price
         relative_error = abs(trinomial_price - bs_price) / bs_price
         assert relative_error < 0.001
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/deploy_db_updates.sh - Institutional Database Update Factory
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -17,7 +17,6 @@ if ! command -v psql > /dev/null; then
     exit 1
 fi
 
-# Institutional Deployment Logic
 # Using the service-specific URL from the environment
 export PGPASSWORD=${POSTGRES_PASSWORD:-}
 

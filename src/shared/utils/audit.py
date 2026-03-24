@@ -6,7 +6,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class InstitutionalAuditLog:
     """
     Centralized Institutional Audit Log Service.
@@ -52,7 +51,6 @@ class InstitutionalAuditLog:
         # 1. Structured Logging (Standard)
         logger.info("institutional_audit_event", **audit_entry)
 
-        # 2. Database Persistence (Institutional Compliance)
         if self.log_target == "database":
             async def _persist_audit(entry: dict):
                 try:
@@ -79,6 +77,5 @@ class InstitutionalAuditLog:
                 loop.create_task(_persist_audit(audit_entry))
             except RuntimeError:
                 logger.warning("no_running_event_loop_for_audit_db_persistence")
-
 
 audit_logger = InstitutionalAuditLog()

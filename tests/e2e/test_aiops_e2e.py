@@ -6,7 +6,6 @@ import pytest
 # Import components from src.ml.aiops
 from src.ml.aiops.aiops_orchestrator import AIOpsOrchestrator
 
-
 # Mocks for all components and shared observability functions
 @pytest.fixture
 def mock_e2e_dependencies():
@@ -81,7 +80,6 @@ def mock_e2e_dependencies():
             "PushMetrics": MockPushMetrics,
         }
 
-
 @pytest.mark.asyncio
 async def test_e2e_api_spike_remediation(mock_e2e_dependencies):
     """
@@ -139,7 +137,6 @@ async def test_e2e_api_spike_remediation(mock_e2e_dependencies):
 
     # Verify metrics push
     mock_e2e_dependencies["PushMetrics"].assert_called_once_with(job_name="aiops_orchestrator")
-
 
 @pytest.mark.asyncio
 async def test_e2e_ml_drift_remediation(mock_e2e_dependencies):

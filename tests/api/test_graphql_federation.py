@@ -11,7 +11,6 @@ from src.api.main import app
 
 print("DEBUG: Strawberry Federation:", strawberry.federation)
 
-
 @pytest.fixture(autouse=True)
 def patch_graphql_router():
     """
@@ -28,7 +27,6 @@ def patch_graphql_router():
 
         MockGraphQLRouter.side_effect = mock_init
         yield  # Correctly import app from src.api.main
-
 
 @pytest.mark.asyncio
 async def test_graphql_query():
@@ -53,7 +51,6 @@ async def test_graphql_query():
             response.json()["data"]["option"]["id"] == "SPY_CALL_400"
         )  # Expecting contract_symbol as ID
         assert response.json()["data"]["option"]["contractSymbol"] == "SPY_CALL_400"
-
 
 @pytest.mark.asyncio
 async def test_graphql_mutation():

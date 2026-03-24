@@ -10,7 +10,6 @@ from .transformer_policy import TransformerTD3Policy
 
 logger = structlog.get_logger()
 
-
 class AugmentedRLAgent:
     """
     OPTIMIZED: Multimodal RL Agent.
@@ -40,7 +39,6 @@ class AugmentedRLAgent:
         if news_text:
             sentiment = self.sentiment_extractor.extract(news_text)
 
-        # Institutional Inference: High-performance call to TFT forecaster core
         forecast = self.forecaster.predict(observation)
         if isinstance(forecast, np.ndarray):
             # Take the mean forecast across lookahead if it's a sequence
@@ -62,7 +60,6 @@ class AugmentedRLAgent:
 
         action, _ = self.model.predict(augmented_obs, deterministic=True)
         return action
-
 
 class SentimentExtractor:
     """

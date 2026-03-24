@@ -1,7 +1,7 @@
 # ==============================================================================
 # EQUAFLOW: ENVOY API GATEWAY CONFIGURATION (v2.0)
 # ==============================================================================
-# Institutional-grade edge proxy with:
+
 # - Rate limiting (100 req/s per IP)
 # - Circuit breaker (5xx threshold: 50%)
 # - Retry policy (3 retries, exponential backoff)

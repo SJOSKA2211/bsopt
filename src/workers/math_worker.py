@@ -52,7 +52,7 @@ def get_math_swarm():
     global _math_swarm
     if _math_swarm is None:
         RayOrchestrator.init()
-        # Strictly require initialized Ray in "Zero-Mock" architecture
+        
         num_workers = int(ray.cluster_resources().get("CPU", 2))
         _math_swarm = [MathActor.remote() for _ in range(num_workers)]
     return _math_swarm

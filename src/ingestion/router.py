@@ -17,7 +17,6 @@ from src.shared.observability import (
     SCRAPER_PARSE_SUCCESS,
 )
 
-
 class MarketDataRouter:
     """
     OPTIMIZED: Adaptive, latency-aware data routing engine.
@@ -186,7 +185,7 @@ class MarketDataRouter:
         """Global symbol search (Tickers + Metadata) - PARALLELISED."""
         results = []
         try:
-            # OPTIMIZED: Run searches concurrently
+            
             poly_task = self.polygon.search(query)
             yahoo_task = (
                 self.yahoo.yahoo_search(query)
@@ -210,7 +209,7 @@ class MarketDataRouter:
     async def get_option_chain_snapshot(self, symbol: str) -> list:
         """Fetch a full option chain snapshot - RACING PATTERN."""
         try:
-            # OPTIMIZED: Race providers for the fastest valid response
+            
             poly_task = asyncio.create_task(self.polygon.get_option_chain(symbol))
             yahoo_task = asyncio.create_task(self.yahoo.get_option_chain(symbol))
 

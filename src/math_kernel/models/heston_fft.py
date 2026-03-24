@@ -9,7 +9,6 @@ from src.shared.math_utils import njit_engine
 
 logger = structlog.get_logger()
 
-
 @njit_engine(
     complex128[:, :](
         float64[:],
@@ -68,7 +67,6 @@ def _heston_cf_kernel(
 
     return res
 
-
 try:
     import bsopt_core
 
@@ -78,7 +76,6 @@ except ImportError:
 
 logger = structlog.get_logger()
 ...
-
 
 def _heston_integrand_vectorized(
     v: np.ndarray[Any, np.dtype[np.float64]],
@@ -108,7 +105,6 @@ def _heston_integrand_vectorized(
         np.ndarray[Any, np.dtype[np.float64]],
         np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho)),
     )
-
 
 def batch_heston_price_jit(
     spots: np.ndarray[Any, np.dtype[np.float64]],
@@ -158,7 +154,6 @@ def batch_heston_price_jit(
         is_calls, np.maximum(spots - strikes, 0.0), np.maximum(strikes - spots, 0.0)
     )
     out[:] = np.maximum(final_prices, intrinsics)
-
 
 class HestonModelFFT:
     """

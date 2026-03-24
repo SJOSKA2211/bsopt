@@ -18,9 +18,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/market", tags=["Market"], default_response_class=MsgspecJSONResponse)
 market_router_engine = MarketDataRouter()
 
-
 # We use the TickerSchema from src.shared.schemas.market
-
 
 @router.get("/tickers", response_model=List[TickerSchema])
 async def get_tickers(current_user: User = Depends(get_current_active_user)):

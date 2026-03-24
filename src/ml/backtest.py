@@ -10,7 +10,6 @@ from src.ml.tracker import ExperimentTracker
 
 logger = structlog.get_logger(__name__)
 
-
 @ray.remote
 def ray_backtest_task(
     ticker: str, prices: np.ndarray, positions: np.ndarray, initial_capital: float
@@ -30,7 +29,6 @@ def ray_backtest_task(
         "max_drawdown": max_dd,
         "final_equity": equity_curve[-1],
     }
-
 
 class BacktestEngine:
     """
@@ -56,7 +54,7 @@ class BacktestEngine:
 
         futures = []
         for ticker, df in batch_data.items():
-            # Institutional Requirement: target_pos must be pre-computed by the ML Model
+            
             if "target_pos" not in df.columns:
                 logger.error("backtest_failed_missing_target_pos", ticker=ticker)
                 continue
@@ -79,7 +77,6 @@ class BacktestEngine:
             threshold=sharpe_threshold,
         )
 
-        # Institutional Audit Logging
         with self.tracker.start_run():
             self.tracker.log_metrics(
                 accuracy=avg_sharpe,  # Using sharpe as a proxy for 'accuracy' in this context

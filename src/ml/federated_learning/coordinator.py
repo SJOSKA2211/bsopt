@@ -3,7 +3,6 @@ import structlog
 
 logger = structlog.get_logger()
 
-
 class FederatedLearningCoordinator:
     """
     Coordinator for federated learning using the Flower framework.
@@ -41,7 +40,6 @@ class FederatedLearningCoordinator:
             strategy=self.strategy,
         )
         logger.info("fl_server_stopped")
-
 
 if __name__ == "__main__":
     import argparse

@@ -4,7 +4,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class InstitutionalGovernance:
     """
     EquaFlow Institutional Governance Layer.
@@ -30,6 +29,5 @@ class InstitutionalGovernance:
 
         logger.info("governance_action_approved", actor=actor_id, action=action_type)
         return True
-
 
 governance = InstitutionalGovernance()

@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/build_protos.sh - Institutional gRPC/FlatBuffers Factory
+# scripts/build_protos.sh - Protocol Generation Factory
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,14 +9,14 @@ GEN_DIR="src/shared/protos"
 FBS_DIR="src/shared/fbs"
 TS_DIR="src/frontend/src/generated"
 
-echo "🧬 Executing Institutional Protocol Generation..."
+echo "🧬 Executing Protocol Generation..."
 
 # 1. Python gRPC
 echo "🐍 Generating Python gRPC code..."
 mkdir -p "$GEN_DIR"
 uv run python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" ./protos/*.proto
 touch "$GEN_DIR/__init__.py"
-# Fix absolute imports for institutional consistency
+# Fix absolute imports
 sed -i 's/import market_data_pb2/from . import market_data_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
 
 # 2. TypeScript gRPC

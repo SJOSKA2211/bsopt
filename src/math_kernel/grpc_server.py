@@ -6,7 +6,6 @@ from src.math_kernel.black_scholes import BSParameters
 from src.math_kernel.service import PricingService
 from src.protos import pricing_pb2, pricing_pb2_grpc
 
-
 class PricingServicer(pricing_pb2_grpc.PricingServiceServicer):
     def __init__(self):
         self.service = PricingService()
@@ -77,7 +76,6 @@ class PricingServicer(pricing_pb2_grpc.PricingServiceServicer):
             computation_time_ms=result.computation_time_ms,
         )
 
-
 async def serve():
     server = grpc.aio.server()
     pricing_pb2_grpc.add_PricingServiceServicer_to_server(PricingServicer(), server)
@@ -85,7 +83,6 @@ async def serve():
     print("gRPC Pricing Server starting on port 50052...")
     await server.start()
     await server.wait_for_termination()
-
 
 if __name__ == "__main__":
     asyncio.run(serve())

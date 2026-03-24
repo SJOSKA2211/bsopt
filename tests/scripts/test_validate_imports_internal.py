@@ -5,7 +5,6 @@ import pytest
 
 from scripts.validate_imports import _find_lazy_loaded_modules, validate_lazy_imports
 
-
 class TestImportValidationInternal:
     @pytest.fixture
     def mock_structure(self, tmp_path):

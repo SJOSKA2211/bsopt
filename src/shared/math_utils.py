@@ -29,13 +29,11 @@ except ImportError:
     cp = np  # Fallback to NumPy API
     logger.warning("CuPy not found. Falling back to Numba/NumPy (CPU)")
 
-
 def to_numpy(arr: Any) -> np.ndarray:
     """Safely converts potential GPU array to NumPy."""
     if GPU_AVAILABLE and hasattr(arr, "get"):
         return arr.get()
     return np.asarray(arr)
-
 
 try:
     from numba import njit, prange
@@ -64,7 +62,6 @@ __all__ = [
     "loop_prange",
 ]
 
-
 def profile_memory():
     """Profiles memory usage for both CPU and GPU (if available)."""
     current, peak = tracemalloc.get_traced_memory()
@@ -78,11 +75,9 @@ def profile_memory():
     logger.info(f"Memory Profile: {stats}")
     return stats
 
-
 # -------------------------------------------------------------------------
 # GPU/NumPy Vectorized Implementations (Array-native without loops)
 # -------------------------------------------------------------------------
-
 
 def _fast_normal_cdf(x: Any, backend: Any) -> Any:
     """High-precision rational approximation of normal CDF using vector operations."""
@@ -102,10 +97,8 @@ def _fast_normal_cdf(x: Any, backend: Any) -> Any:
     # Where x > 0, return 1 - prob, else return prob
     return backend.where(x > 0, 1.0 - prob, prob)
 
-
 def _fast_normal_pdf(x: Any, backend: Any) -> Any:
     return backend.exp(-0.5 * x * x) * INV_SQRT2PI
-
 
 def calculate_price(
     s: float | np.ndarray,
@@ -152,7 +145,6 @@ def calculate_price(
     if np.isscalar(s) and np.isscalar(k):
         return float(out.item())
     return out
-
 
 def calculate_greeks(
     s: float | np.ndarray,
@@ -223,7 +215,6 @@ def calculate_greeks(
         return tuple(float(arr.item()) for arr in results)
     return results
 
-
 @njit(cache=True, fastmath=True)
 def rk4_gbm_step(s: float, mu: float, sigma: float, dt: float, dw: float) -> float:
     """
@@ -244,7 +235,6 @@ def rk4_gbm_step(s: float, mu: float, sigma: float, dt: float, dw: float) -> flo
 
     return s + drift + diffusion
 
-
 def run_gbm_simulation(
     s0: float, mu: float, sigma: float, t: float, steps: int = 1000
 ) -> np.ndarray:
@@ -262,6 +252,5 @@ def run_gbm_simulation(
         prices[i + 1] = current_s
 
     return prices
-
 
 loop_prange = prange

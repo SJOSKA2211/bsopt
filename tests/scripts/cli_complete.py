@@ -55,9 +55,7 @@ from src.shared.config import settings
 
 console = Console()
 
-
 # Global Context
-
 
 class CLIContext:
     """Global CLI context with auth, config, and portfolio managers."""
@@ -66,7 +64,6 @@ class CLIContext:
         self.config = get_config()
         self.auth = AuthManager(api_base_url=self.config.get("api.base_url"))
         self.portfolio = PortfolioManager()
-
 
 @click.group()
 @click.version_option(version="2.1.0", prog_name="bsopt")
@@ -93,15 +90,12 @@ def cli(ctx):
     ctx.ensure_object(dict)
     ctx.obj["cli_ctx"] = CLIContext()
 
-
 # Authentication Commands
-
 
 @cli.group()
 def auth():
     """Authentication and user management commands."""
     pass
-
 
 @auth.command()
 @click.option("--email", prompt=True, help="User email address")
@@ -138,7 +132,6 @@ def login(ctx, email: str, password: str):
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         sys.exit(1)
 
-
 @auth.command()
 @click.pass_context
 def logout(ctx):
@@ -156,7 +149,6 @@ def logout(ctx):
         console.print("[green]Logged out successfully[/green]")
     else:
         console.print("[yellow]Already logged out[/yellow]")
-
 
 @auth.command()
 @click.pass_context
@@ -191,9 +183,7 @@ def whoami(ctx):
         console.print("[yellow]Not authenticated[/yellow]")
         console.print("[dim]Use 'bsopt auth login' to authenticate[/dim]\n")
 
-
 # Price Command (Enhanced)
-
 
 @cli.command()
 @click.argument("option_type", type=click.Choice(["call", "put"]))
@@ -269,7 +259,6 @@ def price(
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         sys.exit(1)
 
-
 def _price_single_method(
     params: BSParameters, option_type: str, method: str, compute_greeks: bool = False
 ) -> dict[str, Any]:
@@ -321,7 +310,6 @@ def _price_single_method(
         "params": params,
     }
 
-
 def _price_all_methods(params: BSParameters, option_type: str, output: str):
     """Compare all pricing methods."""
     methods = ["bs", "fdm", "mc"]
@@ -344,7 +332,6 @@ def _price_all_methods(params: BSParameters, option_type: str, output: str):
                 progress.advance(task)
 
     _display_comparison(results, output)
-
 
 def _display_price_result(result: dict[str, Any], output_format: str):
     """Display single pricing result."""
@@ -391,7 +378,6 @@ def _display_price_result(result: dict[str, Any], output_format: str):
             console.print(table)
             console.print()
 
-
 def _display_comparison(results: dict[str, Any], output_format: str):
     """Display comparison of multiple methods."""
     if output_format == "json":
@@ -420,9 +406,7 @@ def _display_comparison(results: dict[str, Any], output_format: str):
     console.print(table)
     console.print()
 
-
 # Greeks Command
-
 
 @cli.command()
 @click.option("--spot", type=float, required=True, help="Current spot price")
@@ -541,15 +525,12 @@ def greeks(
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         sys.exit(1)
 
-
 # Portfolio Commands
-
 
 @cli.group()
 def portfolio():
     """Portfolio management commands."""
     pass
-
 
 @portfolio.command(name="list")
 @click.pass_context
@@ -612,7 +593,6 @@ def portfolio_list(ctx):
     )
     console.print(f"[cyan]Net Delta:[/cyan] {summary['greeks']['delta']:.2f}")
     console.print()
-
 
 @portfolio.command(name="add")
 @click.option("--symbol", required=True, help="Underlying symbol")
@@ -686,7 +666,6 @@ def portfolio_add(
     console.print("[green]Position added successfully[/green]")
     console.print(f"[dim]ID: {position.id}[/dim]\n")
 
-
 @portfolio.command(name="remove")
 @click.argument("position_id")
 @click.pass_context
@@ -703,7 +682,6 @@ def portfolio_remove(ctx, position_id: str):
         console.print("[green]Position removed[/green]")
     else:
         console.print("[red]Position not found[/red]")
-
 
 @portfolio.command(name="pnl")
 @click.pass_context
@@ -751,15 +729,12 @@ def portfolio_pnl(ctx):
     console.print(greeks_table)
     console.print()
 
-
 # Config Commands
-
 
 @cli.group()
 def config():
     """Configuration management commands."""
     pass
-
 
 @config.command(name="list")
 @click.pass_context
@@ -787,7 +762,6 @@ def config_list(ctx):
 
         console.print()
 
-
 @config.command(name="get")
 @click.argument("key")
 @click.pass_context
@@ -807,7 +781,6 @@ def config_get(ctx, key: str):
         console.print(f"[cyan]{key}:[/cyan] {value}")
     else:
         console.print(f"[yellow]Key not found:[/yellow] {key}")
-
 
 @config.command(name="set")
 @click.argument("key")
@@ -847,7 +820,6 @@ def config_set(ctx, key: str, value: str, scope: str):
     console.print(f"[green]Configuration updated:[/green] {key} = {value}")
     console.print(f"[dim]Scope: {scope}[/dim]")
 
-
 @config.command(name="reset")
 @click.option(
     "--scope",
@@ -875,7 +847,6 @@ def config_reset(ctx, scope: str, confirm: bool):
     cli_ctx.config.reset(scope=scope)
     console.print(f"[green]Configuration reset to defaults[/green] ({scope})")
 
-
 # Additional Commands (from original CLI)
 
 # Import remaining commands from the original implementation
@@ -884,7 +855,6 @@ def config_reset(ctx, scope: str, confirm: bool):
 
 # Here we add them to this complete CLI
 # (For brevity, I'll reference them - they should be copied from cli.py)
-
 
 def main():
     """Main entry point for CLI."""
@@ -898,7 +868,6 @@ def main():
         if settings.DEBUG:
             raise
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

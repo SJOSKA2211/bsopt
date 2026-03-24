@@ -16,7 +16,6 @@ from src.math_kernel.quant_utils import (
     vectorized_newton_raphson_iv_jit,
 )
 
-
 #  ENGINEER: Use small arrays for faster JIT warmup in tests
 @pytest.fixture
 def sample_data():
@@ -29,7 +28,6 @@ def sample_data():
     is_call = np.array([True, False], dtype=np.bool_)
     return S, K, T, sigma, r, q, is_call
 
-
 def test_corrado_miller(sample_data):
     S, K, T, sigma, r, q, is_call = sample_data
     # 0 for call, 1 for put in this kernel's logic
@@ -40,7 +38,6 @@ def test_corrado_miller(sample_data):
     assert len(guess) == 2
     assert np.all(guess > 0)
 
-
 def test_batch_bs_price(sample_data):
     S, K, T, sigma, r, q, is_call = sample_data
     prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
@@ -48,13 +45,11 @@ def test_batch_bs_price(sample_data):
     assert prices[0] > 0  # Call
     assert prices[1] > 0  # Put
 
-
 def test_batch_greeks(sample_data):
     S, K, T, sigma, r, q, is_call = sample_data
     delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
     assert len(delta) == 2
     assert np.all(gamma > 0)
-
 
 def test_thomas_algorithm():
     # Simple diagonally dominant tridiagonal system Ax = b
@@ -68,7 +63,6 @@ def test_thomas_algorithm():
     x = thomas_algorithm(lower, diag, upper, rhs)
     assert np.allclose(x, np.array([1.0, 1.0, 1.0]))
 
-
 def test_newton_raphson_iv(sample_data):
     S, K, T, sigma, r, q, is_call = sample_data
     # Calculate prices first using scalar BS
@@ -80,11 +74,9 @@ def test_newton_raphson_iv(sample_data):
     iv = vectorized_newton_raphson_iv_jit(market_prices, S, K, T, r, q, is_call, initial_sigma)
     assert np.allclose(iv, 0.2, atol=1e-4)
 
-
 def test_heston_char_func():
     val = heston_char_func_jit(1.0 + 0.5j, 1.0, 0.05, 0.04, 2.0, 0.04, 0.3, -0.7)
     assert isinstance(val, complex)
-
 
 def test_mc_methods():
     # Test MC European
@@ -99,7 +91,6 @@ def test_mc_methods():
     assert p_cv > 0
     assert se_cv < se  # Error reduction verification
 
-
 def test_mc_greeks():
     p, d, g, v, r = jit_mc_european_price_and_greeks(
         100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 1000, True, True
@@ -108,11 +99,9 @@ def test_mc_greeks():
     assert d > 0
     assert v > 0
 
-
 def test_lsm_american():
     price = jit_lsm_american(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 1000, 10, True)
     assert price > 0
-
 
 def test_scalar_kernels():
     price = scalar_bs_price_jit(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, True)

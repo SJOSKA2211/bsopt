@@ -8,7 +8,6 @@ from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
-
 async def test_pillar_1_ingestion():
     """Simulate actual high-performance ingestion."""
     print("📥 Pillar 1: High-Performance Ingestion Verification...")
@@ -27,7 +26,6 @@ async def test_pillar_1_ingestion():
         print("   ✅ Rust MMap Parser functional.")
     except Exception as e:
         print(f"   ❌ Ingestion Pillar Failed: {e}")
-
 
 async def test_pillar_2_pricing():
     """Execute actual multi-engine pricing."""
@@ -48,7 +46,6 @@ async def test_pillar_2_pricing():
     except Exception as e:
         print(f"   ❌ Pricing Pillar Failed: {e}")
 
-
 async def test_pillar_3_mlops():
     """Verify MLflow and Watchdog readiness."""
     print("🏗️  Pillar 3: MLOps & Self-Healing Registry...")
@@ -64,7 +61,6 @@ async def test_pillar_3_mlops():
     except Exception as e:
         print(f"   ⚠️  MLOps Pillar Warning: MLflow not detected ({e})")
 
-
 async def test_pillar_4_security():
     """Verify Zero-Trust Auth infrastructure."""
     print("🛡️  Pillar 4: Zero-Trust Security Infrastructure...")
@@ -73,7 +69,6 @@ async def test_pillar_4_security():
         print("   ✅ Asymmetric ECC P-256 keys detected.")
     else:
         print("   ❌ Security Pillar Failed: Key pairs missing.")
-
 
 async def run_smoke_test():
     print("=" * 60)
@@ -87,7 +82,6 @@ async def run_smoke_test():
 
     print("\n✅ SMOKE TEST COMPLETE: Institutional Readiness Verified.")
     print("=" * 60)
-
 
 if __name__ == "__main__":
     asyncio.run(run_smoke_test())

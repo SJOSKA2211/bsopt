@@ -15,7 +15,6 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
-
 class BaseAsyncTask(Task):
     """
     High-Performance Celery Task: Manages a persistent process-level event loop.

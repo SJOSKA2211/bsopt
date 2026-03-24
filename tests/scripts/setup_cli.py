@@ -14,7 +14,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 def install_cli(dev_mode=False):
     """Install CLI package."""
     print("Installing Black-Scholes CLI...")
@@ -41,7 +40,6 @@ def install_cli(dev_mode=False):
         print(f"\n✗ Installation failed: {e}")
         sys.exit(1)
 
-
 def uninstall_cli():
     """Uninstall CLI package."""
     print("Uninstalling Black-Scholes CLI...")
@@ -54,7 +52,6 @@ def uninstall_cli():
     except subprocess.CalledProcessError as e:
         print(f"\n✗ Uninstallation failed: {e}")
         sys.exit(1)
-
 
 def main():
     """Main entry point."""
@@ -74,7 +71,6 @@ def main():
         print(f"Unknown command: {command}")
         print("Usage: python setup_cli.py [install|develop|uninstall]")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

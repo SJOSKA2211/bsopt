@@ -14,7 +14,6 @@ from src.shared.utils.binary_format import EQUA_MAGIC, EQUA_VERSION, HEADER_SIZE
 
 logger = structlog.get_logger(__name__)
 
-
 class RustTickParser:
     """
     Python wrapper for the Rust TickDataBuffer.

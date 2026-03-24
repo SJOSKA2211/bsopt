@@ -21,9 +21,6 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 
 _sym_db = _symbol_database.Default()
 
-
-
-
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0finference.proto\x12\x0f\x62sopt.inference\"\xf4\x01\n\x10InferenceRequest\x12\x18\n\x10underlying_price\x18\x01 \x01(\x01\x12\x0e\n\x06strike\x18\x02 \x01(\x01\x12\x16\n\x0etime_to_expiry\x18\x03 \x01(\x01\x12\x0f\n\x07is_call\x18\x04 \x01(\x05\x12\x11\n\tmoneyness\x18\x05 \x01(\x01\x12\x15\n\rlog_moneyness\x18\x06 \x01(\x01\x12\x1b\n\x13sqrt_time_to_expiry\x18\x07 \x01(\x01\x12\x16\n\x0e\x64\x61ys_to_expiry\x18\x08 \x01(\x01\x12\x1a\n\x12implied_volatility\x18\t \x01(\x01\x12\x12\n\nmodel_type\x18\n \x01(\t\"J\n\x11InferenceResponse\x12\r\n\x05price\x18\x01 \x01(\x01\x12\x12\n\nmodel_type\x18\x02 \x01(\t\x12\x12\n\nlatency_ms\x18\x03 \x01(\x01\x32_\n\x0bMLInference\x12P\n\x07Predict\x12!.bsopt.inference.InferenceRequest\x1a\".bsopt.inference.InferenceResponseb\x06proto3')
 
 _globals = globals()

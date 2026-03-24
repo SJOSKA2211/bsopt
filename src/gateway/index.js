@@ -11,8 +11,6 @@ const subgraphs = [
   { name: 'neural-pricing', url: process.env.PRICING_URL || 'http://neural-pricing:8000/graphql' },
 ];
 
-
-
 // Institutional Trace ID Generator
 const { v4: uuidv4 } = require('uuid');
 const Opossum = require('opossum');

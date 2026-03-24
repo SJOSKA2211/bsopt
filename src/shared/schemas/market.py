@@ -5,7 +5,6 @@ Optimized for high-performance serialization via msgspec.
 
 import msgspec
 
-
 class MarketQuote(msgspec.Struct):
     """
     Unified Market Quote object.
@@ -54,7 +53,6 @@ class MarketQuote(msgspec.Struct):
             percentChange=f"{self.pct_change:+.2f}%",
             up=self.change >= 0
         )
-
 
 class TickerSchema(msgspec.Struct):
     """

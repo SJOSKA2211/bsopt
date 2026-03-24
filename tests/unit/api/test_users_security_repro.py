@@ -12,7 +12,6 @@ from src.database.models import User
 
 client = TestClient(app)
 
-
 @pytest.fixture
 def free_user():
     return User(
@@ -26,7 +25,6 @@ def free_user():
         created_at=datetime.now(UTC),
     )
 
-
 @pytest.fixture
 def admin_user():
     return User(
@@ -39,7 +37,6 @@ def admin_user():
         is_mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
-
 
 def test_list_users_vulnerability_repro(free_user):
     """
@@ -60,7 +57,6 @@ def test_list_users_vulnerability_repro(free_user):
     assert response.status_code == 403
 
     app.dependency_overrides = {}
-
 
 def test_list_users_admin_access(admin_user, free_user):
     """

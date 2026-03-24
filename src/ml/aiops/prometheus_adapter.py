@@ -7,7 +7,6 @@ from prometheus_api_client import PrometheusConnect
 
 logger = structlog.get_logger()
 
-
 class PrometheusClient:
     """
     Advanced client for Prometheus that fetches multivariate system metrics
@@ -81,7 +80,6 @@ class PrometheusClient:
             # Construct a query that targets the specific service and container
             query = f'sum(rate({metric_name}{{container="{service}"}}[5m]))'
 
-            # OPTIMIZED: Use Prometheus standard range query for real data
             result = self.prom.custom_query_range(
                 query=query,
                 start_time=start_time,

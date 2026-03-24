@@ -8,7 +8,6 @@ from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
-
 class SentimentIngestor:
     """
     Ingests news/social media data, extracts sentiment, and publishes signals.
@@ -77,7 +76,6 @@ class SentimentIngestor:
                     except Exception as e:
                         logger.error("news_consume_failed", error=str(e))
 
-
 class SentimentPipeline:
     """
     Data Pipeline connecting Scraper Service outputs to Sentiment Oracle.
@@ -94,7 +92,6 @@ class SentimentPipeline:
         logger.info("sentiment_pipeline_starting_consumer")
         ingestor = SentimentIngestor()
         await ingestor.run()
-
 
 if __name__ == "__main__":
     import argparse

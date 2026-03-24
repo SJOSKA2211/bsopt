@@ -14,7 +14,6 @@ from sklearn.metrics import (
     recall_score,
 )
 
-
 def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     """
     Calculate comprehensive regression performance metrics.
@@ -41,7 +40,6 @@ def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict
         "r2": r2,
     }
 
-
 def calculate_classification_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     """Calculate standard classification metrics for fallback scenarios."""
     # Threshold if coming from probabilities or soft signals
@@ -55,11 +53,9 @@ def calculate_classification_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> 
         "f1": float(f1_score(y_true_bin, y_pred_bin, zero_division=0)),
     }
 
-
 def calculate_pricing_bias(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Calculate model pricing bias (mean error)."""
     return float(np.mean(y_pred - y_true))
-
 
 def calculate_sharpe_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) -> float:
     """
@@ -77,7 +73,6 @@ def calculate_sharpe_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) -> 
 
     return float(mean_return / std_return * np.sqrt(252))
 
-
 def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
     """
     Calculate the maximum peak-to-trough drawdown of an equity curve.
@@ -90,7 +85,6 @@ def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
     running_max = np.maximum(running_max, 1e-9)
     drawdown = (running_max - equity_curve) / running_max
     return float(np.max(drawdown))
-
 
 def calculate_sortino_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) -> float:
     """
@@ -113,7 +107,6 @@ def calculate_sortino_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) ->
         return float("inf") if mean_excess > 0 else 0.0
 
     return float(mean_excess / downside_std * np.sqrt(252))
-
 
 class ModelScorecard:
     """

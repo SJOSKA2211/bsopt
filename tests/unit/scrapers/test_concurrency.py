@@ -5,7 +5,6 @@ import pytest
 
 from src.ingestion.engine import NSEScraper
 
-
 @pytest.mark.asyncio
 async def test_tab_multiplexing_concurrency():
     # Setup Mocks correctly
@@ -58,7 +57,6 @@ async def test_tab_multiplexing_concurrency():
                 pytest.fail(f"Scrape failed with error: {r['error']}")
             assert "price" in r
             assert r["price"] == 10.0
-
 
 @pytest.mark.asyncio
 async def test_scraper_shutdown():

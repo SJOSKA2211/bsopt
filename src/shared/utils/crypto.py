@@ -5,7 +5,6 @@ import threading
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-
 class AES256GCM:
     """
     AES-256-GCM authenticated encryption.
@@ -50,7 +49,6 @@ class AES256GCM:
     def decrypt(self, token_base64: str) -> bytes:
         """Standard decryption from URL-safe Base64 string."""
         return self.decrypt_raw(base64.urlsafe_b64decode(token_base64))
-
 
 class EIP712Signer:
     """

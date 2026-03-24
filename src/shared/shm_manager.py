@@ -10,7 +10,6 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
-
 class SHMManager[T]:
     """
     Manages a shared memory block for a specific data type.
@@ -53,7 +52,7 @@ class SHMManager[T]:
         # 1. Optimized Spin-Lock
         start = time.perf_counter()
         while buf[0] != 0:
-            # OPTIMIZED: Use a combination of busy-wait and very short sleep
+            
             if time.perf_counter() - start > 0.05:  # 50ms timeout
                 logger.warning("shm_lock_contention_clearing", name=self.name)
                 buf[0] = 0  # Safety break

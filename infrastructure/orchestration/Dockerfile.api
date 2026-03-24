@@ -1,9 +1,5 @@
-# ==============================================================================
-# EQUAFLOW: API MANIFOLD (v11.1)
-# ==============================================================================
+# API MANIFOLD
 # High-performance ASGI gateway for the BSOPT platform.
-# Rebased on Institutional Base.
-# ==============================================================================
 
 # --- BUILDER ---
 FROM equaflow-base:builder AS builder
@@ -42,7 +38,7 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Institutional Security & Performance
+# Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 

@@ -24,7 +24,6 @@ router = APIRouter(
 )
 logger = structlog.get_logger(__name__)
 
-
 @router.get("/comparison", response_model=DataResponseStruct[ComparisonMetrics])
 async def get_ml_comparison(
     current_user: User = Depends(get_current_active_user),
@@ -39,7 +38,6 @@ async def get_ml_comparison(
     stats = await get_ml_comparison_stats(db, current_user.id)
     return DataResponseStruct(data=ComparisonMetrics(**stats))
 
-
 @router.post("/predict", response_model=None)
 @ml_client_circuit
 async def predict(
@@ -51,7 +49,6 @@ async def predict(
 ) -> DataResponseStruct[InferenceResponse]:
     """Predict option price using ML models."""
     return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
-
 
 @router.get("/predictions", response_model=DataResponseStruct[InferenceResponse])
 @ml_client_circuit
@@ -88,7 +85,6 @@ async def get_predictions(
     )
     return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
 
-
 @router.get(
     "/drift-metrics",
     response_model=DataResponseStruct[DriftMetricsResponse],
@@ -101,7 +97,6 @@ async def get_drift_metrics(
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
     return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))
-
 
 @router.post(
     "/retrain",

@@ -7,7 +7,6 @@ from web3 import Web3
 
 logger = structlog.get_logger(__name__)
 
-
 class BlockchainSettlementWorker:
     """
     Institutional Blockchain Settlement Worker.
@@ -92,7 +91,6 @@ class BlockchainSettlementWorker:
         logger.info("starting_mempool_monitor")
         # Implementation for event log filtering...
         pass
-
 
 if __name__ == "__main__":
     worker = BlockchainSettlementWorker()

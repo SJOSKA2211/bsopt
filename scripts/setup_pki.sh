@@ -1,6 +1,4 @@
 #!/bin/bash
-#  scripts/setup_pki.sh - Institutional Automated Internal PKI
-# Generates Root CA, Server/Client Certs, JWT keys, and Vault keys with Zero-Mock integrity.
 
 set -euo pipefail
 

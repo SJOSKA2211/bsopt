@@ -1,6 +1,5 @@
 import yaml
 
-
 def test_blockchain_quantum_configured():
     """
     Verifies that Geth and Quantum Simulator services are configured in docker-compose.prod.yml.

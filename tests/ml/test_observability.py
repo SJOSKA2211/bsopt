@@ -5,7 +5,6 @@ import structlog
 
 from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS, setup_logging
 
-
 def test_setup_logging_json(capsys):
     """Verify that logging is configured to output JSON."""
     setup_logging()
@@ -25,7 +24,6 @@ def test_setup_logging_json(capsys):
         assert log_json["level"] == "info"
     except json.JSONDecodeError:
         pytest.fail("Log output is not valid JSON")
-
 
 def test_metrics_definitions():
     """Verify that metrics are defined with correct labels."""

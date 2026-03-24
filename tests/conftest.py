@@ -16,8 +16,6 @@ if str(src) not in sys.path:
     sys.path.insert(0, str(src))
 
 # Global fixtures for institutional testing suite
-# Standardized on Zero-Mock architecture.
-
 
 @pytest.fixture(scope="session", autouse=True)
 def startup_session():
@@ -101,7 +99,6 @@ def startup_session():
 
     yield
 
-
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
     """Ensure environment variables are set for all tests, prioritizing existing env."""
@@ -122,7 +119,6 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
 
-
 @pytest.fixture
 def unmocked_config_settings(monkeypatch):
     """Fixture to provide a clean src.shared.config.Settings class for validation testing."""
@@ -135,7 +131,6 @@ def unmocked_config_settings(monkeypatch):
     yield
     # Reload again after test to restore any previous state
     importlib.reload(src.shared.config)
-
 
 @pytest.fixture
 def api_client():
@@ -155,7 +150,6 @@ def api_client():
     with TestClient(app) as client:
         yield client
 
-
 @pytest.fixture
 def mock_db_session(mocker):
     """Returns a mocked SQLAlchemy Session."""
@@ -163,7 +157,6 @@ def mock_db_session(mocker):
 
     session = mocker.MagicMock(spec=Session)
     return session
-
 
 @pytest.fixture(autouse=True)
 def self_healing_retry(request):

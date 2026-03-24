@@ -18,9 +18,7 @@ try:
 except ImportError:
     pass
 
-
 from services.api.responses import MsgspecJSONResponse
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -45,14 +43,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     await dispose_engine()
 
-
 app = FastAPI(
     title="BS-Opt Portfolio Service",
     lifespan=lifespan,
     default_response_class=MsgspecJSONResponse,
 )
 app.middleware("http")(logging_middleware)
-
 
 # Standardized Error Handling
 @app.exception_handler(Exception)
@@ -65,13 +61,11 @@ async def universal_exception_handler(request: Request, exc: Exception) -> Msgsp
         content={"message": "Portfolio manifold internal error", "type": "persistence_failure"},
     )
 
-
 # Apply Zero Trust security dependencies
 security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "portfolio"))]
 
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
-
 
 @app.get("/health")
 async def health() -> dict[str, Any]:

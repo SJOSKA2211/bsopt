@@ -6,7 +6,6 @@ import torch
 
 logger = structlog.get_logger(__name__)
 
-
 def export_to_onnx(
     model: Any,
     dummy_input: torch.Tensor,
@@ -48,7 +47,6 @@ def export_to_onnx(
     except Exception as e:
         logger.error("onnx_export_failed", error=str(e))
         raise
-
 
 def quantize_onnx_model(model_path: str, output_path: str) -> None:
     """

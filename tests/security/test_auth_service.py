@@ -8,7 +8,6 @@ from fastapi import HTTPException
 from src.auth.auth import auth_service, token_blacklist
 from src.database.models import User
 
-
 @pytest.mark.asyncio
 async def test_token_creation_and_decoding():
     user_id = str(uuid.uuid4())
@@ -26,7 +25,6 @@ async def test_token_creation_and_decoding():
     assert data.tier == tier
     assert data.token_type == "access"
 
-
 @pytest.mark.asyncio
 async def test_token_blacklist():
     jti = "test-jti"
@@ -37,7 +35,6 @@ async def test_token_blacklist():
     await token_blacklist.add(jti, exp)
     assert await token_blacklist.contains(jti) is True
     assert await token_blacklist.contains("other") is False
-
 
 @pytest.mark.asyncio
 async def test_authenticate_user_success():
@@ -52,7 +49,6 @@ async def test_authenticate_user_success():
             )
             assert authenticated == user
 
-
 @pytest.mark.asyncio
 async def test_authenticate_user_fail_password():
     db = MagicMock()
@@ -64,7 +60,6 @@ async def test_authenticate_user_fail_password():
             db, "test@example.com", "wrong", MagicMock()
         )
         assert authenticated is None
-
 
 @pytest.mark.asyncio
 async def test_validate_token_revoked():

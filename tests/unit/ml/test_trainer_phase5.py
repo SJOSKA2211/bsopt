@@ -12,7 +12,6 @@ sys.modules["optuna.pruners"] = MagicMock()
 
 from src.ml.trainer import ModelTrainer
 
-
 class TestModelTrainerPhase5:
     def setUp(self):
         self.X = np.random.rand(100, 5)
@@ -68,6 +67,4 @@ class TestModelTrainerPhase5:
 
         assert result == 0.9
         mock_scorecard_cls.assert_called()
-
-
 

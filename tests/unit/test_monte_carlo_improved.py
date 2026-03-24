@@ -2,7 +2,6 @@ import pytest
 
 from src.math_kernel.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
 
-
 class TestMonteCarlo:
     def setUp(self):
         self.params = BSParameters(
@@ -35,6 +34,4 @@ class TestMonteCarlo:
         engine = MonteCarloEngine(config)
         price, ci = engine.price_european(self.params, "call")
         self.assertGreater(price, 0)
-
-
 

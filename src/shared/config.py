@@ -7,17 +7,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
 
-# Loaded from environment; never hardcode the actual value in source.
-_DEFAULT_MFA_KEY_SEED = os.environ.get("_DEFAULT_MFA_KEY_SEED")
-
-_PRODUCTION_ENVIRONMENTS = {"prod", "production"}
-
-
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application Configuration
-    PROJECT_NAME: str = "Black-Scholes Advanced Option Pricing Platform"
+    PROJECT_NAME: str = "BS-OPT Unified Manifold"
     ENVIRONMENT: str = Field(default="dev")
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
@@ -82,7 +76,7 @@ class Settings(BaseSettings):
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
-        default="institutional-grade-vault-key-manifold-secure", validation_alias="AUDIT_VAULT_KEY"
+        default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
     )
     
     @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD", "BLOCKCHAIN_PRIVATE_KEY")
@@ -91,7 +85,7 @@ class Settings(BaseSettings):
         if v is None:
             return v
         if len(v) < 32 and not os.environ.get("BSOPT_ALLOW_WEAK_SECRETS"):
-            raise ValueError(f"{info.field_name} must be at least 32 characters for institutional security.")
+            raise ValueError(f"{info.field_name} must be at least 32 characters for production security.")
         return v
 
     # Blockchain Configuration
@@ -117,7 +111,7 @@ class Settings(BaseSettings):
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
     ML_TRAINING_OPTUNA_TRIALS: int = 50
     ML_TRAINING_RANDOM_STATE: int = 42
-    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = 0.95
+    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = Field(default=0.95, validation_alias="ML_TRAINING_PROMOTE_THRESHOLD_R2")
 
     # Email Configuration
     EMAIL_SERVICE_API_KEY: str | None = Field(default=None, validation_alias="EMAIL_SERVICE_API_KEY")
@@ -136,7 +130,6 @@ class Settings(BaseSettings):
         return self.MLFLOW_TRACKING_URI
 
     # Scrapers & Market Data
-    NSE_CACHE_TTL: int = 300
     USE_SHM: bool = Field(default=False)
     USE_GPU: bool = Field(default=False)
 
@@ -156,14 +149,17 @@ class Settings(BaseSettings):
     TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
 
     # Market Configuration
-    MARKET_TICKER_SYMBOLS: list[str] = [
-        "NIFTY",
-        "BANKNIFTY",
-        "SPX",
-        "BTC-USD",
-        "RELIANCE.NR",
-        "HDFCBANK.NR",
-    ]
+    MARKET_TICKER_SYMBOLS: list[str] = Field(
+        default=[
+            "NIFTY",
+            "BANKNIFTY",
+            "SPX",
+            "BTC-USD",
+            "RELIANCE.NR",
+            "HDFCBANK.NR",
+        ],
+        validation_alias="MARKET_TICKER_SYMBOLS",
+    )
 
     @property
 
@@ -234,8 +230,9 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = False
     MFA_ENCRYPTION_KEY: str = Field(
-        default=_DEFAULT_MFA_KEY_SEED,
-        return v
+        default=_DEFAULT_MFA_KEY_SEED or "placeholder-mfa-key-seed-base-v1",
+        validation_alias="MFA_ENCRYPTION_KEY",
+    )
     
     # E2E & Testing
     ALLOW_E2E_EMAIL_BYPASS: bool = Field(default=False, validation_alias="ALLOW_E2E_EMAIL_BYPASS")
@@ -454,8 +451,8 @@ class Settings(BaseSettings):
             import base64
             import hashlib
 
-            # Institutional-grade key derivation (PBKDF2-HMAC-SHA256)
-            salt = b"equaflow-manifold-derivation-v1"
+            # Key derivation (PBKDF2-HMAC-SHA256)
+            salt = b"manifold-derivation-v1"
             iterations = 100_000
 
             def derive_key(purpose: str, length: int = 32) -> bytes:
@@ -471,13 +468,13 @@ class Settings(BaseSettings):
             if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY == _DEFAULT_MFA_KEY_SEED:
                 mfa_seed = derive_key("mfa-encryption")
                 self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
-                logger.debug("derived_mfa_key_institutional_grade")
+                logger.debug("derived_mfa_key")
 
             # Derive JWT Secret if not explicitly set
             if not self.JWT_SECRET or self.JWT_SECRET == "change-me-in-production":
                 jwt_seed = derive_key("jwt-signing", length=64)
                 self.JWT_SECRET = jwt_seed.hex()
-                logger.debug("derived_jwt_secret_institutional_grade")
+                logger.debug("derived_jwt_secret")
 
         # Enforce email verification in production by default if not set
         if self.is_production and self.ENVIRONMENT != "test":
@@ -523,9 +520,7 @@ class Settings(BaseSettings):
 
         return self
 
-
 settings = Settings()
-
 
 def get_settings() -> Settings:
     """Returns the singleton settings instance."""

@@ -12,7 +12,6 @@ from src.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 
-
 class MarketDataScraper:
     def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3) -> None:
         self.api_key = api_key
@@ -89,12 +88,12 @@ class MarketDataScraper:
                         response = await client.get(self.base_url, params=params)
                         last_response = response
                         if response.status_code == 200:
-                            # OPTIMIZED: Use msgspec for JSON decoding
+                            
                             data = msgspec.json.decode(response.content)
                             if "Time Series (Daily)" in data:
                                 time_series = data["Time Series (Daily)"]
                                 records = []
-                                # OPTIMIZED: Pre-parse dates to avoid pd.Timestamp overhead in loop
+                                
                                 for date_str, values in time_series.items():
                                     if start_date <= date_str <= end_date:
                                         # Use faster date parsing
@@ -216,7 +215,7 @@ class MarketDataScraper:
                     response = await client.get(url, params=params)
                     last_response = response
                     if response.status_code == 200:
-                        # OPTIMIZED: Use msgspec
+                        
                         data = msgspec.json.decode(response.content)
                         if data.get("status") == "OK" and "results" in data:
                             df = pd.DataFrame(data["results"])
@@ -277,7 +276,6 @@ class MarketDataScraper:
                         f"Failed to fetch data for {ticker} after {self.max_retries} retries."
                     ) from e
 
-        # yfinance Implementation (Institutional Fallback)
         if self._yfinance_enabled:
             try:
                 import yfinance as yf
@@ -299,7 +297,6 @@ class MarketDataScraper:
             except Exception as e:
                 logger.warning("yfinance_scrape_failed", ticker=ticker, error=str(e))
 
-        # yfinance Implementation (Institutional Multi-Asset Fallback)
         if self._yfinance_enabled:
             try:
                 import yfinance as yf
@@ -314,7 +311,7 @@ class MarketDataScraper:
                 data = yf.download(ticker, period="1mo", interval=yf_interval, progress=False)
 
                 if not data.empty:
-                    # Uniform formatting for Institutional Manifold
+                    
                     df = data.reset_index()
                     df.columns = [c.lower() for c in df.columns]
                     # Map 'date' or 'datetime' to 'timestamp'

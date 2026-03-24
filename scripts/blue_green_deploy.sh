@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# EquaFlow Blue-Green Deployment Script
 # Orchestrates seamless transition between environment stacks.
 
 COLOR_BLUE="blue"

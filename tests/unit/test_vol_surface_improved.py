@@ -12,7 +12,6 @@ from src.math_kernel.vol_surface import (
     VolatilitySurface,
 )
 
-
 class TestVolSurface:
     def setUp(self):
         self.svi_params = SVIParameters(a=0.04, b=0.1, rho=-0.4, m=0.0, sigma=0.2)
@@ -54,6 +53,4 @@ class TestVolSurface:
         params, diag = engine.calibrate_svi(quotes)
         assert isinstance(params, SVIParameters)
         assert "rmse" in diag
-
-
 

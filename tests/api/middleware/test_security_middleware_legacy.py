@@ -14,21 +14,17 @@ from src.api.middleware.security import (
 
 app = FastAPI()
 
-
 @app.get("/test_route_path")
 async def route_get():
     return {"message": "success"}
-
 
 @app.post("/test_route_path")
 async def route_post():
     return {"message": "posted"}
 
-
 @app.get("/api/v1/auth/login")
 async def route_auth():
     return {"message": "login"}
-
 
 # Add middlewares in order: Security Headers -> Sanitization -> Auth -> IP Block
 # (Note: Starlette executes them in REVERSE order of addition for the request)
@@ -40,7 +36,6 @@ app.add_middleware(IPBlockMiddleware, blocked_ips={"1.2.3.4"})
 
 client = TestClient(app)
 
-
 def test_security_headers():
     response = client.get("/api/v1/auth/login")
     assert response.status_code == 200
@@ -50,25 +45,21 @@ def test_security_headers():
     # Cache control for sensitive paths
     assert "no-store" in response.headers.get("Cache-Control", "")
 
-
 def test_ip_block():
     # IPBlock runs first now.
     response = client.get("/test_route_path", headers={"X-Forwarded-For": "1.2.3.4"})
     assert response.status_code == 403
     assert response.json()["detail"] == "Access denied"
 
-
 def test_jwt_auth_missing():
     # /test_route_path is not exempt
     response = client.get("/test_route_path")
     assert response.status_code == 401
 
-
 def test_jwt_auth_legacy_bypass():
     response = client.get("/test_route_path", headers={"Authorization": "Bearer legacy-token"})
     assert response.status_code == 200
     assert response.json()["message"] == "success"
-
 
 @pytest.mark.asyncio
 async def test_jwt_auth_verify_fail():
@@ -78,7 +69,6 @@ async def test_jwt_auth_verify_fail():
     ):
         response = client.get("/test_route_path", headers={"Authorization": "Bearer bad-token"})
         assert response.status_code == 401
-
 
 def test_input_sanitization():
     # Should log warning for suspicious pattern
@@ -90,7 +80,6 @@ def test_input_sanitization():
             headers={"Authorization": "Bearer legacy-token"},
         )
         mock_log.assert_called()
-
 
 def test_csrf_middleware_init():
     # CSRF bypasses in testing, but we can test init and helper methods

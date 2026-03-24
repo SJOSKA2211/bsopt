@@ -8,7 +8,6 @@ from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
 logger = structlog.get_logger()
 
-
 def simulate_integration():
     """
     Simulate the end-to-end flow: Market Data -> Online Agent -> Trading Signal.
@@ -62,7 +61,6 @@ def simulate_integration():
 
             logger.info("integration_test_passed")
             return True
-
 
 if __name__ == "__main__":
     try:

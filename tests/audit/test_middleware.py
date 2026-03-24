@@ -6,7 +6,6 @@ from fastapi import FastAPI, Request
 
 from src.auth.audit.middleware import AuditMiddleware
 
-
 @pytest.mark.asyncio
 async def test_audit_middleware_calls_kafka():
     app = FastAPI()
@@ -41,7 +40,6 @@ async def test_audit_middleware_calls_kafka():
     assert payload["status_code"] == 200
     assert payload["user_id"] == "user123"
     assert "timestamp" in payload
-
 
 @pytest.mark.asyncio
 async def test_audit_middleware_exception_handling():

@@ -32,7 +32,6 @@ oauth2_scheme = OAuth2PasswordBearer(
     },
 )
 
-
 @dataclass
 class TokenData:
     user_id: str | None
@@ -42,7 +41,6 @@ class TokenData:
     iat: datetime
     jti: str | None = None
 
-
 @dataclass
 class TokenPair:
     access_token: str
@@ -50,7 +48,6 @@ class TokenPair:
     token_type: str = "bearer"
     expires_in: int = 0
     scope: str = ""
-
 
 class AuthService:
     @property
@@ -152,6 +149,5 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Token has expired") from None
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token") from None
-
 
 auth_service = AuthService()

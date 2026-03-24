@@ -63,7 +63,6 @@ SHM_CONFIGS = [
     },
 ]
 
-
 def initialize_all_shm(force: bool = False):
     """
     Pre-allocates all SHM segments.
@@ -105,7 +104,6 @@ def initialize_all_shm(force: bool = False):
                 logger.info("shm_already_exists", name=name)
         except Exception as e:
             logger.error("shm_init_failed", name=name, error=str(e))
-
 
 if __name__ == "__main__":
     initialize_all_shm(force=True)

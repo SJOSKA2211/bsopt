@@ -19,11 +19,9 @@ from src.math_kernel.quant_utils import (
     jit_generate_log_paths,
 )
 
-
 class AsianType(Enum):
     GEOMETRIC = "geometric"
     ARITHMETIC = "arithmetic"
-
 
 class BarrierType(Enum):
     DOWN_AND_OUT = "down-and-out"
@@ -31,11 +29,9 @@ class BarrierType(Enum):
     UP_AND_OUT = "up-and-out"
     UP_AND_IN = "up-and-in"
 
-
 class StrikeType(Enum):
     FIXED = "fixed"
     FLOATING = "floating"
-
 
 class ExoticParameters:
     def __init__(self, base_params: BSParameters, **kwargs):
@@ -44,7 +40,6 @@ class ExoticParameters:
         self.rebate = kwargs.get("rebate", 0.0)
         self.n_observations = kwargs.get("n_observations", 252)
         self.exotic_kwargs = kwargs
-
 
 @njit(fastmath=True)
 def _price_geometric_asian_jit(S, K, T, r, q, sigma, n, is_call):
@@ -67,7 +62,6 @@ def _price_geometric_asian_jit(S, K, T, r, q, sigma, n, is_call):
     if is_call:
         return S * exp_ba_r_T * fast_normal_cdf_v2(d1) - K * exp_rT * fast_normal_cdf_v2(d2)
     return K * exp_rT * fast_normal_cdf_v2(-d2) - S * exp_ba_r_T * fast_normal_cdf_v2(-d1)
-
 
 @njit(fastmath=True)
 def _price_barrier_analytical_jit(S, K, T, r, q, sigma, H, R, barrier_type_idx, is_call):
@@ -128,7 +122,6 @@ def _price_barrier_analytical_jit(S, K, T, r, q, sigma, H, R, barrier_type_idx, 
     if barrier_type_idx % 2 == 0:  # "out" types are 0 and 2
         res += F
     return max(res, 0.0)
-
 
 class AsianOptionPricer:
     @staticmethod
@@ -201,7 +194,6 @@ class AsianOptionPricer:
                 return float(np.mean(y_cv)), float(1.96 * np.std(y_cv) / np.sqrt(n_paths))
         return float(np.mean(y_sim)), float(1.96 * np.std(y_sim) / np.sqrt(n_paths))
 
-
 class BarrierOptionPricer:
     @staticmethod
     def price_barrier_analytical(
@@ -251,7 +243,6 @@ class BarrierOptionPricer:
             )
         )
 
-
 @njit(fastmath=True)
 def _price_lookback_floating_strike_jit(S, T, r, q, sigma, is_call):
     """JIT Accelerated Lookback Floating Strike Pricing."""
@@ -289,7 +280,6 @@ def _price_lookback_floating_strike_jit(S, T, r, q, sigma, is_call):
     term3 = S * exp_ba_r_T * _n(-d1)
     return term1 - term2 + term3
 
-
 @njit(fastmath=True)
 def _price_digital_cash_or_nothing_jit(S, K, T, r, q, sigma, payout, is_call):
     """JIT Accelerated Digital Cash-or-Nothing Pricing."""
@@ -297,14 +287,12 @@ def _price_digital_cash_or_nothing_jit(S, K, T, r, q, sigma, payout, is_call):
     d2 = (np.log(S / K) + (r - q - 0.5 * sigma**2) * T) / (sigma * sqrt_T)
     return payout * np.exp(-r * T) * fast_normal_cdf_v2(d2 if is_call else -d2)
 
-
 @njit(fastmath=True)
 def _price_digital_asset_or_nothing_jit(S, K, T, r, q, sigma, is_call):
     """JIT Accelerated Digital Asset-or-Nothing Pricing."""
     sqrt_T = np.sqrt(T)
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt_T)
     return S * np.exp(-q * T) * fast_normal_cdf_v2(d1 if is_call else -d1)
-
 
 class LookbackOptionPricer:
     @staticmethod
@@ -353,7 +341,6 @@ class LookbackOptionPricer:
             strike_type == StrikeType.FLOATING,
         )
         return float(np.mean(res)), float(1.96 * np.std(res) / np.sqrt(n_paths))
-
 
 class DigitalOptionPricer:
     @staticmethod
@@ -485,7 +472,6 @@ class DigitalOptionPricer:
             vega=float(vega),
             rho=float(rho),
         )
-
 
 def price_exotic_option(
     exotic_type: str, params: ExoticParameters, option_type: str, **kwargs

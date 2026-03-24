@@ -25,7 +25,6 @@ if _version_not_supported:
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
-
 class AuthServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
@@ -70,7 +69,6 @@ class AuthServiceStub(object):
                 request_serializer=auth__pb2.TokenRequest.SerializeToString,
                 response_deserializer=auth__pb2.IntrospectionResponse.FromString,
                 _registered_method=True)
-
 
 class AuthServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
@@ -117,7 +115,6 @@ class AuthServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-
 def add_AuthServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ValidateToken': grpc.unary_unary_rpc_method_handler(
@@ -160,7 +157,6 @@ def add_AuthServiceServicer_to_server(servicer, server):
             'equaflow.auth.AuthService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
     server.add_registered_method_handlers('equaflow.auth.AuthService', rpc_method_handlers)
-
 
  # This class is part of an EXPERIMENTAL API.
 class AuthService(object):

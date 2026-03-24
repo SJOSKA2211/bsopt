@@ -8,7 +8,6 @@ TEMP_DIR = (
     "/home/kamau/.gemini/tmp/2b8aa2f42273da2920d6a0846a0beee0179039373f45f52c93793c0248598408"
 )
 
-
 async def run():
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -49,7 +48,6 @@ async def run():
         )
         await asyncio.sleep(20)  # Long wait for all sectors
         await browser.close()
-
 
 if __name__ == "__main__":
     asyncio.run(run())

@@ -1,17 +1,16 @@
 #!/bin/bash
-# scripts/start_api.sh - Institutional API Orchestrator (Zero-Mock)
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🚀 Launching Institutional EquaFlow API..."
+echo "🚀 Launching Unified API..."
 
 # Load shared environment utilities for secret derivation
 source scripts/utils_env.sh
 load_decrypted_secrets
 
-# Institutional Runtime Environment
 export RAY_IGNORE_UNSTABLE_API_WARNING=1
 export RAY_DEDUP_LOGS=0
 export PYTHONWARNINGS="ignore::FutureWarning:ray"

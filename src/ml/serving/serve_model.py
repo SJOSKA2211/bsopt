@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 # Basic MLflow setup for client operations
 mlflow.set_tracking_uri(settings.tracking_uri)
 
-
 @click.command()  # type: ignore
 @click.option(
     "--model-name",
@@ -74,7 +73,6 @@ def serve_model(
         ]
         logger.info(f"Executing legacy MLflow command: {' '.join(command)}")
         subprocess.run(command)
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

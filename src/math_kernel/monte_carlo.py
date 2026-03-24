@@ -22,7 +22,6 @@ try:
 except ImportError:
     CORE_AVAILABLE = False
 
-
 @dataclass
 class MCConfig:
     n_paths: int = 100000
@@ -47,7 +46,6 @@ class MCConfig:
             # Sobol works best with powers of 2 for some implementations
             # The test expected rounding to next power of 2 for method='sobol'
             self.n_paths = 2 ** int(np.ceil(np.log2(self.n_paths)))
-
 
 class MonteCarloEngine(PricingStrategy):  # optimized
     """
@@ -389,14 +387,12 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             scheme=self.config.scheme,
         )
 
-
 def _laguerre_basis(x: np.ndarray, degree: int = 3) -> np.ndarray:
     """
     Generates basis functions based on test expectations.
     Wrapper around JIT implementation for compatibility.
     """
     return _laguerre_basis_jit(x, degree)
-
 
 def geometric_asian_price(params: BSParameters, option_type: str, n_obs: int) -> float:
     """

@@ -4,7 +4,6 @@ Test lazy loading behavior for the src.ml package.
 
 import sys
 
-
 def test_ml_does_not_load_heavy_deps_on_import():
     """
     Verify that importing src.ml does not load PyTorch or Ray.
@@ -16,7 +15,6 @@ def test_ml_does_not_load_heavy_deps_on_import():
     # Still should not be loaded
     assert "torch" not in sys.modules
     assert "ray" not in sys.modules
-
 
 def test_ml_loads_dep_on_attribute_access():
     """

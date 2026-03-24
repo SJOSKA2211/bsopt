@@ -15,10 +15,8 @@ from src.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 router = APIRouter(prefix="/system", tags=["System"], default_response_class=MsgspecJSONResponse)
 logger = logging.getLogger(__name__)
 
-
 # Global Probe Cache
 _shm_probe = None
-
 
 @router.get("/health/deep", dependencies=[Depends(require_tier(["admin", "enterprise"]))])
 async def get_deep_health():
@@ -101,7 +99,6 @@ async def get_deep_health():
 
     return DataResponseStruct(data=health)
 
-
 @router.get("/status", dependencies=[Depends(require_tier(["admin", "enterprise"]))])
 async def get_system_status():
     """Returns the status of various system components and circuit breakers."""
@@ -121,7 +118,6 @@ async def get_system_status():
         }
     )
 
-
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier(["enterprise", "admin"]))])
 async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
@@ -129,7 +125,6 @@ async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     Requires Enterprise tier for high-fidelity performance metrics.
     """
     return DataResponseStruct(data=await crud.get_system_health_dashboard(db))
-
 
 @router.get("/diagnostics/io", dependencies=[Depends(require_tier(["enterprise", "admin"]))])
 async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):

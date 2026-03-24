@@ -10,7 +10,6 @@ from src.ml.reinforcement_learning.train import RLTrainer
 
 logger = structlog.get_logger()
 
-
 @ray.remote(num_cpus=1, num_gpus=0)
 class RolloutWorker:
     """Distributed worker for gathering trajectories using the current policy."""
@@ -68,7 +67,6 @@ class RolloutWorker:
                 
         return trajectories
 
-
 class RayRLTrainer:
     """
     Phase 4: Multi-Node Distributed RL Trainer using Ray.
@@ -114,7 +112,6 @@ class RayRLTrainer:
             worker_tasks = [w.gather_experience.remote(weights=active_weights, num_steps=512) for w in self.workers]
             results: list[list[tuple]] = ray.get(worker_tasks)
 
-            # 3. Feed trajectories into replay buffer (Zero-Mock Gradient Update)
             for trajectory in results:
                 for obs, action, reward, next_obs, done in trajectory:
                     self.model.replay_buffer.add(obs, next_obs, action, reward, done, [{}])
@@ -135,7 +132,6 @@ class RayRLTrainer:
 
         logger.info("ray_distributed_training_complete", total_steps=steps_done)
         return {"status": "success", "steps": steps_done}
-
 
 def start_distributed_training():
     """Entry point for Phase 4 distributed revamp."""

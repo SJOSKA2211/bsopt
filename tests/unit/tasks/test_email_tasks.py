@@ -4,12 +4,10 @@ import pytest
 
 from src.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
 
-
 @pytest.fixture
 def mock_email_service():
     with patch("src.workers.tasks.email_tasks.email_service") as mock:
         yield mock
-
 
 @pytest.fixture
 def mock_db():
@@ -17,7 +15,6 @@ def mock_db():
         mock_context = MagicMock()
         mock.return_value.__aenter__.return_value = mock_context
         yield mock_context
-
 
 @pytest.mark.asyncio
 async def test_send_transactional_email_success(mock_email_service, mock_db):
@@ -34,7 +31,6 @@ async def test_send_transactional_email_success(mock_email_service, mock_db):
 
         assert result["status"] == "sent"
         assert mock_email_service.send_single_email.called
-
 
 def test_send_batch_marketing_emails(mock_email_service):
     recipients = [{"email": "u1@ex.com"}, {"email": "u2@ex.com"}]

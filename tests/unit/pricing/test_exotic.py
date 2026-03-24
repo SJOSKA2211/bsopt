@@ -10,7 +10,6 @@ from src.math_kernel.exotic import (
     LookbackOptionPricer,
 )
 
-
 def test_geometric_asian():
     base = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
     params = ExoticParameters(base_params=base, n_observations=252)
@@ -22,7 +21,6 @@ def test_geometric_asian():
 
     eur_price = BlackScholesEngine.price_options(params=base, option_type="call")
     assert price < eur_price
-
 
 def test_barrier_analytical():
     base = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
@@ -36,13 +34,11 @@ def test_barrier_analytical():
     with pytest.raises(ValueError):
         BarrierOptionPricer.price_barrier_analytical(params, "call", BarrierType.UP_AND_OUT)
 
-
 def test_digital_option():
     base = BSParameters(spot=105.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
     price = DigitalOptionPricer.price_cash_or_nothing(base, "call", payout=10.0)
     assert price > 0
     assert price < 10.0  # Discounted probability
-
 
 def test_lookback_floating_strike():
     base = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)

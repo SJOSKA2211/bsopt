@@ -1,6 +1,5 @@
 from src.quant.pricing.black_scholes import BlackScholesEngine
 
-
 def test_bs_price_call():
     # S=100, K=100, T=1, r=0.05, sigma=0.2
     # Expected ~10.45
@@ -19,7 +18,6 @@ def test_bs_price_call():
     else:
         assert 10.0 < float(price) < 11.0
 
-
 def test_bs_price_put():
     price = BlackScholesEngine.price_options(
         spot=100.0,
@@ -33,7 +31,6 @@ def test_bs_price_put():
         assert True
     else:
         assert 5.0 < float(price) < 6.0
-
 
 def test_bs_greeks():
     greeks = BlackScholesEngine.calculate_greeks(

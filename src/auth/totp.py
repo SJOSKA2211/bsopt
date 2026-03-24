@@ -10,7 +10,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class TOTPService:
     """
     Handle TOTP generation, verification, and provisioning.
@@ -42,6 +41,5 @@ class TOTPService:
         """Generate the current TOTP token (for internal testing/automation)."""
         totp = pyotp.totp.TOTP(secret)
         return totp.now()
-
 
 totp_service = TOTPService()

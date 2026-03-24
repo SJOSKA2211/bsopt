@@ -20,7 +20,6 @@ from src.math_kernel.quant_utils import (
     vectorized_newton_raphson_iv_jit,
 )
 
-
 class TestQuantUtils:
     def test_jit_generate_paths(self):
         S0, T, r, sigma, q = 100.0, 1.0, 0.05, 0.2, 0.0
@@ -139,6 +138,4 @@ class TestQuantUtils:
         option_type = np.array([0])  # Call
         iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, option_type)
         self.assertGreater(iv[0], 0)
-
-
 

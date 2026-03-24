@@ -23,7 +23,6 @@ from src.shared.lazy_import import (
     reset_import_stats,
 )
 
-
 def test_get_import_lock_concurrency():
     lock1 = _get_import_lock("mod1")
     lock2 = _get_import_lock("mod1")
@@ -31,7 +30,6 @@ def test_get_import_lock_concurrency():
 
     lock3 = _get_import_lock("mod2")
     assert lock1 is not lock3
-
 
 def test_circular_import_detection():
     # Ensure stack is initialized
@@ -46,13 +44,11 @@ def test_circular_import_detection():
                     pass
             assert "Circular import detected: mod_a" in str(excinfo.value)
 
-
 def test_lazy_import_invalid_attribute():
     import_map = {"valid": "path"}
     with pytest.raises(AttributeError) as excinfo:
         lazy_import("pkg", import_map, "invalid", MagicMock())
     assert "has no attribute 'invalid'" in str(excinfo.value)
-
 
 def test_lazy_import_previously_failed():
     _failed_imports["pkg.fail"] = Exception("Boom")
@@ -61,7 +57,6 @@ def test_lazy_import_previously_failed():
         lazy_import("pkg", import_map, "fail", MagicMock())
     assert "Previous import of pkg.fail failed" in str(excinfo.value)
     del _failed_imports["pkg.fail"]
-
 
 def test_lazy_import_success():
     reset_import_stats()
@@ -87,7 +82,6 @@ def test_lazy_import_success():
     assert stats["successful_imports"] >= 1
     assert any(item[0] == "os.name" for item in stats["slowest_imports"])
 
-
 def test_lazy_import_module_attribute_error():
     import_map = {"NON_EXISTENT_ATTR": "os"}
     cache = MagicMock()
@@ -95,7 +89,6 @@ def test_lazy_import_module_attribute_error():
     with pytest.raises(LazyImportError) as excinfo:
         lazy_import("src", import_map, "NON_EXISTENT_ATTR", cache)
     assert "Failed to import NON_EXISTENT_ATTR" in str(excinfo.value)
-
 
 def test_preload_modules():
     import_map = {"name": "os"}
@@ -110,7 +103,6 @@ def test_preload_modules():
 
     assert obj.name is os.name
 
-
 def test_get_import_stats_complex():
     reset_import_stats()
     _import_times["a"] = 0.5
@@ -123,7 +115,6 @@ def test_get_import_stats_complex():
     assert stats["slowest_imports"][0][0] == "a"
     assert "c" in stats["failures"]
 
-
 def test_lazy_import_double_check():
     import_map = {"name": "os"}
 
@@ -135,7 +126,6 @@ def test_lazy_import_double_check():
 
     res = lazy_import("os", import_map, "name", cache)
     assert res == "already_here"
-
 
 def test_lazy_import_circular_error_propagation(mocker):
     import_map = {"a": "my_circular_module"}
@@ -157,7 +147,6 @@ def test_lazy_import_circular_error_propagation(mocker):
     assert f"-> {expected_full_module_path}" in str(excinfo.value)
     # The mocker fixture handles cleanup.
 
-
 def test_ml_init_logic():
     import importlib  # noqa: E402
 
@@ -169,7 +158,6 @@ def test_ml_init_logic():
         ) as mock_preload:  # Patch the actual function called
             importlib.reload(src.ml)  # Reload to ensure the env var check is re-evaluated
             mock_preload.assert_called_with("src.ml", src.ml._import_map, {"DataNormalizer"})
-
 
 def test_import_stack_cleanup_on_error():
     if not hasattr(_import_stack, "stack"):
@@ -183,7 +171,6 @@ def test_import_stack_cleanup_on_error():
         pass
     assert "bad" not in _import_stack.stack
 
-
 # New test to cover _import_stack.modules.pop()
 def test_track_import_stack_cleanup():
     if not hasattr(_import_stack, "modules"):
@@ -194,7 +181,6 @@ def test_track_import_stack_cleanup():
     with _track_import_stack("temp_module"):
         assert len(_import_stack.modules) == initial_len + 1
     assert len(_import_stack.modules) == initial_len  # Should pop on exit
-
 
 # New test to cover preload_modules failure logging
 def test_preload_modules_failure_logging(mocker):
@@ -250,7 +236,6 @@ def test_preload_modules_failure_logging(mocker):
         == f"Failed to import bad_attr from {package_name}: No module named 'bad_module'"
     )
 
-
 # Add new tests for src.ml/__init__.py coverage
 def test_ml_getattr(mocker):
     # Ensure src.ml is reloaded to get a fresh state
@@ -288,7 +273,6 @@ def test_ml_getattr(mocker):
     # Assert that the result is the expected mock object
     assert result is expected_returned_object
 
-
 def test_ml_get_ml_import_stats():
     import src.ml
 
@@ -298,7 +282,6 @@ def test_ml_get_ml_import_stats():
     stats = src.ml.get_ml_import_stats()
     assert isinstance(stats, dict)  # Assuming get_import_stats returns a dict
     # Add more specific assertions if needed based on expected stats content
-
 
 # New test to cover the TYPE_CHECKING block in src/ml/__init__.py
 def test_ml_type_checking_imports_with_dummy_module(tmp_path, mocker):
@@ -374,7 +357,6 @@ DUMMY_VAR = True
         if "dummy_ml_module" in sys.modules:
             del sys.modules["dummy_ml_module"]
 
-
 # New tests for src/pricing/__init__.py coverage
 def test_pricing_getattr(mocker):
     if "src.math_kernel" in sys.modules:
@@ -399,7 +381,6 @@ def test_pricing_getattr(mocker):
     )
     assert result is expected_returned_object
 
-
 def test_pricing_dir():
     if "src.math_kernel" in sys.modules:
         del sys.modules["src.math_kernel"]
@@ -408,7 +389,6 @@ def test_pricing_dir():
     # Make sure we don't accidentally lazy load something by just calling dir
     # And make sure __all__ elements are present
     assert sorted(src.math_kernel.__all__) == sorted(dir(src.math_kernel))
-
 
 def test_preload_classical_pricers(mocker):
     # Ensure src.math_kernel is removed from sys.modules for a fresh import
@@ -437,7 +417,6 @@ def test_preload_classical_pricers(mocker):
         mock_preload_modules.assert_called_once_with(
             "src.math_kernel", src.math_kernel._import_map, expected_fast_modules
         )
-
 
 def test_pricing_type_checking_imports_with_dummy_module(tmp_path, mocker):
     dummy_pricing_path = tmp_path / "dummy_pricing_module.py"
@@ -501,7 +480,6 @@ DUMMY_VAR = True
         if "dummy_pricing_module" in sys.modules:
             del sys.modules["dummy_pricing_module"]
 
-
 def test_streaming_getattr(mocker):
     if "src.workers.streaming" in sys.modules:
         del sys.modules["src.workers.streaming"]
@@ -525,14 +503,12 @@ def test_streaming_getattr(mocker):
     )
     assert result is expected_returned_object
 
-
 def test_streaming_dir():
     if "src.workers.streaming" in sys.modules:
         del sys.modules["src.workers.streaming"]
     import src.workers.streaming
 
     assert sorted(src.workers.streaming.__all__) == sorted(dir(src.workers.streaming))
-
 
 def test_preload_streaming_modules(mocker):
     if "src.workers.streaming" in sys.modules:
@@ -550,7 +526,6 @@ def test_preload_streaming_modules(mocker):
     mock_preload_modules.assert_called_once_with(
         "src.workers.streaming", src.workers.streaming._import_map, expected_modules
     )
-
 
 def test_streaming_type_checking_imports_with_dummy_module(tmp_path, mocker):
     dummy_streaming_path = tmp_path / "dummy_streaming_module.py"
@@ -604,7 +579,6 @@ DUMMY_VAR = True
         if "dummy_streaming_module" in sys.modules:
             del sys.modules["dummy_streaming_module"]
 
-
 def test_blockchain_getattr(mocker):
     if "src.blockchain" in sys.modules:
         del sys.modules["src.blockchain"]
@@ -628,14 +602,12 @@ def test_blockchain_getattr(mocker):
     )
     assert result is expected_returned_object
 
-
 def test_blockchain_dir():
     if "src.blockchain" in sys.modules:
         del sys.modules["src.blockchain"]
     import src.blockchain
 
     assert sorted(src.blockchain.__all__) == sorted(dir(src.blockchain))
-
 
 def test_blockchain_type_checking_imports_with_dummy_module(tmp_path, mocker):
     dummy_blockchain_path = tmp_path / "dummy_blockchain_module.py"
@@ -687,7 +659,6 @@ DUMMY_VAR = True
         if "dummy_blockchain_module" in sys.modules:
             del sys.modules["dummy_blockchain_module"]
 
-
 def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
     # Create a dummy package for testing
     pkg_path = tmp_path / "my_pricing_pkg"
@@ -723,7 +694,6 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
         sys.path.remove(str(tmp_path))
         if "my_pricing_pkg" in sys.modules:
             del sys.modules["my_pricing_pkg"]
-
 
 def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Added mocker fixture
     reset_import_stats()

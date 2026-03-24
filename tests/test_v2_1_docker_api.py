@@ -1,7 +1,6 @@
 import subprocess
 from unittest.mock import MagicMock, patch
 
-
 def test_api_container_user():
     """Verify that the API container runs as a non-root user."""
     with patch("subprocess.run") as mock_run:
@@ -38,7 +37,6 @@ def test_api_container_user():
         )
         username = result.stdout.strip()
         assert username == "appuser", f"Container username is {username}, expected appuser"
-
 
 def test_api_container_read_only_fs():
     """Verify that the API container has a read-only root filesystem."""

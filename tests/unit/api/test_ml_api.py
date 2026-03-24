@@ -8,7 +8,6 @@ from src.api.main import app
 
 client = TestClient(app)
 
-
 @pytest.fixture
 def valid_ml_payload():
     return {
@@ -23,7 +22,6 @@ def valid_ml_payload():
         "implied_volatility": 0.2,
     }
 
-
 def test_proxy_predict_success(valid_ml_payload):
     mock_response = {
         "success": True,
@@ -37,13 +35,11 @@ def test_proxy_predict_success(valid_ml_payload):
         assert response.status_code == 200
         assert response.json()["data"]["price"] == 12.5
 
-
 def test_proxy_predict_service_unavailable(valid_ml_payload):
     with patch("httpx.AsyncClient.post", side_effect=httpx.RequestError("Connection failed")):
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 503
         assert "unreachable" in response.json()["message"]
-
 
 def test_proxy_predict_error_response(valid_ml_payload):
     with patch("httpx.AsyncClient.post") as mock_post:
@@ -55,7 +51,6 @@ def test_proxy_predict_error_response(valid_ml_payload):
         assert response.status_code == 422
         assert "Invalid input" in response.json()["message"]
 
-
 def test_proxy_predict_ml_service_503(valid_ml_payload):
     mock_response = {"success": False, "message": "ML service temporary unavailable"}
     with patch("httpx.AsyncClient.post") as mock_post:
@@ -63,7 +58,6 @@ def test_proxy_predict_ml_service_503(valid_ml_payload):
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 503
         assert "ML service temporary unavailable" in response.json()["message"]
-
 
 def test_proxy_predict_ml_service_generic_error(valid_ml_payload):
     mock_response = {
@@ -78,7 +72,6 @@ def test_proxy_predict_ml_service_generic_error(valid_ml_payload):
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 500
         assert "Something unexpected happened in ML service" in response.json()["message"]
-
 
 def test_proxy_predict_unexpected_error(valid_ml_payload):
     with patch("httpx.AsyncClient.post", side_effect=Exception("Unhandled error")):

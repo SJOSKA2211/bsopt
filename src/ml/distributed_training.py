@@ -22,7 +22,6 @@ from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
 
 logger = structlog.get_logger(__name__)
 
-
 def train_func(config: dict[str, Any]):
     """
     Worker function for distributed Decision Transformer training.
@@ -64,7 +63,7 @@ def train_func(config: dict[str, Any]):
         model.parameters(),
         lr=config.get("lr", 1e-4),
         weight_decay=config.get("weight_decay", 1e-2),
-        betas=(0.9, 0.95),  # Institutional standard for Transformers
+        betas=(0.9, 0.95),  
     )
     criterion = nn.MSELoss()
 
@@ -156,7 +155,6 @@ def train_func(config: dict[str, Any]):
                     mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item(), step=epoch)
                     mlflow.log_metric(f"weight_std_{name}", param.data.std().item(), step=epoch)
 
-
 class BSOptDistributedTrainer:
     """
     Orchestrator for scaling BSOpt training across a Ray cluster.
@@ -229,7 +227,6 @@ class BSOptDistributedTrainer:
         finally:
             if settings.RAY_SHUTDOWN_AFTER_RUN:
                 RayClusterManager.shutdown()
-
 
 if __name__ == "__main__":
     import argparse

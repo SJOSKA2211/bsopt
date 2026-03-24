@@ -45,7 +45,6 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
     }
 )
 
-
 def _off_heap_processor(
     logger: Any, method_name: str, event_dict: MutableMapping[str, Any]
 ) -> Mapping[str, Any] | str | bytes | bytearray | tuple[Any, ...]:
@@ -60,11 +59,10 @@ def _off_heap_processor(
         raise structlog.DropEvent
     return event_dict
 
-
 def _pii_masking_processor(
     logger: Any, method_name: str, event_dict: MutableMapping[str, Any]
 ) -> Mapping[str, Any] | str | bytes | bytearray | tuple[Any, ...]:
-    """Masks PII (IPs, Emails) in all log events for security compliance (Optimized)."""
+    """Masks PII (IPs, Emails) in all log events for security compliance."""
     for key, value in event_dict.items():
         if isinstance(value, str):
             # Check if likely to contain PII before sub
@@ -82,7 +80,6 @@ def _pii_masking_processor(
                     event_dict[key] = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
 
     return event_dict
-
 
 def setup_logging() -> None:
     """Configures structlog for JSON or pretty logging with optimized processors."""
@@ -111,7 +108,6 @@ def setup_logging() -> None:
         cache_logger_on_first_use=True,
     )
 
-
 def tune_gc(mode: str = "analytical") -> None:
     """
     Optimizes Garbage Collection based on the specific workload mode.
@@ -127,12 +123,8 @@ def tune_gc(mode: str = "analytical") -> None:
 
     structlog.get_logger().info("gc_tuned", mode=mode, thresholds=gc.get_threshold())
 
-
 def tune_worker_resources() -> None:
-    """
-    OPTIMIZED: Coordinates CPU resource allocation for multi-backend parallelism.
-    Prevents CPU oversubscription between Ray and Numba.
-    """
+    """Coordinates CPU resource allocation for multi-backend parallelism."""
     import os
 
     cpu_count = os.cpu_count() or 1
@@ -148,9 +140,7 @@ def tune_worker_resources() -> None:
         "worker_resources_tuned", cpu_count=cpu_count, numba_threads=numba_threads
     )
 
-
 _IP_CACHE = LRUCache(maxsize=1000)
-
 
 async def logging_middleware(request: Request, call_next: Callable[[Request], Any]) -> Response:
     """FastAPI middleware for structured logging of every request with optimized IP masking and tracing."""
@@ -196,7 +186,6 @@ async def logging_middleware(request: Request, call_next: Callable[[Request], An
     response.headers["X-Response-Time"] = str(round(duration * 1000, 2))
     return cast(Response, response)
 
-
 # System Metrics (Defined at module level to avoid registration leaks)
 PROCESS_CPU_USAGE = Gauge(
     "process_cpu_usage_percent", "CPU usage of the current process", ["service"]
@@ -205,9 +194,7 @@ PROCESS_MEMORY_USAGE = Gauge(
     "process_memory_usage_bytes", "RSS memory usage of the current process", ["service"]
 )
 
-
 _PROCESS_CACHE: Any = None
-
 
 # System Metrics
 def update_system_metrics(service_name: str) -> None:
@@ -226,7 +213,6 @@ def update_system_metrics(service_name: str) -> None:
     except Exception:
         pass
 
-
 def start_system_metrics_loop(service_name: str, interval: int = 15) -> None:
     """Starts a background thread to periodically update system metrics."""
 
@@ -237,7 +223,6 @@ def start_system_metrics_loop(service_name: str, interval: int = 15) -> None:
 
     executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix=f"metrics_{service_name}")
     executor.submit(_loop)
-
 
 # Common Metrics
 SCRAPE_DURATION = Histogram(
@@ -296,7 +281,6 @@ RL_PORTFOLIO_VALUE = Gauge(
     ["agent_id"],
 )
 
-
 # Heston Metrics
 HESTON_FELLER_MARGIN = Gauge(
     "heston_feller_margin", "Margin above Feller condition (2κθ - σ²)", ["symbol"]
@@ -336,7 +320,6 @@ ML_PROXY_PREDICT_LATENCY = Histogram(
     buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
 )
 
-
 def observe_latency(histogram: Histogram, value: float, labels: dict[str, str] | None = None):
     """
     Non-blocking histogram observation.
@@ -347,7 +330,6 @@ def observe_latency(histogram: Histogram, value: float, labels: dict[str, str] |
     else:
         _METRICS_EXECUTOR.submit(histogram.observe, value)
 
-
 def increment_counter(counter: Counter, amount: float = 1.0, labels: dict[str, str] | None = None):
     """
     Non-blocking counter increment.
@@ -357,7 +339,6 @@ def increment_counter(counter: Counter, amount: float = 1.0, labels: dict[str, s
     else:
         _METRICS_EXECUTOR.submit(counter.inc, amount)
 
-
 def set_gauge(gauge: Gauge, value: float, labels: dict[str, str] | None = None):
     """
     Non-blocking gauge update.
@@ -366,7 +347,6 @@ def set_gauge(gauge: Gauge, value: float, labels: dict[str, str] | None = None):
         _METRICS_EXECUTOR.submit(gauge.labels(**labels).set, value)
     else:
         _METRICS_EXECUTOR.submit(gauge.set, value)
-
 
 def push_metrics(job_name: str) -> None:
     """
@@ -388,10 +368,8 @@ def push_metrics(job_name: str) -> None:
     # Dispatch to background thread immediately
     _METRICS_EXECUTOR.submit(_do_push)
 
-
 # Persistent HTTP client for observability
 _observability_client: httpx.AsyncClient | None = None
-
 
 def get_obs_client() -> httpx.AsyncClient:
     global _observability_client
@@ -401,7 +379,6 @@ def get_obs_client() -> httpx.AsyncClient:
             limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
         )
     return _observability_client
-
 
 async def post_grafana_annotation(message: str, tags: list[str] | None = None) -> bool:
     """
@@ -432,7 +409,6 @@ async def post_grafana_annotation(message: str, tags: list[str] | None = None) -
     except Exception as e:
         structlog.get_logger().error("grafana_annotation_failed", error=str(e))
         return False
-
 
 # --- Ingestion & Routing Metrics ---
 from prometheus_client import Counter, Histogram

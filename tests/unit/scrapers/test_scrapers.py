@@ -4,7 +4,6 @@ import pytest
 
 from src.ingestion.engine import NSEScraper
 
-
 @pytest.mark.asyncio
 async def test_nse_scraper_http():
     # Mocking httpx responses

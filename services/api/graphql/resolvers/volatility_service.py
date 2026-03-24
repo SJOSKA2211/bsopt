@@ -5,18 +5,15 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 @strawberry.type
 class VolatilitySlice:
     strike: float
     implied_vol: float
 
-
 @strawberry.type
 class VolatilitySurface:
     underlying: str
     slices: list[VolatilitySlice]
-
 
 async def get_vol_surface(
     underlying: strawberry.ID, expiry_range: list[datetime] | None = None

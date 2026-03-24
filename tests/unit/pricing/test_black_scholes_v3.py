@@ -2,7 +2,6 @@ import numpy as np
 
 from src.math_kernel.black_scholes import BlackScholesEngine
 
-
 def test_price_options_scalar():
     engine = BlackScholesEngine()
     # Call
@@ -27,7 +26,6 @@ def test_price_options_scalar():
     )
     assert 5.5 < price_put < 5.6
 
-
 def test_price_options_vectorized():
     engine = BlackScholesEngine()
     spots = np.array([100.0, 100.0])
@@ -43,7 +41,6 @@ def test_price_options_vectorized():
     assert len(res) == 2
     assert res[0] > res[1]
 
-
 def test_calculate_greeks_scalar():
     engine = BlackScholesEngine()
     greeks = engine.calculate_greeks(
@@ -56,7 +53,6 @@ def test_calculate_greeks_scalar():
     )
     assert 0.5 < greeks.delta < 0.7
     assert greeks.vega > 0
-
 
 def test_calculate_greeks_vectorized():
     engine = BlackScholesEngine()

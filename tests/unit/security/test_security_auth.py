@@ -4,11 +4,9 @@ import pytest
 
 from src.auth.auth import AuthService, TokenBlacklist
 
-
 @pytest.fixture
 def auth_service():
     return AuthService()
-
 
 def test_token_creation_and_decoding(auth_service):
     user_id = "test-user-id"
@@ -24,7 +22,6 @@ def test_token_creation_and_decoding(auth_service):
     assert data.tier == tier
     assert data.token_type == "access"
 
-
 def test_refresh_token(auth_service):
     user_id = "test-user-id"
     email = "test@example.com"
@@ -32,7 +29,6 @@ def test_refresh_token(auth_service):
     token = auth_service.create_refresh_token(user_id, email)
     data = auth_service.decode_token(token)
     assert data.token_type == "refresh"
-
 
 @pytest.mark.asyncio
 async def test_token_blacklist():
@@ -46,7 +42,6 @@ async def test_token_blacklist():
 
     await blacklist.cleanup()
     assert await blacklist.contains(jti) is False
-
 
 def test_decode_invalid_token(auth_service):
     with pytest.raises(pytest.importorskip("fastapi").HTTPException) as exc:

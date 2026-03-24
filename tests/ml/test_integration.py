@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
-
 @pytest.fixture
 def mock_config():
     return {
@@ -16,7 +15,6 @@ def mock_config():
         "n_trials": 2,
         "framework": "xgboost",
     }
-
 
 @patch("src.ml.autonomous_pipeline.MarketDataScraper")
 @patch("src.ml.autonomous_pipeline.get_db_session")

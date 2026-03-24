@@ -16,7 +16,6 @@ from src.shared.config import settings
 
 logger = structlog.get_logger()
 
-
 class PriceTFTModel:
     """
     Temporal Fusion Transformer (TFT) for OPTIMIZED Price Forecasting.
@@ -37,7 +36,7 @@ class PriceTFTModel:
         """
         Prepares data for TFT training/validation with OOM protection.
         """
-        # OPTIMIZED: Limit training data size to prevent OOM
+        
         MAX_SAMPLES = 500000
         if len(data) > MAX_SAMPLES:
             logger.warning("data_truncated_for_memory_safety", original=len(data), max=MAX_SAMPLES)
@@ -126,7 +125,6 @@ class PriceTFTModel:
         with tracker.start_run(nested=True) as run:
             mlflow.log_params(self.config)
 
-            # OPTIMIZED: Enable torch.compile for PyTorch 2.0+
             if hasattr(torch, "compile"):
                 try:
                     model = torch.compile(model)
@@ -137,7 +135,6 @@ class PriceTFTModel:
             trainer.fit(model, train_dataloaders=data["train_loader"])
             self.model = model
 
-            # ADVANCED: Post-Training Static Quantization for Institutional Deployment
             self._quantize()
 
             # Log model artifact
@@ -230,7 +227,6 @@ class PriceTFTModel:
         if not self.model:
             return None
 
-        # OPTIMIZED: Use assignment instead of full copy if columns missing
         if "price" not in data.columns and "close" in data.columns:
             data = data.assign(price=data["close"])
 
@@ -269,7 +265,6 @@ class PriceTFTModel:
                 "message": "Interpretation requires model evaluation on dataset",
             }
 
-
 if __name__ == "__main__":
     import argparse
     import asyncio
@@ -289,7 +284,6 @@ if __name__ == "__main__":
     if args.tracking_uri:
         mlflow.set_tracking_uri(args.tracking_uri)
 
-    # OPTIMIZED: Use MLflow PyTorch autologging
     mlflow.pytorch.autolog()
 
     async def run_training():

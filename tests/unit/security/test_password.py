@@ -2,11 +2,9 @@ import pytest
 
 from src.auth.password import PasswordService, PasswordValidator
 
-
 @pytest.fixture
 def password_service():
     return PasswordService()
-
 
 def test_hash_and_verify_password(password_service):
     password = "StrongPassword123!"
@@ -14,7 +12,6 @@ def test_hash_and_verify_password(password_service):
     assert hashed != password
     assert password_service.verify_password(password, hashed) is True
     assert password_service.verify_password("wrong", hashed) is False
-
 
 def test_password_validator():
     validator = PasswordValidator(min_length=8)
@@ -32,14 +29,12 @@ def test_password_validator():
     res = validator.validate("NoDigits!")
     assert res.is_valid is False
 
-
 def test_generate_password():
     pwd = PasswordService.generate_password(length=20)
     assert len(pwd) == 20
     # Should have different types of characters
     assert any(c.isdigit() for c in pwd)
     assert any(c.isupper() for c in pwd)
-
 
 def test_password_history(password_service):
     old_passwords = [

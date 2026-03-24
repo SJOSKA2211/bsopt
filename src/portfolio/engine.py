@@ -10,12 +10,10 @@ from src.shared.distributed import RayOrchestrator
 
 logger = structlog.get_logger()
 
-
 @ray.remote
 def _run_backtest_task(engine_instance, df, strategy_fn, params):
     """Ray task for parallel backtest execution."""
     return engine_instance.run_vectorized(df, strategy_fn, params)
-
 
 def _get_quasi_diag(link):
     """Quasi-Diagonalization utility for HRP."""
@@ -33,14 +31,12 @@ def _get_quasi_diag(link):
         num_items = link[-1, 3]
     return sort_ix.tolist()
 
-
 def _get_cluster_var(cov, cluster_items):
     """Cluster variance utility for HRP."""
     cov_c = cov[np.ix_(cluster_items, cluster_items)]
     w = 1.0 / np.diag(cov_c)
     w /= w.sum()
     return np.dot(w.T, np.dot(cov_c, w))
-
 
 def _get_rec_bisec(cov, sort_ix):
     """Recursive bisection utility for HRP."""
@@ -62,7 +58,6 @@ def _get_rec_bisec(cov, sort_ix):
             w[c_left] *= alpha
             w[c_right] *= 1 - alpha
     return w
-
 
 class PortfolioOptimizer:
     """
@@ -100,7 +95,6 @@ class PortfolioOptimizer:
         # 3. Recursive Bisection
         weights = _get_rec_bisec(self.cov_matrix, sort_ix)
         return weights.sort_index().values
-
 
 class BacktestEngine:
     # ... (init stays same)
@@ -259,7 +253,6 @@ class BacktestEngine:
         # Signal: 1 if price > EMA, else 0
         df["target_position"] = np.where(df["underlying_price"] > df["ema"], 10, 0)
         return df
-
 
 class RebalancingEngine:
     """

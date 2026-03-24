@@ -25,7 +25,6 @@ logger = structlog.get_logger(__name__)
 
 _redis: Redis | None = None
 
-
 def get_redis() -> Redis | None:
     """Get or initialize the global Redis client instance."""
     global _redis
@@ -33,7 +32,7 @@ def get_redis() -> Redis | None:
         from src.shared.config import settings
 
         try:
-            # OPTIMIZED: Use a standard from_url which works with both institutional and testing-grade redis backends
+            
             _redis = Redis.from_url(
                 settings.REDIS_URL,
                 decode_responses=False,
@@ -49,7 +48,6 @@ def get_redis() -> Redis | None:
             return None
     return _redis
 
-
 def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -> str:
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
@@ -57,7 +55,6 @@ def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -
     # msgspec is the fastest serialization library available for Python
     param_json = msgspec.json.encode(kwargs)
     return f"{prefix}:{hashlib.sha256(param_json).hexdigest()}"
-
 
 class PricingCache:
     async def get_option_price(
@@ -130,7 +127,6 @@ class PricingCache:
             logger.error("cache_set_greeks_failed", error=str(e), key=key)
             return False
 
-
 def multi_layer_cache(
     prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -168,7 +164,7 @@ def multi_layer_cache(
 
             if redis:
                 try:
-                    # OPTIMIZED: Fetch value AND remaining TTL
+                    
                     pipe = redis.pipeline()
                     pipe.get(cache_key)
                     pipe.pttl(cache_key)
@@ -203,7 +199,7 @@ def multi_layer_cache(
             l1_cache[cache_key] = result
             if redis:
                 try:
-                    # OPTIMIZED: msgspec is extremely fast for complex objects
+                    
                     await redis.setex(cache_key, 3600, msgspec.json.encode(result))
                 except Exception as e:
                     logger.warning("l2_cache_write_failed", error=str(e))
@@ -214,19 +210,16 @@ def multi_layer_cache(
 
     return decorator
 
-
 class RateLimitTier(StrEnum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"
-
 
 @dataclass
 class RateLimitConfig:
     requests_per_minute: int
     pricing_requests_per_minute: int
     burst_size: int
-
 
 RATE_LIMIT_CONFIGS = {
     RateLimitTier.FREE: RateLimitConfig(100, 50, 10),
@@ -235,7 +228,6 @@ RATE_LIMIT_CONFIGS = {
 }
 
 pricing_cache = PricingCache()
-
 
 class RateLimiter:
     async def check_rate_limit(
@@ -330,9 +322,7 @@ class RateLimiter:
             logger.error("db_rate_limit_fallback_failed", error=str(e), user_id=user_id)
             return True  # Fail open
 
-
 rate_limiter = RateLimiter()
-
 
 async def warm_cache() -> None:
     """Pre-warm cache with common option parameters in parallel."""
@@ -368,7 +358,6 @@ async def warm_cache() -> None:
         await asyncio.gather(*tasks)
     logger.info("warming_cache_complete", count=len(tasks))
 
-
 class IdempotencyManager:
     PREFIX = "idem:"
 
@@ -386,9 +375,7 @@ class IdempotencyManager:
         result = await redis.set(full_key, "1", ex=ttl, nx=True)
         return bool(result)
 
-
 idempotency_manager = IdempotencyManager()
-
 
 class DatabaseQueryCache:
     PREFIX = "db:"
@@ -415,13 +402,10 @@ class DatabaseQueryCache:
             logger.error("db_cache_set_user_failed", error=str(e), user_id=user_id)
             return False
 
-
 db_cache = DatabaseQueryCache()
-
 
 # --- Real-time updates support ---
 redis_channel_updates: str = "pricing_updates"
-
 
 async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
     """Publish a message to a Redis channel using msgspec."""
@@ -433,7 +417,6 @@ async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
             logger.debug("redis_publish_success", channel=channel)
         except Exception as e:
             logger.error("redis_publish_failed", error=str(e), channel=channel)
-
 
 class RedisStreamManager:
     """
@@ -501,9 +484,7 @@ class RedisStreamManager:
             logger.error("redis_xack_failed", error=str(e), stream=stream)
             return 0
 
-
 stream_manager = RedisStreamManager()
-
 
 async def get_redis_client() -> Redis:
     """FastAPI dependency to get the Redis client."""
@@ -514,7 +495,6 @@ async def get_redis_client() -> Redis:
         raise HTTPException(status_code=500, detail="Redis client not initialized")
     return redis
 
-
 async def init_redis_cache(**kwargs: Any) -> None:
     """Initialize the Redis cache during startup."""
     redis = get_redis()
@@ -524,7 +504,6 @@ async def init_redis_cache(**kwargs: Any) -> None:
             logger.info("redis_cache_initialized")
         except Exception as e:
             logger.error("redis_cache_init_failed", error=str(e))
-
 
 async def close_redis_cache() -> None:
     """Close the Redis client connection."""
@@ -537,10 +516,9 @@ async def close_redis_cache() -> None:
         except Exception as e:
             logger.error("redis_cache_close_failed", error=str(e))
 
-
 def generate_consistent_key(request: Any, prefix: str) -> str:
     """Generate a high-performance consistent cache key for HTTP requests."""
-    # OPTIMIZED: Deterministic sorting of query params for stable hashing
+    
     params = sorted(request.query_params.items())
 
     # Use blake2b for faster hashing than sha256
@@ -550,7 +528,6 @@ def generate_consistent_key(request: Any, prefix: str) -> str:
         hasher.update(f"{k}:{v}".encode())
 
     return f"{prefix}:{hasher.hexdigest()}"
-
 
 def cached_endpoint(prefix: str = "api_cache", ttl: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
@@ -591,7 +568,7 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60) -> Callable[[Calla
             try:
                 data = None
                 if isinstance(response, Response):
-                    # OPTIMIZED: Capture body from Response objects
+                    
                     data = response.body
                 elif hasattr(response, "model_dump_json"):
                     data = response.model_dump_json().encode()

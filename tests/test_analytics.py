@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"
 
 # Note: We will implement VolatilityAggregationStream in src/streaming/analytics.py
 
-
 def test_volatility_calculation_logic():
     from streaming.analytics import VolatilityAggregationStream
 
@@ -36,7 +35,6 @@ def test_volatility_calculation_logic():
         expected_vol = np.sqrt(variance) * scaling_factor
 
         assert pytest.approx(new_vol, rel=1e-5) == expected_vol
-
 
 @pytest.mark.asyncio
 async def test_stream_processing_flow():
@@ -73,7 +71,6 @@ async def test_stream_processing_flow():
             assert vol == 0.25
             assert stream_proc.volatility_table["AAPL"] == 0.25
             assert stream_proc.price_history["AAPL"] == 151.5
-
 
 @pytest.mark.asyncio
 async def test_calculate_realized_volatility_loop():

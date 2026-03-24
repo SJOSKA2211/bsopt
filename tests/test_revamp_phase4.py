@@ -5,7 +5,6 @@ import pytest
 from src.ml.distributed_training import BSOptDistributedTrainer
 from src.quant.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
 
-
 class TestRevampPhase4:
     @pytest.mark.asyncio
     async def test_quantum_pricer_speedup_calculation(self):

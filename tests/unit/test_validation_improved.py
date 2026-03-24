@@ -4,7 +4,6 @@ import numpy as np
 
 from src.ml.utils.validation import WalkForwardValidator
 
-
 class TestValidation:
     def test_expanding_window(self):
         X = np.arange(100)
@@ -29,6 +28,4 @@ class TestValidation:
         # In sliding window, test size should be 10
         train, test = splits[0]
         assert len(test) == 10
-
-
 

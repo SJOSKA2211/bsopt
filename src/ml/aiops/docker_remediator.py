@@ -29,7 +29,6 @@ ALLOWED_SERVICES = {
 
 SERVICE_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
 
-
 class DockerRemediator:
     """
     Advanced Docker remediator supporting restarts and autonomous scaling.

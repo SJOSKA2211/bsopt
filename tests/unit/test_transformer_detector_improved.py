@@ -4,7 +4,6 @@ import numpy as np
 
 from src.ml.aiops.transformer_detector import TransformerAnomalyDetector
 
-
 class TestTransformerDetectorReal:
     def setUp(self):
         self.input_dim = 5
@@ -36,6 +35,4 @@ class TestTransformerDetectorReal:
 
         res = self.detector.detect(anomalous_data)
         assert res["culprit_index"] == 2
-
-
 

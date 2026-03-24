@@ -8,7 +8,6 @@ from src.quant.pricing.quant_utils import (
     generate_paths_v2,
 )
 
-
 def benchmark_jit_warmup():
     print("--- JIT Warmup Impact ---")
     s = np.array([100.0], dtype=np.float64)
@@ -33,7 +32,6 @@ def benchmark_jit_warmup():
     print(f"Hot Call (Optimized): {hot_time:.4f}ms")
     if cold_time > 0:
         print(f"Speedup from warmup: {cold_time / max(hot_time, 1e-9):.1f}x")
-
 
 def benchmark_quant():
     print("\n--- Quant Benchmarks ---")
@@ -60,7 +58,6 @@ def benchmark_quant():
     end = time.perf_counter()
     print(f"Batch BS Price ({n_options} options): {(end - start) * 1000:.2f}ms")
 
-
 def benchmark_risk():
     print("\n--- Risk Benchmarks ---")
     state = np.array([0.0, 0.0, 0.0], dtype=np.float64)
@@ -73,7 +70,6 @@ def benchmark_risk():
     end = time.perf_counter()
     avg_ns = ((end - start) / n_iterations) * 1e9
     print(f"Multi-Greeks Risk Kernel: {avg_ns:.2f}ns per check")
-
 
 def benchmark_exotic():
     print("\n--- Exotic Option Benchmarks (Rust/JIT) ---")
@@ -94,7 +90,6 @@ def benchmark_exotic():
     end = time.perf_counter()
     print(f"Geometric Asian (Rust/JIT): {(end - start) * 1000:.2f}µs per price")
 
-
 def benchmark_heston():
     print("\n--- Heston Model Benchmarks (FFT + Rust CF) ---")
     from src.quant.pricing.models import HestonParams
@@ -108,7 +103,6 @@ def benchmark_heston():
         model.price_call(100.0, 100.0)
     end = time.perf_counter()
     print(f"Heston FFT (Rust-Accelerated): {(end - start) * 10:.2f}ms per price")
-
 
 if __name__ == "__main__":
     benchmark_jit_warmup()

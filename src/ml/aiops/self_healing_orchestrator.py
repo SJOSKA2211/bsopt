@@ -17,7 +17,6 @@ from src.shared.observability import (
 
 logger = structlog.get_logger(__name__)
 
-
 class SelfHealingOrchestrator:
     """
     Autonomous orchestrator that combines real-time anomaly detection
@@ -26,24 +25,29 @@ class SelfHealingOrchestrator:
 
     def __init__(
         self,
-        detector: AnomalyDetector,
-        remediators: list[BaseRemediator],
+        detector: AnomalyDetector | None = None,
+        remediators: list[BaseRemediator] | None = None,
         config: dict[str, Any] | None = None,
         check_interval: int = 10,
         drift_threshold_psi: float = 0.2,
     ):
         setup_logging()
-        self.detector = detector
-        self.planner = RemediationPlanner(remediators)
-        self.remediators = remediators
         self.config = config or {}
+        
+        # 1. Detection Core
+        self.detector = detector or AnomalyDetector(engine="isolation_forest")
+        self.remediators = remediators or RemediationPlanner().remediators.values()
+        self.planner = RemediationPlanner(list(self.remediators))
+        
+        # 2. Thresholds and State
         self.check_interval = self.config.get("check_interval_seconds", check_interval)
         self.drift_threshold_psi = self.config.get("data_drift_psi_threshold", drift_threshold_psi)
         self.is_running = False
         self.reference_data = None
         self.history = []
+        self.anomaly_queue_key = "aiops:anomaly_queue"
 
-        # Prometheus & Advanced Detectors
+        # 3. Enhanced Detectors
         self.prometheus_url = self.config.get("prometheus_url")
         self.prometheus_client = (
             PrometheusClient(url=self.prometheus_url) if self.prometheus_url else None
@@ -63,77 +67,84 @@ class SelfHealingOrchestrator:
         self.max_history = 1000
         self.last_baseline_update = time.time()
 
-    async def run_cycle(self, current_data: pd.DataFrame):
+    async def _process_redis_anomalies(self):
+        """Polls Redis for externally reported anomalies (e.g. from Webhooks)."""
+        from src.shared.utils.cache import get_redis
+        redis = get_redis()
+        if not redis:
+            return []
+
+        anomalies = []
+        while True:
+            data = await redis.lpop(self.anomaly_queue_key)
+            if not data:
+                break
+            try:
+                import msgspec
+                anomaly = msgspec.json.decode(data)
+                anomalies.append(anomaly)
+                logger.warning("external_anomaly_received", anomaly=anomaly)
+            except Exception as e:
+                logger.error("failed_to_decode_external_anomaly", error=str(e))
+        return anomalies
+
+    async def run_cycle(self, current_data: pd.DataFrame | None = None):
         """
-        Perform one cycle of detection, drift analysis, and remediation (Optimized).
+        Perform one cycle of detection, drift analysis, and remediation.
         """
-        logger.info("self_healing_cycle_start", data_points=len(current_data))
+        logger.info("self_healing_cycle_start")
 
         try:
-            # 1. RUN ALL DETECTION CONCURRENTLY ( Concurrency Fusion)
-            # - Reactive: Point anomalies (ML)
-            # - Proactive: System anomalies (Prometheus)
-            # - Baseline: Distribution drift (Statistical)
-
-            tasks = [
-                asyncio.to_thread(self.detector.detect, current_data),
-                self._detect_system_anomalies(),
-                asyncio.to_thread(self._analyze_drift, current_data),
-            ]
+            # 1. Gather all anomaly signals
+            tasks = [self._process_redis_anomalies()]
+            
+            if current_data is not None:
+                tasks.append(asyncio.to_thread(self.detector.detect, current_data))
+                tasks.append(asyncio.to_thread(self._analyze_drift, current_data))
+            
+            if self.prometheus_client:
+                tasks.append(self._detect_system_anomalies())
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            anomalies = results[0] if not isinstance(results[0], Exception) else []
-            system_anomalies = results[1] if not isinstance(results[1], Exception) else []
-            drift_anomalies = results[2] if not isinstance(results[2], Exception) else []
+            # Extract results safely
+            external_anomalies = results[0] if not isinstance(results[0], Exception) else []
+            
+            idx = 1
+            ml_anomalies = []
+            if current_data is not None:
+                ml_anomalies = results[idx] if not isinstance(results[idx], Exception) else []
+                idx += 1
+                drift_anomalies = results[idx] if not isinstance(results[idx], Exception) else []
+                idx += 1
+            else:
+                drift_anomalies = []
 
-            if isinstance(results[0], Exception):
-                logger.error("anomaly_detector_failed", error=str(results[0]))
-            if isinstance(results[2], Exception):
-                logger.error("drift_analysis_failed", error=str(results[2]))
+            system_anomalies = []
+            if self.prometheus_client:
+                system_anomalies = results[idx] if not isinstance(results[idx], Exception) else []
 
-            all_anomalies = anomalies + system_anomalies + drift_anomalies
+            all_anomalies = external_anomalies + ml_anomalies + drift_anomalies + system_anomalies
 
             if not all_anomalies:
                 logger.info("system_health_nominal")
                 return
 
-            logger.warning(
-                "anomalies_detected",
-                point=len(anomalies),
-                system=len(system_anomalies),
-                drift=len(drift_anomalies),
-            )
-
-            # 4. Intelligent Remediation Planning
-            # Remediations are kept sequential to avoid state corruption/race conditions
-            # in the infrastructure, but the planning is O(1).
+            # 2. Remediation Execution
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
-                if actions:
-                    logger.info(
-                        "executing_remediation_plan",
-                        anomaly_type=anomaly.get("type"),
-                        actions=[a.name for a in actions],
-                    )
-                    for action in actions:
-                        if action.can_run():
-                            logger.info(
-                                "executing_remediation",
-                                action=action.name,
-                                anomaly=anomaly.get("type"),
+                for action in actions:
+                    if action.can_run():
+                        logger.warning("executing_remediation", action=action.name, type=anomaly.get("type"))
+                        success = await action.remediate(anomaly)
+                        await action.update_last_run()
+                        self._record_history(action.name, anomaly, success)
+                        
+                        if success:
+                            post_grafana_annotation(
+                                f"Remediated {anomaly.get('type')} via {action.name}",
+                                ["aiops", "remediation"]
                             )
-                            success = await action.remediate(anomaly)
-                            await action.update_last_run()
-
-                            self._record_history(action.name, anomaly, success)
-                            if success:
-                                post_grafana_annotation(
-                                    f"Remediated {anomaly.get('type')} via {action.name}",
-                                    ["aiops", "remediation"],
-                                )
-                        else:
-                            logger.debug("remediation_skipped_cooldown", action=action.name)
 
         except Exception as e:
             logger.error("self_healing_cycle_error", error=str(e))

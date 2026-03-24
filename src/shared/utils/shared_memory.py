@@ -8,7 +8,6 @@ import structlog
 
 logger = structlog.get_logger()
 
-
 class SharedMemoryManager:
     """
     Manages a pool of pre-allocated shared memory segments to enable
@@ -76,7 +75,7 @@ class SharedMemoryManager:
         """Releases a segment back to the pool."""
         with self._pool_lock:
             if name in self.all_segments and name not in self.available_segments:
-                # OPTIMIZED: Zero out buffer on release for security/consistency
+                
                 shm = self.all_segments[name]
                 buf = shm.buf
                 if buf is not None:
@@ -101,10 +100,8 @@ class SharedMemoryManager:
             self.all_segments.clear()
             self.available_segments.clear()
 
-
 # Global manager instance
 shm_manager = SharedMemoryManager.get_instance()
 
-# OPTIMIZED: Only close local handles on exit.
 # Global unlinking should be handled by the orchestrator/launcher.
 atexit.register(shm_manager.cleanup, unlink=False)

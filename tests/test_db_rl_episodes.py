@@ -8,20 +8,17 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
 
-
 def test_rl_episodes_table_exists(db_engine):
     """Test that rl_episodes table exists."""
     with db_engine.connect() as conn:
         result = conn.execute(text("SELECT to_regclass('rl_episodes');"))
         assert result.scalar() is not None, "rl_episodes table does not exist"
-
 
 def test_insert_and_query_rl_episode(db_engine):
     """Test inserting and retrieving an RL episode record."""

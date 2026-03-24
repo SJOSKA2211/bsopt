@@ -17,7 +17,6 @@ from src.shared.redis_streams import RedisStreamManager
 
 logger = structlog.get_logger(__name__)
 
-
 class OutboxService:
     """
     Poller for the outbox table to dispatch events.
@@ -85,6 +84,5 @@ class OutboxService:
             except Exception as e:
                 logger.error("outbox_service_loop_error", error=str(e))
                 await asyncio.sleep(5)
-
 
 outbox_service = OutboxService()

@@ -22,14 +22,12 @@ from src.database.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"], default_response_class=MsgspecJSONResponse)
 
-
 @router.get("/me")
 async def get_current_user_profile(user: User = Depends(get_current_user)):
     """
     Fetch the authenticated user's profile.
     """
     return DataResponseStruct(data=UserResponse.from_orm(user))
-
 
 @router.patch("/me")
 async def update_current_user_profile(
@@ -55,7 +53,6 @@ async def update_current_user_profile(
         raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
     return SuccessResponse(message="Profile updated in High-Performance")
-
 
 @router.get(
     "",

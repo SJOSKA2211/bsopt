@@ -8,7 +8,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class SharedExperienceBuffer:
     """
     High-performance Shared Memory Replay Buffer.

@@ -18,7 +18,6 @@ from src.shared.observability import (
 
 logger = structlog.get_logger()
 
-
 @dataclass
 class MarketOption:
     """Market option data point."""
@@ -44,7 +43,6 @@ class MarketOption:
     @property
     def moneyness(self) -> float:
         return self.strike / self.spot
-
 
 class HestonCalibrator:
     """
@@ -160,7 +158,6 @@ class HestonCalibrator:
                     providers=[p[0] if isinstance(p, tuple) else p for p in providers],
                 )
 
-                # OPTIMIZED: Pre-warm the session to avoid cold-start latency
                 try:
                     dummy_input = np.zeros((1, 1, 10, 10), dtype=np.float32)
                     if len(self.ort_session.get_inputs()[0].shape) == 2:

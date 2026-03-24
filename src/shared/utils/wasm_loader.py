@@ -6,7 +6,6 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class WasmModuleCache:
     """
     OPTIMIZED: Persistence and caching for compiled WASM modules.
@@ -29,7 +28,7 @@ class WasmModuleCache:
             try:
                 with open(cache_path, "rb") as f:
                     compiled_bytes = f.read()
-                # OPTIMIZED: Deserializing pre-compiled machine code
+                
                 module = Module.deserialize(store, compiled_bytes)
                 cls._memory_cache[wasm_path] = module
                 logger.info("wasm_module_deserialized", path=wasm_path)
@@ -73,7 +72,6 @@ class WasmModuleCache:
             if size is None:
                 size = (len(buffer) - offset) // 8
 
-            # OPTIMIZED: Using frombuffer for zero-copy view
             data_view: np.ndarray[Any, np.dtype[np.float64]] = np.frombuffer(
                 buffer, dtype=np.float64, count=size, offset=offset
             )
@@ -81,7 +79,6 @@ class WasmModuleCache:
         except Exception as e:
             logger.error("wasm_memory_mapping_failed", error=str(e))
             return np.empty(0, dtype=np.float64)
-
 
 def get_wasm_instance() -> Any:
     """
@@ -115,7 +112,6 @@ def get_wasm_instance() -> Any:
     except Exception as e:
         logger.error("wasm_instantiation_failed", error=str(e))
         return None
-
 
 # Singleton accessor
 wasm_cache = WasmModuleCache()

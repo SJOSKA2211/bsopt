@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/run_ingestion.sh - Institutional Data Ingestion Orchestrator
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

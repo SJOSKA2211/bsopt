@@ -8,7 +8,6 @@ from src.trading.execution import OrderExecutor
 
 logger = structlog.get_logger(__name__)
 
-
 @strawberry.type
 class Order:
     id: strawberry.ID
@@ -22,11 +21,9 @@ class Order:
     created_at: datetime
     updated_at: datetime
 
-
 # Global executor instance (reuse connection pool)
 protocol = DeFiOptionsProtocol()
 executor = OrderExecutor(protocol=protocol)
-
 
 async def create_order(
     portfolio_id: strawberry.ID,
@@ -67,7 +64,6 @@ async def create_order(
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
-
 
 async def cancel_order(order_id: strawberry.ID) -> bool:
     logger.info("order_cancel_request", order_id=order_id)

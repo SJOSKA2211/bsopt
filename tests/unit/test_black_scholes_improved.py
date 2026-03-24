@@ -3,7 +3,6 @@ import pytest
 
 from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
 
-
 @pytest.fixture
 def params():
     return BSParameters(
@@ -15,13 +14,11 @@ def params():
         dividend=0.01,
     )
 
-
 def test_price_options_scalar(params):
     engine = BlackScholesEngine()
     price = engine.price_options(params=params, option_type="call")
     assert isinstance(price, float)
     assert price > 0
-
 
 def test_price_options_vectorized():
     spots = np.array([100.0, 110.0])
@@ -33,7 +30,6 @@ def test_price_options_vectorized():
     assert len(prices) == 2
     assert prices[1] > prices[0]
 
-
 def test_calculate_greeks(params):
     engine = BlackScholesEngine()
     greeks = engine.calculate_greeks(params=params, option_type="call")
@@ -41,7 +37,6 @@ def test_calculate_greeks(params):
     delta = float(greeks.delta) if isinstance(greeks.delta, np.ndarray) else greeks.delta
     assert delta > 0
     assert delta < 1.0
-
 
 def test_put_call_parity(params):
     engine = BlackScholesEngine()
@@ -58,14 +53,12 @@ def test_put_call_parity(params):
     )
     assert parity
 
-
 def test_price_call_put(params):
     engine = BlackScholesEngine()
     call_p = engine.price_call(params)
     put_p = engine.price_put(params)
     assert call_p > 0
     assert put_p > 0
-
 
 def test_price_batch():
     engine = BlackScholesEngine()
@@ -78,7 +71,6 @@ def test_price_batch():
     option_types = np.array(["call", "call"])
     prices = engine.price_batch(S, K, T, sigma, r, q, option_types)
     assert len(prices) == 2
-
 
 def test_calculate_greeks_batch():
     engine = BlackScholesEngine()
@@ -94,12 +86,10 @@ def test_calculate_greeks_batch():
     assert "delta" in greeks
     assert len(greeks["delta"]) == 2
 
-
 def test_instance_price(params):
     engine = BlackScholesEngine()
     price = engine.price(params, option_type="call")
     assert price > 0
-
 
 def test_module_level_funcs(params):
     from src.math_kernel.black_scholes import black_scholes

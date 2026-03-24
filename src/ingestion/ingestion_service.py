@@ -8,12 +8,10 @@ try:
 except ImportError:
     equaflow_core = None
 
-
 from src.shared.protos import data_pb2, data_pb2_grpc
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
-
 
 class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
     """
@@ -110,7 +108,6 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
             context.set_details(str(e))
             return data_pb2.HistoryResponse()
 
-
 async def serve():
     server = grpc.aio.server()
     data_pb2_grpc.add_DataServiceServicer_to_server(DataIngestionServicer(), server)
@@ -119,7 +116,6 @@ async def serve():
     logger.info("ingestion_grpc_server_started", addr=listen_addr)
     await server.start()
     await server.wait_for_termination()
-
 
 if __name__ == "__main__":
     asyncio.run(serve())

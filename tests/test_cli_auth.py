@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, mock_open, patch
 
 from scripts.auth import AuthManager
 
-
 def test_cli_login():
     with patch("httpx.Client") as mock_client_cls:
         # Setup the mock instance
@@ -31,7 +30,6 @@ def test_cli_login():
                 result = auth.login("user@example.com", "password")
 
             assert result["access_token"] == "token"
-
 
 def test_cli_logout():
     with patch("pathlib.Path.mkdir"):  # Avoid creating directories

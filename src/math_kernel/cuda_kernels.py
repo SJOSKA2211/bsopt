@@ -38,7 +38,6 @@ from src.shared.utils.memory import profile_gpu_memory
 
 logger = structlog.get_logger(__name__)
 
-
 def _scipy_erf_approx(x: float) -> float:
     """
     High-precision rational approximation of the error function (Cody 1969).
@@ -55,13 +54,11 @@ def _scipy_erf_approx(x: float) -> float:
     res = 1.0 - (sum_val**-16)
     return res if x >= 0 else -res
 
-
 def _get_erf_func():
     """Get erf function based on available backend."""
     if CUPY_AVAILABLE:
         return cupy_erf
     return _scipy_erf_approx
-
 
 def _norm_cdf(x: float | np.ndarray | cp._core.ndarray) -> float | np.ndarray | cp._core.ndarray:
     """Vectorized normal CDF computation."""
@@ -70,13 +67,11 @@ def _norm_cdf(x: float | np.ndarray | cp._core.ndarray) -> float | np.ndarray | 
         return 0.5 * (1.0 + _scipy_erf_approx(x / math.sqrt(2)))
     return 0.5 * (1.0 + erf_func(x / math.sqrt(2)))
 
-
 def _norm_pdf(x: float | np.ndarray | cp._core.ndarray) -> float | np.ndarray | cp._core.ndarray:
     """Vectorized normal PDF computation."""
     if isinstance(x, float):
         return (1.0 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * x * x)
     return (1.0 / math.sqrt(2 * math.pi)) * np.exp(-0.5 * x * x)
-
 
 @vectorize([float64(float64)], target="cuda")
 def cnd_cuda(d: float) -> float:
@@ -106,7 +101,6 @@ def cnd_cuda(d: float) -> float:
 
     erf_val = y if x >= 0 else -y
     return 0.5 * (1.0 + erf_val)
-
 
 @cuda.jit
 def black_scholes_cuda_kernel(
@@ -153,7 +147,6 @@ def black_scholes_cuda_kernel(
             Nd2_neg = cnd_cuda(-d2)
             d_out[i] = K * math.exp(-r * T) * Nd2_neg - S * math.exp(-q * T) * Nd1_neg
 
-
 @profile_gpu_memory
 def price_options_gpu(
     S: np.ndarray,
@@ -190,7 +183,6 @@ def price_options_gpu(
         del d_S, d_K, d_T, d_sigma, d_r, d_q, d_is_call, d_out
 
     return out
-
 
 def black_scholes_cupy(
     s: np.ndarray | cp.ndarray,
@@ -260,7 +252,6 @@ def black_scholes_cupy(
         put_price = np.where(t <= 0, np.maximum(k - s, 0.0), put_price)
 
         return np.where(is_call, call_price, put_price)
-
 
 def black_scholes_greeks_cupy(
     s: np.ndarray,
@@ -366,7 +357,6 @@ def black_scholes_greeks_cupy(
             "rho": rho,
         }
 
-
 def batch_price_cupy(
     s: np.ndarray,
     k: np.ndarray,
@@ -384,7 +374,6 @@ def batch_price_cupy(
     """
     return black_scholes_cupy(s, k, t, sigma, r, q, is_call)
 
-
 def batch_greeks_cupy(
     s: np.ndarray,
     k: np.ndarray,
@@ -401,7 +390,6 @@ def batch_greeks_cupy(
         Dictionary with delta, gamma, theta, vega, rho arrays
     """
     return black_scholes_greeks_cupy(s, k, t, sigma, r, q, is_call)
-
 
 def portfolio_greeks_cupy(
     positions: np.ndarray,
@@ -430,7 +418,6 @@ def portfolio_greeks_cupy(
         portfolio_greeks[f"net_{greek_name}"] = float(np.sum(positions * greek_values))
 
     return portfolio_greeks
-
 
 if __name__ == "__main__":
     import time

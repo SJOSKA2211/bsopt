@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 def sanitize_path(base_dir: Path, user_path: str) -> Path:
     """
     Sanitized path protection with symlink resolution.
@@ -19,7 +18,6 @@ def sanitize_path(base_dir: Path, user_path: str) -> Path:
         raise ValueError(f"Path traversal detected: {user_path}")
 
     return full_path
-
 
 async def sanitize_path_async(base_dir: Path, user_path: str) -> Path:
     """Non-blocking path sanitization."""

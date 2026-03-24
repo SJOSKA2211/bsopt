@@ -12,14 +12,12 @@ sys.modules["optuna.pruners"] = MagicMock()
 
 from src.ml.trainer import ModelTrainer
 
-
 @pytest.fixture
 def trainer_data():
     X = np.random.rand(100, 5)
     y = np.random.rand(100)
     params = {"framework": "sklearn", "n_estimators": 10}
     return X, y, params
-
 
 @pytest.fixture
 def trainer():
@@ -28,7 +26,6 @@ def trainer():
         patch("src.ml.trainer.ModelQuantizer"),
     ):
         return ModelTrainer(study_name="test_study")
-
 
 @patch("src.ml.trainer.get_strategy")
 @patch("src.ml.trainer.calculate_regression_metrics")
@@ -44,7 +41,6 @@ def test_train_and_evaluate(mock_metrics, mock_get_strategy, trainer, trainer_da
     r2 = trainer.train_and_evaluate(X, y, params)
     assert r2 == 0.9
     assert mock_strategy.train.called
-
 
 @patch("src.ml.trainer.optuna.create_study")
 def test_optimize(mock_create_study, trainer):

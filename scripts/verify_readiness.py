@@ -19,7 +19,6 @@ SERVICES = {
     "MLflow": "http://localhost:5000/",
 }
 
-
 async def check_http_service(name: str, url: str) -> bool:
     """Check a microservice's health endpoint."""
     async with httpx.AsyncClient(timeout=5.0) as client:
@@ -35,7 +34,6 @@ async def check_http_service(name: str, url: str) -> bool:
             print(f"🚨 {name:15} | DOWN ({str(e)})")
             return False
 
-
 async def check_postgres() -> bool:
     db_url = os.getenv("DATABASE_URL_LOCAL", "postgresql://admin:password@localhost:5434/bsopt")
     try:
@@ -48,7 +46,6 @@ async def check_postgres() -> bool:
         print(f"🚨 {'TimescaleDB':15} | CONNECTION FAILED ({str(e)})")
         return False
 
-
 async def check_redis() -> bool:
     try:
         r = redis.from_url("redis://localhost:6379/0")
@@ -60,7 +57,6 @@ async def check_redis() -> bool:
         print(f"🚨 {'Redis':15} | CONNECTION FAILED ({str(e)})")
         return False
 
-
 async def check_rabbitmq() -> bool:
     try:
         # Default dev credentials
@@ -71,7 +67,6 @@ async def check_rabbitmq() -> bool:
     except Exception as e:
         print(f"🚨 {'RabbitMQ':15} | CONNECTION FAILED ({str(e)})")
         return False
-
 
 async def verify_security() -> bool:
     """Check for presence of institutional key pairs."""
@@ -86,7 +81,6 @@ async def verify_security() -> bool:
     if all_present:
         print(f"✅ {'PKI Assets':15} | VALIDATED (RSA 4096 / ECC P-256)")
     return all_present
-
 
 async def verify_readiness():
     """Run full institutional readiness check."""
@@ -114,7 +108,6 @@ async def verify_readiness():
         print("⚠️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
         sys.exit(1)
     print("=" * 60)
-
 
 if __name__ == "__main__":
     asyncio.run(verify_readiness())

@@ -25,7 +25,6 @@ from src.quant.pricing.implied_vol import (
 )
 from tests.test_utils import assert_equal
 
-
 class TestRoundTrip:
     """Test that we can recover the original volatility from calculated prices."""
 
@@ -62,7 +61,6 @@ class TestRoundTrip:
         iv = implied_volatility(market_price, spot, strike, 1.0, 0.05, 0.02, "call")
 
         assert_equal(iv, vol_true, tolerance=1e-5, message=f"Failed for moneyness={moneyness}")
-
 
 class TestEdgeCases:
     """Test edge cases: deep ITM/OTM, extreme maturities, extreme volatilities."""
@@ -210,7 +208,6 @@ class TestEdgeCases:
         iv = implied_volatility(market_price, 100, 100, 1.0, 0.05, 0.10, "call")
         assert_equal(iv, vol_true, tolerance=1e-6)
 
-
 class TestMethodComparison:
     """Compare Newton-Raphson and Brent's methods."""
 
@@ -269,7 +266,6 @@ class TestMethodComparison:
 
         assert_equal(iv_auto, iv_newton, tolerance=1e-10)
 
-
 class TestPerformance:
     """Test convergence speed and efficiency."""
 
@@ -315,7 +311,6 @@ class TestPerformance:
 
             assert_equal(iv, 0.25, tolerance=1e-6)
 
-
 class TestAccuracy:
     """Test numerical accuracy requirements."""
 
@@ -341,7 +336,6 @@ class TestAccuracy:
         repriced = BlackScholesEngine.price_call(params_recovered)
 
         assert_equal(repriced, market_price, tolerance=1e-8)
-
 
 class TestErrorHandling:
     """Test error handling and validation."""
@@ -445,7 +439,6 @@ class TestErrorHandling:
                 initial_guess=5.0,
             )
 
-
 class TestIntrinsicValue:
     """Test intrinsic value calculation."""
 
@@ -473,7 +466,6 @@ class TestIntrinsicValue:
         """OTM put should have zero intrinsic value."""
         intrinsic = _calculate_intrinsic_value(110, 100, 0.05, 0.02, 1.0, "put")
         assert_equal(intrinsic, 0)
-
 
 class TestIntegration:
     """Integration tests with Black-Scholes engine."""
@@ -546,7 +538,6 @@ class TestIntegration:
 
         # IVs should be the same (put-call parity)
         assert_equal(iv_call, iv_put, tolerance=1e-6)
-
 
 if __name__ == "__main__":
     """Run tests with pytest."""

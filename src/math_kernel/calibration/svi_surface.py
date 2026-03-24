@@ -15,7 +15,6 @@ from src.shared.math_utils import njit_engine
 
 logger = structlog.get_logger()
 
-
 @njit_engine(cache=True, fastmath=True)
 def _raw_svi_kernel(
     k: np.ndarray[Any, np.dtype[np.float64]],
@@ -30,7 +29,6 @@ def _raw_svi_kernel(
         np.ndarray[Any, np.dtype[np.float64]],
         a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2)),
     )
-
 
 class SVISurface:
     """

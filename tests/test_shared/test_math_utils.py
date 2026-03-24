@@ -4,16 +4,13 @@ import numpy as np
 
 from src.shared import math_utils
 
-
 def test_fast_normal_cdf_scalar():
     assert math.isclose(math_utils.fast_normal_cdf(0.0), 0.5, rel_tol=1e-5)
     assert math.isclose(math_utils.fast_normal_cdf(100.0), 1.0, rel_tol=1e-5)
     assert math.isclose(math_utils.fast_normal_cdf(-100.0), 0.0, rel_tol=1e-5)
 
-
 def test_fast_normal_pdf_scalar():
     assert math.isclose(math_utils.fast_normal_pdf(0.0), 0.39894228, rel_tol=1e-5)
-
 
 def test_vectorized_cdf():
     x = np.array([0.0, 100.0, -100.0])
@@ -21,13 +18,11 @@ def test_vectorized_cdf():
     y = v_cdf(x)
     assert np.allclose(y, [0.5, 1.0, 0.0], atol=1e-5)
 
-
 def test_calculate_price_call():
     # S=100, K=100, T=1, sigma=0.2, r=0.05, q=0.0
     # Expected call ~ 10.45
     price = math_utils.calculate_price_scalar(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, True)
     assert 10.0 < price < 11.0
-
 
 def test_calculate_price_put():
     # Put-Call Parity: C - P = S - K*e(-rT)
@@ -35,7 +30,6 @@ def test_calculate_price_put():
     # P ~ 10.45 - 4.88 = 5.57
     price = math_utils.calculate_price_scalar(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, False)
     assert 5.0 < price < 6.0
-
 
 def test_vectorized_pricing():
     S = np.array([100.0, 100.0])
@@ -50,7 +44,6 @@ def test_vectorized_pricing():
     assert len(prices) == 2
     assert prices[0] > prices[1]  # Longer expiry -> higher price
 
-
 def test_greeks_scalar():
     delta, gamma, theta, vega, rho = math_utils.calculate_greeks_scalar(
         100.0, 100.0, 1.0, 0.2, 0.05, 0.0, True
@@ -58,7 +51,6 @@ def test_greeks_scalar():
     assert 0.0 <= delta <= 1.0
     assert gamma > 0
     assert vega > 0
-
 
 def test_expiry_boundary():
     # T=0

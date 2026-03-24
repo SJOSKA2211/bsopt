@@ -1,6 +1,5 @@
 import subprocess
 
-
 def get_sysctl(key):
     try:
         output = subprocess.check_output(["sysctl", "-n", key]).decode().strip()
@@ -8,13 +7,11 @@ def get_sysctl(key):
     except Exception:
         return None
 
-
 def test_file_max_limit():
     # C100k requires significantly higher file descriptor limits
     file_max = get_sysctl("fs.file-max")
     assert file_max is not None
     assert int(file_max) >= 200000, f"fs.file-max should be at least 200,000, got {file_max}"
-
 
 def test_tcp_tw_reuse():
     # Allows faster recycling of sockets in TIME_WAIT state
@@ -24,7 +21,6 @@ def test_tcp_tw_reuse():
         "2",
     ], f"net.ipv4.tcp_tw_reuse should be 1 or 2, got {tw_reuse}"
 
-
 def test_somaxconn():
     # Prevents connection drops during traffic spikes
     somaxconn = get_sysctl("net.src.shared.somaxconn")
@@ -32,7 +28,6 @@ def test_somaxconn():
     assert int(somaxconn) >= 4096, (
         f"net.src.shared.somaxconn should be at least 4096, got {somaxconn}"
     )
-
 
 def test_ulimit_nofile():
     # Check current process soft limit for open files

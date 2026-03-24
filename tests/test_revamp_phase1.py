@@ -5,7 +5,6 @@ import pytest
 from src.math_kernel.risk_kernels import IncrementalDeltaTracker
 from src.workers.math_worker import _recalibrate_symbol_impl
 
-
 class TestRevampPhase1:
     def test_incremental_delta_tracker(self):
         tracker = IncrementalDeltaTracker(initial_delta=100.0, max_net_delta=1000.0)

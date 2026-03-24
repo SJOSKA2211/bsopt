@@ -2,7 +2,6 @@ import pytest
 
 from src.math_kernel.risk_kernels import IncrementalDeltaTracker
 
-
 def test_incremental_delta_tracker_success():
     tracker = IncrementalDeltaTracker(initial_delta=0.0, max_net_delta=100.0)
 
@@ -18,7 +17,6 @@ def test_incremental_delta_tracker_success():
     assert tracker.validate_and_update(-20.0) is True
     assert tracker.current_net_delta == 70.0
 
-
 def test_incremental_delta_tracker_veto():
     tracker = IncrementalDeltaTracker(initial_delta=90.0, max_net_delta=100.0)
 
@@ -30,7 +28,6 @@ def test_incremental_delta_tracker_veto():
     assert tracker.validate_and_update(10.0) is True
     assert tracker.current_net_delta == 100.0
 
-
 def test_incremental_delta_tracker_negative_limit():
     tracker = IncrementalDeltaTracker(initial_delta=-90.0, max_net_delta=100.0)
 
@@ -41,7 +38,6 @@ def test_incremental_delta_tracker_negative_limit():
     # Trade 2: OK
     assert tracker.validate_and_update(-10.0) is True
     assert tracker.current_net_delta == -100.0
-
 
 def test_incremental_delta_tracker_reset():
     tracker = IncrementalDeltaTracker(initial_delta=50.0)

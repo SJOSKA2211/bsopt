@@ -6,7 +6,6 @@ import pytest
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
-
 @pytest.fixture
 def mock_config():
     return {
@@ -19,7 +18,6 @@ def mock_config():
         "provider": "mock",
     }
 
-
 @pytest.fixture
 def sample_df():
     data = {
@@ -30,7 +28,6 @@ def sample_df():
         "volume": np.random.randint(1000, 5000, 100),
     }
     return pd.DataFrame(data)
-
 
 @pytest.fixture(autouse=True)
 def mock_indicators():
@@ -52,13 +49,11 @@ def mock_indicators():
     ):
         yield
 
-
 @pytest.mark.asyncio
 async def test_pipeline_init(mock_config):
     pipeline = AutonomousMLPipeline(mock_config)
     assert pipeline.ticker == "AAPL"
     assert pipeline.framework == "xgboost"
-
 
 @pytest.mark.asyncio
 async def test_generate_features(mock_config, sample_df):
@@ -67,7 +62,6 @@ async def test_generate_features(mock_config, sample_df):
     assert "RSI_14" in df_featured.columns
     assert "volatility" in df_featured.columns
     assert not df_featured.isnull().values.any()
-
 
 @pytest.mark.asyncio
 async def test_pipeline_run_success(mock_config, sample_df):
@@ -100,7 +94,6 @@ async def test_pipeline_run_success(mock_config, sample_df):
                 pipeline._persist_data.assert_called_once()
                 mock_task.assert_called_once()
 
-
 @pytest.mark.asyncio
 async def test_pipeline_no_retrain(mock_config, sample_df):
     with patch("src.ml.autonomous_pipeline.DriftTrigger") as mock_trigger_cls:
@@ -113,7 +106,6 @@ async def test_pipeline_no_retrain(mock_config, sample_df):
 
         result = await pipeline.run()
         assert result is None
-
 
 @pytest.mark.asyncio
 async def test_get_current_model_performance_error(mock_config):

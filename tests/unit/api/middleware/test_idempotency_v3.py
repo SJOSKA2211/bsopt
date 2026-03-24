@@ -6,16 +6,13 @@ from fastapi import Request, Response
 
 from src.api.middleware.idempotency import IdempotencyMiddleware
 
-
 @pytest.fixture
 def mock_redis():
     return AsyncMock()
 
-
 @pytest.fixture
 def mock_app():
     return MagicMock()
-
 
 @pytest.mark.asyncio
 async def test_idempotency_skip_get(mock_app, mock_redis):
@@ -29,7 +26,6 @@ async def test_idempotency_skip_get(mock_app, mock_redis):
 
     assert res.status_code == 200
     assert not mock_redis.get.called
-
 
 @pytest.mark.asyncio
 async def test_idempotency_cache_hit(mock_app, mock_redis):
@@ -54,7 +50,6 @@ async def test_idempotency_cache_hit(mock_app, mock_redis):
     assert res.headers["X-Idempotency-Cache"] == "HIT"
     assert not call_next.called
 
-
 @pytest.mark.asyncio
 async def test_idempotency_lock_conflict(mock_app, mock_redis):
     middleware = IdempotencyMiddleware(mock_app, mock_redis)
@@ -71,7 +66,6 @@ async def test_idempotency_lock_conflict(mock_app, mock_redis):
 
     assert res.status_code == 409
     assert "already in progress" in str(res.body)
-
 
 @pytest.mark.asyncio
 async def test_idempotency_success_caching(mock_app, mock_redis):

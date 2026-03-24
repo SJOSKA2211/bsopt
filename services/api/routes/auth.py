@@ -46,7 +46,6 @@ router = APIRouter(
     default_response_class=MsgspecJSONResponse,
 )
 
-
 @router.post("/register", response_model=DataResponseStruct[TokenResponse], status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
@@ -98,7 +97,6 @@ async def register(
         message="User created in High-Performance (Legacy)",
     )
 
-
 @router.post("/login", response_model=DataResponseStruct[LoginResponse])
 async def login(
     request: Request,
@@ -146,7 +144,6 @@ async def login(
     except Exception as e:
         logger.error(f"login_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Authentication failure")
-
 
 @router.post("/refresh", response_model=DataResponseStruct[TokenResponse])
 async def refresh_token(
@@ -197,11 +194,9 @@ async def refresh_token(
         logger.error(f"refresh_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Token refresh failure")
 
-
 @router.get("/me")
 async def read_users_me(user: User = Depends(get_current_active_user)):
     return DataResponseStruct(data=UserResponse.from_orm(user))
-
 
 @router.post("/logout")
 async def logout(
@@ -216,7 +211,6 @@ async def logout(
         token = auth_header.split(" ")[1]
         await auth_service.invalidate_token(token, request)
     return SuccessResponse(message="Successfully logged out")
-
 
 @router.post("/mfa/setup", response_model=DataResponseStruct[MFASetupResponse])
 async def mfa_setup(
@@ -250,7 +244,6 @@ async def mfa_setup(
         )
     )
 
-
 @router.post("/mfa/verify")
 async def mfa_verify(
     data: MFAVerifyRequest,
@@ -277,7 +270,6 @@ async def mfa_verify(
 
     return SuccessResponse(message="MFA enabled successfully")
 
-
 @router.post("/password/change")
 async def change_password(
     data: PasswordChangeRequest,
@@ -301,7 +293,6 @@ async def change_password(
     await db.commit()
 
     return SuccessResponse(message="Password changed successfully")
-
 
 @router.post("/password/reset")
 async def request_password_reset(
@@ -329,7 +320,6 @@ async def request_password_reset(
     return SuccessResponse(
         message="If the email is registered, a reset link has been sent.",
     )
-
 
 @router.post("/password/reset/confirm")
 async def reset_password_confirm(
@@ -359,11 +349,9 @@ async def reset_password_confirm(
 
     return SuccessResponse(message="Password has been reset successfully")
 
-
 # ---------------------------------------------------------------------------
 # Internal Helpers
 # ---------------------------------------------------------------------------
-
 
 async def _send_verification_email(email: str, token: str) -> None:
     """
@@ -381,7 +369,6 @@ async def _send_verification_email(email: str, token: str) -> None:
         template_name="verification_email.html",
         context={"verification_link": verification_link, "email": email},
     )
-
 
 async def _send_password_reset_email(email: str, token: str) -> None:
     """

@@ -2,7 +2,6 @@ import asyncio
 
 from src.ingestion.engine import NSEScraper
 
-
 async def test():
     scraper = NSEScraper()
     print(f"Testing scraper with URL: {scraper.BASE_URL}")
@@ -17,7 +16,6 @@ async def test():
         print(f"Error: {e}")
     finally:
         await scraper.shutdown()
-
 
 if __name__ == "__main__":
     asyncio.run(test())

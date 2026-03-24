@@ -20,7 +20,6 @@ logger = structlog.get_logger(__name__)
 BATCH_SIZE = 10000
 SYMBOLS = ["BTC/USD", "ETH/USD", "AAPL", "TSLA", "MSFT"]
 
-
 async def benchmark_ingestion(session: AsyncSession):
     """Measures throughput of large-scale ingestion."""
     logger.info("benchmarking_ingestion_start", batch_size=BATCH_SIZE)
@@ -58,7 +57,6 @@ async def benchmark_ingestion(session: AsyncSession):
     )
     return throughput
 
-
 async def benchmark_complex_query(session: AsyncSession):
     """Measures latency of complex Greeks-based queries with joins."""
     logger.info("benchmarking_complex_query_start")
@@ -87,7 +85,6 @@ async def benchmark_complex_query(session: AsyncSession):
     logger.info("benchmarking_complex_query_complete", avg_latency_ms=round(duration * 1000, 2))
     return duration
 
-
 async def benchmark_cagg_refresh(session: AsyncSession):
     """Measures performance of TimescaleDB continuous aggregate refreshes."""
     logger.info("benchmarking_cagg_refresh_start")
@@ -105,7 +102,6 @@ async def benchmark_cagg_refresh(session: AsyncSession):
     duration = time.time() - start_time
     logger.info("benchmarking_cagg_refresh_complete", duration_s=round(duration, 4))
     return duration
-
 
 async def run_suite():
     """Executes the full benchmark suite."""
@@ -143,7 +139,6 @@ async def run_suite():
             query_latency_ms=round(query_latency * 1000, 2),
             cagg_refresh_s=round(cagg_duration, 4),
         )
-
 
 if __name__ == "__main__":
     asyncio.run(run_suite())

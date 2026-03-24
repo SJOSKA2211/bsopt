@@ -45,7 +45,6 @@ IMPORT_MAPPINGS = {
     r"\bservices\b": "src",  # Fallbacks
 }
 
-
 def move_files():
     for old_rel, new_rel in MAPPINGS.items():
         if "." in old_rel:
@@ -81,7 +80,6 @@ def move_files():
         except OSError:
             pass
 
-
 def rewrite_imports():
     patterns = [(re.compile(k), v) for k, v in IMPORT_MAPPINGS.items()]
 
@@ -107,7 +105,6 @@ def rewrite_imports():
             if content != new_content:
                 with open(filepath, "w", encoding="utf-8") as f:
                     f.write(new_content)
-
 
 if __name__ == "__main__":
     print("Moving files...")

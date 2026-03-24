@@ -32,7 +32,6 @@ from tests.test_utils import assert_equal
 
 # Fixtures
 
-
 @pytest.fixture
 def base_params():
     """Standard at-the-money parameters for testing."""
@@ -45,33 +44,27 @@ def base_params():
         dividend=0.02,
     )
 
-
 @pytest.fixture
 def asian_params(base_params):
     """Parameters for Asian options."""
     return ExoticParameters(base_params=base_params, n_observations=252)
-
 
 @pytest.fixture
 def barrier_params_up(base_params):
     """Parameters for up-barrier options."""
     return ExoticParameters(base_params=base_params, barrier=120.0, rebate=0.0)
 
-
 @pytest.fixture
 def barrier_params_down(base_params):
     """Parameters for down-barrier options."""
     return ExoticParameters(base_params=base_params, barrier=80.0, rebate=5.0)
-
 
 @pytest.fixture
 def lookback_params(base_params):
     """Parameters for lookback options."""
     return ExoticParameters(base_params=base_params, n_observations=252)
 
-
 # Test Asian Options
-
 
 class TestAsianOptions:
     """Test suite for Asian option pricing."""
@@ -246,9 +239,7 @@ class TestAsianOptions:
         # Price should be represented with float64 precision
         assert isinstance(price, float)
 
-
 # Test Barrier Options
-
 
 class TestBarrierOptions:
     """Test suite for barrier option pricing."""
@@ -459,9 +450,7 @@ class TestBarrierOptions:
         )
         assert uoc < 5.0
 
-
 # Test Lookback Options
-
 
 class TestLookbackOptions:
     """Test suite for lookback option pricing."""
@@ -520,9 +509,7 @@ class TestLookbackOptions:
         assert_equal(maxima[0], 115.0)
         assert_equal(maxima[1], 100.0)
 
-
 # Test Digital Options
-
 
 class TestDigitalOptions:
     """Test suite for digital/binary option pricing."""
@@ -550,9 +537,7 @@ class TestDigitalOptions:
         assert call_greeks.delta > 0
         assert abs(call_greeks.vega) > 0
 
-
 # Test Unified Interface
-
 
 class TestUnifiedInterface:
     """Test unified pricing interface."""
@@ -609,9 +594,7 @@ class TestUnifiedInterface:
         with pytest.raises(ValueError, match="Unknown exotic option type"):
             price_exotic_option("invalid_class", asian_params, "call")
 
-
 # Test Edge Cases
-
 
 class TestEdgeCases:
     """Test edge cases."""
@@ -633,7 +616,6 @@ class TestEdgeCases:
         vanilla = BlackScholesEngine.price_call(params.base_params)
         # Use a more relaxed tolerance for far barrier
         assert abs(uoc - vanilla) < vanilla * 0.1
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

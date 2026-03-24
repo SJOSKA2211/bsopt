@@ -12,7 +12,6 @@ from src.aiops.data_drift_detector import DataDriftDetector
 
 logger = structlog.get_logger(__name__)
 
-
 class NeuralGreeksRetrainer:
     def __init__(self, ticker: str | None = None, n_samples: int = 100) -> None:
         from src.shared.config import settings
