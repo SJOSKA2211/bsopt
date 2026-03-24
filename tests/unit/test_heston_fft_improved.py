@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from src.quant.pricing.models.heston_fft import (
 )
 
 
-class TestHestonFFT(unittest.TestCase):
+class TestHestonFFT:
     def setUp(self):
         # 2κθ > σ² => 2 * 2 * 0.04 > 0.1² => 0.16 > 0.01 (Valid)
         self.params = HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.1, rho=-0.7)
@@ -55,5 +55,4 @@ class TestHestonFFT(unittest.TestCase):
         self.assertGreater(out[0], out[1])
 
 
-if __name__ == "__main__":
-    unittest.main()
+

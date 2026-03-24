@@ -147,6 +147,16 @@ class Settings(BaseSettings):
     TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
 
     @property
+    # Market Configuration
+    MARKET_TICKER_SYMBOLS: list[str] = [
+        "NIFTY",
+        "BANKNIFTY",
+        "SPX",
+        "BTC-USD",
+        "RELIANCE.NR",
+        "HDFCBANK.NR",
+    ]
+
     def rate_limit_tiers(self) -> dict[str, int]:
         """Maps user tiers to their rate limits."""
         return {

@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 import numpy as np
 
@@ -8,12 +8,12 @@ from src.quant.pricing.implied_vol import (
 )
 
 
-class TestImpliedVol(unittest.TestCase):
+class TestImpliedVol:
     def test_implied_vol_scalar(self):
         # S=100, K=100, T=1, r=0.05, vol=0.2 => Price approx 10.45
         price = 10.45
         iv = implied_volatility(price, 100.0, 100.0, 1.0, 0.05)
-        self.assertAlmostEqual(iv, 0.2, delta=0.01)
+        assert iv == pytest.approx(0.2, delta=0.01)
 
     def test_implied_vol_vectorized(self):
         prices = np.array([10.45, 5.0])
@@ -27,14 +27,13 @@ class TestImpliedVol(unittest.TestCase):
         ivs = vectorized_implied_volatility(
             prices, spots, strikes, maturities, rates, dividends, option_types
         )
-        self.assertEqual(len(ivs), 2)
-        self.assertTrue(np.all(ivs > 0))
+        assert len(ivs) == 2
+        assert np.all(ivs > 0)
 
     def test_arbitrage_violation(self):
         # Price below intrinsic
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             implied_volatility(1.0, 100.0, 100.0, 1.0, 0.05)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

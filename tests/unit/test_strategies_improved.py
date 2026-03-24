@@ -1,5 +1,5 @@
 import sys
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -17,7 +17,7 @@ from src.ml.strategies import (
 )
 
 
-class TestStrategies(unittest.TestCase):
+class TestStrategies:
     def setUp(self):
         self.X_train = np.random.rand(100, 5)
         self.y_train = np.random.randint(0, 2, 100)
@@ -26,14 +26,14 @@ class TestStrategies(unittest.TestCase):
 
     def test_get_strategy(self):
         s = get_strategy("sklearn")
-        self.assertIsInstance(s, SklearnStrategy)
+        assert isinstance(s, SklearnStrategy)
 
     def test_sklearn_strategy(self):
         s = SklearnStrategy()
         model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
-        self.assertEqual(len(preds), 20)
+        assert len(preds) == 20
 
     def test_pytorch_strategy(self):
         s = PyTorchStrategy()
@@ -46,7 +46,7 @@ class TestStrategies(unittest.TestCase):
         )
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
-        self.assertEqual(len(preds), 20)
+        assert len(preds) == 20
 
     @patch("src.ml.strategies.xgb.train")
     @patch("src.ml.strategies.xgb.DMatrix")
@@ -60,8 +60,7 @@ class TestStrategies(unittest.TestCase):
         model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
-        self.assertEqual(len(preds), 20)
+        assert len(preds) == 20
 
 
-if __name__ == "__main__":
-    unittest.main()
+

@@ -1,5 +1,5 @@
 import sys
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -13,7 +13,7 @@ sys.modules["optuna"] = MagicMock()
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 
-class TestAutonomousPipeline(unittest.TestCase):
+class TestAutonomousPipeline:
     def setUp(self):
         self.config = {
             "api_key": "test_key",
@@ -65,16 +65,15 @@ class TestAutonomousPipeline(unittest.TestCase):
             patch("src.ml.autonomous_pipeline.get_adx", return_value=np.random.rand(100)),
         ):
             df_feat = self.pipeline.generate_features(df)
-            self.assertIn("RSI_14", df_feat.columns)
-            self.assertIn("MACD_12_26_9", df_feat.columns)
+            assert "RSI_14" in df_feat.columns
+            assert "MACD_12_26_9" in df_feat.columns
 
     def test_prepare_training_data(self):
         df = pd.DataFrame({"close": np.random.rand(10), "feat1": np.random.rand(10)})
         x, y, names, meta = self.pipeline._prepare_training_data(df)
-        self.assertEqual(len(x), 9)
-        self.assertEqual(len(y), 9)
-        self.assertIn("feat1", names)
+        assert len(x) == 9
+        assert len(y) == 9
+        assert "feat1" in names
 
 
-if __name__ == "__main__":
-    unittest.main()
+

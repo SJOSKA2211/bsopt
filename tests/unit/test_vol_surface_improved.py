@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 import numpy as np
 
@@ -13,7 +13,7 @@ from src.quant.pricing.vol_surface import (
 )
 
 
-class TestVolSurface(unittest.TestCase):
+class TestVolSurface:
     def setUp(self):
         self.svi_params = SVIParameters(a=0.04, b=0.1, rho=-0.4, m=0.0, sigma=0.2)
         self.sabr_params = SABRParameters(alpha=0.2, beta=0.5, rho=-0.3, nu=0.4)
@@ -26,7 +26,7 @@ class TestVolSurface(unittest.TestCase):
         # Test vectorized
         strikes = np.array([90.0, 100.0, 110.0])
         vols = model.implied_volatility(strikes, 100.0, 1.0)
-        self.assertEqual(len(vols), 3)
+        assert len(vols) == 3
 
     def test_sabr_model(self):
         model = SABRModel(self.sabr_params)
@@ -52,9 +52,8 @@ class TestVolSurface(unittest.TestCase):
             MarketQuote(strike=110, maturity=1.0, implied_vol=0.18, forward=100),
         ]
         params, diag = engine.calibrate_svi(quotes)
-        self.assertIsInstance(params, SVIParameters)
-        self.assertIn("rmse", diag)
+        assert isinstance(params, SVIParameters)
+        assert "rmse" in diag
 
 
-if __name__ == "__main__":
-    unittest.main()
+

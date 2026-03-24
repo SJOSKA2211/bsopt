@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 import numpy as np
 
@@ -21,18 +21,18 @@ from src.quant.pricing.quant_utils import (
 )
 
 
-class TestQuantUtils(unittest.TestCase):
+class TestQuantUtils:
     def test_jit_generate_paths(self):
         S0, T, r, sigma, q = 100.0, 1.0, 0.05, 0.2, 0.0
         paths, steps = 100, 50
         result = jit_generate_paths(S0, T, r, sigma, q, paths, steps)
-        self.assertEqual(result.shape, (paths, steps + 1))
+        assert result.shape == (paths, steps + 1)
 
     def test_jit_generate_log_paths(self):
         S0, T, r, sigma, q = 100.0, 1.0, 0.05, 0.2, 0.0
         paths, steps = 100, 50
         result = jit_generate_log_paths(S0, T, r, sigma, q, paths, steps)
-        self.assertEqual(result.shape, (steps + 1, paths))
+        assert result.shape == (steps + 1, paths)
 
     def test_batch_bs_price_jit(self):
         S, K, T, sigma, r, q = (
@@ -50,7 +50,7 @@ class TestQuantUtils(unittest.TestCase):
         # Test T < 1e-7
         T_zero = np.array([0.0])
         price_zero = batch_bs_price_jit(S, K, T_zero, sigma, r, q, is_call)
-        self.assertEqual(price_zero[0], 0.0)
+        assert price_zero[0] == 0.0
 
     def test_batch_greeks_jit(self):
         S, K, T, sigma, r, q = (
@@ -71,12 +71,12 @@ class TestQuantUtils(unittest.TestCase):
         upper = np.array([1.0, 1.0])
         rhs = np.array([1.0, 2.0, 3.0])
         x = thomas_algorithm(lower, diag, upper, rhs)
-        self.assertEqual(len(x), 3)
+        assert len(x) == 3
 
     def test_jit_cn_solver(self):
         s_grid = np.linspace(0, 200, 50)
         V = jit_cn_solver(s_grid, 100.0, 1.0, 0.05, 0.2, 0.0, True, 10)
-        self.assertEqual(len(V), 50)
+        assert len(V) == 50
 
     def test_vectorized_newton_raphson_iv_jit(self):
         market_prices = np.array([10.45])
@@ -90,11 +90,11 @@ class TestQuantUtils(unittest.TestCase):
         is_call = np.array([True])
         sigma_init = np.array([0.2])
         iv = vectorized_newton_raphson_iv_jit(market_prices, S, K, T, r, q, is_call, sigma_init)
-        self.assertAlmostEqual(iv[0], 0.2, delta=0.1)
+        assert iv[0] == pytest.approx(0.2, delta=0.1)
 
     def test_heston_char_func_jit(self):
         res = heston_char_func_jit(1.0, 1.0, 0.05, 0.04, 2.0, 0.04, 0.3, -0.7)
-        self.assertIsInstance(res, complex)
+        assert isinstance(res, complex)
 
     def test_jit_mc_european_price(self):
         p, s = jit_mc_european_price(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
@@ -102,7 +102,7 @@ class TestQuantUtils(unittest.TestCase):
 
     def test_jit_mc_european_price_and_greeks(self):
         res = jit_mc_european_price_and_greeks(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
-        self.assertEqual(len(res), 5)
+        assert len(res) == 5
 
     def test_jit_mc_european_with_control_variate(self):
         p, s = jit_mc_european_with_control_variate(
@@ -119,13 +119,13 @@ class TestQuantUtils(unittest.TestCase):
         self.assertGreater(p, 0)
         # Test T < 1e-7
         p_zero = scalar_bs_price_jit(100.0, 100.0, 0.0, 0.2, 0.05, 0.0, True)
-        self.assertEqual(p_zero, 0.0)
+        assert p_zero == 0.0
 
     def test_scalar_greeks_jit(self):
         res = scalar_greeks_jit(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, True)
-        self.assertEqual(len(res), 5)
+        assert len(res) == 5
         res_put = scalar_greeks_jit(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, False)
-        self.assertEqual(len(res_put), 5)
+        assert len(res_put) == 5
 
     def test_corrado_miller_initial_guess(self):
         S, K, T, r, q = (
@@ -141,5 +141,4 @@ class TestQuantUtils(unittest.TestCase):
         self.assertGreater(iv[0], 0)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

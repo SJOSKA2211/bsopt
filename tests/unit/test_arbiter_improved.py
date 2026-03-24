@@ -1,4 +1,4 @@
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -18,7 +18,7 @@ from src.quant.pricing.arbiter import (
 )
 
 
-class TestArbiter(unittest.TestCase):
+class TestArbiter:
     def setUp(self):
         # Patch WASMPricingEngine to not try to load real WASM
         with patch("src.quant.pricing.arbiter.WASMPricingEngine") as mock_wasm:
@@ -61,8 +61,7 @@ class TestArbiter(unittest.TestCase):
         r = np.array([0.05, 0.05])
         is_call = np.array([True, True])
         prices = self.arbiter.route_batch(S, K, T, sigma, r, is_call)
-        self.assertEqual(len(prices), 2)
+        assert len(prices) == 2
 
 
-if __name__ == "__main__":
-    unittest.main()
+

@@ -1,5 +1,5 @@
 import sys
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 # Mock strawberry as a package with submodules
@@ -21,13 +21,12 @@ with (
     from src.quant.pricing.main import app
 
 
-class TestPricingMain(unittest.TestCase):
+class TestPricingMain:
     def test_app_setup(self):
-        self.assertEqual(app.title, "BS-Opt Pricing Service")
+        assert app.title == "BS-Opt Pricing Service"
         # Check if health route exists
         routes = [r.path for r in app.routes]
-        self.assertIn("/health", routes)
+        assert "/health" in routes
 
 
-if __name__ == "__main__":
-    unittest.main()
+

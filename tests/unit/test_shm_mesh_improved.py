@@ -1,9 +1,9 @@
-import unittest
+import pytest
 
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 
-class TestSHMMesh(unittest.TestCase):
+class TestSHMMesh:
     def test_ring_buffer_lifecycle(self):
         # Test creation and unlinking
         rb = SharedMemoryRingBuffer(create=True)
@@ -16,18 +16,18 @@ class TestSHMMesh(unittest.TestCase):
         try:
             rb.write_tick("AAPL", 150.0, 100, 1644321600.0)
             view, head = rb.read_latest_view(0)
-            self.assertEqual(len(view), 1)
-            self.assertEqual(view[0]["symbol"].decode().strip("\x00"), "AAPL")
-            self.assertEqual(view[0]["price"], 150.0)
-            self.assertEqual(head, 1)
+            assert len(view) == 1
+            assert view[0]["symbol"].decode().strip("\x00") == "AAPL"
+            assert view[0]["price"] == 150.0
+            assert head == 1
 
             # Delete view reference before closing
             del view
 
             # Test msgspec reader
             ticks, head2 = rb.read_latest_msgspec(0)
-            self.assertEqual(len(ticks), 1)
-            self.assertEqual(ticks[0].symbol, "AAPL")
+            assert len(ticks) == 1
+            assert ticks[0].symbol == "AAPL"
             del ticks
         finally:
             rb.close()
@@ -38,5 +38,4 @@ class TestSHMMesh(unittest.TestCase):
         pass
 
 
-if __name__ == "__main__":
-    unittest.main()
+

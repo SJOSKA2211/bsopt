@@ -1,5 +1,5 @@
 import sys
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 # Pre-emptive mock for wasmer before any imports
@@ -10,7 +10,7 @@ sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 from src.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
 
 
-class TestPricingFactory(unittest.TestCase):
+class TestPricingFactory:
     def setUp(self):
         # Clear instances for testing
         PricingEngineFactory._instances = {}
@@ -24,28 +24,27 @@ class TestPricingFactory(unittest.TestCase):
     def test_get_bs_engine(self):
         engine = PricingEngineFactory.get_engine("black_scholes")
         self.assertIsNotNone(engine)
-        self.assertEqual(type(engine).__name__, "BlackScholesEngine")
+        assert type(engine).__name__ == "BlackScholesEngine"
 
     def test_get_mc_engine(self):
         engine = PricingEngineFactory.get_engine("monte_carlo")
         self.assertIsNotNone(engine)
-        self.assertEqual(type(engine).__name__, "MonteCarloEngine")
+        assert type(engine).__name__ == "MonteCarloEngine"
 
     def test_engine_not_found(self):
-        with self.assertRaises(PricingEngineNotFound):
+        with pytest.raises(PricingEngineNotFound):
             PricingEngineFactory.get_engine("non_existent_engine")
 
     def test_singleton_behavior(self):
         e1 = PricingEngineFactory.get_engine("black_scholes")
         e2 = PricingEngineFactory.get_engine("black_scholes")
-        self.assertIs(e1, e2)
+        assert e1 is e2
 
     def test_default_override(self):
         PricingEngineFactory.set_default_engine("monte_carlo")
         engine = PricingEngineFactory.get_engine("black_scholes")
-        self.assertEqual(type(engine).__name__, "MonteCarloEngine")
+        assert type(engine).__name__ == "MonteCarloEngine"
         PricingEngineFactory.set_default_engine(None)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

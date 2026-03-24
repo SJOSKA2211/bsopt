@@ -54,6 +54,18 @@ class BatchInferenceResponse(msgspec.Struct, frozen=True):
     total_latency_ms: float
 
 
+from datetime import datetime, UTC
+
+class ComparisonMetrics(msgspec.Struct, frozen=True):
+    """Real-time performance metrics (AI vs Human)."""
+    userPnl: float
+    aiPnl: float
+    userSharpe: float
+    aiSharpe: float
+    userWinRate: float
+    aiWinRate: float
+
+
 class DriftMetrics(msgspec.Struct, frozen=True):
     """Hourly drift metrics (msgspec)."""
 

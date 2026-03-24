@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from src.ml.drift import (
 )
 
 
-class TestDrift(unittest.TestCase):
+class TestDrift:
     def test_performance_drift_monitor(self):
         monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1, higher_is_better=True)
         # Add baseline
@@ -24,7 +24,7 @@ class TestDrift(unittest.TestCase):
         )  # Baseline avg is 0.91. 0.85 is within 0.1? No, 0.91 - 0.1 = 0.81.
 
         # Test drift
-        self.assertTrue(monitor.detect_drift(0.7))  # 0.7 < 0.81
+        assert monitor.detect_drift(0.7)  # 0.7 < 0.81
 
     def test_calculate_ks_test(self):
         expected = np.random.randn(100)
@@ -45,8 +45,7 @@ class TestDrift(unittest.TestCase):
         curr = np.random.randn(100)
 
         decision, reason = trigger.should_retrain(ref, curr, 0.9)
-        self.assertIsInstance(decision, bool)
+        assert isinstance(decision, bool)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

@@ -1,11 +1,11 @@
-import unittest
+import pytest
 
 import numpy as np
 
 from src.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
 
 
-class TestMMD(unittest.TestCase):
+class TestMMD:
     def test_calculate_mmd_same_dist(self):
         # Samples from same distribution should have low MMD
         x = np.random.randn(100, 5)
@@ -29,10 +29,9 @@ class TestMMD(unittest.TestCase):
         is_drifted_no, mmd_no = detector.detect_drift(baseline, current_no_drift)
         is_drifted_yes, mmd_yes = detector.detect_drift(baseline, current_drift)
 
-        self.assertFalse(is_drifted_no)
-        self.assertTrue(is_drifted_yes)
+        assert not is_drifted_no
+        assert is_drifted_yes
         self.assertGreater(mmd_yes, mmd_no)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

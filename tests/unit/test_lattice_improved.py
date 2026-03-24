@@ -1,9 +1,9 @@
-import unittest
+import pytest
 
 from src.quant.pricing.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
 
 
-class TestLattice(unittest.TestCase):
+class TestLattice:
     def setUp(self):
         self.params = BSParameters(
             spot=100.0,
@@ -38,8 +38,7 @@ class TestLattice(unittest.TestCase):
     def test_build_tree(self):
         pricer = BinomialTreePricer(n_steps=10)
         tree = pricer.build_tree(self.params)
-        self.assertEqual(tree.shape, (11, 11))
+        assert tree.shape == (11, 11)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

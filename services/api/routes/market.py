@@ -32,8 +32,8 @@ async def get_tickers(current_user: User = Depends(get_current_active_user)):
     OPTIMIZED: Uses the speculative concurrency MarketDataRouter.
     """
     try:
-        # For the global tape, we fetch a curated list of institutional benchmarks
-        symbols = ["NIFTY", "BANKNIFTY", "SPX", "BTC-USD", "RELIANCE.NR", "HDFCBANK.NR"]
+        from src.shared.config import settings
+        symbols = settings.MARKET_TICKER_SYMBOLS
         
         # In a production scenario, this could be dynamic based on hot symbols in Redis
         # For now, we utilize the get_live_quote which races providers

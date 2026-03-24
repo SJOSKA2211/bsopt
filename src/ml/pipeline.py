@@ -21,17 +21,13 @@ class PipelineConfig:
         symbols: list[str] = [settings.DEFAULT_TICKER],
         min_samples: int = 1000,
         max_samples: int = 10000,
-        use_multi_source: bool = False,
         validate_data: bool = True,
-        storage_backend: str = "database",
         output_dir: str = "data/training",
     ):
         self.symbols = symbols
         self.min_samples = min_samples
         self.max_samples = max_samples
-        self.use_multi_source = use_multi_source
         self.validate_data = validate_data
-        self.storage_backend = storage_backend
         self.output_dir = output_dir
 
 
@@ -64,9 +60,6 @@ class DataPipeline:
 
     async def run_shutdown(self) -> None:
         """Cleanup data pipeline resources."""
-        from src.database.pipeliner import db_engine
-
-        await db_engine.close()
         logger.info("data_pipeline_shutdown_complete")
 
     async def load_latest_data(
@@ -300,31 +293,6 @@ if __name__ == "__main__":
 
 
 @njit(fastmath=True, parallel=True)
-def _rolling_mean_jit(x: np.ndarray, w: int) -> np.ndarray:
-    """Numba-optimized rolling mean with same-length padding (float64)."""
-    n = len(x)
-    res = np.empty(n, dtype=np.float64)
-    if n < w:
-        res[:] = x[0]
-        return res
-
-    # Initial padding
-    res[: w - 1] = x[0]
-
-    # Calculate initial sum
-    current_sum = 0.0
-    for i in prange(w):
-        current_sum += x[i]
-    res[w - 1] = current_sum / w
-
-    # Sliding window
-    for i in prange(w, n):
-        current_sum += x[i] - x[i - w]
-        res[i] = current_sum / w
-    return res
-
-
-@njit(fastmath=True, parallel=True)
 def _calculate_maturity_jit(
     expiry_timestamps: np.ndarray, current_timestamps: np.ndarray
 ) -> np.ndarray:
@@ -335,15 +303,6 @@ def _calculate_maturity_jit(
 # =============================================================================
 # Data Pipeline Implementation
 # =============================================================================
-
-
-def _check_cache(file_path: str) -> bool:
-    """Checks if a data cache exists and is fresh (within 24 hours)."""
-    if not os.path.exists(file_path):
-        return False
-    import time
-
-    return (time.time() - os.path.getmtime(file_path)) < 86400
 
 
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -360,12 +319,3 @@ async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
     except Exception as e:
         logger.error("feature_computation_failed", error=str(e))
         return df
-
-
-async def _background_cache_fill(df: pd.DataFrame, path: str):
-    """Asynchronously persists processed data to disk cache."""
-    try:
-        df.to_parquet(path, compression="snappy")
-        logger.info("cache_persisted", path=path)
-    except Exception as e:
-        logger.error("cache_persistence_failed", error=str(e))

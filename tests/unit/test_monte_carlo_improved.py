@@ -1,9 +1,9 @@
-import unittest
+import pytest
 
 from src.quant.pricing.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
 
 
-class TestMonteCarlo(unittest.TestCase):
+class TestMonteCarlo:
     def setUp(self):
         self.params = BSParameters(
             spot=100.0,
@@ -37,5 +37,4 @@ class TestMonteCarlo(unittest.TestCase):
         self.assertGreater(price, 0)
 
 
-if __name__ == "__main__":
-    unittest.main()
+

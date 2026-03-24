@@ -81,7 +81,7 @@ services:
       CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
       CLIENT_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
     ports:
-      - "127.0.0.1:6432:5432"
+      - "127.0.0.1:6433:5432"
     deploy:
       resources:
         limits:

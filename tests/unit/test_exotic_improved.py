@@ -1,4 +1,4 @@
-import unittest
+import pytest
 
 from src.quant.pricing.exotic import (
     AsianOptionPricer,
@@ -13,7 +13,7 @@ from src.quant.pricing.exotic import (
 )
 
 
-class TestExotic(unittest.TestCase):
+class TestExotic:
     def setUp(self):
         self.base_params = BSParameters(
             spot=100.0,
@@ -85,5 +85,4 @@ class TestExotic(unittest.TestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
+
