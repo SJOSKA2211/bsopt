@@ -24,7 +24,7 @@ import {
   LockOutlined as LockIcon,
   AlternateEmailOutlined as MailIcon,
 } from '@mui/icons-material';
-const authClient = { signIn: {} } as any;
+
 
 // Decorative Greek / finance symbols for background
 const GREEK_SYMBOLS = ['Δ', 'Γ', 'Θ', 'Ρ', 'Σ', 'Λ', 'Φ', 'Ψ', '∑', '∂'];
@@ -71,6 +71,23 @@ const DecorativeBg: React.FC = () => (
     />
   </>
 );
+
+
+const authClient = { 
+  signIn: { 
+    social: async () => ({}) 
+  }, 
+  useSession: () => ({ 
+    data: { 
+      user: { 
+        id: 'mock-user-123', 
+        email: 'trader@bsopt.io', 
+        name: 'Quant Trader' 
+      } 
+    },
+    isLoading: false
+  }) 
+} as any;
 
 export default function SignIn() {
   const [email, setEmail] = useState('');

@@ -1,6 +1,6 @@
 import { useQuery, useSubscription } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-const authClient = { signIn: {} } as any;
+
 import type { PortfolioData } from '../types';
 
 const GET_PORTFOLIO = gql`
@@ -38,6 +38,23 @@ const PORTFOLIO_UPDATES = gql`
     }
   }
 `;
+
+
+const authClient = { 
+  signIn: { 
+    social: async () => ({}) 
+  }, 
+  useSession: () => ({ 
+    data: { 
+      user: { 
+        id: 'mock-user-123', 
+        email: 'trader@bsopt.io', 
+        name: 'Quant Trader' 
+      } 
+    },
+    isLoading: false
+  }) 
+} as any;
 
 export const usePortfolio = () => {
   const { data: sessionData } = authClient.useSession();

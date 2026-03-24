@@ -1,11 +1,14 @@
 import os
-from typing import Annotated
+from typing import Annotated, Any
 
 import structlog
 from pydantic import AliasChoices, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
+
+_PRODUCTION_ENVIRONMENTS = {"prod", "production"}
+_DEFAULT_MFA_KEY_SEED = "placeholder-mfa-key-seed-base-v1"
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""

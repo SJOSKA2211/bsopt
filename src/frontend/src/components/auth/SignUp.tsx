@@ -24,8 +24,25 @@ import {
   AlternateEmailOutlined as MailIcon,
   PersonOutline as PersonIcon,
 } from '@mui/icons-material';
-const authClient = { signIn: {} } as any;
+
 import { useNavigate } from 'react-router-dom';
+
+
+const authClient = { 
+  signIn: { 
+    social: async () => ({}) 
+  }, 
+  useSession: () => ({ 
+    data: { 
+      user: { 
+        id: 'mock-user-123', 
+        email: 'trader@bsopt.io', 
+        name: 'Quant Trader' 
+      } 
+    },
+    isLoading: false
+  }) 
+} as any;
 
 export function SignUp() {
   const [email, setEmail] = useState('');
