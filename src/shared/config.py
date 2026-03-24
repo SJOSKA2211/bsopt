@@ -229,8 +229,8 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_DIGIT: bool = True
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = False
-    MFA_ENCRYPTION_KEY: str = Field(
-        default=_DEFAULT_MFA_KEY_SEED or "placeholder-mfa-key-seed-base-v1",
+    MFA_ENCRYPTION_KEY: str | None = Field(
+        default=None,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
     

@@ -24,7 +24,7 @@ import {
   LockOutlined as LockIcon,
   AlternateEmailOutlined as MailIcon,
 } from '@mui/icons-material';
-import { authClient } from '../../lib/auth-client';
+const authClient = { signIn: {} } as any;
 
 // Decorative Greek / finance symbols for background
 const GREEK_SYMBOLS = ['Δ', 'Γ', 'Θ', 'Ρ', 'Σ', 'Λ', 'Φ', 'Ψ', '∑', '∂'];

@@ -368,7 +368,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         <Tooltip title="Implied Volatility">
           <Box sx={{ 
             width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            bgcolor: alpha(qfd?.electrum ?? '#D4AF37', Math.min(params.value as number, 0.45)),
+            bgcolor: alpha(theme.palette.warning.main, Math.min(params.value as number, 0.45)),
             borderLeft: `1px solid ${alpha('#fff', 0.1)}`
           }}>
             <Typography variant="percentage" sx={{ color: '#fff', fontWeight: 900, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
@@ -440,7 +440,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               justifyContent: 'center',
               position: 'relative',
               background: isATM
-                ? `linear-gradient(90deg, ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)} 0%, ${alpha(qfd?.quantum ?? '#00FFFF', 0.15)} 50%, ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)} 100%)`
+                ? `linear-gradient(90deg, ${alpha(theme.palette.info.main, 0.05)} 0%, ${alpha(theme.palette.info.main, 0.15)} 50%, ${alpha(theme.palette.info.main, 0.05)} 100%)`
                 : 'transparent',
               '&::before': {
                 content: '""',
@@ -469,9 +469,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               sx={{
                 fontWeight: 900,
                 fontFamily: 'JetBrains Mono',
-                color: isATM ? qfd?.quantum : 'text.primary',
+                color: isATM ? theme.palette.info.main : 'text.primary',
                 fontSize: '1rem',
-                textShadow: isATM ? `0 0 10px ${alpha(qfd?.quantum ?? '#00FFFF', 0.5)}` : 'none'
+                textShadow: isATM ? `0 0 10px ${alpha(theme.palette.info.main, 0.5)}` : 'none'
               }}
             >
               ${params.value}
@@ -595,7 +595,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         <Tooltip title="Implied Volatility">
           <Box sx={{ 
             width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            bgcolor: alpha(qfd?.electrum ?? '#D4AF37', Math.min(params.value as number, 0.45)),
+            bgcolor: alpha(theme.palette.warning.main, Math.min(params.value as number, 0.45)),
             borderRight: `1px solid ${alpha('#fff', 0.1)}`
           }}>
             <Typography variant="percentage" sx={{ color: '#fff', fontWeight: 900, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
@@ -708,9 +708,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
                 height: 20,
                 fontSize: '0.65rem',
                 fontWeight: 900,
-                bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1),
-                color: qfd?.electrum,
-                border: `1px solid ${alpha(qfd?.electrum ?? '#D4AF37', 0.2)}`
+                bgcolor: alpha(theme.palette.warning.main, 0.1),
+                color: theme.palette.warning.main,
+                border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`
               }}
             />
           )}

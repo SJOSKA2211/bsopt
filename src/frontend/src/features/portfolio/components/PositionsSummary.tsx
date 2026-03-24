@@ -16,10 +16,10 @@ import {
   useTheme,
   Chip,
   Tooltip,
+  Grid,
 } from '@mui/material';
 import { usePortfolio } from '../hooks/usePortfolio';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
-import Grid from '@mui/material/Grid2';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -111,7 +111,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2 }}>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{xs: 4}}>
             <Card sx={{ bgcolor: alpha(theme.palette.primary.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Total Balance</Typography>
@@ -121,7 +121,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{xs: 4}}>
             <Card sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Frozen Capital</Typography>
@@ -131,7 +131,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 4 }}>
+          <Grid size={{xs: 4}}>
             <Card sx={{ bgcolor: alpha(theme.palette.warning.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Risk Score</Typography>

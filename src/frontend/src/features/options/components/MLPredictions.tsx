@@ -31,7 +31,8 @@ export const MLPredictions: React.FC<MLPredictionsProps> = React.memo(({ symbol 
   const financial = (theme.palette as any).financial;
   const qfd = financial?.qfd;
 
-  const { data, loading: isLoading, error } = useMLInference(symbol);
+  const { data: _data, loading: isLoading, error } = useMLInference(symbol);
+  const data: any = _data?.mlPrediction || _data || {};
 
   if (isLoading) {
     return (

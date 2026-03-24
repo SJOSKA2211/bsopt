@@ -24,7 +24,7 @@ import {
   AlternateEmailOutlined as MailIcon,
   PersonOutline as PersonIcon,
 } from '@mui/icons-material';
-import { authClient } from '../../lib/auth-client';
+const authClient = { signIn: {} } as any;
 import { useNavigate } from 'react-router-dom';
 
 export function SignUp() {

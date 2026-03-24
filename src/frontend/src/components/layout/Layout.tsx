@@ -178,11 +178,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               width: 36,
               height: 36,
               borderRadius: 2,
-              background: theme.palette.financial.qfd.quantum,
+              background: theme.palette.info.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: `0 4px 14px ${alpha(theme.palette.financial.qfd.quantum, 0.4)}`,
+              boxShadow: `0 4px 14px ${alpha(theme.palette.info.main, 0.4)}`,
             }}
           >
             <BrandIcon sx={{ color: '#fff', fontSize: 20 }} />

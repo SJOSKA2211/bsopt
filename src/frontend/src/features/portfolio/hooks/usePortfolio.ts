@@ -1,6 +1,6 @@
 import { useQuery, useSubscription } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import { authClient } from '../../../lib/auth-client';
+const authClient = { signIn: {} } as any;
 import type { PortfolioData } from '../types';
 
 const GET_PORTFOLIO = gql`

@@ -80,7 +80,7 @@ export const SettingsPage: React.FC = () => {
                 background: theme.palette.financial.qfd.iridescent,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: `0 0 50px ${alpha(theme.palette.financial.qfd.quantum, 0.4)}`,
+                textShadow: `0 0 50px ${alpha(theme.palette.info.main, 0.4)}`,
               }}
             >
               System Configuration
@@ -106,7 +106,7 @@ export const SettingsPage: React.FC = () => {
                     min={3}
                     max={12}
                     valueLabelDisplay="auto"
-                    sx={{ color: qfd?.quantum }}
+                    sx={{ color: theme.palette.info.main }}
                   />
                 </Box>
               }
@@ -115,7 +115,7 @@ export const SettingsPage: React.FC = () => {
             <SettingRow
               label="WASM SIMD Acceleration"
               description="Force use of vectorized math kernels where available"
-              action={<Switch defaultChecked sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: qfd?.quantum }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: qfd?.quantum } }} />}
+              action={<Switch defaultChecked sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: theme.palette.info.main }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: theme.palette.info.main } }} />}
             />
             <Divider sx={{ opacity: 0.05 }} />
             <SettingRow
@@ -175,7 +175,7 @@ export const SettingsPage: React.FC = () => {
                   Connected Wallet
                 </Typography>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1, p: 2, bgcolor: alpha('#fff', 0.03), borderRadius: 3, border: `1px solid ${alpha('#fff', 0.05)}` }}>
-                  <AccountBalanceWallet sx={{ color: qfd?.electrum }} />
+                  <AccountBalanceWallet sx={{ color: theme.palette.warning.main }} />
                   <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 600 }}>0x4f2d...E92b</Typography>
                 </Stack>
               </Box>
@@ -187,9 +187,9 @@ export const SettingsPage: React.FC = () => {
                   py: 1.5,
                   borderRadius: 3,
                   fontWeight: 900,
-                  bgcolor: qfd?.quantum,
+                  bgcolor: theme.palette.info.main,
                   color: '#000',
-                  '&:hover': { bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.8) }
+                  '&:hover': { bgcolor: alpha(theme.palette.info.main, 0.8) }
                 }}
               >
                 SAVE GLOBAL CONFIG

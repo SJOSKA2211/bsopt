@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   Container,
-  Grid2 as Grid,
+  Grid,
   Paper,
   Typography,
   Stack,
@@ -31,9 +31,9 @@ const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = Reac
   const theme = useTheme();
   
   const colors = useMemo(() => [
-    theme.palette.financial.qfd.quantum,
-    theme.palette.financial.qfd.nebula,
-    theme.palette.financial.qfd.electrum,
+    theme.palette.info.main,
+    theme.palette.secondary.main,
+    theme.palette.warning.main,
     theme.palette.info.main,
     theme.palette.warning.main,
   ], [theme.palette.financial.qfd, theme.palette.info.main, theme.palette.warning.main]);
@@ -55,28 +55,30 @@ const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = Reac
   }, [positions, totalValue, colors, theme.palette.text.disabled]);
   
   const r = 70, cx = 90, cy = 90;
-  let cumulative = 0;
-  
-  const paths = useMemo(() => segments.map((seg: { label?: string; pct: number; color: string }) => {
-    const start = cumulative;
-    cumulative += seg.pct;
-    const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
-    const endAngle = (cumulative / 100) * 2 * Math.PI - Math.PI / 2;
-    const x1 = cx + r * Math.cos(startAngle);
-    const y1 = cy + r * Math.sin(startAngle);
-    const x2 = cx + r * Math.cos(endAngle);
-    const y2 = cy + r * Math.sin(endAngle);
-    const large = seg.pct > 50 ? 1 : 0;
-    return { ...seg, d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z` };
-  }), [segments]);
+
+  const paths = useMemo(() => {
+    let cumulative = 0;
+    return segments.map((seg: { label?: string; pct: number; color: string }) => {
+      const start = cumulative;
+      cumulative += seg.pct;
+      const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
+      const endAngle = (cumulative / 100) * 2 * Math.PI - Math.PI / 2;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const large = seg.pct > 50 ? 1 : 0;
+      return { ...seg, d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z` };
+    });
+  }, [segments, cx, cy, r]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Box sx={{ position: 'relative', width: 220, height: 220 }}>
         <svg role="img" aria-label="Portfolio Allocation Donut Chart" viewBox="0 0 180 180" style={{ width: '100%', height: '100%' }}>
-          {paths.map((p: { label: string; pct: number; color: string; d: string }, idx: number) => (
+          {paths.map((p: { label?: string; pct: number; color: string; d: string }, idx: number) => (
             <motion.path
-              key={p.label}
+              key={p.label || idx}
               d={p.d}
               fill={p.color}
               initial={{ pathLength: 0, opacity: 0 }}
@@ -93,9 +95,9 @@ const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = Reac
         </svg>
       </Box>
       <Stack spacing={1} sx={{ mt: 2, width: '100%', px: 2 }}>
-        {segments.map((s: { label: string; pct: number; color: string }, idx: number) => (
+        {segments.map((s: { label?: string; pct: number; color: string }, idx: number) => (
           <motion.div
-            key={s.label}
+            key={s.label || idx}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 + idx * 0.05 }}
@@ -165,7 +167,7 @@ export const PortfolioPage: React.FC = () => {
           {kpiCards.map((kpi: { label: string; value: string; sub: string; type: string; positive: boolean | null }) => {
             const accentColor = (theme.palette.financial.qfd as Record<string, string>)[kpi.type] || theme.palette.primary.main;
             return (
-              <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+              <Grid key={kpi.label} size={{xs: 12, sm: 6, lg: 3}}>
                 <motion.div whileHover={{ translateY: -5 }} transition={{ duration: 0.2 }}>
                   <Paper
                     className="stat-card"
@@ -210,7 +212,7 @@ export const PortfolioPage: React.FC = () => {
 
       {/* Charts row ... */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.1s' }}>
+        <Grid size={{xs: 12, lg: 4}} className="slide-up" style={{ animationDelay: '0.1s' }}>
           <Paper
             sx={{
               p: 3,
@@ -235,10 +237,10 @@ export const PortfolioPage: React.FC = () => {
 
       {/* Positions row */}
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid size={{xs: 12, lg: 4}}>
            <PortfolioSummary />
         </Grid>
-        <Grid size={{ xs: 12, lg: 8 }} className="slide-up">
+        <Grid size={{xs: 12, lg: 8}} className="slide-up">
           <Paper
             sx={{
               overflow: 'hidden',

@@ -240,7 +240,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
 };
 
 // Production API Hooks
-import { usePortfolioSummary, useProductionMarketData } from '../../api/hooks';
+import { usePortfolioSummary } from '../../api/hooks';
 
 // ---------------------------------------------------------------------------
 // Dashboard Page – Midnight Emerald Evolution
@@ -260,7 +260,8 @@ export const DashboardPage: React.FC = () => {
   // Local fallback/sync (transitioning from store to direct hooks)
   const systemGamma = usePricingStore((state: PricingState) => state.systemGamma);
   const mlAccuracy = usePricingStore((state: PricingState) => state.mlAccuracy);
-  const portfolioTotal = portfolio?.totalValue ?? usePricingStore((state: PricingState) => state.portfolioTotal);
+  const storePortfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
+  const portfolioTotal = portfolio?.totalValue ?? storePortfolioTotal;
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>

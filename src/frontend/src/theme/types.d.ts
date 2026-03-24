@@ -27,6 +27,9 @@ declare module '@mui/material/styles' {
         amber: string;
         sky: string;
         iridescent: string;
+        quantum: string;
+        electrum: string;
+        nebula: string;
       };
     };
   }
@@ -57,6 +60,9 @@ declare module '@mui/material/styles' {
         amber?: string;
         sky?: string;
         iridescent?: string;
+        quantum?: string;
+        electrum?: string;
+        nebula?: string;
       };
     };
   }

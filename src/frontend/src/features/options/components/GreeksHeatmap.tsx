@@ -34,7 +34,8 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const { data: gqlData, loading: isLoading, error } = useOptionsChain(symbol);
+  const { data: _gqlData, loading: isLoading, error } = useOptionsChain(symbol);
+  const gqlData: any = _gqlData;
 
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
@@ -69,8 +70,9 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   useEffect(() => {
     if (!optionsData || !isWasmLoaded) {
-      setEnrichedData(null);
-      return;
+      // Avoid calling setState synchronously during render
+      const timer = setTimeout(() => setEnrichedData(null), 0);
+      return () => clearTimeout(timer);
     }
     const runEnrichment = async () => {
       const now = new Date();

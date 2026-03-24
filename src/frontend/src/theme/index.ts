@@ -90,6 +90,9 @@ const palette = {
       amber: '#f59e0b',
       sky: '#38bdf8',
       iridescent: 'linear-gradient(135deg, #10b981 0%, #38bdf8 100%)',
+      quantum: '#22d3ee', // Cyan 400
+      electrum: '#e2e8f0', // Slate 200
+      nebula: '#c084fc', // Purple 400
     }
   },
 };
