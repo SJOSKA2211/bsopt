@@ -1,12 +1,12 @@
 # ==============================================================================
-# EQUAFLOW: WORKER MANIFOLD (v11.1)
+# Manifold: WORKER MANIFOLD (v11.1)
 # ==============================================================================
 # Lean, high-performance Celery worker for the BSOPT platform.
-# Rebased on Institutional Base.
+# Rebased on Production Base.
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:builder AS builder
+FROM Manifold-base:builder AS builder
 WORKDIR /app
 
 # Install worker-specific dependencies
@@ -19,7 +19,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:builder AS development
+FROM Manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -39,18 +39,18 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:final AS production
+FROM Manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the worker builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Institutional Security & Performance
+# Production Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-USER equaflow
+USER Manifold
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "4"]

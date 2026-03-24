@@ -1,12 +1,12 @@
 # ==============================================================================
-# EQUAFLOW: CI/TEST RUNNER (v11.1)
+# Manifold: CI/TEST RUNNER (v11.1)
 # ==============================================================================
 # High-fidelity testing environment for the BSOPT platform.
-# Rebased on Institutional Base.
+# Rebased on Production Base.
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:builder AS builder
+FROM Manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
@@ -39,7 +39,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install /tmp/wheels/*.whl
 
 # --- RUNNER ---
-FROM equaflow-base:final
+FROM Manifold-base:final
 WORKDIR /app
 
 # Copy virtualenv from builder

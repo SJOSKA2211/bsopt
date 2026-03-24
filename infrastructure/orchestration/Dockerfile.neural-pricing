@@ -1,12 +1,12 @@
 # ==============================================================================
-# EQUAFLOW: NEURAL PRICING MANIFOLD (v11.1)
+# Manifold: NEURAL PRICING MANIFOLD (v11.1)
 # ==============================================================================
 # GPU-optimized quant pricing engine for the BSOPT platform.
-# Rebased on Institutional Base.
+# Rebased on Production Base.
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:builder AS builder
+FROM Manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install /tmp/wheels/*.whl
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:builder AS development
+FROM Manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -47,18 +47,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -e .
 
 # --- PRODUCTION ---
-FROM equaflow-base:final AS production
+FROM Manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the neural builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Institutional Security & Performance
+# Production Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-USER equaflow
+USER Manifold
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

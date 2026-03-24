@@ -1,12 +1,12 @@
 # ==============================================================================
-# EQUAFLOW: SCRAPER MANIFOLD (v11.1)
+# Manifold: SCRAPER MANIFOLD (v11.1)
 # ==============================================================================
 # Playwright-backed market data ingestion for the BSOPT platform.
-# Rebased on Institutional Base.
+# Rebased on Production Base.
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:builder AS builder
+FROM Manifold-base:builder AS builder
 WORKDIR /app
 
 # Install scraper-specific dependencies
@@ -19,7 +19,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:builder AS development
+FROM Manifold-base:builder AS development
 WORKDIR /app
 
 # Install Playwright system dependencies
@@ -50,7 +50,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["python", "src/ingestion/engine.py"]
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:final AS production
+FROM Manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the scraper builder
@@ -67,13 +67,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Playwright browsers
 RUN playwright install chromium
-RUN chown -R equaflow:equaflow /opt/venv
+RUN chown -R Manifold:Manifold /opt/venv
 
-# Institutional Security & Performance
+# Production Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-USER equaflow
+USER Manifold
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["python", "src/ingestion/engine.py"]

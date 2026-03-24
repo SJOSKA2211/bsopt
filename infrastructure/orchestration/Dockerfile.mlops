@@ -1,5 +1,5 @@
 # ==============================================================================
-# EQUAFLOW: MLOPS MANIFOLD (v11.1)
+# Manifold: MLOPS MANIFOLD (v11.1)
 # ==============================================================================
 # GPU-optimized ML orchestration powered by Ray and UV.
 # ==============================================================================
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev gcc curl git tini \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Institutional UV
+# Install Production UV
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy Source
 COPY src ./src
 
-# Institutional Environment Tuning
+# Production Environment Tuning
 ENV PYTHONPATH=/app \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

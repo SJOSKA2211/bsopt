@@ -2,7 +2,7 @@
 # High-performance ASGI gateway for the BSOPT platform.
 
 # --- BUILDER ---
-FROM equaflow-base:builder AS builder
+FROM Manifold-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
@@ -15,7 +15,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:builder AS development
+FROM Manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source + requirements
@@ -29,11 +29,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -e .
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:final AS production
+FROM Manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the API builder
-# Note: equaflow-base:final already has the core venv.
+# Note: Manifold-base:final already has the core venv.
 # We copy the one from our local builder which has the core + api + app.
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -42,7 +42,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-USER equaflow
+USER Manifold
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

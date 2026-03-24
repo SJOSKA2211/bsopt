@@ -35,37 +35,37 @@ class AuthServiceStub(object):
             channel: A grpc.Channel.
         """
         self.ValidateToken = channel.unary_unary(
-                '/equaflow.auth.AuthService/ValidateToken',
+                '/Manifold.auth.AuthService/ValidateToken',
                 request_serializer=auth__pb2.TokenRequest.SerializeToString,
                 response_deserializer=auth__pb2.TokenResponse.FromString,
                 _registered_method=True)
         self.RefreshToken = channel.unary_unary(
-                '/equaflow.auth.AuthService/RefreshToken',
+                '/Manifold.auth.AuthService/RefreshToken',
                 request_serializer=auth__pb2.RefreshRequest.SerializeToString,
                 response_deserializer=auth__pb2.TokenResponse.FromString,
                 _registered_method=True)
         self.RevokeToken = channel.unary_unary(
-                '/equaflow.auth.AuthService/RevokeToken',
+                '/Manifold.auth.AuthService/RevokeToken',
                 request_serializer=auth__pb2.RevokeRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 _registered_method=True)
         self.GetUserInfo = channel.unary_unary(
-                '/equaflow.auth.AuthService/GetUserInfo',
+                '/Manifold.auth.AuthService/GetUserInfo',
                 request_serializer=auth__pb2.TokenRequest.SerializeToString,
                 response_deserializer=auth__pb2.UserInfo.FromString,
                 _registered_method=True)
         self.CreateTokenPair = channel.unary_unary(
-                '/equaflow.auth.AuthService/CreateTokenPair',
+                '/Manifold.auth.AuthService/CreateTokenPair',
                 request_serializer=auth__pb2.CreateTokenRequest.SerializeToString,
                 response_deserializer=auth__pb2.TokenPairResponse.FromString,
                 _registered_method=True)
         self.ValidateAPIKey = channel.unary_unary(
-                '/equaflow.auth.AuthService/ValidateAPIKey',
+                '/Manifold.auth.AuthService/ValidateAPIKey',
                 request_serializer=auth__pb2.APIKeyRequest.SerializeToString,
                 response_deserializer=auth__pb2.APIKeyResponse.FromString,
                 _registered_method=True)
         self.IntrospectToken = channel.unary_unary(
-                '/equaflow.auth.AuthService/IntrospectToken',
+                '/Manifold.auth.AuthService/IntrospectToken',
                 request_serializer=auth__pb2.TokenRequest.SerializeToString,
                 response_deserializer=auth__pb2.IntrospectionResponse.FromString,
                 _registered_method=True)
@@ -154,9 +154,9 @@ def add_AuthServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'equaflow.auth.AuthService', rpc_method_handlers)
+            'Manifold.auth.AuthService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('equaflow.auth.AuthService', rpc_method_handlers)
+    server.add_registered_method_handlers('Manifold.auth.AuthService', rpc_method_handlers)
 
  # This class is part of an EXPERIMENTAL API.
 class AuthService(object):
@@ -176,7 +176,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/ValidateToken',
+            '/Manifold.auth.AuthService/ValidateToken',
             auth__pb2.TokenRequest.SerializeToString,
             auth__pb2.TokenResponse.FromString,
             options,
@@ -203,7 +203,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/RefreshToken',
+            '/Manifold.auth.AuthService/RefreshToken',
             auth__pb2.RefreshRequest.SerializeToString,
             auth__pb2.TokenResponse.FromString,
             options,
@@ -230,7 +230,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/RevokeToken',
+            '/Manifold.auth.AuthService/RevokeToken',
             auth__pb2.RevokeRequest.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options,
@@ -257,7 +257,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/GetUserInfo',
+            '/Manifold.auth.AuthService/GetUserInfo',
             auth__pb2.TokenRequest.SerializeToString,
             auth__pb2.UserInfo.FromString,
             options,
@@ -284,7 +284,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/CreateTokenPair',
+            '/Manifold.auth.AuthService/CreateTokenPair',
             auth__pb2.CreateTokenRequest.SerializeToString,
             auth__pb2.TokenPairResponse.FromString,
             options,
@@ -311,7 +311,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/ValidateAPIKey',
+            '/Manifold.auth.AuthService/ValidateAPIKey',
             auth__pb2.APIKeyRequest.SerializeToString,
             auth__pb2.APIKeyResponse.FromString,
             options,
@@ -338,7 +338,7 @@ class AuthService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/equaflow.auth.AuthService/IntrospectToken',
+            '/Manifold.auth.AuthService/IntrospectToken',
             auth__pb2.TokenRequest.SerializeToString,
             auth__pb2.IntrospectionResponse.FromString,
             options,

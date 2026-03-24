@@ -239,7 +239,6 @@ impl BlackScholesWASM {
         Float64Array::from(results.as_slice())
     }
 
-
     #[cfg(feature = "js")]
     pub fn batch_calculate_view(&self, params: &[f64]) -> Float64Array {
         let stride = 7;
@@ -1005,8 +1004,6 @@ mod tests {
 
         }
 
-    
-
         #[test]
 
         fn test_simd_math_precision() {
@@ -1020,8 +1017,6 @@ mod tests {
                 let cdf = simd_n_cdf(x);
 
                 let res: [f64; 2] = std::mem::transmute(cdf);
-
-                
 
                 // Expected values from normal distribution table
 

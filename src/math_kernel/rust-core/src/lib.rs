@@ -470,7 +470,7 @@ fn simulate_gbm_rk4<'py>(
 }
 
 #[pymodule]
-fn equaflow_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn Manifold_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TickDataBuffer>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;

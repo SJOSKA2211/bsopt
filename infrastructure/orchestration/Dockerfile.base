@@ -23,11 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Security: Dedicated Non-Root User
-RUN groupadd -g 1000 equaflow && \
-    useradd -r -u 1000 -g equaflow -m -d /home/equaflow equaflow
+RUN groupadd -g 1000 Manifold && \
+    useradd -r -u 1000 -g Manifold -m -d /home/Manifold Manifold
 
 WORKDIR /app
-RUN chown -R equaflow:equaflow /app
+RUN chown -R Manifold:Manifold /app
 
 # --- BUILDER FOUNDATION ---
 FROM runtime AS builder
@@ -71,8 +71,8 @@ FROM runtime AS final
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Ensure the app directory exists and is owned by equaflow
+# Ensure the app directory exists and is owned by Manifold
 WORKDIR /app
-RUN chown -R equaflow:equaflow /app
+RUN chown -R Manifold:Manifold /app
 
-USER equaflow
+USER Manifold

@@ -1,5 +1,5 @@
 # ==============================================================================
-# EQUAFLOW: RUST CORE BUILDER (v11.1)
+# Manifold: RUST CORE BUILDER (v11.1)
 # ==============================================================================
 # Specialized high-performance math kernel builder.
 # ==============================================================================
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev python3-pip pkg-config libssl-dev curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Institutional UV
+# Install Production UV
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
