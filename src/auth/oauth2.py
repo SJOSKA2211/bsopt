@@ -78,7 +78,12 @@ class AuthService:
         result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
         client = result.scalar_one_or_none()
 
-        if not client or not client.verify_secret(client_secret):
+        if not client:
+            # Dummy comparison to prevent timing attacks
+            secrets.compare_digest("dummy", client_secret)
+            return None
+
+        if not secrets.compare_digest(client.client_secret, client_secret):
             return None
         return client
 

@@ -20,7 +20,6 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import msgspec
 import pyotp
-import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
@@ -189,19 +188,19 @@ class AuthService:
         """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
         now = datetime.now(UTC)
         expire = now + expires_delta
-        
+
         # Institutional Payload with strict entropy
         to_encode = {
             **data,
             "exp": expire,
             "iat": now,
-            "jti": secrets.token_hex(24), # Expanded entropy for institutional security
+            "jti": secrets.token_hex(24),  # Expanded entropy for institutional security
             "iss": "equaflow-manifold-v2",
         }
-        
+
         # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
         msgspec.json.encode(to_encode)
-        
+
         algorithm = settings.JWT_ALGORITHM
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -341,7 +340,12 @@ class AuthService:
         result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
         client = result.scalar_one_or_none()
 
-        if not client or client.client_secret != client_secret:
+        if not client:
+            # Dummy comparison to prevent timing attacks
+            secrets.compare_digest("dummy", client_secret)
+            raise HTTPException(status_code=401, detail="Invalid client credentials")
+
+        if not secrets.compare_digest(client.client_secret, client_secret):
             raise HTTPException(status_code=401, detail="Invalid client credentials")
 
         return client
