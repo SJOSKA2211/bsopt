@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Union
 logger = structlog.get_logger(__name__)
 
 try:
-    import equaflow_core
+    import Manifold_core
     RUST_AVAILABLE = True
 except ImportError:
     logger.warning("rust_core_not_found_falling_back_to_python")
@@ -37,7 +37,7 @@ def price_black_scholes(
         # but for Phase 19 we assume Rust is preferred and Numba is secondary.
         return black_scholes_vectorized(spot, strike, maturity, rate, volatility, "call" if is_call[0] else "put")
 
-    return equaflow_core.batch_black_scholes(
+    return Manifold_core.batch_black_scholes(
         spot.astype(np.float64),
         strike.astype(np.float64),
         maturity.astype(np.float64),
@@ -64,7 +64,7 @@ def calculate_greeks(
         from .black_scholes_vectorized import black_scholes_greeks_vectorized
         return black_scholes_greeks_vectorized(spot, strike, maturity, rate, volatility, "call" if is_call[0] else "put")
 
-    return equaflow_core.batch_black_scholes_greeks(
+    return Manifold_core.batch_black_scholes_greeks(
         spot.astype(np.float64),
         strike.astype(np.float64),
         maturity.astype(np.float64),
@@ -95,7 +95,7 @@ def price_heston(
         logger.error("heston_rust_fallback_not_fully_implemented")
         return np.zeros_like(spot)
 
-    return equaflow_core.batch_heston_price(
+    return Manifold_core.batch_heston_price(
         spot.astype(np.float64),
         strike.astype(np.float64),
         maturity.astype(np.float64),
@@ -111,8 +111,8 @@ class RustTickBuffer:
     """Wrapper for the Rust-backed TickDataBuffer (Mmap)."""
     def __init__(self, path: str):
         if not RUST_AVAILABLE:
-            raise RuntimeError("equaflow_core not available for TickDataBuffer")
-        self._buffer = equaflow_core.TickDataBuffer(path)
+            raise RuntimeError("Manifold_core not available for TickDataBuffer")
+        self._buffer = Manifold_core.TickDataBuffer(path)
 
     def get_prices(self) -> np.ndarray:
         return self._buffer.get_prices()
@@ -143,7 +143,7 @@ def simulate_gbm_rk4(
         from .gbm_solver import simulate_gbm_rk4 as gbm_rk4_py
         return gbm_rk4_py(s0, mu, sigma, t, dt, seed=seed)
 
-    return equaflow_core.simulate_gbm_rk4(
+    return Manifold_core.simulate_gbm_rk4(
         s0.astype(np.float64),
         mu.astype(np.float64),
         sigma.astype(np.float64),

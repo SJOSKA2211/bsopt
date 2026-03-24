@@ -15,7 +15,7 @@ src = root / "src"
 if str(src) not in sys.path:
     sys.path.insert(0, str(src))
 
-# Global fixtures for institutional testing suite
+# Global fixtures for Production testing suite
 
 @pytest.fixture(scope="session", autouse=True)
 def startup_session():
@@ -178,7 +178,7 @@ def self_healing_retry(request):
 
             # For now, we simulate a successful 'healing' and retry
             # Note: Actual re-execution in pytest is complex,
-            # so we just log the intent for the institutional architecture.
+            # so we just log the intent for the Production architecture.
             print("[Self-Healing] Environment stabilized. Retrying...")
             # In a real implementation, we might use pytest-rerunfailures with a dynamic hook
         raise e

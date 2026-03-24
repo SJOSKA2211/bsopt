@@ -14,8 +14,8 @@ client = TestClient(app)
 @pytest.fixture
 def test_user(api_client):
     """Creates a real test user in the database."""
-    email = f"test_{uuid.uuid4().hex[:8]}@equaflow.io"
-    password = "InstitutionalPassword123!"
+    email = f"test_{uuid.uuid4().hex[:8]}@Manifold.io"
+    password = "ProductionPassword123!"
     hashed = password_service.hash_password(password)
     
     # We use a raw DB session for clean setup
@@ -29,7 +29,7 @@ def test_user(api_client):
     user = User(
         email=email,
         hashed_password=hashed,
-        full_name="Institutional Tester",
+        full_name="Production Tester",
         is_verified=True,
         is_active=True,
         tier="pro"
@@ -42,13 +42,13 @@ def test_user(api_client):
     return {"email": email, "password": password, "user": user}
 
 def test_registration_and_login_flow(api_client):
-    """Verified End-to-End Auth Flow (Zero-Mock)."""
-    email = f"new_{uuid.uuid4().hex[:8]}@equaflow.io"
+    """Verified End-to-End Auth Flow (Data-Driven)."""
+    email = f"new_{uuid.uuid4().hex[:8]}@Manifold.io"
     payload = {
         "email": email,
-        "password": "InstitutionalPassword123!",
-        "password_confirm": "InstitutionalPassword123!",
-        "full_name": "New Institutional User",
+        "password": "ProductionPassword123!",
+        "password_confirm": "ProductionPassword123!",
+        "full_name": "New Production User",
         "accept_terms": True,
     }
     
@@ -67,7 +67,7 @@ def test_registration_and_login_flow(api_client):
     assert data["token_type"] == "bearer"
 
 def test_login_invalid_password(api_client, test_user):
-    """Institutional rejection of invalid credentials."""
+    """Production rejection of invalid credentials."""
     resp = api_client.post(
         "/api/v1/auth/login",
         json={"email": test_user["email"], "password": "WrongPassword!"}
@@ -93,7 +93,7 @@ def test_protected_route_access(api_client, test_user):
     assert resp.json()["email"] == test_user["email"]
 
 def test_logout_and_token_invalidation(api_client, test_user):
-    """Institutional cleanup and token lifecycle verification."""
+    """Production cleanup and token lifecycle verification."""
     # 1. Login
     login_resp = api_client.post(
         "/api/v1/auth/login", 

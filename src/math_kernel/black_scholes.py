@@ -8,7 +8,7 @@ from src.math_kernel.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
-    import equaflow_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -120,7 +120,7 @@ class BlackScholesEngine(PricingStrategy):
                     if is_call_arr.shape != S.shape:
                         is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
-                    return equaflow_core.batch_black_scholes(
+                    return Manifold_core.batch_black_scholes(
                         S.ravel(),
                         K.ravel(),
                         T.ravel(),
@@ -131,7 +131,7 @@ class BlackScholesEngine(PricingStrategy):
                     ).reshape(S.shape)
 
                 # Scalar path
-                return equaflow_core.black_scholes_price(
+                return Manifold_core.black_scholes_price(
                     float(S[0]),
                     float(K[0]),
                     float(T[0]),
@@ -220,7 +220,7 @@ class BlackScholesEngine(PricingStrategy):
         if CORE_AVAILABLE:
             try:
                 if S.size == 1:
-                    res = equaflow_core.black_scholes_greeks(
+                    res = Manifold_core.black_scholes_greeks(
                         float(S[0]),
                         float(K[0]),
                         float(T[0]),
@@ -241,7 +241,7 @@ class BlackScholesEngine(PricingStrategy):
                     if is_call_arr.shape != S.shape:
                         is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
-                    d, g, th, v, rh = equaflow_core.batch_black_scholes_greeks(
+                    d, g, th, v, rh = Manifold_core.batch_black_scholes_greeks(
                         S.ravel(),
                         K.ravel(),
                         T.ravel(),

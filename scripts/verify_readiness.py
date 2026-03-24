@@ -69,7 +69,7 @@ async def check_rabbitmq() -> bool:
         return False
 
 async def verify_security() -> bool:
-    """Check for presence of institutional key pairs."""
+    """Check for presence of Production key pairs."""
     pki_path = os.path.join(os.getcwd(), ".pki")
     required_keys = ["jwt_rs256.key", "jwt_rs256.pub", "jwt_es256.key", "jwt_es256.pub"]
     all_present = True
@@ -83,9 +83,9 @@ async def verify_security() -> bool:
     return all_present
 
 async def verify_readiness():
-    """Run full institutional readiness check."""
+    """Run full Production readiness check."""
     print("=" * 60)
-    print("EquaFlow Institutional Readiness Report")
+    print("Manifold Production Readiness Report")
     print("=" * 60)
 
     # 1. Microservices
@@ -103,7 +103,7 @@ async def verify_readiness():
     overall = all(http_results) and all(infra_results) and security_ok
     print("\n" + "=" * 60)
     if overall:
-        print("🎉 SYSTEM STATUS: INSTITUTIONAL GREEN - READY FOR LAUNCH")
+        print("🎉 SYSTEM STATUS: Production GREEN - READY FOR LAUNCH")
     else:
         print("⚠️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
         sys.exit(1)

@@ -14,7 +14,7 @@ SERVICES = {
 
 class SystemSentinel:
     """
-    Institutional System Sentinel.
+    Production System Sentinel.
     Aggregates health status and latency across all microservices.
     """
 

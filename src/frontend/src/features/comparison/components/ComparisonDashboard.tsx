@@ -53,7 +53,7 @@ export const ComparisonDashboard: React.FC = () => {
     const financial = (theme.palette as any).financial;
     const qfd = financial?.qfd;
 
-    // Zero-Mock Synchronization via Institutional Hook
+    // Data-Driven Synchronization via Production Hook
     const { data: serverMetrics, isLoading } = useComparisonData();
     const storeMetrics = useComparisonStore((state: any) => state.metrics);
     

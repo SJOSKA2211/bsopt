@@ -7,7 +7,7 @@ from src.shared.schemas.market import MarketQuote
 @pytest.mark.integration
 async def test_market_router_integration():
     """
-    Zero-Mock Integration Test: Verifies the MarketDataRouter races real providers.
+    Data-Driven Integration Test: Verifies the MarketDataRouter races real providers.
     Requires internet access and valid API keys (or Yahoo fallback).
     """
     router = MarketDataRouter()

@@ -11,9 +11,9 @@ EXPERIMENT=${2:-rl_v1}
 shift 2 || true
 PARAMS=$@
 
-echo "🧬 Launching Institutional ML Pipeline: $ENTRY_POINT"
+echo "🧬 Launching Production ML Pipeline: $ENTRY_POINT"
 
-# Load institutional environment and detection
+# Load Production environment and detection
 source scripts/utils_env.sh
 detect_container_engine
 
@@ -24,7 +24,7 @@ if ! $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml ps | gre
     sleep 5
 fi
 
-echo "🚀 Executing pipeline in institutional ml-worker..."
+echo "🚀 Executing pipeline in Production ml-worker..."
 # standardizing on 'ml-worker' service name
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -d ml-worker mlflow run . \
     -e "$ENTRY_POINT" \

@@ -1,5 +1,5 @@
 """
-DataDriftDetector — institutional wrapper for statistical drift detection.
+DataDriftDetector — Production wrapper for statistical drift detection.
 """
 
 from __future__ import annotations
@@ -11,9 +11,7 @@ import numpy as np
 from src.ml.drift import calculate_ks_test, calculate_psi
 
 class DataDriftDetector:
-    """
-    Institutional wrapper for distribution drift detection using PSI and KS.
-    """
+    """Production wrapper."""
 
     def __init__(
         self,

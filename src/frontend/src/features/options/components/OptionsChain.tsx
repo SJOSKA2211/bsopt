@@ -32,7 +32,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Option, OptionChainRow, Greeks } from '../../../api/types';
 import { usePricingStore } from '../../../store/usePricingStore';
 import type { PricingState } from '../../../store/usePricingStore';
-import { useOptionsChain, useInstitutionalMarketData } from '../../../api/hooks';
+import { useOptionsChain, useProductionMarketData } from '../../../api/hooks';
 
 // Custom components
 import { QuickTradeButton } from './QuickTradeButton';
@@ -85,7 +85,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   const { data: gqlData, loading: isLoading } = useOptionsChain(symbol);
   
   // Real-time Spot Mapping
-  const { data: marketData } = useInstitutionalMarketData(symbol);
+  const { data: marketData } = useProductionMarketData(symbol);
 
   // Subscribe to real-time spot updates
   const priceData = usePricingStore((state: PricingState) => state.prices[symbol]);

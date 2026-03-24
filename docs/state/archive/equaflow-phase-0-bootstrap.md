@@ -1,5 +1,5 @@
 ---
-session_id: equaflow-phase-0-bootstrap
+session_id: Manifold-phase-0-bootstrap
 task: 'Implement Phase 0: Zero-Touch Infrastructure & Auth Bootstrapping'
 created: '2026-03-20T20:12:27.794Z'
 updated: '2026-03-20T20:32:25.019Z'

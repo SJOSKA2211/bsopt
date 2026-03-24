@@ -161,7 +161,7 @@ mlflow:
     limits:
       cpu: 2000m
       memory: 2Gi
-  artifactRoot: "s3://equaflow-artifacts/mlflow"
+  artifactRoot: "s3://Manifold-artifacts/mlflow"
 
 ray:
   enabled: true

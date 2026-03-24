@@ -8,8 +8,8 @@ logger = structlog.get_logger(__name__)
 
 class ChaosMonkey:
     """
-    EquaFlow Chaos Monkey.
-    Randomly disrupts the system to ensure institutional resilience.
+    Manifold Chaos Monkey.
+    Randomly disrupts the system to ensure Production resilience.
     """
 
     def __init__(self, target_containers=None):

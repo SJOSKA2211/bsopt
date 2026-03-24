@@ -6,7 +6,7 @@ from src.database.models import OptionPrice
 
 class TimescaleDataProvider:
     """
-    Institutional Data Provider for RL Training.
+    Production Data Provider for RL Training.
     Fetches historical snapshots from TimescaleDB hypertables.
     """
 

@@ -15,7 +15,7 @@ class TOTPService:
     Handle TOTP generation, verification, and provisioning.
     """
 
-    def __init__(self, issuer_name: str = "EquaFlow") -> None:
+    def __init__(self, issuer_name: str = "Manifold") -> None:
         self.issuer_name = issuer_name
 
     def generate_secret(self) -> str:

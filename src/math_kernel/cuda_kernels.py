@@ -77,7 +77,7 @@ def _norm_pdf(x: float | np.ndarray | cp._core.ndarray) -> float | np.ndarray | 
 def cnd_cuda(d: float) -> float:
     """
     Cumulative normal distribution function optimized for CUDA.
-    Uses high-precision rational approximation (A&S 7.1.26) for institutional accuracy.
+    Uses high-precision rational approximation (A&S 7.1.26) for Production accuracy.
     """
     if d < -7.0:
         return 0.0

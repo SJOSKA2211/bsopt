@@ -1,5 +1,5 @@
 """
-Data Imputation Service for EquaFlow
+Data Imputation Service for Manifold
 
 Handles missing value imputation using advanced statistical methods
 (KNN, Iterative Imputer) to ensure high-quality data for ML pipelines.
@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 
 class DataImputationService(BaseEstimator, TransformerMixin):
     """
-    Institutional-grade imputation service for financial time-series.
+    Production-grade imputation service for financial time-series.
     """
 
     def __init__(self, method: str = "knn", n_neighbors: int = 5):

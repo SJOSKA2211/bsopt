@@ -16,7 +16,6 @@ export RAY_DEDUP_LOGS=0
 export PYTHONWARNINGS="ignore::FutureWarning:ray"
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Production-Grade ASGI Configuration
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode with multi-worker Granian substrate..."
     exec python3 -m uvicorn src.api.main:app \

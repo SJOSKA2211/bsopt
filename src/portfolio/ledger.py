@@ -7,7 +7,7 @@ logger = structlog.get_logger(__name__)
 
 class PortfolioLedger:
     """
-    Institutional Portfolio Ledger.
+    Production Portfolio Ledger.
     Tracks historical trades, cash flows, and realized/unrealized P&L.
     """
 

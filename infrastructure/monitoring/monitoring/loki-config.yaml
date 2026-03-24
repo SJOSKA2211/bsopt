@@ -1,5 +1,5 @@
 # ==============================================================================
-# EQUAFLOW: LOKI CONFIGURATION (v2.0)
+# Manifold: LOKI CONFIGURATION (v2.0)
 # ==============================================================================
 # Grafana Loki configuration for log aggregation
 # Supports high-throughput ingestion with retention policies

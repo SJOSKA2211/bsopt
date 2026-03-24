@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package equaflow.auth;
+package Manifold.auth;
 
-option go_package = "github.com/equaflow/auth";
+option go_package = "github.com/Manifold/auth";
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";

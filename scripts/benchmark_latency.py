@@ -11,7 +11,7 @@ async def benchmark_rust_kernel():
     """Benchmark the Rust-accelerated math kernel."""
     print("🔹 Benchmarking Rust Math Kernel (CPU Parallel)...")
     try:
-        import equaflow_core
+        import Manifold_core
 
         n = 100_000
         S = np.random.uniform(90, 110, n)
@@ -23,7 +23,7 @@ async def benchmark_rust_kernel():
         is_call = np.random.choice([True, False], n)
 
         start = time.perf_counter()
-        _ = equaflow_core.batch_black_scholes(S, K, T, sigma, r, q, is_call)
+        _ = Manifold_core.batch_black_scholes(S, K, T, sigma, r, q, is_call)
         duration = time.perf_counter() - start
 
         print(f"   - Batch Size: {n:,}")
@@ -31,7 +31,7 @@ async def benchmark_rust_kernel():
         print(f"   - Per Opt:    {duration / n * 1_000_000:.4f} μs")
         return duration
     except ImportError:
-        print("   ⚠️  equaflow_core not installed. Skipping.")
+        print("   ⚠️  Manifold_core not installed. Skipping.")
         return None
 
 async def benchmark_cupy_kernel():
@@ -70,14 +70,14 @@ async def benchmark_mmap_parser():
     """Benchmark binary tick parsing throughput."""
     print("🔹 Benchmarking Zero-Copy MMap Tick Parsing...")
     try:
-        import equaflow_core
+        import Manifold_core
 
         # Create a dummy 32MB file (1M ticks of 32 bytes)
         file_path = "/tmp/benchmark_ticks.bin"
         with open(file_path, "wb") as f:  # noqa: ASYNC230
             f.write(os.urandom(1024 * 1024 * 32))
 
-        buffer = equaflow_core.TickDataBuffer(file_path)
+        buffer = Manifold_core.TickDataBuffer(file_path)
         start = time.perf_counter()
         _ = buffer.parse_ticks_32b(0, 1_000_000)
         duration = time.perf_counter() - start
@@ -94,7 +94,7 @@ async def benchmark_mmap_parser():
 
 async def run_suite():
     print("=" * 60)
-    print("EquaFlow Institutional Performance Report")
+    print("Manifold Production Performance Report")
     print("=" * 60)
     await benchmark_rust_kernel()
     print("-" * 40)

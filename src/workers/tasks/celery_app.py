@@ -10,11 +10,11 @@ from src.shared.config import settings
 logger = structlog.get_logger(__name__)
 
 # ==============================================================================
-# EQUAFLOW: UNIFIED CELERY MANIFOLD (v5.0)
+# Manifold: UNIFIED CELERY MANIFOLD (v5.0)
 # ==============================================================================
 
 celery_app = Celery(
-    "equaflow",
+    "Manifold",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.REDIS_URL,
     include=[

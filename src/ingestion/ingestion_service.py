@@ -4,9 +4,9 @@ import grpc
 import structlog
 
 try:
-    import equaflow_core
+    import Manifold_core
 except ImportError:
-    equaflow_core = None
+    Manifold_core = None
 
 from src.shared.protos import data_pb2, data_pb2_grpc
 from src.shared.rabbitmq import get_rabbitmq
@@ -37,9 +37,9 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
 
                 # 1. High-speed Rust Validation
                 is_valid = True
-                if equaflow_core:
+                if Manifold_core:
                     last_price = self.last_price_cache.get(ticker, 0.0)
-                    is_valid = equaflow_core.validate_tick(ticker, price, last_price)
+                    is_valid = Manifold_core.validate_tick(ticker, price, last_price)
 
                 if not is_valid:
                     logger.warning("ingestion_tick_rejected_outlier", ticker=ticker, price=price)

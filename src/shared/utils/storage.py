@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 
 class ObjectStorageManager:
     """
-    Institutional-grade Object Storage Manager (S3/MinIO).
+    Production-grade Object Storage Manager (S3/MinIO).
     Handles artifacts, logs, and raw data persistence.
     """
 

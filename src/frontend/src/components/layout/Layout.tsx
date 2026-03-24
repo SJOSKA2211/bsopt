@@ -42,7 +42,7 @@ const TickerStrip: React.FC = () => {
   
   const { data: tickers, isLoading } = useMarketTickers();
 
-  // Seamless institutional loop - duplicate for CSS animation
+  // Seamless Production loop - duplicate for CSS animation
   const displayTickers = tickers ? [...tickers, ...tickers] : [];
 
   if (isLoading && !tickers) {

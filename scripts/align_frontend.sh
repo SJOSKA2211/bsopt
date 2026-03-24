@@ -8,7 +8,7 @@ echo "🎨 Aligning Frontend Environment..."
 cd src/frontend
 
 # 1. Standard Installation
-echo "📦 Installing Institutional UI Dependencies..."
+echo "📦 Installing Production UI Dependencies..."
 npm install --silent
 
 # 2. Type Checking

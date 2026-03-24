@@ -49,8 +49,6 @@ const LoadingFallback: React.FC = () => (
 
 const SYMBOLS = ['NIFTY', 'BANKNIFTY', 'SPX', 'NDX', 'VIX'];
 
-
-
 export const MarketPage: React.FC = () => {
   const theme = useTheme();
   const [symbol, setSymbol] = useState(0);

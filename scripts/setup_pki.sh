@@ -8,7 +8,7 @@ KEY_DIR="${PROJECT_ROOT}/.pki"
 mkdir -p "$KEY_DIR"
 mkdir -p "$KEY_DIR/vault"
 
-echo "🔐 Initializing Institutional Security Layer in $KEY_DIR..."
+echo "🔐 Initializing Production Security Layer in $KEY_DIR..."
 
 # 1. Generate Root CA (RSA 4096)
 if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
@@ -16,7 +16,7 @@ if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
     openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096
     openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
         -out "${KEY_DIR}/root_ca.crt" \
-        -subj "/C=US/ST=State/L=City/O=BSOPT-INSTITUTIONAL/CN=EquaFlow-Internal-CA"
+        -subj "/C=US/ST=State/L=City/O=BSOPT-Production/CN=Manifold-Internal-CA"
     chmod 600 "${KEY_DIR}/root_ca.key"
 fi
 
@@ -72,4 +72,4 @@ for service in "${CLIENT_SERVICES[@]}"; do
     issue_cert "$service" "client"
 done
 
-echo "✅ Institutional Security Layer Finalized in $KEY_DIR"
+echo "✅ Production Security Layer Finalized in $KEY_DIR"

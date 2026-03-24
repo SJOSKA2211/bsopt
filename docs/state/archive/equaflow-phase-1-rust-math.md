@@ -1,5 +1,5 @@
 ---
-session_id: equaflow-phase-1-rust-math
+session_id: Manifold-phase-1-rust-math
 task: 'Implement Phase 1: Rust Integration & Advanced Mathematical Kernels'
 created: '2026-03-20T20:32:59.248Z'
 updated: '2026-03-20T21:14:16.845Z'

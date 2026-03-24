@@ -3,7 +3,7 @@ import { useQuery as useReactQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import type { MarketData, MLPrediction, OptionConnection, Ticker, PortfolioSummary } from './types';
 
-// Institutional GraphQL Fragments
+// Production GraphQL Fragments
 const OPTION_FIELDS = gql`
   fragment OptionFields on Option {
     id
@@ -113,7 +113,7 @@ export function useOptionsChain(symbol: string) {
   });
 }
 
-export function useInstitutionalMarketData(symbol: string) {
+export function useProductionMarketData(symbol: string) {
   return useQuery<{ marketData: MarketData }>(GET_MARKET_DATA, {
     variables: { symbol },
     pollInterval: 5000, // 5s poll as fallback to WS

@@ -1,5 +1,5 @@
 -- ============================================================================
--- EQUAFLOW: PHASE 3 - HYPER-OPTIMIZED LIVE STATE TUNING (v2.0)
+-- Manifold: PHASE 3 - HYPER-OPTIMIZED LIVE STATE TUNING (v2.0)
 -- ============================================================================
 -- This script injects PostgreSQL 16 + TimescaleDB 2.17+ engine parameters
 -- optimized for massive NVMe/SSD IO and high-frequency writes.

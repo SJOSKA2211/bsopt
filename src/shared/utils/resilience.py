@@ -1,5 +1,5 @@
 """
-Resilience Utilities for BS-Opt (EquaFlow)
+Resilience Utilities for BS-Opt (Manifold)
 =========================================
 Implements Circuit Breaker, Exponential Backoff with Jitter,
 and advanced error handling for external dependencies.

@@ -6,7 +6,7 @@ from src.shared.config import settings
 
 @pytest.mark.asyncio
 async def test_ticker_ingestion_integration():
-    """Verify full gRPC -> RabbitMQ flow without mocks (Zero-Mock)."""
+    """Verify full gRPC -> RabbitMQ flow without mocks (Data-Driven)."""
     servicer = DataIngestionServicer()
     symbol = settings.MARKET_TICKER_SYMBOLS[0]
 

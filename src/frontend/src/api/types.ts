@@ -1,5 +1,5 @@
 /**
- * Institutional-Grade Type Definitions for BS-OPT
+ * Production-Grade Type Definitions for BS-OPT
  * Unified between Frontend (React/TS) and Backend (Python/Pydantic/Strawberry)
  */
 

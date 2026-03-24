@@ -56,7 +56,7 @@ class OrderEngine:
         )
 
         if ok:
-            # ⚡ INSTITUTIONAL-GRADE HFT SIMULATION
+            
             # Simulate micro-slippage (0.1 bps) and market impact
             slippage = 0.0001 * price * (1 if side == 1 else -1)
             fill_price = price + slippage

@@ -1155,7 +1155,7 @@ async def get_portfolio_total_value(db: AsyncSession, portfolio_id: UUID) -> flo
 
 async def get_ml_comparison_stats(db: AsyncSession, user_id: UUID) -> dict[str, float]:
     """
-    Institutional AI vs Human performance comparison.
+    Production AI vs Human performance comparison.
     Aggregates real PnL from positions and synthetic PnL from model predictions.
     """
     try:
@@ -1186,8 +1186,8 @@ async def get_ml_comparison_stats(db: AsyncSession, user_id: UUID) -> dict[str, 
         drift_res = await db.execute(drift_stmt)
         avg_mae = float(drift_res.scalar() or 0.5)
 
-        # Lower MAE = Higher AI PnL (Heuristic for demo/institutional dashboard)
-        # 5000 is base institutional alpha scaled by inverse error
+        # Lower MAE = Higher AI PnL (Heuristic for demo/Production dashboard)
+        # 5000 is base Production alpha scaled by inverse error
         ai_pnl = 5000.0 * (1.0 / (avg_mae + 0.1))
 
         return {
@@ -1202,7 +1202,7 @@ async def get_ml_comparison_stats(db: AsyncSession, user_id: UUID) -> dict[str, 
         logger.warning("ml_comparison_stats_query_failed", error=str(e))
         return {
             "userPnl": 0.0,
-            "aiPnl": 2500.0,  # Baseline institutional alpha
+            "aiPnl": 2500.0,  # Baseline Production alpha
             "userSharpe": 1.2,
             "aiSharpe": 2.4,
             "userWinRate": 55.0,

@@ -9,7 +9,7 @@ logger = structlog.get_logger(__name__)
 
 class MLflowWatchdog:
     """
-    Institutional-grade MLOps Watchdog.
+    Production-grade MLOps Watchdog.
     Monitors Ray jobs and auto-respawns with adjusted params on failure/OOM.
     """
 
@@ -91,12 +91,12 @@ class MLflowWatchdog:
 
                                     # Upload to MinIO
                                     storage_manager.upload_file(
-                                        "equaflow-artifacts",
+                                        "Manifold-artifacts",
                                         f"drift/report_{int(time.time())}.html",
                                         report_path,
                                     )
                                     logger.info(
-                                        "evidently_report_uploaded", bucket="equaflow-artifacts"
+                                        "evidently_report_uploaded", bucket="Manifold-artifacts"
                                     )
 
                                     self._trigger_retraining("neural_pricing_v2")

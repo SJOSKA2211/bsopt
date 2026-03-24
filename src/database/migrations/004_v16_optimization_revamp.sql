@@ -60,7 +60,6 @@ ALTER TABLE users FORCE ROW LEVEL SECURITY;
 -- 7. Native ENUM Standard (v2.5) - Handled in init-scripts
 -- Native ENUM conversion was causing issues with views, so we moved it to Phase 1.
 
-
 -- 8. Aggressive Autovacuum Tuning (v2.5)
 ALTER TABLE users SET (
     autovacuum_vacuum_scale_factor = 0.01,

@@ -87,7 +87,7 @@ class DatabaseManager:
         return sync_url, async_url
 
     def _setup_events(self, engine: Engine | AsyncEngine) -> None:
-        """Attaches institutional-grade performance monitoring events to the engine."""
+        """Attaches Production-grade performance monitoring events to the engine."""
         from src.shared.tracing import get_tracer
 
         tracer = get_tracer(__name__)

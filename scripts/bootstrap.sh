@@ -32,7 +32,7 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "📝 Generating Secrets..."
     
     # High-Entropy Database Secrets
-    DB_USER="equaflow_admin"
+    DB_USER="Manifold_admin"
     DB_PASS=$(openssl rand -hex 32)
     DB_NAME="bsopt"
     

@@ -22,7 +22,7 @@ class RolloutWorker:
         self.env = TradingEnvironment(**env_config)
         self.device = torch.device("cpu")
         
-        # Consistent institutional policy initialization
+        # Consistent Production policy initialization
         policy_kwargs = dict(
             features_extractor_class=TransformerFeatureExtractor,
             features_extractor_kwargs=dict(features_dim=256),
@@ -117,7 +117,7 @@ class RayRLTrainer:
                     self.model.replay_buffer.add(obs, next_obs, action, reward, done, [{}])
                     steps_done += 1
 
-            # 4. Trigger institutional training step
+            # 4. Trigger Production training step
             if self.model.replay_buffer.size() > self.model.learning_starts:
                 self.model.train(batch_size=self.model.batch_size, gradient_steps=batch_samples // 64)
             

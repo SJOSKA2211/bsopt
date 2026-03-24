@@ -8,7 +8,7 @@ logger = structlog.get_logger(__name__)
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     """
-    gRPC Servicer for Institutional-Grade Authentication.
+    gRPC Servicer for Production-Grade Authentication.
     Uses Argon2id and Asymmetric JWTs.
     """
 

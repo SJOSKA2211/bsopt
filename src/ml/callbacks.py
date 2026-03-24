@@ -6,7 +6,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 class BaseCallback:
-    """Institutional-grade base class for all ML training hooks."""
+    """Production-grade base class for all ML training hooks."""
     def on_train_begin(self, params: Dict[str, Any]) -> None: pass
     def on_train_end(self) -> None: pass
     def on_epoch_begin(self, epoch: int) -> None: pass
@@ -73,8 +73,7 @@ class ModelCheckpoint(BaseCallback):
         """Saves model state using an atomic rename to prevent corruption."""
         temp_path = f"{self.filepath}.tmp"
         os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-        
-        # institutional-grade persistence
+
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),

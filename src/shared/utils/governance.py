@@ -4,9 +4,9 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-class InstitutionalGovernance:
+class ProductionGovernance:
     """
-    EquaFlow Institutional Governance Layer.
+    Manifold Production Governance Layer.
     Enforces multi-signature and approval workflows for high-stakes actions.
     """
 
@@ -16,7 +16,7 @@ class InstitutionalGovernance:
 
     def validate_action(self, actor_id: str, action_type: str, data: dict[str, Any]) -> bool:
         """
-        Validate an action against institutional policies.
+        Validate an action against Production policies.
         Returns True if approved, False if pending multi-sig.
         """
         if action_type == "trade":
@@ -30,4 +30,4 @@ class InstitutionalGovernance:
         logger.info("governance_action_approved", actor=actor_id, action=action_type)
         return True
 
-governance = InstitutionalGovernance()
+governance = ProductionGovernance()

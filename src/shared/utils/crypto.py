@@ -52,7 +52,7 @@ class AES256GCM:
 
 class EIP712Signer:
     """
-    Institutional EIP-712 Message Signer.
+    Production EIP-712 Message Signer.
     Ensures secure, structured data signing for DeFi settlement.
     """
 
@@ -78,7 +78,7 @@ class EIP712Signer:
             },
             "primaryType": "Settlement",
             "domain": {
-                "name": "EquaFlowSettlement",
+                "name": "ManifoldSettlement",
                 "version": "1",
                 "chainId": 1,
                 "verifyingContract": "0x0000000000000000000000000000000000000000",

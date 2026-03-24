@@ -12,7 +12,7 @@ def black_scholes_cupy(
     is_call: bool = True,
 ) -> cp.ndarray:
     """
-    Institutional-grade vectorized Black-Scholes using CuPy.
+    Production-grade vectorized Black-Scholes using CuPy.
 
     C = S0 * N(d1) - K * e^(-rT) * N(d2)
     d1 = (ln(S0/K) + (r + sigma^2/2) * T) / (sigma * sqrt(T))

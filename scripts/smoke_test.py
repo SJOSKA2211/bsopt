@@ -12,14 +12,14 @@ async def test_pillar_1_ingestion():
     """Simulate actual high-performance ingestion."""
     print("📥 Pillar 1: High-Performance Ingestion Verification...")
     try:
-        import equaflow_core
+        import Manifold_core
 
         # Create a mock 1MB tick file
         tick_file = "/tmp/smoke_ticks.bin"
         with open(tick_file, "wb") as f:  # noqa: ASYNC230  # noqa: ASYNC230
             f.write(os.urandom(1024 * 32))  # 1024 ticks
 
-        parser = equaflow_core.TickDataBuffer(tick_file)
+        parser = Manifold_core.TickDataBuffer(tick_file)
         ticks = parser.parse_ticks_32b(0, 100)
         logger.info("ingestion_verified", count=len(ticks), first_symbol=ticks[0][0])
         os.remove(tick_file)
@@ -72,7 +72,7 @@ async def test_pillar_4_security():
 
 async def run_smoke_test():
     print("=" * 60)
-    print("EquaFlow Institutional 'Day-0' Smoke Test")
+    print("Manifold Production 'Day-0' Smoke Test")
     print("=" * 60)
 
     await test_pillar_1_ingestion()
@@ -80,7 +80,7 @@ async def run_smoke_test():
     await test_pillar_3_mlops()
     await test_pillar_4_security()
 
-    print("\n✅ SMOKE TEST COMPLETE: Institutional Readiness Verified.")
+    print("\n✅ SMOKE TEST COMPLETE: Production Readiness Verified.")
     print("=" * 60)
 
 if __name__ == "__main__":

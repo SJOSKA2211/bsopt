@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class RabbitMQManager:
     """
-    Institutional-Grade RabbitMQ Manager with DLQ and Retry logic.
+    Production-Grade RabbitMQ Manager with DLQ and Retry logic.
     """
 
     def __init__(self):

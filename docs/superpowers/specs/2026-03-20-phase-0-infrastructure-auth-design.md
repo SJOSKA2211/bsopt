@@ -1,12 +1,12 @@
 # Design Document: Phase 0 - Zero-Touch Infrastructure & Auth Bootstrapping
 
 **Date**: 2026-03-20
-**Topic**: EquaFlow Phase 0 Infrastructure & Auth
+**Topic**: Manifold Phase 0 Infrastructure & Auth
 **Status**: DRAFT (v2.0 - Revised after Review)
 **Task Complexity**: Complex
 
 ## 1. Executive Summary
-This design defines Phase 0 of the EquaFlow platform, focusing on automated, zero-touch infrastructure provisioning and a zero-trust authentication boundary. The goal is to move from a standard Docker setup to a cryptographically secured, institutional-grade stack that is container-engine agnostic and self-healing.
+This design defines Phase 0 of the Manifold platform, focusing on automated, zero-touch infrastructure provisioning and a zero-trust authentication boundary. The goal is to move from a standard Docker setup to a cryptographically secured, Production-grade stack that is container-engine agnostic and self-healing.
 
 ## 2. Problem Statement
 Current infrastructure lacks:

@@ -45,7 +45,6 @@ ALTER TABLE model_predictions SET (
 );
 SELECT add_compression_policy('model_predictions', INTERVAL '7 days', if_not_exists => TRUE);
 
-
 -- 2. Retention Policies (Balanced for 4GB environment)
 -- Keep core financial data longer, but purge ephemeral logs faster.
 SELECT add_retention_policy('options_prices', INTERVAL '1 year', if_not_exists => TRUE);

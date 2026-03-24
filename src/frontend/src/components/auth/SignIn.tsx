@@ -163,7 +163,7 @@ export default function SignIn() {
           variant="body2"
           sx={{ textAlign: 'center', color: 'text.disabled', mb: 3.5, mt: 0.5, fontSize: '0.82rem' }}
         >
-          Access institutional-grade volatility surfaces &amp; real-time Greeks
+          Access Production-grade volatility surfaces &amp; real-time Greeks
         </Typography>
 
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>

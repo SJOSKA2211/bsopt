@@ -34,7 +34,7 @@ down:
 	$(COMPOSE_CMD) -f $(COMPOSE_FILE) down
 
 clean: down
-	@echo "🧹 Deep cleaning EquaFlow stack..."
+	@echo "🧹 Deep cleaning Manifold stack..."
 	$(CONTAINER_ENGINE) volume rm $$( $(CONTAINER_ENGINE) volume ls -q | grep bsopt ) 2>/dev/null || true
 	rm -rf .pki .env bootstrap.log logs/*.log
 	@echo "✨ System Sanitized."
@@ -75,7 +75,7 @@ test-unit:
 	uv run pytest tests/unit
 
 test-integration:
-	@echo "🧪 Running Integration Tests (Zero-Mock)..."
+	@echo "🧪 Running Integration Tests (Data-Driven)..."
 	uv run pytest tests/integration
 
 test-e2e:
@@ -100,16 +100,16 @@ build:
 	$(COMPOSE_CMD) -f $(COMPOSE_FILE) build --parallel
 
 help:
-	@echo "EquaFlow Institutional Build Factory (v2026):"
-	@echo "  setup        - Institutional Zero-Touch initialize (Bootstrap + Gen)"
+	@echo "Manifold Production Build Factory (v2026):"
+	@echo "  setup        - Production Zero-Touch initialize (Bootstrap + Gen)"
 	@echo "  infra        - Start Core Infrastructure substrate (DB, Cache, MQ)"
 	@echo "  up           - Start Full Application Ecosystem (Build + Up)"
 	@echo "  down         - Graceful shutdown of all services"
-	@echo "  build        - Institutional parallel image construction"
+	@echo "  build        - Production parallel image construction"
 	@echo "  db-init      - Full schema deployment & migration factory"
 	@echo "  db-sync      - Synchronize analytical views and optimizations"
 	@echo "  gen-all      - Multi-language protocol generation (gRPC/FBS)"
 	@echo "  test-all     - Comprehensive verification (Unit, Integration, E2E)"
-	@echo "  lint         - Institutional code quality & format audit"
+	@echo "  lint         - Production code quality & format audit"
 	@echo "  clean        - Deep purge of volumes, logs, and artifacts"
 

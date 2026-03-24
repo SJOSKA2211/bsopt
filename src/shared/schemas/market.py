@@ -1,5 +1,5 @@
 """
-Standardized Market Data Schemas for EquaFlow.
+Standardized Market Data Schemas for Manifold.
 Optimized for high-performance serialization via msgspec.
 """
 

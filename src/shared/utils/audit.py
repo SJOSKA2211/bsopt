@@ -6,19 +6,19 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-class InstitutionalAuditLog:
+class ProductionAuditLog:
     """
-    Centralized Institutional Audit Log Service.
+    Centralized Production Audit Log Service.
     Ensures all critical actions are recorded with high fidelity and tamper-evident metadata.
     """
 
     def __init__(self):
-        self.service_name = os.getenv("SERVICE_NAME", "EquaFlow")
+        self.service_name = os.getenv("SERVICE_NAME", "Manifold")
         self.log_target = os.getenv("AUDIT_LOG_TARGET", "database")  # 'database' or 'stdout'
 
     def log_action(self, actor_id: str, action: str, metadata: dict[str, Any]):
         """
-        Log a critical institutional action.
+        Log a critical Production action.
         """
         timestamp = time.time()
         import hmac
@@ -49,14 +49,14 @@ class InstitutionalAuditLog:
         }
 
         # 1. Structured Logging (Standard)
-        logger.info("institutional_audit_event", **audit_entry)
+        logger.info("Production_audit_event", **audit_entry)
 
         if self.log_target == "database":
             async def _persist_audit(entry: dict):
                 try:
                     from src.database import db_manager
                     query = text("""
-                        INSERT INTO institutional_audit_logs 
+                        INSERT INTO Production_audit_logs 
                         (timestamp, actor_id, action, service, metadata, integrity_hash)
                         VALUES (to_timestamp(:timestamp), :actor_id, :action, :service, :metadata_json, :integrity_hash)
                     """)
@@ -78,4 +78,4 @@ class InstitutionalAuditLog:
             except RuntimeError:
                 logger.warning("no_running_event_loop_for_audit_db_persistence")
 
-audit_logger = InstitutionalAuditLog()
+audit_logger = ProductionAuditLog()

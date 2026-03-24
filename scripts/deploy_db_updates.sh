@@ -5,15 +5,15 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🗄️ Executing Institutional Database Schema Synchronization..."
+echo "🗄️ Executing Production Database Schema Synchronization..."
 
-# Load institutional environment
+# Load Production environment
 source scripts/utils_env.sh
 load_decrypted_secrets
 
 # Pre-flight Validation
 if ! command -v psql > /dev/null; then
-    echo "❌ Error: psql client not found. Mandatory for institutional deployment."
+    echo "❌ Error: psql client not found. Mandatory for Production deployment."
     exit 1
 fi
 
@@ -27,7 +27,7 @@ if ! psql "$DATABASE_URL" -c "SELECT 1" > /dev/null 2>&1; then
 fi
 
 # Apply Materialized View Refreshes and Optimizations
-echo "🔄 Refreshing Institutional Analytical Views..."
+echo "🔄 Refreshing Production Analytical Views..."
 psql "$DATABASE_URL" <<EOF
 -- Explicitly refresh the ML comparison dashboard view
 REFRESH MATERIALIZED VIEW CONCURRENTLY ml_comparison_stats;

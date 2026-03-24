@@ -5,9 +5,9 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "⚙️ Launching Institutional EquaFlow Worker Substrate..."
+echo "⚙️ Launching Production Manifold Worker Substrate..."
 
-# Load institutional environment
+# Load Production environment
 source scripts/utils_env.sh
 load_decrypted_secrets
 
@@ -27,7 +27,7 @@ echo "📅 Starting Celery Scheduler (Beat)..."
 $RUN_CELERY beat --loglevel=info &
 PID_BEAT=$!
 
-# Trap signals for graceful institutional shutdown
+# Trap signals for graceful Production shutdown
 trap "echo '🛑 Shutting down workers...'; kill $PID_WORKER $PID_BEAT; exit" SIGINT SIGTERM
 
 wait

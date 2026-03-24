@@ -116,8 +116,6 @@ const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = Reac
   );
 });
 
-
-
 export const PortfolioPage: React.FC = () => {
   const theme = useTheme();
   const { data: portfolioData } = usePortfolio();
@@ -134,7 +132,7 @@ export const PortfolioPage: React.FC = () => {
     { 
       label: 'Daily P&L', 
       value: `${dailyPnL >= 0 ? '+' : ''}$${Math.abs(dailyPnL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      sub: 'Institutional Real-time', 
+      sub: 'Production Real-time', 
       type: 'quantum', 
       positive: dailyPnL >= 0 
     },

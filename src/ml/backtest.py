@@ -32,7 +32,7 @@ def ray_backtest_task(
 
 class BacktestEngine:
     """
-    Institutional-grade Backtesting Engine.
+    Production-grade Backtesting Engine.
     Orchestrates parallel simulations across tickers using Ray and Numba.
     """
 
@@ -47,7 +47,7 @@ class BacktestEngine:
         sharpe_threshold: float = 1.5,
     ) -> bool:
         """
-        Execute parallel backtests and validate against institutional thresholds.
+        Execute parallel backtests and validate against Production thresholds.
         """
         if not ray.is_initialized():
             ray.init(address="auto", ignore_reinit_error=True)
@@ -87,7 +87,7 @@ class BacktestEngine:
             self.tracker.log_dict({"results": results}, "backtest_results.json")
 
         if avg_sharpe < sharpe_threshold:
-            logger.warning("institutional_threshold_not_met_rollback_advise")
+            logger.warning("Production_threshold_not_met_rollback_advise")
             return False
 
         return True

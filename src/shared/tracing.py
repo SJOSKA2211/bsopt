@@ -244,7 +244,7 @@ def create_span(
     global _tracer
 
     if _tracer is None:
-        _tracer = trace.get_tracer("equaflow")
+        _tracer = trace.get_tracer("Manifold")
 
     with _tracer.start_as_current_span(name, kind=kind) as span:
         if attributes:

@@ -66,7 +66,7 @@ class MarketDataScraper:
         asset_class: str = "equity",
         interval: str = "1d",
     ) -> pd.DataFrame:
-        """Fetch historical data for a given ticker and range (Institutional Grade)."""
+        """Fetch historical data for a given ticker and range (Production Grade)."""
         self._validate_inputs(ticker, start_date, end_date)
         last_response: httpx.Response | None = None
         client = HttpClientManager.get_client()
@@ -285,7 +285,7 @@ class MarketDataScraper:
                 if not data.empty:
                     df = data.reset_index()
                     df.columns = [c.lower() for c in df.columns]
-                    # Map to institutional standard
+                    # Map to Production standard
                     df = df.rename(columns={"date": "timestamp", "adj close": "close"})
                     # Convert to ms timestamp
                     df["timestamp"] = df["timestamp"].view("int64") // 10**6

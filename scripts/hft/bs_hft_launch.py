@@ -12,7 +12,7 @@ logger = structlog.get_logger(__name__)
 
 class HFTManifoldLauncher:
     """
-    Institutional HFT Manifold Launcher.
+    Production HFT Manifold Launcher.
     Orchestrates low-latency execution and shared-memory initialization.
     """
 

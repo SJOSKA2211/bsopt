@@ -5,15 +5,14 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🧠 Launching Institutional Neural Pricing Manifold..."
+echo "🧠 Launching Production Neural Pricing Manifold..."
 
-# Load institutional environment
+# Load Production environment
 source scripts/utils_env.sh
 load_decrypted_secrets
 
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Production-Grade ASGI Configuration
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
     exec python3 -m uvicorn src.math_kernel.pricing.main:app \

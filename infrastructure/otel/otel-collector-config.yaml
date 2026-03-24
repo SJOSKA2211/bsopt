@@ -10,7 +10,7 @@ processors:
     attributes:
       - key: service.name
         action: upsert
-        value: "equaflow"
+        value: "Manifold"
 
 exporters:
   prometheus:

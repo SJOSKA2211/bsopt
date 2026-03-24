@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# EQUAFLOW: THE ZERO-TOUCH BOOTSTRAP (v3.1 - Hardened)
+# Manifold: THE ZERO-TOUCH BOOTSTRAP (v3.1 - Hardened)
 # ==============================================================================
 # Automates the entire stack: PKI, encrypted secrets, DB Init, and Gateway.
 # Features:
@@ -74,7 +74,7 @@ container_exec() {
 # 2. Security Layer (PKI & Vault)
 # ==============================================================================
 initialize_pki() {
-    log_info "Initializing Institutional PKI Layer..."
+    log_info "Initializing Production PKI Layer..."
     chmod +x ./scripts/setup_pki.sh
     ./scripts/setup_pki.sh
 }
@@ -208,7 +208,7 @@ wait_for_service() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 Manifold Production Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
     detect_container_engine
@@ -220,8 +220,8 @@ main() {
 
     # Ensure base image is up to date
     if [ -f "infrastructure/orchestration/Dockerfile.base" ]; then
-        log_info "Checking base image equaflow-base:latest..."
-        $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
+        log_info "Checking base image Manifold-base:latest..."
+        $CONTAINER_ENGINE build -t Manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
     fi
 
     log_info "Building core operational cluster..."
@@ -258,7 +258,7 @@ main() {
     
     echo ""
     echo "=============================================================================="
-    log_success "EQUAFLOW STACK IS ONLINE AND HARDENED"
+    log_success "Manifold STACK IS ONLINE AND HARDENED"
     echo "=============================================================================="
 }
 

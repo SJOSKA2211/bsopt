@@ -1,15 +1,15 @@
-# EquaFlow Multi-Cloud Infrastructure Blueprint (AWS/GCP)
-# This Terraform manifest provides the core resource definitions for an institutional deployment.
+# Manifold Multi-Cloud Infrastructure Blueprint (AWS/GCP)
+# This Terraform manifest provides the core resource definitions for an Production deployment.
 
 provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_vpc" "equaflow_vpc" {
+resource "aws_vpc" "Manifold_vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
   enable_dns_hostnames = true
-  tags = { Name = "EquaFlow-VPC" }
+  tags = { Name = "Manifold-VPC" }
 }
 
 resource "aws_db_instance" "timescaledb" {
@@ -17,7 +17,7 @@ resource "aws_db_instance" "timescaledb" {
   engine = "postgres"
   engine_version = "15.3"
   instance_class = "db.m6g.xlarge"
-  db_name = "equaflow_prod"
+  db_name = "Manifold_prod"
   username = "admin"
   password = var.db_password
   storage_type = "gp3"
@@ -26,7 +26,7 @@ resource "aws_db_instance" "timescaledb" {
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id = "equaflow-redis"
+  cluster_id = "Manifold-redis"
   engine = "redis"
   node_type = "cache.m6g.large"
   num_cache_nodes = 3
@@ -34,8 +34,8 @@ resource "aws_elasticache_cluster" "redis" {
   port = 6379
 }
 
-resource "aws_ecs_cluster" "equaflow_cluster" {
-  name = "EquaFlow-Cluster"
+resource "aws_ecs_cluster" "Manifold_cluster" {
+  name = "Manifold-Cluster"
   setting {
     name = "containerInsights"
     value = "enabled"

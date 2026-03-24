@@ -64,7 +64,7 @@ class AugmentedRLAgent:
 class SentimentExtractor:
     """
     High-Performance Transformer-based Sentiment Extractor.
-    Uses FinBERT (ProsusAI/finbert) for institutional-grade financial sentiment analysis.
+    Uses FinBERT (ProsusAI/finbert) for Production-grade financial sentiment analysis.
     """
 
     def __init__(self, model_name: str = "ProsusAI/finbert"):

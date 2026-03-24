@@ -1,7 +1,7 @@
 """
 Redis Streams Utility (High-Performance)
 
-Handles XADD, XREADGROUP, and Consumer Group management for EquaFlow.
+Handles XADD, XREADGROUP, and Consumer Group management for Manifold.
 """
 
 import asyncio
@@ -21,7 +21,7 @@ class RedisStreamManager:
     Manages Redis Streams for real-time data and internal events.
     """
 
-    def __init__(self, stream_name: str, group_name: str = "equaflow_consumers"):
+    def __init__(self, stream_name: str, group_name: str = "Manifold_consumers"):
         self.stream_name = stream_name
         self.group_name = group_name
         self._redis: Redis | None = None

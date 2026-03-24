@@ -14,8 +14,6 @@ import type { PricingState } from '../../../store/usePricingStore';
 import { useHistoricalData } from '../../../api/hooks';
 import { Timeline, Flare as LiveIcon } from '@mui/icons-material';
 
-
-
 interface LivePriceChartProps {
   symbol: string;
 }
@@ -205,7 +203,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         close: priceData.price,
       });
 
-      // High-precision volume data from institutional feed
+      // High-precision volume data from Production feed
       if (volumeRef.current) {
         volumeRef.current.update({
           time: timestamp,
@@ -291,7 +289,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ pointerEvents: 'auto' }}>
-          <Tooltip title="Toggle Institutional Trendline">
+          <Tooltip title="Toggle Production Trendline">
             <IconButton 
               size="small" 
               onClick={() => setShowSMA(!showSMA)}

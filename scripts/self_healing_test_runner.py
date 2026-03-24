@@ -2,7 +2,7 @@ import subprocess
 
 def run_test_gauntlet():
     """
-    Executes make test-all and attempts to heal common institutional failures.
+    Executes make test-all and attempts to heal common Production failures.
     """
     print("🔥 Launching The Gauntlet (Self-Healing Mode)...")
 

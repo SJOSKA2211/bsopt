@@ -6,7 +6,7 @@
 **Task Complexity**: Complex
 
 ## 1. Executive Summary
-Phase 2 focuses on consolidating the EquaFlow security perimeter. By unifying authentication logic into a single high-performance service and enforcing a "fused" zero-trust middleware (JWT + mTLS) across all microservices, we ensure that every internal request is cryptographically verified for both user and service identity.
+Phase 2 focuses on consolidating the Manifold security perimeter. By unifying authentication logic into a single high-performance service and enforcing a "fused" zero-trust middleware (JWT + mTLS) across all microservices, we ensure that every internal request is cryptographically verified for both user and service identity.
 
 ## 2. Problem Statement
 - Auth logic is currently fragmented across multiple modules (`password.py`, `oauth2.py`, `mfa.py`).
@@ -20,7 +20,7 @@ Phase 2 focuses on consolidating the EquaFlow security perimeter. By unifying au
     - **Argon2id**: High-entropy password hashing and verification.
     - **MFA**: TOTP-based multi-factor authentication.
     - **Token Management**: Issuance and revocation of ES256 (ECC) and RS256 (RSA) JWTs.
-- **gRPC Interface**: Implements the `equaflow.auth.AuthService` protocol defined in `protos/auth.proto` for low-latency inter-service validation.
+- **gRPC Interface**: Implements the `Manifold.auth.AuthService` protocol defined in `protos/auth.proto` for low-latency inter-service validation.
 
 ### 3.2. Fused Zero-Trust Middleware
 - **Security Gating**: A mandatory `ZeroTrustMiddleware` in `src/api/middleware/fused.py`.

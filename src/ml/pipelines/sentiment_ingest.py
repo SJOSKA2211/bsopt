@@ -12,7 +12,7 @@ from src.shared.config import settings
 logger = structlog.get_logger(__name__)
 
 class SentimentExtractor:
-    """Institutional-grade sentiment extraction using a heuristic-based intensity model."""
+    """Production-grade sentiment extraction using a heuristic-based intensity model."""
 
     def get_sentiment_score(self, text: str) -> float:
         """

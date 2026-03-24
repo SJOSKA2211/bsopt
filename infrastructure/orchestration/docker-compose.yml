@@ -3,7 +3,7 @@ name: bsopt
 services:
   
   base:
-    image: equaflow-base:latest
+    image: Manifold-base:latest
     pull_policy: build
     build:
       context: ../..
@@ -192,9 +192,9 @@ services:
     entrypoint: >
       /bin/sh -c "
       /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio_admin} ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP};
-      /usr/bin/mc mb --ignore-existing local/equaflow-artifacts;
-      /usr/bin/mc mb --ignore-existing local/equaflow-raw-data;
-      /usr/bin/mc anonymous set public local/equaflow-artifacts;
+      /usr/bin/mc mb --ignore-existing local/Manifold-artifacts;
+      /usr/bin/mc mb --ignore-existing local/Manifold-raw-data;
+      /usr/bin/mc anonymous set public local/Manifold-artifacts;
       exit 0;
       "
     networks:
@@ -791,7 +791,7 @@ services:
       - "5000:5000"
     environment:
       - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
-      - MLFLOW_ARTIFACT_ROOT=s3://equaflow-artifacts/mlflow
+      - MLFLOW_ARTIFACT_ROOT=s3://Manifold-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
@@ -823,7 +823,7 @@ services:
           memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
+    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://Manifold-artifacts/mlflow
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:

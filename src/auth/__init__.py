@@ -1,5 +1,5 @@
 """
-Security Module (EquaFlow Phase 2)
+Security Module (Manifold Phase 2)
 
 Comprehensive security implementation for the BSOPT platform:
 - Unified AuthService (Argon2id, TOTP MFA, Asymmetric JWT)

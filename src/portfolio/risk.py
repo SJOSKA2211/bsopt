@@ -6,8 +6,8 @@ logger = structlog.get_logger(__name__)
 
 class RiskAttributor:
     """
-    Institutional Greeks Risk Attributor.
-    Aggregates exposure and runs stress tests for the EquaFlow platform.
+    Production Greeks Risk Attributor.
+    Aggregates exposure and runs stress tests for the Manifold platform.
     """
 
     def __init__(self, portfolio_data: list[dict[str, Any]]):
@@ -63,7 +63,7 @@ class RiskAttributor:
 
 class PnLExplainer:
     """
-    Institutional P&L Explain Engine.
+    Production P&L Explain Engine.
     Decomposes realized P&L into Greek-level components for performance attribution.
     """
 
@@ -129,7 +129,7 @@ class PnLExplainer:
 
 if __name__ == "__main__":
     
-    institutional_portfolio = [
+    Production_portfolio = [
         {
             "symbol": "SPX_260320_C_5200",
             "quantity": 500,
@@ -147,8 +147,8 @@ if __name__ == "__main__":
             "theta": -85.0,
         },
     ]
-    attributor = RiskAttributor(institutional_portfolio)
+    attributor = RiskAttributor(Production_portfolio)
     print(
-        "Stress Test Result (Institutional):",
+        "Stress Test Result (Production):",
         attributor.run_stress_test(spot_move=50, vol_move=0.02),
     )

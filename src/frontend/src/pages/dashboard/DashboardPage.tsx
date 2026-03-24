@@ -239,9 +239,8 @@ const KpiCard: React.FC<KpiCardProps> = ({
   );
 };
 
-
-// Institutional API Hooks
-import { usePortfolioSummary, useInstitutionalMarketData } from '../../api/hooks';
+// Production API Hooks
+import { usePortfolioSummary, useProductionMarketData } from '../../api/hooks';
 
 // ---------------------------------------------------------------------------
 // Dashboard Page – Midnight Emerald Evolution
@@ -287,7 +286,7 @@ export const DashboardPage: React.FC = () => {
                 lineHeight: 1
               }}
             >
-              Institutional Alpha,{' '}
+              Production Alpha,{' '}
               <Box
                 component="span"
                 sx={{
@@ -365,7 +364,7 @@ export const DashboardPage: React.FC = () => {
         </Stack>
       </motion.div>
 
-      {/* ---- Institutional KPI Grid ---- */}
+      {/* ---- Production KPI Grid ---- */}
       <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
         <Grid container spacing={4} sx={{ mt: 4 }}>
           {['Portfolio Summary', 'Systemic Gamma', 'Predictive Accuracy'].map((item, idx) => (
@@ -408,7 +407,6 @@ export const DashboardPage: React.FC = () => {
           ))}
         </Grid>
       </motion.div>
-
 
       {/* ---- Intelligence Cluster ---- */}
       <Grid container spacing={4}>
@@ -468,7 +466,6 @@ export const DashboardPage: React.FC = () => {
           </motion.div>
         </Grid>
 
-
         {/* Cognitive Sidebars */}
         <Grid size={{ xs: 12, xl: 4 }}>
           <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
@@ -509,7 +506,6 @@ export const DashboardPage: React.FC = () => {
             <ComparisonDashboard />
           </Suspense>
         </Grid>
-
 
         {/* Transdimensional Matrix (Options) */}
         <Grid size={{ xs: 12 }}>

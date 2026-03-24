@@ -12,7 +12,7 @@ static_resources:
           stat_prefix: ingress_http
           codec_type: AUTO
           route_config:
-            name: equaflow_routes
+            name: Manifold_routes
             virtual_hosts:
             - name: backend
               domains: ["*"]

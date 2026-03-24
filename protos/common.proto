@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package equaflow.common;
+package Manifold.common;
 
-option go_package = "github.com/equaflow/common";
+option go_package = "github.com/Manifold/common";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";

@@ -12,7 +12,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - equaflow_pgdata:/var/lib/postgresql/data
+      - Manifold_pgdata:/var/lib/postgresql/data
       - ./init-scripts/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -109,4 +109,4 @@ services:
         condition: service_healthy
 
 volumes:
-  equaflow_pgdata:
+  Manifold_pgdata:

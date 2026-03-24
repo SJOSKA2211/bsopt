@@ -1,5 +1,5 @@
 # ==============================================================================
-# EQUAFLOW: ENVOY API GATEWAY CONFIGURATION (v2.0)
+# Manifold: ENVOY API GATEWAY CONFIGURATION (v2.0)
 # ==============================================================================
 
 # - Rate limiting (100 req/s per IP)

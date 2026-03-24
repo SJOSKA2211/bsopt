@@ -19,7 +19,7 @@ def calculate_data_hash(filepath: str) -> str:
 def tag_dataset(data_dir: str, version_name: str | None = None) -> str | None:
     """
     Create a version tag for a dataset.
-    Institutional Dataset Versioning (SHA-256 Immutable).
+    Production Dataset Versioning (SHA-256 Immutable).
     """
     data_path = Path(data_dir)
     if not data_path.exists():

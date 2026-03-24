@@ -207,7 +207,7 @@ class BacktestEngine:
         self, views: np.ndarray, confidences: np.ndarray, tau: float = 0.05
     ) -> np.ndarray:
         """
-        Black-Litterman model for institutional view incorporation.
+        Black-Litterman model for Production view incorporation.
         Combines market prior (equilibrium) with investor views.
         """
         from scipy.optimize import minimize

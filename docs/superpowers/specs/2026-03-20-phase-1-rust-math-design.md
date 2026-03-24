@@ -6,7 +6,7 @@
 **Task Complexity**: Complex
 
 ## 1. Executive Summary
-Phase 1 focuses on the implementation of high-performance compute kernels and data ingestion pipelines. By leveraging Rust for CPU-intensive tasks and CuPy/CUDA for GPU-accelerated pricing, EquaFlow will achieve institutional-grade throughput and numerical precision.
+Phase 1 focuses on the implementation of high-performance compute kernels and data ingestion pipelines. By leveraging Rust for CPU-intensive tasks and CuPy/CUDA for GPU-accelerated pricing, Manifold will achieve Production-grade throughput and numerical precision.
 
 ## 2. Problem Statement
 - Current Rust parsing creates intermediary vectors, failing the zero-copy requirement.
@@ -32,7 +32,7 @@ Phase 1 focuses on the implementation of high-performance compute kernels and da
 - **Precision**: Unified use of **A&S 7.1.26** for Normal CDF.
 
 ### 3.3. Exact GBM Path Generation
-- **Implementation**: Housed in Rust `equaflow-core`.
+- **Implementation**: Housed in Rust `Manifold-core`.
 - **Method**: Use the **Exact Analytical Solution**:
   $S_t = S_0 \exp\left( (\mu - \frac{1}{2}\sigma^2)t + \sigma W_t \right)$
 - **Advantages**: Perfect strong and weak convergence, significantly faster than iterative numerical methods (RK4/Milstein).

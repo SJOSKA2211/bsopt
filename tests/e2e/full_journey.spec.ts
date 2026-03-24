@@ -1,5 +1,5 @@
 /**
- * EquaFlow Full Journey E2E Test
+ * Manifold Full Journey E2E Test
  * 
  * Tests the complete user journey:
  * 1. Sign Up
@@ -18,13 +18,13 @@ import { test, expect, Page } from "@playwright/test";
 const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8080";
 const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8080/api/v1";
 
-test.describe("EquaFlow Full Journey", () => {
+test.describe("Manifold Full Journey", () => {
   let uniqueEmail: string;
   const testPassword = "SecurePass123!";
   const testUserName = "Test User";
 
   test.beforeAll(async () => {
-    uniqueEmail = `user_${Date.now()}@equaflow.test`;
+    uniqueEmail = `user_${Date.now()}@Manifold.test`;
   });
 
   test.describe("Authentication Flow", () => {

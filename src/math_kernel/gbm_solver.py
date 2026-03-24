@@ -9,7 +9,7 @@ Methods implemented:
 2. Milstein - First-order strong convergence, O(dt)
 3. Runge-Kutta 4 (RK4) with Milstein correction - Strong convergence O(dt²)
 
-Author: EquaFlow Quant Team
+Author: Manifold Quant Team
 """
 
 from __future__ import annotations
@@ -304,7 +304,7 @@ def simulate_gbm(
 ) -> np.ndarray:
     """
     Unified high-performance GBM simulation.
-    Defaults to RK4-Milstein for institutional-grade precision.
+    Defaults to RK4-Milstein for Production-grade precision.
     """
     if method == "rk4":
         return simulate_gbm_rk4(s0, mu, sigma, t, dt, seed=seed)

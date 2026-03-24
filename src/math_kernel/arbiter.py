@@ -89,10 +89,10 @@ class EngineArbiter:
         # High-speed Rust path for massive CPU-parallel batches
         if engine_name == "rust":
             try:
-                import equaflow_core
+                import Manifold_core
 
                 q = np.zeros_like(S)
-                return equaflow_core.batch_black_scholes(S, K, T, sigma, r, q, is_call.astype(bool))
+                return Manifold_core.batch_black_scholes(S, K, T, sigma, r, q, is_call.astype(bool))
             except ImportError:
                 logger.warning("rust_core_not_available_falling_back")
                 engine_name = "black_scholes"

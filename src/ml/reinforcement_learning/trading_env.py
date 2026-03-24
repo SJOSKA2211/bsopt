@@ -28,7 +28,7 @@ class TradingEnvironment(
     ) -> None:
         super().__init__()
 
-        # Fallback to institutional data provider if none injected
+        # Fallback to Production data provider if none injected
         if data_provider is None:
             from datetime import date, timedelta
 

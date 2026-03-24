@@ -3,7 +3,7 @@ import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/materia
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 
-// Institutional API Hooks
+// Production API Hooks
 import { useOptionsChain } from '../../../api/hooks';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
 

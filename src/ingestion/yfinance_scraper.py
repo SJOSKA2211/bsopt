@@ -13,7 +13,7 @@ logger = structlog.get_logger(__name__)
 
 class YFinanceScraper:
     """
-    High-performance yfinance scraper for the institutional universe.
+    High-performance yfinance scraper for the Production universe.
     Decoupled via gRPC Ingestion Service.
     """
 

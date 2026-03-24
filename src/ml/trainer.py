@@ -14,8 +14,8 @@ logger = structlog.get_logger(__name__)
 
 class ModelTrainer(BaseTrainer):
     """
-    Unified Model Trainer for EquaFlow.
-    Supports institutional-grade training for XGBoost and PyTorch models.
+    Unified Model Trainer for Manifold.
+    Supports Production-grade training for XGBoost and PyTorch models.
     """
 
     def __init__(self, study_name: str, tracking_uri: str | None = None) -> None:

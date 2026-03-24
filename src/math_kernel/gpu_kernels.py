@@ -11,11 +11,11 @@ except ImportError:
 # Attempt to load the Rust src.shared manifold binding
 try:
     if import_module:
-        equaflow_core = import_module("equaflow_core")
+        Manifold_core = import_module("Manifold_core")
     else:
-        equaflow_core = None
+        Manifold_core = None
 except ImportError:
-    equaflow_core = None
+    Manifold_core = None
 
 def gpu_black_scholes(
     S: float | np.ndarray,
@@ -26,7 +26,7 @@ def gpu_black_scholes(
     is_call: bool = True,
 ) -> np.ndarray:
     """
-    Institutional-grade GPU-accelerated Black-Scholes using CuPy.
+    Production-grade GPU-accelerated Black-Scholes using CuPy.
     C = S0 * N(d1) - K * e^(-rT) * N(d2)
 
     Args:
@@ -114,11 +114,11 @@ def hybrid_compute_bs(
     V: float | np.ndarray,
 ) -> np.ndarray:
     """
-    Hybrid Compute Manifold: Prefers Rust (equaflow_core) for low-latency CPU
+    Hybrid Compute Manifold: Prefers Rust (Manifold_core) for low-latency CPU
     vectorization, and falls back to CuPy for massively parallel GPU execution.
     """
-    if equaflow_core and hasattr(equaflow_core, "black_scholes_vectorized"):
-        return cast(np.ndarray, equaflow_core.black_scholes_vectorized(S, K, T, R, V))
+    if Manifold_core and hasattr(Manifold_core, "black_scholes_vectorized"):
+        return cast(np.ndarray, Manifold_core.black_scholes_vectorized(S, K, T, R, V))
     else:
         return gpu_black_scholes(S, K, T, R, V)
 
@@ -132,13 +132,13 @@ def mmap_accelerated_runge_kutta_4(
 ) -> np.ndarray:
     """
     Zero-copy data ingestion pipeline into GPU solvers.
-    Uses PyO3 mmap reader from equaflow_core to pull ticks and computes RK4 on GPU.
+    Uses PyO3 mmap reader from Manifold_core to pull ticks and computes RK4 on GPU.
     """
-    if not equaflow_core or not hasattr(equaflow_core, "mmap_parse_ticks"):
-        raise RuntimeError("equaflow_core is missing mmap_parse_ticks native hook.")
+    if not Manifold_core or not hasattr(Manifold_core, "mmap_parse_ticks"):
+        raise RuntimeError("Manifold_core is missing mmap_parse_ticks native hook.")
 
     # 1. Zero-copy to Numpy
-    S0_numpy = equaflow_core.mmap_parse_ticks(mmap_file_path)
+    S0_numpy = Manifold_core.mmap_parse_ticks(mmap_file_path)
 
     # 2. Host-to-Device transfer
     # 3. GPU execution of ODE

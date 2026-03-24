@@ -9,12 +9,12 @@ from src.shared.config import settings
 @pytest.mark.asyncio
 async def test_auth_registration_email_bypass(db: AsyncSession, client: AsyncClient):
     """
-    Verify that @equaflow.test users are automatically verified when the bypass is enabled.
+    Verify that @Manifold.test users are automatically verified when the bypass is enabled.
     """
     # 1. Enable bypass temporarily
     settings.ALLOW_E2E_EMAIL_BYPASS = True
     
-    unique_email = f"test-bypass-{int(pytest.approx(0, abs=10000))}@equaflow.test"
+    unique_email = f"test-bypass-{int(pytest.approx(0, abs=10000))}@Manifold.test"
     payload = {
         "email": unique_email,
         "password": "SecurePass123!",
@@ -32,7 +32,7 @@ async def test_auth_registration_email_bypass(db: AsyncSession, client: AsyncCli
     
     if user:
         assert user.is_verified is True
-        assert user.email.endswith("@equaflow.test")
+        assert user.email.endswith("@Manifold.test")
     else:
         # Fallback: check via /auth/me if we can login
         login_res = await client.post("/api/v1/auth/login", json={"email": unique_email, "password": payload["password"]})

@@ -4,7 +4,7 @@
 **Topic**: Backend/Frontend Testing, Linting, and Security Audit
 
 ## Problem Statement
-The goal is to ensure the entire EquaFlow codebase (Python, Rust, and TypeScript) is stable, compliant with linting rules, and secure. This involves running the unified test suite, Python-specific linting (Ruff), and auditing the frontend for vulnerabilities.
+The goal is to ensure the entire Manifold codebase (Python, Rust, and TypeScript) is stable, compliant with linting rules, and secure. This involves running the unified test suite, Python-specific linting (Ruff), and auditing the frontend for vulnerabilities.
 
 ## Scope
 - **Backend**: Python (API), Rust (Core).

@@ -12,7 +12,7 @@ logger = structlog.get_logger(__name__)
 
 class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
     """
-    Institutional-Grade Zero-Trust Middleware.
+    Production-Grade Zero-Trust Middleware.
     Intercepts every request to validate Asymmetric JWTs and enforce mTLS headers.
     """
 

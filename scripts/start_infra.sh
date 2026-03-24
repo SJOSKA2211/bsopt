@@ -19,7 +19,7 @@ else
     exit 1
 fi
 
-echo "🚀 Launching Institutional Infrastructure Core..."
+echo "🚀 Launching Production Infrastructure Core..."
 
 # 2. Deployment
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio
@@ -46,4 +46,4 @@ check_health "redis"
 check_health "rabbitmq"
 check_health "minio"
 
-echo "🏁 Institutional Core is Online and Guarded."
+echo "🏁 Production Core is Online and Guarded."

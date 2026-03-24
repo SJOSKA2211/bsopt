@@ -5,16 +5,16 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🔐 Launching Institutional EquaFlow Auth Service..."
+echo "🔐 Launching Production Manifold Auth Service..."
 
-# Load institutional environment
+# Load Production environment
 source scripts/utils_env.sh
 load_decrypted_secrets
 
 export PORT=${AUTH_PORT:-3001}
 export BETTER_AUTH_SECRET=${AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
 
-# Execute with institutional Node.js substrate
+# Execute with Production Node.js substrate
 cd src/auth
 if [ ! -d "node_modules" ]; then
     echo "📦 Initializing Node.js dependencies..."

@@ -1,5 +1,5 @@
 # ==============================================================================
-# EQUAFLOW: DEVELOPMENT & QA REQUIREMENTS
+# Manifold: DEVELOPMENT & QA REQUIREMENTS
 # ==============================================================================
 -r requirements.txt
 

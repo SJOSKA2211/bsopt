@@ -117,7 +117,6 @@ if __name__ == "__main__":
     # Example manual execution for testing
     logging.basicConfig(level=logging.INFO)
 
-    # Production-grade model loading for standalone testing
     from src.ingestion.storage_manager import get_storage_manager
 
     storage = get_storage_manager()

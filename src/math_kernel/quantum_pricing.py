@@ -160,7 +160,6 @@ class QuantumOptionPricer:
             angle = float(np.mean(theta) / (num_state_qubits - i))
             qc.cry(angle, i, payoff_reg[0])
 
-        # Fallback to the optimized helper to ensure production-grade depth
         payoff_circ = self._create_payoff_circuit(K, num_qubits)
         qc.compose(payoff_circ, range(num_qubits + 1), inplace=True)
 

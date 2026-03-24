@@ -1,7 +1,7 @@
 """
 Rust-Accelerated Ingestion Parser
 
-Zero-copy binary data parsing using the institutional Rust core.
+Zero-copy binary data parsing using the Production Rust core.
 """
 
 import os
@@ -30,9 +30,9 @@ class RustTickParser:
 
         try:
             self._validate_header()
-            import equaflow_core
+            import Manifold_core
 
-            self.buffer = equaflow_core.TickDataBuffer(file_path)
+            self.buffer = Manifold_core.TickDataBuffer(file_path)
             logger.info("rust_mmap_buffer_initialized", path=file_path, size=self.buffer.size())
         except ImportError:
             logger.error("rust_core_not_installed")

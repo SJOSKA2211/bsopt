@@ -11,7 +11,7 @@ const subgraphs = [
   { name: 'neural-pricing', url: process.env.PRICING_URL || 'http://neural-pricing:8000/graphql' },
 ];
 
-// Institutional Trace ID Generator
+// Production Trace ID Generator
 const { v4: uuidv4 } = require('uuid');
 const Opossum = require('opossum');
 
@@ -30,7 +30,7 @@ async function start() {
     disableRequestLogging: process.env.NODE_ENV === 'production',
   });
 
-  // 1. Institutional Tracing (X-Request-ID) & Versioning
+  // 1. Production Tracing (X-Request-ID) & Versioning
   app.addHook('onRequest', async (request, reply) => {
     request.headers['x-request-id'] = request.headers['x-request-id'] || uuidv4();
     reply.header('x-request-id', request.headers['x-request-id']);

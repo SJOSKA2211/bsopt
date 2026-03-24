@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🚀 Launching Institutional Financial Data Ingestion (Zero-Mock)..."
+echo "🚀 Launching Production Financial Data Ingestion (Data-Driven)..."
 
 # Ensure environment is clean
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src

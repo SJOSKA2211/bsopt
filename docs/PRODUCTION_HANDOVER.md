@@ -1,11 +1,11 @@
-# EquaFlow Production Handover Guide (v1.0)
+# Manifold Production Handover Guide (v1.0)
 
-Welcome to the **EquaFlow Institutional Quant Manifold**. This guide provides the final operational steps for production deployment.
+Welcome to the **Manifold Production Quant Manifold**. This guide provides the final operational steps for production deployment.
 
 ## 🚀 One-Step Production Launch
 Run the following command to initialize the entire 18-phase stack:
 ```bash
-make institutional-ready
+make Production-ready
 ```
 This command will:
 1.  **Orchestrate**: Start all microservices via Docker/Podman.
@@ -20,11 +20,11 @@ This command will:
 - **Error Tracing**: Jaeger/Loki Integrated via OpenTelemetry.
 
 ## 🏛️ Governance & Compliance
-High-stakes actions are governed by the `InstitutionalGovernance` protocol. All trades exceeding the defined threshold ($1M by default) will be flagged in the `InstitutionalAuditLog` and require multi-signature approval.
+High-stakes actions are governed by the `ProductionGovernance` protocol. All trades exceeding the defined threshold ($1M by default) will be flagged in the `ProductionAuditLog` and require multi-signature approval.
 
 ## 🛠️ Maintenance
 - **Retraining**: Automatically triggered by the `MLflowWatchdog`.
 - **Database**: Managed via TimescaleDB Continuous Aggregates.
 - **Security**: Asymmetric keys should be rotated quarterly via `scripts/rotate_keys.sh`.
 
-**Institutional Mastery Achieved.** Ready for the Markets.
+**Production Mastery Achieved.** Ready for the Markets.

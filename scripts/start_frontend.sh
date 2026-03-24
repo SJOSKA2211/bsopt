@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🎨 Launching Institutional EquaFlow Dashboard..."
+echo "🎨 Launching Production Manifold Dashboard..."
 
 cd src/frontend
 

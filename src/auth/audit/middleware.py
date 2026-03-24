@@ -38,7 +38,7 @@ async def _produce_audit_log(payload: dict[str, Any]):
 
 class AuditMiddleware(BaseHTTPMiddleware):
     """
-    Institutional Audit Middleware.
+    Production Audit Middleware.
     Pushes encrypted audit logs to RabbitMQ asynchronously.
     """
     def __init__(self, app):

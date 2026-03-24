@@ -5,9 +5,9 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🏟️ Launching Institutional Persistent Substrate Deployment..."
+echo "🏟️ Launching Production Persistent Substrate Deployment..."
 
-# Load institutional environment and detection
+# Load Production environment and detection
 source scripts/utils_env.sh
 detect_container_engine
 load_decrypted_secrets
@@ -33,7 +33,7 @@ $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -T postg
 "
 
 # 4. Optimization Pass
-echo "🛠️ Phase 3: Executing Institutional Performance Optimization..."
+echo "🛠️ Phase 3: Executing Production Performance Optimization..."
 bash scripts/deploy_db_updates.sh
 
 echo "🎉 DATABASE SUBSTRATE IS FULLY DEPLOYED AND OPTIMIZED."

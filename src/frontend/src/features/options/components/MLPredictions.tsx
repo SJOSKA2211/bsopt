@@ -18,7 +18,7 @@ import {
   TrendingDown,
 } from '@mui/icons-material';
 
-// Institutional API Hooks
+// Production API Hooks
 import { useMLInference } from '../../../api/hooks';
 
 interface MLPredictionsProps {

@@ -79,8 +79,8 @@ async def register(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one()
 
-    # E2E Bypass: Auto-verify @equaflow.test users in testing environments
-    if settings.ALLOW_E2E_EMAIL_BYPASS and user.email.endswith("@equaflow.test"):
+    # E2E Bypass: Auto-verify @Manifold.test users in testing environments
+    if settings.ALLOW_E2E_EMAIL_BYPASS and user.email.endswith("@Manifold.test"):
         user.is_verified = True
         logger.info("e2e_email_bypass_active", user_id=str(user.id), email=user.email)
         await db.commit()

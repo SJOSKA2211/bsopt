@@ -38,4 +38,4 @@ else
 fi
 touch "$FBS_DIR/__init__.py"
 
-echo "✅ Institutional Protocol Synchronized."
+echo "✅ Production Protocol Synchronized."

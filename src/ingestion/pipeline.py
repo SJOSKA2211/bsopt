@@ -98,7 +98,7 @@ class DataPipeline:
 
         if not records:
             logger.error("data_pipeline_no_real_data_found", symbols=self.config.symbols)
-            raise ValueError(f"No real market data found for {self.config.symbols}. Zero-Mock compliance required.")
+            raise ValueError(f"No real market data found for {self.config.symbols}. Data-Driven compliance required.")
 
         #  OPTIMIZATION: Use structured array for fast conversion
         # We assume records is a list of dicts. We convert to structured array.
@@ -106,7 +106,6 @@ class DataPipeline:
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
         ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
 
-        # Production-grade DateTime Handling
         # Vectorized conversion using Pandas for performance and TZ-awareness
         expiries = pd.to_datetime([r["expiry"] for r in records]).view(np.int64) // 1e9
         times = pd.to_datetime([r["time"] for r in records]).view(np.int64) // 1e9

@@ -25,8 +25,8 @@ async def test_ingestion_service_to_rabbitmq():
         context = MagicMock()
         
         # 3. Execute IngestTicks
-        # We need to mock equaflow_core if it exists, or just let it return True
-        with patch("src.ingestion.ingestion_service.equaflow_core") as mock_core:
+        # We need to mock Manifold_core if it exists, or just let it return True
+        with patch("src.ingestion.ingestion_service.Manifold_core") as mock_core:
             mock_core.validate_tick.return_value = True
             
             response = await servicer.IngestTicks(request, context)
@@ -57,7 +57,7 @@ async def test_ingestion_service_outlier_rejection():
         )
         context = MagicMock()
         
-        with patch("src.ingestion.ingestion_service.equaflow_core") as mock_core:
+        with patch("src.ingestion.ingestion_service.Manifold_core") as mock_core:
             # First tick valid
             mock_core.validate_tick.return_value = True
             await servicer.IngestTicks(request1, context)

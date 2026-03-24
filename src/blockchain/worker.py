@@ -9,7 +9,7 @@ logger = structlog.get_logger(__name__)
 
 class BlockchainSettlementWorker:
     """
-    Institutional Blockchain Settlement Worker.
+    Production Blockchain Settlement Worker.
     Handles on-chain options settlement and treasury management.
     """
 

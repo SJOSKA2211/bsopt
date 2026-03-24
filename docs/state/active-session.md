@@ -1,5 +1,5 @@
 ---
-session_id: equaflow-phase-2-auth-refinement
+session_id: Manifold-phase-2-auth-refinement
 task: 'Implement Phase 2: Single-Source Zero-Trust Auth & Backend Refinement'
 created: '2026-03-20T21:14:23.802Z'
 updated: '2026-03-20T21:22:35.015Z'

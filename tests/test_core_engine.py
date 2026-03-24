@@ -9,9 +9,9 @@ from src.auth.auth import auth_service
 from src.math_kernel.rust_engine import simulate_gbm_rk4, is_rust_available
 from src.shared.config import settings
 
-class TestInstitutionalCore:
+class TestProductionCore:
     """
-    Unified verification for Phase 1 (Math) and Phase 2 (Auth) institutional features.
+    Unified verification for Phase 1 (Math) and Phase 2 (Auth) Production features.
     """
 
     # --- Phase 2: Zero-Trust Auth Verification ---
@@ -19,7 +19,7 @@ class TestInstitutionalCore:
     def test_argon2id_password_hashing(self):
         """Verify Argon2id meets security and timing protection standards."""
         ph = PasswordHasher()
-        password = "institutional-grade-password-2026"
+        password = "Production-grade-password-2026"
         hashed = auth_service.hash_password(password)
         
         assert hashed.startswith("$argon2id$")
@@ -29,7 +29,7 @@ class TestInstitutionalCore:
     def test_asymmetric_jwt_es256(self):
         """Verify Asymmetric JWT (ECC) signing and verification logic."""
         user_id = "user_quant_001"
-        email = "quant@equaflow.ai"
+        email = "quant@Manifold.ai"
         tier = "enterprise"
         
         token_pair = auth_service.create_token_pair(user_id, email, tier)
@@ -72,7 +72,7 @@ class TestInstitutionalCore:
         
         print(f"\n[Math] RK4 GBM Simulation ({n_paths} paths): {elapsed:.2f}ms")
 
-    @pytest.mark.skipif(not is_rust_available(), reason="Rust equaflow_core not compiled")
+    @pytest.mark.skipif(not is_rust_available(), reason="Rust Manifold_core not compiled")
     def test_rust_core_availability(self):
         """Ensure the Rust extension is properly linked."""
         assert is_rust_available() is True

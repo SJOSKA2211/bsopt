@@ -2,7 +2,7 @@
 HashiCorp Vault Secret Management Service
 
 Handles rotational secret fetching, JWT key management, and
-secure configuration injection for EquaFlow.
+secure configuration injection for Manifold.
 """
 
 import os

@@ -30,7 +30,7 @@ async def get_ml_comparison(
     db: AsyncSession = Depends(get_async_db),
 ) -> DataResponseStruct[ComparisonMetrics]:
     """
-    Fetch institutional AI vs Human performance comparison.
+    Fetch Production AI vs Human performance comparison.
     OPTIMIZED: Aggregates real metrics from the persistence layer.
     """
     from src.database.crud import get_ml_comparison_stats
