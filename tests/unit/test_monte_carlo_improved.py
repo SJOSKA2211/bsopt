@@ -1,6 +1,6 @@
 import pytest
 
-from src.quant.pricing.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
+from src.math_kernel.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
 
 
 class TestMonteCarlo:

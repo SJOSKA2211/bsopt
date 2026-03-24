@@ -1,5 +1,5 @@
 import sys
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -13,7 +13,7 @@ sys.modules["optuna.pruners"] = MagicMock()
 from src.ml.trainer import ModelTrainer
 
 
-class TestModelTrainerPhase5(unittest.TestCase):
+class TestModelTrainerPhase5:
     def setUp(self):
         self.X = np.random.rand(100, 5)
         self.y = np.random.rand(100)
@@ -40,8 +40,8 @@ class TestModelTrainerPhase5(unittest.TestCase):
         result = self.trainer.train_and_evaluate(self.X, self.y, self.params)
 
         # strategy.train should be called 3 times
-        self.assertEqual(mock_strategy.train.call_count, 3)
-        self.assertIsInstance(result, float)
+        assert mock_strategy.train.call_count == 3
+        assert isinstance(result, float)
 
     @patch("src.ml.trainer.ModelScorecard")
     @patch("src.ml.trainer.get_strategy")
@@ -66,9 +66,8 @@ class TestModelTrainerPhase5(unittest.TestCase):
 
         result = self.trainer.train_and_evaluate(self.X, self.y, self.params)
 
-        self.assertEqual(result, 0.9)
+        assert result == 0.9
         mock_scorecard_cls.assert_called()
 
 
-if __name__ == "__main__":
-    unittest.main()
+

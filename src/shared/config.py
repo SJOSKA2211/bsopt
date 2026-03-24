@@ -146,7 +146,6 @@ class Settings(BaseSettings):
     # Trusted Proxies for Zero Trust
     TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
 
-    @property
     # Market Configuration
     MARKET_TICKER_SYMBOLS: list[str] = [
         "NIFTY",
@@ -156,6 +155,8 @@ class Settings(BaseSettings):
         "RELIANCE.NR",
         "HDFCBANK.NR",
     ]
+
+    @property
 
     def rate_limit_tiers(self) -> dict[str, int]:
         """Maps user tiers to their rate limits."""
@@ -420,11 +421,11 @@ class Settings(BaseSettings):
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        allowed = {"dev", "staging", "prod", "production", "test"}
+        allowed = {"dev", "development", "staging", "prod", "production", "test"}
         v_lower = v.lower()
         if v_lower not in allowed:
             raise ValueError(f"ENVIRONMENT must be one of {sorted(allowed)}")
-        return v_lower
+        return "dev" if v_lower == "development" else v_lower
 
     @model_validator(mode="after")
     def validate_security_configs(self) -> "Settings":

@@ -1,6 +1,6 @@
 import pytest
 
-from src.quant.pricing.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
+from src.math_kernel.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
 
 
 class TestLattice:

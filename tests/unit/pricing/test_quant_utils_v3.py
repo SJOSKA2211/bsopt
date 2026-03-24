@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.quant.pricing import quant_utils
+from src.math_kernel import quant_utils
 
 # Set a consistent seed for reproducibility
 np.random.seed(42)

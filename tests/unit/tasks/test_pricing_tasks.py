@@ -11,7 +11,7 @@ from src.workers.tasks.pricing_tasks import (
 
 
 def test_vectorized_black_scholes_logic():
-    from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+    from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
 
     spots = np.array([100.0, 110.0])
     strikes = np.array([100.0, 100.0])

@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.quant.pricing.calibration.svi_surface import SVISurface
+from src.math_kernel.calibration.svi_surface import SVISurface
 
 
 class TestSVISurface:

@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from src.quant.pricing.models.heston_fft import (
+from src.math_kernel.models.heston_fft import (
     HestonModelFFT,
     HestonParams,
     batch_heston_price_jit,

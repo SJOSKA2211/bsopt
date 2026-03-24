@@ -75,20 +75,27 @@ services:
       SERVER_TLS_SSLMODE: verify-full
       SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       SERVER_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
-      SERVER_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
+      SERVER_TLS_KEY_FILE: /tmp/pgbouncer.key
       CLIENT_TLS_SSLMODE: verify-full
       CLIENT_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
-      CLIENT_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
+      CLIENT_TLS_KEY_FILE: /tmp/pgbouncer.key
     ports:
       - "127.0.0.1:6433:5432"
     deploy:
       resources:
         limits:
           memory: 512mb
+    command: >
+      sh -c "
+      cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
+      chown 70:70 /tmp/pgbouncer.key &&
+      chmod 600 /tmp/pgbouncer.key &&
+      exec /entrypoint.sh pgbouncer /etc/pgbouncer/pgbouncer.ini
+      "
     volumes:
       - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro
-      - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key:ro
+      - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key.host:ro
       - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-admin}"]

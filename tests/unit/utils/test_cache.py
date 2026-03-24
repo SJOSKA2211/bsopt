@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.quant.pricing.black_scholes import BSParameters
+from src.math_kernel.black_scholes import BSParameters
 from src.shared.cache import (
     IdempotencyManager,
     PricingCache,

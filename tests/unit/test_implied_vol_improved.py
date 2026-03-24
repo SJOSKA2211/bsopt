@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from src.quant.pricing.implied_vol import (
+from src.math_kernel.implied_vol import (
     implied_volatility,
     vectorized_implied_volatility,
 )
