@@ -6,23 +6,23 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:latest AS builder
+FROM equaflow-base:builder AS builder
 WORKDIR /app
 
 # Install scraper-specific dependencies
 COPY infrastructure/requirements/requirements-scraper.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r /tmp/requirements-scraper.txt && \
-    uv pip install --system playwright
+    uv pip install -r /tmp/requirements-scraper.txt && \
+    uv pip install playwright
 
 COPY . .
-RUN uv pip install --system .
+RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
+FROM equaflow-base:builder AS development
 WORKDIR /app
 
-# Install Playwright system dependencies (needed for dev too)
+# Install Playwright system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
@@ -36,12 +36,12 @@ RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App + Playwright
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-scraper.txt && \
-    uv pip install --system playwright && \
-    uv pip install --system .
+    uv pip install -r infrastructure/requirements/requirements-scraper.txt && \
+    uv pip install playwright && \
+    uv pip install -e .
 
 # Install Playwright browsers
-RUN python -m playwright install --with-deps chromium
+RUN playwright install --with-deps chromium
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -50,18 +50,24 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["python", "src/ingestion/engine.py"]
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:latest AS production
+FROM equaflow-base:final AS production
 WORKDIR /app
 
-# Install Playwright system dependencies
+# Copy the pre-built virtual environment from the scraper builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Playwright system dependencies in runtime
+USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Playwright browsers (Note: these are large, so they stay in runtime)
-RUN /opt/venv/bin/python -m playwright install --with-deps chromium
+# Install Playwright browsers
+RUN playwright install chromium
+RUN chown -R equaflow:equaflow /opt/venv
 
 # Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
@@ -70,4 +76,4 @@ RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 USER equaflow
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["python", "src/ingestion/scrapers/engine.py"]
+CMD ["python", "src/ingestion/engine.py"]

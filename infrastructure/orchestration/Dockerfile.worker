@@ -6,20 +6,20 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:latest AS builder
+FROM equaflow-base:builder AS builder
 WORKDIR /app
 
 # Install worker-specific dependencies
 COPY infrastructure/requirements/requirements-worker.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r /tmp/requirements-worker.txt
+    uv pip install torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install -r /tmp/requirements-worker.txt
 
 COPY . .
-RUN uv pip install --system .
+RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
+FROM equaflow-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -29,8 +29,8 @@ RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-worker.txt && \
-    uv pip install --system .
+    uv pip install -r infrastructure/requirements/requirements-worker.txt && \
+    uv pip install -e .
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -39,8 +39,12 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:latest AS production
+FROM equaflow-base:final AS production
 WORKDIR /app
+
+# Copy the pre-built virtual environment from the worker builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh

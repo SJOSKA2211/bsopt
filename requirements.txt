@@ -35,7 +35,6 @@ minio>=7.2.5
 
 # Messaging
 aio-pika>=9.4.1
-confluent-kafka>=2.3.0
 aiolimiter>=1.1.0
 tenacity>=8.3.0
 

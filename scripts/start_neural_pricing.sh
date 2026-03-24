@@ -1,12 +1,29 @@
 #!/bin/bash
-set -e
+# scripts/start_neural_pricing.sh - Institutional Neural Pricing Orchestrator (Zero-Mock)
+set -euo pipefail
 
-echo " Starting Neural Pricing Service (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Setup Environment
-export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
-export REDIS_URL="redis://localhost:6379/0"
+echo "🧠 Launching Institutional Neural Pricing Manifold..."
+
+# Load institutional environment
+source scripts/utils_env.sh
+load_decrypted_secrets
+
+# Institutional Runtime Environment
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Run Uvicorn with reload on port 8001 (as per docker-compose mapping 8001:8000)
-python3 -m uvicorn src.quant.pricing.main:app --reload --reload-dir src/quant/pricing --port 8001 --host 0.0.0.0
+# Production-Grade ASGI Configuration
+if [ "${ENVIRONMENT:-development}" == "production" ]; then
+    echo "🏗️ Running in PRODUCTION mode..."
+    exec python3 -m uvicorn src.math_kernel.pricing.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --workers $(nproc) \
+        --loop uvloop \
+        --no-access-log
+else
+    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    exec python3 -m uvicorn src.math_kernel.pricing.main:app --reload --reload-dir src/math_kernel/pricing --port 8000 --host 0.0.0.0 --loop uvloop
+fi

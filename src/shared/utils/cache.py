@@ -33,7 +33,7 @@ def get_redis() -> Redis | None:
         from src.shared.config import settings
 
         try:
-            # OPTIMIZED: Use a standard from_url which works with both real and mocked redis
+            # OPTIMIZED: Use a standard from_url which works with both institutional and testing-grade redis backends
             _redis = Redis.from_url(
                 settings.REDIS_URL,
                 decode_responses=False,
@@ -536,3 +536,75 @@ async def close_redis_cache() -> None:
             logger.info("redis_cache_closed")
         except Exception as e:
             logger.error("redis_cache_close_failed", error=str(e))
+
+
+def generate_consistent_key(request: Any, prefix: str) -> str:
+    """Generate a high-performance consistent cache key for HTTP requests."""
+    # OPTIMIZED: Deterministic sorting of query params for stable hashing
+    params = sorted(request.query_params.items())
+
+    # Use blake2b for faster hashing than sha256
+    hasher = hashlib.blake2b(digest_size=16)
+    hasher.update(request.url.path.encode())
+    for k, v in params:
+        hasher.update(f"{k}:{v}".encode())
+
+    return f"{prefix}:{hasher.hexdigest()}"
+
+
+def cached_endpoint(prefix: str = "api_cache", ttl: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """
+    Decorator for FastAPI endpoints with Response-aware caching.
+    """
+    from fastapi import Request, Response
+
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            request = next((arg for arg in args if isinstance(arg, Request)), None) or kwargs.get(
+                "request"
+            )
+
+            if not request:
+                return await func(*args, **kwargs)
+
+            redis = get_redis()
+            if not redis:
+                return await func(*args, **kwargs)
+
+            cache_key = generate_consistent_key(request, prefix)
+
+            try:
+                cached = await redis.get(cache_key)
+                if cached:
+                    return Response(
+                        content=cached,
+                        media_type="application/json",
+                        headers={"X-Cache": "HIT"},
+                    )
+            except Exception:
+                pass
+
+            response = await func(*args, **kwargs)
+
+            # 3. Intelligent Caching
+            try:
+                data = None
+                if isinstance(response, Response):
+                    # OPTIMIZED: Capture body from Response objects
+                    data = response.body
+                elif hasattr(response, "model_dump_json"):
+                    data = response.model_dump_json().encode()
+                elif isinstance(response, dict | list):
+                    data = msgspec.json.encode(response)
+
+                if data:
+                    await redis.setex(cache_key, ttl, data)
+            except Exception as e:
+                logger.error("api_cache_write_error", error=str(e))
+
+            return response
+
+        return wrapper
+
+    return decorator

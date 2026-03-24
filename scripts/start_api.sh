@@ -1,31 +1,34 @@
 #!/bin/bash
-set -e
+# scripts/start_api.sh - Institutional API Orchestrator (Zero-Mock)
+set -euo pipefail
 
-echo " Starting API (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Suppress Ray and Unstable API warnings
+echo "🚀 Launching Institutional EquaFlow API..."
+
+# Load shared environment utilities for secret derivation
+source scripts/utils_env.sh
+load_decrypted_secrets
+
+# Institutional Runtime Environment
 export RAY_IGNORE_UNSTABLE_API_WARNING=1
 export RAY_DEDUP_LOGS=0
 export PYTHONWARNINGS="ignore::FutureWarning:ray"
-
-# Override for Local Docker Infra
-export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
-export REDIS_URL="redis://localhost:6379/0"
-export JWT_SECRET="development_secret_high_performance_secure_system_key_manifold_32_char"
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Run Uvicorn with optimized settings
-if [ "$ENVIRONMENT" == "prod" ] || [ "$ENVIRONMENT" == "production" ]; then
-    echo "Running in PRODUCTION mode with multiple workers..."
+# Production-Grade ASGI Configuration
+if [ "${ENVIRONMENT:-development}" == "production" ]; then
+    echo "🏗️ Running in PRODUCTION mode with multi-worker Granian substrate..."
     exec python3 -m uvicorn src.api.main:app \
         --host 0.0.0.0 \
         --port 8000 \
         --workers $(nproc) \
         --loop uvloop \
-        --http h11 \
+        --http h2 \
         --no-access-log \
         --timeout-keep-alive 65
 else
-    echo "Running in DEVELOPMENT mode with reload..."
-    python3 -m uvicorn src.api.main:app --reload --reload-dir src/api --port 8000 --host 0.0.0.0 --loop uvloop
+    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    exec python3 -m uvicorn src.api.main:app --reload --reload-dir src/api --port 8000 --host 0.0.0.0 --loop uvloop
 fi

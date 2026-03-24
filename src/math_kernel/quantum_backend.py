@@ -53,7 +53,7 @@ class QuantumBackendManager:
             )
 
         token = settings.IBM_QUANTUM_TOKEN
-        if not token or token == "replace_me_with_real_token":
+        if not token:
             raise ValueError(
                 "IBM_QUANTUM_TOKEN environment variable not set. Cannot access remote backends."
             )

@@ -53,36 +53,6 @@ backups/
 tickets/
 .gemini/
 .gemini_security/
-0b6592e0/
-112a6bd0/
-26c2512b/
-28bc6f22/
-347d6575/
-3e8f5a0c/
-405eb0bd/
-478d2bf2/
-4d05ef4c/
-51254f04/
-57972e27/
-5bf7ab49/
-60e176a0/
-621ebbdf/
-63796096/
-75b9a524/
-8cd14a65/
-9fa185e7/
-a001/
-aa8a7eae/
-b002/
-base0001/
-bc423913/
-c003/
-cf5e5b9f/
-cov0002/
-d004/
-e005/
-e5fc8af4/
-f006/
 # === Infrastructure (allow configs) ===
 # infrastructure/  (removed to allow configs)
 infrastructure/**/

@@ -135,9 +135,9 @@ class DataPipeline:
             ),
         )
 
-        sigma = df["implied_volatility"].fillna(0.2).values
-        r = np.full_like(s, 0.05)
-        q = np.full_like(s, 0.01)
+        sigma = df["implied_volatility"].fillna(settings.DEFAULT_VOLATILITY).values
+        r = np.full_like(s, settings.RISK_FREE_RATE)
+        q = np.full_like(s, settings.DIVIDEND_YIELD)
         is_call = (df.get("option_type", "call") == "call").values
 
         # Calculate cross-sectional Black-Scholes Features

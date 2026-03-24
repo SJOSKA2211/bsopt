@@ -20,6 +20,7 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import msgspec
 import pyotp
+import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
@@ -142,6 +143,16 @@ class AuthService:
             return False
         totp = pyotp.TOTP(secret)
         return totp.verify(code, valid_window=1)
+
+    # --- Token Generation Helpers ---
+
+    def generate_reset_token(self) -> str:
+        """Generate a secure, high-entropy reset token."""
+        return secrets.token_urlsafe(32)
+
+    def generate_verification_token(self) -> str:
+        """Generate a secure, high-entropy verification token."""
+        return secrets.token_urlsafe(32)
 
     # --- Token Logic (JWT ES256/RS256) ---
 

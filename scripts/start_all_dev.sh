@@ -1,105 +1,50 @@
 #!/bin/bash
-# High-Performance Engine's Unified Dev Stack Launcher 
-# "Optimizing manifold execution. We're using Docker."
+# scripts/start_all_dev.sh - Institutional Unified Dev Stack Launcher
+set -euo pipefail
 
-# Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Detect Docker Compose (High-Performance Detection)
-if [ -x "./docker-compose" ]; then
-    COMPOSE_BIN="./docker-compose"
-elif command -v docker-compose >/dev/null 2>&1; then
-    COMPOSE_BIN="docker-compose"
-elif docker compose version >/dev/null 2>&1; then
-    COMPOSE_BIN="docker compose"
-else
-    echo "❌ Docker Compose not found. Fix it, jerry!"
-    exit 1
-fi
+# Load institutional environment and detection
+source scripts/utils_env.sh
+detect_container_engine
+load_decrypted_secrets
 
-DOCKER_COMPOSE="$COMPOSE_BIN -f docker-compose.dev.yml"
+echo "🚀 EquaFlow Unified Dev Stack Orchestrator (v2026)"
+echo "===================================================="
 
-# Trap Ctrl-C to shut down containers if requested (optional, usually we keep them up)
-cleanup() {
-    echo -e "\n🛑 Signal received. Containers remain running. Use './scripts/start_infra.sh down' if you want a full stop."
-    exit 0
-}
-trap cleanup SIGINT SIGTERM
+# 1. Start Core Infrastructure
+echo "📦 Phase 1: Launching Infrastructure Substrate..."
+bash scripts/start_infra.sh
 
-# 0. Argument Parsing
-RUN_LINT=false
-NO_TAIL=false
-for arg in "$@"; do
-    if [ "$arg" == "--lint" ]; then RUN_LINT=true; fi
-    if [ "$arg" == "--no-tail" ]; then NO_TAIL=true; fi
-done
+# 2. Start Application Services
+echo "🏗️ Phase 2: Launching Application Microservices..."
+$COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml up -d --build auth-service api envoy frontend scraper neural-pricing worker
 
-# 1. Check Docker
-if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker is not running. Fix it, Jerry!"
-    exit 1
-fi
-
-# 2. Check Infrastructure status
-echo " Checking Infrastructure status..."
-# Check for key infra containers (postgres is the best signal)
-INFRA_RUNNING=$($DOCKER_COMPOSE ps --src --filter "status=running" | grep -q "^postgres$" && echo true || echo false)
-
-if [ "$INFRA_RUNNING" = "false" ]; then
-    echo " Infrastructure missing. Launching via start_infra.sh..."
-    ./scripts/start_infra.sh
-else
-    echo " Infrastructure already active. Skipping redundant initialization."
-fi
-
-# 3. Run Lint if requested
-if [ "$RUN_LINT" = true ]; then
-    echo " Running Containerized Lint..."
-    $DOCKER_COMPOSE --profile test run --rm test-runner ruff check . || exit 1
-fi
-
-# 4. Start Ray Cluster in Docker
-echo "🐝 Starting Ray Cluster (Containerized)..."
-$DOCKER_COMPOSE up -d --build ray-head rl-training-worker
-
-# 5. Start App Services in Docker
-echo " Launching App Services (Containerized)..."
-$DOCKER_COMPOSE up -d --build auth-service api envoy frontend scraper neural-pricing worker-ml
-
-# 6. Unified Health Check
-echo "⏳ Waiting for App Services to be healthy..."
-MAX_RETRIES=30
+# 3. Synchronous Readiness Handshake
+echo "🩺 Phase 3: Executing Institutional Readiness Audit..."
+MAX_RETRIES=20
 RETRY_COUNT=0
-
-check_app_health() {
-    # Check API
-    curl -s http://localhost:8000/health | grep -q "ok" || return 1
-    # Check Auth
-    curl -s http://localhost:3001/health | grep -q "operational" || return 1
-    # Check Gateway
-    curl -s http://localhost:4000/health | grep -q "operational" || return 1
-    # Check Neural Pricing
-    curl -s http://localhost:8001/health | grep -q "ok" || return 1
-    return 0
-}
-
-until check_app_health || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
-    printf "."
-    sleep 2
-    RETRY_COUNT=$((RETRY_COUNT + 1))
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if python3 scripts/verify_readiness.py; then
+        echo "✅ System Integrity Verified."
+        break
+    fi
+    echo "🟠 Waiting for system stabilization... ($RETRY_COUNT/$MAX_RETRIES)"
+    sleep 5
+    ((RETRY_COUNT++))
 done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo -e "\n❌ Some src failed to stabilize. Check 'docker compose logs'."
-else
-    echo -e "\n All src are UP and HEALTHY. High-Performance Active."
+    echo "❌ Fatal: System failed to reach institutional readiness."
+    exit 1
 fi
 
-if [ "$NO_TAIL" = true ]; then
-    exit 0
-fi
+echo "🎉 STACK IS LIVE AND BATTLE-HARDENED."
+echo "Access Dashboard: http://localhost:5173"
 
-# 7. Tail Logs
-echo "📡 Tailing logs... (Ctrl-C to stop tailing)"
-$DOCKER_COMPOSE logs -f --tail=10
+# 4. Tail Logs (Optional)
+if [[ "${1:-}" != "--no-tail" ]]; then
+    echo "📡 Tailing logs... (Ctrl-C to stop tailing)"
+    $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml logs -f --tail=20
+fi

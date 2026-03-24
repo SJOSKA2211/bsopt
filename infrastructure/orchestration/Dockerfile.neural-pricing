@@ -6,10 +6,11 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:latest AS builder
+FROM equaflow-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
+USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -18,26 +19,21 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CARGO_BUILD_JOBS=1
 
-COPY pyproject.toml README.md ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
-COPY src ./src
-
 # Build Wheel for Rust Core
-RUN uv pip install --system maturin
+COPY . .
+RUN uv pip install maturin
 RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 
 # Install App + Dependencies
+COPY infrastructure/requirements/requirements-ml.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-db.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-ml.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system . && \
-    uv pip install --system /tmp/wheels/*.whl
+    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install -r /tmp/requirements-ml.txt && \
+    uv pip install . && \
+    uv pip install /tmp/wheels/*.whl
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
+FROM equaflow-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -45,23 +41,23 @@ COPY . .
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 8000
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["python", "-m", "src.quant.pricing.main"]
+# Install App in editable mode
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r infrastructure/requirements/requirements-ml.txt && \
+    uv pip install -e .
 
 # --- PRODUCTION ---
-FROM equaflow-base:latest AS production
+FROM equaflow-base:final AS production
 WORKDIR /app
 
-# Copy source + entrypoint
-COPY src ./src
+# Copy the pre-built virtual environment from the neural builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Institutional Security & Performance
 USER equaflow
 EXPOSE 8000
 

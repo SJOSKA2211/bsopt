@@ -6,21 +6,20 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:latest AS builder
+FROM equaflow-base:builder AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
 COPY infrastructure/requirements/requirements-api.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r /tmp/requirements-api.txt
+    uv pip install -r /tmp/requirements-api.txt
 
-# Copy source + wheel from previous phase (if available) or build here
-# To be truly lean, we should copy the pre-built math kernels
+# Copy source + build
 COPY . .
-RUN uv pip install --system .
+RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
+FROM equaflow-base:builder AS development
 WORKDIR /app
 
 # Copy source + requirements
@@ -28,25 +27,20 @@ COPY . .
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Install App in editable mode or just system-wide for dev
+# Install App in editable mode for dev
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-api.txt && \
-    uv pip install --system .
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 8000
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--reload"]
+    uv pip install -r infrastructure/requirements/requirements-api.txt && \
+    uv pip install -e .
 
 # --- FINAL RUNTIME ---
-FROM equaflow-base:latest AS production
+FROM equaflow-base:final AS production
 WORKDIR /app
 
-# Copy only the virtual env if we weren't using --system,
-# but since equaflow-base installed to --system, we just rely on that.
-# For a "lean" Docker, we should actually use a VENV and COPY it.
+# Copy the pre-built virtual environment from the API builder
+# Note: equaflow-base:final already has the core venv.
+# We copy the one from our local builder which has the core + api + app.
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
@@ -59,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]
+CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]

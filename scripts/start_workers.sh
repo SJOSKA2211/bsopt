@@ -1,36 +1,36 @@
 #!/bin/bash
-set -e
+# scripts/start_workers.sh - Institutional Celery/Ray Worker Orchestrator (Zero-Mock)
+set -euo pipefail
 
-echo " Starting Celery Workers (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Suppress warnings
+echo "⚙️ Launching Institutional EquaFlow Worker Substrate..."
+
+# Load institutional environment
+source scripts/utils_env.sh
+load_decrypted_secrets
+
+# Institutional Runtime Environment
 export RAY_IGNORE_UNSTABLE_API_WARNING=1
 export PYTHONWARNINGS="ignore"
-
-# Setup Environment
-export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
-export REDIS_URL="redis://localhost:6379/0"
-export RABBITMQ_URL="amqp://guest:guest@localhost:5672//"
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
-export RAY_ADDRESS="auto"
+export RAY_ADDRESS=${RAY_ADDRESS:-auto}
 
-# Start Celery Worker
-if [ -f "/usr/local/bin/celery" ] || command -v celery >/dev/null 2>&1; then
-    celery -A src.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
-else
-    python3 -m celery -A src.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
-fi
+# Execution Standard: Standardize on python3 -m celery
+RUN_CELERY="python3 -m celery -A src.workers.tasks.celery_app"
+
+# Start Celery Worker (Institutional Concurrency)
+echo "🐝 Starting Celery Worker Substrate..."
+$RUN_CELERY worker --loglevel=info --concurrency=${CELERY_CONCURRENCY:-2} -n worker1@%h &
 PID_WORKER=$!
 
-# Start Celery Beat (Scheduler)
-if [ -f "/usr/local/bin/celery" ] || command -v celery >/dev/null 2>&1; then
-    celery -A src.workers.tasks.celery_app beat --loglevel=info &
-else
-    python3 -m celery -A src.workers.tasks.celery_app beat --loglevel=info &
-fi
+# Start Celery Beat (Institutional Scheduler)
+echo "📅 Starting Celery Scheduler (Beat)..."
+$RUN_CELERY beat --loglevel=info &
 PID_BEAT=$!
 
-# Trap signals
-trap "kill $PID_WORKER $PID_BEAT; exit" SIGINT SIGTERM
+# Trap signals for graceful institutional shutdown
+trap "echo '🛑 Shutting down workers...'; kill $PID_WORKER $PID_BEAT; exit" SIGINT SIGTERM
 
 wait

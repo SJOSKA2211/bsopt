@@ -1,12 +1,22 @@
 #!/bin/bash
-set -e
+# scripts/start_scraper.sh - Institutional Market Scraper Orchestrator (Zero-Mock)
+set -euo pipefail
 
-echo " Starting Scraper Service (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Setup Environment
-export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
-export REDIS_URL="redis://localhost:6379/0"
+echo "🕷️ Launching Institutional EquaFlow Scraper Substrate..."
+
+# Load institutional environment
+source scripts/utils_env.sh
+load_decrypted_secrets
+
+# Institutional Runtime Environment
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Run Scraper
-python3 src/scrapers/engine.py
+# Execute with institutional Python substrate
+if command -v uv > /dev/null; then
+    exec uv run -m src.ingestion.engine
+else
+    exec python3 -m src.ingestion.engine
+fi

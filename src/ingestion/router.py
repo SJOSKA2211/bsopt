@@ -29,7 +29,7 @@ class MarketDataRouter:
         self.nse = NSEScraper()
         self.polygon = PolygonProvider()
         self.yahoo = YahooProvider()
-        from src.shared.cache import get_redis
+        from src.shared.utils.cache import get_redis
 
         self.redis = get_redis()
 
@@ -104,7 +104,7 @@ class MarketDataRouter:
                 p_latency = time.time() - start_time
                 await self._update_latency(provider_name, p_latency)
                 
-                # Cache successful result for placeholder fallback
+                # Cache successful result for high-availability fallback
                 if self.redis:
                     await self.redis.setex(
                         f"market_cache:{symbol}",
@@ -168,8 +168,8 @@ class MarketDataRouter:
 
     async def _get_fallback_quote(self, symbol: str) -> MarketQuote:
         """
-        Zero-Mock Placeholder Fallback: Retrieves the last known successful quote from Redis.
-        Ensures the UI stays alive even if all providers are down.
+        High-Availability Cache Fallback: Retrieves the last known successful quote from Redis.
+        Ensures the UI stays alive during transient provider outages using real historical data.
         """
         if self.redis:
             try:

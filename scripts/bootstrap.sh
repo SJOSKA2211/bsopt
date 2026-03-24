@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# scripts/bootstrap.sh
+# scripts/bootstrap.sh - Institutional Zero-Touch Bootstrapper
 set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 # 1. Detect Container Engine
 if command -v podman &> /dev/null; then
@@ -14,71 +17,93 @@ elif command -v docker &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "[!] Error: Neither docker nor podman is installed."
+    echo "❌ Error: Neither docker nor podman is installed."
     exit 1
 fi
 
-echo "[*] Using container orchestrator: $COMPOSE_CMD"
+echo "🚀 Using container orchestrator: $COMPOSE_CMD"
 
-# 2. Generate ECC Asymmetric Keys and Database Secrets
+# 2. Institutional PKI & Secret Generation
+echo "🔐 Initializing Security Substrate..."
+bash scripts/setup_pki.sh
+
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
-    echo "[*] Generating ECC Asymmetric Key Pairs and Secrets..."
+    echo "📝 Generating Institutional Secrets..."
     
-    # Generate SECP256R1 (prime256v1) key pair
-    openssl ecparam -genkey -name prime256v1 -noout -out jwt_private.pem 2>/dev/null
-    openssl ec -in jwt_private.pem -pubout -out jwt_public.pem 2>/dev/null
-
-    # Format keys for environment variable injection (replace newlines with \n)
-    JWT_PRIV=$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' jwt_private.pem)
-    JWT_PUB=$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' jwt_public.pem)
-
-    # Generate secure 32-byte hex for Postgres
+    # High-Entropy Database Secrets
     DB_USER="equaflow_admin"
     DB_PASS=$(openssl rand -hex 32)
-    DB_NAME="equaflow_db"
+    DB_NAME="bsopt"
+    
+    # Redis & RabbitMQ Secrets
+    REDIS_PASS=$(openssl rand -hex 32)
+    RABBITMQ_PASS=$(openssl rand -hex 32)
+    
+    # MINIO Secrets
+    MINIO_ROOT_PASS=$(openssl rand -hex 32)
 
     cat <<EOF > "$ENV_FILE"
+# Institutional Environment Configuration
+ENVIRONMENT=production
+DEBUG=false
+
+# Database Security
 POSTGRES_USER=$DB_USER
 POSTGRES_PASSWORD=$DB_PASS
 POSTGRES_DB=$DB_NAME
-DATABASE_URL=postgresql://$DB_USER:$DB_PASS@timescaledb:5432/$DB_NAME
-JWT_PRIVATE_KEY="$JWT_PRIV"
-JWT_PUBLIC_KEY="$JWT_PUB"
+DATABASE_URL=postgresql://$DB_USER:$DB_PASS@pgbouncer:5432/$DB_NAME
+
+# Cache Security
+REDIS_PASSWORD=$REDIS_PASS
+REDIS_URL=redis://:$REDIS_PASS@redis:6379/0
+
+# Messaging Security
+RABBITMQ_USER=bsopt_admin
+RABBITMQ_PASSWORD=$RABBITMQ_PASS
+
+# Object Storage Security
+MINIO_ROOT_USER=minio_admin
+MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASS
+
+# "Zero-Mock" API Keys (USER MUST PROVIDE THESE)
+ALPHA_VANTAGE_API_KEY=
+POLYGON_API_KEY=
+IBM_QUANTUM_TOKEN=
+
+# Testing & CI
+BSOPT_ALLOW_WEAK_SECRETS=false
 EOF
-    echo "[*] Secrets generated and locked in $ENV_FILE"
-    rm -f jwt_private.pem jwt_public.pem
+    echo "✅ Secrets generated and secured in $ENV_FILE"
 else
-    echo "[*] $ENV_FILE already exists. Utilizing existing secure state."
+    echo "ℹ️ $ENV_FILE already exists. Preserving existing secure state."
 fi
 
-# Load environment variables
-if [ -f "$ENV_FILE" ]; then
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
-fi
+# 3. Microservices Lifecycle Management
+echo "📦 Spinning up Core Institutional Stack..."
+$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio
 
-# 3. Spin up TimescaleDB
-echo "[*] Initializing TimescaleDB Live Environment..."
-$COMPOSE_CMD -f infrastructure/docker-compose.yml up -d timescaledb
+# 4. Robust Healthcheck Polling
+check_health() {
+    local service=$1
+    local retries=30
+    echo "⏳ Waiting for $service to reach healthy state..."
+    until [ "$($COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml ps --format json | grep -E "\"Service\":\"$service\"" | grep -E "\"Health\":\"healthy\"")" ] || [ $retries -eq 0 ]; do
+        sleep 2
+        ((retries--))
+    done
+    if [ $retries -eq 0 ]; then
+        echo "❌ Fatal: $service failed to reach readiness."
+        $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml logs "$service"
+        exit 1
+    fi
+    echo "✅ $service is Healthy."
+}
 
-# 4. Strict Polling Loop for DB Health
-echo "[*] Executing pg_isready polling loop..."
-RETRIES=30
-# We use the container name 'timescaledb' directly if we are on the same network or engine
-until $CONTAINER_CMD exec timescaledb pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
-    echo "    -> Waiting for DB connection... $((RETRIES--)) attempts remaining..."
-    sleep 2
-done
+check_health "postgres"
+check_health "pgbouncer"
+check_health "redis"
+check_health "rabbitmq"
+check_health "minio"
 
-if [ $RETRIES -eq 0 ]; then
-    echo "[!] Fatal: TimescaleDB failed to reach readiness. Tailing logs:"
-    $CONTAINER_CMD logs timescaledb
-    exit 1
-fi
-echo "[+] TimescaleDB is actively accepting connections."
-
-# 5. Spin up Envoy Gateway
-echo "[*] Initializing Envoy API Gateway..."
-$COMPOSE_CMD -f infrastructure/docker-compose.yml up -d envoy
-
-echo "[+] Phase 0 Bootstrapping Complete. Stack is healthy."
+echo "🏁 Phase 0 Bootstrapping Complete. Institutional Stack is Operational."

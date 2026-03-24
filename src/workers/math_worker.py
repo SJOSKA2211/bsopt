@@ -52,16 +52,9 @@ def get_math_swarm():
     global _math_swarm
     if _math_swarm is None:
         RayOrchestrator.init()
-        # Check if we are in a test/mock environment where Ray might be mocked
-        if ray.is_initialized():
-             # Respect the capped CPU count from RayOrchestrator
-             num_workers = int(ray.cluster_resources().get("CPU", 2))
-             _math_swarm = [MathActor.remote() for _ in range(num_workers)]
-        else:
-             # Fallback for when Ray is mocked but not "initialized" in a way that allows remote()
-             # Or if initialization failed silently.
-             logger.warning("ray_not_initialized_in_swarm_getter")
-             _math_swarm = []
+        # Strictly require initialized Ray in "Zero-Mock" architecture
+        num_workers = int(ray.cluster_resources().get("CPU", 2))
+        _math_swarm = [MathActor.remote() for _ in range(num_workers)]
     return _math_swarm
 
 def _calibration_worker(market_data: Any) -> tuple[HestonParams, dict, dict]:

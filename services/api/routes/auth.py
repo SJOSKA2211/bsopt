@@ -32,7 +32,6 @@ from src.auth.auth import (
     get_current_active_user,
     get_current_user,
 )
-from src.auth.password import password_service
 from src.auth.rate_limit import rate_limit
 from src.config import settings
 from src.database import get_async_db, set_user_context
@@ -291,14 +290,14 @@ async def change_password(
     """
 
     # 1. Verify old password
-    if not password_service.verify_password(data.current_password, user.hashed_password):
+    if not auth_service.verify_password(data.current_password, user.hashed_password):
         raise AuthenticationException(message="Invalid current password")
 
     # 2. Update password
     # Validation is handled by Pydantic (PasswordChangeRequest)
 
     # 3. Hash and save
-    user.hashed_password = password_service.hash_password(data.new_password)
+    user.hashed_password = auth_service.hash_password(data.new_password)
     await db.commit()
 
     return SuccessResponse(message="Password changed successfully")
@@ -319,7 +318,7 @@ async def request_password_reset(
     user = result.scalar_one_or_none()
 
     if user:
-        token = password_service.generate_reset_token()
+        token = auth_service.generate_reset_token()
         user.reset_token = token
         user.reset_token_expires_at = datetime.now(UTC) + timedelta(hours=1)
         await db.commit()
@@ -353,7 +352,7 @@ async def reset_password_confirm(
     # 1. Update password
     # Validation is handled by Pydantic (PasswordResetConfirmRequest)
 
-    user.hashed_password = password_service.hash_password(data.new_password)
+    user.hashed_password = auth_service.hash_password(data.new_password)
     user.reset_token = None
     user.reset_token_expires_at = None
     await db.commit()

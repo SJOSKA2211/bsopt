@@ -66,42 +66,60 @@ class AugmentedRLAgent:
 
 class SentimentExtractor:
     """
-    High-Performance Lexicon-based Extractor.
-    Uses O(1) hash-based lookup for institutional sentiment signals.
+    High-Performance Transformer-based Sentiment Extractor.
+    Uses FinBERT (ProsusAI/finbert) for institutional-grade financial sentiment analysis.
     """
 
-    def __init__(self, model_name: str = "finbert"):
+    def __init__(self, model_name: str = "ProsusAI/finbert"):
         self.model_name = model_name
-        # Pre-process keywords into a set for O(1) lookup
-        self.keyword_map = {
-            "bullish": 0.8,
-            "bearish": -0.8,
-            "upgraded": 0.5,
-            "downgraded": -0.5,
-            "beat": 0.4,
-            "missed": -0.4,
-            "profit": 0.2,
-            "loss": -0.3,
-        }
+        self._pipeline = None
+        logger.info("sentiment_extractor_initialized", model=model_name)
+
+    def _get_pipeline(self):
+        """Lazy-load the transformer pipeline to save memory if not used."""
+        if self._pipeline is None:
+            try:
+                from transformers import pipeline
+                self._pipeline = pipeline("sentiment-analysis", model=self.model_name)
+            except ImportError:
+                logger.error("transformers_not_installed", action="falling_back_to_lexicon")
+                return None
+        return self._pipeline
 
     def extract(self, text: str) -> float:
-        """Extracts a sentiment score using optimized lookup."""
+        """Extracts a sentiment score using FinBERT or optimized lexicon fallback."""
         if not text:
             return 0.0
 
+        pipe = self._get_pipeline()
+        if pipe:
+            try:
+                # FinBERT returns: labels (positive, negative, neutral) and scores
+                result = pipe(text[:512])[0] # Truncate to model max length
+                label = result["label"].lower()
+                score = result["score"]
+                
+                if label == "positive":
+                    return float(score)
+                elif label == "negative":
+                    return -float(score)
+                return 0.0
+            except Exception as e:
+                logger.warning("transformer_inference_failed", error=str(e))
+
+        # --- OPTIMIZED LEXICON FALLBACK ---
+        keyword_map = {
+             "bullish": 0.8, "bearish": -0.8, "upgraded": 0.5, "downgraded": -0.5,
+             "beat": 0.4, "missed": -0.4, "profit": 0.2, "loss": -0.3,
+             "buy": 0.3, "sell": -0.3, "growth": 0.2, "debt": -0.2
+        }
         import re
-
-        # OPTIMIZATION: Use regex to tokenize properly while ignoring punctuation
         words = re.findall(r"\w+", text.lower())
-
-        score = 0.0
-        matches = 0
-
+        score, matches = 0.0, 0
         for word in words:
-            if word in self.keyword_map:
-                score += self.keyword_map[word]
+            if word in keyword_map:
+                score += keyword_map[word]
                 matches += 1
-
         return np.clip(score / max(matches, 1), -1.0, 1.0) if matches > 0 else 0.0
 
     def get_sentiment_score(self, text: str) -> float:

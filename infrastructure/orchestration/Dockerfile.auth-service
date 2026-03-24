@@ -6,22 +6,19 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM equaflow-base:latest AS builder
+FROM equaflow-base:builder AS builder
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
-COPY src ./src
-
 # Install App + Dependencies
+COPY infrastructure/requirements/requirements-auth.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-auth.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system .
+    uv pip install -r /tmp/requirements-auth.txt
+
+COPY . .
+RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
+FROM equaflow-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -29,23 +26,23 @@ COPY . .
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 3001
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["python", "-m", "src.auth.auth_server"]
+# Install App
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r infrastructure/requirements/requirements-auth.txt && \
+    uv pip install -e .
 
 # --- PRODUCTION ---
-FROM equaflow-base:latest AS production
+FROM equaflow-base:final AS production
 WORKDIR /app
 
-# Copy source + entrypoint
-COPY src ./src
+# Copy the pre-built virtual environment from the auth builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Institutional Security & Performance
 USER equaflow
 EXPOSE 3001
 

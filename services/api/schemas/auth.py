@@ -47,7 +47,7 @@ class TokenResponse(msgspec.Struct):
     requires_mfa: bool = False
 
     @classmethod
-    def from_proto(cls, proto_msg: Any) -> "TokenResponse":
+    def from_proto(cls, proto_msg: object) -> "TokenResponse":
         """Bridge from gRPC TokenPairResponse."""
         return cls(
             access_token=proto_msg.access_token,
@@ -56,7 +56,7 @@ class TokenResponse(msgspec.Struct):
             expires_in=proto_msg.expires_in,
         )
 
-    def to_proto(self) -> dict[str, Any]:
+    def to_proto(self) -> dict[str, object]:
         """Bridge to gRPC TokenPairResponse."""
         return {
             "access_token": self.access_token or "",
@@ -78,7 +78,7 @@ class AuthResponse(msgspec.Struct):
     factors_verified: list[str] = []
 
     @classmethod
-    def from_proto(cls, proto_msg: Any) -> "AuthResponse":
+    def from_proto(cls, proto_msg: object) -> "AuthResponse":
         """Bridge from gRPC AuthResponse."""
         return cls(
             authenticated=proto_msg.authenticated,

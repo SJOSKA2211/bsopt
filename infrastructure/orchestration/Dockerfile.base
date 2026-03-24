@@ -52,13 +52,30 @@ ENV UV_CACHE_DIR=/root/.cache/uv \
     UV_HTTP_TIMEOUT=300 \
     UV_LINK_MODE=copy
 
+# Create a virtual environment for all services
+RUN uv venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Pre-install Core Dependencies (Shared across all services)
 COPY infrastructure/requirements/requirements-core.txt /tmp/
 COPY infrastructure/requirements/requirements-db.txt /tmp/
 COPY infrastructure/requirements/requirements-observability.txt /tmp/
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system \
+    uv pip install \
     -r /tmp/requirements-core.txt \
     -r /tmp/requirements-db.txt \
     -r /tmp/requirements-observability.txt
+
+# --- FINAL PRODUCTION BASE ---
+FROM runtime AS final
+
+# Copy the pre-built virtual environment
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Ensure the app directory exists and is owned by equaflow
+WORKDIR /app
+RUN chown -R equaflow:equaflow /app
+
+USER equaflow

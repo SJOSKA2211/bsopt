@@ -35,7 +35,7 @@ class MarketDataScraper:
 
     def _redact_message(self, message: str) -> str:
         """Redacts the API key from strings (e.g., URLs in exceptions)."""
-        if not self.api_key or self.api_key == "DEMO_KEY":
+        if not self.api_key:
             return message
         return message.replace(self.api_key, "[REDACTED]")
 

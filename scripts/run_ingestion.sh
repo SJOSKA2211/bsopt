@@ -1,20 +1,24 @@
 #!/bin/bash
-# High-Volume Asynchronous Data Ingestion Launcher
-# Triggers NSE scraper and US Market (yfinance) bulk downloads concurrently.
+# scripts/run_ingestion.sh - Institutional Data Ingestion Orchestrator
+set -euo pipefail
 
-set -e
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-echo "🚀 Starting High-Volume Financial Data Ingestion..."
+echo "🚀 Launching Institutional Financial Data Ingestion (Zero-Mock)..."
 
-# Set PYTHONPATH to include project root
+# Ensure environment is clean
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
-# Load environment variables if .env exists
-if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+# Standardize on uv for execution if available
+if command -v uv > /dev/null; then
+    RUN_CMD="uv run"
+else
+    RUN_CMD="python3"
 fi
 
-# Run the concurrent ingestion orchestrator
-python3 src/scrapers/concurrent_ingestion.py
+# Multi-Provider Concurrent Ingestion
+echo "📊 Fetching Market Data from Polygon and Alpha Vantage Substrates..."
+$RUN_CMD -m src.ingestion.pipeline --providers polygon yfinance nse
 
-echo "✅ Ingestion Pipeline Complete."
+echo "✅ Ingestion Pipeline Sync Complete."

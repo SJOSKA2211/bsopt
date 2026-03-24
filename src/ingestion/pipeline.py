@@ -102,12 +102,8 @@ class DataPipeline:
         records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
-            from src.ml.training.data_gen import (
-                generate_synthetic_data_numba as generate_synthetic_data,
-            )
-
-            logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
-            return generate_synthetic_data(self.config.min_samples)
+            logger.error("data_pipeline_no_real_data_found", symbols=self.config.symbols)
+            raise ValueError(f"No real market data found for {self.config.symbols}. Zero-Mock compliance required.")
 
         #  OPTIMIZATION: Use structured array for fast conversion
         # We assume records is a list of dicts. We convert to structured array.

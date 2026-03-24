@@ -99,7 +99,7 @@ services:
       - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key.host:ro
       - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-admin}"]
+      test: ["CMD-SHELL", "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 5432 -U \${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -135,7 +135,6 @@ services:
 
   # === Message Broker ===
   rabbitmq:
-    env_file: ../../.env
     image: docker.io/library/rabbitmq:3-management
     restart: unless-stopped
     environment:

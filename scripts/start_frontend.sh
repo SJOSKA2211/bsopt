@@ -1,13 +1,24 @@
 #!/bin/bash
-set -e
+# scripts/start_frontend.sh - Institutional Frontend Dashboard Orchestrator
+set -euo pipefail
 
-echo " Starting Frontend (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
+echo "🎨 Launching Institutional EquaFlow Dashboard..."
+
+# Institutional Runtime Environment
 cd src/frontend
 
-# Use npm quietly, skip install if node_modules exists
 if [ ! -d "node_modules" ]; then
-    npm install
+    echo "📦 Initializing Frontend dependencies..."
+    npm install --quiet
 fi
 
-npm run dev
+if [ "${ENVIRONMENT:-development}" == "production" ]; then
+    echo "🏗️ Running in PRODUCTION mode..."
+    exec npm run start
+else
+    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    exec npm run dev
+fi

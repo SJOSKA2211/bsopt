@@ -56,8 +56,26 @@ class PolygonProvider:
         )
 
     async def search(self, query: str) -> list[dict]:
-        # Search implementation using real endpoint...
-        return [{"symbol": query, "name": f"{query} Corp", "provider": "Polygon"}]
+        """Search for symbols via Polygon Tickers API."""
+        if self.api_key == "DEMO_KEY":
+             return [{"symbol": query, "name": f"{query} (Search requires API Key)", "provider": "Polygon"}]
+             
+        url = f"https://api.polygon.io/v3/reference/tickers?search={query}&active=true&apiKey={self.api_key}"
+        try:
+            resp = await self.client.get(url)
+            resp.raise_for_status()
+            data = resp.json().get("results", [])
+            return [
+                {
+                    "symbol": item.get("ticker"),
+                    "name": item.get("name"),
+                    "market": item.get("market"),
+                    "provider": "Polygon"
+                } for item in data[:10]
+            ]
+        except Exception as e:
+            logger.error("polygon_search_failed", query=query, error=str(e))
+            return []
 
 
 class YahooProvider:
@@ -102,3 +120,22 @@ class YahooProvider:
         except Exception as e:
             logger.error("yahoo_provider_error", error=str(e), symbol=symbol)
             raise e
+
+    async def search(self, query: str) -> list[dict]:
+        """Search for symbols via Yahoo Finance Query API."""
+        url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}"
+        try:
+            resp = await self.stealth.get(url)
+            resp.raise_for_status()
+            data = resp.json().get("quotes", [])
+            return [
+                {
+                    "symbol": item.get("symbol"),
+                    "name": item.get("shortname") or item.get("longname"),
+                    "market": item.get("exchange"),
+                    "provider": "Yahoo"
+                } for item in data[:10]
+            ]
+        except Exception as e:
+            logger.error("yahoo_search_failed", query=query, error=str(e))
+            return []

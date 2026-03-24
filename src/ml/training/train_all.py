@@ -24,7 +24,7 @@ async def train_all():
 
     # Configuration for the pipeline
     config = {
-        "api_key": os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY"),
+        "api_key": os.getenv("ALPHA_VANTAGE_API_KEY"),
         "provider": "auto",  # auto-select provider
         "db_url": settings.DATABASE_URL,
         "ticker": os.getenv("TICKER", settings.DEFAULT_TICKER),

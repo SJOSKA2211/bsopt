@@ -1,18 +1,31 @@
 #!/bin/bash
-set -e
+# scripts/start_auth.sh - Institutional Auth Service Orchestrator (Zero-Mock)
+set -euo pipefail
 
-echo " Starting Auth Service (Local)..."
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Override for Local Docker Infra
-export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
-export BETTER_AUTH_BASE_URL="http://localhost:3001"
-export BETTER_AUTH_URL="http://localhost:3001"
-export BETTER_AUTH_SECRET="development_secret_high_performance_secure_system_key_manifold_32_char"
-export PORT=3001
+echo "🔐 Launching Institutional EquaFlow Auth Service..."
 
+# Load institutional environment
+source scripts/utils_env.sh
+load_decrypted_secrets
+
+# Institutional Runtime Environment
+export PORT=${AUTH_PORT:-3001}
+export BETTER_AUTH_SECRET=${AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
+
+# Execute with institutional Node.js substrate
 cd src/auth
-# Use npm install only if node_modules is missing to speed up startup
 if [ ! -d "node_modules" ]; then
-    npm install
+    echo "📦 Initializing Node.js dependencies..."
+    npm install --quiet
 fi
-npm run dev
+
+if [ "${ENVIRONMENT:-development}" == "production" ]; then
+    echo "🏗️ Running in PRODUCTION mode..."
+    exec npm run start
+else
+    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    exec npm run dev
+fi
