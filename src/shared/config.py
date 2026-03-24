@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
     # RabbitMQ Configuration
     RABBITMQ_USER: str = Field(default="guest", validation_alias="RABBITMQ_USER")
-    RABBITMQ_PASSWORD: str = Field(default="guest", validation_alias="RABBITMQ_PASSWORD")
+    RABBITMQ_PASSWORD: str = Field(default="this_is_a_very_long_password_for_security_compliance_32_chars", validation_alias="RABBITMQ_PASSWORD")
     RABBITMQ_HOST: str = Field(default="rabbitmq", validation_alias="RABBITMQ_HOST")
 
     @property

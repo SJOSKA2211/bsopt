@@ -411,21 +411,31 @@ async def post_grafana_annotation(message: str, tags: list[str] | None = None) -
         return False
 
 # --- Ingestion & Routing Metrics ---
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, REGISTRY
 
-PROXY_FAILURES = Counter(
+def get_counter(name, description, labels):
+    if name in REGISTRY._names_to_collectors:
+        return REGISTRY._names_to_collectors[name]
+    return Counter(name, description, labels)
+
+def get_histogram(name, description, labels):
+    if name in REGISTRY._names_to_collectors:
+        return REGISTRY._names_to_collectors[name]
+    return Histogram(name, description, labels)
+
+PROXY_FAILURES = get_counter(
     "proxy_failures_total", "Total count of proxy failures", ["proxy_url"]
 )
-PROXY_LATENCY = Histogram(
+PROXY_LATENCY = get_histogram(
     "proxy_latency_seconds", "Latency of proxy requests", ["proxy_url"]
 )
 
-ROUTING_COUNT = Counter(
+ROUTING_COUNT = get_counter(
     "market_data_routing_total",
     "Total count of market data requests",
     ["target", "market"],
 )
-ROUTING_LATENCY = Histogram(
+ROUTING_LATENCY = get_histogram(
     "market_data_routing_latency_seconds", "Latency of market data requests", ["target"]
 )
 SCRAPER_PARSE_SUCCESS = Counter(
