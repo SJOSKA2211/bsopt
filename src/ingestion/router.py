@@ -4,7 +4,7 @@ import time
 import structlog
 from prometheus_client import Counter, Histogram
 
-from services.api.providers import PolygonProvider, YahooProvider
+from api.providers import PolygonProvider, YahooProvider
 from src.ingestion.engine import NSEScraper
 from src.shared.schemas.market import MarketQuote
 

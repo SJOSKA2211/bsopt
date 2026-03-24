@@ -12,7 +12,7 @@ import structlog
 from anyio.to_thread import run_sync
 from fastapi import HTTPException
 
-from services.api.schemas.pricing import (
+from api.schemas.pricing import (
     BatchGreeksResult,
     BatchPriceResult,
     PriceResult,
@@ -57,7 +57,7 @@ class PricingService:
                 duration_ms=round(duration_ms, 2),
             )
 
-            from services.api.schemas.pricing import OptionGreeksStruct
+            from api.schemas.pricing import OptionGreeksStruct
 
             return PriceResult(
                 price=float(result.price),
@@ -133,7 +133,7 @@ class PricingService:
                 divs = np.array([it[1].dividend_yield for it in items], dtype=np.float64)
                 types = np.array([it[1].option_type for it in items])
 
-                from services.api.schemas.pricing import OptionGreeksStruct
+                from api.schemas.pricing import OptionGreeksStruct
 
                 # Optimized Dispatch
                 if model_type == "black_scholes":
@@ -427,7 +427,7 @@ class PricingService:
         divs = np.array([o.dividend_yield for o in options], dtype=np.float64)
         types = np.array([o.option_type for o in options])
 
-        from services.api.schemas.pricing import GreeksResult
+        from api.schemas.pricing import GreeksResult
         from src.math_kernel.black_scholes import BlackScholesEngine
 
         # Using BlackScholesEngine truly vectorized batch greeks (Rust/JIT)

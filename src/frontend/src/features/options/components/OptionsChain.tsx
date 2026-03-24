@@ -39,11 +39,6 @@ import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
-interface GqlData {
-  marketData?: { last_price: number };
-  options?: { edges: { node: any }[] };
-}
-
 interface WasmPricingResult {
   delta: number;
   gamma: number;
@@ -79,7 +74,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   } = useWasmPricing();
   
   const [enrichedResults, setEnrichedResults] = useState<WasmPricingResult[]>([]);
-  const [lastSpot, setLastSpot] = useState<number>(0);
+  const [lastSpot, setLastSpot] = useState<number>(155.0);
 
   // Fetch options chain data via Unified Hook Layer
   const { data: gqlData, loading: isLoading } = useOptionsChain(symbol);
@@ -89,14 +84,13 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
 
   // Subscribe to real-time spot updates
   const priceData = usePricingStore((state: PricingState) => state.prices[symbol]);
-  const tick = priceData ? { last_price: priceData.price } : null;
-
-  useEffect(() => {
-    const newSpot = tick?.last_price || marketData?.marketData?.last_price;
-    if (newSpot && newSpot !== lastSpot) {
-      setLastSpot(newSpot);
-    }
-  }, [tick, marketData, lastSpot]);
+  
+  const currentSpot = priceData?.price || marketData?.marketData?.last_price;
+  
+  // Sync lastSpot during render to avoid cascading effect renders
+  if (currentSpot && currentSpot !== lastSpot) {
+    setLastSpot(currentSpot);
+  }
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {

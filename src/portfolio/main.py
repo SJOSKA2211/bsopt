@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-from services.api.responses import MsgspecJSONResponse
+from api.responses import MsgspecJSONResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:

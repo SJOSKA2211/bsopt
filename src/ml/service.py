@@ -10,7 +10,7 @@ from math import erf
 import grpc
 import structlog
 
-from services.api.schemas.ml import InferenceRequest, InferenceResponse
+from api.schemas.ml import InferenceRequest, InferenceResponse
 from src.database.pipeliner import db_engine
 from src.shared.config import settings
 from src.shared.observability import ML_PROXY_PREDICT_LATENCY

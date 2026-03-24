@@ -105,7 +105,7 @@ class PnLExplainer:
         """
         Factory method to create a RiskAttributor from real portfolio data.
         """
-        from services.api.graphql.resolvers.portfolio_service import service_get_portfolio
+        from api.graphql.resolvers.portfolio_service import service_get_portfolio
 
         portfolio = await service_get_portfolio(user_id)
         # Flatten strawberry types to dicts for simpler internal handling if needed

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from strawberry.fastapi import GraphQLRouter
 
-from services.api.responses import MsgspecJSONResponse
+from api.responses import MsgspecJSONResponse
 from src.math_kernel.graphql.schema import get_context, schema
 from src.math_kernel.quant_utils import warmup_jit
 from src.shared.observability import (

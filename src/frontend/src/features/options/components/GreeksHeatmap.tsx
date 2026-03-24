@@ -65,13 +65,11 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     return Object.values(groups);
   }, [gqlData]);
 
-  const [processedData, setProcessedData] = useState<OptionData[]>([]);
+  const [enrichedData, setEnrichedData] = useState<OptionData[] | null>(null);
 
   useEffect(() => {
     if (!optionsData || !isWasmLoaded) {
-      if (processedData.length !== (optionsData?.length || 0)) {
-        setProcessedData(optionsData || []);
-      }
+      setEnrichedData(null);
       return;
     }
     const runEnrichment = async () => {
@@ -88,7 +86,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       try {
         const results = await batchCalculate(params);
         if (!results) return;
-        setProcessedData(optionsData.map((d: OptionData, i: number) => {
+        setEnrichedData(optionsData.map((d: OptionData, i: number) => {
           const r = results[i];
           return r ? { 
             ...d, 
@@ -104,6 +102,8 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     };
     runEnrichment();
   }, [optionsData, isWasmLoaded, batchCalculate]);
+
+  const processedData = enrichedData || optionsData;
 
   const { strikes, expiries, data } = useMemo(() => {
     const s = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: any, b: any) => (a as number) - (b as number));

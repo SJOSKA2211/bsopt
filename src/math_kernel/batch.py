@@ -166,7 +166,7 @@ class BatchPricingService:
 
         if compute_greeks:
             # Fallback to standard greeks for now, or implement calculate_greeks_batch_arrays
-            from services.api.schemas.pricing import PriceRequest
+            from api.schemas.pricing import PriceRequest
 
             options_data = []
             for i in range(len(df)):
