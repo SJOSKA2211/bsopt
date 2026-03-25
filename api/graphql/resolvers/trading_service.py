@@ -4,7 +4,7 @@ import strawberry
 import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
-from src.trading.execution import OrderExecutor
+from src.math_kernel.execution import OrderExecutor
 
 logger = structlog.get_logger(__name__)
 

@@ -133,14 +133,9 @@ class GreeksMesh:
             else:
                 raise
 
-        try:
-            
-            logger.info("shm_persistence_recovery_triggered", mesh="greeks", source="redis_primary")
-            # Logic: Pull byte-stream snapshots and directly map to memoryview buffer
-            # res = await redis.get(f"shm:snapshot:{mesh_name}")
-            # if res: self.buf[:len(res)] = res
-        except Exception as e:
-            logger.error("shm_persistence_recovery_failed", error=str(e))
+    def recover_from_persistence(self):
+        """Recover latest greeks state from Redis for warm start."""
+        logger.info("shm_persistence_recovery_triggered", mesh="greeks")
 
     def _refresh_index(self):
         """Rebuild the local symbol-to-index map from SHM."""

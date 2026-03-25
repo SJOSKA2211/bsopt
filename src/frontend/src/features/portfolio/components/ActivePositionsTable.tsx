@@ -3,46 +3,63 @@ import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, alph
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 const positions = [
-  { symbol: 'AAPL', type: 'Bull Call', strike: '190/195', expiry: '15-Jun-24', pl: '+$1,420', plPercent: '+24.5%', delta: 45.2, theta: -8.12, gamma: 2.1 },
-  { symbol: 'TSLA', type: 'Put Spread', strike: '175/170', expiry: '21-Jun-24', pl: '-$420', plPercent: '-12.2%', delta: -32.5, theta: -5.40, gamma: 1.8 },
-  { symbol: 'NVDA', type: 'Call Spread', strike: '900/920', expiry: '28-Jun-24', pl: '+$3,850', plPercent: '+45.8%', delta: 62.1, theta: -12.45, gamma: 3.2 },
+  { symbol: 'AAPL_240615_C_190/195', type: 'BULL_CALL_SPREAD', strike: '190.0/195.0', pl: '+$1,420.42', plPercent: '+24.5%', delta: '+45.2', theta: '-8.12', gamma: '+2.14' },
+  { symbol: 'TSLA_240621_P_175/170', type: 'PUT_CREDIT_SPREAD', strike: '175.0/170.0', pl: '-$420.15', plPercent: '-12.2%', delta: '-32.5', theta: '-5.40', gamma: '+1.82' },
+  { symbol: 'NVDA_240628_C_900/920', type: 'CALL_DEBIT_SPREAD', strike: '900.0/920.0', pl: '+$3,850.12', plPercent: '+45.8%', delta: '+62.1', theta: '-12.45', gamma: '+3.20' },
+  { symbol: 'SPY_240719_C_520/525', type: 'BULL_CALL_SPREAD', strike: '520.0/525.0', pl: '+$842.05', plPercent: '+8.4%', delta: '+28.4', theta: '-4.20', gamma: '+1.15' },
 ];
 
 export const ActivePositionsTable: React.FC = () => {
   return (
-    <Box>
-      <Table size="small">
+    <Box sx={{ width: '100%', overflowX: 'auto' }}>
+      <Table size="small" sx={{ minWidth: 800 }}>
         <TableHead>
           <TableRow sx={{ bgcolor: 'rgba(255,255,255,0.02)' }}>
-            <TableCell className="stitch-label" sx={{ py: 1, fontSize: '8px' }}>SYMBOL</TableCell>
-            <TableCell className="stitch-label" sx={{ py: 1, fontSize: '8px' }}>STRATEGY</TableCell>
-            <TableCell className="stitch-label" sx={{ py: 1, fontSize: '8px' }}>STRIKE/EXP</TableCell>
-            <TableCell align="right" className="stitch-label" sx={{ py: 1, fontSize: '8px' }}>P&L (UNREALIZED)</TableCell>
-            <TableCell align="right" className="stitch-label" sx={{ py: 1, fontSize: '8px' }}>GREEKS (Δ/Θ)</TableCell>
+            <TableCell className="stitch-label" sx={{ py: 1.5, fontSize: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>INSTRUMENT_ID</TableCell>
+            <TableCell className="stitch-label" sx={{ py: 1.5, fontSize: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>STRATEGY_v2</TableCell>
+            <TableCell className="stitch-label" sx={{ py: 1.5, fontSize: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>STRIKE_CONF_EXP</TableCell>
+            <TableCell align="right" className="stitch-label" sx={{ py: 1.5, fontSize: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>P&L_UNREALIZED_USD</TableCell>
+            <TableCell align="right" className="stitch-label" sx={{ py: 1.5, fontSize: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>GREEKS_SCAN (Δ/Θ/Γ)</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {positions.map((row, idx) => (
-            <TableRow key={idx} sx={{ borderBottom: '1px solid rgba(255,255,255,0.03)', '&:hover': { bgcolor: 'rgba(255,255,255,0.01)' } }}>
-              <TableCell sx={{ py: 1 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: '11px' }}>{row.symbol}</Typography>
+            <TableRow 
+              key={idx} 
+              sx={{ 
+                borderBottom: '1px solid rgba(255,255,255,0.03)', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' },
+                transition: 'background-color 0.2s ease'
+              }}
+            >
+              <TableCell sx={{ py: 1.2 }}>
+                <Typography sx={{ fontWeight: 950, fontSize: '10px', color: '#fff', letterSpacing: '0.5px' }}>{row.symbol}</Typography>
               </TableCell>
-              <TableCell sx={{ py: 1 }}>
-                <Typography sx={{ fontSize: '10px', color: stitchTokens.colors.primary, fontWeight: 700 }}>{row.type}</Typography>
+              <TableCell sx={{ py: 1.2 }}>
+                <Box sx={{ 
+                  display: 'inline-block', 
+                  p: '1px 8px', 
+                  bgcolor: 'rgba(0, 255, 163, 0.05)', 
+                  border: `1px solid ${alpha(stitchTokens.colors.primary, 0.2)}`
+                }}>
+                   <Typography sx={{ fontSize: '9px', color: stitchTokens.colors.primary, fontWeight: 900 }}>{row.type}</Typography>
+                </Box>
               </TableCell>
-              <TableCell sx={{ py: 1 }}>
-                <Typography className="stitch-mono" sx={{ fontSize: '10px' }}>{row.strike} <Box component="span" sx={{ opacity: 0.5 }}>[{row.expiry}]</Box></Typography>
+              <TableCell sx={{ py: 1.2 }}>
+                <Typography className="stitch-mono" sx={{ fontSize: '10px', fontWeight: 700 }}>{row.strike}</Typography>
               </TableCell>
-              <TableCell align="right" sx={{ py: 1 }}>
-                <Typography className="stitch-mono" sx={{ fontSize: '11px', fontWeight: 900, color: row.pl.startsWith('+') ? stitchTokens.colors.primary : '#ff4d4d' }}>
-                  {row.pl} <Box component="span" sx={{ fontSize: '9px', opacity: 0.8 }}>({row.plPercent})</Box>
+              <TableCell align="right" sx={{ py: 1.2 }}>
+                <Typography className="stitch-mono" sx={{ fontSize: '11px', fontWeight: 950, color: row.pl.startsWith('+') ? stitchTokens.colors.primary : '#ff2e7e' }}>
+                  {row.pl} <Box component="span" sx={{ fontSize: '9px', fontWeight: 700, opacity: 0.6 }}>({row.plPercent})</Box>
                 </Typography>
               </TableCell>
-              <TableCell align="right" sx={{ py: 1 }}>
-                <Typography className="stitch-mono" sx={{ fontSize: '10px' }}>
+              <TableCell align="right" sx={{ py: 1.2 }}>
+                <Typography className="stitch-mono" sx={{ fontSize: '10px', fontWeight: 800 }}>
                   <Box component="span" sx={{ color: stitchTokens.colors.primary }}>{row.delta}</Box>
-                  <Box component="span" sx={{ mx: 0.5, opacity: 0.3 }}>|</Box>
-                  <Box component="span" sx={{ color: '#ff4d4d' }}>{row.theta}</Box>
+                  <Box component="span" sx={{ mx: 0.5, opacity: 0.2 }}>//</Box>
+                  <Box component="span" sx={{ color: '#ff2e7e' }}>{row.theta}</Box>
+                  <Box component="span" sx={{ mx: 0.5, opacity: 0.2 }}>//</Box>
+                  <Box component="span" sx={{ color: stitchTokens.colors.secondary }}>{row.gamma}</Box>
                 </Typography>
               </TableCell>
             </TableRow>

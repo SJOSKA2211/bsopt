@@ -14,6 +14,14 @@ export const stitchTokens = {
     onSurface: '#f5f6fc',
     onSurfaceVariant: '#a9abb1',
     outlineVariant: 'rgba(255, 255, 255, 0.15)',
+    
+    // Abstract Tier (from reference image)
+    abstract: {
+      orange: 'linear-gradient(135deg, #FF5722 0%, #FF9800 100%)',
+      purple: 'linear-gradient(135deg, #673AB7 0%, #E91E63 100%)',
+      teal: 'linear-gradient(135deg, #009688 0%, #4CAF50 100%)',
+      indigo: 'linear-gradient(135deg, #3F51B5 0%, #00BCD4 100%)',
+    }
   },
   typography: {
     headings: 'Inter, sans-serif',
@@ -30,5 +38,6 @@ export const stitchTokens = {
     slantedCut: 'polygon(0% 0%, 95% 0%, 100% 100%, 0% 100%)',
     slantedHeader: 'polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%)',
     shard: 'polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%)',
+    banner: 'polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%)',
   }
 };

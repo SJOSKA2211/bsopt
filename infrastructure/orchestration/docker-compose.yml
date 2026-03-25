@@ -307,8 +307,8 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
-      - ../../src/shared:/app/src/shared
-      - ../../src/portfolio:/app/src/portfolio
+      - ../../src:/app/src
+      - ../../api:/app/api
       - ../../pyproject.toml:/app/pyproject.toml
       - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
       - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
@@ -329,6 +329,7 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
+      - BSOPT_ALLOW_WEAK_SECRETS=True
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s
@@ -346,7 +347,7 @@ services:
     sysctls:
       - net.core.somaxconn=1024
       - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --loop uvloop --opt
+    command: granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --loop uvloop
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
@@ -595,7 +596,7 @@ services:
     sysctls:
       - net.core.somaxconn=2048
       - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --opt --ws
+    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
 
     # === App Gateway (Node.js Federation) ===
   frontend:

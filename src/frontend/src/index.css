@@ -124,3 +124,68 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--synthetic-mint);
 }
+/* Abstract Geometric Utilities */
+.stitch-abstract-shard {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  filter: blur(1px);
+  transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.stitch-dots-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 12px 12px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stitch-banner-orange {
+  clip-path: polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%);
+  background: linear-gradient(135deg, #FF5722 0%, #FF9800 100%);
+  padding: 10px 40px;
+  color: #000;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.stitch-banner-purple {
+  clip-path: polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%);
+  background: linear-gradient(135deg, #673AB7 0%, #E91E63 100%);
+  padding: 10px 40px;
+  color: #fff;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Framer Motion Entry Helpers */
+.animate-item {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Shard Parallax Animation */
+@keyframes shard-float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(10px, -15px) rotate(2deg); }
+  66% { transform: translate(-5px, 10px) rotate(-2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.float-animation {
+  animation: shard-float 6s ease-in-out infinite;
+}
+
+/* Layout High-Density tweaks */
+.stitch-compact-grid {
+  display: grid;
+  grid-gap: 8px;
+  padding: 8px;
+}
