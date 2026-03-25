@@ -23,6 +23,7 @@ _webhook_dispatcher = None
 def get_webhook_dispatcher():
     global _webhook_dispatcher
     if _webhook_dispatcher is None:
+        from src.shared.utils.cache import get_redis_client
         from src.shared.utils.circuit_breaker import (
             DistributedCircuitBreaker,
             InMemoryCircuitBreaker,

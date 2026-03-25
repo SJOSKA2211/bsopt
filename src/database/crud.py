@@ -1119,6 +1119,7 @@ async def get_portfolio_total_value(db: AsyncSession, portfolio_id: UUID) -> flo
     OPTIMIZED: Single-trip query with join to latest ticks.
     """
     try:
+        from sqlalchemy import func
 
         # 1. Fetch cash and open positions with their current market prices
         stmt = (

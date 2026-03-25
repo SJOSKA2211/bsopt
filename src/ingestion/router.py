@@ -2,6 +2,7 @@ import asyncio
 import time
 
 import structlog
+from prometheus_client import Counter, Histogram
 
 from api.providers import PolygonProvider, YahooProvider
 from src.ingestion.engine import NSEScraper
@@ -13,6 +14,7 @@ logger = structlog.get_logger()
 from src.shared.observability import (
     ROUTING_COUNT,
     ROUTING_LATENCY,
+    SCRAPER_PARSE_SUCCESS,
 )
 
 

@@ -6,6 +6,7 @@ and Pydantic V2 for request validation.
 """
 
 import re
+from typing import Any
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator

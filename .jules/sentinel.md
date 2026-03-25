@@ -15,7 +15,3 @@
 **Vulnerability:** The `authenticate_user` function dynamically generated a new Argon2 hash using `password_service.hash_password(secrets.token_urlsafe(32))` and then verified it every time an invalid username was submitted.
 **Learning:** While the intent was to prevent user enumeration via timing attacks (by making the server take a consistent amount of time), dynamically generating the hash *before* verifying it caused the server to execute the CPU-intensive Argon2 algorithm twice. This introduces a severe Denial of Service (DoS) vulnerability where attackers can trivially exhaust server CPU by requesting invalid usernames.
 **Prevention:** To prevent both timing attacks and DoS attacks, the application must use a *pre-computed* static dummy hash generated once at application startup. This ensures the server burns the correct amount of CPU during the verification step, without the penalty of generating a new hash.
-## 2024-05-18 - CI workflow syntax errors and mass lint failures
-**Vulnerability:** CI pipelines failed due to incorrect YAML syntax (`uses:` inside `run:` blocks) and massive `I001` (isort) Ruff violations.
-**Learning:** GitHub Actions must separate `uses` and `run` into distinct steps. `ruff check . --fix` is required to continuously maintain codebase formatting to prevent CI failures.
-**Prevention:** Verify GitHub Actions structure and regularly run `ruff check . --fix` before committing.

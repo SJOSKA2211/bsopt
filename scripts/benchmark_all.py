@@ -8,7 +8,6 @@ from src.quant.pricing.quant_utils import (
     generate_paths_v2,
 )
 
-
 def benchmark_jit_warmup():
     print("--- JIT Warmup Impact ---")
     s = np.array([100.0], dtype=np.float64)

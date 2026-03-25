@@ -4,6 +4,7 @@ Provides shared functionality for MLflow tracking, logging, and experiment manag
 """
 
 from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
 import mlflow
 import msgspec

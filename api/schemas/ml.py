@@ -50,7 +50,7 @@ class BatchInferenceResponse(msgspec.Struct, frozen=True):
     predictions: list[InferenceResponse]
     total_latency_ms: float
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 class ComparisonMetrics(msgspec.Struct, frozen=True):

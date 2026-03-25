@@ -28,6 +28,7 @@ class SyntheticOptionsDataset(Dataset):
         
         # Mathematical Truth: Labels are derived from the BS pricing kernel
         # instead of a simplistic mean() fallback.
+        from src.math_kernel.quant_utils import fast_normal_cdf_v2
         
         def calculate_bs_price(s, k, t, v):
             r = 0.05 # Baseline risk-free rate

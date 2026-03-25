@@ -1,3 +1,4 @@
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import structlog
@@ -55,7 +56,7 @@ def calculate_greeks(
     rate: np.ndarray,
     dividend: np.ndarray,
     is_call: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     High-performance batch Greeks calculation via Rust.
     Returns (delta, gamma, theta, vega, rho).
@@ -89,6 +90,7 @@ def price_heston(
     High-performance batch Heston pricing via Rust.
     """
     if not RUST_AVAILABLE:
+        from .heston_fft import heston_price_fft
         # heston_price_fft implementation might be different (returns strikes/prices)
         # We'd need a compliant fallback here.
         logger.error("heston_rust_fallback_not_fully_implemented")
@@ -133,7 +135,7 @@ def simulate_gbm_rk4(
     sigma: np.ndarray,
     t: float,
     dt: float,
-    seed: int | None = None
+    seed: Optional[int] = None
 ) -> np.ndarray:
     """
     Highly optimized GBM simulation using 4th-order Runge-Kutta in Rust.

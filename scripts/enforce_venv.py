@@ -6,7 +6,6 @@ Checks for required high-performance modules.
 
 import importlib.util
 
-
 def check_performance_libs():
     libs = ["msgspec", "numba"]
     for lib in libs:

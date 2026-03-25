@@ -19,6 +19,8 @@ from src.ingestion.rust_parser import RustTickParser
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
+    ROUTING_COUNT,
+    ROUTING_LATENCY,
     setup_logging,
     start_system_metrics_loop,
 )

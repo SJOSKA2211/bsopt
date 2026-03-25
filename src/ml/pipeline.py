@@ -1,10 +1,13 @@
 import asyncio
+import os
+from typing import cast
 
 import msgspec
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import structlog
-from numba import njit
+from numba import njit, prange
 
 from src.config import settings
 from src.ml.training.base import TrainingConfig, TrainingResult

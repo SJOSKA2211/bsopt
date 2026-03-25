@@ -2,6 +2,7 @@ import base64
 import time
 from typing import Any
 
+import msgspec
 import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware

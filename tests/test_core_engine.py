@@ -1,4 +1,5 @@
 import time
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import numpy as np
@@ -7,6 +8,7 @@ from argon2 import PasswordHasher
 
 from src.auth.auth import auth_service
 from src.math_kernel.rust_engine import is_rust_available, simulate_gbm_rk4
+from src.shared.config import settings
 
 
 class TestProductionCore:
@@ -82,6 +84,8 @@ class TestProductionCore:
     @pytest.mark.asyncio
     async def test_auth_middleware_injection(self):
         """Mock test for ZeroTrustAuthMiddleware logic."""
+        from fastapi import Request, Response
+
         from src.shared.middleware.auth import ZeroTrustAuthMiddleware
         
         # This is a simplified logic test of the middleware's extraction

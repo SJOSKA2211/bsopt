@@ -1,3 +1,5 @@
+from typing import Any
+
 from src.shared.webhooks.dispatcher import WebhookDispatcher as SharedDispatcher
 
 

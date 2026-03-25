@@ -3,6 +3,7 @@ Authentication Routes (Optimized for PG16 + Async)
 """
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
@@ -10,7 +11,7 @@ from jwt.exceptions import PyJWTError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.exceptions import AuthenticationException, ConflictException
+from api.exceptions import AuthenticationException, ConflictException, ValidationException
 from api.responses import MsgspecJSONResponse
 from api.schemas.auth import (
     LoginRequest,

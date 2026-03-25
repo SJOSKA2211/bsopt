@@ -4,6 +4,7 @@ Market Mesh Publisher (RabbitMQ Bridge)
 Publishes real-time scraped market data to RabbitMQ for decoupled processing.
 """
 
+import asyncio
 import time
 
 import structlog
