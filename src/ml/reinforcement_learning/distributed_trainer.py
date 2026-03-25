@@ -16,10 +16,8 @@ class RolloutWorker:
 
     def __init__(self, env_config: dict[str, Any]):
         from src.ml.reinforcement_learning.trading_env import TradingEnvironment
-        from src.ml.reinforcement_learning.transformer_policy import (
-            TransformerFeatureExtractor,
-            TransformerTD3Policy,
-        )
+        from src.ml.reinforcement_learning.transformer_policy import TransformerTD3Policy
+        from src.ml.reinforcement_learning.transformer_policy import TransformerFeatureExtractor
 
         self.env = TradingEnvironment(**env_config)
         self.device = torch.device("cpu")
@@ -90,12 +88,9 @@ class RayRLTrainer:
         logger.info("ray_distributed_training_started", workers=self.num_workers)
 
         from stable_baselines3 import TD3
-
+        from src.ml.reinforcement_learning.transformer_policy import TransformerTD3Policy
+        from src.ml.reinforcement_learning.transformer_policy import TransformerFeatureExtractor
         from src.ml.reinforcement_learning.trading_env import TradingEnvironment
-        from src.ml.reinforcement_learning.transformer_policy import (
-            TransformerFeatureExtractor,
-            TransformerTD3Policy,
-        )
         
         env = TradingEnvironment()
         policy_kwargs = dict(

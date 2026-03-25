@@ -22,7 +22,6 @@ from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
 
 logger = structlog.get_logger(__name__)
 
-
 def train_func(config: dict[str, Any]):
     """
     Worker function for distributed Decision Transformer training.
@@ -95,7 +94,7 @@ def train_func(config: dict[str, Any]):
         # Fallback to local loading if Ray Data fails
         import json
 
-        with open("data/trajectories.json") as f:
+        with open("data/trajectories.json", "r") as f:
             trajectories = json.load(f)  # nosec B301
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
@@ -156,7 +155,6 @@ def train_func(config: dict[str, Any]):
                     mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item(), step=epoch)
                     mlflow.log_metric(f"weight_std_{name}", param.data.std().item(), step=epoch)
 
-
 class BSOptDistributedTrainer:
     """
     Orchestrator for scaling BSOpt training across a Ray cluster.
@@ -198,6 +196,7 @@ class BSOptDistributedTrainer:
 
     def run(self, config: dict[str, Any]):
         """Starts the distributed training session using RayClusterManager."""
+        import os
 
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
@@ -229,9 +228,9 @@ class BSOptDistributedTrainer:
             if settings.RAY_SHUTDOWN_AFTER_RUN:
                 RayClusterManager.shutdown()
 
-
 if __name__ == "__main__":
     import argparse
+    import os
 
     parser = argparse.ArgumentParser(description="Run Distributed DT Training")
     parser.add_argument("--epochs", type=int, default=10)

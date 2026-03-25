@@ -6,7 +6,6 @@ from collections.abc import Generator
 
 import numpy as np
 
-
 class WalkForwardValidator:
     """
     High-performance temporal cross-validator using index views.

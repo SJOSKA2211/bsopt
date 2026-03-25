@@ -3,7 +3,6 @@ import numpy as np
 # High-Performance Indicator Kernels (Pure NumPy)
 from numba import njit, prange
 
-
 @njit(cache=True, fastmath=True)
 def _ema_kernel(values: np.ndarray, span: int) -> np.ndarray:
     alpha = 2.0 / (span + 1)

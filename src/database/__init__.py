@@ -263,8 +263,7 @@ def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return db_manager.async_session_factory
 
 # Legacy Lazy Loaders
-from collections.abc import Callable
-
+from typing import Callable
 
 class LazySessionFactory:
     def __init__(self, getter: Callable[[], Any]) -> None:

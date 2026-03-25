@@ -2,7 +2,6 @@ import numpy as np
 
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
-
 def verify_env():
     print("Verifying TradingEnvironment with Numba JIT...")
     env = TradingEnvironment()

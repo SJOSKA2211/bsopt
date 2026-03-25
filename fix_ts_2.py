@@ -1,7 +1,6 @@
 import os
 import re
 
-
 def fix_grid(content):
     content = re.sub(r'<Grid\s+item\s+xs={(\d+)}\s*>', r'<Grid size={{xs: \1}}>', content)
     content = re.sub(r'<Grid\s+key={([^}]+)}\s+item\s+xs={(\d+)}\s+sm={(\d+)}\s+lg={(\d+)}\s*>', 
@@ -18,7 +17,7 @@ for root, _, files in os.walk('src/frontend/src'):
     for f in files:
         if f.endswith(('.ts', '.tsx')):
             path = os.path.join(root, f)
-            with open(path) as file:
+            with open(path, 'r') as file:
                 content = file.read()
             
             orig = content

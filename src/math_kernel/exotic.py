@@ -19,7 +19,6 @@ from src.math_kernel.quant_utils import (
     jit_generate_log_paths,
 )
 
-
 class AsianType(Enum):
     GEOMETRIC = "geometric"
     ARITHMETIC = "arithmetic"

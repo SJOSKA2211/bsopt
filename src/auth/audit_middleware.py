@@ -2,13 +2,14 @@ import base64
 import time
 from typing import Any
 
+import msgspec
 import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.shared.config import settings
-from src.shared.rabbitmq import get_rabbitmq
 from src.shared.utils.crypto import AES256GCM
+from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 

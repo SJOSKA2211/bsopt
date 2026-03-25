@@ -250,10 +250,11 @@ class BacktestEngine:
         Autonomous Strategy: Uses Neural Pricing Engine for alpha generation.
         Strictly data-driven with zero-mock execution.
         """
+        from src.ml.models.neural_engine import NeuralPricingEngine
         
         # Check for autonomous circuit breaker
-
         from src.shared.utils.cache import get_redis
+        import asyncio
         
         async def check_paused():
             redis = get_redis()

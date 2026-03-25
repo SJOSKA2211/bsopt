@@ -21,13 +21,11 @@ class ProductionAuditLog:
         Log a critical Production action.
         """
         timestamp = time.time()
-        import asyncio
-        import hashlib
         import hmac
+        import hashlib
         import json
-
+        import asyncio
         from sqlalchemy import text
-
         from src.shared.config import settings
 
         payload = json.dumps({

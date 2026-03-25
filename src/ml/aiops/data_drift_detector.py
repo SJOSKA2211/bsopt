@@ -10,7 +10,6 @@ import numpy as np
 
 from src.ml.drift import calculate_ks_test, calculate_psi
 
-
 class DataDriftDetector:
     """Production wrapper."""
 

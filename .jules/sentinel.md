@@ -15,7 +15,3 @@
 **Vulnerability:** The `authenticate_user` function dynamically generated a new Argon2 hash using `password_service.hash_password(secrets.token_urlsafe(32))` and then verified it every time an invalid username was submitted.
 **Learning:** While the intent was to prevent user enumeration via timing attacks (by making the server take a consistent amount of time), dynamically generating the hash *before* verifying it caused the server to execute the CPU-intensive Argon2 algorithm twice. This introduces a severe Denial of Service (DoS) vulnerability where attackers can trivially exhaust server CPU by requesting invalid usernames.
 **Prevention:** To prevent both timing attacks and DoS attacks, the application must use a *pre-computed* static dummy hash generated once at application startup. This ensures the server burns the correct amount of CPU during the verification step, without the penalty of generating a new hash.
-## 2024-05-18 - [Fix insecure pickle usage in ML components]
-**Vulnerability:** Insecure deserialization of datasets via `pickle.load` was being used for offline training and distributed training data.
-**Learning:** `pickle` allows arbitrary code execution. Legacy pickle deserialization was hidden behind fallbacks which meant it was not immediately obvious but still executable when parquet loading failed.
-**Prevention:** Always use safe serialization formats like `json` or `parquet` for dataset saving/loading. Ensure fallback mechanisms do not quietly use insecure paths like `pickle`.

@@ -9,7 +9,6 @@ from typing import Any
 
 import orjson
 
-
 class ConfigManager:
     """Manages CLI configuration stored in the user's home directory."""
 
