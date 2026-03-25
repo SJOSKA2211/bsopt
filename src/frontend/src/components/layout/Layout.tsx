@@ -11,25 +11,23 @@ import {
   ListItemText,
   Stack,
   alpha,
-  useTheme,
-  Divider,
   Avatar,
-  Chip,
+  IconButton,
 } from '@mui/material';
 import {
-  DashboardOutlined as DashboardIcon,
-  ShowChartOutlined as MarketIcon,
-  AccountBalanceWalletOutlined as PortfolioIcon,
+  GridViewOutlined as DashboardIcon,
+  BarChartOutlined as TradeIcon,
+  AccountBalanceWalletOutlined as PositionsIcon,
+  TimelineOutlined as AnalysisIcon,
+  HistoryOutlined as HistoryIcon,
   SettingsOutlined as SettingsIcon,
-  ExitToAppOutlined as LogoutIcon,
-  TrendingUpOutlined as BrandIcon,
   NotificationsNoneOutlined as NotifIcon,
-  PersonOutlined as PersonIcon,
+  AccountCircleOutlined as UserIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { stitchTokens } from '../../theme/stitch-tokens';
 
-const drawerWidth = 264;
-import { TickerTape } from '../TickerTape';
+const drawerWidth = 260;
 
 interface NavItemProps {
   item: { text: string; icon: React.ReactNode; path: string };
@@ -38,48 +36,46 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick }) => {
-  const theme = useTheme();
   return (
-    <ListItem disablePadding sx={{ mb: 0.25 }}>
+    <ListItem disablePadding sx={{ mb: 0.5, px: 2 }}>
       <ListItemButton
         selected={isActive}
         onClick={onClick}
         sx={{
-          borderRadius: 2,
-          py: 1.1,
+          borderRadius: 0,
+          py: 1.2,
           position: 'relative',
-          overflow: 'hidden',
-          ...(isActive && {
-            bgcolor: alpha(theme.palette.primary.main, 0.08),
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              left: 0,
-              top: '20%',
-              bottom: '20%',
-              width: 3,
-              borderRadius: '0 3px 3px 0',
-              background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-              boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.6)}`,
-            },
-          }),
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          backgroundColor: isActive ? alpha(stitchTokens.colors.primary, 0.1) : 'transparent',
+          borderLeft: isActive ? `3px solid ${stitchTokens.colors.primary}` : '3px solid transparent',
+          '&:hover': {
+            backgroundColor: alpha(stitchTokens.colors.primary, 0.05),
+            borderLeft: isActive ? `3px solid ${stitchTokens.colors.primary}` : `3px solid ${alpha(stitchTokens.colors.primary, 0.3)}`,
+          },
+          '&.Mui-selected': {
+            backgroundColor: alpha(stitchTokens.colors.primary, 0.1),
+          },
         }}
       >
         <ListItemIcon
           sx={{
             minWidth: 36,
-            color: isActive ? 'primary.main' : 'text.disabled',
-            transition: 'color 0.18s ease',
+            color: isActive ? stitchTokens.colors.primary : '#a9abb1',
           }}
         >
-          {item.icon}
+          <Box sx={{ fontSize: 20, display: 'flex' }}>
+            {item.icon}
+          </Box>
         </ListItemIcon>
         <ListItemText
           primary={item.text}
           primaryTypographyProps={{
-            fontSize: '0.875rem',
+            fontSize: '0.85rem',
             fontWeight: isActive ? 700 : 500,
-            color: isActive ? 'primary.main' : 'text.secondary',
+            color: isActive ? stitchTokens.colors.primary : '#f5f6fc',
+            fontFamily: stitchTokens.typography.labels,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
           }}
         />
       </ListItemButton>
@@ -87,287 +83,155 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick }) => {
   );
 };
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const theme = useTheme();
+export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isLogin = location.pathname === '/login';
-
-  const navSections = [
-    {
-      header: 'TERMINAL',
-      items: [
-        { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-        { text: 'Market', icon: <MarketIcon />, path: '/market' },
-        { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
-      ],
-    },
-    {
-      header: 'ACCOUNT',
-      items: [
-        { text: 'Notifications', icon: <NotifIcon />, path: '/notifications' },
-        { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-      ],
-    },
+  const navItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Trade', icon: <TradeIcon />, path: '/market' },
+    { text: 'Optimizer', icon: <AnalysisIcon />, path: '/research' },
+    { text: 'Positions', icon: <PositionsIcon />, path: '/portfolio' },
+    { text: 'Risk', icon: <AnalysisIcon />, path: '/risk' },
+    { text: 'History', icon: <HistoryIcon />, path: '/history' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
 
-  // No sidebar on login
-  if (isLogin) {
-    return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        {children}
-      </Box>
-    );
-  }
-
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: stitchTokens.colors.background }}>
       <CssBaseline />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Sidebar                                                             */}
-      {/* ------------------------------------------------------------------ */}
+      {/* Sidebar - The Terminal Core */}
       <Drawer
         variant="permanent"
         PaperProps={{
-          className: "qfd-glass",
           sx: {
             width: drawerWidth,
-            borderRight: `1px solid ${alpha('#94a3b8', 0.08)}`,
+            bgcolor: 'rgba(16, 20, 24, 0.95)',
+            backdropFilter: stitchTokens.effects.glassBlur,
+            borderRight: stitchTokens.effects.glassBorder,
             backgroundImage: 'none',
+            display: 'flex',
+            flexDirection: 'column',
           }
         }}
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            px: 1.5,
-            py: 3,
-          },
-        }}
+        sx={{ width: drawerWidth, flexShrink: 0 }}
       >
-        {/* Brand */}
-        <Stack
-          direction="row"
-          spacing={1.5}
-          alignItems="center"
-          className="qfd-holographic"
-          sx={{
-            px: 2,
-            py: 1.5,
-            mb: 4,
-            borderRadius: 3,
-            cursor: 'pointer',
-            border: `1px solid ${alpha('#fff', 0.05)}`,
-            '&:hover': { transform: 'scale(1.02)' },
-            transition: 'all 0.3s ease',
-          }}
-          onClick={() => navigate('/')}
-        >
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2,
-              background: theme.palette.info.main,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 4px 14px ${alpha(theme.palette.info.main, 0.4)}`,
-            }}
-          >
-            <BrandIcon sx={{ color: '#fff', fontSize: 20 }} />
+        {/* Brand Shard */}
+        <Box sx={{ p: 0, mt: 4, mb: 4 }}>
+          <Box className="stitch-slanted-header" sx={{ width: 'fit-content' }}>
+            BS-OPT V2.4
           </Box>
-          <Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 900,
-                letterSpacing: '-0.04em',
-                fontSize: '1.25rem',
-                background: theme.palette.financial.qfd.iridescent,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              BS-Opt
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: 'text.disabled',
-                fontSize: '0.62rem',
-                letterSpacing: '0.08em',
-                display: 'block',
-                mt: -0.25,
-              }}
-            >
-              OPTIONS TERMINAL
-            </Typography>
-          </Box>
-        </Stack>
-
-        {/* Market status badge */}
-        <Box sx={{ px: 1.5, mb: 3 }}>
-          <Chip
-            icon={
-              <Box
-                component="span"
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  bgcolor: theme.palette.success.main,
-                  boxShadow: `0 0 6px ${alpha(theme.palette.success.main, 0.8)}`,
-                  animation: 'live-pulse 1.8s ease-in-out infinite',
-                  '@keyframes live-pulse': {
-                    '0%, 100%': { opacity: 1 },
-                    '50%': { opacity: 0.4 },
-                  },
-                  flexShrink: 0,
-                }}
-                className="chip-dot"
-              />
-            }
-            label="MARKET OPEN"
-            size="small"
-            sx={{
-              bgcolor: alpha(theme.palette.success.main, 0.1),
-              color: theme.palette.success.main,
-              border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-              fontWeight: 700,
-              fontSize: '0.62rem',
-              letterSpacing: '0.07em',
-              height: 24,
-              '& .MuiChip-icon': { ml: 1, mr: -0.5 },
-            }}
-          />
         </Box>
 
-        {/* Navigation */}
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-          {navSections.map((section) => (
-            <Box key={section.header} sx={{ mb: 3 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  display: 'block',
-                  px: 2,
-                  mb: 0.75,
-                  fontWeight: 700,
-                  color: 'text.disabled',
-                  letterSpacing: '0.12em',
-                  fontSize: '0.62rem',
+        {/* Navigation List */}
+        <Box sx={{ flexGrow: 1 }}>
+          <List disablePadding>
+            {navItems.map((item) => (
+              <NavItem
+                key={item.text}
+                item={item}
+                isActive={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
+              />
+            ))}
+          </List>
+        </Box>
+
+        {/* System Health / User Block */}
+        <Box sx={{ p: 2, borderTop: stitchTokens.effects.glassBorder }}>
+          <Stack spacing={2}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <div className="stitch-live-indicator" />
+              <Typography className="stitch-label" sx={{ fontSize: '9px' }}>
+                System Ready // Latency: 4ms
+              </Typography>
+            </Box>
+            
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ p: 1.5, className: "stitch-card" }}>
+              <Avatar 
+                sx={{ 
+                  width: 32, 
+                  height: 32, 
+                  bgcolor: alpha(stitchTokens.colors.primary, 0.1),
+                  border: `1px solid ${alpha(stitchTokens.colors.primary, 0.3)}`,
+                  fontSize: '0.8rem',
+                  fontWeight: 900,
+                  color: stitchTokens.colors.primary
                 }}
               >
-                {section.header}
-              </Typography>
-              <List disablePadding>
-                {section.items.map((item) => (
-                  <NavItem
-                    key={item.text}
-                    item={item}
-                    isActive={location.pathname === item.path}
-                    onClick={() => navigate(item.path)}
-                  />
-                ))}
-              </List>
-            </Box>
-          ))}
-        </Box>
-
-        {/* Footer */}
-        <Divider sx={{ mb: 2 }} />
-        <Stack spacing={0.5}>
-          {/* User info */}
-          <Stack
-            direction="row"
-            spacing={1.5}
-            alignItems="center"
-            sx={{
-              px: 1.5,
-              py: 1.25,
-              borderRadius: 2,
-              cursor: 'pointer',
-              transition: 'background 0.18s ease',
-              '&:hover': { bgcolor: alpha('#94a3b8', 0.07) },
-            }}
-          >
-            <Avatar
-              className="slanted-rect"
-              sx={{
-                width: 34,
-                height: 34,
-                background: 'linear-gradient(135deg, #a855f7, #38bdf8)',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                borderRadius: 0,
-              }}
-            >
-              <PersonIcon sx={{ fontSize: 18 }} />
-            </Avatar>
-            <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                Quant Trader
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.67rem' }} noWrap>
-                trader@bsopt.io
-              </Typography>
-            </Box>
+                QT
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, lineHeight: 1 }}>
+                  Quant Trader
+                </Typography>
+                <Typography className="stitch-label" sx={{ fontSize: '8px', mt: 0.5 }}>
+                  Institutional Tier
+                </Typography>
+              </Box>
+              <IconButton size="small" sx={{ ml: 'auto', color: '#a9abb1' }}>
+                <SettingsIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Stack>
           </Stack>
-
-          <ListItemButton sx={{ borderRadius: 2 }} onClick={() => navigate('/login')}>
-            <ListItemIcon sx={{ minWidth: 36, color: 'text.disabled' }}>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Sign out"
-              primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500, color: 'text.secondary' }}
-            />
-          </ListItemButton>
-        </Stack>
+        </Box>
       </Drawer>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Main content area                                                   */}
-      {/* ------------------------------------------------------------------ */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          height: '100vh',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: 'background.default',
-        }}
-      >
-        {/* Live ticker at the very top */}
-        <TickerTape />
+      {/* Main Content Area */}
+      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Market Pulse Top Bar */}
+        <Box sx={{ 
+          height: 72, 
+          px: 3, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: stitchTokens.effects.glassBorder,
+          bgcolor: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 1100
+        }}>
+          <Stack direction="row" spacing={4} alignItems="center">
+            <Box className="stitch-card" sx={{ p: '6px 16px', borderLeft: `2px solid ${stitchTokens.colors.primary}` }}>
+              <Typography className="stitch-label" sx={{ fontSize: '9px', mb: 0.2 }}>Active Symbol</Typography>
+              <Typography sx={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '0.05em' }}>
+                AAPL <Typography component="span" variant="caption" sx={{ color: '#a9abb1', ml: 1 }}>$189.45 / -0.2%</Typography>
+              </Typography>
+            </Box>
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            p: { xs: 2, md: 4 },
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Box sx={{ width: '100%', maxWidth: 1600 }}>
-            {children}
-          </Box>
+            <Stack direction="row" spacing={3}>
+              {[
+                { label: 'MARKET_IV', value: '28.4%', color: stitchTokens.colors.primary },
+                { label: 'CAL_SPREAD', value: '1.45', color: '#f5f6fc' },
+                { label: 'GAMMA_EXP', value: '+1.2M', color: stitchTokens.colors.tertiary },
+              ].map(ticker => (
+                <Box key={ticker.label}>
+                  <Typography className="stitch-label" sx={{ fontSize: '8px', opacity: 0.7 }}>{ticker.label}</Typography>
+                  <Typography className="stitch-mono" sx={{ fontSize: '12px', fontWeight: 800, color: ticker.color }}>
+                    {ticker.value}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Stack>
+
+          <Stack direction="row" spacing={1} alignItems="center">
+             <Box sx={{ textAlign: 'right', mr: 2 }}>
+                <Typography className="stitch-label" sx={{ fontSize: '8px' }}>Global Portfolio</Typography>
+                <Typography className="stitch-mono" sx={{ fontSize: '14px', fontWeight: 900, color: stitchTokens.colors.primary }}>
+                  $2,450,192.40
+                </Typography>
+             </Box>
+            <IconButton sx={{ color: '#f5f6fc', animation: 'none' }}>
+              <NotifIcon />
+            </IconButton>
+          </Stack>
+        </Box>
+
+        {/* Content Wrapper */}
+        <Box sx={{ flexGrow: 1, p: 0, overflow: 'auto', position: 'relative' }}>
+          {children}
         </Box>
       </Box>
     </Box>

@@ -16,8 +16,10 @@ import { QuantumField } from './components/common/QuantumField';
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
-const MarketPage = lazy(() => import('./pages/market/MarketPage'));
-const PortfolioPage = lazy(() => import('./pages/portfolio/PortfolioPage'));
+const TradeExecutionPage = lazy(() => import('./pages/trading/TradeExecutionPage'));
+const StrategyOptimizerPage = lazy(() => import('./pages/research/StrategyOptimizerPage'));
+const PortfolioAnalyticsPage = lazy(() => import('./pages/portfolio/PortfolioAnalyticsPage'));
+const RiskManagementPage = lazy(() => import('./pages/risk/RiskManagementPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const SignUpPage = lazy(() => import('./pages/auth/SignUpPage'));
 
@@ -31,8 +33,8 @@ const queryClient = new QueryClient({
 });
 
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-    <CircularProgress size={60} aria-label="Loading page" />
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#0a0b14' }}>
+    <CircularProgress size={60} aria-label="Loading page" sx={{ color: '#00ffa3' }} />
   </Box>
 );
 
@@ -53,8 +55,12 @@ function AppContent() {
           >
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/market" element={<MarketPage />} />
-              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/market" element={<TradeExecutionPage />} />
+              <Route path="/research" element={<StrategyOptimizerPage />} />
+              <Route path="/portfolio" element={<PortfolioAnalyticsPage />} />
+              <Route path="/positions" element={<PortfolioAnalyticsPage />} />
+              <Route path="/risk" element={<RiskManagementPage />} />
+              <Route path="/analysis" element={<RiskManagementPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/login" element={<SignIn />} />
               <Route path="/signup" element={<SignUpPage />} />

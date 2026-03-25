@@ -1,178 +1,170 @@
-// src/theme/index.ts – BS-Opt Quantum Financial Deity (QFD) Theme
+// src/theme/index.ts – BS-Opt Institutional Grade Terminal Theme
 
 import { createTheme, alpha } from '@mui/material/styles';
 import type { Shadows } from '@mui/material/styles';
 import './types.d';
 
 // ============================================================================
-// COLOR PALETTE – Quantum Financial Deity System
+// COLOR PALETTE – High Fidelity Quantum System
 // ============================================================================
 
 const palette = {
   mode: 'dark' as const,
 
   primary: {
-    main: '#10b981',
-    light: '#34d399',
-    dark: '#059669',
+    main: '#00ffa3', // Neon Emerald
+    light: '#6effd1',
+    dark: '#00b372',
     contrastText: '#020617',
   },
 
   secondary: {
-    main: '#f59e0b',      // Strategic Amber
-    light: '#fbbf24',
-    dark: '#d97706',
+    main: '#ff2e7e', // Neon Pink
+    light: '#ff70a5',
+    dark: '#c20058',
     contrastText: '#020617',
   },
 
   success: {
-    main: '#10b981',      // Emerald 500
-    light: '#34d399',
-    dark: '#059669',
+    main: '#00ffa3',
+    light: '#6effd1',
+    dark: '#00b372',
   },
 
   error: {
-    main: '#f43f5e',      // Rose 500
-    light: '#fb7185',
-    dark: '#e11d48',
+    main: '#ff2e7e',
+    light: '#ff70a5',
+    dark: '#c20058',
   },
 
   warning: {
-    main: '#fbbf24',      // Amber 400
-    light: '#fcd34d',
-    dark: '#f59e0b',
+    main: '#ffaa00', // Neon Amber
+    light: '#ffc14d',
+    dark: '#b37700',
   },
 
   info: {
-    main: '#38bdf8',      // Sky 400
-    light: '#7dd3fc',
-    dark: '#0ea5e9',
+    main: '#00d4ff', // Neon Sky
+    light: '#66e5ff',
+    dark: '#0094b3',
   },
 
   background: {
-    default: '#020617',
-    paper: 'rgba(15, 23, 42, 0.4)',
-    elevation1: '#0f172a',
-    elevation2: '#1e293b',
-    elevation3: '#334155',
+    default: '#0a0b14', // Deeper space black
+    paper: 'rgba(13, 14, 24, 0.7)',
+    elevation1: '#11121d',
+    elevation2: '#161824',
+    elevation3: '#1c1e2e',
   },
 
   text: {
-    primary: '#f8fafc',
+    primary: '#eff3f8',
     secondary: '#94a3b8',
-    disabled: '#64748b',
+    disabled: '#475569',
   },
 
-  divider: alpha('#94a3b8', 0.1),
+  divider: alpha('#334155', 0.2),
 
   financial: {
-    bid: '#10b981',
-    ask: '#f43f5e',
-    positive: '#10b981',
-    negative: '#f43f5e',
+    bid: '#00ffa3',
+    ask: '#ff2e7e',
+    positive: '#00ffa3',
+    negative: '#ff2e7e',
     neutral: '#94a3b8',
     accents: {
-      amber: '#fbbf24',
-      rose: '#f43f5e',
-      sky: '#38bdf8',
-      emerald: '#10b981',
-      indigo: '#6366f1',
+      violet: '#a855f7',
+      amber: '#ffaa00',
+      rose: '#ff2e7e',
+      sky: '#00d4ff',
+      emerald: '#00ffa3',
     },
     greeks: {
-      delta: '#10b981',
-      gamma: '#38bdf8',
-      vega: '#f59e0b',   // Strategic Gold
-      theta: '#f43f5e',
-      rho: '#6366f1',
+      delta: '#00ffa3',
+      gamma: '#00d4ff',
+      vega: '#ffaa00',
+      theta: '#ff2e7e',
+      rho: '#a855f7',
     },
     qfd: {
-      emerald: '#10b981',
-      amber: '#f59e0b',
-      sky: '#38bdf8',
-      iridescent: 'linear-gradient(135deg, #10b981 0%, #38bdf8 100%)',
-      quantum: '#22d3ee', // Cyan 400
-      electrum: '#e2e8f0', // Slate 200
-      nebula: '#c084fc', // Purple 400
+      emerald: '#00ffa3',
+      amber: '#ffaa00',
+      sky: '#00d4ff',
+      iridescent: 'linear-gradient(135deg, #00ffa3 0%, #00d4ff 100%)',
+      quantum: '#00e5ff',
+      electrum: '#f1f5f9',
+      nebula: '#d8b4fe',
     }
   },
 };
 
 // ============================================================================
-// TYPOGRAPHY – Outfit for UI + JetBrains Mono for Quanitatives
+// TYPOGRAPHY – Modern Sans + Monospace for Data
 // ============================================================================
 
 const typography = {
   fontFamily: [
     'Outfit',
     'Inter',
-    '-apple-system',
-    'BlinkMacSystemFont',
-    '"Segoe UI"',
-    'Roboto',
+    'system-ui',
     'sans-serif',
   ].join(','),
 
   fontFamilyMonospace: [
     '"JetBrains Mono"',
-    'IBM Plex Mono',
     'monospace',
   ].join(','),
 
-  h1: { fontSize: '3rem', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1 },
-  h2: { fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2 },
-  h3: { fontSize: '1.875rem', fontWeight: 700, letterSpacing: '-0.02em' },
-  h4: { fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.01em' },
-  h5: { fontSize: '1.25rem', fontWeight: 600 },
-  h6: { fontSize: '1.125rem', fontWeight: 600 },
+  h1: { fontSize: '3.5rem', fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 1.1 },
+  h2: { fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.2 },
+  h3: { fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em' },
+  h4: { fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.02em' },
+  h5: { fontSize: '1.25rem', fontWeight: 700 },
+  h6: { fontSize: '1.1rem', fontWeight: 700 },
 
   body1: { fontSize: '1rem', lineHeight: 1.6, letterSpacing: '0.01em' },
   body2: { fontSize: '0.875rem', lineHeight: 1.6, letterSpacing: '0.01em' },
 
-  subtitle1: { fontSize: '1rem', fontWeight: 600, color: '#f8fafc' },
-  subtitle2: { fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8' },
+  subtitle1: { fontSize: '1rem', fontWeight: 700, color: '#eff3f8' },
+  subtitle2: { fontSize: '0.875rem', fontWeight: 600, color: '#94a3b8' },
 
-  caption: { fontSize: '0.75rem', fontWeight: 600, color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' as const },
+  caption: { fontSize: '0.7rem', fontWeight: 800, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' as const },
 
   price: {
     fontFamily: '"JetBrains Mono", monospace',
-    fontSize: '1.125rem',
-    fontWeight: 700,
+    fontSize: '1.25rem',
+    fontWeight: 800,
     letterSpacing: '-0.02em',
   },
   percentage: {
     fontFamily: '"JetBrains Mono", monospace',
-    fontSize: '0.875rem',
-    fontWeight: 600,
+    fontSize: '0.9rem',
+    fontWeight: 700,
   },
   ticker: {
     fontFamily: '"JetBrains Mono", monospace',
     fontSize: '0.75rem',
-    fontWeight: 800,
-    letterSpacing: '0.1em',
+    fontWeight: 900,
+    letterSpacing: '0.12em',
     textTransform: 'uppercase' as const,
   },
 };
 
 // ============================================================================
-// COMPONENT OVERRIDES – Quantum Glassmorphism
+// COMPONENT OVERRIDES – Institutional Grade Aesthetics
 // ============================================================================
 
 const components = {
   MuiCssBaseline: {
     styleOverrides: {
-      '@import': "url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700;800&display=swap')",
       body: {
-        backgroundColor: '#020617',
+        backgroundColor: '#0a0b14',
         backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(16, 185, 129, 0.1) 0%, transparent 80%),
-          radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
-          radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.03) 0%, transparent 50%)
+          radial-gradient(circle at 50% -20%, rgba(0, 255, 163, 0.12) 0%, transparent 80%),
+          radial-gradient(circle at 0% 100%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 100% 100%, rgba(255, 46, 126, 0.05) 0%, transparent 50%)
         `,
         backgroundAttachment: 'fixed',
-        color: '#f8fafc',
-        '&::-webkit-scrollbar': { width: '6px', height: '6px' },
-        '&::-webkit-scrollbar-thumb': { backgroundColor: alpha('#10b981', 0.2), borderRadius: '10px' },
-        '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
+        color: '#eff3f8',
       },
     },
   },
@@ -181,30 +173,17 @@ const components = {
     styleOverrides: {
       root: {
         backgroundImage: 'none',
-        backgroundColor: alpha('#0f172a', 0.4),
-        backdropFilter: 'blur(40px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-        border: `1px solid ${alpha('#f8fafc', 0.08)}`,
-        borderRadius: 28,
-        boxShadow: `0 30px 60px -12px rgba(0, 0, 0, 0.6)`,
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        backgroundColor: alpha('#11121d', 0.6),
+        backdropFilter: 'blur(32px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+        border: `1px solid ${alpha('#cbd5e1', 0.08)}`,
+        borderRadius: 20,
+        boxShadow: `0 20px 40px -12px rgba(0, 0, 0, 0.5)`,
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          borderColor: alpha('#10b981', 0.4),
-          boxShadow: `0 40px 80px -15px rgba(0, 0, 0, 0.7), 0 0 30px ${alpha('#10b981', 0.15)}`,
-          transform: 'translateY(-4px)',
+          borderColor: alpha('#cbd5e1', 0.15),
+          boxShadow: `0 30px 60px -15px rgba(0, 0, 0, 0.6)`,
         },
-      },
-    },
-  },
-
-  MuiAppBar: {
-    styleOverrides: {
-      root: {
-        backgroundColor: alpha('#020617', 0.8),
-        backgroundImage: 'none',
-        boxShadow: 'none',
-        borderBottom: `0.5px solid ${alpha('#f8fafc', 0.1)}`,
-        backdropFilter: 'blur(16px)',
       },
     },
   },
@@ -212,58 +191,59 @@ const components = {
   MuiButton: {
     styleOverrides: {
       root: {
-        borderRadius: 14,
+        borderRadius: 8,
         textTransform: 'none' as const,
-        fontWeight: 700,
-        padding: '10px 24px',
+        fontWeight: 800,
+        padding: '12px 28px',
         letterSpacing: '0.02em',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-1px)',
-          boxShadow: '0 10px 20px -10px rgba(0, 0, 0, 0.5)'
-        },
-        '&:active': { transform: 'translateY(0)' },
+        '&:active': { transform: 'scale(0.98)' },
       },
       containedPrimary: {
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        background: 'linear-gradient(135deg, #00ffa3 0%, #00b372 100%)',
         color: '#020617',
+        boxShadow: `0 4px 14px 0 ${alpha('#00ffa3', 0.39)}`,
         '&:hover': {
-          background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
-          boxShadow: `0 0 25px ${alpha('#10b981', 0.4)}`,
+          background: 'linear-gradient(135deg, #33ffb5 0%, #00ffa3 100%)',
+          boxShadow: `0 6px 20px rgba(0, 255, 163, 0.45)`,
+          transform: 'translateY(-1px)',
         },
       },
       containedSecondary: {
-        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        color: '#020617',
+        background: 'linear-gradient(135deg, #ff2e7e 0%, #c20058 100%)',
+        color: '#ffffff',
+        boxShadow: `0 4px 14px 0 ${alpha('#ff2e7e', 0.39)}`,
         '&:hover': {
-          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-          boxShadow: `0 0 25px ${alpha('#f59e0b', 0.4)}`,
+          background: 'linear-gradient(135deg, #ff5c99 0%, #ff2e7e 100%)',
+          boxShadow: `0 6px 20px rgba(255, 46, 126, 0.45)`,
+          transform: 'translateY(-1px)',
         },
       },
     },
   },
 
-  MuiTypography: {
-    defaultProps: {
-      variantMapping: {
-        price: 'span',
-        percentage: 'span',
-        ticker: 'span'
-      }
-    }
-  },
-
-  MuiChip: {
+  MuiTab: {
     styleOverrides: {
       root: {
-        fontWeight: 700,
-        borderRadius: 10,
-        fontFamily: '"JetBrains Mono", monospace',
+        textTransform: 'none' as const,
+        fontWeight: 800,
+        fontSize: '0.9rem',
+        minHeight: 48,
+        transition: 'all 0.2s',
+        '&.Mui-selected': {
+          color: '#00ffa3',
+        },
       },
-      filledPrimary: {
-        background: alpha('#10b981', 0.1),
-        color: '#10b981',
-        border: `1px solid ${alpha('#10b981', 0.2)}`,
+    },
+  },
+
+  MuiTabs: {
+    styleOverrides: {
+      indicator: {
+        height: 3,
+        borderRadius: '3px 3px 0 0',
+        backgroundColor: '#00ffa3',
+        boxShadow: `0 0 12px ${alpha('#00ffa3', 0.8)}`,
       },
     },
   },
@@ -271,14 +251,25 @@ const components = {
   MuiListItemButton: {
     styleOverrides: {
       root: {
-        borderRadius: 14,
-        margin: '4px 12px',
+        borderRadius: 12,
+        margin: '2px 8px',
+        transition: 'all 0.2s',
         '&.Mui-selected': {
-          background: `linear-gradient(90deg, ${alpha('#10b981', 0.15)} 0%, transparent 100%)`,
-          color: '#10b981',
-          borderLeft: `3px solid #10b981`,
-          '& .MuiListItemIcon-root': { color: '#10b981' },
-          '&:hover': { background: `linear-gradient(90deg, ${alpha('#10b981', 0.2)} 0%, transparent 100%)` },
+          backgroundColor: alpha('#00ffa3', 0.1),
+          color: '#00ffa3',
+          '& .MuiListItemIcon-root': { color: '#00ffa3' },
+          '&:hover': { backgroundColor: alpha('#00ffa3', 0.15) },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            top: '20%',
+            bottom: '20%',
+            width: 3,
+            backgroundColor: '#00ffa3',
+            borderRadius: '0 4px 4px 0',
+            boxShadow: `0 0 8px ${alpha('#00ffa3', 0.8)}`,
+          },
         },
       },
     },
@@ -288,9 +279,9 @@ const components = {
 const shadows: Shadows = [
   'none',
   '0 2px 4px rgba(0,0,0,0.3)',
-  '0 4px 8px rgba(0,0,0,0.3)',
-  '0 8px 16px rgba(0,0,0,0.3)',
-  ...Array(21).fill('0 25px 50px -12px rgba(0,0,0,0.5)'),
+  '0 4px 8px rgba(0,0,0,0.4)',
+  '0 8px 16px rgba(0,0,0,0.5)',
+  ...Array(21).fill('0 25px 50px -12px rgba(0,0,0,0.6)'),
 ] as Shadows;
 
 export const theme = createTheme({
@@ -298,6 +289,6 @@ export const theme = createTheme({
   typography,
   components,
   shadows,
-  shape: { borderRadius: 24 },
+  shape: { borderRadius: 16 },
   spacing: 8,
 });

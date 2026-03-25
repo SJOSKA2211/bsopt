@@ -12,14 +12,15 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from functools import wraps
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import msgspec
 import structlog
 from cachetools import TTLCache
 from redis.asyncio import Redis, RedisError
 
-from src.math_kernel.models import BSParameters, OptionGreeks
+if TYPE_CHECKING:
+    from src.math_kernel.models import BSParameters, OptionGreeks
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +59,7 @@ def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -
 
 class PricingCache:
     async def get_option_price(
-        self, params: BSParameters, option_type: str, method: str
+        self, params: "BSParameters", option_type: str, method: str
     ) -> float | None:
         redis = get_redis()
         if redis is None:
@@ -75,7 +76,7 @@ class PricingCache:
 
     async def set_option_price(
         self,
-        params: BSParameters,
+        params: "BSParameters",
         option_type: str,
         method: str,
         price: float,
@@ -92,8 +93,9 @@ class PricingCache:
             logger.error("cache_set_price_failed", error=str(e), key=key)
             return False
 
-    async def get_greeks(self, params: BSParameters, option_type: str) -> OptionGreeks | None:
+    async def get_greeks(self, params: "BSParameters", option_type: str) -> "OptionGreeks | None":
         """Retrieve cached Greeks."""
+        from src.math_kernel.models import OptionGreeks
         redis = get_redis()
         if redis is None:
             return None
@@ -110,9 +112,9 @@ class PricingCache:
 
     async def set_greeks(
         self,
-        params: BSParameters,
+        params: "BSParameters",
         option_type: str,
-        greeks: OptionGreeks,
+        greeks: "OptionGreeks",
         ttl: int = 3600,
     ) -> bool:
         """Cache Greeks."""
@@ -340,6 +342,7 @@ async def warm_cache() -> None:
         for k in strikes:
             for t in maturities:
                 for v in vols:
+                    from src.math_kernel.models import BSParameters
                     params = BSParameters(s, k, t, v, 0.05, 0.02)
                     price = BlackScholesEngine.price_options(
                         spot=s,

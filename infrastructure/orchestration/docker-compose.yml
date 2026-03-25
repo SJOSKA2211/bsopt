@@ -217,9 +217,12 @@ services:
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      - BSOPT_ALLOW_WEAK_SECRETS=True
+      - PYTHONPATH=/app:/app/src/protos
+    command: ["python3", "/app/src/auth/auth_server.py"]
     volumes:
-      - ../../src/auth:/app
-      - /app/node_modules
+      - ../../src:/app/src
+      - /app/src/auth/node_modules
       - ../../src/shared/protos:/protos:ro
       - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro

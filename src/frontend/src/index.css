@@ -1,163 +1,126 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 :root {
-  font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  /* QFD Color Palette tokens */
-  --qfd-bg: #020617;
-  --qfd-quantum: #00FFFF;
-  --qfd-nebula: #7B68EE;
-  --qfd-electrum: #D4AF37;
-  --qfd-glass: rgba(15, 23, 42, 0.4);
-  --qfd-border: rgba(248, 250, 252, 0.1);
-  
-  color-scheme: dark;
-  color: #f8fafc;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --synthetic-mint: #00FFA3;
+  --synthetic-purple: #A855F7;
+  --synthetic-blue: #3B82F6;
+  --synthetic-bg: #0b0e12;
+  --glass-blur: blur(32px);
+  --on-surface-variant: #a9abb1;
 }
 
 body {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--qfd-bg);
-  background-image:
-    radial-gradient(circle at 50% -20%, rgba(123, 104, 238, 0.15) 0%, transparent 80%),
-    radial-gradient(circle at 0% 100%, rgba(0, 255, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-color: var(--synthetic-bg);
+  color: #f5f6fc;
+  font-family: 'Inter', sans-serif;
   overflow-x: hidden;
-  color: #f8fafc;
+  /* Dot Matrix Halftone Background */
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 #root {
   width: 100%;
-  flex: 1;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-a {
-  font-weight: 500;
-  color: var(--qfd-quantum);
-  text-decoration: none;
-  transition: all 0.2s ease-in-out;
-}
-
-a:hover {
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-  color: #8bf6ff;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
+/* Geometric Shards & Cuts */
+.stitch-slanted-header {
+  clip-path: polygon(0% 0%, 92% 0%, 100% 100%, 0% 100%);
+  background: linear-gradient(90deg, var(--synthetic-purple), var(--synthetic-mint));
+  padding: 8px 32px 8px 16px;
+  color: white;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
 }
 
-/* QFD Glassmorphism utilities */
-.qfd-glass {
-  background: var(--qfd-glass);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--qfd-border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-}
-
-.qfd-glass:hover {
-  border: 1px solid rgba(248, 250, 252, 0.2);
-  box-shadow: 0 12px 48px 0 rgba(0, 255, 255, 0.1);
-}
-
-.qfd-holographic {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
+.stitch-card {
+  background: rgba(22, 26, 31, 0.7);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0; /* Sharp Edges as per Stitch design */
   position: relative;
   overflow: hidden;
 }
 
-.qfd-holographic::after {
-  content: "";
+/* Internal Halftone texture for cards */
+.stitch-card::after {
+  content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 20%,
-    rgba(0, 255, 255, 0.1) 40%,
-    rgba(123, 104, 238, 0.1) 60%,
-    transparent 80%
-  );
-  animation: hologram 6s linear infinite;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 0.5px, transparent 0.5px);
+  background-size: 6px 6px;
+  opacity: 0.5;
   pointer-events: none;
+  z-index: 0;
 }
 
-@keyframes hologram {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.stitch-card > * {
+  position: relative;
+  z-index: 1;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+.stitch-border-mint {
+  border-left: 3px solid var(--synthetic-mint) !important;
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+.stitch-border-purple {
+  border-left: 3px solid var(--synthetic-purple) !important;
 }
 
-/* Slanted rectangle shape requested by user */
-.slanted-rect {
-  clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+/* Data & Typography */
+.stitch-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
-/* High-performance scrollbar */
+.stitch-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0% { opacity: 0.6; box-shadow: 0 0 10px rgba(0, 255, 163, 0.1); }
+  50% { opacity: 1; box-shadow: 0 0 20px rgba(0, 255, 163, 0.3); }
+  100% { opacity: 0.6; box-shadow: 0 0 10px rgba(0, 255, 163, 0.1); }
+}
+
+.stitch-live-indicator {
+  width: 8px;
+  height: 8px;
+  background: var(--synthetic-mint);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-glow 1.5s infinite;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(123, 104, 238, 0.2);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(123, 104, 238, 0.4);
-}
-
-@keyframes ticker-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.ticker-track {
-  display: flex;
-  width: max-content;
-  animation: ticker-scroll 30s linear infinite;
-}
-
-.ticker-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 24px;
-  white-space: nowrap;
+  background: var(--synthetic-mint);
 }
