@@ -11,6 +11,7 @@ from src.api.middleware.security import (
     SecurityHeadersMiddleware,
 )
 
+
 @pytest.fixture
 def mock_call_next():
     return AsyncMock(return_value=Response())

@@ -1,14 +1,14 @@
+from typing import dict
+
+import mlflow
 import numpy as np
 import structlog
-import mlflow
 import torch
 import xgboost as xgb
-from pathlib import Path
-from typing import dict, tuple
 from sklearn.model_selection import train_test_split
-from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
+
 from src.ml.models.neural_engine import NeuralPricingEngine
-from src.math_kernel.models import BSParameters
+from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
 

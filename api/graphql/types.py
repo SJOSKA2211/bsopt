@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 import strawberry
 
+
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Option:
     """Federated Option type - shared across subgraphs"""

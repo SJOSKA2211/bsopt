@@ -5,6 +5,7 @@ from fastapi import Request, Response
 
 from src.api.middleware.security import SecurityHeadersMiddleware
 
+
 @pytest.mark.asyncio
 async def test_security_headers_middleware():
     app = AsyncMock()

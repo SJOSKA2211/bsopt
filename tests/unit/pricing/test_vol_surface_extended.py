@@ -13,6 +13,7 @@ from src.math_kernel.vol_surface import (
     VolatilitySurface,
 )
 
+
 def test_svi_parameters_validation():
     with pytest.raises(ValueError, match="b must be non-negative"):
         SVIParameters(a=0.1, b=-0.1, rho=0.5, m=0.0, sigma=0.1)

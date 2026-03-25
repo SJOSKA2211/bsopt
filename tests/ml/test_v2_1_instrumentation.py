@@ -6,6 +6,7 @@ from prometheus_client import Histogram
 from src.ml.trainer import InstrumentedTrainer
 from src.shared import observability
 
+
 def test_training_duration_is_histogram():
     """Verify that ml_training_duration_seconds is a Histogram as per PRD."""
     # Note: In the current code it might be a Summary. This test will fail if it's not a Histogram.

@@ -2,6 +2,7 @@ import pytest
 
 from src.math_kernel.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
 
+
 class TestLattice:
     def setUp(self):
         self.params = BSParameters(

@@ -4,6 +4,7 @@ import pytest
 
 from src.api.webhooks.dispatcher import _generate_signature, _verify_signature
 
+
 @pytest.mark.asyncio
 async def test_generate_signature_consistency():
     secret = "webhook_secret"

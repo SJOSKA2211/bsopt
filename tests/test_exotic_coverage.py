@@ -11,6 +11,7 @@ from src.quant.pricing.exotic import (
     price_exotic_option,
 )
 
+
 def test_geometric_asian_zero_maturity():
     params = ExoticParameters(BSParameters(100, 100, 0.0, 0.05, 0.0, 0.2))
     price = AsianOptionPricer.price_geometric_asian(params, "call")

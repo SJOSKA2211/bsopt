@@ -1,5 +1,6 @@
 import subprocess
 
+
 def get_sysctl(key):
     try:
         output = subprocess.check_output(["sysctl", "-n", key]).decode().strip()

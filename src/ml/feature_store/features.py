@@ -1,10 +1,11 @@
 from collections.abc import Callable
-from typing import Any, cast
+from typing import cast
 
 import numpy as np
 import pandas as pd
 
 from src.math_kernel.base import Feature
+
 
 class LogReturnFeature(Feature):
     name: str = "log_return"

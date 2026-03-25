@@ -8,6 +8,7 @@ from src.math_kernel.black_scholes import (
 )
 from src.math_kernel.models import BSParameters
 
+
 @pytest.fixture
 def sample_params():
     return BSParameters(

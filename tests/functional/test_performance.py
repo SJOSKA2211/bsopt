@@ -6,6 +6,7 @@ import time
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_pricing_latency(client):
     """33. Performance: Measure latency."""

@@ -5,6 +5,7 @@ import strawberry
 from strawberry.dataloader import DataLoader
 from strawberry.federation import Schema
 
+
 async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     """
     High-Performance: Real batch loader using high-performance gRPC.
@@ -17,8 +18,9 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     try:
         async with grpc.aio.insecure_channel(settings.ML_SERVICE_GRPC_URL) as channel:
             stub = inference_pb2_grpc.MLInferenceStub(channel)
+            from datetime import UTC, datetime
+
             from api.graphql.resolvers.option_service import get_option_by_id
-            from datetime import datetime, UTC
             results = []
             for key in keys:
                 opt = await get_option_by_id(str(key))

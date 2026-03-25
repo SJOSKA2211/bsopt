@@ -1,8 +1,9 @@
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch
+
 from src.ml.sentiment_pipeline import SentimentIngestor
 from src.shared.rabbitmq import get_rabbitmq
+
 
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_real_rabbitmq():

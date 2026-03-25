@@ -14,6 +14,7 @@ from src.database.models import (
     User,
 )
 
+
 @pytest.mark.asyncio
 async def test_crud_basics():
     db = AsyncMock()

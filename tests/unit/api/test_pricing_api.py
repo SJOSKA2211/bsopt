@@ -10,6 +10,7 @@ from src.auth.auth import get_current_user_flexible
 from src.auth.rate_limit import rate_limit
 from src.shared.cache import get_redis_client
 
+
 def create_mock_redis():
     mock_redis = AsyncMock()
     mock_pipeline = MagicMock()

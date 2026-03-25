@@ -6,6 +6,7 @@ from celery.exceptions import MaxRetriesExceededError
 from src.shared.webhooks.dispatcher import WebhookDispatcher
 from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task
 
+
 @pytest.fixture
 def mock_dispatcher():
     dispatcher = MagicMock(spec=WebhookDispatcher)

@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from src.quant.pricing.main import app
 
+
 def test_pricing_health():
     client = TestClient(app)
     response = client.get("/health")

@@ -11,6 +11,7 @@ from src.ml.aiops.remediators import (
     RestartServiceRemediator,
 )
 
+
 @pytest.mark.asyncio
 async def test_clear_redis_remediator():
     remediator = ClearRedisCacheRemediator()

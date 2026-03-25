@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from src.api.main import app
 
+
 def test_root_endpoint():
     with TestClient(app) as client:
         response = client.get("/")

@@ -1,6 +1,7 @@
 import msgspec
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class InferenceRequest(BaseModel):
     """ML inference request (Pydantic for Request Validation)."""
 
@@ -49,7 +50,8 @@ class BatchInferenceResponse(msgspec.Struct, frozen=True):
     predictions: list[InferenceResponse]
     total_latency_ms: float
 
-from datetime import datetime, UTC
+from datetime import datetime
+
 
 class ComparisonMetrics(msgspec.Struct, frozen=True):
     """Real-time performance metrics (AI vs Human)."""

@@ -4,7 +4,6 @@ Optimized for high-performance database retrieval.
 """
 
 from datetime import date, timedelta
-from typing import Any
 
 import msgspec
 from fastapi import APIRouter, Depends, Query
@@ -76,7 +75,6 @@ async def get_options_chain(
     db: AsyncSession = Depends(get_async_db),
 ) -> DataResponseStruct[list[OptionChainItem]]:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
-    from src.shared.config import settings
     
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:

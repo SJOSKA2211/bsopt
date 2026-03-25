@@ -22,6 +22,7 @@ from src.quant.pricing.lattice import (
 )
 from tests.test_utils import assert_equal
 
+
 class TestLatticeParameters:
     """Test suite for LatticeParameters validation."""
 

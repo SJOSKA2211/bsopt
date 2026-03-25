@@ -3,6 +3,7 @@ import pytest
 
 from src.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
+
 class TestHestonFFT:
     """Test suite for Heston pricing engine."""
 

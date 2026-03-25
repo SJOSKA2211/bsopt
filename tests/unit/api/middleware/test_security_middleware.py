@@ -11,6 +11,7 @@ from src.api.middleware.security import (
     SecurityHeadersMiddleware,
 )
 
+
 def create_app_with_middleware(middleware_class, **kwargs):
     app = FastAPI()
     app.add_middleware(middleware_class, **kwargs)

@@ -4,6 +4,7 @@ import pytest
 
 from src.ml.reinforcement_learning.train import train_td3
 
+
 @pytest.fixture
 def mock_mlflow():
     with patch("src.ml.reinforcement_learning.train.mlflow") as mock:

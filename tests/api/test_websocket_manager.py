@@ -5,6 +5,7 @@ from fastapi import WebSocket
 
 from src.api.websockets.manager import ConnectionManager
 
+
 @pytest.mark.asyncio
 async def test_connection_manager_connect():
     with patch("src.api.websockets.manager.redis") as mock_redis_module:

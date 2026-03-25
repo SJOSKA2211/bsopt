@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from scripts.portfolio import PortfolioManager, Position
 
+
 @pytest.fixture
 def portfolio_manager(tmp_path):
     with patch("scripts.portfolio.Path.home", return_value=tmp_path):

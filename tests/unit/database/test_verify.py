@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
+
 from src.database.verify import verify_connection
+
 
 @patch("src.database.verify.get_engine")
 @patch("src.database.verify.get_settings")

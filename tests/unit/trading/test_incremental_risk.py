@@ -2,6 +2,7 @@ import pytest
 
 from src.math_kernel.risk_kernels import IncrementalDeltaTracker
 
+
 def test_incremental_delta_tracker_success():
     tracker = IncrementalDeltaTracker(initial_delta=0.0, max_net_delta=100.0)
 

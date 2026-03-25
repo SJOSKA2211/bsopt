@@ -9,6 +9,7 @@ from src.quant.pricing.quant_utils import (
     scalar_greeks_jit_v2,
 )
 
+
 def test_fast_normal_kernels():
     # Test CDF
     assert pytest.approx(fast_normal_cdf_v2(0.0), 1e-5) == 0.5

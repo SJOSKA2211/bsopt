@@ -2,6 +2,7 @@ import pytest
 
 from src.math_kernel.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
 
+
 class TestMonteCarlo:
     def setUp(self):
         self.params = BSParameters(

@@ -5,6 +5,7 @@ Optimized for high-performance serialization via msgspec.
 
 import msgspec
 
+
 class MarketQuote(msgspec.Struct):
     """
     Unified Market Quote object.

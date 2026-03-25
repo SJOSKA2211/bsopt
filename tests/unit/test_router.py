@@ -4,6 +4,7 @@ import pytest
 
 from src.ingestion.router import MarketDataRouter
 
+
 @pytest.mark.asyncio
 async def test_router_nse_suffix():
     with patch("src.ingestion.router.NSEScraper") as mock_nse:

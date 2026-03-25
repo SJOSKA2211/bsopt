@@ -5,6 +5,7 @@ import pytest
 
 from src.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
 
+
 @pytest.fixture
 def agent_config():
     return {"price_state_dim": 10, "sentiment_state_dim": 1, "action_dim": 3}

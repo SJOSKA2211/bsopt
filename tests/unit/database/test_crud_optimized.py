@@ -7,6 +7,7 @@ import pytest
 
 from src.database import crud
 
+
 @pytest.mark.asyncio
 async def test_bulk_inserts_optimized_paths():
     """

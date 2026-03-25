@@ -1,6 +1,8 @@
-import pytest
 import httpx
+import pytest
+
 from src.shared.config import settings
+
 
 @pytest.mark.asyncio
 async def test_ml_comparison_endpoint():

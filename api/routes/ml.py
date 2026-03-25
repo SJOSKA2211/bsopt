@@ -2,7 +2,6 @@
 Machine Learning Routes (Optimized)
 """
 
-from typing import Any
 from uuid import UUID
 
 import structlog
@@ -11,7 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import DataResponseStruct
-from api.schemas.ml import ComparisonMetrics, DriftMetricsResponse, InferenceRequest, InferenceResponse
+from api.schemas.ml import (
+    ComparisonMetrics,
+    DriftMetricsResponse,
+    InferenceRequest,
+    InferenceResponse,
+)
 from src.auth.auth import get_current_active_user, require_tier
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics

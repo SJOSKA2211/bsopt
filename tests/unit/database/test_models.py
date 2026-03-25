@@ -2,6 +2,7 @@ from datetime import datetime
 
 from src.database.models import MarketTick, OptionPrice, User
 
+
 def test_models_creation():
     # Just test instantiation and basic attributes
     user = User(email="test@example.com", full_name="Test User")

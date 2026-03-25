@@ -10,6 +10,7 @@ from src.quant.pricing.monte_carlo import (
     geometric_asian_price,
 )
 
+
 def test_mc_calculate_greeks():
     engine = MonteCarloEngine()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)

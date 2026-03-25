@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from src.auth.password import PasswordService, PasswordValidator
 
+
 def test_validator_length():
     validator = PasswordValidator(min_length=10)
     res = validator.validate("short")

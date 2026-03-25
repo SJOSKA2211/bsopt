@@ -4,6 +4,7 @@ import torch
 
 from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
 
+
 def test_gnn_feature_extractor_latency_benchmark():
     # Setup
     input_dim = 16

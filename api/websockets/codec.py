@@ -5,6 +5,7 @@ import msgspec
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 
+
 class ProtocolType(StrEnum):
     JSON = "json"
     PROTO = "proto"

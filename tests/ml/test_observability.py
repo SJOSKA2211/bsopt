@@ -5,6 +5,7 @@ import structlog
 
 from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS, setup_logging
 
+
 def test_setup_logging_json(capsys):
     """Verify that logging is configured to output JSON."""
     setup_logging()

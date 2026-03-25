@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from src.auth.auth import auth_service, token_blacklist
 from src.database.models import User
 
+
 @pytest.mark.asyncio
 async def test_token_creation_and_decoding():
     user_id = str(uuid.uuid4())

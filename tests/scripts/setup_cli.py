@@ -14,6 +14,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 def install_cli(dev_mode=False):
     """Install CLI package."""
     print("Installing Black-Scholes CLI...")

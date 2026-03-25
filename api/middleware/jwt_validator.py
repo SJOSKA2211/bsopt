@@ -20,7 +20,8 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from redis.asyncio import Redis
 

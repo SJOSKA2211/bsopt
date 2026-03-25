@@ -13,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.shared.shm_init import SHM_CONFIGS, initialize_all_shm
 
+
 def main():
     parser = argparse.ArgumentParser(description="Initialize BS-OPT SHM Buffers")
     parser.add_argument("--force", action="store_true", help="Unlink existing SHM before creating")

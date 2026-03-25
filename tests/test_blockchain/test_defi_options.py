@@ -5,6 +5,7 @@ import pytest
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 
+
 @pytest.fixture
 def mock_web3():
     with patch("src.blockchain.defi_options.AsyncWeb3") as MockW3:

@@ -4,6 +4,7 @@ import pytest
 
 from src.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
 
+
 @pytest.fixture
 def mock_rate_limiter():
     with patch("src.workers.tasks.email_tasks.rate_limiter") as mock:

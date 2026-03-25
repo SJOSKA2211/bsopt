@@ -9,6 +9,7 @@ from src.workers.tasks.pricing_tasks import (
     price_option_task,
 )
 
+
 def test_vectorized_black_scholes_logic():
     from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
 

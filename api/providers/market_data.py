@@ -2,9 +2,9 @@ import structlog
 
 from src.config import settings
 from src.ingestion.stealth import default_stealth_client
+from src.shared.schemas.market import MarketQuote
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
-from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger(__name__)
 

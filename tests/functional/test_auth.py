@@ -6,6 +6,7 @@ import pytest
 
 from src.api.schemas.user import UserResponse
 
+
 @pytest.mark.asyncio
 async def test_register_success(client, mock_db, user_payload):
     """1. User Registration: Success case."""

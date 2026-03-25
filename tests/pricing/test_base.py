@@ -3,6 +3,7 @@ import pytest
 from src.quant.pricing.base import PricingEngine, PricingStrategy, VectorizedPricingStrategy
 from src.quant.pricing.models import BSParameters
 
+
 class MockPricingStrategy(PricingStrategy):
     def price(self, params, option_type="call"):
         return 10.0

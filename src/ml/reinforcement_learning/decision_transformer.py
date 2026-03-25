@@ -4,6 +4,7 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class RotaryEmbedding(nn.Module):  # type: ignore
     """
     High-Performance: Rotary Positional Embeddings (RoPE).

@@ -1,12 +1,12 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.math_kernel.models.heston_fft import (
     HestonModelFFT,
     HestonParams,
     batch_heston_price_jit,
 )
+
 
 class TestHestonFFT:
     def setUp(self):

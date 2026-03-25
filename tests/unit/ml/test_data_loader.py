@@ -1,5 +1,6 @@
 from src.ml.data_loader import DataNormalizer
 
+
 def test_normalize_incomplete_scraper_data():
     raw_data = {
         "timestamp": "2026-01-14T10:00:00",

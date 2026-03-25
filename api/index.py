@@ -19,13 +19,13 @@ from api.responses import MsgspecJSONResponse
 from api.routes import (
     auth_router,
     debug_router,
+    market_router,
     ml_router,
     options_router,
     portfolio_router,
     pricing_router,
     users_router,
     websocket_router,
-    market_router,
 )
 from src.auth.auth import RoleChecker
 from src.config import settings

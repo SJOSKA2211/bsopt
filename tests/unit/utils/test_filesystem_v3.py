@@ -4,6 +4,7 @@ import pytest
 
 from src.shared.filesystem import sanitize_path
 
+
 def test_sanitize_path_valid():
     base = Path("/tmp/engineer").resolve()
     # Path might not exist, but resolve() still works

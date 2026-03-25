@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.ingestion.mesh_publisher import MarketMeshPublisher
+
 
 @pytest.mark.asyncio
 async def test_mesh_publisher_success():

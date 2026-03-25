@@ -13,7 +13,6 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import msgspec
 import pyotp
-import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
