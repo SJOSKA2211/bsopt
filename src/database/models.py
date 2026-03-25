@@ -162,7 +162,7 @@ class AuditLog(Base):
     client_ip: Mapped[str] = mapped_column(INET, nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
-    extra_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
+    details: Mapped[dict[str, Any] | None] = mapped_column("details", JSONB)
 
     __table_args__ = (
         Index(
@@ -172,10 +172,10 @@ class AuditLog(Base):
             postgresql_with={"pages_per_range": 32, "autosummarize": "on"},
         ),
         Index(
-            "idx_audit_logs_metadata_gin",
-            "metadata",
+            "idx_audit_logs_details_gin",
+            "details",
             postgresql_using="gin",
-            postgresql_ops={"metadata": "jsonb_path_ops"},
+            postgresql_ops={"details": "jsonb_path_ops"},
         ),
         Index("idx_audit_user_time", "user_id", time.desc()),
     )
