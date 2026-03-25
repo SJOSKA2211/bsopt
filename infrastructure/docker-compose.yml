@@ -122,7 +122,7 @@ services:
       timescaledb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9901/ready || exit 1"]
+      test: ["CMD", "/bin/bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9901 && echo -e 'GET /ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep 'HTTP/1.1 200 OK'"]
       interval: 10s
       timeout: 5s
       retries: 3
