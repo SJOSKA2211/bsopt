@@ -1,4 +1,4 @@
-import pickle  # nosec B403
+import json
 import time
 from typing import Any, cast
 
@@ -17,6 +17,7 @@ from src.ml.reinforcement_learning.decision_transformer import (
 
 logger = structlog.get_logger()
 
+
 class TrajectoryDataset(Dataset[dict[str, th.Tensor]]):  # type: ignore
     def __init__(self, trajectories: list[dict[str, Any]]) -> None:
         self.trajectories = trajectories
@@ -33,11 +34,19 @@ class TrajectoryDataset(Dataset[dict[str, th.Tensor]]):  # type: ignore
             "timesteps": th.tensor(traj.get("timesteps", []), dtype=th.long),
         }
 
+
 def expectile_loss(diff: th.Tensor, tau: float = 0.7) -> th.Tensor:
     weight = th.where(diff > 0, tau, 1 - tau)
     return weight * (diff**2)
 
+
 def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
+    raise RuntimeError(
+        "convert_pkl_to_parquet is deprecated due to security risks. Use convert_json_to_parquet instead."
+    )
+
+
+def convert_json_to_parquet(json_path: str, parquet_path: str) -> None:
     """
      OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
@@ -45,13 +54,14 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
     import pandas as pd
 
     try:
-        with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
+        with open(json_path) as f:
+            data = json.load(f)
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)
     except Exception as e:
         logger.error("parquet_conversion_failed", error=str(e))
+
 
 def _log_gradient_flow(model: nn.Module, step: int) -> None:
     """
@@ -70,6 +80,7 @@ def _log_gradient_flow(model: nn.Module, step: int) -> None:
     if avg_grads:
         mlflow.log_metric("grad_avg_mean", sum(avg_grads) / len(avg_grads), step=step)
         mlflow.log_metric("grad_max_mean", sum(max_grads) / len(max_grads), step=step)
+
 
 def train_offline(
     dataset_path: str,
@@ -91,8 +102,8 @@ def train_offline(
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        with open(dataset_path) as f:
+            trajectories = cast(list[dict[str, Any]], json.load(f))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
@@ -226,6 +237,7 @@ def train_offline(
 
         mlflow.pytorch.log_model(model, "decision_transformer_v2_god_mode")
         th.save(model.state_dict(), "models/dt_v2_final.pt")
+
 
 if __name__ == "__main__":
     import argparse
