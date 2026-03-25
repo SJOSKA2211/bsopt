@@ -59,6 +59,11 @@ services:
     container_name: auth_service
     command: python src/auth/grpc_server.py
     env_file: ../.env
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 50051 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -75,7 +80,8 @@ services:
     ports:
       - "8001:8001"
     depends_on:
-      - auth_service
+      auth_service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8001/health || exit 1"]
       interval: 15s
@@ -115,6 +121,11 @@ services:
     depends_on:
       timescaledb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9901/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   Manifold_pgdata:
