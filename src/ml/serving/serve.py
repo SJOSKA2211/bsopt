@@ -27,6 +27,7 @@ from api.schemas.ml import (
     InferenceResponse,
 )
 from src.ml.utils.inference import ONNXInferenceEngine
+from src.shared.config import settings
 from src.shared.observability import (
     increment_counter,
     observe_latency,
@@ -35,7 +36,6 @@ from src.shared.utils.circuit_breaker import (
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,
 )
-from src.shared.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

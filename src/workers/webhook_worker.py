@@ -23,8 +23,10 @@ _webhook_dispatcher = None
 def get_webhook_dispatcher():
     global _webhook_dispatcher
     if _webhook_dispatcher is None:
-        from src.shared.utils.cache import get_redis_client
-        from src.shared.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
+        from src.shared.utils.circuit_breaker import (
+            DistributedCircuitBreaker,
+            InMemoryCircuitBreaker,
+        )
         
         # This is a bit synchronous for a getter, but in Celery workers it runs in an init hook or first task
         # We'll use a simplified check for circuit breaker
@@ -86,8 +88,9 @@ def send_to_dlq_task(webhook_data: dict, reason: str = "unknown"):
     """Persists failed webhooks to Redis DLQ."""
     logger.error("webhook_dlq_entry", url=webhook_data.get("url"), reason=reason)
     try:
-        from src.shared.utils.cache import get_redis_client
         import json
+
+        from src.shared.utils.cache import get_redis_client
         
         async def _persist():
             redis = await get_redis_client()

@@ -5,7 +5,7 @@ Publishes real-time scraped market data to RabbitMQ for decoupled processing.
 """
 
 import time
-import asyncio
+
 import structlog
 
 from src.shared.rabbitmq import get_rabbitmq

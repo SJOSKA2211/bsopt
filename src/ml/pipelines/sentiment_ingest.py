@@ -5,9 +5,10 @@ Sentiment Ingestion Pipeline — Transitioned to RabbitMQ Substrate.
 from __future__ import annotations
 
 import time
+
 import structlog
+
 from src.shared.rabbitmq import RabbitMQManager
-from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 

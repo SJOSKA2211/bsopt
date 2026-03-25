@@ -1,8 +1,8 @@
 import asyncio
-from typing import Any
 
 import msgspec
 import structlog
+
 from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
 from src.shared.rabbitmq import get_rabbitmq
 

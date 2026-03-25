@@ -4,7 +4,6 @@ from uuid import uuid4
 import structlog
 from celery import Task
 from sqlalchemy import update
-from sqlalchemy.future import select
 
 from src.database import get_async_db_context
 from src.database.models import EmailLog

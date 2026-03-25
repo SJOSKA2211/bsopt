@@ -26,6 +26,7 @@ from sqlalchemy.dialects.postgresql import ENUM, INET, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
+
 class Base(DeclarativeBase):
     pass
 

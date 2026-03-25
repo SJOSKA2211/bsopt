@@ -22,6 +22,7 @@ from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
 
 logger = structlog.get_logger(__name__)
 
+
 def train_func(config: dict[str, Any]):
     """
     Worker function for distributed Decision Transformer training.
@@ -63,7 +64,7 @@ def train_func(config: dict[str, Any]):
         model.parameters(),
         lr=config.get("lr", 1e-4),
         weight_decay=config.get("weight_decay", 1e-2),
-        betas=(0.9, 0.95),  
+        betas=(0.9, 0.95),
     )
     criterion = nn.MSELoss()
 
@@ -92,10 +93,10 @@ def train_func(config: dict[str, Any]):
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
+        import json
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        with open("data/trajectories.json") as f:
+            trajectories = json.load(f)  # nosec B301
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
@@ -155,6 +156,7 @@ def train_func(config: dict[str, Any]):
                     mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item(), step=epoch)
                     mlflow.log_metric(f"weight_std_{name}", param.data.std().item(), step=epoch)
 
+
 class BSOptDistributedTrainer:
     """
     Orchestrator for scaling BSOpt training across a Ray cluster.
@@ -196,7 +198,6 @@ class BSOptDistributedTrainer:
 
     def run(self, config: dict[str, Any]):
         """Starts the distributed training session using RayClusterManager."""
-        import os
 
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
@@ -228,9 +229,9 @@ class BSOptDistributedTrainer:
             if settings.RAY_SHUTDOWN_AFTER_RUN:
                 RayClusterManager.shutdown()
 
+
 if __name__ == "__main__":
     import argparse
-    import os
 
     parser = argparse.ArgumentParser(description="Run Distributed DT Training")
     parser.add_argument("--epochs", type=int, default=10)

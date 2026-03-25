@@ -1,7 +1,8 @@
 import asyncio
 import json
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import aio_pika
 from tenacity import retry, stop_after_attempt, wait_exponential

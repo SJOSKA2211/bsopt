@@ -7,6 +7,7 @@ from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 
+
 class CausalSelfAttention(nn.Module):  # type: ignore
     def __init__(
         self,

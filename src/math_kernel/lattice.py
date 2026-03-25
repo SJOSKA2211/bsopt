@@ -15,6 +15,7 @@ from src.math_kernel.base import PricingStrategy
 from src.math_kernel.black_scholes import BlackScholesEngine
 from src.math_kernel.models import BSParameters, OptionGreeks
 
+
 @dataclass
 class LatticeGreeks:
     delta: float

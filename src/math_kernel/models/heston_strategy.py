@@ -8,6 +8,7 @@ from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.models.heston_fft import HestonModelFFT
 
+
 class HestonPricingStrategy(PricingStrategy):
     """
     Standardized strategy for Heston pricing.

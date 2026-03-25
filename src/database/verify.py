@@ -5,6 +5,7 @@ from sqlalchemy import text
 from src.database import get_engine
 from src.shared.config import get_settings
 
+
 def verify_connection():
     print("  BSOpt High-Performance Database Verification")
     print("---------------------------------------")
