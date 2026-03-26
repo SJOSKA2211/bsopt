@@ -21,6 +21,7 @@ except ImportError:
         SamplerV2 = Sampler  # Fallback for slightly older versions
     except ImportError:
         QISKIT_AVAILABLE = False
+        QuantumCircuit = object  # Type hint fallback
 
 from src.math_kernel.models import BSParameters
 from src.math_kernel.quantum_backend import QuantumBackendManager

@@ -4,7 +4,7 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
-from src.math_kernel.base import Feature
+from .base import Feature
 
 class LogReturnFeature(Feature):
     name: str = "log_return"

@@ -31,12 +31,13 @@ class RiskAttributor:
             pos_type = pos.get("type")
             if pos_type == "CALL" or pos_type == "PUT":
                 t_delta += pos.get("delta", 0.0) * qty
-                t_gamma += pos.get("gamma", 0.0) * qty
-                t_vega += pos.get("vega", 0.0) * qty
-                t_theta += pos.get("theta", 0.0) * qty
             else:
                 # Linear assets (stock/crypto) have Delta=1.0 by default, other Greeks 0.0
                 t_delta += pos.get("delta", 1.0) * qty
+
+            t_gamma += pos.get("gamma", 0.0) * qty
+            t_vega += pos.get("vega", 0.0) * qty
+            t_theta += pos.get("theta", 0.0) * qty
 
         totals = {
             "delta": t_delta,

@@ -62,6 +62,7 @@ jobs:
       - name: Backend Tests
         if: matrix.layer == 'backend'
         run: |
+          pip install -r requirements.txt
           pip install .[dev,api,ml]
           pytest tests/unit
 
@@ -90,6 +91,8 @@ jobs:
 
       - name: Build API Container (Institutional)
         run: |
+          docker build -t manifold-base:builder --target builder -f infrastructure/orchestration/Dockerfile.base .
+          docker build -t manifold-base:final --target final -f infrastructure/orchestration/Dockerfile.base .
           docker build -t equaflow/api:${{ github.sha }} -f infrastructure/orchestration/Dockerfile.api .
 
       - name: Run Trivy Scan

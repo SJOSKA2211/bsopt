@@ -1,4 +1,12 @@
-import flwr as fl
+from typing import Any
+
+try:
+    import flwr as fl
+    FLWR_AVAILABLE = True
+except ImportError:
+    FLWR_AVAILABLE = False
+    fl = None  # type: ignore
+
 import structlog
 
 logger = structlog.get_logger()
@@ -12,10 +20,14 @@ class FederatedLearningCoordinator:
     def __init__(self, server_address: str = "0.0.0.0:8080", strategy_name: str = "FedAvg") -> None:
         self.server_address = server_address
         self.strategy_name = strategy_name
-        self.strategy = self._get_strategy()
+        self.strategy = self._get_strategy() if FLWR_AVAILABLE else None
 
-    def _get_strategy(self) -> fl.server.strategy.Strategy:
+    def _get_strategy(self) -> Any:
         """Initialize the requested aggregation strategy."""
+        if not FLWR_AVAILABLE:
+            logger.warning("flwr_not_installed")
+            return None
+
         if self.strategy_name == "FedAvg":
             return fl.server.strategy.FedAvg()
         logger.warning("unknown_strategy", strategy=self.strategy_name)
@@ -23,6 +35,10 @@ class FederatedLearningCoordinator:
 
     def start(self, num_rounds: int = 3) -> None:
         """Start the Flower server."""
+        if not FLWR_AVAILABLE:
+            logger.warning("cannot_start_flwr_not_installed")
+            return
+
         logger.info(
             "starting_fl_server",
             address=self.server_address,

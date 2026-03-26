@@ -4,7 +4,6 @@ from typing import Any
 import dask
 import structlog
 import xgboost as xgb
-import xgboost.dask
 from dask.distributed import Client, LocalCluster
 
 from src.config import settings
