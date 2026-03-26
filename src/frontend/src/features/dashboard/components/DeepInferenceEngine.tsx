@@ -18,6 +18,7 @@ const ModelMetric: React.FC<MetricProps> = ({ label, value, percent, color }) =>
     <LinearProgress 
       variant="determinate" 
       value={percent} 
+      aria-label={`${label} Loading`}
       sx={{ 
         height: 4, 
         bgcolor: alpha(color, 0.1),

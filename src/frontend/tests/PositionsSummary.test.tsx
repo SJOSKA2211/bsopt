@@ -50,7 +50,7 @@ test('PositionsSummary renders portfolio data', async () => {
 
   render(<PositionsSummary />, { wrapper: createWrapper() });
 
-  expect(screen.getByText(/\$123,456.78/)).toBeInTheDocument();
+  expect(await screen.findByText(/\$123,456.78/)).toBeInTheDocument();
   expect(screen.getByText(/\$12,345.67/)).toBeInTheDocument();
   expect(screen.getByText(/0.25/)).toBeInTheDocument();
   
