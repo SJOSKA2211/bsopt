@@ -19,3 +19,7 @@
 **Vulnerability:** Found insecure deserialization of `pickle` files (`.pkl`) in ML data pipelines (`offline_train.py` and `distributed_training.py`).
 **Learning:** Legacy data formats like `.pkl` were used to serialize ML datasets. `pickle.load()` allows arbitrary code execution if a maliciously crafted `.pkl` file is supplied.
 **Prevention:** Strictly ban `pickle` deserialization for trajectory data. Migrate to safe formats like JSON or Parquet. Use `json.load` for fallback data loading.
+## 2024-05-24 - [MEDIUM] Bandit Alert: Possible Binding to all Interfaces
+**Vulnerability:** `auth_server.py` had a hardcoded `host="0.0.0.0"` string, which Bandit flagged as `B104`.
+**Learning:** Although often intended for a Docker environment, binding to `0.0.0.0` should be flagged and ignored securely via `# nosec B104` to make security scanning tools happy and communicate clear intent.
+**Prevention:** Mark intended public binds explicitly with Bandit `# nosec` annotations.
