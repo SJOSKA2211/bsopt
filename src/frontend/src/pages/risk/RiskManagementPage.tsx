@@ -30,14 +30,14 @@ const RiskManagementPage: React.FC = () => {
       >
         <Grid container spacing={2}>
           {/* Header Section */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <PortfolioHealth />
              </motion.div>
           </Grid>
 
           {/* Risk Analysis Grid */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
@@ -63,14 +63,14 @@ const RiskManagementPage: React.FC = () => {
              </motion.div>
           </Grid>
 
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <BlackSwanStressTest />
              </motion.div>
           </Grid>
 
           {/* Detailed Metrics */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0 }}>
                    <Box className="stitch-banner-orange" style={{ transform: 'scale(1.1) translateX(24px)', marginBottom: -10, position: 'relative', zIndex: 1, width: 'fit-content' }}>HEDGE_SUB_ORCHESTRATOR</Box>
@@ -101,7 +101,7 @@ const RiskManagementPage: React.FC = () => {
              </motion.div>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0, position: 'relative' }}>
                    <Box className="stitch-slanted-header">MARGIN_LATENCY_MONITOR // CROSS_COLLATERAL</Box>

@@ -17,7 +17,7 @@ export const PortfolioHealth: React.FC = () => {
              </Typography>
              <Typography className="stitch-mono" sx={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>/ 100.00</Typography>
           </Stack>
-          <Box className="stitch-banner-orange" style={{ mt: 1, fontSize: '8px', padding: '2px 12px' }}>OPERATIONAL_EFFICIENCY_OPTIMIZED</Box>
+          <Box className="stitch-banner-orange" sx={{ mt: 1, fontSize: '8px', padding: '2px 12px' }}>OPERATIONAL_EFFICIENCY_OPTIMIZED</Box>
        </Box>
        
        {/* Sophisticated Radial Gauge */}

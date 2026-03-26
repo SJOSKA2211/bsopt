@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Typography, Grid, alpha, Stack } from '@mui/material';
+import { Box, Typography, Stack } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 export const LevelIIQuotes: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -8,7 +9,7 @@ export const LevelIIQuotes: React.FC<{ symbol: string }> = ({ symbol }) => {
       <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.secondary, borderBottom: 'none' }}>LEVEL_II_QUOTES // {symbol}</Box>
       <Box sx={{ p: 1.5, flexGrow: 1, overflow: 'auto' }}>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography className="stitch-label" sx={{ mb: 1, color: stitchTokens.colors.primary, fontSize: '9px', fontWeight: 900 }}>BIDS_VWAP</Typography>
             <Stack spacing={0.5}>
               {[...Array(10)].map((_, i) => (
@@ -19,7 +20,7 @@ export const LevelIIQuotes: React.FC<{ symbol: string }> = ({ symbol }) => {
               ))}
             </Stack>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography className="stitch-label" sx={{ mb: 1, color: '#ff2e7e', fontSize: '9px', fontWeight: 900 }}>ASKS_VWAP</Typography>
             <Stack spacing={0.5}>
               {[...Array(10)].map((_, i) => (

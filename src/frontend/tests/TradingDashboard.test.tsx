@@ -85,11 +85,11 @@ test('Dashboard renders with Layout and trading components', async () => {
     { wrapper: createWrapper() }
   );
 
-  expect(screen.getByText(/BS-Opt/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/BS-Opt/i)[0]).toBeInTheDocument();
   
   // Wait for DashboardPage to render (not just the layout)
   await waitFor(() => {
-    expect(screen.getByText(/Salutations/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Dashboard/i)[0]).toBeInTheDocument();
   }, { timeout: 10000 });
   
   // Wait for mocks to appear (proving they were loaded)

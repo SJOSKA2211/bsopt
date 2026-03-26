@@ -84,23 +84,23 @@ export const DashboardPage: React.FC = () => {
             { label: 'VEGA_SENSITIVITY', value: '4.52k', gradient: stitchTokens.colors.abstract.indigo },
             { label: 'TOTAL_LIQUIDITY', value: '1.2M', gradient: stitchTokens.colors.abstract.orange, prefix: '$' },
           ].map((kpi, i) => (
-            <Grid item xs={12} sm={6} md={3} key={kpi.label}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={kpi.label}>
                <KpiCard {...kpi} index={i} />
             </Grid>
           ))}
 
           {/* Intelligence Row */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <DeepInferenceEngine />
              </motion.div>
           </Grid>
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <RiskExposureGrid />
              </motion.div>
           </Grid>
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
                    {/* Abstract Geometric Decoration */}
@@ -134,7 +134,7 @@ export const DashboardPage: React.FC = () => {
           </Grid>
 
           {/* Observation Deck */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
@@ -149,7 +149,7 @@ export const DashboardPage: React.FC = () => {
           </Grid>
 
           {/* Recent Alerts Table */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0 }}>
                    <Box className="stitch-banner-orange" style={{ fontSize: '10px', width: 'fit-content', transform: 'scale(1.1) translateX(20px)' }}>SYSTEM_LOGS // REAL-TIME_TELEMETRY</Box>

@@ -31,7 +31,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
       >
         <Grid container spacing={2}>
           {/* Key Metrics Row */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: '24px 32px', position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
@@ -42,7 +42,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
                         { label: 'MAINTENANCE_MARGIN_CAP', value: '$42,500.00', color: stitchTokens.colors.secondary, trend: 'NOMINAL' },
                         { label: 'EXCESS_LIQUIDITY_BUFFER', value: '$211,620.42', color: stitchTokens.colors.tertiary, trend: 'SECURE' },
                       ].map((m, idx) => (
-                        <Grid item xs={12} sm={6} md={3} key={m.label}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={m.label}>
                            <Typography className="stitch-label" sx={{ fontSize: '9px', fontWeight: 900, mb: 1, letterSpacing: '1px', opacity: 0.6 }}>{m.label}</Typography>
                            <Typography className="stitch-mono" sx={{ fontSize: '22px', fontWeight: 950, color: '#fff', letterSpacing: '-1px' }}>{m.value}</Typography>
                            <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
@@ -61,7 +61,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
           </Grid>
 
           {/* Performance Chart */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 480, p: 0, position: 'relative' }}>
                    <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.purple }}>EQUITY_CURVE_TELEMETRY // HISTORICAL_DATA_v8</Box>
@@ -82,7 +82,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
           </Grid>
 
           {/* Portfolio Greeks */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 480, p: 0, position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.03 }} />
@@ -125,7 +125,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
           </Grid>
 
           {/* Positions Section */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0, overflow: 'hidden' }}>
                    <Box className="stitch-banner-orange" style={{ transform: 'skewX(-20deg)', position: 'absolute', top: 4, right: 32, zIndex: 1, fontSize: '9px' }}>REAL_TIME_INVENTORY</Box>
@@ -138,7 +138,7 @@ const PortfolioAnalyticsPage: React.FC = () => {
           </Grid>
 
           {/* Bottom Activity Section */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0 }}>
                    <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.indigo }}>RECENT_EXECUTION_SEQUENCE</Box>

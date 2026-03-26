@@ -14,7 +14,7 @@ import { stitchTokens } from '../../theme/stitch-tokens';
 import { DOMLadder } from '../../features/market/components/DOMLadder';
 import { LevelIIQuotes } from '../../features/market/components/LevelIIQuotes';
 import { OrderTicket } from '../../features/market/components/OrderTicket';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Lazy loaded trading components
 const LivePriceChart = lazy(() =>
@@ -65,7 +65,7 @@ export const MarketPage: React.FC = () => {
       >
         <Grid container spacing={2} sx={{ height: '100%' }}>
           {/* Left Column: Analytics & Chain */}
-          <Grid item xs={12} lg={8.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid size={{ xs: 12, lg: 8.5 }} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Main Chart Card */}
             <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
               <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
@@ -93,7 +93,7 @@ export const MarketPage: React.FC = () => {
           </Grid>
 
           {/* Right Column: Execution & Depth */}
-          <Grid item xs={12} lg={3.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid size={{ xs: 12, lg: 3.5 }} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <motion.div variants={itemVariants} style={{ flex: 1.5, minHeight: 0 }}>
                <DOMLadder symbol={currentSymbol} currentPrice={livePrice} />
             </motion.div>

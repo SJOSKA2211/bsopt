@@ -32,7 +32,7 @@ const StrategyOptimizerPage: React.FC = () => {
       >
         <Grid container spacing={2}>
           {/* Header Shard */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: '24px 32px', position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.1 }} />
@@ -73,7 +73,7 @@ const StrategyOptimizerPage: React.FC = () => {
           </Grid>
 
           {/* Controls Bar */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0, position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-slanted-header" sx={{ bgcolor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -87,7 +87,7 @@ const StrategyOptimizerPage: React.FC = () => {
           </Grid>
 
           {/* 3D Manifold */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.03 }} />
@@ -103,7 +103,7 @@ const StrategyOptimizerPage: React.FC = () => {
           </Grid>
 
           {/* Optimal Configs */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative', overflow: 'hidden' }}>
                    <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
@@ -125,7 +125,7 @@ const StrategyOptimizerPage: React.FC = () => {
           </Grid>
 
           {/* Bottom Sweep Results */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
              <motion.div variants={itemVariants}>
                 <Box className="stitch-card" sx={{ p: 0, overflow: 'hidden' }}>
                    <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.indigo }}>PARAMETER_SWEEP_SEQUENCE // DETAILED_TELEMETRY</Box>
