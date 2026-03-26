@@ -23,3 +23,7 @@
 **Vulnerability:** `auth_server.py` had a hardcoded `host="0.0.0.0"` string, which Bandit flagged as `B104`.
 **Learning:** Although often intended for a Docker environment, binding to `0.0.0.0` should be flagged and ignored securely via `# nosec B104` to make security scanning tools happy and communicate clear intent.
 **Prevention:** Mark intended public binds explicitly with Bandit `# nosec` annotations.
+## 2024-05-24 - [MEDIUM] Actions Syntax Validation
+**Vulnerability:** GitHub actions for tests were failing via `uses:` commands inside run scripts.
+**Learning:** This caused CI to crash.
+**Prevention:** Fix syntax errors for `uses:` in workflows so unit testing can proceed.
