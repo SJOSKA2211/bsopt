@@ -13,6 +13,7 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import msgspec
 import pyotp
+import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
@@ -176,8 +177,6 @@ class AuthService:
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
-        now = datetime.now(UTC)
-        expire = now + expires_delta
         to_encode = {
             **data,
             "exp": expire,
@@ -196,7 +195,8 @@ class AuthService:
     def decode_token(self, token: str) -> TokenData:
         """Decode and validate a JWT token."""
         try:
-            algorithm = settings.JWT_ALGORITHM
+            unverified_header = jwt.get_unverified_header(token)
+            algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
             payload = jwt.decode(token, key, algorithms=[algorithm])
 
