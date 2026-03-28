@@ -202,7 +202,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   INSTITUTIONAL_ACCESS
                 </Typography>
               </Box>
-              <IconButton size="small" sx={{ ml: 'auto', color: 'rgba(255,255,255,0.2)' }}>
+              <IconButton size="small" aria-label="Settings" sx={{ ml: 'auto', color: 'rgba(255,255,255,0.2)' }}>
                 <SettingsIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Stack>
@@ -258,7 +258,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         }}>
           <Stack direction="row" spacing={3} alignItems="center">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#fff', mr: 1 }}>
+              <IconButton onClick={() => setMobileOpen(true)} aria-label="Open sidebar" sx={{ color: '#fff', mr: 1 }}>
                 <MenuIcon />
               </IconButton>
             )}
@@ -292,10 +292,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   $2,450,192.40
                 </Typography>
              </Box>
-             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }}>
+             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }} aria-label="Notifications">
                 <NotifIcon fontSize="small" />
              </IconButton>
-             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }}>
+             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }} aria-label="Log out">
                 <LogoutIcon fontSize="small" />
              </IconButton>
           </Stack>

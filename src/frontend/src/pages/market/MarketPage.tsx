@@ -26,7 +26,7 @@ const OptionsChain = lazy(() =>
 
 const LoadingFallback: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 300 }}>
-    <CircularProgress size={24} sx={{ color: stitchTokens.colors.primary }} />
+    <CircularProgress size={24} sx={{ color: stitchTokens.colors.primary }} aria-label="Loading market data" />
   </Box>
 );
 

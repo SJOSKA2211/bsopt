@@ -1,0 +1,3 @@
+## 2026-03-28 - Added missing ARIA attributes to UI components
+**Learning:** Material-UI icon-only components like `IconButton` and `CircularProgress` often lack accessible text or labels by default. They rely on developers manually adding `aria-label`s. Additionally, ensuring these elements have clear purposes drastically improves the screen-reader experience in high-density data visualizations or complex forms.
+**Action:** Always specify `aria-label` for `IconButton` and `CircularProgress` components to provide context when visually hidden from screen readers. Use explicit descriptions like 'Toggle password visibility', 'Settings', or 'Increase quantity'.

@@ -291,6 +291,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         <Stack direction="row" spacing={1} sx={{ pointerEvents: 'auto' }}>
           <Tooltip title="Toggle Production Trendline">
             <IconButton 
+              aria-label="Toggle Production Trendline"
               size="small" 
               onClick={() => setShowSMA(!showSMA)}
               sx={{ 
@@ -321,7 +322,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       
       {loading && (
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-          <CircularProgress size={32} thickness={5} sx={{ color: qfd?.emerald }} />
+          <CircularProgress size={32} thickness={5} sx={{ color: qfd?.emerald }} aria-label="Loading live price chart data" />
           <Typography variant="caption" sx={{ display: 'block', mt: 1, fontWeight: 800, color: 'text.secondary' }}>SYNCHRONIZING...</Typography>
         </Box>
       )}

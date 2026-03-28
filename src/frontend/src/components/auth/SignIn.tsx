@@ -235,7 +235,7 @@ export default function SignIn() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
+                  <IconButton aria-label="Toggle password visibility"
                     size="small"
                     onClick={() => setShowPassword((s) => !s)}
                     edge="end"
