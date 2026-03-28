@@ -20,8 +20,7 @@ WORKDIR /app
 
 # Copy source + requirements
 COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+COPY --chmod=755 infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 
 # Install App in editable mode for dev
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -39,8 +38,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Security & Performance
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+COPY --chmod=755 infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 
 USER Manifold
 EXPOSE 8000
