@@ -5,7 +5,6 @@ from src.quant.pricing.lattice import (
     validate_convergence,
 )
 
-
 def test_binomial_zero_maturity():
     pricer = BinomialTreePricer()
     params = BSParameters(110, 100, 0.0, 0.2, 0.05)

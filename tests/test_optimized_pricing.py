@@ -2,8 +2,8 @@
 Comprehensive Test Suite for Optimized Quantitative Engines (Pytest Modernized)
 """
 
-import numpy as np
 import pytest
+import numpy as np
 
 from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.quant.pricing.implied_vol import (
@@ -11,7 +11,6 @@ from src.quant.pricing.implied_vol import (
     vectorized_implied_volatility,
 )
 from src.quant.pricing.models import BSParameters
-
 
 @pytest.fixture
 def test_data():

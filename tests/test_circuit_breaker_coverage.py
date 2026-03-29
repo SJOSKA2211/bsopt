@@ -10,7 +10,6 @@ from src.shared.circuit_breaker import (
     pricing_circuit,
 )
 
-
 @pytest.mark.asyncio
 async def test_circuit_breaker_state_transitions():
     cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)

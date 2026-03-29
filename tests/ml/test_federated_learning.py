@@ -4,7 +4,6 @@ import pytest
 
 from src.ml.federated_learning.coordinator import FederatedLearningCoordinator
 
-
 @pytest.fixture
 def mock_flwr_server():
     with patch("src.ml.federated_learning.coordinator.fl.server.start_server") as mock:

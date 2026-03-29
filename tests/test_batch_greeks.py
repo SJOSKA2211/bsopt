@@ -3,7 +3,6 @@ import numpy as np
 from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.quant.pricing.quant_utils import batch_greeks_jit
 
-
 def test_batch_greeks_vs_single():
     """Verify batch Greeks match single Greeks calculation."""
     spots = np.array([100.0, 110.0, 90.0])

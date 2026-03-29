@@ -1,5 +1,6 @@
-import numpy as np
 import pytest
+
+import numpy as np
 
 from src.math_kernel.vol_surface import (
     CalibrationEngine,
@@ -10,7 +11,6 @@ from src.math_kernel.vol_surface import (
     SVIParameters,
     VolatilitySurface,
 )
-
 
 class TestVolSurface:
     def setUp(self):

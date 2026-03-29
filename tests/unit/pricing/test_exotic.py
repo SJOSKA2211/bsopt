@@ -10,7 +10,6 @@ from src.math_kernel.exotic import (
     LookbackOptionPricer,
 )
 
-
 def test_geometric_asian():
     base = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
     params = ExoticParameters(base_params=base, n_observations=252)

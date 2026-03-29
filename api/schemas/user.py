@@ -14,7 +14,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .common import PaginationMeta
 
-
 class UserResponse(msgspec.Struct):
     """User profile response (OPTIMIZED: msgspec)."""
 

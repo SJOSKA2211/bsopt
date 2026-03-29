@@ -4,7 +4,6 @@ import pytest
 
 from src.shared.security import MTLSVerifier, OPAEnforcer
 
-
 def test_mtls_verifier_success():
     verifier = MTLSVerifier(required_dn="CN=backend")
     request = MagicMock()

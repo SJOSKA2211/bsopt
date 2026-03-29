@@ -11,7 +11,6 @@ from src.shared.cache import (
     generate_cache_key,
 )
 
-
 def test_generate_cache_key():
     key1 = generate_cache_key("test", spot=100.0, strike=100.0)
     key2 = generate_cache_key("test", strike=100.0, spot=100.0)

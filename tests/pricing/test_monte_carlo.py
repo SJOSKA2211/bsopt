@@ -4,7 +4,6 @@ import pytest
 from src.quant.pricing.models import BSParameters
 from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 
-
 class TestMonteCarloEngine:
     @pytest.fixture
     def params(self):

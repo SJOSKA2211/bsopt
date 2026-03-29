@@ -21,7 +21,6 @@ import pytest  # noqa: E402
 
 from src.math_kernel.models.heston_fft import HestonParams  # noqa: E402
 
-
 @pytest.fixture
 def mock_market_data():
     return [

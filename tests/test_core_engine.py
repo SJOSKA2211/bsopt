@@ -1,13 +1,13 @@
-import time
-
-import jwt
-import numpy as np
 import pytest
+import numpy as np
+import time
+from datetime import UTC, datetime, timedelta
+import jwt
 from argon2 import PasswordHasher
 
 from src.auth.auth import auth_service
-from src.math_kernel.rust_engine import is_rust_available, simulate_gbm_rk4
-
+from src.math_kernel.rust_engine import simulate_gbm_rk4, is_rust_available
+from src.shared.config import settings
 
 class TestProductionCore:
     """
@@ -18,7 +18,7 @@ class TestProductionCore:
 
     def test_argon2id_password_hashing(self):
         """Verify Argon2id meets security and timing protection standards."""
-        PasswordHasher()
+        ph = PasswordHasher()
         password = "Production-grade-password-2026"
         hashed = auth_service.hash_password(password)
         
@@ -82,13 +82,14 @@ class TestProductionCore:
     @pytest.mark.asyncio
     async def test_auth_middleware_injection(self):
         """Mock test for ZeroTrustAuthMiddleware logic."""
+        from fastapi import Request, Response
         from src.shared.middleware.auth import ZeroTrustAuthMiddleware
         
         # This is a simplified logic test of the middleware's extraction
         user_id = "test_user"
         token_pair = auth_service.create_token_pair(user_id, "test@test.com", "pro")
         
-        ZeroTrustAuthMiddleware(app=None)
+        middleware = ZeroTrustAuthMiddleware(app=None)
         # We verify token_data can be retrieved from our created token
         token_data = await auth_service.validate_token(token_pair.access_token)
         assert token_data.user_id == user_id

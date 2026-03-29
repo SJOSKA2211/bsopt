@@ -13,7 +13,6 @@ from src.database.crud import (
 )
 from src.database.models import Base
 
-
 @pytest.fixture(autouse=True)
 def patch_jsonb(monkeypatch):
     # This is a bit hacky, but common for SQLite testing of PG models

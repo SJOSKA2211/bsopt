@@ -9,7 +9,6 @@ from src.quant.pricing.implied_vol import (
     vectorized_implied_volatility,
 )
 
-
 def test_iv_method_newton_fail():
     # Test method='newton' failing to converge to hit the raise line
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):

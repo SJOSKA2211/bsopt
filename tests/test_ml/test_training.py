@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, patch
 
 from src.ml.training.train_v2 import train_neural_network
 
-
 @patch("src.ml.training.train_v2.Trainer")
 @patch("src.ml.training.train_v2.get_dataloaders")
 @patch("src.ml.training.train_v2.torch")

@@ -5,7 +5,6 @@ import pytest
 from src.auth.auth import AuthService
 from src.database.models import User
 
-
 @pytest.fixture
 def auth_service():
     return AuthService()

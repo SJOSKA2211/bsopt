@@ -1,6 +1,5 @@
 from src.shared.sanitization import mask_email, sanitize_email, sanitize_string
 
-
 def test_sanitize_string():
     assert (
         sanitize_string("  <script>alert(1)</script>  ") == "&lt;script&gt;alert(1)&lt;/script&gt;"

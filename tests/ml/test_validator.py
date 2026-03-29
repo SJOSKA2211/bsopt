@@ -2,7 +2,6 @@ import numpy as np
 
 from src.ml.utils.validation import WalkForwardValidator
 
-
 def test_walk_forward_split():
     """Test that validator provides non-overlapping temporal splits."""
     

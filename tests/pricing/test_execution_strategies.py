@@ -11,7 +11,6 @@ from src.quant.pricing.execution_strategies import (
     WASMStrategy,
 )
 
-
 @pytest.fixture
 def inputs():
     n = 10

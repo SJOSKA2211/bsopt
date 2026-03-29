@@ -12,7 +12,6 @@ else:
 
 from src.auth.mfa import MfaService
 
-
 @pytest.fixture
 def mfa_service():
     return MfaService()

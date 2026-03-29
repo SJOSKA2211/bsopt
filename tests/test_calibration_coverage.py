@@ -3,7 +3,6 @@ import pytest
 
 from src.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
 
-
 def test_market_option_spread():
     opt = MarketOption(
         T=1.0,

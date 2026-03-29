@@ -4,7 +4,6 @@ from strawberry.federation import Schema
 from api.graphql.resolvers.option_service import get_option_by_id
 from api.graphql.types import Option
 
-
 @strawberry.type
 class Query:
     @strawberry.field

@@ -2,7 +2,6 @@ import os
 
 import yaml
 
-
 def test_mlops_training_workflow_exists():
     """Verify that the mlops-training workflow file exists."""
     assert os.path.exists(".github/workflows/mlops-training.yml")

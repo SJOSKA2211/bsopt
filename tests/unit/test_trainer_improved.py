@@ -12,7 +12,6 @@ sys.modules["optuna.pruners"] = MagicMock()
 
 from src.ml.trainer import ModelTrainer
 
-
 @pytest.fixture
 def trainer_data():
     X = np.random.rand(100, 5)

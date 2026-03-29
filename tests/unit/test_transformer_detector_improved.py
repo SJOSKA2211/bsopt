@@ -1,8 +1,8 @@
-import numpy as np
 import pytest
 
-from src.ml.aiops.transformer_detector import TransformerAnomalyDetector
+import numpy as np
 
+from src.ml.aiops.transformer_detector import TransformerAnomalyDetector
 
 class TestTransformerDetectorReal:
     def setUp(self):

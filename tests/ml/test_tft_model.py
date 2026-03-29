@@ -7,7 +7,6 @@ import pytest
 from src.ml.forecasting.tft_model import TFTModel
 from src.ml.utils.validation import WalkForwardValidator
 
-
 @pytest.fixture
 def sample_data():
     """OPTIMIZED: Structured synthetic data for TFT validation."""

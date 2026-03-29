@@ -9,7 +9,6 @@ from src.shared.circuit_breaker import (
     CircuitBreaker,
 )
 
-
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step
 class MockDlqTask:
     def delay(self, *args, **kwargs):

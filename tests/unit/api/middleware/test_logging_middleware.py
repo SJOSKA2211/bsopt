@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 
 from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
 
-
 def test_structured_logger_full():
     sl = StructuredLogger("test_logger")
     sl.set_default_fields(app="bsopt")

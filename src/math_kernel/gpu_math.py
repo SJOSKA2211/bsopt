@@ -1,6 +1,5 @@
 import cupy as cp
 
-
 def gpu_black_scholes(
     s: cp.ndarray, k: cp.ndarray, t: cp.ndarray, v: cp.ndarray, r: cp.ndarray, is_call: cp.ndarray
 ) -> cp.ndarray:

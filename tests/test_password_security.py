@@ -1,7 +1,6 @@
 from src.auth.password import PasswordService, PasswordValidator
 from tests.test_utils import assert_equal
 
-
 def test_password_validator():
     validator = PasswordValidator(min_length=8, require_uppercase=True, require_digit=True)
 

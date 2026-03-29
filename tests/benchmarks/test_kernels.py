@@ -3,7 +3,6 @@ import pytest
 
 from src.quant.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
 
-
 @pytest.fixture
 def benchmark_data():
     """Generate standardized data for pricing benchmarks."""

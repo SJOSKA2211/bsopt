@@ -4,7 +4,6 @@ import pytest
 
 from src.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
 
-
 @pytest.fixture
 def mock_email_service():
     with patch("src.workers.tasks.email_tasks.email_service") as mock:

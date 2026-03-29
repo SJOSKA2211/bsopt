@@ -2,7 +2,6 @@ import pytest
 
 from src.shared import observability
 
-
 def test_setup_logging_idempotent():
     # It takes no arguments!
     observability.setup_logging()

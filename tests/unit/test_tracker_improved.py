@@ -1,7 +1,6 @@
 import sys
-from unittest.mock import MagicMock, patch
-
 import pytest
+from unittest.mock import MagicMock, patch
 
 # Mock dependencies
 sys.modules["mlflow"] = MagicMock()
@@ -12,7 +11,6 @@ sys.modules["matplotlib"] = MagicMock()
 sys.modules["matplotlib.pyplot"] = MagicMock()
 
 from src.ml.tracker import ExperimentTracker
-
 
 class TestTracker:
     def setUp(self):

@@ -7,7 +7,6 @@ from strawberry.federation import Schema
 
 from api.graphql.types import Option
 
-
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
@@ -112,9 +111,10 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
-        from api.graphql.resolvers.option_service import router
         from api.schemas.ml import InferenceRequest
         from src.ml.service import get_ml_service
+
+        from api.graphql.resolvers.option_service import router
         
         ml_service = get_ml_service()
 

@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.trainer import InstrumentedTrainer
 
-
 @pytest.fixture
 def sample_data():
     X = np.random.rand(100, 5)

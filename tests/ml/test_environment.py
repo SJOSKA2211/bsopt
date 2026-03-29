@@ -3,7 +3,6 @@ import os
 
 import pytest
 
-
 def test_src_directories_exist():
     """Verify that src.shared source directories exist."""
     assert os.path.isdir("src/ml")

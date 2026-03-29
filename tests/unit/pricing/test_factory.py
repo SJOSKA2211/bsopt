@@ -6,7 +6,6 @@ from src.math_kernel.black_scholes import BlackScholesEngine
 from src.math_kernel.factory import PricingEngineFactory, PricingEngineNotFound
 from src.math_kernel.monte_carlo import MonteCarloEngine
 
-
 def test_get_engine_lazy_load():
     # BS and MC should be pre-loaded or lazy-loaded
     bs = PricingEngineFactory.get_engine("black_scholes")

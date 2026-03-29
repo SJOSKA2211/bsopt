@@ -3,7 +3,6 @@ import os
 import pytest
 import yaml
 
-
 @pytest.fixture
 def prod_compose_config():
     """Load the production docker-compose file."""

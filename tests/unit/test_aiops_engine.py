@@ -4,7 +4,6 @@ import pytest
 
 from src.ml.aiops.aiops_orchestrator import AIOpsOrchestrator
 
-
 @pytest.fixture
 def orchestrator_config():
     return {

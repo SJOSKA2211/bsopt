@@ -4,7 +4,6 @@ import pytest
 
 from src.ml.pipelines.retraining import NeuralGreeksRetrainer
 
-
 @pytest.fixture
 def retrainer():
     return NeuralGreeksRetrainer(n_samples=100)

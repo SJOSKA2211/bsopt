@@ -1,8 +1,8 @@
-import numpy as np
 import pytest
 
-from src.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
+import numpy as np
 
+from src.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
 
 class TestMMD:
     def test_calculate_mmd_same_dist(self):

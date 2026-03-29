@@ -2,7 +2,6 @@ import os
 
 import yaml
 
-
 def test_github_exporter_in_docker_compose():
     """Verify that github-exporter is in the production docker-compose file."""
     with open("docker-compose.yml") as f:

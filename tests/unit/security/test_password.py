@@ -2,7 +2,6 @@ import pytest
 
 from src.auth.password import PasswordService, PasswordValidator
 
-
 @pytest.fixture
 def password_service():
     return PasswordService()

@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, patch
 
 from src.email_service import TransactionalEmailService
 
-
 def test_email_service_send():
     with patch("src.email_service.SendGridAPIClient") as mock_sg:
         mock_sg.return_value.send.return_value.status_code = 202

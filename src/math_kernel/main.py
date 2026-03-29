@@ -13,7 +13,6 @@ from src.shared.observability import (
     tune_gc,
 )
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """High-Performance Lifespan for Pricing Service."""

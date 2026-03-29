@@ -4,7 +4,6 @@ import pytest
 
 from src.auth.auth import AuthService, TokenBlacklist
 
-
 @pytest.fixture
 def auth_service():
     return AuthService()

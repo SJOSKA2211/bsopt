@@ -3,7 +3,6 @@ from src.quant.pricing.quantum_pricing import (
     QuantumOptionPricer,
 )
 
-
 def test_quantum_option_pricer_simulation():
     pricer = QuantumOptionPricer(use_real_quantum=False)
     # Standard BS parameters

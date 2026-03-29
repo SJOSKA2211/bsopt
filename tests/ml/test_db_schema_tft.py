@@ -3,7 +3,6 @@ from sqlalchemy import create_engine, inspect
 
 from src.database.models import MarketTick
 
-
 @pytest.fixture
 def test_engine():
     """Create a memory SQLite engine for schema validation."""

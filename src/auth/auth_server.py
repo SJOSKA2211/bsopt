@@ -2,10 +2,8 @@ import asyncio
 import logging
 import os
 import sys
-
-import uvicorn
 from fastapi import FastAPI
-
+import uvicorn
 from src.auth.grpc_server import serve as serve_grpc
 
 # Configure logging
@@ -33,7 +31,7 @@ async def run_servers():
     grpc_port = os.getenv("GRPC_PORT", "50051")
     http_port = int(os.getenv("HTTP_PORT", 3001))
     
-    logger.info("🚀 Starting Auth Service Mesh...")
+    logger.info(f"🚀 Starting Auth Service Mesh...")
     
     # Start gRPC in the background
     grpc_task = asyncio.create_task(serve_grpc(port=grpc_port))
@@ -43,7 +41,7 @@ async def run_servers():
     logger.info(f"🌐 HTTP Server (healthcheck) listening on port {http_port}")
     config = uvicorn.Config(
         app, 
-        host="0.0.0.0",  # nosec B104 - Required for containerized environments
+        host="0.0.0.0",
         port=http_port, 
         log_level="info",
         access_log=True  # Enabled for debugging
@@ -66,6 +64,6 @@ if __name__ == "__main__":
         asyncio.run(run_servers())
     except KeyboardInterrupt:
         logger.info("👋 Exiting...")
-    except Exception:
+    except Exception as e:
         logger.exception("CRITICAL_STARTUP_FAILURE")
         sys.exit(1)

@@ -4,7 +4,6 @@ import pytest
 from src.math_kernel.calibration.engine import HestonCalibrator, MarketOption
 from src.math_kernel.models.heston_fft import HestonParams
 
-
 class TestHestonCalibrator:
     def test_calibration_accuracy_synthetic(self):
         """

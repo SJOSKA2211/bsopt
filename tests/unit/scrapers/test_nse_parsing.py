@@ -2,7 +2,6 @@ import pytest
 
 from src.ingestion.engine import NSEScraper
 
-
 def test_nse_cleaning_logic():
     scraper = NSEScraper()
     raw_data = {"price": "15.50", "volume": "1,200,000"}

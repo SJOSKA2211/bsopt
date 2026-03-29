@@ -5,7 +5,6 @@ import pytest
 
 from src.ml.drift import calculate_ks_test, calculate_psi
 
-
 @patch("src.ml.drift.logger")
 @patch("src.ml.drift.KS_TEST_SCORE")
 def test_ks_test_instrumentation(mock_gauge, mock_logger):

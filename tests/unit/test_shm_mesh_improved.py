@@ -2,7 +2,6 @@ import pytest
 
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 
-
 class TestSHMMesh:
     def test_ring_buffer_lifecycle(self):
         # Test creation and unlinking

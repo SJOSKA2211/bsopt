@@ -9,7 +9,6 @@ from src.api.websockets.manager import (
 )
 from src.shared.protos.market_data_pb2 import TickerUpdate
 
-
 @pytest.fixture
 def manager():
     mgr = ConnectionManager()

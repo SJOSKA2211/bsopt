@@ -2,7 +2,6 @@ import numpy as np
 
 from src.quant.pricing import quant_utils
 
-
 def test_corrado_miller():
     S = np.array([100.0])
     K = np.array([100.0])

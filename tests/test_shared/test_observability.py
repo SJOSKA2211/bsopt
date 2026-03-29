@@ -5,7 +5,6 @@ import structlog
 
 from src.shared import observability
 
-
 @pytest.fixture
 def mock_gateway():
     with patch("src.shared.observability.push_to_gateway") as mock:

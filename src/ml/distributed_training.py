@@ -196,6 +196,7 @@ class BSOptDistributedTrainer:
 
     def run(self, config: dict[str, Any]):
         """Starts the distributed training session using RayClusterManager."""
+        import os
 
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
@@ -229,6 +230,7 @@ class BSOptDistributedTrainer:
 
 if __name__ == "__main__":
     import argparse
+    import os
 
     parser = argparse.ArgumentParser(description="Run Distributed DT Training")
     parser.add_argument("--epochs", type=int, default=10)

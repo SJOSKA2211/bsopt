@@ -2,7 +2,6 @@ import numpy as np
 
 from src.ml import indicators
 
-
 def test_numba_ema():
     values = np.array([10.0, 11.0, 12.0, 13.0, 14.0], dtype=np.float64)
     res = indicators._numba_ema(values, 3)

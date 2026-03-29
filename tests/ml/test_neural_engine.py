@@ -3,7 +3,6 @@ import numpy as np
 from src.quant.pricing.factory import PricingEngineFactory
 from src.quant.pricing.models import BSParameters
 
-
 def test_neural_engine_lifecycle():
     # 1. Get Engine (lazy load)
     # Note: factory returns BasePricingEngine, but we know it's Neural

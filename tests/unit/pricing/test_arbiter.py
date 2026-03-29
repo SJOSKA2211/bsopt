@@ -4,7 +4,6 @@ import pytest
 from src.math_kernel.arbiter import EngineArbiter, PricingModel, PricingRequest
 from src.math_kernel.models import BSParameters
 
-
 @pytest.fixture
 def arbiter():
     return EngineArbiter()

@@ -19,16 +19,18 @@ from src.ingestion.rust_parser import RustTickParser
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
+    ROUTING_COUNT,
+    ROUTING_LATENCY,
     setup_logging,
     start_system_metrics_loop,
 )
 from src.shared.protos import data_pb2, data_pb2_grpc
-from src.shared.schemas.market import MarketQuote
 from src.shared.utils.binary_format import EquaRecord
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
+from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger()
 

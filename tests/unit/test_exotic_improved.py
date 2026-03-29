@@ -12,7 +12,6 @@ from src.math_kernel.exotic import (
     StrikeType,
 )
 
-
 class TestExotic:
     def setUp(self):
         self.base_params = BSParameters(

@@ -8,7 +8,6 @@ from src.math_kernel.implied_vol import (
     vectorized_implied_volatility,
 )
 
-
 @pytest.fixture
 def sample_data():
     S = 100.0

@@ -2,7 +2,6 @@ import pytest
 
 from src.ml.aiops.prometheus_adapter import PrometheusClient
 
-
 def test_prometheus_client_init():
     """Test initialization of PrometheusClient."""
     url = "http://localhost:9090"

@@ -16,7 +16,6 @@ from src.quant.pricing.black_scholes import BSParameters
 from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, _laguerre_basis
 from tests.test_utils import assert_equal
 
-
 class TestMCConfig:
     """Test Monte Carlo configuration validation."""
 

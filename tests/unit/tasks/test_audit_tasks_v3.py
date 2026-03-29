@@ -4,7 +4,6 @@ import pytest
 
 from src.workers.tasks.audit_tasks import persist_audit_log
 
-
 @pytest.fixture
 def mock_session():
     with patch("src.workers.tasks.audit_tasks.get_session") as mock:

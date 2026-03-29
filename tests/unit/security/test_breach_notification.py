@@ -6,7 +6,6 @@ import pytest
 from src.auth.breach_notification import BreachNotificationService
 from src.database.models import SecurityIncident
 
-
 @pytest.mark.asyncio
 @patch("src.email_service.SendGridAPIClient")
 async def test_report_breach_to_dpa(mock_sendgrid):

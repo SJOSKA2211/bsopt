@@ -4,7 +4,6 @@ import pytest
 
 from src.ml.scraper import MarketDataScraper
 
-
 @pytest.fixture
 def scraper():
     return MarketDataScraper(api_key="test_key", provider="alpha_vantage")

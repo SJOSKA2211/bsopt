@@ -5,7 +5,6 @@ import pytest
 
 from src.shared.shm_mesh import BUFFER_CAPACITY, TICK_SIZE, SharedMemoryRingBuffer
 
-
 @pytest.fixture
 def mock_shm():
     with patch("src.shared.shm_mesh.shared_memory.SharedMemory") as MockSHM:

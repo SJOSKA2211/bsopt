@@ -1,7 +1,6 @@
 import numpy as np
 from numba import njit
 
-
 @njit(cache=True, fastmath=True)
 def run_simulation_kernel(
     option_prices: np.ndarray,

@@ -9,7 +9,6 @@ from src.ml.models.neural_engine import NeuralPricingEngine
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 from src.quant.pricing.models import BSParameters
 
-
 def test_mlproject_integrity():
     """Verify MLproject file defines all required entry points."""
     assert os.path.exists("MLproject")

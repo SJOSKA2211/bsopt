@@ -3,12 +3,12 @@ Unified Base Trainer for BS-OPT
 Provides shared functionality for MLflow tracking, logging, and experiment management.
 """
 
-from abc import ABC, abstractmethod
-
-import mlflow
-import msgspec
 import numpy as np
+from abc import ABC, abstractmethod
+import msgspec
+import mlflow
 import structlog
+from typing import TypeVar, Generic
 
 from src.config import get_settings
 from src.shared.observability import setup_logging

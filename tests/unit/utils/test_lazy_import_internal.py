@@ -23,7 +23,6 @@ from src.shared.lazy_import import (
     reset_import_stats,
 )
 
-
 def test_get_import_lock_concurrency():
     lock1 = _get_import_lock("mod1")
     lock2 = _get_import_lock("mod1")

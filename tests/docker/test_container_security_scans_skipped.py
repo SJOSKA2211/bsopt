@@ -1,6 +1,5 @@
 import pytest
 
-
 def test_container_security_scans_skipped():
     """
     Container security scans verification is skipped due to user instruction

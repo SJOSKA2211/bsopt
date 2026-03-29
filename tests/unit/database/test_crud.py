@@ -13,7 +13,6 @@ from src.database.crud import (
 )
 from src.database.models import Base
 
-
 # Patch JSONB for SQLite
 @compiles(postgresql.JSONB, "sqlite")
 def compile_jsonb_sqlite(type_, compiler, **kw):

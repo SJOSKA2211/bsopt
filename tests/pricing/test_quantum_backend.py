@@ -5,7 +5,6 @@ import pytest
 
 from src.quant.pricing.quantum_backend import QuantumBackendManager
 
-
 class TestQuantumBackendManager:
     @patch.dict(os.environ, {"IBM_QUANTUM_TOKEN": "test_token"})
     @patch("src.quant.pricing.quantum_backend.IBM_PROVIDER_AVAILABLE", True)

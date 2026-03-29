@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 import yaml
 
-
 def load_csv_data():
     df = pd.read_csv("tests/test_data.csv")
     return df.to_dict(orient="records")

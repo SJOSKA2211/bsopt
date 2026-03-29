@@ -4,7 +4,6 @@ import pytest
 
 from src.ingestion.engine import NSEScraper, ProxyRotator
 
-
 @pytest.fixture
 def mock_redis():
     mock = MagicMock()

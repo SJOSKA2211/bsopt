@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-
 def test_src_directories_exist():
     """Verify that required source directories exist."""
     assert os.path.exists("src/ml")

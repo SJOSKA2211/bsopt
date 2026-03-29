@@ -5,7 +5,6 @@ import ray
 
 from src.ml.reinforcement_learning.train import train_distributed
 
-
 @pytest.fixture(scope="module")
 def ray_cluster():
     ray.init(num_cpus=2, ignore_reinit_error=True)

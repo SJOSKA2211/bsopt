@@ -4,7 +4,6 @@ from typing import Any
 
 import numpy as np
 
-
 class ModelPool:
     """
     Thread-safe object pool for high-frequency pricing objects.

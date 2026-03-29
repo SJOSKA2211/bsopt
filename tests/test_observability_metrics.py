@@ -4,7 +4,6 @@ from prometheus_client import REGISTRY
 
 from src.shared.observability import push_metrics
 
-
 @patch("src.shared.observability.push_to_gateway")
 @patch("src.shared.observability.os.environ.get")
 @patch("src.shared.observability.structlog.get_logger")

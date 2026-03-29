@@ -13,7 +13,6 @@ import pandas as pd
 from src.ingestion.engine import NSEScraper
 from src.shared.observability import logger
 
-
 async def get_sp500_symbols() -> list[str]:
     """Fetches S&P 500 symbols from Wikipedia."""
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"

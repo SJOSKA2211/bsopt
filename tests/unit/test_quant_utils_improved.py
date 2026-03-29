@@ -1,5 +1,6 @@
-import numpy as np
 import pytest
+
+import numpy as np
 
 from src.math_kernel.quant_utils import (
     batch_bs_price_jit,
@@ -18,7 +19,6 @@ from src.math_kernel.quant_utils import (
     thomas_algorithm,
     vectorized_newton_raphson_iv_jit,
 )
-
 
 class TestQuantUtils:
     def test_jit_generate_paths(self):

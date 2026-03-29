@@ -1,7 +1,6 @@
 from src.shared.errors import ServiceUnavailableException, robust_pricing_task
 from tests.test_utils import assert_equal
 
-
 def test_robust_pricing_task_decorator():
     @robust_pricing_task(error_return_value=-1.0)
     def failing_task():

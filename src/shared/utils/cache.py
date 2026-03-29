@@ -142,6 +142,7 @@ def multi_layer_cache(
     # beta: 1.0 (Standard). Increase for more aggressive refresh before TTL expiry.
     # delta_ms: Estimated computation time for 'func'. Default: 100ms.
     beta = 1.0
+    delta_ms = 100
 
     def decorator(func: Callable[..., object]) -> Callable[..., object]:
         @wraps(func)

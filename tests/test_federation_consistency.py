@@ -1,6 +1,5 @@
 from strawberry.federation import Schema
 
-
 def test_options_subgraph():
     from src.api.graphql.schema import schema
 

@@ -4,7 +4,6 @@ import numpy as np
 
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
-
 def test_trading_env_reset():
     mock_provider = MagicMock()
     mock_provider.get_data.return_value = np.random.rand(100, 10).astype(np.float32)

@@ -3,7 +3,6 @@ import os
 import pytest
 import yaml
 
-
 def test_docker_neural_pricing_optimization():
     compose_path = "docker-compose.yml"
     if not os.path.exists(compose_path):

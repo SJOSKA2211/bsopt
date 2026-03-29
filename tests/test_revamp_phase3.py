@@ -8,7 +8,6 @@ from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.blockchain.nonce_manager import NonceManager
 from src.blockchain.oracle import OracleManager
 
-
 class TestRevampPhase3:
     @pytest.mark.asyncio
     async def test_nonce_manager_redis_flow(self):

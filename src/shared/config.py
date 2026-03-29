@@ -78,8 +78,10 @@ class Settings(BaseSettings):
 
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
-    AUDIT_VAULT_KEY: str = Field(
-        default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
+    AUDIT_VAULT_KEY: str | None = Field(
+        default=None,
+        description="Must be at least 32 characters in production",
+        validation_alias="AUDIT_VAULT_KEY",
     )
     
     @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD", "BLOCKCHAIN_PRIVATE_KEY")

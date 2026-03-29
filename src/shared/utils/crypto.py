@@ -5,7 +5,6 @@ import threading
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-
 class AES256GCM:
     """
     AES-256-GCM authenticated encryption.

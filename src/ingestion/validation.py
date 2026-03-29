@@ -2,7 +2,6 @@ from typing import Any
 
 import msgspec
 
-
 class MarketData(msgspec.Struct):
     """Binary-level schema for high-throughput market data."""
 

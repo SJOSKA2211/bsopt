@@ -7,7 +7,6 @@ from src.math_kernel.quantum_pricing import (
     QuantumOptionPricer,
 )
 
-
 @pytest.fixture
 def quantum_pricer():
     return QuantumOptionPricer(use_real_quantum=False)

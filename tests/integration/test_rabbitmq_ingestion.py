@@ -1,10 +1,7 @@
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
-
+from unittest.mock import MagicMock, patch, AsyncMock
 from src.ingestion.ingestion_service import DataIngestionServicer
 from src.shared.protos import data_pb2
-
 
 @pytest.mark.asyncio
 async def test_ingestion_service_to_rabbitmq():

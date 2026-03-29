@@ -4,7 +4,6 @@ import numpy as np
 
 from src.shared.math_utils import njit_engine
 
-
 @njit_engine(  # type: ignore
     cache=True,
     fastmath=True,

@@ -4,7 +4,6 @@ import pytest
 
 from src.shared.circuit_breaker import CircuitState, InMemoryCircuitBreaker
 
-
 @pytest.mark.asyncio
 async def test_in_memory_circuit_breaker_success():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)

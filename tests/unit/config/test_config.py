@@ -8,7 +8,6 @@ from pydantic import ValidationError
 import src.shared.config
 from tests.test_utils import assert_equal
 
-
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_initialization():
     from src.shared.config import Settings

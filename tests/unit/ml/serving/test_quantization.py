@@ -6,7 +6,6 @@ import torch.nn as nn
 
 from src.ml.serving.quantization import ModelQuantizer
 
-
 class SimpleNet(nn.Module):
     def __init__(self):
         super().__init__()

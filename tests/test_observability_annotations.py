@@ -5,7 +5,6 @@ import httpx
 
 from src.shared.observability import post_grafana_annotation  # Assuming new function
 
-
 @patch("src.shared.observability.httpx.post")
 @patch("src.shared.observability.os.environ.get")
 def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):

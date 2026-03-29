@@ -5,7 +5,6 @@ import pytest
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 
-
 @pytest.fixture
 def blockchain_config():
     return {"rpc_url": "http://mock-eth-node:8545", "private_key": "0x" + "a" * 64}

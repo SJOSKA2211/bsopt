@@ -7,7 +7,6 @@ from src.quant.pricing.lattice import BinomialTreePricer
 from src.quant.pricing.monte_carlo import MonteCarloEngine
 from src.quant.pricing.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
 
-
 def test_factory_get_strategy():
     assert isinstance(PricingEngineFactory.get_strategy("black_scholes"), BlackScholesEngine)
 

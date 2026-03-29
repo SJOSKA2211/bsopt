@@ -20,7 +20,6 @@ from src.shared.cache import (
     warm_cache,
 )
 
-
 @pytest.mark.asyncio
 async def test_generate_cache_key():
     key = generate_cache_key("test", a=1, b=2.5, c=[1, 2])

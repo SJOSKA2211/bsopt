@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import crud
 from src.database.models import Position, User
 
-
 @pytest.fixture
 def mock_db():
     session = AsyncMock(spec=AsyncSession)

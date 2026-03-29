@@ -2,7 +2,6 @@ from src.quant.pricing.black_scholes import BSParameters
 from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 from tests.test_utils import assert_equal
 
-
 def test_mc_config():
     config = MCConfig(n_paths=1000, method="sobol")
     assert_equal(config.n_paths, 1024)  # Power of 2 for Sobol

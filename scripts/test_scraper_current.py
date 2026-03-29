@@ -2,7 +2,6 @@ import asyncio
 
 from src.ingestion.engine import NSEScraper
 
-
 async def test():
     scraper = NSEScraper()
     print(f"Testing scraper with URL: {scraper.BASE_URL}")

@@ -1,6 +1,5 @@
 import pytest
 
-
 def test_dockerfile_api_non_root_user_verification_skipped():
     """
     Verification of Dockerfile.api running as non-root user is skipped

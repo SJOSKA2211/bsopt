@@ -3,7 +3,6 @@ import pytest
 
 from src.quant.pricing.models import BSParameters, OptionGreeks
 
-
 def test_bs_parameters_validation():
     # Valid
     p = BSParameters(100, 100, 1.0, 0.2, 0.05)

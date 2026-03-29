@@ -13,7 +13,6 @@ else:
 from src.api.schemas.ml import InferenceRequest
 from src.ml.serving.serve import predict, state
 
-
 @pytest.mark.asyncio
 async def test_predict_xgb_success():
     # Mock XGB model

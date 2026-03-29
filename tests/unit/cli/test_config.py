@@ -3,7 +3,6 @@ from unittest.mock import patch
 import pytest
 from scripts.config import ConfigManager
 
-
 @pytest.fixture
 def config_manager(tmp_path):
     with patch("scripts.config.Path.home", return_value=tmp_path):

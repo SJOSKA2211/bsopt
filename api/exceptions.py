@@ -2,7 +2,6 @@ from typing import Any
 
 from fastapi import status
 
-
 class BaseAPIException(Exception):
     """Base class for all API exceptions."""
 

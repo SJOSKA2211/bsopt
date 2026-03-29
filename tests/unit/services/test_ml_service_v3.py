@@ -6,7 +6,6 @@ import pytest
 from src.api.schemas.ml import InferenceRequest
 from src.ml_service import MLService
 
-
 @pytest.fixture
 def mock_grpc():
     with patch("src.ml_service.Channel") as mock_chan:

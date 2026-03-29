@@ -6,7 +6,6 @@ import pytest
 
 from src.ml.pipeline import MLPipeline
 
-
 @pytest.fixture
 def mock_config():
     return {

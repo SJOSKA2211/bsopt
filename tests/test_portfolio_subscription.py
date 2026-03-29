@@ -2,7 +2,6 @@ import pytest
 
 from src.portfolio.graphql.schema import schema
 
-
 @pytest.mark.asyncio
 async def test_portfolio_subscription():
     """Verify portfolio subscription."""

@@ -1,14 +1,15 @@
 import asyncio
 import logging
+from datetime import UTC, datetime
 
 import grpc
-from google.protobuf import empty_pb2, timestamp_pb2
-from sqlalchemy import select
+from google.protobuf import timestamp_pb2, empty_pb2
 
 from src.auth.auth import auth_service
-from src.database import db_manager
-from src.database.models import APIKey, User
 from src.protos import auth_pb2, auth_pb2_grpc
+from src.database import db_manager
+from src.database.models import User, APIKey
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,6 @@ from src.ml.evaluation.metrics import (
 )
 from tests.test_utils import assert_equal
 
-
 def test_regression_metrics():
     y_true = np.array([10.0, 20.0, 30.0])
     y_pred = np.array([11.0, 19.0, 31.0])

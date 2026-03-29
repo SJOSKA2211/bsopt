@@ -2,7 +2,6 @@ import pytest
 
 from src.api.providers.market_data import PolygonProvider, YahooProvider
 
-
 @pytest.mark.asyncio
 async def test_polygon_provider_stub():
     provider = PolygonProvider()

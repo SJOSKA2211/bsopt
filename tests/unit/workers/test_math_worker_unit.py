@@ -8,7 +8,6 @@ from src.workers.math_worker import (
     recalibrate_symbol,
 )
 
-
 @pytest.mark.asyncio
 async def test_recalibrate_symbol_async_no_data():
     # Mock MarketDataRouter to return no data

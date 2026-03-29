@@ -2,7 +2,6 @@ import pytest
 
 from src.ml.callbacks import EarlyStopping
 
-
 class TestCallbacks:
     def test_early_stopping(self):
         cb = EarlyStopping(patience=3, min_delta=0.01)

@@ -11,7 +11,6 @@ from fastapi import HTTPException
 
 from src.auth.security import RoleChecker, get_jwks, jwks_cache, verify_token
 
-
 # Helper to generate RSA keys for testing
 def generate_rsa_keys():
     private_key = rsa.generate_private_key(

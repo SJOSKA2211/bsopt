@@ -6,7 +6,6 @@ import pytest
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
-
 @pytest.fixture
 def pipeline_config():
     return {

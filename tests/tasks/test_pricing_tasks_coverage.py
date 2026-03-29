@@ -10,7 +10,6 @@ from src.workers.tasks.pricing_tasks import (
     price_option_task,
 )
 
-
 @patch("src.workers.tasks.pricing_tasks.calculate_greeks_scalar")
 @patch("src.workers.tasks.pricing_tasks.calculate_price_scalar")
 @patch("src.workers.tasks.pricing_tasks.pricing_cache")

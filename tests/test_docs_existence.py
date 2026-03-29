@@ -1,6 +1,5 @@
 import os
 
-
 def test_anti_freeze_docs_exist():
     """Verify that the Anti-Freeze documentation file exists."""
     doc_path = os.path.join("docs", "mlops", "anti-freeze.md")

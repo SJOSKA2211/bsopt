@@ -22,7 +22,6 @@ from api.graphql.resolvers.trading_service import (
     create_order as service_create_order,
 )
 
-
 @strawberry.type
 class Query:
     @strawberry.field

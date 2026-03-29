@@ -4,7 +4,6 @@ import numpy as np
 
 from src.shared import math_utils
 
-
 def test_fast_normal_cdf_scalar():
     assert math.isclose(math_utils.fast_normal_cdf(0.0), 0.5, rel_tol=1e-5)
     assert math.isclose(math_utils.fast_normal_cdf(100.0), 1.0, rel_tol=1e-5)

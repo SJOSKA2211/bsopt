@@ -6,7 +6,6 @@ from fastapi import Request, Response
 
 from src.api.middleware.idempotency import IdempotencyMiddleware
 
-
 @pytest.fixture
 def mock_redis():
     return AsyncMock()

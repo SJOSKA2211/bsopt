@@ -25,7 +25,6 @@ from src.quant.pricing.implied_vol import (
 )
 from tests.test_utils import assert_equal
 
-
 class TestRoundTrip:
     """Test that we can recover the original volatility from calculated prices."""
 

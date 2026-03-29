@@ -4,7 +4,6 @@ Edge Case Functional Tests (Principles 31, 49, 57, 73, 81, 89, 97)
 
 import pytest
 
-
 @pytest.mark.asyncio
 async def test_register_null_fields(client, user_payload):
     """31. Edge Cases: Test nulls."""

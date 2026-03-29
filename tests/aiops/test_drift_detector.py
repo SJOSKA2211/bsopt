@@ -2,7 +2,6 @@ import pytest
 
 from src.ml.aiops.drift_detector import PricingDriftDetector
 
-
 @pytest.mark.asyncio
 async def test_check_drift_theoretical():
     detector = PricingDriftDetector(threshold=0.05)

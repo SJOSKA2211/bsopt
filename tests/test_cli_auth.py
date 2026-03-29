@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, mock_open, patch
 
 from scripts.auth import AuthManager
 
-
 def test_cli_login():
     with patch("httpx.Client") as mock_client_cls:
         # Setup the mock instance

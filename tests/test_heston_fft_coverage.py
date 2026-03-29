@@ -2,7 +2,6 @@ import pytest
 
 from src.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
-
 def test_heston_params_validation():
     # Correlation OOB
     with pytest.raises(ValueError, match="Correlation must be in"):

@@ -5,7 +5,6 @@ import pytest
 
 from src.shared.config import _DEFAULT_DEV_MFA_KEY, Settings
 
-
 def test_secret_derivation_from_better_auth_secret():
     """Test that secrets are derived deterministically from BETTER_AUTH_SECRET."""
     master_secret = "test-master-secret-at-least-32-chars-long-123"

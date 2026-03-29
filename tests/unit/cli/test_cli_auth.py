@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from scripts.auth import AuthManager
 
-
 @pytest.fixture
 def auth_manager(tmp_path):
     # Mock home directory for token file

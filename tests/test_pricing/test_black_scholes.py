@@ -1,6 +1,5 @@
 from src.quant.pricing.black_scholes import BlackScholesEngine
 
-
 def test_bs_price_call():
     # S=100, K=100, T=1, r=0.05, sigma=0.2
     # Expected ~10.45

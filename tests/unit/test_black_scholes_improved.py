@@ -3,7 +3,6 @@ import pytest
 
 from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
 
-
 @pytest.fixture
 def params():
     return BSParameters(

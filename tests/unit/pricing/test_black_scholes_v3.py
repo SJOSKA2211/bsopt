@@ -2,7 +2,6 @@ import numpy as np
 
 from src.math_kernel.black_scholes import BlackScholesEngine
 
-
 def test_price_options_scalar():
     engine = BlackScholesEngine()
     # Call

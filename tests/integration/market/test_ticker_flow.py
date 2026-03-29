@@ -1,10 +1,8 @@
-
 import pytest
-
+import asyncio
 from src.ingestion.ingestion_service import DataIngestionServicer
-from src.shared.config import settings
 from src.shared.protos import data_pb2
-
+from src.shared.config import settings
 
 @pytest.mark.asyncio
 async def test_ticker_ingestion_integration():

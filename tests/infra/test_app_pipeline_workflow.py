@@ -2,7 +2,6 @@ import os
 
 import yaml
 
-
 def test_app_pipeline_workflow_exists():
     """Verify that the app-pipeline workflow file exists."""
     assert os.path.exists(".github/workflows/app-pipeline.yml")
