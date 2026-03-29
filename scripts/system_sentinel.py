@@ -30,7 +30,7 @@ async def check_redis():
     try:
         import socket
 
-        from src.shared.cache import get_redis
+        from src.shared.utils.cache import get_redis
 
         try:
             socket.gethostbyname("redis")

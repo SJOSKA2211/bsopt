@@ -227,7 +227,7 @@ services:
       - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:3001/health || exit 1" ]
       interval: 10s
@@ -255,7 +255,7 @@ services:
       - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
       - ../../.pki/api.key:/etc/postgresql/api.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     ports:
       - "8000:8000"
     deploy:
@@ -272,6 +272,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
+      - PATH=/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
@@ -298,7 +299,8 @@ services:
     sysctls:
       - net.core.somaxconn=2048
       - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi services.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
+    entrypoint: ["/usr/local/bin/entrypoint-shim.sh"]
+    command: granian --interface asgi api.index:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
 
   # === Portfolio Service ===
   portfolio:
@@ -313,7 +315,7 @@ services:
       - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
       - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     ports:
       - "8003:8000"
     deploy:
@@ -399,7 +401,7 @@ services:
       - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
       - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     command: granian --interface asgi src.ml.serving.serve:app --host 0.0.0.0 --port 5001 --workers 4 --loop uvloop --ws
 
   # === Worker Service ===
@@ -415,7 +417,7 @@ services:
       - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
       - ../../.pki/worker.key:/etc/postgresql/worker.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     ports:
       - "50052:50051" # Changed to avoid collision if run on host
     deploy:
@@ -432,6 +434,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
+      - PATH=/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
@@ -476,7 +479,7 @@ services:
       - ../../.pki/nse-scraper.crt:/etc/postgresql/nse-scraper.crt:ro
       - ../../.pki/nse-scraper.key:/etc/postgresql/nse-scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
@@ -506,7 +509,7 @@ services:
       - ../../.pki/yfinance-scraper.crt:/etc/postgresql/yfinance-scraper.crt:ro
       - ../../.pki/yfinance-scraper.key:/etc/postgresql/yfinance-scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
@@ -535,7 +538,7 @@ services:
       - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
       - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
@@ -566,7 +569,7 @@ services:
       - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
       - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
@@ -642,7 +645,7 @@ services:
       - ../../.pki/test-runner.crt:/etc/postgresql/test-runner.crt:ro
       - ../../.pki/test-runner.key:/etc/postgresql/test-runner.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     depends_on:
       postgres:
         condition: service_healthy
@@ -709,7 +712,7 @@ services:
       - ../../.pki/ray-head.crt:/etc/postgresql/ray-head.crt:ro
       - ../../.pki/ray-head.key:/etc/postgresql/ray-head.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     shm_size: '4gb'
     deploy:
       resources:
@@ -743,7 +746,7 @@ services:
       - ../../.pki/ray-worker-1.crt:/etc/postgresql/ray-worker-1.crt:ro
       - ../../.pki/ray-worker-1.key:/etc/postgresql/ray-worker-1.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     shm_size: '4gb'
     deploy:
       resources:
@@ -772,7 +775,7 @@ services:
       - ../../.pki/rl-training-worker.crt:/etc/postgresql/rl-training-worker.crt:ro
       - ../../.pki/rl-training-worker.key:/etc/postgresql/rl-training-worker.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     shm_size: '4gb'
     deploy:
       resources:
@@ -806,7 +809,7 @@ services:
       - ../../.pki/mlflow.crt:/etc/postgresql/mlflow.crt:ro
       - ../../.pki/mlflow.key:/etc/postgresql/mlflow.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     depends_on:
       postgres:
         condition: service_healthy
@@ -863,7 +866,7 @@ services:
       - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
       - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
 
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
@@ -912,7 +915,7 @@ services:
       - ../../.pki/ingestion-service.crt:/etc/postgresql/ingestion-service.crt:ro
       - ../../.pki/ingestion-service.key:/etc/postgresql/ingestion-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
@@ -941,7 +944,7 @@ services:
       - ../../.pki/transformer.crt:/etc/postgresql/transformer.crt:ro
       - ../../.pki/transformer.key:/etc/postgresql/transformer.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/keys/vault.key:ro
+      - ../../.pki/vault.key:/app/vault.key
     deploy:
       resources:
         limits:
