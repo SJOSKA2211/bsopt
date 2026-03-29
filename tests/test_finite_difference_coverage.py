@@ -3,6 +3,7 @@ import pytest
 from src.quant.pricing.black_scholes import BSParameters
 from src.quant.pricing.finite_difference import CrankNicolsonSolver
 
+
 def test_fdm_call_price():
     params = BSParameters(
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02

@@ -1,5 +1,6 @@
 import yaml
 
+
 def test_ray_shm_size_configured():
     """
     Verifies that shm_size is configured for Ray services in docker-compose.prod.yml.

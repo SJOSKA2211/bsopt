@@ -6,12 +6,12 @@ and Pydantic V2 for request validation.
 """
 
 import re
-from typing import Any
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings
+
 
 class LoginRequest(BaseModel):
     """User login request (Pydantic V2)."""

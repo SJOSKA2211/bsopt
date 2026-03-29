@@ -1,8 +1,8 @@
 import sys
-import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
 # Mock xgboost and dask
 sys.modules["xgboost"] = MagicMock()
@@ -15,6 +15,7 @@ from src.ml.strategies import (
     XGBoostStrategy,
     get_strategy,
 )
+
 
 class TestStrategies:
     def setUp(self):

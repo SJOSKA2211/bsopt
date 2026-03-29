@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+
 def sanitize_path(base_dir: Path, user_path: str) -> Path:
     """
     Sanitized path protection with symlink resolution.

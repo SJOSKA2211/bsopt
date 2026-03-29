@@ -5,6 +5,7 @@ import pytest
 
 from src.ml.trainer import ModelTrainer, PyTorchTrainer
 
+
 @pytest.fixture
 def dummy_data():
     X = np.random.rand(100, 5)

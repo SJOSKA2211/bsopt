@@ -3,7 +3,6 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with High-Performance Database integration and RLS enforcement.
 """
 
-from typing import Any
 from uuid import UUID
 
 import msgspec

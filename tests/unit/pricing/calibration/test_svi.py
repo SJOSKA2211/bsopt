@@ -2,6 +2,7 @@ import numpy as np
 
 from src.math_kernel.calibration.svi_surface import SVISurface
 
+
 class TestSVISurface:
     def test_raw_svi_calculation(self):
         # a=0.04, b=0.1, rho=-0.5, m=0, sigma=0.1

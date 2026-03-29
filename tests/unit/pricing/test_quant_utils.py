@@ -16,6 +16,7 @@ from src.math_kernel.quant_utils import (
     vectorized_newton_raphson_iv_jit,
 )
 
+
 #  ENGINEER: Use small arrays for faster JIT warmup in tests
 @pytest.fixture
 def sample_data():

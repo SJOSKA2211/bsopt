@@ -40,7 +40,6 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-
 @dataclass
 class JWTClaims:
     """Validated JWT claims."""
@@ -59,7 +58,6 @@ class JWTClaims:
     def __post_init__(self):
         if self.roles is None:
             self.roles = []
-
 
 class JWTValidator:
     """
@@ -171,6 +169,24 @@ class JWTValidator:
             return settings.JWT_SECRET
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
+    def _decode_token(self, token: str) -> dict[str, object]:
+        """Decode token without verification (for header inspection)."""
+        return jwt.decode(
+            token,
+            options={"verify_signature": False, "verify_exp": False},
+            algorithms=[
+                "RS256",
+                "RS384",
+                "RS512",
+                "ES256",
+                "ES384",
+                "ES512",
+                "HS256",
+                "HS384",
+                "HS512",
+            ],
+        )
+
     async def validate(self, token: str) -> JWTClaims:
         """
         Validate JWT token and return claims.
@@ -187,8 +203,9 @@ class JWTValidator:
             return cached_claims
 
         try:
-            # 🛡️ Sentinel: Enforce expected algorithm to prevent algorithm confusion attacks
-            algorithm = settings.JWT_ALGORITHM
+            unverified_header = self._decode_token(token)
+            algorithm = unverified_header.get("alg", "RS256")
+
             public_key = self._get_public_key(algorithm)
 
             payload = jwt.decode(
@@ -286,7 +303,6 @@ class JWTValidator:
 
         return token, int(expires_delta.total_seconds())
 
-
 class JWTValidatorMiddleware(BaseHTTPMiddleware):
     """
     ASGI Middleware for JWT validation.
@@ -369,11 +385,9 @@ class JWTValidatorMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
-
 def get_jwt_validator() -> JWTValidator:
     """Get JWT validator instance."""
     return JWTValidator()
-
 
 async def require_auth(request: Request) -> JWTClaims:
     """FastAPI dependency for requiring authentication."""
@@ -388,7 +402,6 @@ async def require_auth(request: Request) -> JWTClaims:
 
     return claims
 
-
 async def require_tier(request: Request, allowed_tiers: list[str]) -> JWTClaims:
     """FastAPI dependency for tier-based access control."""
     claims = await require_auth(request)
@@ -400,7 +413,6 @@ async def require_tier(request: Request, allowed_tiers: list[str]) -> JWTClaims:
         )
 
     return claims
-
 
 async def require_role(request: Request, required_roles: list[str]) -> JWTClaims:
     """FastAPI dependency for role-based access control."""

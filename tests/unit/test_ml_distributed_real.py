@@ -3,6 +3,7 @@ import ray
 
 from src.ml.distributed_training import HAS_RAY_TRAIN, BSOptDistributedTrainer
 
+
 @pytest.fixture(scope="module")
 def ray_init():
     """Initialize Ray for testing."""

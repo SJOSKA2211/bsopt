@@ -5,6 +5,7 @@ import pytest
 
 from src.ingestion.engine import NSEScraper
 
+
 @pytest.mark.asyncio
 async def test_tab_multiplexing_concurrency():
     # Setup Mocks correctly

@@ -4,6 +4,7 @@ import os
 import pytest
 import yaml
 
+
 def test_prometheus_rules_valid_yaml():
     """Verify that Prometheus rules file is valid YAML."""
     path = "src/shared/observability_configs/prometheus_rules.yml"

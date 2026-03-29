@@ -2,7 +2,6 @@
 # Manifold: CORE DEPENDENCIES (v11.1)
 # ==============================================================================
 numpy>=1.26.4,<2.3
-scipy>=1.12.0
 pandas>=2.3.3
 pydantic>=2.7.0
 pydantic-settings>=2.2.1

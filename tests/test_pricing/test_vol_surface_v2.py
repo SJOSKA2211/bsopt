@@ -10,6 +10,7 @@ from src.quant.pricing.vol_surface import (
     VolatilitySurface,
 )
 
+
 def test_svi_model():
     params = SVIParameters(a=0.1, b=0.1, rho=-0.5, m=0.0, sigma=0.1)
     model = SVIModel(params)

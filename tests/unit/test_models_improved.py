@@ -7,6 +7,7 @@ from src.math_kernel.models import (
     global_model_pool,
 )
 
+
 def test_bs_parameters_validation():
     # Valid
     p = BSParameters(spot=100, strike=100, maturity=1, volatility=0.2, rate=0.05)

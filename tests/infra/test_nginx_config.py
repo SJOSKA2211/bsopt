@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+
 def test_nginx_config_syntax():
     # If nginx is installed on the runner, we can check syntax
     try:

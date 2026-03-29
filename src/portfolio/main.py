@@ -20,6 +20,7 @@ except ImportError:
 
 from api.responses import MsgspecJSONResponse
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize components

@@ -53,21 +53,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python for Backend Tests
+        if: matrix.layer == 'backend'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Backend Tests
         if: matrix.layer == 'backend'
         run: |
-          uses: actions/setup-python@v5
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
           pip install .[dev,api,ml]
           pytest tests/unit
+
+      - name: Setup Node for Frontend Tests
+        if: matrix.layer == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Frontend Tests
         if: matrix.layer == 'frontend'
         run: |
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
           cd src/frontend
           npm install
           npm run test

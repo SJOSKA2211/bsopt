@@ -1,6 +1,7 @@
 import subprocess
 from unittest.mock import MagicMock, patch
 
+
 def test_api_container_user():
     """Verify that the API container runs as a non-root user."""
     with patch("subprocess.run") as mock_run:

@@ -8,8 +8,9 @@ import structlog
 from fastapi import WebSocket
 from prometheus_client import REGISTRY, Counter, Gauge  # Import Prometheus client metrics
 
-from .codec import ProtocolType, WebSocketCodec
 from src.shared.config import settings
+
+from .codec import ProtocolType, WebSocketCodec
 
 logger = structlog.get_logger()
 

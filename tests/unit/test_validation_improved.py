@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 
-import numpy as np
-
 from src.ml.utils.validation import WalkForwardValidator
+
 
 class TestValidation:
     def test_expanding_window(self):

@@ -4,6 +4,7 @@ import pytest
 
 from src.ml.celery_app import run_pipeline_task
 
+
 @patch("src.workers.tasks.ml_tasks.MLPipeline")
 def test_run_pipeline_task_success(mock_pipeline_class):
     """Verify that the Celery task runs the pipeline successfully."""

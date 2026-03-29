@@ -1,7 +1,9 @@
+
 import pytest
-import asyncio
+
 from src.ingestion.router import MarketDataRouter
 from src.shared.schemas.market import MarketQuote
+
 
 @pytest.mark.asyncio
 @pytest.mark.integration

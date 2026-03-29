@@ -3,6 +3,7 @@ from unittest.mock import mock_open, patch
 
 from src.shared.dashboard import generate_html_dashboard
 
+
 def test_generate_html_dashboard():
     summary_data = {
         "timestamp": "2023-01-01 12:00:00",

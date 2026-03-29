@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from src.ml.reinforcement_learning.transformer_policy import DecisionTransformer
 from src.ml.trainer_v2 import Trainer
 
+
 def test_decision_transformer_forward():
     model = DecisionTransformer(state_dim=10, act_dim=2, hidden_size=64)
     batch_size = 4

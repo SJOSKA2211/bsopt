@@ -5,6 +5,7 @@ import pytest
 
 from src.ml.scraper import MarketDataScraper
 
+
 @pytest.fixture
 def mock_response():
     mock = MagicMock()

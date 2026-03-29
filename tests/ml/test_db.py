@@ -4,6 +4,7 @@ import pytest
 
 from src.database.models import MarketTick
 
+
 @pytest.fixture
 def mock_engine():
     return MagicMock()

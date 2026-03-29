@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from src.shared.config import DEFAULT_DEV_MFA_KEY, Settings
 
+
 def test_mfa_key_security_dev():
     """Test that default key is allowed in dev environment."""
     settings = Settings(

@@ -5,6 +5,7 @@ import pytest
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
+
 @pytest.fixture
 def mock_config():
     return {

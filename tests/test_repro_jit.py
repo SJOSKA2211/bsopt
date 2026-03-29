@@ -3,6 +3,7 @@ import pytest
 
 from src.shared.math_utils import _vec_price_impl
 
+
 def test_minimal_jit_vec():
     import os
 

@@ -1,14 +1,14 @@
+from typing import dict
+
+import mlflow
 import numpy as np
 import structlog
-import mlflow
 import torch
 import xgboost as xgb
-from pathlib import Path
-from typing import dict, tuple
 from sklearn.model_selection import train_test_split
-from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
+
 from src.ml.models.neural_engine import NeuralPricingEngine
-from src.math_kernel.models import BSParameters
+from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
 
@@ -38,7 +38,7 @@ class ModelTrainer(BaseTrainer):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        with mlflow.start_run(nested=True) as run:
+        with mlflow.start_run(nested=True):
             # Convert config to dict for mlflow logging
             self.log_params(msgspec.json.decode(msgspec.json.encode(config)))
             if metadata:

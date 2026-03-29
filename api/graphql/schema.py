@@ -5,6 +5,7 @@ from strawberry.federation import Schema
 
 from api.graphql.types import OHLCV, MarketData, Option
 
+
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID

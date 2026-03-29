@@ -6,6 +6,7 @@ from qiskit import QuantumCircuit
 
 from src.quant.pricing.quantum_pricing import QuantumOptionPricer
 
+
 class TestQuantumPricing:
     def test_create_stock_price_distribution_structure(self):
         """Verify the output is a QuantumCircuit with correct dimensions."""

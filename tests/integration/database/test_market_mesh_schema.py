@@ -3,6 +3,7 @@ import os
 import psycopg2
 import pytest
 
+
 @pytest.fixture
 def db_connection():
     # Use 127.0.0.1 to avoid IPv6 issues on localhost, match password from docker-compose

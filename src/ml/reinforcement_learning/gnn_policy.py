@@ -8,6 +8,7 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 from torch_geometric.nn import GATConv
 
+
 class GATFeaturesExtractor(BaseFeaturesExtractor):  # type: ignore
     """
     Advanced Graph Attention Network (GAT) Extractor for stable-baselines3.

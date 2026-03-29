@@ -3,6 +3,7 @@ from strawberry.types import ExecutionResult
 
 from src.api.graphql.options import schema
 
+
 @pytest.mark.asyncio
 async def test_options_subgraph_schema_valid():
     """Verify that the schema is valid and can execute a simple query."""

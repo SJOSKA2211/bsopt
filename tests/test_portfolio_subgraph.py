@@ -3,6 +3,7 @@ from strawberry.types import ExecutionResult
 
 from src.portfolio.graphql.schema import schema
 
+
 @pytest.mark.asyncio
 async def test_portfolio_subgraph_schema_valid():
     """Verify that the schema is valid and has federation support."""

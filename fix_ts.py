@@ -5,7 +5,7 @@ for root, _, files in os.walk('src/frontend/src'):
     for f in files:
         if f.endswith(('.ts', '.tsx')):
             path = os.path.join(root, f)
-            with open(path, 'r') as file:
+            with open(path) as file:
                 content = file.read()
             
             # Replacements

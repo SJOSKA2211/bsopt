@@ -5,6 +5,7 @@ import pytest
 from src.math_kernel.models import BSParameters
 from src.math_kernel.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 
+
 @pytest.fixture
 def sample_params():
     return BSParameters(

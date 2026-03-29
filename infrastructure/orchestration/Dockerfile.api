@@ -7,9 +7,8 @@ WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
 COPY infrastructure/requirements/requirements-api.txt /tmp/
-COPY infrastructure/requirements/requirements-ml.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r /tmp/requirements-api.txt -r /tmp/requirements-ml.txt
+    uv pip install -r /tmp/requirements-api.txt
 
 # Copy source + build
 COPY . .
@@ -26,7 +25,7 @@ RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App in editable mode for dev
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-api.txt -r infrastructure/requirements/requirements-ml.txt && \
+    uv pip install -r infrastructure/requirements/requirements-api.txt && \
     uv pip install -e .
 
 # --- FINAL RUNTIME ---
@@ -50,4 +49,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]
+CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]

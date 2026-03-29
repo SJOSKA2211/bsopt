@@ -6,6 +6,7 @@ import pytest
 from src.database import crud
 from src.database.models import User
 
+
 @pytest.mark.asyncio
 async def test_user_crud(mock_db_session):
     # Setup mock_db_session for async operations

@@ -2,9 +2,9 @@ import structlog
 
 from src.config import settings
 from src.ingestion.stealth import default_stealth_client
+from src.shared.schemas.market import MarketQuote
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
-from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger(__name__)
 
@@ -43,7 +43,7 @@ class PolygonProvider:
         prev_close = float(prev_data.get("c", last_price))
         
         change = last_price - prev_close
-        pct_change = (change / prev_close * 100) if prev_close else 0.0
+        (change / prev_close * 100) if prev_close else 0.0
 
         return MarketQuote.from_price_change(
             symbol=symbol,
@@ -105,7 +105,7 @@ class YahooProvider:
                  last_price = prev_close
 
             change = last_price - prev_close
-            pct_change = (change / prev_close * 100) if prev_close else 0.0
+            (change / prev_close * 100) if prev_close else 0.0
 
             return MarketQuote.from_price_change(
                 symbol=symbol,

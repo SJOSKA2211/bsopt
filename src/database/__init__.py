@@ -90,7 +90,7 @@ class DatabaseManager:
         """Attaches Production-grade performance monitoring events to the engine."""
         from src.shared.tracing import get_tracer
 
-        tracer = get_tracer(__name__)
+        get_tracer(__name__)
 
         def _normalize_statement(statement: str) -> str:
             """Simple normalization to group similar queries."""
@@ -263,7 +263,8 @@ def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return db_manager.async_session_factory
 
 # Legacy Lazy Loaders
-from typing import Callable
+from collections.abc import Callable
+
 
 class LazySessionFactory:
     def __init__(self, getter: Callable[[], Any]) -> None:

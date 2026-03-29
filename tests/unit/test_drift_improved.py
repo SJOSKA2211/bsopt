@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.ml.drift import (
     DriftTrigger,
@@ -8,6 +7,7 @@ from src.ml.drift import (
     calculate_ks_test,
     calculate_psi,
 )
+
 
 class TestDrift:
     def test_performance_drift_monitor(self):

@@ -4,6 +4,7 @@ from hypothesis import strategies as st
 
 from src.quant.pricing.models.heston_fft import batch_heston_price_jit
 
+
 @settings(max_examples=200, suppress_health_check=[HealthCheck.too_slow], deadline=1000)
 @given(
     spot=st.floats(min_value=50.0, max_value=150.0),

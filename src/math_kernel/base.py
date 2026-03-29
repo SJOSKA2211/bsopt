@@ -12,6 +12,7 @@ import numpy as np
 
 from src.math_kernel.models import BSParameters, OptionGreeks
 
+
 class PricingStrategy(ABC):
     """Abstract base class for all pricing strategies."""
 

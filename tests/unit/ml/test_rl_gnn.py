@@ -7,6 +7,7 @@ import torch
 from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor, SACGNNPolicy
 from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
+
 @pytest.fixture
 def rl_agent():
     with patch("src.ml.reinforcement_learning.online_agent.TD3") as mock_td3:

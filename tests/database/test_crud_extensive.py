@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from src.database import crud
 from src.database.models import Base, User
 
+
 # Setup in-memory sqlite for fast CRUD testing
 @pytest_asyncio.fixture
 async def db_session():

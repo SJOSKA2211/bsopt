@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.database import AsyncSessionLocal, SessionLocal
 
+
 def get_db_session() -> Session:
     """Creates a new sync database session (use with caution)."""
     return SessionLocal()

@@ -9,6 +9,7 @@ from src.shared.circuit_breaker import (
     InMemoryCircuitBreaker,
 )
 
+
 def test_local_circuit_breaker_flow():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)
 

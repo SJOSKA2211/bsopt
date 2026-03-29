@@ -7,6 +7,7 @@ import pytest
 from src.ml.aiops.remediators import RestartServiceRemediator, RetrainModelRemediator
 from src.ml.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 
+
 @pytest.fixture
 def mock_detector():
     detector = MagicMock()

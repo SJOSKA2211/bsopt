@@ -3,6 +3,7 @@ import numpy as np
 from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.quant.pricing.models import OptionGreeks
 
+
 def test_vectorized_bs_scalar_greeks():
     # Pass scalar inputs to hit line 71 branch (return from OptionGreeks)
     res = VectorizedBlackScholesEngine.calculate_greeks(

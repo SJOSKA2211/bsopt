@@ -4,6 +4,7 @@ Security Vulnerability Functional Tests (Principles 50, 58, 66, 74, 82, 98)
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_security_sql_injection_on_user_id(client):
     """50. Test Security: Check for SQL injection."""

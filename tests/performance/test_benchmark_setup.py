@@ -1,5 +1,6 @@
 import time
 
+
 def test_benchmark_fixture(benchmark):
     """Test that pytest-benchmark is installed and working."""
 

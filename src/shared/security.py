@@ -204,7 +204,6 @@ def opa_authorize(action: str, resource: str):
     """Dependency to enforce OPA authorization."""
 
     async def _authorize(request: Request):
-        import os
 
         from src.shared.config import settings
 

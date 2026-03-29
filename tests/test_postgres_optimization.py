@@ -2,6 +2,7 @@ import subprocess
 
 import pytest
 
+
 def run_command(command):
     """Run a shell command and return the output."""
     result = subprocess.run(command, shell=True, capture_output=True, text=True)

@@ -11,6 +11,7 @@ from typing import Any
 import numpy as np
 import orjson
 
+
 @dataclass
 class Position:
     """Represents an option position in the portfolio."""

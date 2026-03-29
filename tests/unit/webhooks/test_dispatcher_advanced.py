@@ -12,6 +12,7 @@ from src.api.webhooks.dispatcher import (
     _verify_signature,
 )
 
+
 @pytest.mark.asyncio
 async def test_signature_generation_and_verification():
     secret = "super_secret"

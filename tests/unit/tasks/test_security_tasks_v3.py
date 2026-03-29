@@ -4,6 +4,7 @@ import pytest
 
 from src.workers.tasks.security_tasks import rehash_legacy_passwords
 
+
 @pytest.fixture
 def mock_db():
     with patch("src.workers.tasks.security_tasks.get_db_session") as mock:

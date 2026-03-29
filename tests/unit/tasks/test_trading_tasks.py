@@ -6,6 +6,7 @@ from src.workers.tasks.trading_tasks import (
     execute_trade_task,
 )
 
+
 def test_check_risk_limits():
     assert check_risk_limits({"quantity": 10, "limit_price": 100}) is True
     assert check_risk_limits({"quantity": 1000, "limit_price": 200}) is False

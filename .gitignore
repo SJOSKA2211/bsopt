@@ -98,3 +98,4 @@ build/
 node_modules/
 target/
 data/
+*.py

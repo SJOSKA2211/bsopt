@@ -4,6 +4,7 @@ import pytest
 from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 from tests.test_utils import assert_equal
 
+
 def test_zero_maturity():
     # ITM Call
     assert_equal(

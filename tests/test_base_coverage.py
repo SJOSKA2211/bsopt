@@ -8,6 +8,7 @@ from src.quant.pricing.base import (
 )
 from src.quant.pricing.models import BSParameters, OptionGreeks
 
+
 class MockPricingStrategy(PricingStrategy):
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         return 10.0

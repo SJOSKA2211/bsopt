@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from src.workers.tasks.ml_tasks import hyperparameter_search_task, train_model_task
 
+
 @patch("src.workers.tasks.ml_tasks.train")
 def test_train_model_task_success(mock_train):
     mock_train.return_value = {

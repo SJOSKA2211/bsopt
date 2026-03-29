@@ -11,6 +11,7 @@ from typing import Any, Literal
 import msgspec
 from pydantic import BaseModel
 
+
 class OptionGreeksStruct(msgspec.Struct):
     """Zero-copy greeks structure."""
 

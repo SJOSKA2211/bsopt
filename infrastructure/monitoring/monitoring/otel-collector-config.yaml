@@ -24,12 +24,10 @@ exporters:
     endpoint: "0.0.0.0:8889"
     resource_to_telemetry_conversion:
       enabled: true
-  debug:
-    verbosity: basic
-  otlphttp/loki:
-    endpoint: "http://loki:3100/otlp"
-    tls:
-      insecure: true
+  logging:
+    loglevel: info
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
 
 service:
   extensions: [health_check]
@@ -37,8 +35,8 @@ service:
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [prometheus, debug]
+      exporters: [prometheus, logging]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/loki, debug]
+      exporters: [loki, logging]

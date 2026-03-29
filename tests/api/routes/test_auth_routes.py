@@ -1,12 +1,11 @@
 import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-from src.database import get_db
-from src.database.models import User
-from src.auth.auth import auth_service
 from src.auth.passwords import password_service
+from src.database.models import User
 from src.shared.config import settings
 
 client = TestClient(app)

@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from src.database import crud
 from src.database.models import Base, OptionPrice
 
+
 @pytest.fixture(autouse=True)
 def mock_password_service():
     with patch("src.database.crud.password_service") as mock:

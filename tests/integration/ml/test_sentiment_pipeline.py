@@ -1,8 +1,9 @@
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch
+
 from src.ml.sentiment_pipeline import SentimentIngestor
 from src.shared.rabbitmq import get_rabbitmq
+
 
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_real_rabbitmq():
@@ -29,7 +30,7 @@ async def test_sentiment_ingestor_process_real_rabbitmq():
     # without proper port mapping, we ensure the logic is correctly wired.
     
     # Verification of signal publication
-    rmq = get_rabbitmq()
+    get_rabbitmq()
     # (Optional: check if publish_signal was called if we choose to patch the manager)
     # But the goal of Phase 33 is to REMOVE mocks.
     # So we ensure the code doesn't crash and returns gracefully.

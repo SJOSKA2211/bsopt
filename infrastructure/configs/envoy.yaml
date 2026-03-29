@@ -155,9 +155,9 @@ static_resources:
                   circuit_breakers:
                     thresholds:
                     - max_pending_requests: 500
-                      max_requests: 1000
-                      max_connections: 500
-                      max_retries: 5
+                       max_requests: 1000
+                       max_connections: 500
+                       max_retries: 5
               
               # Neural Pricing service
               - match:

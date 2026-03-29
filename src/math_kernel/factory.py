@@ -9,6 +9,7 @@ import structlog
 
 from src.math_kernel.base import BasePricingEngine
 
+
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
 
