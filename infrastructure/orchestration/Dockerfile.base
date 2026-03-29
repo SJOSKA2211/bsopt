@@ -14,7 +14,8 @@ ENV PYTHON_JIT=all \
     PATH="/opt/venv/bin:$PATH"
 
 # System Dependencies & Hardening
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     tini \
@@ -33,7 +34,8 @@ RUN chown -R Manifold:Manifold /app
 FROM runtime AS builder
 
 # Build-time dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
