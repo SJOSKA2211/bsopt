@@ -7,8 +7,9 @@ WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
 COPY infrastructure/requirements/requirements-api.txt /tmp/
+COPY infrastructure/requirements/requirements-ml.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r /tmp/requirements-api.txt
+    uv pip install -r /tmp/requirements-api.txt -r /tmp/requirements-ml.txt
 
 # Copy source + build
 COPY . .
@@ -25,7 +26,7 @@ RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App in editable mode for dev
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-api.txt && \
+    uv pip install -r infrastructure/requirements/requirements-api.txt -r infrastructure/requirements/requirements-ml.txt && \
     uv pip install -e .
 
 # --- FINAL RUNTIME ---
