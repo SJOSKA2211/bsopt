@@ -4,6 +4,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class RiskAttributor:
     """
     Production Greeks Risk Attributor.
@@ -15,23 +16,33 @@ class RiskAttributor:
 
     def aggregate_greeks(self) -> dict[str, float]:
         """Aggregate Delta, Gamma, Vega, Theta across all positions (Multi-Asset aware)."""
-        totals = {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0}
+        tot_delta = 0.0
+        tot_gamma = 0.0
+        tot_vega = 0.0
+        tot_theta = 0.0
+
         for pos in self.portfolio:
             qty = pos.get("quantity", 0)
+            if not qty:
+                continue
 
             # Options have specific Greeks; linear assets (stock/crypto) have Delta=1.0
-            is_option = "type" in pos and pos["type"] in ["CALL", "PUT"]
+            p_type = pos.get("type")
+            if p_type == "CALL" or p_type == "PUT":
+                tot_delta += pos.get("delta", 0.0) * qty
+            else:
+                tot_delta += pos.get("delta", 1.0) * qty
 
-            p_delta = pos.get("delta", 1.0 if not is_option else 0.0)
-            p_gamma = pos.get("gamma", 0.0)
-            p_vega = pos.get("vega", 0.0)
-            p_theta = pos.get("theta", 0.0)
+            tot_gamma += pos.get("gamma", 0.0) * qty
+            tot_vega += pos.get("vega", 0.0) * qty
+            tot_theta += pos.get("theta", 0.0) * qty
 
-            totals["delta"] += p_delta * qty
-            totals["gamma"] += p_gamma * qty
-            totals["vega"] += p_vega * qty
-            totals["theta"] += p_theta * qty
-
+        totals = {
+            "delta": tot_delta,
+            "gamma": tot_gamma,
+            "vega": tot_vega,
+            "theta": tot_theta,
+        }
         logger.info("greeks_aggregated", totals=totals)
         return totals
 
@@ -60,6 +71,7 @@ class RiskAttributor:
             "gamma_impact": gamma_pnl,
             "vega_impact": vega_pnl,
         }
+
 
 class PnLExplainer:
     """
@@ -127,8 +139,8 @@ class PnLExplainer:
                 )
         return cls(data)
 
+
 if __name__ == "__main__":
-    
     Production_portfolio = [
         {
             "symbol": "SPX_260320_C_5200",
