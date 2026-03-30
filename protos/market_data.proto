@@ -6,3 +6,37 @@ message TickerUpdate {
   string symbol = 1;
   double price = 2;
 }
+
+message Tick {
+    string ticker = 1;
+    double price = 2;
+    int64 timestamp = 3;
+    string source = 4;
+}
+
+message TickBatch {
+    repeated Tick ticks = 1;
+}
+
+message IngestRequest {
+    repeated Tick ticks = 1;
+}
+
+message IngestResponse {
+    int32 processed_count = 1;
+}
+
+message HistoryRequest {
+    string ticker = 1;
+    int64 start_time = 2;
+    int64 end_time = 3;
+}
+
+message HistoryResponse {
+    repeated Tick data = 1;
+}
+
+service DataService {
+    rpc IngestTicks(IngestRequest) returns (IngestResponse);
+    rpc GetHistoricalData(HistoryRequest) returns (HistoryResponse);
+}

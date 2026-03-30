@@ -7,7 +7,7 @@ import yfinance as yf
 from aiolimiter import AsyncLimiter
 
 from src.ingestion.discovery import get_sp500_symbols
-from src.shared.protos import data_pb2, data_pb2_grpc
+from src.shared.protos import market_data_pb2, market_data_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
@@ -21,7 +21,7 @@ class YFinanceScraper:
         self.symbols = symbols or []
         self.limiter = AsyncLimiter(max_rate=5, time_period=1.0)
         self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
-        self.data_stub = data_pb2_grpc.DataServiceStub(self.channel)
+        self.data_stub = market_data_pb2_grpc.DataServiceStub(self.channel)
 
     async def run_forever(self, interval: int = 300):
         """
@@ -82,7 +82,7 @@ class YFinanceScraper:
                 sym = batch[0]
                 if not data["Close"].empty:
                     grpc_batch.append(
-                        data_pb2.Tick(
+                        market_data_pb2.Tick(
                             ticker=sym,
                             price=float(data["Close"].iloc[-1]),
                             timestamp=timestamp,
@@ -95,7 +95,7 @@ class YFinanceScraper:
                         sym_data = data[sym]
                         if not sym_data["Close"].empty:
                             grpc_batch.append(
-                                data_pb2.Tick(
+                                market_data_pb2.Tick(
                                     ticker=sym,
                                     price=float(sym_data["Close"].iloc[-1]),
                                     timestamp=timestamp,
@@ -104,7 +104,7 @@ class YFinanceScraper:
                             )
 
             if grpc_batch:
-                await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=grpc_batch))
+                await self.data_stub.IngestTicks(market_data_pb2.TickBatch(ticks=grpc_batch))
                 logger.debug("yfinance_batch_ingested", count=len(grpc_batch))
 
         except Exception as e:

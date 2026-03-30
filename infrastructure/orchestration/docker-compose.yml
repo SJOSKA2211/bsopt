@@ -12,6 +12,7 @@ services:
   # === Database Service ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
+    user: root
     restart: unless-stopped
     command: >
       sh -c "
@@ -30,7 +31,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "127.0.0.1:5434:5432"
+      - "127.0.0.1:5435:5432"
     shm_size: '1gb'
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -46,6 +47,8 @@ services:
       resources:
         limits:
           memory: 4g
+    security_opt:
+      - label:disable
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}" ]
       interval: 10s
@@ -60,6 +63,7 @@ services:
     image: docker.io/edoburu/pgbouncer:latest
     restart: unless-stopped
     environment:
+      LISTEN_PORT: 6432
       AUTH_TYPE: scram-sha-256
       DB_USER: ${POSTGRES_USER:-admin}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
@@ -81,24 +85,27 @@ services:
       CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
       CLIENT_TLS_KEY_FILE: /tmp/pgbouncer.key
     ports:
-      - "127.0.0.1:6433:5432"
+      - "127.0.0.1:6434:6432"
     deploy:
       resources:
         limits:
           memory: 512mb
+    security_opt:
+      - label:disable
     user: root
     entrypoint: >
       sh -c "
       cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
+      chown 70:70 /tmp/pgbouncer.key &&
       chmod 600 /tmp/pgbouncer.key &&
       exec /entrypoint.sh pgbouncer /etc/pgbouncer/pgbouncer.ini
       "
     volumes:
-      - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro
-      - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key.host:ro
-      - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro
+      - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro,Z
+      - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key.host:ro,Z
+      - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro,Z
     healthcheck:
-      test: ["CMD-SHELL", "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-admin}"]
+      test: ["CMD-SHELL", "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 6432 -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -113,14 +120,16 @@ services:
     restart: unless-stopped
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
-      - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro,Z
     deploy:
       resources:
         limits:
           memory: 2.5g
+    security_opt:
+      - label:disable
     sysctls:
       - net.core.somaxconn=1024
     healthcheck:
@@ -139,11 +148,13 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bsopt_admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
+    security_opt:
+      - label:disable
     volumes:
-      - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro,Z
+      - ./definitions.json:/etc/rabbitmq/definitions.json:ro,Z
     deploy:
       resources:
         limits:
@@ -200,6 +211,8 @@ services:
 
   # === Auth Service ===
   auth-service:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.auth-service
@@ -219,15 +232,17 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
       - BSOPT_ALLOW_WEAK_SECRETS=True
       - PYTHONPATH=/app:/app/src/protos
+    security_opt:
+      - label:disable
     command: ["python3", "/app/src/auth/auth_server.py"]
     volumes:
-      - ../../src:/app/src
+      - ../../src:/app/src:rw
       - /app/src/auth/node_modules
       - ../../src/shared/protos:/protos:ro
       - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:3001/health || exit 1" ]
       interval: 10s
@@ -243,19 +258,23 @@ services:
 
   # === API Service ===
   api:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
+    security_opt:
+      - label:disable
     volumes:
-      - ../../src/shared:/app/src/shared
-      - ../../services/api:/app/services/api
-      - ../../pyproject.toml:/app/pyproject.toml
+      - ../../src:/app/src:rw
+      - /app/services/api/node_modules
+      - ../../pyproject.toml:/app/pyproject.toml:ro
       - shared_shm:/dev/shm
       - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
       - ../../.pki/api.key:/etc/postgresql/api.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     ports:
       - "8000:8000"
     deploy:
@@ -304,6 +323,8 @@ services:
 
   # === Portfolio Service ===
   portfolio:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -353,6 +374,8 @@ services:
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -395,8 +418,7 @@ services:
     networks:
       - bsopt-network
     volumes:
-      - ../../src/shared:/app/src/shared
-      - ../../src/ml:/app/src/ml
+      - ../../src:/app/src
       - ../../models:/app/models
       - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
       - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
@@ -406,12 +428,14 @@ services:
 
   # === Worker Service ===
   worker:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../src/shared:/app/src/shared
+      - ../../src:/app/src
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
       - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
@@ -460,26 +484,29 @@ services:
         condition: service_healthy
       ml-inference:
         condition: service_started
-    pull_policy: build
     networks:
       - bsopt-network
     command: celery -A src.workers.tasks.celery_app worker -l info --concurrency=4 --prefetch-multiplier=1
 
   # === NSE Scraper Service ===
   nse-scraper:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: production
+      target: development
+    security_opt:
+      - label:disable
     ports:
       - "8002:8000"
     volumes:
-      - ../../src/shared:/app/src/shared
+      - ../../src:/app/src:rw
       - shared_shm:/dev/shm
       - ../../.pki/nse-scraper.crt:/etc/postgresql/nse-scraper.crt:ro
       - ../../.pki/nse-scraper.key:/etc/postgresql/nse-scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     deploy:
       resources:
         limits:
@@ -498,18 +525,22 @@ services:
 
   # === yfinance Scraper Service ===
   yfinance-scraper:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: production
+      target: development
+    security_opt:
+      - label:disable
     ports:
       - "8004:8000"
     volumes:
-      - ../../src/shared:/app/src/shared
+      - ../../src:/app/src:rw
       - ../../.pki/yfinance-scraper.crt:/etc/postgresql/yfinance-scraper.crt:ro
       - ../../.pki/yfinance-scraper.key:/etc/postgresql/yfinance-scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     deploy:
       resources:
         limits:
@@ -528,17 +559,21 @@ services:
 
   # === Generic Scraper Service ===
   scraper:
+    env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: production
+      target: development
+    security_opt:
+      - label:disable
     volumes:
-      - ../../src/shared:/app/src/shared
+      - ../../src:/app/src:rw
       - shared_shm:/dev/shm
       - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
       - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     deploy:
       resources:
         limits:
@@ -557,6 +592,7 @@ services:
   # === Neural Pricing Service ===
   neural-pricing:
     env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
@@ -564,7 +600,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ../../src/shared:/app/src/shared
+      - ../../src:/app/src
       - shared_shm:/dev/shm
       - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
       - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
@@ -603,6 +639,7 @@ services:
 
     # === App Gateway (Node.js Federation) ===
   frontend:
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
@@ -632,6 +669,7 @@ services:
   # === [Specialized] Test Runner ===
   test-runner:
     profiles: [ "test", "benchmark" ]
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.ci
@@ -663,15 +701,29 @@ services:
     ports:
       - "8545:8545"
       - "8546:8546"
+    command:
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.vhosts=*
+      - --http.api=eth,net,web3
+      - --networkid=1337
+      - --nodiscover
     deploy:
       resources:
         limits:
           memory: 2gb
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --post-data='{\"jsonrpc\":\"2.0\",\"method\":\"net_version\",\"params\":[],\"id\":67}' --header='Content-Type: application/json' --output-document - http://localhost:8545 | grep -q result" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - bsopt-network
 
   blockchain-worker:
     profiles: [ "blockchain" ]
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
@@ -834,6 +886,7 @@ services:
   mlops-worker:
     env_file: ../../.env
     profiles: [ "ml" ]
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.mlops
@@ -871,6 +924,7 @@ services:
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
     profiles: [ "hft" ]
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
@@ -897,10 +951,13 @@ services:
 
   ingestion-service:
     env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
+    security_opt:
+      - label:disable
     ports:
       - "50053:50053"
     environment:
@@ -915,7 +972,7 @@ services:
       - ../../.pki/ingestion-service.crt:/etc/postgresql/ingestion-service.crt:ro
       - ../../.pki/ingestion-service.key:/etc/postgresql/ingestion-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     deploy:
       resources:
         limits:
@@ -927,6 +984,7 @@ services:
 
   transformer:
     env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -953,6 +1011,7 @@ services:
 
   envoy:
     env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.envoy
@@ -1008,6 +1067,7 @@ services:
 
   rust-core:
     env_file: ../../.env
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.rust-core
@@ -1123,6 +1183,8 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
+    security_opt:
+      - label:disable
     volumes:
       - ../monitoring/monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
@@ -1139,6 +1201,7 @@ services:
 
   frontend-test:
     profiles: [ "test" ]
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
@@ -1178,8 +1241,8 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.28.0.0/16
-          gateway: 172.28.0.1
+        - subnet: 172.30.0.0/16
+          gateway: 172.30.0.1
 
 volumes:
   postgres_data:

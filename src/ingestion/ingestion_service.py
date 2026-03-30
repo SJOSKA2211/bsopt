@@ -8,12 +8,12 @@ try:
 except ImportError:
     Manifold_core = None
 
-from src.shared.protos import data_pb2, data_pb2_grpc
+from src.shared.protos import market_data_pb2, market_data_pb2_grpc
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
-class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
+class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
     """
     gRPC Servicer for Centralized Data Ingestion.
     Receives ticks from scrapers and publishes to RabbitMQ.
@@ -66,12 +66,12 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                     rejected=len(request.ticks) - len(batch),
                 )
 
-            return data_pb2.IngestResponse(processed_count=len(batch))
+            return market_data_pb2.IngestResponse(processed_count=len(batch))
         except Exception as e:
             logger.error("ingestion_failed", error=str(e))
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
-            return data_pb2.IngestResponse(processed_count=0)
+            return market_data_pb2.IngestResponse(processed_count=0)
 
     async def GetHistoricalData(self, request, context):
         """
@@ -93,7 +93,7 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                     else int(r["time"])
                 )
                 ticks.append(
-                    data_pb2.Tick(
+                    market_data_pb2.Tick(
                         ticker=r["symbol"],
                         price=float(r["last"]),
                         timestamp=ts,
@@ -101,16 +101,16 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                     )
                 )
 
-            return data_pb2.HistoryResponse(data=ticks)
+            return market_data_pb2.HistoryResponse(data=ticks)
         except Exception as e:
             logger.error("historical_data_fetch_failed", error=str(e))
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
-            return data_pb2.HistoryResponse()
+            return market_data_pb2.HistoryResponse()
 
 async def serve():
     server = grpc.aio.server()
-    data_pb2_grpc.add_DataServiceServicer_to_server(DataIngestionServicer(), server)
+    market_data_pb2_grpc.add_DataServiceServicer_to_server(DataIngestionServicer(), server)
     listen_addr = "[::]:50053"
     server.add_insecure_port(listen_addr)
     logger.info("ingestion_grpc_server_started", addr=listen_addr)

@@ -11,6 +11,38 @@ except ImportError:
     logger.warning("rust_core_not_found_falling_back_to_python")
     RUST_AVAILABLE = False
 
+from src.math_kernel.base import PricingStrategy
+from src.math_kernel.models import BSParameters, OptionGreeks
+
+class RustPricingEngine(PricingStrategy):
+    """
+    Adapter for the high-performance Rust pricing core.
+    Provides a standard PricingStrategy interface.
+    """
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
+        spot = np.atleast_1d(params.spot)
+        strike = np.atleast_1d(params.strike)
+        maturity = np.atleast_1d(params.maturity)
+        volatility = np.atleast_1d(params.volatility)
+        rate = np.atleast_1d(params.rate)
+        dividend = np.atleast_1d(params.dividend)
+        is_call = np.atleast_1d(option_type.lower() == "call")
+        
+        res = price_black_scholes(spot, strike, maturity, volatility, rate, dividend, is_call)
+        return float(res[0])
+
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+        spot = np.atleast_1d(params.spot)
+        strike = np.atleast_1d(params.strike)
+        maturity = np.atleast_1d(params.maturity)
+        volatility = np.atleast_1d(params.volatility)
+        rate = np.atleast_1d(params.rate)
+        dividend = np.atleast_1d(params.dividend)
+        is_call = np.atleast_1d(option_type.lower() == "call")
+        
+        d, g, t, v, r = calculate_greeks(spot, strike, maturity, volatility, rate, dividend, is_call)
+        return OptionGreeks(delta=d[0], gamma=g[0], theta=t[0], vega=v[0], rho=r[0])
+
 def is_available() -> bool:
     """Check if the high-performance Rust core is available."""
     return RUST_AVAILABLE

@@ -24,7 +24,7 @@ from src.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
-from src.shared.protos import data_pb2, data_pb2_grpc
+from src.shared.protos import market_data_pb2, market_data_pb2_grpc
 from src.shared.utils.binary_format import EquaRecord
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
@@ -143,7 +143,7 @@ class NSEScraper:
 
         # gRPC Ingestion Client
         self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
-        self.data_stub = data_pb2_grpc.DataServiceStub(self.channel)
+        self.data_stub = market_data_pb2_grpc.DataServiceStub(self.channel)
 
         # Pre-computed exact-match hash map
         self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
@@ -281,7 +281,7 @@ class NSEScraper:
                         ticks = []
                         for symbol, item in new_cache.items():
                             ticks.append(
-                                data_pb2.Tick(
+                                market_data_pb2.Tick(
                                     ticker=symbol,
                                     price=float(item.get("price", 0)),
                                     timestamp=int(time.time()),
@@ -289,7 +289,7 @@ class NSEScraper:
                                 )
                             )
                         if ticks:
-                            await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=ticks))
+                            await self.data_stub.IngestTicks(market_data_pb2.TickBatch(ticks=ticks))
                             logger.info("nse_ingestion_sent_to_grpc", count=len(ticks))
                     except Exception as e:
                         logger.error("grpc_ingestion_trigger_failed", error=str(e))

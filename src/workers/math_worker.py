@@ -11,7 +11,7 @@ import structlog
 from celery import Celery
 
 from src.config import get_settings
-from src.data.router import MarketDataRouter
+from src.ingestion.router import MarketDataRouter
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
 from src.pricing.calibration.engine import HestonCalibrator

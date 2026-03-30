@@ -67,7 +67,7 @@ issue_cert "rabbitmq" "server"
 issue_cert "minio" "server"
 
 # Client Services
-CLIENT_SERVICES=("api" "auth-service" "worker" "scraper" "neural-pricing" "ray-head")
+CLIENT_SERVICES=("api" "auth-service" "worker" "scraper" "nse-scraper" "yfinance-scraper" "ingestion-service" "neural-pricing" "ray-head")
 for service in "${CLIENT_SERVICES[@]}"; do
     issue_cert "$service" "client"
 done

@@ -6,16 +6,14 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # 1. Detect Container Engine
-if command -v podman &> /dev/null; then
+if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v podman &> /dev/null; then
     COMPOSE_CMD="podman-compose"
-elif command -v docker &> /dev/null; then
-    if docker compose version &> /dev/null; then
-        COMPOSE_CMD="docker compose"
-    else
-        COMPOSE_CMD="docker-compose"
-    fi
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
 else
-    echo "❌ Error: Neither docker nor podman is installed."
+    echo "❌ Error: Neither docker compose, podman, nor docker-compose is installed."
     exit 1
 fi
 
@@ -31,7 +29,7 @@ for ((i=1; i<=RETRIES; i++)); do
     echo "   [Attempt $i/$RETRIES] Checking status..."
     
     # Use pg_isready inside the container which has the correct certs and networking
-    if $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml exec pgbouncer sh -c "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 5432 -U admin" | grep -q "accepting connections"; then
+    if $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml exec pgbouncer sh -c "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 6432 -U admin" | grep -q "accepting connections"; then
         echo "✅ PgBouncer is ACTIVE and accepting connections."
         SUCCESS=1
         break
