@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+
 class TokenData(BaseModel):
     """Standardized Token Data (Pydantic V2)."""
 
@@ -50,6 +51,7 @@ class TokenData(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+
 class TokenPair(BaseModel):
     """Standardized Token Pair (Pydantic V2)."""
 
@@ -58,6 +60,7 @@ class TokenPair(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     requires_mfa: bool = False
+
 
 class AuthService:
     """
@@ -177,6 +180,8 @@ class AuthService:
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
+        now = datetime.now(UTC)
+        expire = now + expires_delta
         to_encode = {
             **data,
             "exp": expire,
@@ -184,10 +189,10 @@ class AuthService:
             "jti": secrets.token_hex(24),
             "iss": "manifold-auth-v2",
         }
-        
+
         # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
         msgspec.json.encode(to_encode)
-        
+
         algorithm = settings.JWT_ALGORITHM
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -195,8 +200,8 @@ class AuthService:
     def decode_token(self, token: str) -> TokenData:
         """Decode and validate a JWT token."""
         try:
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
+            # Enforce the configured algorithm to prevent algorithm confusion attacks
+            algorithm = settings.JWT_ALGORITHM
             key = self._get_key_for_algorithm(algorithm, is_private=False)
             payload = jwt.decode(token, key, algorithms=[algorithm])
 
@@ -362,13 +367,17 @@ class AuthService:
 
         return True
 
+
 # Global instance
 auth_service = AuthService()
+
 
 def get_auth_service() -> AuthService:
     return auth_service
 
+
 # --- FastAPI Dependencies ---
+
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
@@ -376,6 +385,7 @@ async def get_token_from_header(
     if credentials:
         return credentials.credentials
     return None
+
 
 async def get_current_user(
     request: Request,
@@ -410,12 +420,14 @@ async def get_current_user(
     request.state.user = user
     return user
 
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
     return user
+
 
 class RoleChecker:
     def __init__(self, allowed_roles: list[str]):
@@ -429,6 +441,7 @@ class RoleChecker:
         if not set(self.allowed_roles).intersection(user_roles):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
+
 
 async def get_api_key(
     request: Request,
@@ -449,6 +462,7 @@ async def get_api_key(
     await db.commit()
 
     return key_record.user
+
 
 async def get_current_user_flexible(
     request: Request,
