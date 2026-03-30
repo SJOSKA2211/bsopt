@@ -19,7 +19,7 @@ detect_container_engine
 # 2. Configuration
 COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"
 # We target the 'ml' profile services
-ML_SERVICES=("mlflow" "ray-head" "mlops-worker")
+ML_SERVICES=("mlflow" "ray-head" "mlops-worker" "ray-worker-1" "rl-training-worker")
 
 echo "=============================================================================="
 echo "🚀 Launching MLOps Infrastructure Cluster (Profile: ml)"

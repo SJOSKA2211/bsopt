@@ -783,7 +783,13 @@ services:
     profiles: [ "ml" ]
     image: docker.io/rayproject/ray:latest-py312-cpu
     depends_on:
-      - ray-head
+      ray-head:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ray status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
       - RAY_ADDRESS=ray-head:6379
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-worker-1.crt&sslkey=/etc/postgresql/ray-worker-1.key
@@ -812,7 +818,15 @@ services:
     profiles: [ "ml" ]
     image: docker.io/rayproject/ray:latest-py312-cpu
     depends_on:
-      - ray-head
+      mlflow:
+        condition: service_healthy
+      ray-head:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ray status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
       - RAY_ADDRESS=ray-head:6379
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/rl-training-worker.crt&sslkey=/etc/postgresql/rl-training-worker.key
