@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from src.ingestion.ingestion_service import DataIngestionServicer
-from src.shared.protos import data_pb2
+from src.shared.protos import market_data_pb2
 from src.shared.config import settings
 
 @pytest.mark.asyncio
@@ -10,9 +10,9 @@ async def test_ticker_ingestion_integration():
     servicer = DataIngestionServicer()
     symbol = settings.MARKET_TICKER_SYMBOLS[0]
 
-    request = data_pb2.IngestRequest(
+    request = market_data_pb2.IngestRequest(
         ticks=[
-            data_pb2.Tick(ticker=symbol, price=100.5, timestamp=1700000000, source="integration-test")
+            market_data_pb2.Tick(ticker=symbol, price=100.5, timestamp=1700000000, source="integration-test")
         ]
     )
     

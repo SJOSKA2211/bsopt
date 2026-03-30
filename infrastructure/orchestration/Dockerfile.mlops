@@ -4,7 +4,7 @@
 # GPU-optimized ML orchestration powered by Ray and UV.
 # ==============================================================================
 
-FROM docker.io/library/rayproject/ray:latest-py312-cpu AS runtime
+FROM docker.io/rayproject/ray:latest-py312-cpu AS runtime
 WORKDIR /app
 
 # Switch to root for system-level hardening

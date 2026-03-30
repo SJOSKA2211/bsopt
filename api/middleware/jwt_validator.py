@@ -401,26 +401,34 @@ async def require_auth(request: Request) -> JWTClaims:
 
     return claims
 
-async def require_tier(request: Request, allowed_tiers: list[str]) -> JWTClaims:
-    """FastAPI dependency for tier-based access control."""
-    claims = await require_auth(request)
+def require_tier(allowed_tiers: list[str]):
+    """FastAPI dependency factory for tier-based access control."""
 
-    if claims.tier not in allowed_tiers:
-        raise HTTPException(
-            status_code=403,
-            detail="Insufficient subscription tier",
-        )
+    async def _require_tier(request: Request) -> JWTClaims:
+        claims = await require_auth(request)
 
-    return claims
+        if claims.tier not in allowed_tiers:
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient subscription tier",
+            )
 
-async def require_role(request: Request, required_roles: list[str]) -> JWTClaims:
-    """FastAPI dependency for role-based access control."""
-    claims = await require_auth(request)
+        return claims
 
-    if not any(role in claims.roles for role in required_roles):
-        raise HTTPException(
-            status_code=403,
-            detail="Insufficient permissions",
-        )
+    return _require_tier
 
-    return claims
+def require_role(required_roles: list[str]):
+    """FastAPI dependency factory for role-based access control."""
+
+    async def _require_role(request: Request) -> JWTClaims:
+        claims = await require_auth(request)
+
+        if not any(role in claims.roles for role in required_roles):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions",
+            )
+
+        return claims
+
+    return _require_role

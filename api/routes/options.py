@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.responses import MsgspecJSONResponse
-from api.schemas.common import DataResponseStruct
+from api.schemas.common import DataResponse
 from src.auth.auth import get_current_active_user
 from src.database import get_async_db
 from src.database.models import OptionPrice, User
@@ -43,44 +43,44 @@ class OptionChainItem(msgspec.Struct):
     rho: float | None = None
     time: str | None = None
 
-@router.get("/greeks/{symbol}", response_model=DataResponseStruct[dict[str, float]])
+@router.get("/greeks/{symbol}", response_model=DataResponse[dict[str, float]])
 @db_circuit
 async def get_realtime_greeks(
     symbol: str, current_user: User = Depends(get_current_active_user)
-) -> DataResponseStruct[dict[str, float]]:
+) -> DataResponse[dict[str, float]]:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
     if not data:
-        return DataResponseStruct(data={}, message="No live data in manifold", success=False)
-    return DataResponseStruct(data=data)
+        return DataResponse(data={}, message="No live data in manifold", success=False)
+    return DataResponse(data=data)
 
-@router.post("/greeks/batch", response_model=DataResponseStruct[dict[str, dict[str, float]]])
+@router.post("/greeks/batch", response_model=DataResponse[dict[str, dict[str, float]]])
 @db_circuit
 async def get_batch_greeks(
     symbols: list[str], current_user: User = Depends(get_current_active_user)
-) -> DataResponseStruct[dict[str, dict[str, float]]]:
+) -> DataResponse[dict[str, dict[str, float]]]:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}
     for sym in symbols:
         data = _greeks_mesh.read(sym.upper().strip())
         if data:
             results[sym] = data
-    return DataResponseStruct(data=results)
+    return DataResponse(data=results)
 
-@router.get("/chain", response_model=DataResponseStruct[list[OptionChainItem]])
+@router.get("/chain", response_model=DataResponse[list[OptionChainItem]])
 @db_circuit
 async def get_options_chain(
     symbol: str = Query("SPX", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[list[OptionChainItem]]:
+) -> DataResponse[list[OptionChainItem]]:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     from src.shared.config import settings
     
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
-        return DataResponseStruct(data=[], message="Invalid symbol format")
+        return DataResponse(data=[], message="Invalid symbol format")
 
     # 1. Attempt real DB lookup
     try:
@@ -137,7 +137,7 @@ async def get_options_chain(
 
                 enriched_data.append(item)
 
-            return DataResponseStruct(
+            return DataResponse(
                 data=enriched_data,
                 message="Real-time manifold data",
             )
@@ -146,4 +146,4 @@ async def get_options_chain(
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
 
-    return DataResponseStruct(data=[], message="No option chain data found in persistence layer")
+    return DataResponse(data=[], message="No option chain data found in persistence layer")

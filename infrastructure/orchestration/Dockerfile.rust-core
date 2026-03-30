@@ -4,7 +4,7 @@
 # Specialized high-performance math kernel builder.
 # ==============================================================================
 
-FROM docker.io/library/rust:1.75-slim-bookworm AS builder
+FROM docker.io/library/rust:1.80-slim-bookworm AS builder
 WORKDIR /app
 
 # Install build dependencies

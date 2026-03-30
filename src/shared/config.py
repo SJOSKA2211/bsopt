@@ -110,6 +110,10 @@ class Settings(BaseSettings):
     MAX_NET_GAMMA: float = 5000.0
     MAX_NET_VEGA: float = 5000.0
 
+    # Market Data Providers
+    POLYGON_API_KEY: str | None = Field(default=None, validation_alias="POLYGON_API_KEY")
+    ALPHA_VANTAGE_API_KEY: str | None = Field(default=None, validation_alias="ALPHA_VANTAGE_API_KEY")
+
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
     ML_TRAINING_OPTUNA_TRIALS: int = 50

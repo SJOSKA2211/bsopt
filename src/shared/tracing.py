@@ -22,9 +22,24 @@ from typing import Any
 import structlog
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.celery import CeleryInstrumentor
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+try:
+    from opentelemetry.instrumentation.celery import CeleryInstrumentor
+    CELERY_INSTRUMENTATION_AVAILABLE = True
+except ImportError:
+    CELERY_INSTRUMENTATION_AVAILABLE = False
+    logger = structlog.get_logger(__name__)
+    logger.warning("celery_instrumentation_not_available")
+try:
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    FASTAPI_INSTRUMENTATION_AVAILABLE = True
+except ImportError:
+    FASTAPI_INSTRUMENTATION_AVAILABLE = False
+
+try:
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    HTTPX_INSTRUMENTATION_AVAILABLE = True
+except ImportError:
+    HTTPX_INSTRUMENTATION_AVAILABLE = False
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
@@ -32,8 +47,8 @@ from opentelemetry.sdk.trace.export import (
     ConsoleSpanExporter,
 )
 from opentelemetry.sdk.trace.sampling import (
-    AlwaysOffSampler,
-    AlwaysOnSampler,
+    ALWAYS_OFF,
+    ALWAYS_ON,
     ParentBased,
     TraceIdRatioBased,
 )
@@ -83,9 +98,9 @@ def setup_tracing(
     )
 
     if sampling_ratio >= 1.0:
-        sampler = AlwaysOnSampler()
+        sampler = ALWAYS_ON
     elif sampling_ratio <= 0.0:
-        sampler = AlwaysOffSampler()
+        sampler = ALWAYS_OFF
     else:
         sampler = ParentBased(root=TraceIdRatioBased(sampling_ratio))
 
@@ -139,18 +154,24 @@ def instrument_app(
     ]
 
     try:
-        FastAPIInstrumentor.instrument_app(
-            app,
-            excluded_urls=excluded_urls,
-            tracer_provider=trace.get_tracer_provider(),
-        )
-        logger.info("fastapi_instrumented")
+        if FASTAPI_INSTRUMENTATION_AVAILABLE:
+            FastAPIInstrumentor.instrument_app(
+                app,
+                excluded_urls=excluded_urls,
+                tracer_provider=trace.get_tracer_provider(),
+            )
+            logger.info("fastapi_instrumented")
+        else:
+            logger.warning("fastapi_instrumentation_not_available")
     except Exception as e:
         logger.warning("fastapi_instrumentation_failed", error=str(e))
 
     try:
-        HTTPXClientInstrumentor().instrument()
-        logger.info("httpx_instrumented")
+        if HTTPX_INSTRUMENTATION_AVAILABLE:
+            HTTPXClientInstrumentor().instrument()
+            logger.info("httpx_instrumented")
+        else:
+            logger.warning("httpx_instrumentation_not_available")
     except Exception as e:
         logger.warning("httpx_instrumentation_failed", error=str(e))
 
@@ -196,14 +217,15 @@ def instrument_redis(client: Any) -> None:
 
 def instrument_celery() -> None:
     """Instrument Celery worker with OpenTelemetry."""
-    if not settings.ENABLE_TRACING:
+    if not settings.ENABLE_TRACING or not CELERY_INSTRUMENTATION_AVAILABLE:
         return
 
     try:
         CeleryInstrumentor().instrument()
         logger.info("celery_instrumented")
-    except ImportError:
-        logger.warning("celery_instrumentation_not_available")
+    except Exception as e:
+        logger.warning("celery_instrumentation_failed", error=str(e))
+
     except Exception as e:
         logger.warning("celery_instrumentation_failed", error=str(e))
 
@@ -221,6 +243,10 @@ def instrument_ray() -> None:
         logger.warning("ray_instrumentation_not_available")
     except Exception as e:
         logger.warning("ray_instrumentation_failed", error=str(e))
+
+def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
+    """Get a tracer instance from the current provider."""
+    return trace.get_tracer(name, version)
 
 @contextmanager
 def create_span(

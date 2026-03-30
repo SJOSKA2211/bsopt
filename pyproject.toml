@@ -16,6 +16,16 @@ dependencies = [
     "rich>=13.7.1",
     "msgspec>=0.18.6",
     "orjson>=3.10.0",
+    "aio-pika>=9.6.2",
+    "aiolimiter>=1.2.1",
+    "yfinance>=1.2.0",
+    "selectolax>=0.4.7",
+    "beautifulsoup4>=4.14.3",
+    "evidently>=0.7.21",
+    "onnxruntime-gpu>=1.24.4",
+    "scipy>=1.14.1",
+    "numba>=0.64.0",
+    "passlib[argon2]>=1.7.4",
 ]
 
 [project.optional-dependencies]
@@ -183,3 +193,8 @@ skips = ["B101", "B105", "B106", "B108", "B110", "B112", "B311", "B404", "B603",
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "grpcio-tools>=1.78.0",
+]

@@ -5,9 +5,10 @@ from typing import Any
 import pandas as pd
 import structlog
 
-from src.aiops.anomaly_detector import AnomalyDetector
-from src.aiops.prometheus_adapter import PrometheusClient
-from src.aiops.remediators import BaseRemediator, RemediationPlanner
+from src.ml.aiops.anomaly_detector import AnomalyDetector
+from src.ml.aiops.prometheus_adapter import PrometheusClient
+from src.ml.aiops.remediators import BaseRemediator, RemediationPlanner
+from src.ml.aiops.health_reporter import HealthReporter
 from src.ml.drift import calculate_ks_test, calculate_psi
 from src.ml.forecasting.tft_model import PriceTFTModel
 from src.shared.observability import (
@@ -38,7 +39,10 @@ class AutonomousEngine:
         self.config = config or {}
         
         # 1. Detection Core
-        self.detector = detector or AnomalyDetector(engine="isolation_forest")
+        self.detector = detector or AnomalyDetector(
+            engine="transformer", 
+            input_dim=self.config.get("transformer_input_dim", 10)
+        )
         self.remediators = remediators or RemediationPlanner().remediators.values()
         self.planner = RemediationPlanner(list(self.remediators))
         
@@ -72,6 +76,12 @@ class AutonomousEngine:
         
         # 4. Guardian Oversight
         self.guardian = AutonomousGuardian(self)
+
+        # 5. Health Reporting
+        self.health_reporter = HealthReporter(
+            prometheus_url=self.prometheus_url,
+            api_service_name=self.api_service_name
+        ) if self.prometheus_url else None
 
     async def _process_redis_anomalies(self):
         """Polls Redis for externally reported anomalies (e.g. from Webhooks)."""
@@ -110,6 +120,9 @@ class AutonomousEngine:
             
             if self.prometheus_client:
                 tasks.append(self._detect_system_anomalies())
+            
+            if self.health_reporter:
+                tasks.append(self.health_reporter.get_health_report())
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -129,6 +142,12 @@ class AutonomousEngine:
             system_anomalies = []
             if self.prometheus_client:
                 system_anomalies = results[idx] if not isinstance(results[idx], Exception) else []
+                idx += 1
+            
+            if self.health_reporter:
+                health_report = results[idx] if not isinstance(results[idx], Exception) else None
+                if health_report:
+                    logger.info("health_report_status", status=health_report.status)
 
             all_anomalies = external_anomalies + ml_anomalies + drift_anomalies + system_anomalies
 

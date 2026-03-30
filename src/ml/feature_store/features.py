@@ -4,7 +4,8 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
-from src.math_kernel.base import Feature
+from .base import Feature
+
 
 class LogReturnFeature(Feature):
     name: str = "log_return"
@@ -15,12 +16,13 @@ class LogReturnFeature(Feature):
             raise ValueError("Data missing 'close' column for log_return calculation")
         return cast(pd.Series, np.log(data["close"] / data["close"].shift(1)).fillna(0))
 
+
 class NumbaIndicatorFeature(Feature):
     """
     High-Performance: High-performance wrapper for JIT-compiled indicators.
     """
 
-    def __init__(self, name: str, func: Callable, **kwargs: float | int | str) -> None:
+    def __init__(self, name: str, func: Callable[..., Any], **kwargs: float | int | str) -> None:
         self.name = name
         self.func = func
         self.kwargs = kwargs

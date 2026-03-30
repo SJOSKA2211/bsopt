@@ -203,8 +203,16 @@ app.include_router(graphql_app, prefix="/graphql")
 @app.get("/api/v1/health")
 async def health() -> dict[str, Any]:
     from src.database import health_check
+    from src.math_kernel.rust_engine import is_rust_available
 
-    return {"status": "healthy", "database": await health_check()}
+    return {
+        "status": "healthy",
+        "database": await health_check(),
+        "rust_core": {
+            "available": is_rust_available(),
+            "status": "healthy" if is_rust_available() else "unavailable",
+        },
+    }
 
 @app.get("/api/diagnostics/imports")
 async def diagnostics_imports() -> dict[str, bool]:
@@ -221,9 +229,12 @@ async def metrics(request: Request) -> Response:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             from api.responses import MsgspecJSONResponse
-
             return MsgspecJSONResponse(status_code=401, content={"detail": "Not authenticated"})
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    
+    from src.math_kernel.rust_engine import get_rust_metrics
+    python_metrics = generate_latest().decode("utf-8")
+    rust_metrics = get_rust_metrics()
+    return Response(content=f"{python_metrics}\n{rust_metrics}", media_type=CONTENT_TYPE_LATEST)
 
 @app.get("/")
 async def root() -> dict[str, str]:

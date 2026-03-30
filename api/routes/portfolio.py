@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from api.responses import MsgspecJSONResponse
-from api.schemas.common import DataResponseStruct, SuccessResponse
+from api.schemas.common import DataResponse, SuccessResponse
 from src.auth.auth import get_current_active_user
 from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
@@ -109,21 +109,21 @@ async def get_portfolio_summary(
     row = result.fetchone()
 
     if not row:
-        return DataResponseStruct(data={"total_positions": 0, "cash_balance": 0.0})
+        return DataResponse(data={"total_positions": 0, "cash_balance": 0.0})
 
-    return DataResponseStruct(data=dict(row._mapping))
+    return DataResponse(data=dict(row._mapping))
 
 class PositionCreate(msgspec.Struct):
     symbol: str
     quantity: int
     entry_price: float
 
-@router.post("/positions", status_code=201, response_model=DataResponseStruct[dict[str, str]])
+@router.post("/positions", status_code=201, response_model=DataResponse[dict[str, str]])
 async def add_position(
     payload: PositionCreate,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> DataResponseStruct[dict[str, str]]:
+) -> DataResponse[dict[str, str]]:
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
 
@@ -147,7 +147,7 @@ async def add_position(
     await db.commit()
     await db.refresh(new_pos)
 
-    return DataResponseStruct(data={"id": str(new_pos.id)}, message="position_created__tight")
+    return DataResponse(data={"id": str(new_pos.id)}, message="position_created__tight")
 
 @router.delete("/positions/{position_id}")
 async def delete_position(

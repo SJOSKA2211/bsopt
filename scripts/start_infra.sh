@@ -7,7 +7,11 @@ cd "$PROJECT_ROOT"
 
 # 1. Detect Container Engine
 if command -v podman &> /dev/null; then
-    COMPOSE_CMD="podman-compose"
+    if podman compose version &> /dev/null; then
+        COMPOSE_CMD="podman compose"
+    else
+        COMPOSE_CMD="podman-compose"
+    fi
 elif command -v docker &> /dev/null; then
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"

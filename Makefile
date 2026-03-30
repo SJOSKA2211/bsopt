@@ -1,6 +1,6 @@
 # Centralized Makefile for BSOPT (Vercel-ready)
 
-.PHONY: install test lint build dev clean
+.PHONY: install test lint build dev clean scraper-up scraper-status scraper-wait health
 
 install:
 	cd src/frontend && npm install
@@ -25,3 +25,15 @@ build:
 clean:
 	rm -rf src/frontend/dist
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+
+# --- Scraper & Health Revamp ---
+scraper-up:
+	scripts/run_scraper_until_healthy.sh
+
+scraper-status:
+	uv run python scripts/engine_health.py
+
+scraper-wait:
+	uv run python scripts/engine_health.py --wait
+
+health: scraper-status

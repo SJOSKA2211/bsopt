@@ -25,7 +25,7 @@ from api.schemas.auth import (
     RegisterRequest,
     TokenResponse,
 )
-from api.schemas.common import DataResponseStruct, SuccessResponse
+from api.schemas.common import DataResponse, SuccessResponse
 from api.schemas.user import UserResponse
 from src.auth.auth import (
     auth_service,
@@ -46,13 +46,13 @@ router = APIRouter(
     default_response_class=MsgspecJSONResponse,
 )
 
-@router.post("/register", response_model=DataResponseStruct[TokenResponse], status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=DataResponse[TokenResponse], status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[TokenResponse]:
+) -> DataResponse[TokenResponse]:
     """
     Register a new user using High-Performance Native DB procedure.
     """
@@ -87,7 +87,7 @@ async def register(
 
     tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
 
-    return DataResponseStruct(
+    return DataResponse(
         data=TokenResponse(
             user_id=str(user.id),
             email=user.email,
@@ -97,13 +97,13 @@ async def register(
         message="User created in High-Performance (Legacy)",
     )
 
-@router.post("/login", response_model=DataResponseStruct[LoginResponse])
+@router.post("/login", response_model=DataResponse[LoginResponse])
 async def login(
     request: Request,
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[LoginResponse]:
+) -> DataResponse[LoginResponse]:
     """
     Authenticate via Native DB procedure (High Performance).
     """
@@ -127,7 +127,7 @@ async def login(
         await db.commit()
 
         tokens = auth_service.create_token_pair(str(user_id), email, str(tier))
-        return DataResponseStruct(
+        return DataResponse(
             data=LoginResponse(
                 access_token=tokens.access_token,
                 refresh_token=tokens.refresh_token,
@@ -145,11 +145,11 @@ async def login(
         logger.error(f"login_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Authentication failure")
 
-@router.post("/refresh", response_model=DataResponseStruct[TokenResponse])
+@router.post("/refresh", response_model=DataResponse[TokenResponse])
 async def refresh_token(
     data: RefreshTokenRequest,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[TokenResponse]:
+) -> DataResponse[TokenResponse]:
     """
     Refresh access token using a valid refresh token.
     Implements Refresh Token Rotation for enhanced security.
@@ -176,7 +176,7 @@ async def refresh_token(
             token_data.user_id, token_data.email, token_data.tier
         )
 
-        return DataResponseStruct(
+        return DataResponse(
             data=TokenResponse(
                 access_token=new_tokens.access_token,
                 refresh_token=new_tokens.refresh_token,
@@ -196,7 +196,7 @@ async def refresh_token(
 
 @router.get("/me")
 async def read_users_me(user: User = Depends(get_current_active_user)):
-    return DataResponseStruct(data=UserResponse.from_orm(user))
+    return DataResponse(data=UserResponse.from_orm(user))
 
 @router.post("/logout")
 async def logout(
@@ -212,12 +212,12 @@ async def logout(
         await auth_service.invalidate_token(token, request)
     return SuccessResponse(message="Successfully logged out")
 
-@router.post("/mfa/setup", response_model=DataResponseStruct[MFASetupResponse])
+@router.post("/mfa/setup", response_model=DataResponse[MFASetupResponse])
 async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[MFASetupResponse]:
+) -> DataResponse[MFASetupResponse]:
     """
     Initialize MFA setup for the user.
     """
@@ -235,7 +235,7 @@ async def mfa_setup(
     # Generate provisioning URI
     uri = auth_service.get_totp_uri(user.email, plain_secret)
 
-    return DataResponseStruct(
+    return DataResponse(
         data=MFASetupResponse(
             secret=plain_secret,
             provisioning_uri=uri,

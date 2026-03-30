@@ -31,15 +31,15 @@ async def test_pillar_2_pricing():
     """Execute actual multi-engine pricing."""
     print("📈 Pillar 2: Multi-Engine Pricing Core...")
     try:
-        params = BSParameters(S=100.0, K=100.0, T=1.0, sigma=0.2, r=0.05, q=0.0)
+        params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.0)
 
         # Test Standard Engine
         bs_engine = PricingEngineFactory.get_engine("black_scholes")
-        price_bs = bs_engine.price(params)
+        price_bs = bs_engine.price_european(params)
 
         # Test Rust Engine
         rust_engine = PricingEngineFactory.get_engine("rust")
-        price_rust = rust_engine.price(params)
+        price_rust = rust_engine.price_european(params)
 
         logger.info("pricing_engines_verified", bs_price=price_bs, rust_price=price_rust)
         print(f"   ✅ Prices: BS={price_bs:.4f}, Rust={price_rust:.4f}")

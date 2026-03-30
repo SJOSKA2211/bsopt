@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import ssl
 
 import aio_pika
 import asyncpg
@@ -12,11 +13,11 @@ logger = structlog.get_logger(__name__)
 
 # Update to match refactored Envoy/API ports
 SERVICES = {
-    "Envoy Edge": "http://localhost:8080/ready",
+    "Envoy Edge": "http://localhost:8081/ready",
     "Auth Service": "http://localhost:3001/health",
     "API Backend": "http://localhost:8000/health",
     "ML-Inference": "http://localhost:5001/health",
-    "MLflow": "http://localhost:5000/",
+    "MLflow": "http://localhost:5000/api/2.0/mlflow/experiments/list",
 }
 
 async def check_http_service(name: str, url: str) -> bool:
@@ -35,8 +36,14 @@ async def check_http_service(name: str, url: str) -> bool:
             return False
 
 async def check_postgres() -> bool:
-    db_url = os.getenv("DATABASE_URL_LOCAL", "postgresql://admin:password@localhost:5434/bsopt")
+    db_url = os.getenv("DATABASE_URL_LOCAL", "postgresql://admin:password@localhost:6434/bsopt")
     try:
+        # Use sslmode=require for testing connectivity
+        if "?" in db_url:
+            db_url += "&sslmode=require"
+        else:
+            db_url += "?sslmode=require"
+            
         conn = await asyncpg.connect(db_url)
         await conn.execute("SELECT 1")
         await conn.close()
@@ -48,7 +55,10 @@ async def check_postgres() -> bool:
 
 async def check_redis() -> bool:
     try:
-        r = redis.from_url("redis://localhost:6379/0")
+        password = os.getenv("REDIS_PASSWORD")
+        r = redis.from_url(f"redis://:password@localhost:6380/0")
+        if password:
+             r = redis.from_url(f"redis://:{password}@localhost:6380/0")
         await r.ping()
         await r.aclose()
         print(f"✅ {'Redis':15} | CONNECTED")
@@ -60,7 +70,18 @@ async def check_redis() -> bool:
 async def check_rabbitmq() -> bool:
     try:
         # Default dev credentials
-        connection = await aio_pika.connect_robust("amqp://guest:guest@localhost:5672/")
+        rabbitmq_url = os.getenv("RABBITMQ_URL", "amqp://admin:password@localhost:5673//")
+        # Ensure it points to localhost port
+        if "@rabbitmq:" in rabbitmq_url:
+            rabbitmq_url = rabbitmq_url.replace("@rabbitmq:", "@localhost:5673")
+        elif "@localhost:" in rabbitmq_url:
+             # handle existing localhost
+             pass
+        else:
+             # try to force localhost port
+             rabbitmq_url = rabbitmq_url.replace(":5672", ":5673")
+
+        connection = await aio_pika.connect_robust(rabbitmq_url)
         await connection.close()
         print(f"✅ {'RabbitMQ':15} | CONNECTED")
         return True

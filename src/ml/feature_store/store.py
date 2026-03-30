@@ -1,8 +1,8 @@
+import msgspec
 import pandas as pd
 import structlog
 
-from src.math_kernel.base import Feature, FeatureStore
-
+from .base import Feature, FeatureStore
 from .features import EMAFeature, LogReturnFeature, MACDFeature, RSIPeature
 
 logger = structlog.get_logger()

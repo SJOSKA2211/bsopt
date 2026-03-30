@@ -84,7 +84,7 @@ entry_points:
     parameters:
       ticker: {type: string, default: "AAPL"}
       tracking_uri: {type: string, default: "http://mlflow:5000"}
-    command: "python -m src.aiops.drift_detector --ticker {ticker} --tracking_uri {tracking_uri}"
+    command: "python -m src.ml.aiops.drift_detector --ticker {ticker} --tracking_uri {tracking_uri}"
 
   evaluate_challenger:
     parameters:
@@ -116,4 +116,4 @@ entry_points:
   rollback_check:
     parameters:
       model: {type: string, default: "OptionPricingModel_v2"}
-    command: "python src/ml/aiops/backtest_evaluator.py"
+    command: "python -m src.ml.aiops.backtest_evaluator"

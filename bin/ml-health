@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import sys
+import json
+import httpx
+
+def main():
+    parser = argparse.ArgumentParser(description="ML Health CLI Tool")
+    parser.add_argument("--url", default=os.getenv("ML_HEALTH_URL", "http://localhost:8000/ml/health"), help="URL of the ML health endpoint")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON")
+    args = parser.parse_args()
+
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(args.url)
+            response.raise_for_status()
+            report = response.json()
+    except Exception as e:
+        print(f"Error fetching health report: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return
+
+    # Pretty print summary
+    print(f"ML Health Status: {report.get('status', 'unknown').upper()}")
+    print(f"Timestamp: {report.get('timestamp', 'N/A')}")
+    print("-" * 40)
+
+    mlflow = report.get('mlflow', {})
+    print(f"MLflow Status:")
+    print(f"  Stage: {mlflow.get('stage', 'N/A')}")
+    print(f"  Drift Detected: {mlflow.get('drift_detected', 'N/A')}")
+    print(f"  Last Run ID: {mlflow.get('last_run_id', 'N/A')}")
+    print("-" * 40)
+
+    prom = report.get('prometheus', {})
+    print(f"Prometheus Metrics:")
+    print(f"  5xx Error Rate: {prom.get('error_rate_5xx', 0.0):.2%}")
+    print(f"  P95 Latency: {prom.get('p95_latency', 0.0):.2f}ms")
+    print(f"  CPU Usage: {prom.get('cpu_usage', 0.0):.2f}")
+    print(f"  Memory Usage: {prom.get('memory_usage', 0.0) / (1024*1024):.2f} MB")
+    print("-" * 40)
+
+    anomalies = report.get('redis_anomalies', [])
+    if anomalies:
+        print(f"Recent Redis Anomalies ({len(anomalies)}):")
+        for anomaly in anomalies:
+            print(f"  [{anomaly.get('timestamp', 'N/A')}] {anomaly.get('severity', 'N/A').upper()}: {anomaly.get('description', 'N/A')}")
+    else:
+        print("No recent Redis anomalies detected.")
+
+if __name__ == "__main__":
+    main()

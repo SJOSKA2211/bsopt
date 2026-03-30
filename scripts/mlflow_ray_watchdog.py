@@ -25,7 +25,8 @@ class MLflowRayWatchdog:
     def __init__(self, experiment_name: str, check_interval: int = 60):
         self.experiment_name = experiment_name
         self.check_interval = check_interval
-        mlflow.set_tracking_uri(settings.tracking_uri)
+        tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+        mlflow.set_tracking_uri(tracking_uri)
         self._experiment = mlflow.get_experiment_by_name(experiment_name)
         if not self._experiment:
             mlflow.create_experiment(experiment_name)

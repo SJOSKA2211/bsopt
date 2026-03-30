@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM manifold-base:builder AS builder
+FROM localhost/manifold-base:builder AS builder
 WORKDIR /app
 
 # Install App + Dependencies
@@ -18,7 +18,7 @@ COPY . .
 RUN uv pip install .
 
 # --- DEVELOPMENT ---
-FROM manifold-base:builder AS development
+FROM localhost/manifold-base:builder AS development
 WORKDIR /app
 
 # Copy source
@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -e .
 
 # --- PRODUCTION ---
-FROM manifold-base:final AS production
+FROM localhost/manifold-base:final AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the auth builder

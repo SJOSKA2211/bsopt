@@ -4,7 +4,15 @@ set -e
 # RSA Decryption Entrypoint Shim
 # Decrypts environment variables prefixed with ENC_
 
-VAULT_KEY="/app/keys/vault.key"
+VAULT_KEY="/app/vault.key"
+
+# Ensure /opt/venv/bin is in PATH
+export PATH="/opt/venv/bin:$PATH"
+
+# Activate virtual environment if it exists
+if [ -d "/opt/venv" ]; then
+    . /opt/venv/bin/activate
+fi
 
 if [ ! -f "$VAULT_KEY" ]; then
     echo "Error: Vault key not found at $VAULT_KEY" >&2

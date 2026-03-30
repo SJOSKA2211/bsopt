@@ -1,5 +1,7 @@
 import os
 import time
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Any
 
 import requests
@@ -7,9 +9,32 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
-RAY_DASHBOARD_URL = os.getenv("RAY_DASHBOARD_URL", "http://ray-head:8265")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+RAY_DASHBOARD_URL = os.getenv("RAY_DASHBOARD_URL", "http://localhost:8265")
 CHECK_INTERVAL = 30
+HEALTH_PORT = 8080
+
+# Global health status for the HTTP server
+IS_HEALTHY = False
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/health":
+            if IS_HEALTHY:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"OK")
+            else:
+                self.send_response(503)
+                self.end_headers()
+                self.wfile.write(b"Service Degraded")
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        # Silence default HTTP logging to keep logs clean
+        return
 
 class MLflowWatchdog:
     """
@@ -106,15 +131,28 @@ class MLflowWatchdog:
         # Actual execution logic would go here, e.g.:
         # subprocess.run(["ray", "job", "submit", "--entrypoint", entrypoint, ...])
 
+    def start_health_server(self):
+        """Run health server in a background thread."""
+        server = HTTPServer(("0.0.0.0", HEALTH_PORT), HealthHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        logger.info("health_server_started", port=HEALTH_PORT)
+
     def monitor_and_heal(self):
         """Main self-healing loop."""
+        global IS_HEALTHY
         logger.info(
             "mlflow_watchdog_started", tracking_uri=MLFLOW_TRACKING_URI, ray_url=RAY_DASHBOARD_URL
         )
 
+        self.start_health_server()
+
         while True:
             ray_healthy = self.check_ray_health()
             mlflow_healthy = self.check_mlflow_status()
+
+            # Update global health state for the HTTP probe
+            IS_HEALTHY = ray_healthy and mlflow_healthy
 
             if not ray_healthy and self.consecutive_ray_failures >= self.max_ray_failures:
                 logger.error("ray_head_down_critical_alert")

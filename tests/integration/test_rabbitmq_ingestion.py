@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from src.ingestion.ingestion_service import DataIngestionServicer
-from src.shared.protos import data_pb2
+from src.shared.protos import market_data_pb2
 
 @pytest.mark.asyncio
 async def test_ingestion_service_to_rabbitmq():
@@ -16,10 +16,10 @@ async def test_ingestion_service_to_rabbitmq():
         servicer = DataIngestionServicer()
         
         # 2. Mock Request
-        request = data_pb2.IngestRequest(
+        request = market_data_pb2.IngestRequest(
             ticks=[
-                data_pb2.Tick(ticker="AAPL", price=150.0, timestamp=1700000000, source="test"),
-                data_pb2.Tick(ticker="GOOGL", price=2800.0, timestamp=1700000001, source="test"),
+                market_data_pb2.Tick(ticker="AAPL", price=150.0, timestamp=1700000000, source="test"),
+                market_data_pb2.Tick(ticker="GOOGL", price=2800.0, timestamp=1700000001, source="test"),
             ]
         )
         context = MagicMock()
@@ -52,8 +52,8 @@ async def test_ingestion_service_outlier_rejection():
         servicer = DataIngestionServicer()
         
         # First tick to establish baseline
-        request1 = data_pb2.IngestRequest(
-            ticks=[data_pb2.Tick(ticker="AAPL", price=100.0, timestamp=1700000000, source="test")]
+        request1 = market_data_pb2.IngestRequest(
+            ticks=[market_data_pb2.Tick(ticker="AAPL", price=100.0, timestamp=1700000000, source="test")]
         )
         context = MagicMock()
         
@@ -63,8 +63,8 @@ async def test_ingestion_service_outlier_rejection():
             await servicer.IngestTicks(request1, context)
             
             # Second tick is an outlier
-            request2 = data_pb2.IngestRequest(
-                ticks=[data_pb2.Tick(ticker="AAPL", price=500.0, timestamp=1700000005, source="test")]
+            request2 = market_data_pb2.IngestRequest(
+                ticks=[market_data_pb2.Tick(ticker="AAPL", price=500.0, timestamp=1700000005, source="test")]
             )
             mock_core.validate_tick.return_value = False # Rejected by Rust core
             
