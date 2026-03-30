@@ -141,8 +141,9 @@ async def bulk_insert_options(options: list[OptionData]):
     # Options insertion
     pass
 
-async def run_concurrent_ingestion(us_universe: list[str]):
+async def run_concurrent_ingestion(us_universe: list[str], interval: int = 300):
     from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
+    import time
 
     # Discovery if needed
     if not us_universe:
@@ -152,21 +153,35 @@ async def run_concurrent_ingestion(us_universe: list[str]):
     await producer.connect()
 
     try:
-        # Fetch yfinance in batches to avoid OOM and hitting rate limits too hard
-        batch_size = 20
-        for i in range(0, len(us_universe), batch_size):
-            symbols = us_universe[i : i + batch_size]
-            all_ticks = await fetch_yfinance_batch(symbols)
+        while True:
+            start_time = time.time()
+            # Fetch yfinance in batches to avoid OOM and hitting rate limits too hard
+            batch_size = 20
+            for i in range(0, len(us_universe), batch_size):
+                symbols = us_universe[i : i + batch_size]
+                all_ticks = await fetch_yfinance_batch(symbols)
 
-            if all_ticks:
-                # Phase 2: Decouple via RabbitMQ Topic Exchange
-                # We group by symbol for the RabbitMQ payload
-                tick_records = {t.symbol: t.model_dump(mode="json") for t in all_ticks}
-                await producer.produce_market_data(tick_records, routing_key="us.ticks")
-                logger.info("ingestion_published", count=len(all_ticks), batch=i // batch_size)
+                if all_ticks:
+                    # Phase 2: Decouple via RabbitMQ Topic Exchange
+                    # We group by symbol for the RabbitMQ payload
+                    tick_records = {t.symbol: t.model_dump(mode="json") for t in all_ticks}
+                    await producer.produce_market_data(tick_records, routing_key="us.ticks")
+                    logger.info("ingestion_published", count=len(all_ticks), batch=i // batch_size)
 
-            # Rate limiting between batches
-            await asyncio.sleep(1)
+                # Rate limiting between batches
+                await asyncio.sleep(1)
+            
+            # Robust Healthcheck Heartbeat
+            try:
+                with open("/tmp/transformer_heartbeat", "w") as f:
+                    f.write(str(time.time()))
+            except Exception:
+                pass
+
+            duration = time.time() - start_time
+            wait_time = max(0, interval - duration)
+            logger.info("ingestion_loop_complete", duration=duration, next_run_in=wait_time)
+            await asyncio.sleep(wait_time)
 
     finally:
         await producer.close()

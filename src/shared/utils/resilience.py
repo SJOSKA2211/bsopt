@@ -18,10 +18,17 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
-def retry_with_backoff(retries: int = 3, initial_delay: float = 1.0, backoff_factor: float = 2.0, jitter: bool = True):
+def retry_with_backoff(
+    retries: int = 3,
+    initial_delay: float = 1.0,
+    backoff_factor: float = 2.0,
+    jitter: bool = True,
+    exceptions: tuple[type[Exception], ...] = (Exception,),
+):
     """
     Decorator for retrying a function with exponential backoff and optional jitter.
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -29,14 +36,14 @@ def retry_with_backoff(retries: int = 3, initial_delay: float = 1.0, backoff_fac
             for i in range(retries):
                 try:
                     return await func(*args, **kwargs)
-                except Exception as e:
+                except exceptions as e:
                     if i == retries - 1:
                         raise
-                    
+
                     actual_delay = delay
                     if jitter:
                         actual_delay += random.uniform(0, delay * 0.25)
-                    
+
                     logger.warning(
                         "retry_attempt_failed",
                         func=func.__name__,
@@ -47,7 +54,9 @@ def retry_with_backoff(retries: int = 3, initial_delay: float = 1.0, backoff_fac
                     )
                     await asyncio.sleep(actual_delay)
                     delay *= backoff_factor
+
         return wrapper
+
     return decorator
 
 

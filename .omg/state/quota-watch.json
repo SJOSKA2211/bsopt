@@ -1,10 +1,10 @@
 {
   "turn_count": 1,
-  "last_session_id": "720d40e7-f765-4ed0-a528-416000126abe",
-  "last_event_key": "720d40e7-f765-4ed0-a528-416000126abe:transcript:f2cc88ce8b57dac1a2e601146f92c5dee818fae36680ae209ed047e6b3fe0c8a",
-  "last_transcript_hash": "f2cc88ce8b57dac1a2e601146f92c5dee818fae36680ae209ed047e6b3fe0c8a",
+  "last_session_id": "0decb2b8-6b2a-401f-8dec-f06b22b54e05",
+  "last_event_key": "0decb2b8-6b2a-401f-8dec-f06b22b54e05:transcript:5527340f0335d56d40c09417a9b4d2fb7c015aed58bb61e266934eafa70ac391",
+  "last_transcript_hash": "5527340f0335d56d40c09417a9b4d2fb7c015aed58bb61e266934eafa70ac391",
   "last_model": "gemini-3-flash-preview",
-  "last_turn_total_tokens": 87954,
-  "last_session_total_tokens": 4127843,
-  "updated_at": "2026-03-29T16:47:08.194Z"
+  "last_turn_total_tokens": 116973,
+  "last_session_total_tokens": 3096043,
+  "updated_at": "2026-03-30T10:07:28.629Z"
 }

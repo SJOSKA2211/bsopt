@@ -519,6 +519,11 @@ services:
     depends_on:
       - ingestion-service
       - pgbouncer
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
     command: python src/ingestion/engine.py
@@ -553,6 +558,11 @@ services:
     depends_on:
       - ingestion-service
       - pgbouncer
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
     command: python src/ingestion/yfinance_scraper.py
@@ -586,6 +596,11 @@ services:
     depends_on:
       - ingestion-service
       - pgbouncer
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
 
@@ -987,6 +1002,11 @@ services:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
     depends_on:
       - pgbouncer
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/ingestion_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
     volumes:
@@ -1017,13 +1037,18 @@ services:
     depends_on:
       - ingestion-service
       - pgbouncer
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/transformer_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
     volumes:
       - ../../.pki/transformer.crt:/etc/postgresql/transformer.crt:ro
       - ../../.pki/transformer.key:/etc/postgresql/transformer.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../../.pki/vault.key:/app/vault.key:ro
     deploy:
       resources:
         limits:

@@ -8,6 +8,33 @@ use statrs::distribution::{ContinuousCDF, Normal};
 use std::sync::Arc;
 use memmap2::Mmap;
 use std::fs::File;
+use prometheus::{CounterVec, HistogramVec, Gauge, Registry, Opts, HistogramOpts, TextEncoder, Encoder};
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref REGISTRY: Registry = Registry::new();
+
+    pub static ref CALL_COUNTER: CounterVec = CounterVec::new(
+        Opts::new("manifold_call_total", "Total number of function calls"),
+        &["function"]
+    ).unwrap();
+
+    pub static ref LATENCY_HISTOGRAM: HistogramVec = HistogramVec::new(
+        HistogramOpts::new("manifold_latency_seconds", "Function latency in seconds"),
+        &["function"]
+    ).unwrap();
+
+    pub static ref RESOURCE_GAUGE: Gauge = Gauge::new(
+        "manifold_resource_usage",
+        "Current resource usage indicator"
+    ).unwrap();
+}
+
+fn register_metrics() {
+    REGISTRY.register(Box::new(CALL_COUNTER.clone())).ok();
+    REGISTRY.register(Box::new(LATENCY_HISTOGRAM.clone())).ok();
+    REGISTRY.register(Box::new(RESOURCE_GAUGE.clone())).ok();
+}
 
 const INV_365: f64 = 1.0 / 365.0;
 
@@ -26,7 +53,11 @@ fn black_scholes_price(
     q: f64,
     is_call: bool,
 ) -> PyResult<f64> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["black_scholes_price"]).start_timer();
+    CALL_COUNTER.with_label_values(&["black_scholes_price"]).inc();
+    
     if t <= 0.0 {
+        timer.observe_duration();
         return Ok(if is_call { (s - k).max(0.0) } else { (k - s).max(0.0) });
     }
     let norm = get_norm();
@@ -39,6 +70,7 @@ fn black_scholes_price(
     } else {
         k * (-r * t).exp() * norm.cdf(-d2) - s * (-q * t).exp() * norm.cdf(-d1)
     };
+    timer.observe_duration();
     Ok(price)
 }
 
@@ -53,6 +85,9 @@ fn batch_black_scholes<'py>(
     q_arr: PyReadonlyArray1<f64>,
     is_call_arr: PyReadonlyArray1<bool>,
 ) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_black_scholes"]).start_timer();
+    CALL_COUNTER.with_label_values(&["batch_black_scholes"]).inc();
+    
     let s = s_arr.as_array();
     let k = k_arr.as_array();
     let t = t_arr.as_array();
@@ -62,6 +97,7 @@ fn batch_black_scholes<'py>(
     let is_call = is_call_arr.as_array();
 
     let n = s.len();
+    RESOURCE_GAUGE.set(n as f64);
     let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
     
@@ -91,6 +127,7 @@ fn batch_black_scholes<'py>(
         }
     });
 
+    timer.observe_duration();
     Ok(res)
 }
 
@@ -225,6 +262,9 @@ fn batch_heston_price<'py>(
     rho_arr: PyReadonlyArray1<f64>,
     v0_arr: PyReadonlyArray1<f64>,
 ) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_heston_price"]).start_timer();
+    CALL_COUNTER.with_label_values(&["batch_heston_price"]).inc();
+    
     let s = s_arr.as_array();
     let k = k_arr.as_array();
     let t = t_arr.as_array();
@@ -236,6 +276,7 @@ fn batch_heston_price<'py>(
     let v0 = v0_arr.as_array();
 
     let n = s.len();
+    RESOURCE_GAUGE.set(n as f64);
     let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
@@ -243,6 +284,7 @@ fn batch_heston_price<'py>(
         *out = heston_engine::price_heston(s[i], k[i], t[i], r[i], kappa[i], theta[i], sigma[i], rho[i], v0[i]);
     });
 
+    timer.observe_duration();
     Ok(res)
 }
 
@@ -402,6 +444,9 @@ fn simulate_gbm_rk4<'py>(
     dt: f64,
     seed: Option<u64>,
 ) -> PyResult<Bound<'py, PyArray2<f64>>> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["simulate_gbm_rk4"]).start_timer();
+    CALL_COUNTER.with_label_values(&["simulate_gbm_rk4"]).inc();
+    
     use rand::SeedableRng;
     use rand_distr::{Distribution, Normal};
 
@@ -410,6 +455,7 @@ fn simulate_gbm_rk4<'py>(
     let sigma = sigma_arr.as_array();
 
     let n_paths = s0.len();
+    RESOURCE_GAUGE.set(n_paths as f64);
     let n_steps = (t / dt) as usize;
     let sqrt_dt = dt.sqrt();
 
@@ -466,11 +512,22 @@ fn simulate_gbm_rk4<'py>(
         }
     });
 
+    timer.observe_duration();
     Ok(res)
+}
+
+#[pyfunction]
+fn get_manifold_metrics() -> PyResult<String> {
+    let encoder = TextEncoder::new();
+    let metric_families = REGISTRY.gather();
+    let mut buffer = Vec::new();
+    encoder.encode(&metric_families, &mut buffer).unwrap();
+    Ok(String::from_utf8(buffer).unwrap())
 }
 
 #[pymodule]
 fn Manifold_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    register_metrics();
     m.add_class::<TickDataBuffer>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
@@ -478,5 +535,6 @@ fn Manifold_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
     m.add_function(wrap_pyfunction!(simulate_gbm_rk4, m)?)?;
+    m.add_function(wrap_pyfunction!(get_manifold_metrics, m)?)?;
     Ok(())
 }

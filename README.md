@@ -67,6 +67,13 @@ The platform has reached its definitive state through a comprehensive hardening 
 - **Persistence Layer**: Optimized Redis configuration with AOF persistence, lazy-free eviction, and scaled connection pooling (100+).
 - **Automated Dashboards**: Grafana datasource provisioning for Prometheus and Loki, ensuring immediate visibility into the manifold's health.
 
+### Observability & Health
+The BS-OPT platform provides comprehensive health and performance monitoring:
+- **Health Endpoint**: `/health` (and `/api/v1/health`) provides real-time status of the API, Database, and Rust Core Engine.
+- **Metrics Endpoint**: `/metrics` exposes Prometheus-formatted metrics, including Python system metrics and high-performance Rust telemetry.
+- **Rust Telemetry**: Integrated Prometheus instrumentation within the Rust core for sub-microsecond latency tracking and throughput monitoring.
+- **Health Utility**: A CLI utility `scripts/report_health.py` is available to scrape and summarize the platform's health and metrics.
+
 ## 🛠️ Prerequisites & Toolchains
 The BS-OPT platform requires several low-level toolchains for its "Hardware-Fluid" features:
 - **LLVM/Clang**: For compiling eBPF/XDP filters.

@@ -20,7 +20,7 @@ market_router_engine = MarketDataRouter()
 
 # We use the TickerSchema from src.shared.schemas.market
 
-@router.get("/tickers", response_model=List[TickerSchema])
+@router.get("/tickers")
 async def get_tickers(current_user: User = Depends(get_current_active_user)):
     """
     Fetch live tickers for the global tape.

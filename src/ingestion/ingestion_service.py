@@ -115,6 +115,19 @@ async def serve():
     server.add_insecure_port(listen_addr)
     logger.info("ingestion_grpc_server_started", addr=listen_addr)
     await server.start()
+
+    # Heartbeat task
+    async def heartbeat():
+        import time
+        while True:
+            try:
+                with open("/tmp/ingestion_heartbeat", "w") as f:
+                    f.write(str(time.time()))
+            except Exception:
+                pass
+            await asyncio.sleep(30)
+
+    asyncio.create_task(heartbeat())
     await server.wait_for_termination()
 
 if __name__ == "__main__":

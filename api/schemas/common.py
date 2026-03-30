@@ -6,17 +6,17 @@ and Pydantic V2 for request validation and complex logic.
 """
 
 from datetime import datetime
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
-class DataResponseStruct(msgspec.Struct, frozen=True):
+class DataResponseStruct(msgspec.Struct, Generic[T], frozen=True):
     """OPTIMIZED: Zero-copy response wrapper (msgspec)."""
 
-    data: Any
+    data: T
     success: bool = True
     message: str | None = None
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
@@ -31,10 +31,10 @@ class PaginationMetaStruct(msgspec.Struct, frozen=True):
     has_next: bool
     has_prev: bool
 
-class PaginatedResponseStruct(msgspec.Struct, frozen=True):
+class PaginatedResponseStruct(msgspec.Struct, Generic[T], frozen=True):
     """OPTIMIZED: Paginated response wrapper (msgspec)."""
 
-    items: list[Any]
+    items: list[T]
     pagination: PaginationMetaStruct
 
 class ErrorDetail(BaseModel):

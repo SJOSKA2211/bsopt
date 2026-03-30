@@ -20,7 +20,7 @@ class YFinanceScraper:
     def __init__(self, symbols: list[str] = None):
         self.symbols = symbols or []
         self.limiter = AsyncLimiter(max_rate=5, time_period=1.0)
-        self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
+        self.channel = grpc.aio.insecure_channel("localhost:50053")
         self.data_stub = market_data_pb2_grpc.DataServiceStub(self.channel)
 
     async def run_forever(self, interval: int = 300):
@@ -39,6 +39,13 @@ class YFinanceScraper:
                 await self.scrape_universe()
                 duration = time.time() - start_time
                 logger.info("yfinance_universe_scrape_complete", duration=duration)
+
+                # Robust Healthcheck Heartbeat
+                try:
+                    with open("/tmp/scraper_heartbeat", "w") as f:
+                        f.write(str(time.time()))
+                except Exception:
+                    pass
 
                 wait_time = max(0, interval - duration)
                 await asyncio.sleep(wait_time)

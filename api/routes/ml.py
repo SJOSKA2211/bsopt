@@ -10,9 +10,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.responses import MsgspecJSONResponse
-from api.schemas.common import DataResponseStruct
+from api.schemas.common import DataResponse
 from api.schemas.ml import ComparisonMetrics, DriftMetricsResponse, InferenceRequest, InferenceResponse
-from src.auth.auth import get_current_active_user, require_tier
+from api.middleware.jwt_validator import require_tier
+from src.auth.auth import get_current_active_user
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
 from src.database.models import User
@@ -24,11 +25,11 @@ router = APIRouter(
 )
 logger = structlog.get_logger(__name__)
 
-@router.get("/comparison", response_model=DataResponseStruct[ComparisonMetrics])
+@router.get("/comparison", response_model=DataResponse[ComparisonMetrics])
 async def get_ml_comparison(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct[ComparisonMetrics]:
+) -> DataResponse[ComparisonMetrics]:
     """
     Fetch Production AI vs Human performance comparison.
     OPTIMIZED: Aggregates real metrics from the persistence layer.
@@ -36,7 +37,7 @@ async def get_ml_comparison(
     from src.database.crud import get_ml_comparison_stats
 
     stats = await get_ml_comparison_stats(db, current_user.id)
-    return DataResponseStruct(data=ComparisonMetrics(**stats))
+    return DataResponse(data=ComparisonMetrics(**stats))
 
 @router.post("/predict", response_model=None)
 @ml_client_circuit
@@ -46,18 +47,18 @@ async def predict(
     model_type: str = "xgb",
     current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponseStruct[InferenceResponse]:
+) -> DataResponse[InferenceResponse]:
     """Predict option price using ML models."""
-    return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
+    return DataResponse(data=await ml_service.predict(request, model_type, symbol))
 
-@router.get("/predictions", response_model=DataResponseStruct[InferenceResponse])
+@router.get("/predictions", response_model=DataResponse[InferenceResponse])
 @ml_client_circuit
 async def get_predictions(
     symbol: str | None = None,
     model_type: str = "xgb",
     current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponseStruct[InferenceResponse]:
+) -> DataResponse[InferenceResponse]:
     """
     Convenience endpoint for the frontend dashboard.
     """
@@ -69,7 +70,7 @@ async def get_predictions(
 
     symbol = sanitize_alphanumeric(symbol.strip().upper())
     if not symbol or len(symbol) > 10:
-        return DataResponseStruct(data=None, message="Invalid symbol")
+        return DataResponse(data=None, message="Invalid symbol")
 
     base_price = 100.0
     req = InferenceRequest(
@@ -83,24 +84,24 @@ async def get_predictions(
         days_to_expiry=365.0,
         implied_volatility=0.2,
     )
-    return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
+    return DataResponse(data=await ml_service.predict(req, model_type, symbol))
 
 @router.get(
     "/drift-metrics",
-    response_model=DataResponseStruct[DriftMetricsResponse],
+    response_model=DataResponse[DriftMetricsResponse],
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
-) -> DataResponseStruct[DriftMetricsResponse]:
+) -> DataResponse[DriftMetricsResponse]:
     """Fetch model performance metrics (Async Optimized)."""
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
-    return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))
+    return DataResponse(data=DriftMetricsResponse(metrics=metrics))
 
 @router.post(
     "/retrain",
-    response_model=DataResponseStruct[dict[str, str]],
+    response_model=DataResponse[dict[str, str]],
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def trigger_retraining(
@@ -108,7 +109,7 @@ async def trigger_retraining(
     force: bool = False,
     threshold: int = 50000,
     mode: str = "regressor",
-) -> DataResponseStruct[dict[str, str]]:
+) -> DataResponse[dict[str, str]]:
     """
     Trigger model retraining.
     Modes: 'regressor' (single ticker), 'cross_sectional' (entire universe).
@@ -123,7 +124,7 @@ async def trigger_retraining(
     task = check_threshold_and_retrain_task.delay(
         ticker=ticker, force=force, threshold=threshold, mode=mode
     )
-    return DataResponseStruct(
+    return DataResponse(
         data={"task_id": task.id, "status": "dispatched", "mode": mode},
         message=f"Retraining task ({mode}) dispatched to background worker",
     )

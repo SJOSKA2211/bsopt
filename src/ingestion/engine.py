@@ -142,7 +142,7 @@ class NSEScraper:
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
 
         # gRPC Ingestion Client
-        self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
+        self.channel = grpc.aio.insecure_channel("localhost:50053")
         self.data_stub = market_data_pb2_grpc.DataServiceStub(self.channel)
 
         # Pre-computed exact-match hash map

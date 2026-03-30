@@ -194,7 +194,15 @@ class AnomalyDetector:
                     loss.backward()
                     self.optimizer.step()
                     mlflow.log_metric("transformer_loss", loss.item(), step=epoch)
+                
+                # Calculate threshold (95th percentile)
                 self.model.eval()
+                with torch.no_grad():
+                    recon = self.model(tensor_data)
+                    # errors: (Batch,)
+                    errors = torch.mean((recon - tensor_data) ** 2, dim=(1, 2)).cpu().numpy()
+                    self.threshold = np.percentile(errors, 95)
+                    mlflow.log_metric("transformer_threshold", self.threshold)
 
         self.is_fitted = True
         logger.info("anomaly_detector_trained", engine=self.engine, samples=len(features))
@@ -238,7 +246,7 @@ class AnomalyDetector:
         elif self.engine == "autoencoder":
             self.model.eval()
             tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
-            with torch.no_grad():
+            with torch.inference_mode():
                 recon, _, _ = self.model(tensor_data)
                 errors = torch.mean((recon - tensor_data) ** 2, dim=1).cpu().numpy()
                 indices = np.where(errors > self.threshold)[0]
@@ -256,20 +264,29 @@ class AnomalyDetector:
             tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
             if tensor_data.dim() == 2:
                 tensor_data = tensor_data.unsqueeze(0)
-            with torch.no_grad():
+            
+            with torch.inference_mode():
                 recon = self.model(tensor_data)
-                per_feature_loss = torch.mean((recon - tensor_data) ** 2, dim=(0, 1))
-                total_loss = float(per_feature_loss.mean().item())
-                if self.threshold is not None and total_loss > self.threshold:
-                    culprit_idx = int(torch.argmax(per_feature_loss).item())
-                    anomalies.append(
-                        {
-                            "is_anomaly": True,
-                            "score": total_loss,
-                            "culprit_index": culprit_idx,
-                            "type": "sequence_anomaly",
-                        }
-                    )
+                # errors: (Batch,)
+                errors = torch.mean((recon - tensor_data) ** 2, dim=(1, 2)).cpu().numpy()
+                
+                for i, error in enumerate(errors):
+                    if self.threshold is not None and error > self.threshold:
+                        # Find culprit feature for this specific sample
+                        sample_recon = recon[i]
+                        sample_data = tensor_data[i]
+                        per_feature_error = torch.mean((sample_recon - sample_data) ** 2, dim=0)
+                        culprit_idx = int(torch.argmax(per_feature_error).item())
+                        
+                        anomalies.append(
+                            {
+                                "index": i,
+                                "is_anomaly": True,
+                                "score": float(error),
+                                "culprit_index": culprit_idx,
+                                "type": "sequence_anomaly",
+                            }
+                        )
 
         return anomalies
 

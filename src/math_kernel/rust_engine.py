@@ -183,3 +183,12 @@ def simulate_gbm_rk4(
         float(dt),
         seed
     )
+
+def get_rust_metrics() -> str:
+    """Expose Rust core Prometheus metrics to the Python bridge."""
+    if not RUST_AVAILABLE:
+        return ""
+    try:
+        return Manifold_core.get_manifold_metrics()
+    except Exception as e:
+        return f"# Error collecting Rust metrics: {str(e)}\n"

@@ -10,19 +10,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import (
+    DataResponse,
     DataResponseStruct,
+    PaginatedResponse,
     PaginatedResponseStruct,
     PaginationMetaStruct,
     SuccessResponse,
 )
 from api.schemas.user import UserResponse, UserUpdateRequest
-from src.auth.auth import get_current_user, require_tier
+from api.middleware.jwt_validator import require_tier
+from src.auth.auth import get_current_user
 from src.database import get_async_db, set_user_context
 from src.database.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"], default_response_class=MsgspecJSONResponse)
 
-@router.get("/me")
+@router.get("/me", response_model=DataResponse[UserResponse])
 async def get_current_user_profile(user: User = Depends(get_current_user)):
     """
     Fetch the authenticated user's profile.
@@ -56,7 +59,7 @@ async def update_current_user_profile(
 
 @router.get(
     "",
-    response_model=None,
+    response_model=PaginatedResponse[UserResponse],
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def list_users(

@@ -8,7 +8,7 @@ from api.exceptions import (
 )
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import DataResponse, ErrorResponse
-from src.auth.auth import require_tier
+from api.middleware.jwt_validator import require_tier
 from src.database import get_async_db, health_check
 
 router = APIRouter(
