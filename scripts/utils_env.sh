@@ -37,9 +37,23 @@ load_decrypted_secrets() {
 
 # Detect container engine
 detect_container_engine() {
-    if command -v podman >/dev/null 2>&1; then
+    # 1. Host-land rootless podman (Silverblue/Toolbox)
+    if command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host systemctl --user is-active podman.socket >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="flatpak-spawn --host podman"
+        export COMPOSE_ENGINE="flatpak-spawn --host env DOCKER_HOST=unix:///run/user/1000/podman/podman.sock podman compose"
+    # 2. Native podman-compose (Python-based, better in toolboxes)
+    elif command -v podman-compose >/dev/null 2>&1; then
         export CONTAINER_ENGINE="podman"
-        export COMPOSE_ENGINE="podman compose"
+        export COMPOSE_ENGINE="podman-compose"
+    # 3. Standard podman compose plugin
+    elif command -v podman >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="podman"
+        if podman compose version >/dev/null 2>&1; then
+            export COMPOSE_ENGINE="podman compose"
+        else
+            export COMPOSE_ENGINE="podman-compose"
+        fi
+    # 4. Docker
     elif command -v docker >/dev/null 2>&1; then
         export CONTAINER_ENGINE="docker"
         if docker compose version >/dev/null 2>&1; then

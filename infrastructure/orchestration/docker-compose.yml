@@ -897,8 +897,10 @@ services:
           memory: 4gb
           cpus: '4'
     depends_on:
-      - mlflow
-      - ray-head
+      mlflow:
+        condition: service_healthy
+      ray-head:
+        condition: service_healthy
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
@@ -911,6 +913,11 @@ services:
       - MLFLOW_S3_UPLOAD_CONCURRENCY=5
       - MLFLOW_S3_DOWNLOAD_CONCURRENCY=5
     command: ["mlflow", "run", ".", "--entry-point", "watchdog", "--env-manager", "local"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
     volumes:
