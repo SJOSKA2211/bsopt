@@ -4,6 +4,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class RiskAttributor:
     """
     Production Greeks Risk Attributor.
@@ -15,23 +16,39 @@ class RiskAttributor:
 
     def aggregate_greeks(self) -> dict[str, float]:
         """Aggregate Delta, Gamma, Vega, Theta across all positions (Multi-Asset aware)."""
-        totals = {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0}
+        # Bolt Performance Optimization: Accumulate values in local variables and separate
+        # conditional logic branches to minimize dictionary lookups and membership checks
+        # inside the high-frequency loop. Reduces execution time significantly.
+        delta_total = 0.0
+        gamma_total = 0.0
+        vega_total = 0.0
+        theta_total = 0.0
+
         for pos in self.portfolio:
             qty = pos.get("quantity", 0)
+            if not qty:
+                continue
+
+            pos_type = pos.get("type", "")
 
             # Options have specific Greeks; linear assets (stock/crypto) have Delta=1.0
-            is_option = "type" in pos and pos["type"] in ["CALL", "PUT"]
+            if pos_type == "CALL" or pos_type == "PUT":
+                delta_total += pos.get("delta", 0.0) * qty
+                gamma_total += pos.get("gamma", 0.0) * qty
+                vega_total += pos.get("vega", 0.0) * qty
+                theta_total += pos.get("theta", 0.0) * qty
+            else:
+                delta_total += pos.get("delta", 1.0) * qty
+                gamma_total += pos.get("gamma", 0.0) * qty
+                vega_total += pos.get("vega", 0.0) * qty
+                theta_total += pos.get("theta", 0.0) * qty
 
-            p_delta = pos.get("delta", 1.0 if not is_option else 0.0)
-            p_gamma = pos.get("gamma", 0.0)
-            p_vega = pos.get("vega", 0.0)
-            p_theta = pos.get("theta", 0.0)
-
-            totals["delta"] += p_delta * qty
-            totals["gamma"] += p_gamma * qty
-            totals["vega"] += p_vega * qty
-            totals["theta"] += p_theta * qty
-
+        totals = {
+            "delta": delta_total,
+            "gamma": gamma_total,
+            "vega": vega_total,
+            "theta": theta_total,
+        }
         logger.info("greeks_aggregated", totals=totals)
         return totals
 
@@ -60,6 +77,7 @@ class RiskAttributor:
             "gamma_impact": gamma_pnl,
             "vega_impact": vega_pnl,
         }
+
 
 class PnLExplainer:
     """
@@ -127,8 +145,8 @@ class PnLExplainer:
                 )
         return cls(data)
 
+
 if __name__ == "__main__":
-    
     Production_portfolio = [
         {
             "symbol": "SPX_260320_C_5200",
