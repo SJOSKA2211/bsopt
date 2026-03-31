@@ -5,7 +5,7 @@ set -euo pipefail
 # Function to load decrypted secrets from the hardened PKI vault
 load_decrypted_secrets() {
     local ENV_FILE=".env"
-    local vault_key=".pki/vault/vault.key"
+    local vault_key=".pki/vault.key"
     
     if [ ! -f "$ENV_FILE" ]; then
         echo "🟠 No .env file found. Proceeding with system environment."

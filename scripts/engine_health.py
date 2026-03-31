@@ -77,6 +77,13 @@ def generate_table(health_data):
     return table, all_healthy
 
 async def main():
+    if "--simulate" in sys.argv:
+        console.print(Panel("[bold green]✅ SIMULATED: All systems are GO! Engine is healthy.[/bold green]"))
+        health_data = {k: ("healthy", "Simulated Operational") for k in SERVICES.keys()}
+        table, _ = generate_table(health_data)
+        console.print(table)
+        return
+
     if len(sys.argv) > 1 and sys.argv[1] == "--wait":
         with Progress(
             SpinnerColumn(),

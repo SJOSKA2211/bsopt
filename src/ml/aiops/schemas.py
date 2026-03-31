@@ -11,6 +11,7 @@ class PrometheusMetrics(msgspec.Struct):
     p95_latency: float
     cpu_usage: float
     memory_usage: float
+    request_count: int
 
 class RedisAnomaly(msgspec.Struct):
     timestamp: str
@@ -35,6 +36,43 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+class NeuralPricingStatus(msgspec.Struct):
+    reachable: bool
+    model_loaded: bool
+    avg_latency_ms: float
+    requests_per_sec: float
+
+class MathKernelStatus(msgspec.Struct):
+    reachable: bool
+    avg_latency_ms: float
+    requests_per_sec: float
+    error_rate: float
+
+class PortfolioStatus(msgspec.Struct):
+    reachable: bool
+    positions_count: int
+    net_delta: float
+    total_vega: float
+    total_gamma: float
+
+class IngestionStatus(msgspec.Struct):
+    reachable: bool
+    heartbeat_age: float
+    ticks_per_second: float
+    rejection_rate: float
+
+class AuthStatus(msgspec.Struct):
+    reachable: bool
+    p95_latency: float
+    auth_success_rate: float
+    active_tokens: int
+
+class APIStatus(msgspec.Struct):
+    reachable: bool
+    p95_latency: float
+    error_rate_5xx: float
+    request_count: int
+
 class RemediationStatus(msgspec.Struct):
     name: str
     status: str  # idle, cooldown, active
@@ -53,6 +91,12 @@ class MLHealthReport(msgspec.Struct):
     rabbitmq: RabbitMQStatus
     redis: RedisStatus
     postgres: PostgresStatus
+    api: APIStatus
+    auth: AuthStatus
+    ingestion: IngestionStatus
+    portfolio: PortfolioStatus
+    quant: MathKernelStatus
+    neural_pricing: NeuralPricingStatus
     remediations: List[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

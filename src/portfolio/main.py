@@ -9,6 +9,8 @@ from strawberry.fastapi import GraphQLRouter
 from src.portfolio.graphql.schema import schema
 from src.shared.observability import logging_middleware, setup_logging, tune_gc
 from src.shared.security import opa_authorize, verify_mtls
+from prometheus_fastapi_instrumentator import Instrumentator
+from src.portfolio.health import get_portfolio_health
 
 # Optimized event loop
 try:
@@ -48,6 +50,9 @@ app = FastAPI(
     lifespan=lifespan,
     default_response_class=MsgspecJSONResponse,
 )
+
+# Instrument for Prometheus
+Instrumentator().instrument(app).expose(app)
 app.middleware("http")(logging_middleware)
 
 # Standardized Error Handling
@@ -67,8 +72,21 @@ security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "portfolio"
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
-@app.get("/health")
-async def health() -> dict[str, Any]:
-    from src.database import health_check
+@app.get("/health/liveness")
+async def liveness():
+    """Basic process check."""
+    return {"status": "alive"}
 
-    return {"status": "healthy", "database": health_check()}
+@app.get("/health/readiness")
+async def readiness():
+    """Deep check for database, redis, and risk engine sanity."""
+    health_data = await get_portfolio_health()
+    if health_data["status"] != "healthy":
+        from fastapi import Response
+        return Response(content=str(health_data), status_code=503)
+    return health_data
+
+@app.get("/health")
+async def legacy_health():
+    """Backward compatibility health endpoint."""
+    return await get_portfolio_health()

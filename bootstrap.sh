@@ -116,14 +116,14 @@ set_env_var() {
 
 encrypt_secret() {
     local val=$1
-    echo -n "$val" | openssl pkeyutl -encrypt -pubin -inkey "${KEYS_DIR}/vault/vault.pub" | base64 | tr -d '\n'
+    echo -n "$val" | openssl pkeyutl -encrypt -pubin -inkey "${KEYS_DIR}/vault.pub" | base64 | tr -d '\n'
 }
 
 secure_env_file() {
     log_info "Securing sensitive environment variables..."
     
     # Ensure PKI is initialized first (needed for vault.pub and JWT keys)
-    if [ ! -f "${KEYS_DIR}/vault/vault.pub" ]; then
+    if [ ! -f "${KEYS_DIR}/vault.pub" ]; then
         initialize_pki
     fi
 

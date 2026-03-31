@@ -284,13 +284,118 @@ class AutonomousEngine:
                             {"type": "predicted_load_spike", "forecast_max": float(forecast.max())}
                         )
 
+            # 4. Critical Database Pool Check
+            if self.health_reporter:
+                report = await self.health_reporter.get_health_report(self.planner, self.guardian)
+                
+                if report.postgres.active_connections > 50:
+                    system_anomalies.append({
+                        "type": "db_pool_exhaustion",
+                        "metrics": {"total_connections": report.postgres.active_connections},
+                        "score": 0.8,
+                        "timestamp": time.time(),
+                    })
+                
+                # 5. API-Specific Anomalies (from Health Report)
+                if not report.api.reachable:
+                    system_anomalies.append({
+                        "type": "api_unreachable",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+                if report.api.error_rate_5xx > 0.15:
+                    system_anomalies.append({
+                        "type": "api_error_spike",
+                        "metric": report.api.error_rate_5xx,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
+                # 6. Auth-Specific Anomalies (from Health Report)
+                if not report.auth.reachable:
+                    system_anomalies.append({
+                        "type": "auth_unreachable",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+                if report.auth.auth_success_rate < 0.9:
+                    system_anomalies.append({
+                        "type": "auth_failure_spike",
+                        "metric": report.auth.auth_success_rate,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
+                # 7. Ingestion-Specific Anomalies
+                if not report.ingestion.reachable or report.ingestion.heartbeat_age > 120:
+                    system_anomalies.append({
+                        "type": "ingestion_stall",
+                        "heartbeat_age": report.ingestion.heartbeat_age,
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+                if report.ingestion.rejection_rate > 0.2:
+                    system_anomalies.append({
+                        "type": "high_data_rejection",
+                        "metric": report.ingestion.rejection_rate,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
+                # 8. Portfolio-Specific Anomalies (Exposure Check)
+                if abs(report.portfolio.net_delta) > 1000: # Example threshold
+                    system_anomalies.append({
+                        "type": "high_risk_exposure",
+                        "metric": "net_delta",
+                        "value": report.portfolio.net_delta,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+                if not report.portfolio.reachable:
+                    system_anomalies.append({
+                        "type": "portfolio_unreachable",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+
+                # 9. Math Kernel Latency Anomaly
+                if report.quant.avg_latency_ms > 500:
+                    system_anomalies.append({
+                        "type": "high_pricing_latency",
+                        "metric": report.quant.avg_latency_ms,
+                        "severity": "medium",
+                        "timestamp": time.time()
+                    })
+                if report.quant.error_rate > 0.05:
+                    system_anomalies.append({
+                        "type": "kernel_error_spike",
+                        "metric": report.quant.error_rate,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
+                # 10. Neural Pricing Anomaly (Inference Lag)
+                if report.neural_pricing.avg_latency_ms > 200:
+                    system_anomalies.append({
+                        "type": "high_inference_latency",
+                        "metric": report.neural_pricing.avg_latency_ms,
+                        "severity": "medium",
+                        "timestamp": time.time()
+                    })
+                if not report.neural_pricing.model_loaded:
+                    system_anomalies.append({
+                        "type": "neural_model_unloaded",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+
         except Exception as e:
             logger.error("system_anomaly_detection_failed", error=str(e))
 
         return system_anomalies
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
-        """Blocks until RabbitMQ, Redis, and TimescaleDB are reachable."""
+        """Blocks until RabbitMQ, Redis, and Postgres/TimescaleDB are reachable."""
         from src.shared.utils.cache import get_redis_client
         from src.database import get_async_engine
         from sqlalchemy import text
@@ -313,6 +418,24 @@ class AutonomousEngine:
                 async with engine.connect() as conn:
                     await conn.execute(text("SELECT 1"))
 
+                # 4. Check API (Internal REST Gateway)
+                await self._check_api_ready()
+
+                # 5. Check Auth (Internal Security Gateway)
+                await self._check_auth_ready()
+
+                # 6. Check Ingestion (Data Pipeline Gateway)
+                await self._check_ingestion_ready()
+
+                # 7. Check Portfolio (Risk & Exposure Gateway)
+                await self._check_portfolio_ready()
+
+                # 8. Check Math Kernel (Pricing & Computation Gateway)
+                await self._check_math_kernel_ready()
+
+                # 9. Check Neural Pricing (ML Inference Gateway)
+                await self._check_neural_pricing_ready()
+
                 logger.info("infrastructure_ready")
                 return
             except Exception:
@@ -321,6 +444,115 @@ class AutonomousEngine:
                 await asyncio.sleep(interval)
         
         logger.error("infrastructure_readiness_timeout_proceeding_degraded")
+
+    async def _check_api_ready(self) -> bool:
+        """Polls the API health endpoint until it's ready."""
+        import httpx
+        # We assume the service name is resolvable in the internal network
+        url = f"http://{self.api_service_name}:8000/health"
+        logger.info("polling_api_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("api_ready")
+                    return True
+            except Exception as e:
+                logger.debug("api_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"API at {url} is not yet reachable")
+
+    async def _check_auth_ready(self) -> bool:
+        """Polls the Auth health endpoint until it's ready."""
+        import httpx
+        url = "http://auth:3001/health" # Primary auth gateway
+        logger.info("polling_auth_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("auth_ready")
+                    return True
+            except Exception as e:
+                logger.debug("auth_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Auth Service at {url} is not yet reachable")
+
+    async def _check_ingestion_ready(self) -> bool:
+        """Polls the Ingestion heartbeat until it's ready."""
+        import os
+        heartbeat_file = "/tmp/ingestion_heartbeat"
+        logger.info("polling_ingestion_readiness", file=heartbeat_file)
+        
+        if os.path.exists(heartbeat_file):
+            age = time.time() - os.path.getmtime(heartbeat_file)
+            if age < 60:
+                logger.info("ingestion_ready")
+                return True
+        
+        # If file missing or too old, check gRPC port as fallback
+        import socket
+        try:
+            with socket.create_connection(("localhost", 50053), timeout=2.0):
+                logger.info("ingestion_grpc_ready")
+                return True
+        except Exception:
+            pass
+            
+        raise RuntimeError(f"Ingestion Service is not reporting heartbeats at {heartbeat_file}")
+
+    async def _check_portfolio_ready(self) -> bool:
+        """Polls the Portfolio health endpoint until it's ready."""
+        import httpx
+        url = "http://portfolio:8080/health" # Port 8080 for portfolio internal gateway
+        logger.info("polling_portfolio_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("portfolio_ready")
+                    return True
+            except Exception as e:
+                logger.debug("portfolio_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Portfolio Service at {url} is not yet reachable")
+
+    async def _check_math_kernel_ready(self) -> bool:
+        """Polls the Math Kernel health endpoint until it's ready."""
+        import httpx
+        url = "http://math-kernel:8080/health" # Port 8080 for pricing internal gateway
+        logger.info("polling_math_kernel_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("math_kernel_ready")
+                    return True
+            except Exception as e:
+                logger.debug("math_kernel_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Math Kernel at {url} is not yet reachable")
+
+    async def _check_neural_pricing_ready(self) -> bool:
+        """Polls the Neural Pricing health endpoint until it's ready."""
+        import httpx
+        url = "http://neural-pricing:5001/health/readiness"
+        logger.info("polling_neural_pricing_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("neural_pricing_ready")
+                    return True
+            except Exception as e:
+                logger.debug("neural_pricing_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Neural Pricing Service at {url} is not yet reachable or model not loaded")
 
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop and guardian oversight."""
