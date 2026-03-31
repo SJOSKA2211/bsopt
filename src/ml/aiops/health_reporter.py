@@ -11,7 +11,21 @@ except ImportError:
 
 from src.ml.aiops.prometheus_adapter import PrometheusClient
 from src.shared.utils.cache import get_redis_client
-from src.ml.aiops.schemas import MLHealthReport, MLflowStatus, PrometheusMetrics, RedisAnomaly
+from src.shared.rabbitmq import get_rabbitmq
+from src.database import get_async_engine
+from sqlalchemy import text
+from src.ml.aiops.remediators import RemediationPlanner
+from src.ml.aiops.schemas import (
+    MLHealthReport, 
+    MLflowStatus, 
+    PrometheusMetrics, 
+    RedisAnomaly, 
+    RabbitMQStatus, 
+    RedisStatus,
+    TimescaleStatus,
+    RemediationStatus,
+    GuardianStatus
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -26,8 +40,13 @@ class HealthReporter:
         self.prometheus_client = PrometheusClient(url=prometheus_url)
         self.api_service_name = api_service_name
         self.anomaly_history_key = "aiops:anomaly_history"
+        self.rmq = get_rabbitmq()
 
-    async def get_health_report(self) -> MLHealthReport:
+    async def get_health_report(
+        self, 
+        planner: Any | None = None, 
+        guardian: Any | None = None
+    ) -> MLHealthReport:
         """
         Aggregates metrics from all sources and returns a unified health report.
         """
@@ -42,9 +61,23 @@ class HealthReporter:
         # 3. Fetch Redis anomalies
         redis_anomalies = await self._get_redis_anomalies()
         
-        # 4. Determine overall status
+        # 4. Fetch RabbitMQ status
+        rabbitmq_status = await self._get_rabbitmq_status()
+
+        # 5. Fetch Redis connectivity status
+        redis_status = await self._get_redis_status()
+
+        # 6. Fetch TimescaleDB health status
+        timescale_status = await self._get_timescale_status()
+        
+        # 7. Fetch Remediation and Guardian statuses
+        remediations = self._get_remediation_statuses(planner)
+        guardian_status = self._get_guardian_status(guardian)
+        
+        # 8. Determine overall status
         status = "healthy"
-        if mlflow_status.drift_detected or prometheus_metrics.error_rate_5xx > 0.05:
+        if mlflow_status.drift_detected or prometheus_metrics.error_rate_5xx > 0.05 or \
+           not rabbitmq_status.connected or not redis_status.connected or not timescale_status.connected:
             status = "degraded"
         if prometheus_metrics.error_rate_5xx > 0.2:
             status = "critical"
@@ -54,6 +87,11 @@ class HealthReporter:
             mlflow=mlflow_status,
             prometheus=prometheus_metrics,
             redis_anomalies=redis_anomalies,
+            rabbitmq=rabbitmq_status,
+            redis=redis_status,
+            timescale=timescale_status,
+            remediations=remediations,
+            guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         )
 
@@ -151,3 +189,118 @@ class HealthReporter:
         except Exception as e:
             logger.error("redis_anomalies_fetch_failed", error=str(e))
             return []
+    async def _get_rabbitmq_status(self) -> RabbitMQStatus:
+        """Checks RabbitMQ connectivity and basic queue stats."""
+        try:
+            if not self.rmq.connection or self.rmq.connection.is_closed:
+                await self.rmq.connect()
+            
+            connected = not self.rmq.connection.is_closed
+            queue_depths = {}
+            consumer_counts = {}
+
+            # Check core system queues
+            queues_to_check = [self.rmq.queue_name, self.rmq.audit_queue, self.rmq.dlq_name]
+            for q_name in queues_to_check:
+                try:
+                    q = await self.rmq.channel.get_queue(q_name)
+                    queue_depths[q_name] = q.declaration_result.message_count
+                    consumer_counts[q_name] = q.declaration_result.consumer_count
+                except Exception:
+                    queue_depths[q_name] = -1
+                    consumer_counts[q_name] = 0
+
+            return RabbitMQStatus(
+                connected=connected,
+                queue_depths=queue_depths,
+                consumer_counts=consumer_counts
+            )
+        except Exception as e:
+            logger.error("rabbitmq_status_fetch_failed", error=str(e))
+            return RabbitMQStatus(connected=False, queue_depths={}, consumer_counts={})
+
+    async def _get_redis_status(self) -> RedisStatus:
+        """Checks Redis connectivity and basic stats."""
+        try:
+            redis = await get_redis_client()
+            info = await redis.info()
+            
+            # Extract basic metrics
+            memory_usage = int(info.get("used_memory", 0))
+            # dbsize() is typically preferred for key count if info isn't enough
+            key_count = await redis.dbsize()
+            
+            return RedisStatus(
+                connected=True,
+                memory_usage_bytes=memory_usage,
+                total_keys=key_count
+            )
+        except Exception as e:
+            logger.error("redis_status_fetch_failed", error=str(e))
+            return RedisStatus(connected=False, memory_usage_bytes=0, total_keys=0)
+
+    async def _get_timescale_status(self) -> TimescaleStatus:
+        """Checks TimescaleDB connectivity and basic hypertable stats."""
+        try:
+            engine = get_async_engine()
+            async with engine.connect() as conn:
+                # 1. Connected check
+                await conn.execute(text("SELECT 1"))
+                
+                # 2. Hypertable count
+                hypertables = await conn.execute(
+                    text("SELECT count(*) FROM timescaledb_information.hypertables")
+                )
+                hyper_count = hypertables.scalar() or 0
+                
+                # 3. Job count
+                jobs = await conn.execute(
+                    text("SELECT count(*) FROM timescaledb_information.jobs")
+                )
+                job_count = jobs.scalar() or 0
+                
+                # 4. Compression ratio (Simplified aggregate)
+                compression = await conn.execute(
+                    text("""
+                    SELECT 
+                        COALESCE(SUM(uncompressed_total_bytes) / NULLIF(SUM(compressed_total_bytes), 0), 1.0)
+                    FROM timescaledb_information.compression_settings
+                    JOIN timescaledb_information.hypertables ON hypertable_name = table_name
+                """)
+                )
+                ratio = float(compression.scalar() or 1.0)
+                
+                return TimescaleStatus(
+                    connected=True,
+                    hypertables=int(hyper_count),
+                    compression_ratio=round(ratio, 2),
+                    job_count=int(job_count)
+                )
+        except Exception as e:
+            logger.error("timescale_status_fetch_failed", error=str(e))
+            return TimescaleStatus(connected=False, hypertables=0, compression_ratio=1.0, job_count=0)
+
+    def _get_remediation_statuses(self, planner: Any | None) -> List[RemediationStatus]:
+        """Collects status info from all registered remediators."""
+        if not planner:
+            return []
+        
+        statuses = []
+        for r in planner.remediators.values():
+            statuses.append(RemediationStatus(
+                name=r.name,
+                status=r.get_status(),
+                last_run=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(r.last_run)) if r.last_run > 0 else "never"
+            ))
+        return statuses
+
+    def _get_guardian_status(self, guardian: Any | None) -> GuardianStatus:
+        """Collects status from the Autonomous Guardian."""
+        if not guardian:
+            return GuardianStatus(active=False, safe_mode=False, paused_features=[])
+        
+        return GuardianStatus(
+            active=guardian.is_active,
+            safe_mode=getattr(guardian, "is_safe_mode", False),
+            paused_features=getattr(guardian, "paused_features", [])
+        )

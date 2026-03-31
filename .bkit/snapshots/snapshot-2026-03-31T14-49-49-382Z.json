@@ -58,5 +58,8 @@
       "feature": "mlops-health-revamp",
       "details": "Design document created and task updated"
     }
-  ]
+  ],
+  "_snapshotTimestamp": "2026-03-31T14:49:49.383Z",
+  "_reason": "pre-compress",
+  "_jitPartial": true
 }

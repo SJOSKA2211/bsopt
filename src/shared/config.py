@@ -53,24 +53,29 @@ class Settings(BaseSettings):
         return v
 
     # Redis Configuration
-    REDIS_URL: str = Field(
-        default="redis://:bsopt_redis_secret@redis:6379/0",
-        validation_alias="REDIS_URL",
+    REDIS_HOST: str = Field(default="redis", validation_alias="REDIS_HOST")
+    REDIS_PORT: int = Field(default=6379, validation_alias="REDIS_PORT")
+    REDIS_DB: int = Field(default=0, validation_alias="REDIS_DB")
+    REDIS_PASSWORD: str = Field(
+        default="bsopt_redis_secret", 
+        validation_alias="REDIS_PASSWORD"
     )
-    REDIS_HOST: str = "redis"
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
-    REDIS_PASSWORD: str | None = Field(default=None, validation_alias="REDIS_PASSWORD")
+
+    @property
+    def REDIS_URL(self) -> str:
+        """Constructs the Redis URL with auth."""
+        return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     # RabbitMQ Configuration
     RABBITMQ_USER: str = Field(default="guest", validation_alias="RABBITMQ_USER")
     RABBITMQ_PASSWORD: str = Field(default="this_is_a_very_long_password_for_security_compliance_32_chars", validation_alias="RABBITMQ_PASSWORD")
     RABBITMQ_HOST: str = Field(default="rabbitmq", validation_alias="RABBITMQ_HOST")
+    RABBITMQ_PORT: int = Field(default=5672, validation_alias="RABBITMQ_PORT")
 
     @property
     def RABBITMQ_URL(self) -> str:
         """Constructs the RabbitMQ URL from credentials."""
-        return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}@{self.RABBITMQ_HOST}:5672//"
+        return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}@{self.RABBITMQ_HOST}:{self.RABBITMQ_PORT}//"
 
     @property
     def CELERY_BROKER_URL(self) -> str:

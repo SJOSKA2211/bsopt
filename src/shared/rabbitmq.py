@@ -24,6 +24,8 @@ class RabbitMQManager:
         self.dlq_name = "market_ticks_dlq"
         self.audit_exchange = "audit_exchange"
         self.audit_queue = "audit_logs"
+        self.telemetry_exchange = "telemetry_exchange"
+        self.telemetry_queue = "telemetry_logs"
         self.news_topic = "scraper.news"
         self.signal_topic = "model.signals"
 
@@ -51,6 +53,11 @@ class RabbitMQManager:
             await self.channel.declare_queue(self.audit_queue, durable=True)
             await self.channel.declare_exchange(self.audit_exchange, type="direct", durable=True)
             await self.channel.bind_queue(self.audit_queue, self.audit_exchange, routing_key="audit")
+
+            # Declare Telemetry Queue
+            await self.channel.declare_queue(self.telemetry_queue, durable=True)
+            await self.channel.declare_exchange(self.telemetry_exchange, type="topic", durable=True)
+            await self.channel.bind_queue(self.telemetry_queue, self.telemetry_exchange, routing_key="telemetry.#")
             
             # Declare Sentiment/News Queues
             await self.channel.declare_queue(self.news_topic, durable=True)
@@ -84,6 +91,20 @@ class RabbitMQManager:
         
         await self.channel.default_exchange.publish(
             message, routing_key=self.audit_queue
+        )
+
+    async def publish_telemetry(self, payload: dict, routing_key: str = "telemetry.health"):
+        """Publish telemetry data (e.g. health reports) to the telemetry exchange."""
+        if not self.channel:
+            await self.connect()
+            
+        message = aio_pika.Message(
+            body=json.dumps(payload, default=str).encode(),
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
+        
+        await self.channel.get_exchange(self.telemetry_exchange).publish(
+            message, routing_key=routing_key
         )
 
     async def publish_signal(self, payload: dict):

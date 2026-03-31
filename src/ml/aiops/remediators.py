@@ -19,10 +19,19 @@ class BaseRemediator(ABC):
         self.supported_types = supported_types or ["generic"]
         self.last_run = 0.0
         self.cooldown = 300.0  # Default cooldown 5 mins
+        self.is_active = False
 
     def can_run(self) -> bool:
         """Check if cooldown has passed."""
         return (asyncio.get_event_loop().time() - self.last_run) >= self.cooldown
+
+    def get_status(self) -> str:
+        """Return the current status of the remediator."""
+        if self.is_active:
+            return "active"
+        if not self.can_run():
+            return "cooldown"
+        return "idle"
 
     @abstractmethod
     async def remediate(self, anomaly: dict[str, Any]) -> bool:

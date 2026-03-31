@@ -122,7 +122,10 @@ class AutonomousEngine:
                 tasks.append(self._detect_system_anomalies())
             
             if self.health_reporter:
-                tasks.append(self.health_reporter.get_health_report())
+                tasks.append(self.health_reporter.get_health_report(
+                    planner=self.planner,
+                    guardian=self.guardian
+                ))
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -148,6 +151,21 @@ class AutonomousEngine:
                 health_report = results[idx] if not isinstance(results[idx], Exception) else None
                 if health_report:
                     logger.info("health_report_status", status=health_report.status)
+                    # Publish health report to RabbitMQ (Both Audit and Telemetry)
+                    try:
+                        import msgspec
+                        payload = {
+                            "type": "health_report",
+                            "status": health_report.status,
+                            "data": msgspec.json.decode(msgspec.json.encode(health_report)),
+                            "timestamp": health_report.timestamp
+                        }
+                        # 1. Audit Exchange (for persistence/logging)
+                        await self.health_reporter.rmq.publish_audit(payload)
+                        # 2. Telemetry Exchange (for real-time monitoring)
+                        await self.health_reporter.rmq.publish_telemetry(payload, routing_key=f"telemetry.health.{health_report.status}")
+                    except Exception as e:
+                        logger.error("health_report_publish_failed", error=str(e))
 
             all_anomalies = external_anomalies + ml_anomalies + drift_anomalies + system_anomalies
 
@@ -271,10 +289,46 @@ class AutonomousEngine:
 
         return system_anomalies
 
+    async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
+        """Blocks until RabbitMQ, Redis, and TimescaleDB are reachable."""
+        from src.shared.utils.cache import get_redis_client
+        from src.database import get_async_engine
+        from sqlalchemy import text
+        
+        logger.info("waiting_for_infrastructure_readiness", timeout=timeout)
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            try:
+                # 1. Check RabbitMQ
+                if self.health_reporter and self.health_reporter.rmq:
+                    await self.health_reporter.rmq.connect()
+                
+                # 2. Check Redis
+                redis = await get_redis_client()
+                await redis.ping()
+                
+                # 3. Check TimescaleDB
+                engine = get_async_engine()
+                async with engine.connect() as conn:
+                    await conn.execute(text("SELECT 1"))
+
+                logger.info("infrastructure_ready")
+                return
+            except Exception:
+                logger.warning("infrastructure_not_ready_retrying", 
+                               elapsed=int(time.time() - start_time))
+                await asyncio.sleep(interval)
+        
+        logger.error("infrastructure_readiness_timeout_proceeding_degraded")
+
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop and guardian oversight."""
         self.is_running = True
         logger.info("autonomous_engine_started")
+
+        # Wait for RabbitMQ/Infrastructure
+        await self._ensure_infrastructure_ready()
 
         # Start Guardian in a separate task
         asyncio.create_task(self.guardian.monitor_integrity())
