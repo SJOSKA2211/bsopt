@@ -38,8 +38,8 @@ class PortfolioOverview(msgspec.Struct):
     positions: list[PositionSchema]
     message: str | None = None
 
-@router.get("", response_model=PortfolioOverview)
-@router.get("/", response_model=PortfolioOverview)
+@router.get("", response_model=None)
+@router.get("/", response_model=None)
 async def get_portfolio(
     request: Request,
     db: AsyncSession = Depends(get_async_db),

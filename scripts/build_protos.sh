@@ -16,8 +16,9 @@ echo "🐍 Generating Python gRPC code..."
 mkdir -p "$GEN_DIR"
 uv run python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" ./protos/*.proto
 touch "$GEN_DIR/__init__.py"
-# Fix absolute imports
-sed -i 's/import market_data_pb2/from . import market_data_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+# Fix absolute imports for all generated protos
+sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+
 
 # 2. TypeScript gRPC
 echo "🧪 Generating TypeScript gRPC definitions..."
