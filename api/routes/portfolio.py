@@ -22,14 +22,16 @@ router = APIRouter(
     prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse
 )
 
-class PositionSchema(msgspec.Struct):
+from pydantic import BaseModel
+
+class PositionSchema(BaseModel):
     id: str
     symbol: str
     quantity: int
     entry_price: float
     status: str
 
-class PortfolioOverview(msgspec.Struct):
+class PortfolioOverview(BaseModel):
     id: str
     name: str
     balance: float
@@ -113,7 +115,7 @@ async def get_portfolio_summary(
 
     return DataResponse(data=dict(row._mapping))
 
-class PositionCreate(msgspec.Struct):
+class PositionCreate(BaseModel):
     symbol: str
     quantity: int
     entry_price: float
