@@ -74,8 +74,8 @@ COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Ensure the app directory exists and is owned by Manifold
+# Ensure the app directory and venv are owned by Manifold
 WORKDIR /app
-RUN chown -R Manifold:Manifold /app
+RUN chown -R Manifold:Manifold /app /opt/venv
 
 USER Manifold
