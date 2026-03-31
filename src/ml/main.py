@@ -9,6 +9,7 @@ from strawberry.fastapi import GraphQLRouter
 from src.ml.graphql.schema import get_context, schema
 from src.shared.observability import logging_middleware, setup_logging
 from src.ml.aiops.health_reporter import HealthReporter
+from src.shared.security import verify_mtls, opa_authorize
 from api.responses import MsgspecJSONResponse
 
 # Optimized event loop
@@ -28,8 +29,11 @@ app.middleware("http")(logging_middleware)
 prometheus_url = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
 health_reporter = HealthReporter(prometheus_url=prometheus_url)
 
+# Apply Zero Trust security dependencies
+security_deps = [Depends(verify_mtls), Depends(opa_authorize("execute", "ml_inference"))]
+
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema, context_getter=get_context)
-app.include_router(graphql_app, prefix="/graphql")
+app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 @app.get("/health")
 async def health() -> dict[str, str]:

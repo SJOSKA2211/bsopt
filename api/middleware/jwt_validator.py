@@ -39,218 +39,42 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-@dataclass
-class JWTClaims:
-    """Validated JWT claims."""
-
-    sub: str
-    email: str | None = None
-    tier: str = "free"
-    roles: list[str] = None
-    exp: int = 0
-    iat: int = 0
-    jti: str | None = None
-    token_type: str = "access"
-    issuer: str | None = None
-    audience: str | None = None
-
-    def __post_init__(self):
-        if self.roles is None:
-            self.roles = []
+from src.auth.core.tokens import token_service, TokenData as JWTClaims
+from src.auth.core.sessions import session_service
 
 class JWTValidator:
     """
-    High-performance JWT validator with caching and blacklist support.
+    High-performance JWT validator delegating to TokenService and SessionService.
     """
 
     def __init__(
         self,
-        redis_client: Redis | None = None,
+        redis_client: Any = None,
         cache_ttl: int = 300,
         blacklist_ttl: int = 3600,
     ):
-        self.redis = redis_client
-        self.cache_ttl = cache_ttl
-        self.blacklist_ttl = blacklist_ttl
-
-    def _get_cache_key(self, token: str) -> str:
-        """Generate cache key for token."""
-        token_hash = hashlib.sha256(token.encode()).hexdigest()[:32]
-        return f"jwt:validated:{token_hash}"
-
-    async def _get_from_cache(self, token: str) -> JWTClaims | None:
-        """Retrieve validated claims from cache."""
-        if not self.redis:
-            return None
-
-        try:
-            cache_key = self._get_cache_key(token)
-            cached = await self.redis.get(cache_key)
-            if cached:
-                data = json.loads(cached)
-                return JWTClaims(**data)
-        except Exception as e:
-            logger.warning("jwt_cache_read_failed", error=str(e))
-
-        return None
-
-    async def _cache_claims(self, token: str, claims: JWTClaims) -> None:
-        """Cache validated claims."""
-        if not self.redis:
-            return
-
-        try:
-            cache_key = self._get_cache_key(token)
-            await self.redis.setex(
-                cache_key,
-                self.cache_ttl,
-                json.dumps(
-                    {
-                        "sub": claims.sub,
-                        "email": claims.email,
-                        "tier": claims.tier,
-                        "roles": claims.roles,
-                        "exp": claims.exp,
-                        "iat": claims.iat,
-                        "jti": claims.jti,
-                        "token_type": claims.token_type,
-                        "issuer": claims.issuer,
-                        "audience": claims.audience,
-                    }
-                ),
-            )
-        except Exception as e:
-            logger.warning("jwt_cache_write_failed", error=str(e))
-
-    async def _is_blacklisted(self, jti: str) -> bool:
-        """Check if token JTI is blacklisted."""
-        if not self.redis:
-            return False
-
-        try:
-            blacklist_key = f"jwt:blacklist:{jti}"
-            return await self.redis.exists(blacklist_key)
-        except Exception as e:
-            logger.warning("jwt_blacklist_check_failed", error=str(e))
-            return False
-
-    async def blacklist_token(self, jti: str, exp: int) -> None:
-        """Add token to blacklist."""
-        if not self.redis:
-            return
-
-        try:
-            blacklist_key = f"jwt:blacklist:{jti}"
-            ttl = max(exp - int(time.time()), 0)
-            if ttl > 0:
-                await self.redis.setex(blacklist_key, ttl, "1")
-                logger.info("token_blacklisted", jti=jti, ttl=ttl)
-        except Exception as e:
-            logger.error("jwt_blacklist_failed", error=str(e))
-
-    def _get_private_key(self, algorithm: str) -> str:
-        """Get private key for signing based on algorithm."""
-        if algorithm.startswith("RS"):
-            return settings.rsa_private_key
-        elif algorithm.startswith("ES"):
-            return settings.es256_private_key
-        elif algorithm == "HS256":
-            return settings.JWT_SECRET
-        raise ValueError(f"Unsupported algorithm: {algorithm}")
-
-    def _get_public_key(self, algorithm: str) -> str:
-        """Get public key for verification based on algorithm."""
-        if algorithm.startswith("RS"):
-            return settings.rsa_public_key
-        elif algorithm.startswith("ES"):
-            return settings.es256_public_key
-        elif algorithm == "HS256":
-            return settings.JWT_SECRET
-        raise ValueError(f"Unsupported algorithm: {algorithm}")
-
-    def _decode_token(self, token: str) -> dict[str, object]:
-        """Decode token without verification (for header inspection)."""
-        return jwt.decode(
-            token,
-            options={"verify_signature": False, "verify_exp": False},
-            algorithms=[
-                "RS256",
-                "RS384",
-                "RS512",
-                "ES256",
-                "ES384",
-                "ES512",
-                "HS256",
-                "HS384",
-                "HS512",
-            ],
-        )
+        self.tokens = token_service
+        self.sessions = session_service
 
     async def validate(self, token: str) -> JWTClaims:
         """
         Validate JWT token and return claims.
-
-        Steps:
-        1. Check Redis cache
-        2. Decode and verify signature
-        3. Check blacklist
-        4. Cache valid result
+        Fast-path Redis sync included.
         """
-        cached_claims = await self._get_from_cache(token)
-        if cached_claims:
-            logger.debug("jwt_cache_hit", sub=cached_claims.sub)
-            return cached_claims
+        # 1. Fast Path (Redis)
+        cached = await self.sessions.get_cached_session(token)
+        if cached:
+            return JWTClaims(**cached.model_dump())
 
-        try:
-            unverified_header = self._decode_token(token)
-            algorithm = unverified_header.get("alg", "RS256")
+        # 2. Signature & Revocation Check
+        token_data = self.tokens.decode_token(token)
+        if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
+            raise HTTPException(status_code=401, detail="Token revoked")
 
-            public_key = self._get_public_key(algorithm)
-
-            payload = jwt.decode(
-                token,
-                public_key,
-                algorithms=[algorithm],
-                options={
-                    "verify_exp": True,
-                    "verify_iat": True,
-                    "verify_aud": False,
-                    "require": ["exp", "sub"],
-                },
-            )
-
-            jti = payload.get("jti")
-            if jti and await self._is_blacklisted(jti):
-                logger.warning("jwt_blacklisted_token", jti=jti)
-                raise HTTPException(status_code=401, detail="Token has been revoked")
-
-            claims = JWTClaims(
-                sub=payload.get("sub"),
-                email=payload.get("email"),
-                tier=payload.get("tier", "free"),
-                roles=payload.get("roles", []),
-                exp=payload.get("exp", 0),
-                iat=payload.get("iat", 0),
-                jti=jti,
-                token_type=payload.get("type", "access"),
-                issuer=payload.get("iss"),
-                audience=payload.get("aud"),
-            )
-
-            await self._cache_claims(token, claims)
-            logger.debug("jwt_validated", sub=claims.sub, algorithm=algorithm)
-
-            return claims
-
-        except ExpiredSignatureError:
-            logger.warning("jwt_expired")
-            raise HTTPException(status_code=401, detail="Token has expired")
-        except InvalidTokenError as e:
-            logger.warning("jwt_invalid", error=str(e))
-            raise HTTPException(status_code=401, detail="Invalid token")
-        except PyJWTError as e:
-            logger.error("jwt_error", error=str(e))
-            raise HTTPException(status_code=401, detail="Token validation failed")
+        # 3. Cache valid result
+        await self.sessions.cache_session(token, token_data)
+        
+        return JWTClaims(**token_data.model_dump())
 
     def create_token(
         self,
@@ -261,46 +85,10 @@ class JWTValidator:
         token_type: str = "access",
         additional_claims: dict[str, object] = None,
     ) -> tuple[str, int]:
-        """
-        Create a new JWT token.
-
-        Returns:
-            Tuple of (token, expires_in_seconds)
-        """
-        import secrets
-        from datetime import timedelta
-
-        if roles is None:
-            roles = []
-
-        if token_type == "access":
-            expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        else:
-            expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-
-        now = datetime.now(UTC)
-        exp = now + expires_delta
-
-        payload = {
-            "sub": user_id,
-            "email": email,
-            "tier": tier,
-            "roles": roles,
-            "type": token_type,
-            "iat": int(now.timestamp()),
-            "exp": int(exp.timestamp()),
-            "jti": secrets.token_hex(16),
-        }
-
-        if additional_claims:
-            payload.update(additional_claims)
-
-        algorithm = settings.JWT_ALGORITHM
-        private_key = self._get_private_key(algorithm)
-
-        token = jwt.encode(payload, private_key, algorithm=algorithm)
-
-        return token, int(expires_delta.total_seconds())
+        """Create a new JWT token via centralized TokenService."""
+        token_pair = self.tokens.create_token_pair(user_id, email, tier, scopes=roles or [])
+        token = token_pair.access_token if token_type == "access" else token_pair.refresh_token
+        return token, settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 class JWTValidatorMiddleware(BaseHTTPMiddleware):
     """
