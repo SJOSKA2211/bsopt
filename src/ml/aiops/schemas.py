@@ -36,6 +36,25 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+class MathKernelStatus(msgspec.Struct):
+    reachable: bool
+    avg_latency_ms: float
+    requests_per_sec: float
+    error_rate: float
+
+class PortfolioStatus(msgspec.Struct):
+    reachable: bool
+    positions_count: int
+    net_delta: float
+    total_vega: float
+    total_gamma: float
+
+class IngestionStatus(msgspec.Struct):
+    reachable: bool
+    heartbeat_age: float
+    ticks_per_second: float
+    rejection_rate: float
+
 class AuthStatus(msgspec.Struct):
     reachable: bool
     p95_latency: float
@@ -68,6 +87,9 @@ class MLHealthReport(msgspec.Struct):
     postgres: PostgresStatus
     api: APIStatus
     auth: AuthStatus
+    ingestion: IngestionStatus
+    portfolio: PortfolioStatus
+    quant: MathKernelStatus
     remediations: List[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

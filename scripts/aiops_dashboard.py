@@ -92,6 +92,33 @@ async def run_dashboard():
         print(f"   - P95 Latency: {auth.p95_latency:.4f}s")
         print(f"   - Auth Success Rate: {auth.auth_success_rate:.2%}")
         print(f"   - Active Tokens: {auth.active_tokens}")
+
+        # Ingestion (Data Pipeline)
+        ing = report.ingestion
+        ing_icon = "📥" if ing.reachable else "⚠️"
+        print(f"\n{ing_icon}  DATA INGESTION LAYER:")
+        print(f"   - Heartbeat Age: {ing.heartbeat_age:.1f}s")
+        print(f"   - Throughput (TPS): {ing.ticks_per_second:.2f}")
+        print(f"   - Tick Rejection Rate: {ing.rejection_rate:.2%}")
+
+        # Portfolio (Risk & Exposure)
+        port = report.portfolio
+        port_icon = "💼" if port.reachable else "⚠️"
+        print(f"\n{port_icon}  PORTFOLIO & RISK LAYER:")
+        print(f"   - Reachable: {port.reachable}")
+        print(f"   - Position Count: {port.positions_count}")
+        print(f"   - Net Delta: {port.net_delta:+.2f}")
+        print(f"   - Total Vega: {port.total_vega:.2f}")
+        print(f"   - Total Gamma: {port.total_gamma:.4f}")
+
+        # Quant (Math Kernel)
+        quant = report.quant
+        quant_icon = "🧮" if quant.reachable else "⚠️"
+        print(f"\n{quant_icon}  QUANT & MATH KERNEL LAYER:")
+        print(f"   - Reachable: {quant.reachable}")
+        print(f"   - Avg Latency: {quant.avg_latency_ms:.2f}ms")
+        print(f"   - Throughput: {quant.requests_per_sec:.2f} req/s")
+        print(f"   - Error Rate: {quant.error_rate:.2%}")
         
         # 2. Autonomous Oversight
         print_section("AUTONOMOUS OVERSIGHT", color=YELLOW)

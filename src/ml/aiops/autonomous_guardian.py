@@ -65,6 +65,15 @@ class AutonomousGuardian:
         if not report.auth.reachable:
             degraded_count += 1
             failed_services.append("auth")
+        if not report.ingestion.reachable:
+            degraded_count += 1
+            failed_services.append("ingestion")
+        if not report.portfolio.reachable:
+            degraded_count += 1
+            failed_services.append("portfolio")
+        if not report.quant.reachable:
+            degraded_count += 1
+            failed_services.append("quant")
 
         if degraded_count >= 2:
             logger.critical("guardian_cascading_failure_detected", services=failed_services)

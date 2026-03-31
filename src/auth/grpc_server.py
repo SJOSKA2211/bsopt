@@ -10,6 +10,7 @@ from src.protos import auth_pb2, auth_pb2_grpc
 from src.database import db_manager
 from src.database.models import User, APIKey
 from sqlalchemy import select
+from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +182,14 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
 
 async def serve(port: str = "50051"):
     server = grpc.aio.server()
-    auth_pb2_grpc.add_AuthServiceServicer_to_server(AuthServicer(), server)
+    auth_servicer = AuthServicer()
+    auth_pb2_grpc.add_AuthServiceServicer_to_server(auth_servicer, server)
+
+    # Add standard Health Checking Service
+    health_servicer = health.HealthServicer()
+    health_servicer.set("auth.AuthService", health_pb2.HealthCheckResponse.SERVING)
+    health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
+
     listen_addr = f"0.0.0.0:{port}"
     server.add_insecure_port(listen_addr)
     logger.info("grpc_auth_server_starting", port=port)
