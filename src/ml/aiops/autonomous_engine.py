@@ -374,6 +374,21 @@ class AutonomousEngine:
                         "timestamp": time.time()
                     })
 
+                # 10. Neural Pricing Anomaly (Inference Lag)
+                if report.neural_pricing.avg_latency_ms > 200:
+                    system_anomalies.append({
+                        "type": "high_inference_latency",
+                        "metric": report.neural_pricing.avg_latency_ms,
+                        "severity": "medium",
+                        "timestamp": time.time()
+                    })
+                if not report.neural_pricing.model_loaded:
+                    system_anomalies.append({
+                        "type": "neural_model_unloaded",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+
         except Exception as e:
             logger.error("system_anomaly_detection_failed", error=str(e))
 
@@ -417,6 +432,9 @@ class AutonomousEngine:
 
                 # 8. Check Math Kernel (Pricing & Computation Gateway)
                 await self._check_math_kernel_ready()
+
+                # 9. Check Neural Pricing (ML Inference Gateway)
+                await self._check_neural_pricing_ready()
 
                 logger.info("infrastructure_ready")
                 return
@@ -518,6 +536,23 @@ class AutonomousEngine:
                 logger.debug("math_kernel_ping_failed", error=str(e))
         
         raise RuntimeError(f"Math Kernel at {url} is not yet reachable")
+
+    async def _check_neural_pricing_ready(self) -> bool:
+        """Polls the Neural Pricing health endpoint until it's ready."""
+        import httpx
+        url = "http://neural-pricing:5001/health/readiness"
+        logger.info("polling_neural_pricing_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("neural_pricing_ready")
+                    return True
+            except Exception as e:
+                logger.debug("neural_pricing_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Neural Pricing Service at {url} is not yet reachable or model not loaded")
 
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop and guardian oversight."""

@@ -74,6 +74,9 @@ class AutonomousGuardian:
         if not report.quant.reachable:
             degraded_count += 1
             failed_services.append("quant")
+        if not report.neural_pricing.reachable:
+            degraded_count += 1
+            failed_services.append("neural_pricing")
 
         if degraded_count >= 2:
             logger.critical("guardian_cascading_failure_detected", services=failed_services)

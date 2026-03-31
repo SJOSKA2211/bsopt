@@ -7,6 +7,8 @@ import numpy as np
 import onnxruntime as ort
 import structlog
 from fastapi import FastAPI, HTTPException, Request, Response
+from prometheus_fastapi_instrumentator import Instrumentator
+from src.ml.serving.health import get_serving_health
 
 from src.shared.observability import ONNX_INFERENCE_LATENCY
 
@@ -86,6 +88,9 @@ encoder = msgspec.json.Encoder()
 
 app = FastAPI(title="BS-Opt ONNX Serving", lifespan=lifespan)
 
+# Instrument for Prometheus
+Instrumentator().instrument(app).expose(app)
+
 @app.post("/predict")
 async def predict(raw_request: Request):
     if not model_server:
@@ -110,6 +115,21 @@ async def predict(raw_request: Request):
         logger.error("inference_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+@app.get("/health/liveness")
+async def liveness():
+    """Basic process check."""
+    return {"status": "alive"}
+
+@app.get("/health/readiness")
+async def readiness():
+    """Deep check for model loading and MLflow connectivity."""
+    health_data = get_serving_health()
+    if health_data["status"] != "healthy":
+        from fastapi import Response
+        return Response(content=str(health_data), status_code=503)
+    return health_data
+
 @app.get("/health")
-async def health():
-    return {"status": "healthy", "model_loaded": model_server is not None}
+async def legacy_health():
+    """Backward compatibility health endpoint."""
+    return get_serving_health()

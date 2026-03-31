@@ -119,6 +119,16 @@ async def run_dashboard():
         print(f"   - Avg Latency: {quant.avg_latency_ms:.2f}ms")
         print(f"   - Throughput: {quant.requests_per_sec:.2f} req/s")
         print(f"   - Error Rate: {quant.error_rate:.2%}")
+
+        # Neural Pricing (ONNX Inference Engine)
+        np_status = report.neural_pricing
+        np_icon = "🧠" if np_status.reachable and np_status.model_loaded else "⚠️"
+        model_status = "LOADED ✓" if np_status.model_loaded else "NOT LOADED ✗"
+        print(f"\n{np_icon}  NEURAL PRICING ENGINE:")
+        print(f"   - Reachable: {np_status.reachable}")
+        print(f"   - Model State: {model_status}")
+        print(f"   - Avg Inference Latency: {np_status.avg_latency_ms:.2f}ms")
+        print(f"   - Predict Throughput: {np_status.requests_per_sec:.2f} req/s")
         
         # 2. Autonomous Oversight
         print_section("AUTONOMOUS OVERSIGHT", color=YELLOW)

@@ -36,6 +36,12 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+class NeuralPricingStatus(msgspec.Struct):
+    reachable: bool
+    model_loaded: bool
+    avg_latency_ms: float
+    requests_per_sec: float
+
 class MathKernelStatus(msgspec.Struct):
     reachable: bool
     avg_latency_ms: float
@@ -90,6 +96,7 @@ class MLHealthReport(msgspec.Struct):
     ingestion: IngestionStatus
     portfolio: PortfolioStatus
     quant: MathKernelStatus
+    neural_pricing: NeuralPricingStatus
     remediations: List[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

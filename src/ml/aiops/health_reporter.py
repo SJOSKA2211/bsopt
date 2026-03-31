@@ -28,6 +28,7 @@ from src.ml.aiops.schemas import (
     IngestionStatus,
     PortfolioStatus,
     MathKernelStatus,
+    NeuralPricingStatus,
     RemediationStatus,
     GuardianStatus
 )
@@ -48,6 +49,7 @@ class HealthReporter:
         self.ingestion_service_name = "ingestion-service"
         self.portfolio_service_name = "portfolio-service"
         self.math_kernel_service_name = "math-kernel"
+        self.neural_pricing_service_name = "neural-pricing"
         self.anomaly_history_key = "aiops:anomaly_history"
         self.rmq = get_rabbitmq()
 
@@ -94,7 +96,10 @@ class HealthReporter:
         # 11. Fetch Math Kernel detailed status
         math_kernel_status = await self._get_math_kernel_status()
         
-        # 12. Fetch Remediation and Guardian statuses
+        # 12. Fetch Neural Pricing detailed status
+        neural_pricing_status = await self._get_neural_pricing_status()
+        
+        # 13. Fetch Remediation and Guardian statuses
         remediations = self._get_remediation_statuses(planner)
         guardian_status = self._get_guardian_status(guardian)
         
@@ -104,7 +109,8 @@ class HealthReporter:
            not rabbitmq_status.connected or not redis_status.connected or \
            not postgres_status.connected or not api_status.reachable or \
            not auth_status.reachable or not ingestion_status.reachable or \
-           not portfolio_status.reachable or not math_kernel_status.reachable:
+           not portfolio_status.reachable or not math_kernel_status.reachable or \
+           not neural_pricing_status.reachable:
             status = "degraded"
         if prometheus_metrics.error_rate_5xx > 0.2:
             status = "critical"
@@ -122,6 +128,7 @@ class HealthReporter:
             ingestion=ingestion_status,
             portfolio=portfolio_status,
             quant=math_kernel_status,
+            neural_pricing=neural_pricing_status,
             remediations=remediations,
             guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -340,6 +347,38 @@ class HealthReporter:
         except Exception as e:
             logger.error("math_kernel_status_fetch_failed", error=str(e))
             return MathKernelStatus(reachable=False, avg_latency_ms=0.0, requests_per_sec=0.0, error_rate=0.0)
+
+    async def _get_neural_pricing_status(self) -> NeuralPricingStatus:
+        """Checks for neural pricing service reachability and model performance."""
+        try:
+            # 1. Reachability
+            query_rate = f'sum(rate(http_requests_total{{service="{self.neural_pricing_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Inference Latency (ms)
+            latency_query = f'avg(onnx_inference_latency_ms)'
+            lat_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=latency_query)
+            avg_latency = float(lat_res[0]["value"][1]) if lat_res else 0.0
+            
+            # 3. Model Loaded Check
+            # This is available via Prometheus gauge if we add it, otherwise assume reachable implies loaded
+            model_loaded = reachable
+            
+            # 4. Throughput (req/s)
+            tps_query = f'sum(rate(http_requests_total{{service="{self.neural_pricing_service_name}",path="/predict"}}[5m]))'
+            tps_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=tps_query)
+            requests_per_sec = float(tps_res[0]["value"][1]) if tps_res else 0.0
+            
+            return NeuralPricingStatus(
+                reachable=reachable,
+                model_loaded=model_loaded,
+                avg_latency_ms=round(avg_latency, 2),
+                requests_per_sec=round(requests_per_sec, 2)
+            )
+        except Exception as e:
+            logger.error("neural_pricing_status_fetch_failed", error=str(e))
+            return NeuralPricingStatus(reachable=False, model_loaded=False, avg_latency_ms=0.0, requests_per_sec=0.0)
 
     async def _get_redis_anomalies(self) -> List[RedisAnomaly]:
         try:
