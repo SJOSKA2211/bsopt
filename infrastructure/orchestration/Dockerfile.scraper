@@ -7,6 +7,7 @@
 
 # --- BUILDER ---
 FROM manifold-base:latest AS builder
+USER root
 WORKDIR /app
 
 # Install scraper-specific dependencies

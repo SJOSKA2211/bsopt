@@ -36,287 +36,156 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-class TokenData(BaseModel):
-    """Standardized Token Data (Pydantic V2)."""
-
-    user_id: str
-    email: str
-    tier: str
-    token_type: str
-    exp: datetime
-    iat: datetime
-    jti: str | None = None
-    scopes: list[str] = []
-
-    model_config = ConfigDict(frozen=True)
-
-class TokenPair(BaseModel):
-    """Standardized Token Pair (Pydantic V2)."""
-
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int
-    requires_mfa: bool = False
+from src.auth.core.hashing import hasher
+from src.auth.core.tokens import token_service, TokenData, TokenPair
+from src.auth.core.mfa import mfa_service
+from src.auth.core.sessions import session_service
+from src.auth.core.webauthn import webauthn_service
+from src.auth.core.social import social_service
 
 class AuthService:
     """
     Unified Authentication Service.
+    Delegates to modular core services for zero-trust compliance.
     """
 
     def __init__(self):
-        self.ph = PasswordHasher(
-            time_cost=settings.ARGON2_TIME_COST,
-            memory_cost=settings.ARGON2_MEMORY_COST,
-            parallelism=settings.ARGON2_PARALLELISM,
-        )
-        self._fernet = None
-        # Pre-computed dummy hash to prevent DoS via repeated Argon2 hashing on invalid usernames
-        self.DUMMY_HASH = self.ph.hash("static-dummy-password-for-timing-protection")
+        # Maintain public API for backward compatibility while delegating
+        self.hasher = hasher
+        self.tokens = token_service
+        self.mfa = mfa_service
+        self.sessions = session_service
 
-    @property
-    def fernet(self) -> Fernet:
-        """Lazy initialization of Fernet for MFA secret encryption."""
-        if self._fernet is None:
-            key = settings.MFA_ENCRYPTION_KEY
-            if not key:
-                raise ValueError("MFA_ENCRYPTION_KEY is missing")
-            self._fernet = Fernet(key.encode())
-        return self._fernet
-
-    # --- Password Logic (Argon2id) ---
+    # --- Password Logic (Delegated) ---
 
     def hash_password(self, password: str) -> str:
-        """Hash a password using Argon2id."""
-        return self.ph.hash(password)
+        return self.hasher.hash_password(password)
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        """Verify a password against an Argon2id hash."""
-        try:
-            return self.ph.verify(hashed_password, plain_password)
-        except VerifyMismatchError:
-            return False
-        except Exception as e:
-            logger.error(f"password_verification_error: {e}")
-            return False
+        return self.hasher.verify_password(plain_password, hashed_password)
 
     def needs_rehash(self, hashed_password: str) -> bool:
-        """Check if a hash needs to be updated to current Argon2id parameters."""
-        if not hashed_password.startswith("$argon2"):
-            return True
-        try:
-            return self.ph.check_needs_rehash(hashed_password)
-        except Exception:
-            return True
+        return self.hasher.needs_rehash(hashed_password)
 
-    # --- MFA Logic (TOTP) ---
+    # --- Token Logic (Delegated) ---
 
-    def generate_mfa_secret(self) -> str:
-        """Generate a new TOTP secret."""
-        return pyotp.random_base32()
+    def create_token_pair(self, user_id: str, email: str, tier: str, scopes: list[str] = []) -> TokenPair:
+        return self.tokens.create_token_pair(user_id, email, tier, scopes)
 
-    def encrypt_mfa_secret(self, secret: str) -> str:
-        """Encrypt MFA secret for database storage."""
-        return self.fernet.encrypt(secret.encode()).decode()
-
-    def decrypt_mfa_secret(self, encrypted_secret: str) -> str:
-        """Decrypt MFA secret for verification."""
-        return self.fernet.decrypt(encrypted_secret.encode()).decode()
-
-    def get_totp_uri(self, email: str, secret: str) -> str:
-        """Generate a provisioning URI for QR codes."""
-        return pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name="Manifold")
-
-    def verify_mfa_code(self, secret: str, code: str) -> bool:
-        """Verify a TOTP code with clock skew support."""
-        if not secret or not code:
-            return False
-        totp = pyotp.TOTP(secret)
-        return totp.verify(code, valid_window=1)
-
-    # --- Token Generation Helpers ---
+    def decode_token(self, token: str) -> TokenData:
+        return self.tokens.decode_token(token)
 
     def generate_reset_token(self) -> str:
-        """Generate a secure, high-entropy reset token."""
+        import secrets
         return secrets.token_urlsafe(32)
 
     def generate_verification_token(self) -> str:
-        """Generate a secure, high-entropy verification token."""
+        import secrets
         return secrets.token_urlsafe(32)
 
-    # --- Token Logic (JWT ES256/RS256) ---
+    # --- MFA Logic (Delegated) ---
 
-    def _get_key_for_algorithm(self, algorithm: str, is_private: bool = True) -> str:
-        """Selects the correct key (RSA or ECC) based on the algorithm."""
-        if algorithm.startswith("RS"):
-            return settings.rsa_private_key if is_private else settings.rsa_public_key
-        elif algorithm.startswith("ES"):
-            return settings.es256_private_key if is_private else settings.es256_public_key
+    def generate_mfa_secret(self) -> str:
+        return self.mfa.generate_mfa_secret()
 
-        if settings.is_production:
-            raise ValueError(f"Symmetric algorithm {algorithm} forbidden in production.")
-        return settings.JWT_SECRET
+    def encrypt_mfa_secret(self, secret: str) -> str:
+        return self.mfa.encrypt_mfa_secret(secret)
 
-    def create_token_pair(
-        self, user_id: str, email: str, tier: str, scopes: list[str] = []
-    ) -> TokenPair:
-        """Create a pair of access and refresh tokens."""
-        access_token = self._create_token(
-            {"sub": user_id, "email": email, "tier": tier, "type": "access", "scopes": scopes},
-            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        )
-        refresh_token = self._create_token(
-            {"sub": user_id, "email": email, "tier": tier, "type": "refresh", "scopes": scopes},
-            timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
-        )
-        return TokenPair(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        )
+    def decrypt_mfa_secret(self, encrypted_secret: str) -> str:
+        return self.mfa.decrypt_mfa_secret(encrypted_secret)
 
-    def _create_token(self, data: dict, expires_delta: timedelta) -> str:
-        """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
-        to_encode = {
-            **data,
-            "exp": expire,
-            "iat": now,
-            "jti": secrets.token_hex(24),
-            "iss": "manifold-auth-v2",
-        }
-        
-        # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
-        msgspec.json.encode(to_encode)
-        
-        algorithm = settings.JWT_ALGORITHM
-        key = self._get_key_for_algorithm(algorithm, is_private=True)
-        return jwt.encode(to_encode, key, algorithm=algorithm)
+    def get_totp_uri(self, email: str, secret: str) -> str:
+        return self.mfa.get_totp_uri(email, secret)
 
-    def decode_token(self, token: str) -> TokenData:
-        """Decode and validate a JWT token."""
-        try:
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
-            key = self._get_key_for_algorithm(algorithm, is_private=False)
-            payload = jwt.decode(token, key, algorithms=[algorithm])
-
-            return TokenData(
-                user_id=payload.get("sub"),
-                email=payload.get("email", ""),
-                tier=payload.get("tier", "free"),
-                token_type=payload.get("type", "access"),
-                exp=datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
-                iat=datetime.fromtimestamp(payload.get("iat", 0), tz=UTC),
-                jti=payload.get("jti"),
-                scopes=payload.get("scopes", []),
-            )
-        except ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token has expired")
-        except PyJWTError:
-            raise HTTPException(status_code=401, detail="Invalid token")
-
-    # --- Session & Revocation (Redis) ---
-
-    async def is_token_revoked(self, jti: str) -> bool:
-        """Check if a token JTI is in the blacklist."""
-        redis = await get_redis_client()
-        return bool(await redis.exists(f"blacklist:{jti}"))
-
-    async def revoke_token(self, token: str) -> None:
-        """Revoke a token by adding its JTI to the blacklist."""
-        try:
-            token_data = self.decode_token(token)
-            if token_data.jti:
-                redis = await get_redis_client()
-                ttl = int((token_data.exp - datetime.now(UTC)).total_seconds())
-                if ttl > 0:
-                    await redis.setex(f"blacklist:{token_data.jti}", ttl, "1")
-        except Exception as e:
-            logger.warning(f"token_revocation_failed: {e}")
-
-    # --- Core Flow ---
-
-    async def authenticate_user(self, db: AsyncSession, email: str, password: str) -> User:
-        """
-        Authenticate a user by email and password.
-        Implements timing attack protection and automatic re-hashing.
-        """
-        result = await db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
-
-        if not user:
-            # Timing attack protection
-            await run_in_threadpool(self.verify_password, password, self.DUMMY_HASH)
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        if not user.hashed_password:
-            # Handle users without passwords (e.g. OAuth only)
-            await run_in_threadpool(self.verify_password, password, self.DUMMY_HASH)
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        password_matches = await run_in_threadpool(
-            self.verify_password, password, user.hashed_password
-        )
-        if not password_matches:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        if self.needs_rehash(user.hashed_password):
-            logger.info("password_rehash_triggered", user_id=str(user.id))
-            user.hashed_password = self.hash_password(password)
-            # Persisted by the commit in the calling route
-
-        return user
+    def verify_mfa_code(self, secret: str, code: str) -> bool:
+        return self.mfa.verify_mfa_code(secret, code)
 
     async def verify_mfa(self, user: User, code: str | None) -> bool:
-        """Verify MFA code if enabled for the user."""
         if not user.mfa_enabled:
             return True
-
         if not code:
             return False
-
         try:
-            secret = self.decrypt_mfa_secret(user.mfa_secret)
-            return self.verify_mfa_code(secret, code)
+            secret = self.mfa.decrypt_mfa_secret(user.mfa_secret)
+            return self.mfa.verify_mfa_code(secret, code)
         except Exception as e:
             logger.error(f"mfa_verification_error: {e}")
             return False
 
+    # --- Session & Revocation (Delegated) ---
+
+    async def is_token_revoked(self, jti: str) -> bool:
+        return await self.sessions.is_token_revoked(jti)
+
+    async def revoke_token(self, token: str) -> None:
+        await self.sessions.revoke_token(token)
+
     async def validate_token(self, token: str) -> TokenData:
         """
         High-performance token validation.
-        Checks Redis session cache first, then JWT signature and revocation.
         """
-        # 1. Redis Session Cache (Fast Path)
-        redis = await get_redis_client()
-        try:
-            cached_data = await redis.get(f"session_v2:{token}")
-            if cached_data:
-                data = msgspec.json.decode(cached_data)
-                return TokenData(**data)
-        except Exception as e:
-            logger.debug("session_cache_lookup_failed", error=str(e))
+        # 1. Fast Path (Redis)
+        cached = await self.sessions.get_cached_session(token)
+        if cached:
+            return cached
 
         # 2. Asymmetric JWT Validation
         token_data = self.decode_token(token)
 
         # 3. Revocation Check
-        if token_data.jti and await self.is_token_revoked(token_data.jti):
+        if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")
 
-        # 4. Cache Session for future requests
-        try:
-            ttl = int((token_data.exp - datetime.now(UTC)).total_seconds())
-            if ttl > 0:
-                await redis.setex(
-                    f"session_v2:{token}",
-                    ttl,
-                    msgspec.json.encode(token_data.model_dump(mode="json")),
-                )
-        except Exception as e:
-            logger.warning("session_cache_write_failed", error=str(e))
-
+        # 4. Cache for future
+        await self.sessions.cache_session(token, token_data)
         return token_data
+
+    # --- Core Auth Flow ---
+
+    async def authenticate_user(self, db: AsyncSession, email: str, password: str) -> User:
+        """
+        Authenticate a user with timing attack protection.
+        """
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+
+        if not user or not user.hashed_password:
+            # Timing attack protection
+            await run_in_threadpool(self.hasher.verify_password, password, self.hasher.DUMMY_HASH)
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        password_matches = await run_in_threadpool(
+            self.hasher.verify_password, password, user.hashed_password
+        )
+        if not password_matches:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        if self.hasher.needs_rehash(user.hashed_password):
+            user.hashed_password = self.hasher.hash_password(password)
+
+        return user
+
+    # --- OAuth2 Client Logic ---
+
+    async def authenticate_client(
+        self, db: AsyncSession, client_id: str, client_secret: str
+    ) -> OAuth2Client:
+        result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
+        client = result.scalar_one_or_none()
+
+        if not client or client.client_secret != client_secret:
+            raise HTTPException(status_code=401, detail="Invalid client credentials")
+
+        return client
+
+    def create_client_credentials_token(self, client: OAuth2Client, scopes: list[str]) -> TokenPair:
+        return self.tokens.create_client_credentials_token(client, scopes)
+
+    # --- mTLS Support ---
+
+    def verify_mtls(self, request: Request) -> bool:
+        client_verify = request.headers.get("X-SSL-Client-Verify")
+        return client_verify == "SUCCESS"
 
     # --- OAuth2 Client Logic ---
 

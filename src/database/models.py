@@ -656,32 +656,15 @@ class OutboxEvent(Base):
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(20), default="pending")
 
-try:
-    from pgvector.sqlalchemy import Vector
+class ModelEmbedding(Base):
+    __tablename__ = "model_embeddings"
 
-    class ModelEmbedding(Base):
-        __tablename__ = "model_embeddings"
-
-        id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
-        model_id: Mapped[UUID_TYPE] = mapped_column(
-            ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
-        )
-        version: Mapped[int] = mapped_column(Integer, nullable=False)
-        embedding: Mapped[list[float]] = mapped_column(Vector(1536))
-        created_at: Mapped[datetime] = mapped_column(
-            DateTime(timezone=True), server_default=func.now()
-        )
-except ImportError:
-    # pgvector not available, fallback to JSONB
-    class ModelEmbedding(Base):  # type: ignore
-        __tablename__ = "model_embeddings"
-
-        id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
-        model_id: Mapped[UUID_TYPE] = mapped_column(
-            ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
-        )
-        version: Mapped[int] = mapped_column(Integer, nullable=False)
-        embedding: Mapped[dict[str, Any]] = mapped_column(JSONB)
-        created_at: Mapped[datetime] = mapped_column(
-            DateTime(timezone=True), server_default=func.now()
-        )
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    model_id: Mapped[UUID_TYPE] = mapped_column(
+        ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    embedding: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

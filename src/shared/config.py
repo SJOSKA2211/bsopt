@@ -250,6 +250,17 @@ class Settings(BaseSettings):
         default="http://localhost:3001", validation_alias="BETTER_AUTH_URL"
     )
 
+    # WebAuthn Configuration
+    WEBAUTHN_RP_ID: str = Field(default="localhost", validation_alias="WEBAUTHN_RP_ID")
+    WEBAUTHN_RP_NAME: str = Field(default="Manifold Auth", validation_alias="WEBAUTHN_RP_NAME")
+    WEBAUTHN_ORIGIN: str = Field(default="http://localhost:3000", validation_alias="WEBAUTHN_ORIGIN")
+
+    # Social OAuth2 Configuration
+    GOOGLE_CLIENT_ID: str | None = Field(default=None, validation_alias="GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str | None = Field(default=None, validation_alias="GOOGLE_CLIENT_SECRET")
+    GITHUB_CLIENT_ID: str | None = Field(default=None, validation_alias="GITHUB_CLIENT_ID")
+    GITHUB_CLIENT_SECRET: str | None = Field(default=None, validation_alias="GITHUB_CLIENT_SECRET")
+
     # Password Hashing
     BCRYPT_ROUNDS: int = 12
 
