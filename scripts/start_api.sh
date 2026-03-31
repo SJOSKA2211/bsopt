@@ -18,7 +18,7 @@ export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode with multi-worker Granian substrate..."
-    exec python3 -m uvicorn src.api.main:app \
+    exec python3 -m uvicorn api.index:app \
         --host 0.0.0.0 \
         --port 8000 \
         --workers $(nproc) \
@@ -28,5 +28,6 @@ if [ "${ENVIRONMENT:-development}" == "production" ]; then
         --timeout-keep-alive 65
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec python3 -m uvicorn src.api.main:app --reload --reload-dir src/api --port 8000 --host 0.0.0.0 --loop uvloop
+    exec python3 -m uvicorn api.index:app --reload --reload-dir api --port 8000 --host 0.0.0.0 --loop uvloop
 fi
+

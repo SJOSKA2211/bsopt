@@ -67,12 +67,16 @@ class DatabaseManager:
         except ImportError:
             driver = "psycopg2"
 
-        sync_url = f"{db_url}{separator}application_name={app_name}".replace(
-            "postgresql://", f"postgresql+{driver}://"
-        )
+        if "sqlite" in db_url:
+            sync_url = db_url
+        else:
+            sync_url = f"{db_url}{separator}application_name={app_name}".replace(
+                "postgresql://", f"postgresql+{driver}://"
+            )
 
         # Async path favors asyncpg
         async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+
 
         if "sqlite" in db_url:
             async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
