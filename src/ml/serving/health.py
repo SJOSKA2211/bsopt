@@ -26,7 +26,9 @@ def get_serving_health() -> dict:
     model_ok = check_model_loaded()
     mlflow_ok = check_mlflow_connection()
     
-    status = "healthy" if model_ok and mlflow_ok else "degraded"
+    # Inference readiness only requires the model to be loaded.
+    # MLflow connectivity is advisory (used for training/logging, not serving).
+    status = "healthy" if model_ok else "degraded"
     
     return {
         "status": status,

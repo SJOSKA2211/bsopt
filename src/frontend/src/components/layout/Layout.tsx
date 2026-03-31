@@ -32,8 +32,10 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { stitchTokens } from '../../theme/stitch-tokens';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TickerTape } from '../TickerTape';
 
 const drawerWidth = 260;
+
 
 interface NavItemProps {
   item: { text: string; icon: React.ReactNode; path: string; color?: string };
@@ -301,7 +303,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </Stack>
         </Box>
 
+        <TickerTape />
+
         {/* Dynamic Viewport */}
+
         <Box sx={{ flexGrow: 1, p: 0, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
            <AnimatePresence mode="wait">
               <motion.div
