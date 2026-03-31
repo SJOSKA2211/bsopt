@@ -11,6 +11,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from api.responses import MsgspecJSONResponse
 from src.config import settings
+from src.auth.auth import auth_service
 from src.shared.security import SecurityContext, is_trusted_proxy
 
 logger = structlog.get_logger(__name__)
@@ -83,8 +84,6 @@ class ZeroTrustMiddleware:
 
         if is_public:
             return security_context
-
-        from src.auth.auth import auth_service
 
         token = request.headers.get("Authorization")
         if token and token.startswith("Bearer "):

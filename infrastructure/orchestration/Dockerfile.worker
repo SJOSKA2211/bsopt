@@ -21,12 +21,15 @@ RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
 FROM manifold-base:latest AS development
+USER root
 WORKDIR /app
 
 # Copy source
 COPY . .
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+
+USER Manifold
 
 # Install App
 RUN  \
@@ -41,6 +44,7 @@ CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--
 
 # --- FINAL RUNTIME ---
 FROM manifold-base:latest AS production
+USER root
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the worker builder

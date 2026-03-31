@@ -21,6 +21,7 @@ RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
 FROM manifold-base:latest AS development
+USER root
 WORKDIR /app
 
 # Install Playwright system dependencies
@@ -35,6 +36,8 @@ COPY . .
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
+USER Manifold
+
 # Install App + Playwright
 RUN  \
     /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-scraper.txt && \
@@ -42,16 +45,19 @@ RUN  \
     /usr/local/bin/uv pip install --no-cache-dir -e .
 
 # Install Playwright browsers
+USER root
 RUN playwright install --with-deps chromium
+USER Manifold
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["python", "src/ingestion/engine.py"]
 
 # --- FINAL RUNTIME ---
 FROM manifold-base:latest AS production
+USER root
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the scraper builder
@@ -59,7 +65,6 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Playwright system dependencies in runtime
-USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
