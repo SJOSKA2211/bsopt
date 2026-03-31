@@ -787,7 +787,7 @@ services:
           cpus: '4'
           memory: 4gb
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8265/"]
+      test: ["CMD-SHELL", "ray status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -899,7 +899,7 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
       interval: 10s
       timeout: 5s
       retries: 5
