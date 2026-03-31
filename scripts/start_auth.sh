@@ -14,17 +14,14 @@ load_decrypted_secrets
 export PORT=${AUTH_PORT:-3001}
 export BETTER_AUTH_SECRET=${AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
 
-# Execute with Production Node.js substrate
-cd src/auth
-if [ ! -d "node_modules" ]; then
-    echo "📦 Initializing Node.js dependencies..."
-    npm install --quiet
-fi
+# Execute with Python substrate
+cd "$PROJECT_ROOT"
+export PYTHONPATH="$PROJECT_ROOT"
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
-    exec npm run start
+    exec python3 -m src.auth.auth_server
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec npm run dev
+    exec python3 -m src.auth.auth_server
 fi
