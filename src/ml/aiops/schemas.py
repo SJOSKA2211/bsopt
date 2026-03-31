@@ -11,6 +11,7 @@ class PrometheusMetrics(msgspec.Struct):
     p95_latency: float
     cpu_usage: float
     memory_usage: float
+    request_count: int
 
 class RedisAnomaly(msgspec.Struct):
     timestamp: str
@@ -35,6 +36,12 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+class APIStatus(msgspec.Struct):
+    reachable: bool
+    p95_latency: float
+    error_rate_5xx: float
+    request_count: int
+
 class RemediationStatus(msgspec.Struct):
     name: str
     status: str  # idle, cooldown, active
@@ -53,6 +60,7 @@ class MLHealthReport(msgspec.Struct):
     rabbitmq: RabbitMQStatus
     redis: RedisStatus
     postgres: PostgresStatus
+    api: APIStatus
     remediations: List[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

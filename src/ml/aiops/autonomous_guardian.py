@@ -59,9 +59,9 @@ class AutonomousGuardian:
         if not report.redis.connected:
             degraded_count += 1
             failed_services.append("redis")
-        if not report.timescale.connected:
+        if not report.postgres.connected:
             degraded_count += 1
-            failed_services.append("timescaledb")
+            failed_services.append("postgres")
 
         if degraded_count >= 2:
             logger.critical("guardian_cascading_failure_detected", services=failed_services)

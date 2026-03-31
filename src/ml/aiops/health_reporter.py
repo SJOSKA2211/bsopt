@@ -22,7 +22,8 @@ from src.ml.aiops.schemas import (
     RedisAnomaly, 
     RabbitMQStatus, 
     RedisStatus,
-    TimescaleStatus,
+    PostgresStatus,
+    APIStatus,
     RemediationStatus,
     GuardianStatus
 )
@@ -67,17 +68,21 @@ class HealthReporter:
         # 5. Fetch Redis connectivity status
         redis_status = await self._get_redis_status()
 
-        # 6. Fetch TimescaleDB health status
-        timescale_status = await self._get_timescale_status()
+        # 6. Fetch Postgres health status
+        postgres_status = await self._get_postgres_status()
         
-        # 7. Fetch Remediation and Guardian statuses
+        # 7. Fetch API detailed status
+        api_status = await self._get_api_status(prometheus_metrics)
+        
+        # 8. Fetch Remediation and Guardian statuses
         remediations = self._get_remediation_statuses(planner)
         guardian_status = self._get_guardian_status(guardian)
         
         # 8. Determine overall status
         status = "healthy"
-        if mlflow_status.drift_detected or prometheus_metrics.error_rate_5xx > 0.05 or \
-           not rabbitmq_status.connected or not redis_status.connected or not timescale_status.connected:
+        if mlflow_status.drift_detected or api_status.error_rate_5xx > 0.05 or \
+           not rabbitmq_status.connected or not redis_status.connected or \
+           not postgres_status.connected or not api_status.reachable:
             status = "degraded"
         if prometheus_metrics.error_rate_5xx > 0.2:
             status = "critical"
@@ -89,7 +94,8 @@ class HealthReporter:
             redis_anomalies=redis_anomalies,
             rabbitmq=rabbitmq_status,
             redis=redis_status,
-            timescale=timescale_status,
+            postgres=postgres_status,
+            api=api_status,
             remediations=remediations,
             guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -142,31 +148,37 @@ class HealthReporter:
             
             results = await asyncio.gather(error_rate_task, latency_task, cpu_task, mem_task)
             
-            error_rate = results[0]
-            latency = results[1]
-            
-            cpu_usage = 0.0
-            if results[2] and len(results[2]) > 0:
-                cpu_usage = float(results[2][0]["value"][1])
-                
-            mem_usage = 0.0
-            if results[3] and len(results[3]) > 0:
-                mem_usage = float(results[3][0]["value"][1])
-                
+            # Fetch request count (Sum of rates)
+            req_count_query = f'sum(rate(http_requests_total{{service="{self.api_service_name}"}}[5m]))'
+            req_count_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=req_count_query)
+            request_count = 0
+            if req_count_res:
+                request_count = int(float(req_count_res[0]["value"][1]))
+
             return PrometheusMetrics(
                 error_rate_5xx=error_rate,
                 p95_latency=latency,
                 cpu_usage=cpu_usage,
-                memory_usage=mem_usage
+                memory_usage=mem_usage,
+                request_count=request_count
             )
         except Exception as e:
             logger.error("prometheus_metrics_fetch_failed", error=str(e))
-            return PrometheusMetrics(
-                error_rate_5xx=0.0,
-                p95_latency=0.0,
-                cpu_usage=0.0,
-                memory_usage=0.0
-            )
+            return PrometheusMetrics(0.0, 0.0, 0.0, 0.0, 0)
+
+    async def _get_api_status(self, metrics: PrometheusMetrics) -> APIStatus:
+        """Determines if the API is reachable and healthy based on metrics."""
+        # Simple reachability check (mock-friendly)
+        reachable = True
+        if metrics.request_count == 0 and metrics.error_rate_5xx == 0:
+            reachable = False
+            
+        return APIStatus(
+            reachable=reachable,
+            p95_latency=round(metrics.p95_latency, 4),
+            error_rate_5xx=round(metrics.error_rate_5xx, 4),
+            request_count=metrics.request_count
+        )
 
     async def _get_redis_anomalies(self) -> List[RedisAnomaly]:
         try:
@@ -239,13 +251,16 @@ class HealthReporter:
             logger.error("redis_status_fetch_failed", error=str(e))
             return RedisStatus(connected=False, memory_usage_bytes=0, total_keys=0)
 
-    async def _get_timescale_status(self) -> TimescaleStatus:
-        """Checks TimescaleDB connectivity and basic hypertable stats."""
+    async def _get_postgres_status(self) -> PostgresStatus:
+        """Checks Postgres/TimescaleDB connectivity and detailed stats."""
         try:
             engine = get_async_engine()
             async with engine.connect() as conn:
-                # 1. Connected check
-                await conn.execute(text("SELECT 1"))
+                # 1. Version and basic stats
+                res = await conn.execute(text("SELECT version(), count(*) FROM pg_stat_activity"))
+                row = res.fetchone()
+                version = str(row[0]) if row else "unknown"
+                active_connections = int(row[1]) if row else 0
                 
                 # 2. Hypertable count
                 hypertables = await conn.execute(
@@ -270,15 +285,20 @@ class HealthReporter:
                 )
                 ratio = float(compression.scalar() or 1.0)
                 
-                return TimescaleStatus(
+                return PostgresStatus(
                     connected=True,
+                    version=version.split(",")[0],  # Short version string
+                    active_connections=active_connections,
                     hypertables=int(hyper_count),
                     compression_ratio=round(ratio, 2),
                     job_count=int(job_count)
                 )
         except Exception as e:
-            logger.error("timescale_status_fetch_failed", error=str(e))
-            return TimescaleStatus(connected=False, hypertables=0, compression_ratio=1.0, job_count=0)
+            logger.error("postgres_status_fetch_failed", error=str(e))
+            return PostgresStatus(
+                connected=False, version="unknown", active_connections=0, 
+                hypertables=0, compression_ratio=1.0, job_count=0
+            )
 
     def _get_remediation_statuses(self, planner: Any | None) -> List[RemediationStatus]:
         """Collects status info from all registered remediators."""

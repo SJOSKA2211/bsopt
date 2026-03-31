@@ -36,11 +36,11 @@ if [[ ! -f "${KEY_DIR}/jwt_rs256.key" ]]; then
 fi
 
 # 3. Generate Vault RSA 4096 Key Pair for persistence encryption
-if [[ ! -f "${KEY_DIR}/vault/vault.key" ]]; then
+if [[ ! -f "${KEY_DIR}/vault.key" ]]; then
     echo "🔑 Generating Vault RSA 4096 Key Pair..."
-    openssl genrsa -out "${KEY_DIR}/vault/vault.key" 4096
-    openssl rsa -in "${KEY_DIR}/vault/vault.key" -pubout -out "${KEY_DIR}/vault/vault.pub"
-    chmod 600 "${KEY_DIR}/vault/vault.key"
+    openssl genrsa -out "${KEY_DIR}/vault.key" 4096
+    openssl rsa -in "${KEY_DIR}/vault.key" -pubout -out "${KEY_DIR}/vault.pub"
+    chmod 600 "${KEY_DIR}/vault.key"
 fi
 
 if [[ ! -f "${KEY_DIR}/argon2_salt.secret" ]]; then
@@ -80,7 +80,7 @@ issue_cert "rabbitmq" "server"
 issue_cert "minio" "server"
 
 # Client Services
-CLIENT_SERVICES=("api" "auth-service" "worker" "scraper" "nse-scraper" "yfinance-scraper" "ingestion-service" "neural-pricing" "ray-head")
+CLIENT_SERVICES=("api" "auth-service" "worker" "scraper" "nse-scraper" "yfinance-scraper" "ingestion-service" "neural-pricing" "ray-head" "mlflow" "mlops-worker" "ray-worker-1" "rl-training-worker")
 for service in "${CLIENT_SERVICES[@]}"; do
     issue_cert "$service" "client"
 done

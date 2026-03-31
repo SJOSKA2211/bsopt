@@ -284,13 +284,40 @@ class AutonomousEngine:
                             {"type": "predicted_load_spike", "forecast_max": float(forecast.max())}
                         )
 
+            # 4. Critical Database Pool Check
+            if self.health_reporter:
+                report = await self.health_reporter.get_health_report(self.planner, self.guardian)
+                
+                if report.postgres.active_connections > 50:
+                    system_anomalies.append({
+                        "type": "db_pool_exhaustion",
+                        "metrics": {"total_connections": report.postgres.active_connections},
+                        "score": 0.8,
+                        "timestamp": time.time(),
+                    })
+                
+                # 5. API-Specific Anomalies (from Health Report)
+                if not report.api.reachable:
+                    system_anomalies.append({
+                        "type": "api_unreachable",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+                if report.api.error_rate_5xx > 0.15:
+                    system_anomalies.append({
+                        "type": "api_error_spike",
+                        "metric": report.api.error_rate_5xx,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
         except Exception as e:
             logger.error("system_anomaly_detection_failed", error=str(e))
 
         return system_anomalies
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
-        """Blocks until RabbitMQ, Redis, and TimescaleDB are reachable."""
+        """Blocks until RabbitMQ, Redis, and Postgres/TimescaleDB are reachable."""
         from src.shared.utils.cache import get_redis_client
         from src.database import get_async_engine
         from sqlalchemy import text
@@ -313,6 +340,9 @@ class AutonomousEngine:
                 async with engine.connect() as conn:
                     await conn.execute(text("SELECT 1"))
 
+                # 4. Check API (Internal REST Gateway)
+                await self._check_api_ready()
+
                 logger.info("infrastructure_ready")
                 return
             except Exception:
@@ -321,6 +351,24 @@ class AutonomousEngine:
                 await asyncio.sleep(interval)
         
         logger.error("infrastructure_readiness_timeout_proceeding_degraded")
+
+    async def _check_api_ready(self) -> bool:
+        """Polls the API health endpoint until it's ready."""
+        import httpx
+        # We assume the service name is resolvable in the internal network
+        url = f"http://{self.api_service_name}:8000/health"
+        logger.info("polling_api_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("api_ready")
+                    return True
+            except Exception as e:
+                logger.debug("api_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"API at {url} is not yet reachable")
 
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop and guardian oversight."""
