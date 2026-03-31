@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM localhost/manifold-base:builder AS builder
+FROM manifold-base:latest AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Rust for math kernels)
@@ -21,19 +21,19 @@ ENV CARGO_BUILD_JOBS=1
 
 # Build Wheel for Rust Core
 COPY . .
-RUN uv pip install maturin
+RUN /usr/local/bin/uv pip install --no-cache-dir maturin
 RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 
 # Install App + Dependencies
 COPY infrastructure/requirements/requirements-ml.txt /tmp/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install -r /tmp/requirements-ml.txt && \
-    uv pip install . && \
-    uv pip install /tmp/wheels/*.whl
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-ml.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir . && \
+    /usr/local/bin/uv pip install --no-cache-dir /tmp/wheels/*.whl
 
 # --- DEVELOPMENT ---
-FROM localhost/manifold-base:builder AS development
+FROM manifold-base:latest AS development
 WORKDIR /app
 
 # Copy source
@@ -42,12 +42,12 @@ COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App in editable mode
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-ml.txt && \
-    uv pip install -e .
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-ml.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir -e .
 
 # --- PRODUCTION ---
-FROM localhost/manifold-base:final AS production
+FROM manifold-base:latest AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the neural builder

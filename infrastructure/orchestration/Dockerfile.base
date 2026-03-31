@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install UV
-COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /uv/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
 # UV Cache Settings
@@ -58,13 +58,16 @@ COPY infrastructure/requirements/requirements-core.txt /tmp/
 COPY infrastructure/requirements/requirements-db.txt /tmp/
 COPY infrastructure/requirements/requirements-observability.txt /tmp/
 
-RUN uv pip install \
+RUN /usr/local/bin/uv pip install --no-cache-dir \
     -r /tmp/requirements-core.txt \
     -r /tmp/requirements-db.txt \
     -r /tmp/requirements-observability.txt
 
 # --- FINAL PRODUCTION BASE ---
 FROM runtime AS final
+
+# Copy uv from builder to make it available for child images
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 
 # Copy the pre-built virtual environment
 COPY --from=builder /opt/venv /opt/venv

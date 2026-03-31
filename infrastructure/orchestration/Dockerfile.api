@@ -2,21 +2,21 @@
 # High-performance ASGI gateway for the BSOPT platform.
 
 # --- BUILDER ---
-FROM localhost/manifold-base:builder AS builder
+FROM manifold-base:latest AS builder
 WORKDIR /app
 
 # Install build-time specific dependencies (Api-specific)
 COPY infrastructure/requirements/requirements-api.txt /tmp/
 COPY infrastructure/requirements/requirements-ml.txt /tmp/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r /tmp/requirements-api.txt -r /tmp/requirements-ml.txt
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-api.txt -r /tmp/requirements-ml.txt
 
 # Copy source + build
 COPY . .
-RUN uv pip install .
+RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
-FROM localhost/manifold-base:builder AS development
+FROM manifold-base:latest AS development
 WORKDIR /app
 
 # Copy source + requirements
@@ -25,12 +25,12 @@ COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App in editable mode for dev
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-api.txt -r infrastructure/requirements/requirements-ml.txt && \
-    uv pip install -e .
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-api.txt -r infrastructure/requirements/requirements-ml.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir -e .
 
 # --- FINAL RUNTIME ---
-FROM localhost/manifold-base:final AS production
+FROM manifold-base:latest AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the API builder

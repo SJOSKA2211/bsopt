@@ -111,6 +111,9 @@ class User(Base):
     better_auth_accounts: Mapped[list["BetterAuthAccount"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    webauthn_credentials: Mapped[list["UserCredential"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_users_active_pro", "tier", postgresql_where=(is_active) & (is_verified)),
@@ -136,6 +139,10 @@ class OAuthAccount(Base):
 
     user: Mapped["User"] = relationship(back_populates="oauth_accounts")
 
+    # Metadata for better social linkage
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
+    profile_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+
     __table_args__ = (UniqueConstraint("provider", "provider_id"),)
 
 class EmailVerificationToken(Base):
@@ -146,6 +153,27 @@ class EmailVerificationToken(Base):
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+# OAUTH & SECURITY MODES
+
+class UserCredential(Base):
+    """
+    WebAuthn / Passkey Credentials (Multi-device Support)
+    """
+
+    __tablename__ = "user_credentials"
+
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    credential_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    public_key: Mapped[str] = mapped_column(Text, nullable=False)
+    sign_count: Mapped[int] = mapped_column(Integer, default=0)
+    transports: Mapped[list[str] | None] = mapped_column(JSONB)  # e.g., ["usb", "ble", "nfc", "internal"]
+    name: Mapped[str | None] = mapped_column(String(255))  # e.g., "YubiKey", "MacBook Pro TouchID"
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped["User"] = relationship(back_populates="webauthn_credentials")
 
 # LOGGING & AUDIT (Hypertables)
 

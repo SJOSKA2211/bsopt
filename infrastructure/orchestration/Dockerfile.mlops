@@ -14,20 +14,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Production UV
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
 COPY pyproject.toml README.md ./
 COPY infrastructure/requirements/ /app/infrastructure/requirements/
 
 # Optimized Dependency Layer
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-ml.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-worker.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system .
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-core.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-ml.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-worker.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-observability.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir --system .
 
 # Copy Source
 COPY src ./src

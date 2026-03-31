@@ -6,20 +6,20 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM localhost/manifold-base:builder AS builder
+FROM manifold-base:latest AS builder
 WORKDIR /app
 
 # Install worker-specific dependencies
 COPY infrastructure/requirements/requirements-worker.txt /tmp/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install -r /tmp/requirements-worker.txt
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-worker.txt
 
 COPY . .
-RUN uv pip install .
+RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
-FROM localhost/manifold-base:builder AS development
+FROM manifold-base:latest AS development
 WORKDIR /app
 
 # Copy source
@@ -28,9 +28,9 @@ COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-worker.txt && \
-    uv pip install -e .
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-worker.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir -e .
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -39,7 +39,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
 
 # --- FINAL RUNTIME ---
-FROM localhost/manifold-base:final AS production
+FROM manifold-base:latest AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the worker builder

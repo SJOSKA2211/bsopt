@@ -13,10 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Production UV
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
-RUN uv pip install --system maturin --break-system-packages
+RUN /usr/local/bin/uv pip install --no-cache-dir --system maturin --break-system-packages
 RUN rustup component add rustfmt clippy
 
 # Copy source

@@ -6,19 +6,19 @@
 # ==============================================================================
 
 # --- BUILDER ---
-FROM localhost/manifold-base:builder AS builder
+FROM manifold-base:latest AS builder
 WORKDIR /app
 
 # Install App + Dependencies
 COPY infrastructure/requirements/requirements-auth.txt /tmp/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r /tmp/requirements-auth.txt
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-auth.txt
 
 COPY . .
-RUN uv pip install .
+RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
-FROM localhost/manifold-base:builder AS development
+FROM manifold-base:latest AS development
 WORKDIR /app
 
 # Copy source
@@ -27,12 +27,12 @@ COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 # Install App
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r infrastructure/requirements/requirements-auth.txt && \
-    uv pip install -e .
+RUN  \
+    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-auth.txt && \
+    /usr/local/bin/uv pip install --no-cache-dir -e .
 
 # --- PRODUCTION ---
-FROM localhost/manifold-base:final AS production
+FROM manifold-base:latest AS production
 WORKDIR /app
 
 # Copy the pre-built virtual environment from the auth builder
