@@ -36,6 +36,12 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+class AuthStatus(msgspec.Struct):
+    reachable: bool
+    p95_latency: float
+    auth_success_rate: float
+    active_tokens: int
+
 class APIStatus(msgspec.Struct):
     reachable: bool
     p95_latency: float
@@ -61,6 +67,7 @@ class MLHealthReport(msgspec.Struct):
     redis: RedisStatus
     postgres: PostgresStatus
     api: APIStatus
+    auth: AuthStatus
     remediations: List[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

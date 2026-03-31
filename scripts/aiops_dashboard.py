@@ -83,6 +83,15 @@ async def run_dashboard():
         print(f"   - P95 Latency: {api.p95_latency:.4f}s")
         print(f"   - 5xx Error Rate: {api.error_rate_5xx:.4f}")
         print(f"   - Request Count: {api.request_count}")
+
+        # Auth (Security Gateway)
+        auth = report.auth
+        auth_icon = "🔐" if auth.reachable else "❌"
+        print(f"\n{auth_icon}  AUTHENTICATION GATEWAY:")
+        print(f"   - Reachable: {auth.reachable}")
+        print(f"   - P95 Latency: {auth.p95_latency:.4f}s")
+        print(f"   - Auth Success Rate: {auth.auth_success_rate:.2%}")
+        print(f"   - Active Tokens: {auth.active_tokens}")
         
         # 2. Autonomous Oversight
         print_section("AUTONOMOUS OVERSIGHT", color=YELLOW)

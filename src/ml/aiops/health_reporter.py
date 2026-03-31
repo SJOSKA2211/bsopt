@@ -24,6 +24,7 @@ from src.ml.aiops.schemas import (
     RedisStatus,
     PostgresStatus,
     APIStatus,
+    AuthStatus,
     RemediationStatus,
     GuardianStatus
 )
@@ -40,6 +41,7 @@ class HealthReporter:
         self.mlflow_client = MlflowClient() if MlflowClient else None
         self.prometheus_client = PrometheusClient(url=prometheus_url)
         self.api_service_name = api_service_name
+        self.auth_service_name = "auth-service"
         self.anomaly_history_key = "aiops:anomaly_history"
         self.rmq = get_rabbitmq()
 
@@ -74,7 +76,10 @@ class HealthReporter:
         # 7. Fetch API detailed status
         api_status = await self._get_api_status(prometheus_metrics)
         
-        # 8. Fetch Remediation and Guardian statuses
+        # 8. Fetch Auth detailed status
+        auth_status = await self._get_auth_status()
+        
+        # 9. Fetch Remediation and Guardian statuses
         remediations = self._get_remediation_statuses(planner)
         guardian_status = self._get_guardian_status(guardian)
         
@@ -82,7 +87,8 @@ class HealthReporter:
         status = "healthy"
         if mlflow_status.drift_detected or api_status.error_rate_5xx > 0.05 or \
            not rabbitmq_status.connected or not redis_status.connected or \
-           not postgres_status.connected or not api_status.reachable:
+           not postgres_status.connected or not api_status.reachable or \
+           not auth_status.reachable:
             status = "degraded"
         if prometheus_metrics.error_rate_5xx > 0.2:
             status = "critical"
@@ -96,6 +102,7 @@ class HealthReporter:
             redis=redis_status,
             postgres=postgres_status,
             api=api_status,
+            auth=auth_status,
             remediations=remediations,
             guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -179,6 +186,38 @@ class HealthReporter:
             error_rate_5xx=round(metrics.error_rate_5xx, 4),
             request_count=metrics.request_count
         )
+
+    async def _get_auth_status(self) -> AuthStatus:
+        """Fetches detailed Auth service metrics from Prometheus."""
+        try:
+            # 1. Reachability (based on request rate)
+            query_rate = f'sum(rate(http_requests_total{{service="{self.auth_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Latency
+            latency = await asyncio.to_thread(self.prometheus_client.get_p95_latency, self.auth_service_name)
+            
+            # 3. Success Rate
+            # Assuming auth-service exports success/failure counters
+            success_query = f'sum(rate(auth_requests_total{{status="success"}}[5m])) / sum(rate(auth_requests_total[5m]))'
+            success_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=success_query)
+            success_rate = float(success_res[0]["value"][1]) if success_res else 1.0
+            
+            # 4. Active Tokens (Mocked from Redis or Prometheus gauge)
+            token_query = f'sum(auth_active_tokens_gauge)'
+            token_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=token_query)
+            active_tokens = int(float(token_res[0]["value"][1])) if token_res else 0
+            
+            return AuthStatus(
+                reachable=reachable,
+                p95_latency=round(latency, 4),
+                auth_success_rate=round(success_rate, 4),
+                active_tokens=active_tokens
+            )
+        except Exception as e:
+            logger.error("auth_status_fetch_failed", error=str(e))
+            return AuthStatus(reachable=False, p95_latency=0.0, auth_success_rate=0.0, active_tokens=0)
 
     async def _get_redis_anomalies(self) -> List[RedisAnomaly]:
         try:

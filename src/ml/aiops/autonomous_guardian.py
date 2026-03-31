@@ -62,6 +62,9 @@ class AutonomousGuardian:
         if not report.postgres.connected:
             degraded_count += 1
             failed_services.append("postgres")
+        if not report.auth.reachable:
+            degraded_count += 1
+            failed_services.append("auth")
 
         if degraded_count >= 2:
             logger.critical("guardian_cascading_failure_detected", services=failed_services)

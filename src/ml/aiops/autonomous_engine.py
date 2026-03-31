@@ -311,6 +311,21 @@ class AutonomousEngine:
                         "timestamp": time.time()
                     })
 
+                # 6. Auth-Specific Anomalies (from Health Report)
+                if not report.auth.reachable:
+                    system_anomalies.append({
+                        "type": "auth_unreachable",
+                        "severity": "critical",
+                        "timestamp": time.time()
+                    })
+                if report.auth.auth_success_rate < 0.9:
+                    system_anomalies.append({
+                        "type": "auth_failure_spike",
+                        "metric": report.auth.auth_success_rate,
+                        "severity": "high",
+                        "timestamp": time.time()
+                    })
+
         except Exception as e:
             logger.error("system_anomaly_detection_failed", error=str(e))
 
@@ -343,6 +358,9 @@ class AutonomousEngine:
                 # 4. Check API (Internal REST Gateway)
                 await self._check_api_ready()
 
+                # 5. Check Auth (Internal Security Gateway)
+                await self._check_auth_ready()
+
                 logger.info("infrastructure_ready")
                 return
             except Exception:
@@ -369,6 +387,23 @@ class AutonomousEngine:
                 logger.debug("api_ping_failed", error=str(e))
         
         raise RuntimeError(f"API at {url} is not yet reachable")
+
+    async def _check_auth_ready(self) -> bool:
+        """Polls the Auth health endpoint until it's ready."""
+        import httpx
+        url = "http://auth:3001/health" # Primary auth gateway
+        logger.info("polling_auth_readiness", url=url)
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=2.0)
+                if resp.status_code == 200:
+                    logger.info("auth_ready")
+                    return True
+            except Exception as e:
+                logger.debug("auth_ping_failed", error=str(e))
+        
+        raise RuntimeError(f"Auth Service at {url} is not yet reachable")
 
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop and guardian oversight."""
