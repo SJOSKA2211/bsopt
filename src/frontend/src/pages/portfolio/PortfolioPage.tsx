@@ -57,12 +57,12 @@ const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = Reac
   const r = 70, cx = 90, cy = 90;
 
   const paths = useMemo(() => {
-    let cumulative = 0;
+    let currentCumulative = 0;
     return segments.map((seg: { label?: string; pct: number; color: string }) => {
-      const start = cumulative;
-      cumulative += seg.pct;
+      const start = currentCumulative;
+      currentCumulative += seg.pct;
       const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
-      const endAngle = (cumulative / 100) * 2 * Math.PI - Math.PI / 2;
+      const endAngle =  (currentCumulative / 100) * 2 * Math.PI - Math.PI / 2;
       const x1 = cx + r * Math.cos(startAngle);
       const y1 = cy + r * Math.sin(startAngle);
       const x2 = cx + r * Math.cos(endAngle);
