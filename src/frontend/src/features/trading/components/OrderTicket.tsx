@@ -62,9 +62,9 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>QUANTITY</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label="Decrease value"><RemoveIcon fontSize="small" /></IconButton>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>18</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label="Increase value"><AddIcon fontSize="small" /></IconButton>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           {['10', '50', '100', 'MAX'].map(val => (
@@ -85,9 +85,9 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>LIMIT PRICE</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label="Decrease value"><RemoveIcon fontSize="small" /></IconButton>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>4.25</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label="Increase value"><AddIcon fontSize="small" /></IconButton>
         </Stack>
       </Box>
 

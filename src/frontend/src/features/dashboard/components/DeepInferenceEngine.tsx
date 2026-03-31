@@ -15,7 +15,7 @@ const ModelMetric: React.FC<MetricProps> = ({ label, value, percent, color }) =>
       <Typography className="stitch-label" sx={{ fontSize: '9px' }}>{label}</Typography>
       <Typography className="stitch-mono" sx={{ fontSize: '11px', fontWeight: 800, color }}>{value}</Typography>
     </Stack>
-    <LinearProgress 
+    <LinearProgress aria-label="Loading..."
       variant="determinate" 
       value={percent} 
       sx={{ 

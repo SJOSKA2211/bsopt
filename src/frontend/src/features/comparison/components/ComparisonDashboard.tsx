@@ -115,7 +115,7 @@ export const ComparisonDashboard: React.FC = () => {
 
                         {isLoading && !metrics ? (
                              <Box sx={{ py: 4, textAlign: 'center' }}>
-                                 <LinearProgress sx={{ borderRadius: 4, height: 2, bgcolor: alpha('#fff', 0.05) }} />
+                                 <LinearProgress aria-label="Loading..." sx={{ borderRadius: 4, height: 2, bgcolor: alpha('#fff', 0.05) }} />
                                  <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'text.secondary', fontWeight: 800 }}>SYNCHRONIZING ORACLE FEED...</Typography>
                              </Box>
                         ) : (
@@ -131,7 +131,7 @@ export const ComparisonDashboard: React.FC = () => {
                                             AI EDGE: +{((metrics.aiPnl - metrics.userPnl) / (metrics.userPnl || 1) * 100).toFixed(1)}%
                                         </Typography>
                                     </Stack>
-                                    <LinearProgress
+                                    <LinearProgress aria-label="Loading..."
                                         variant="determinate"
                                         value={(metrics.aiPnl / ((metrics.userPnl + metrics.aiPnl) || 1)) * 100}
                                         sx={{

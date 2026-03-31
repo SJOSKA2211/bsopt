@@ -35,7 +35,7 @@ export const CalibrationHealth: React.FC<CalibrationHealthProps> = ({ metrics })
               <Typography variant="body2">RMSE (Error)</Typography>
               <Typography variant="body2" color={getStatusColor(metrics.rmse, 0.05)}>{(metrics.rmse * 100).toFixed(2)}%</Typography>
             </Box>
-            <LinearProgress 
+            <LinearProgress aria-label="Loading..."
               variant="determinate" 
               value={Math.min(100, metrics.rmse * 1000)} 
               color={metrics.rmse < 0.05 ? "success" : "error"}

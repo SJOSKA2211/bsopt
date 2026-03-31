@@ -21,7 +21,7 @@ const LivePriceChart = lazy(() =>
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={20} sx={{ color: stitchTokens.colors.primary }} />
+    <CircularProgress aria-label="Loading..." size={20} sx={{ color: stitchTokens.colors.primary }} />
   </Box>
 );
 

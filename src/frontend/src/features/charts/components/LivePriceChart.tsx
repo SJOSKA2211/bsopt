@@ -291,6 +291,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         <Stack direction="row" spacing={1} sx={{ pointerEvents: 'auto' }}>
           <Tooltip title="Toggle Production Trendline">
             <IconButton 
+              aria-label="Toggle Production Trendline"
               size="small" 
               onClick={() => setShowSMA(!showSMA)}
               sx={{ 

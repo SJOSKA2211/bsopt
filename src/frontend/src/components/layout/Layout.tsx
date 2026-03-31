@@ -258,7 +258,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         }}>
           <Stack direction="row" spacing={3} alignItems="center">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#fff', mr: 1 }}>
+              <IconButton aria-label="Open mobile menu" onClick={() => setMobileOpen(true)} sx={{ color: '#fff', mr: 1 }}>
                 <MenuIcon />
               </IconButton>
             )}
