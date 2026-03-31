@@ -28,12 +28,25 @@ if [[ ! -f "${KEY_DIR}/jwt_es256.key" ]]; then
     chmod 600 "${KEY_DIR}/jwt_es256.key"
 fi
 
+if [[ ! -f "${KEY_DIR}/jwt_rs256.key" ]]; then
+    echo "🔑 Generating RS256 JWT Key Pair (RSA 4096)..."
+    openssl genrsa -out "${KEY_DIR}/jwt_rs256.key" 4096
+    openssl rsa -in "${KEY_DIR}/jwt_rs256.key" -pubout -out "${KEY_DIR}/jwt_rs256.pub"
+    chmod 600 "${KEY_DIR}/jwt_rs256.key"
+fi
+
 # 3. Generate Vault RSA 4096 Key Pair for persistence encryption
 if [[ ! -f "${KEY_DIR}/vault/vault.key" ]]; then
     echo "🔑 Generating Vault RSA 4096 Key Pair..."
     openssl genrsa -out "${KEY_DIR}/vault/vault.key" 4096
     openssl rsa -in "${KEY_DIR}/vault/vault.key" -pubout -out "${KEY_DIR}/vault/vault.pub"
     chmod 600 "${KEY_DIR}/vault/vault.key"
+fi
+
+if [[ ! -f "${KEY_DIR}/argon2_salt.secret" ]]; then
+    echo "🔑 Generating Argon2 Salt..."
+    openssl rand -hex 16 > "${KEY_DIR}/argon2_salt.secret"
+    chmod 600 "${KEY_DIR}/argon2_salt.secret"
 fi
 
 # 4. Function to Issue Service Certificates (Zero-Trust mTLS)
