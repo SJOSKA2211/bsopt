@@ -15,6 +15,7 @@ fi
 
 # Detect Engine
 detect_container_engine
+load_decrypted_secrets
 
 # 2. Configuration
 COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"

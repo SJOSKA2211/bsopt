@@ -6,7 +6,7 @@ Consolidates all security layers into a single ASGI hop to minimize context-swit
 import re
 
 import structlog
-from fastapi import Request
+from fastapi import HTTPException, Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from api.responses import MsgspecJSONResponse
@@ -57,7 +57,6 @@ class ZeroTrustMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
         self.blocked_ips: set[str] = set()
-        self.csrf_secret = settings.JWT_SECRET.encode()
 
         # CSP and other headers pre-built for speed (Binary encoded bounds)
         self.security_headers = [
@@ -178,7 +177,8 @@ class ZeroTrustMiddleware:
         # 7. Security Headers Wrapper (High-Performance Zero-Copy Tuple Extend)
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
-                headers = message.get("headers", [])
+                # Ensure headers is a list of tuples of bytes
+                headers = list(message.get("headers", []))
                 headers.extend(self.security_headers)
                 message["headers"] = headers
             await send(message)

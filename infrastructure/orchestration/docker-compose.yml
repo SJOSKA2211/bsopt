@@ -80,12 +80,12 @@ services:
       SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       SERVER_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
       SERVER_TLS_KEY_FILE: /tmp/pgbouncer.key
-      CLIENT_TLS_SSLMODE: verify-full
+      CLIENT_TLS_SSLMODE: require
       CLIENT_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
       CLIENT_TLS_KEY_FILE: /tmp/pgbouncer.key
     ports:
-      - "127.0.0.1:6434:6432"
+      - "127.0.0.1:6432:6432"
     deploy:
       resources:
         limits:
@@ -877,6 +877,10 @@ services:
       - "5000:5000"
     environment:
       - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
+      - PGSSLMODE=verify-full
+      - PGSSLROOTCERT=/etc/postgresql/ca.crt
+      - PGSSLCERT=/etc/postgresql/mlflow.crt
+      - PGSSLKEY=/etc/postgresql/mlflow.key
       - MLFLOW_ARTIFACT_ROOT=s3://Manifold-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
