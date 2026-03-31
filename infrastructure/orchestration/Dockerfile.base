@@ -71,11 +71,11 @@ FROM runtime AS final
 COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 
 # Copy the pre-built virtual environment
-COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder --chown=Manifold:Manifold /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Ensure the app directory and venv are owned by Manifold
+# Ensure the app directory is owned by Manifold
 WORKDIR /app
-RUN chown -R Manifold:Manifold /app /opt/venv
+RUN chown -R Manifold:Manifold /app
 
 USER Manifold
