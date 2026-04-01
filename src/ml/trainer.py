@@ -4,7 +4,7 @@ import mlflow
 import torch
 import xgboost as xgb
 from pathlib import Path
-from typing import dict, tuple
+from typing import Dict, Tuple
 from sklearn.model_selection import train_test_split
 from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 from src.ml.models.neural_engine import NeuralPricingEngine

@@ -1060,18 +1060,17 @@ services:
     command: python src/ingestion/concurrent_ingestion.py
 
   envoy:
+    image: docker.io/envoyproxy/envoy:v1.28-latest
     env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.envoy
+    pull_policy: if_not_present
+    volumes:
+      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../../.pki:/etc/envoy/ssl:ro
     ports:
       - "8081:8080"
       - "443:443"
       - "9901:9901"
-    volumes:
-      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ../../.pki:/etc/envoy/ssl:ro
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
     depends_on:
       - api
       - auth-service

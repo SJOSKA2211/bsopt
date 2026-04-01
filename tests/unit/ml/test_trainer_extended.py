@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.ml.trainer import ModelTrainer, PyTorchTrainer
+from src.ml.trainer import ModelTrainer
 
 @pytest.fixture
 def dummy_data():
