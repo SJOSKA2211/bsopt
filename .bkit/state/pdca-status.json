@@ -1,67 +1,48 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-01T04:17:27.251Z",
-  "activeFeatures": {
-    "mlops-health-revamp": {
-      "phase": "Design",
-      "status": "COMPLETED",
-      "path": "docs/01-plan/features/mlops-health-revamp.plan.md",
-      "designPath": "docs/02-design/features/mlops-health-revamp.design.md",
-      "tasks": [
-        {
-          "id": "Plan",
-          "title": "[Plan] mlops-health-revamp",
-          "status": "COMPLETED"
-        },
-        {
-          "id": "Design",
-          "title": "[Design] mlops-health-revamp",
-          "status": "COMPLETED",
-          "blockedBy": "Plan"
-        }
-      ]
-    }
-  },
-  "primaryFeature": "mlops-health-revamp",
+  "lastUpdated": "2026-04-01T10:43:22.788Z",
+  "activeFeatures": {},
+  "primaryFeature": null,
   "archivedFeatures": {},
   "pipeline": {
-    "currentPhase": 2,
+    "currentPhase": 1,
     "level": "Dynamic",
-    "phaseHistory": [
-      {
-        "phase": "Plan",
-        "feature": "mlops-health-revamp",
-        "timestamp": "2026-03-31T14:16:43.201Z"
-      },
-      {
-        "phase": "Design",
-        "feature": "mlops-health-revamp",
-        "timestamp": "2026-03-31T14:20:00.000Z"
-      }
-    ]
+    "phaseHistory": []
   },
   "session": {
-    "startedAt": "2026-03-31T11:42:29.439Z",
-    "onboardingCompleted": true,
-    "lastActivity": "2026-03-31T15:17:26.163Z"
+    "startedAt": "2026-04-01T07:35:52.297Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-04-01T10:40:09.246Z"
   },
   "history": [
     {
-      "timestamp": "2026-03-31T14:16:43.201Z",
-      "action": "plan_complete",
-      "feature": "mlops-health-revamp",
-      "details": "Plan document verified and task created"
-    },
-    {
-      "timestamp": "2026-03-31T14:20:00.000Z",
-      "action": "design_complete",
-      "feature": "mlops-health-revamp",
-      "details": "Design document created and task updated"
-    },
-    {
-      "timestamp": "2026-03-31T15:17:26.163Z",
+      "timestamp": "2026-04-01T07:35:52.297Z",
       "action": "session_end",
-      "feature": "mlops-health-revamp",
+      "feature": null,
+      "details": "Session ended"
+    },
+    {
+      "timestamp": "2026-04-01T07:35:52.495Z",
+      "action": "session_end",
+      "feature": null,
+      "details": "Session ended"
+    },
+    {
+      "timestamp": "2026-04-01T07:35:52.505Z",
+      "action": "session_end",
+      "feature": null,
+      "details": "Session ended"
+    },
+    {
+      "timestamp": "2026-04-01T07:35:52.506Z",
+      "action": "session_end",
+      "feature": null,
+      "details": "Session ended"
+    },
+    {
+      "timestamp": "2026-04-01T10:40:09.246Z",
+      "action": "session_end",
+      "feature": null,
       "details": "Session ended"
     }
   ]

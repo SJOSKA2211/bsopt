@@ -194,22 +194,17 @@ async def generic_exception_handler(request: Request, exc: Exception):
         },
     )
 
-# Circuit Breakers
-ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(
-    failure_threshold=5, recovery_timeout=30
-)  # Default to in-memory
+# Global model state
+state: dict[str, Any] = {
+    "xgb_model": None,
+    "xgb_ort_session": None,
+    "nn_ort_session": None,
+    "current_model": "xgb",
+    "grpc_servicer": None,
+}
 
-@app.post(
-    "/predict",
-    response_model=None,
-)
-@ml_circuit
-async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataResponse:
-    """
-    Perform ML-based option price prediction.
-    - **xgb**: eXtreme Gradient Boosting model (Default, ONNX-accelerated if available)
-    - **nn**: Deep Neural Network (ONNX)
-    """
+async def load_xgb_model():
+    """Load XGBoost model, favoring quantized ONNX for maximum performance."""
     start_time = time.perf_counter()
 
     try:
