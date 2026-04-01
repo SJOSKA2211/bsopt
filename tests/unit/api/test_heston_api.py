@@ -20,7 +20,7 @@ class TestPricingAPIHeston:
             "metrics": {"rmse": 0.01},
         }
 
-        from src.shared.cache import get_redis_client
+        from src.shared.utils.cache import get_redis_client
 
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=json.dumps(mock_cache))
@@ -67,7 +67,7 @@ class TestPricingAPIHeston:
         from api.index import app
         from src.auth.auth import get_current_user_flexible
         from src.auth.rate_limit import rate_limit
-        from src.shared.cache import get_redis_client
+        from src.shared.utils.cache import get_redis_client
 
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
         app.dependency_overrides[get_current_user_flexible] = lambda: {

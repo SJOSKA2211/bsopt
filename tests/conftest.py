@@ -83,7 +83,7 @@ def startup_session():
     # 3. Init Redis mock/client
     import asyncio
 
-    from src.shared.cache import init_redis_cache
+    from src.shared.utils.cache import init_redis_cache
 
     try:
         loop = asyncio.get_event_loop()

@@ -38,7 +38,7 @@ class ONNXInferenceEngine:
         self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
         self.input_name = self.session.get_inputs()[0].name
         self.output_name = self.session.get_outputs()[0].name
-        logger.info("onnx_session_ready", path=model_path, providers=providers)
+        logger.info(f"onnx_session_ready at {model_path} with providers {providers}")
 
     def predict(self, features: np.ndarray) -> np.ndarray:
         """

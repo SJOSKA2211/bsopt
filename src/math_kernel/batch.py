@@ -7,7 +7,7 @@ import pandas as pd
 import structlog
 
 from src.math_kernel.service import PricingService
-from src.shared.filesystem import sanitize_path
+from src.shared.utils.filesystem import sanitize_path
 from src.shared.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)

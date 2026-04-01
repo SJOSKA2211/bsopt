@@ -20,12 +20,21 @@ source scripts/utils_env.sh
 load_decrypted_secrets
 
 # Fix hostname resolution when running locally outside of docker
-export DATABASE_URL="${DATABASE_URL:-}"
-export DATABASE_URL="${DATABASE_URL//pgbouncer:6432/localhost:5435}"
-export DATABASE_URL="${DATABASE_URL//pgbouncer/localhost:5435}"
-export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI:-}"
-export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer:6432/localhost:5435}"
-export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer/localhost:5435}"
+if [ -n "${DATABASE_URL:-}" ]; then
+    if [[ "$DATABASE_URL" == *"pgbouncer:6432"* ]]; then
+        export DATABASE_URL="${DATABASE_URL//pgbouncer:6432/localhost:5435}"
+    elif [[ "$DATABASE_URL" == *"pgbouncer"* ]]; then
+        export DATABASE_URL="${DATABASE_URL//pgbouncer/localhost:5435}"
+    fi
+fi
+
+if [ -n "${MLFLOW_TRACKING_URI:-}" ]; then
+    if [[ "$MLFLOW_TRACKING_URI" == *"pgbouncer:6432"* ]]; then
+        export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer:6432/localhost:5435}"
+    elif [[ "$MLFLOW_TRACKING_URI" == *"pgbouncer"* ]]; then
+        export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer/localhost:5435}"
+    fi
+fi
 
 # Local gRPC and model overrides
 export ML_SERVICE_GRPC_URL="0.0.0.0:50051"

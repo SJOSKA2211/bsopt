@@ -668,3 +668,23 @@ class ModelEmbedding(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+class CalibrationResult(Base):
+    __tablename__ = "calibration_results"
+
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    symbol: Mapped[str] = mapped_column(String, ForeignKey("symbols.symbol"), nullable=False)
+    v0: Mapped[float] = mapped_column(Double, nullable=False)
+    kappa: Mapped[float] = mapped_column(Double, nullable=False)
+    theta: Mapped[float] = mapped_column(Double, nullable=False)
+    sigma: Mapped[float] = mapped_column(Double, nullable=False)
+    rho: Mapped[float] = mapped_column(Double, nullable=False)
+    rmse: Mapped[float] = mapped_column(Double, nullable=False)
+    r_squared: Mapped[float] = mapped_column(Double, nullable=False)
+    num_options: Mapped[int] = mapped_column(Integer, nullable=False)
+    svi_params: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("idx_calibration_symbol_time", symbol, created_at.desc()),
+    )

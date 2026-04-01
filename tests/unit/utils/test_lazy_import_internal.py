@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.shared.lazy_import import (
+from src.shared.utils.lazy_import import (
     CircularImportError,
     LazyImportError,
     _failed_imports,
@@ -154,7 +154,7 @@ def test_ml_init_logic():
 
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}):
         with patch(
-            "src.shared.lazy_import.preload_modules"
+            "src.shared.utils.lazy_import.preload_modules"
         ) as mock_preload:  # Patch the actual function called
             importlib.reload(src.ml)  # Reload to ensure the env var check is re-evaluated
             mock_preload.assert_called_with("src.ml", src.ml._import_map, {"DataNormalizer"})
@@ -187,7 +187,7 @@ def test_preload_modules_failure_logging(mocker):
     reset_import_stats()
     # Mock lazy_import to fail when called from preload_modules
     mocker.patch(
-        "src.shared.lazy_import.lazy_import",
+        "src.shared.utils.lazy_import.lazy_import",
         side_effect=ModuleNotFoundError("No module named 'bad_module'"),
     )
 
@@ -243,21 +243,21 @@ def test_ml_getattr(mocker):
     if "src.ml" in sys.modules:
         del sys.modules["src.ml"]
 
-    # We also need to ensure src.shared.lazy_import is clean to use our patch
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    # We also need to ensure src.shared.utils.lazy_import is clean to use our patch
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
     # Create the mock object that lazy_import should return
     expected_returned_object = MagicMock(name="MockedDataNormalizerInstance")
 
-    # Mock src.shared.lazy_import.lazy_import to return our specific mock object
+    # Mock src.shared.utils.lazy_import.lazy_import to return our specific mock object
     # This directly mocks what src.ml.__getattr__ calls.
     mock_lazy_import = mocker.patch(
-        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.utils.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
     # Now, import src.ml. This will load src.ml and its __getattr__ logic.
-    # Since src.shared.lazy_import might be imported during this process,
+    # Since src.shared.utils.lazy_import might be imported during this process,
     # and it relies on a module-level import of `import_module`,
     # we need to be careful.
     import src.ml
@@ -361,12 +361,12 @@ DUMMY_VAR = True
 def test_pricing_getattr(mocker):
     if "src.math_kernel" in sys.modules:
         del sys.modules["src.math_kernel"]
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedBlackScholesEngineInstance")
     mock_lazy_import = mocker.patch(
-        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.utils.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
     import src.math_kernel
@@ -395,13 +395,13 @@ def test_preload_classical_pricers(mocker):
     if "src.math_kernel" in sys.modules:
         del sys.modules["src.math_kernel"]
 
-    # Ensure src.shared.lazy_import is removed from sys.modules to guarantee our patch is applied
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    # Ensure src.shared.utils.lazy_import is removed from sys.modules to guarantee our patch is applied
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
     # Patch preload_modules directly using mocker. This needs to happen BEFORE src.math_kernel is imported
-    # because src.math_kernel imports src.shared.lazy_import at the top level.
-    mock_preload_modules = mocker.patch("src.shared.lazy_import.preload_modules")
+    # because src.math_kernel imports src.shared.utils.lazy_import at the top level.
+    mock_preload_modules = mocker.patch("src.shared.utils.lazy_import.preload_modules")
 
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_PRICING": "true"}):
         # Now import src.math_kernel. This will be its first import in this test,
@@ -483,12 +483,12 @@ DUMMY_VAR = True
 def test_streaming_getattr(mocker):
     if "src.workers.streaming" in sys.modules:
         del sys.modules["src.workers.streaming"]
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedMarketDataProducerInstance")
     mock_lazy_import = mocker.patch(
-        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.utils.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
     import src.workers.streaming
@@ -513,10 +513,10 @@ def test_streaming_dir():
 def test_preload_streaming_modules(mocker):
     if "src.workers.streaming" in sys.modules:
         del sys.modules["src.workers.streaming"]
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
-    mock_preload_modules = mocker.patch("src.shared.lazy_import.preload_modules")
+    mock_preload_modules = mocker.patch("src.shared.utils.lazy_import.preload_modules")
 
     import src.workers.streaming
 
@@ -580,12 +580,12 @@ DUMMY_VAR = True
 def test_blockchain_getattr(mocker):
     if "src.blockchain" in sys.modules:
         del sys.modules["src.blockchain"]
-    if "src.shared.lazy_import" in sys.modules:
-        del sys.modules["src.shared.lazy_import"]
+    if "src.shared.utils.lazy_import" in sys.modules:
+        del sys.modules["src.shared.utils.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedDeFiOptionsProtocolInstance")
     mock_lazy_import = mocker.patch(
-        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.utils.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
     import src.blockchain
@@ -663,7 +663,7 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
     pkg_path.mkdir()
     (pkg_path / "__init__.py").write_text(
         "import sys\n"  # Added sys import
-        "from src.shared.lazy_import import lazy_import\n"
+        "from src.shared.utils.lazy_import import lazy_import\n"
         "_import_map = {'BlackScholesEngine': '.black_scholes'}\n"
         "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
     )
@@ -672,11 +672,11 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
     # Mock importlib.import_module to prevent leakage from other tests
     # Ensure that when lazy_import tries to import '.black_scholes', it returns a valid mock.
     mocker.patch(
-        "src.shared.lazy_import.import_module",
+        "src.shared.utils.lazy_import.import_module",
         side_effect=lambda name, package=None: (
             MagicMock()
             if name == "my_pricing_pkg.black_scholes"
-            or name == "src.shared.lazy_import"
+            or name == "src.shared.utils.lazy_import"
             or name == "structlog"
             else importlib.import_module(name, package)
         ),
@@ -701,7 +701,7 @@ def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Adde
     pkg_path.mkdir()
     (pkg_path / "__init__.py").write_text(
         f"import sys\n"
-        f"from src.shared.lazy_import import lazy_import\n"
+        f"from src.shared.utils.lazy_import import lazy_import\n"
         f"_import_map={{'my_attr':'.submodule'}}\n"
         f"def __getattr__(name): return lazy_import('{pkg_name}', _import_map, name, sys.modules[__name__])\n"
     )
@@ -711,11 +711,11 @@ def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Adde
 
     # Mock importlib.import_module to prevent leakage from other tests
     mocker.patch(
-        "src.shared.lazy_import.import_module",
+        "src.shared.utils.lazy_import.import_module",
         side_effect=lambda name, package=None: (
             MagicMock()
             if name == f"{pkg_name}.submodule"
-            or name == "src.shared.lazy_import"
+            or name == "src.shared.utils.lazy_import"
             or name == "structlog"
             else importlib.import_module(name, package)
         ),

@@ -1,7 +1,7 @@
 import asyncio
 import structlog
 from src.database import health_check as db_health
-from src.shared.cache import get_redis_client
+from src.shared.utils.cache import get_redis_client
 
 logger = structlog.get_logger(__name__)
 

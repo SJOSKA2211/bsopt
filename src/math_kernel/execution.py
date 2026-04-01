@@ -8,7 +8,7 @@ import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.math_kernel.risk_kernels import RiskVectorTracker
-from src.shared.cache import get_redis
+from src.shared.utils.cache import get_redis
 from src.shared.config import settings
 from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 

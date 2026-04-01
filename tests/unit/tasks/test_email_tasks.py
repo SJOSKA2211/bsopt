@@ -20,7 +20,7 @@ def mock_db():
 async def test_send_transactional_email_success(mock_email_service, mock_db):
     mock_email_service.send_single_email.return_value = True
 
-    with patch("src.shared.cache.rate_limiter.check_rate_limit", return_value=True):
+    with patch("src.shared.utils.cache.rate_limiter.check_rate_limit", return_value=True):
         MagicMock()
         # Signature: (self, to_email, subject, template_name, context)
         # It seems _orig_run might be bound or not depending on how it's accessed.

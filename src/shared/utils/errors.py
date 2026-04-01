@@ -9,7 +9,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from src.shared.api.exceptions import ServiceUnavailableException
+from api.exceptions import ServiceUnavailableException
 from src.shared.off_heap_logger import omega_logger
 
 logger = logging.getLogger("audit")

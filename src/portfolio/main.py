@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     tune_gc()
 
     # Initialize Redis for caching if needed
-    from src.shared.cache import init_redis_cache
+    from src.shared.utils.cache import init_redis_cache
     from src.shared.config import settings
 
     await init_redis_cache(

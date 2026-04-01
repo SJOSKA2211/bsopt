@@ -14,14 +14,14 @@ from src.config import get_settings
 from src.ingestion.router import MarketDataRouter
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
-from src.pricing.calibration.engine import HestonCalibrator
-from src.pricing.models.heston_fft import HestonParams
+from src.math_kernel.calibration.engine import HestonCalibrator
+from src.math_kernel.models.heston_fft import HestonParams
 from src.shared.observability import (
     CALIBRATION_DURATION,
     setup_logging,
     tune_gc,
 )
-from src.utils.distributed import RayOrchestrator
+from src.shared.utils.distributed import RayOrchestrator
 from src.workers.ray_workers import MathActor
 
 # Optimized event loop

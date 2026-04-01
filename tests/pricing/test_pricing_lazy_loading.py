@@ -26,7 +26,7 @@ def test_pricing_loads_dep_on_attribute_access():
     except (ImportError, AttributeError):
         pass
 
-    from src.shared.lazy_import import get_import_stats
+    from src.shared.utils.lazy_import import get_import_stats
 
     stats = get_import_stats()
     assert any(

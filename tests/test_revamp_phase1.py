@@ -96,7 +96,7 @@ class TestRevampPhase1:
 
         try:
             with (
-                patch("src.shared.cache.get_redis") as mock_get_redis,
+                patch("src.shared.utils.cache.get_redis") as mock_get_redis,
                 patch("src.shared.shm_mesh.RiskStateBuffer") as mock_shm_cls,
             ):
                 mock_redis = AsyncMock()

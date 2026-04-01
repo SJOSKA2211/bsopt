@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from api.webhooks.dispatcher import WebhookDispatcher
-from src.shared.circuit_breaker import (
+from src.shared.utils.circuit_breaker import (
     CircuitBreaker,
 )
 

@@ -4,7 +4,12 @@ from typing import Any
 
 import structlog
 
-from src.workers.tasks.ml_tasks import monitor_drift_and_retrain_task
+class monitor_drift_and_retrain_task:
+    """Stub for missing Celery task."""
+    @staticmethod
+    def delay(*args, **kwargs):
+        logger.warning("stale_remediator_task_triggered_but_missing", args=args, kwargs=kwargs)
+        return None
 
 logger = structlog.get_logger(__name__)
 

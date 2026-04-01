@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.math_kernel.black_scholes import BSParameters
-from src.shared.cache import (
+from src.shared.utils.cache import (
     IdempotencyManager,
     PricingCache,
     RateLimiter,
@@ -18,7 +18,7 @@ def test_generate_cache_key():
     assert "test:" in key1
 
 @pytest.mark.asyncio
-@patch("src.shared.cache.get_redis")
+@patch("src.shared.utils.cache.get_redis")
 async def test_pricing_cache(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis
@@ -41,7 +41,7 @@ async def test_pricing_cache(mock_get_redis):
     assert price is None
 
 @pytest.mark.asyncio
-@patch("src.shared.cache.get_redis")
+@patch("src.shared.utils.cache.get_redis")
 async def test_idempotency_manager(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis
@@ -57,7 +57,7 @@ async def test_idempotency_manager(mock_get_redis):
     assert await idem.check_and_set("key1") is False
 
 @pytest.mark.asyncio
-@patch("src.shared.cache.get_redis")
+@patch("src.shared.utils.cache.get_redis")
 async def test_rate_limiter(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis

@@ -34,7 +34,7 @@ def test_ml_loads_dep_on_attribute_access():
 
     # In a real environment with torch installed, it would be in sys.modules now.
     # For the test, we'll check if the import_map was at least consulted via stats.
-    from src.shared.lazy_import import get_import_stats
+    from src.shared.utils.lazy_import import get_import_stats
 
     stats = get_import_stats()
     assert any("src.ml.TFTForecaster" in k for k in stats["slowest_imports"]) or any(

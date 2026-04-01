@@ -4,8 +4,8 @@ import time
 import ray
 import structlog
 
-from src.utils.distributed import RayOrchestrator
-from src.utils.http_client import HttpClientManager
+from src.shared.utils.distributed import RayOrchestrator
+from src.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger(__name__)
 

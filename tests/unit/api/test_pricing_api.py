@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from api.index import app
 from src.auth.auth import get_current_user_flexible
 from src.auth.rate_limit import rate_limit
-from src.shared.cache import get_redis_client
+from src.shared.utils.cache import get_redis_client
 
 def create_mock_redis():
     mock_redis = AsyncMock()
@@ -41,7 +41,7 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def reset_circuits():
     from api.routes.pricing import pricing_service
-    from src.shared.circuit_breaker import pricing_circuit
+    from src.shared.utils.circuit_breaker import pricing_circuit
 
     pricing_circuit.reset()
     pricing_service.clear_cache()
