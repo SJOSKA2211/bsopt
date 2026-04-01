@@ -6,15 +6,16 @@ import { theme } from '../src/theme/index';
 import React from 'react';
 
 // Mock Apollo hooks
-vi.mock('@apollo/client/react', async (importOriginal) => {
+vi.mock('@apollo/client', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
     useQuery: vi.fn(),
+    gql: vi.fn(),
   };
 });
 
-import { useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client';
 
 // Mock useWasmPricing
 vi.mock('../src/hooks/useWasmPricing', () => ({

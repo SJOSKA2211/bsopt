@@ -6,34 +6,30 @@ import { theme } from '../src/theme/index';
 import '@testing-library/jest-dom';
 import React from 'react';
 
-// Mock Apollo hooks
-vi.mock('@apollo/client/react', async (importOriginal) => {
-  const actual = await importOriginal() as any;
-  return {
-    ...actual,
-    useQuery: vi.fn(),
-  };
-});
+// Mock useMLInference
+vi.mock('../src/api/hooks', () => ({
+  useMLInference: vi.fn(),
+}));
 
-import { useQuery } from '@apollo/client/react';
+import { useMLInference } from '../src/api/hooks';
 
 const mockPrediction = {
   mlPrediction: {
     symbol: 'AAPL',
-    predictedPrice: 155.20,
-    confidenceInterval: [153.50, 157.00],
+    predicted_price: 155.20,
+    confidence_interval: [153.50, 157.00],
     drift: 0.02,
-    modelName: 'XGBoost-V4-Optimized',
-    lastUpdated: '2026-03-19T00:00:00Z',
+    model_name: 'XGBoost-V4-Optimized',
+    last_updated: '2026-03-19T00:00:00Z',
   },
 };
 
 test('MLPredictions renders prediction data correctly', async () => {
-  (useQuery as any).mockReturnValue({
+  vi.mocked(useMLInference).mockReturnValue({
     data: mockPrediction,
     loading: false,
     error: null,
-  });
+  } as any);
 
   render(
     <ThemeProvider theme={theme}>
