@@ -50,7 +50,7 @@ async def run_servers():
     grpc_port = os.getenv("GRPC_PORT", "50051")
     http_port = int(os.getenv("HTTP_PORT", 3001))
     
-    logger.info(f"🚀 Starting Auth Service Mesh...")
+    logger.info("🚀 Starting Auth Service Mesh...")
     
     # Start gRPC in the background
     grpc_task = asyncio.create_task(serve_grpc(port=grpc_port))
