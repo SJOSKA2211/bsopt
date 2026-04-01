@@ -39,6 +39,7 @@ export const CalibrationHealth: React.FC<CalibrationHealthProps> = ({ metrics })
               variant="determinate" 
               value={Math.min(100, metrics.rmse * 1000)} 
               color={metrics.rmse < 0.05 ? "success" : "error"}
+              aria-label="Calibration RMSE"
             />
           </Box>
         </Grid>

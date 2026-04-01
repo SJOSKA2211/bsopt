@@ -1,5 +1,5 @@
 # Stage 1: Build Rust Core
-FROM python:3.11-slim as builder
+FROM python:3.12-slim as builder
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -19,7 +19,7 @@ RUN pip install maturin
 RUN maturin build --release --out /build/wheels
 
 # Stage 2: Final Runtime
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 

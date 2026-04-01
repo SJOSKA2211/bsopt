@@ -115,7 +115,7 @@ export const ComparisonDashboard: React.FC = () => {
 
                         {isLoading && !metrics ? (
                              <Box sx={{ py: 4, textAlign: 'center' }}>
-                                 <LinearProgress sx={{ borderRadius: 4, height: 2, bgcolor: alpha('#fff', 0.05) }} />
+                                 <LinearProgress aria-label="Loading comparison data" sx={{ borderRadius: 4, height: 2, bgcolor: alpha('#fff', 0.05) }} />
                                  <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'text.secondary', fontWeight: 800 }}>SYNCHRONIZING ORACLE FEED...</Typography>
                              </Box>
                         ) : (
@@ -134,6 +134,7 @@ export const ComparisonDashboard: React.FC = () => {
                                     <LinearProgress
                                         variant="determinate"
                                         value={(metrics.aiPnl / ((metrics.userPnl + metrics.aiPnl) || 1)) * 100}
+                                        aria-label="AI PnL Comparison"
                                         sx={{
                                             height: 10,
                                             borderRadius: 5,
