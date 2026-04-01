@@ -109,11 +109,15 @@ vi.mock('@apollo/client/react', async (importOriginal) => {
   };
 });
 
-vi.mock('@react-three/drei', () => ({
-  Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
-  PointMaterial: () => null,
-  Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
-}));
+vi.mock('@react-three/drei', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return {
+    ...actual,
+    Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
+    PointMaterial: () => null,
+    Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
+  };
+});
 
 // Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
 vi.mock('three', () => ({
