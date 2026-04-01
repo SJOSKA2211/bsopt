@@ -19,7 +19,7 @@ PORT=5002
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
-    exec python3 -m uvicorn src.ml.serving.serve:app \
+    exec uv run python3 -m uvicorn src.ml.serving.serve:app \
         --host 0.0.0.0 \
         --port $PORT \
         --workers $(nproc) \
@@ -27,5 +27,5 @@ if [ "${ENVIRONMENT:-development}" == "production" ]; then
         --no-access-log
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec python3 -m uvicorn src.ml.serving.serve:app --reload --reload-dir src/ml/serving --port $PORT --host 0.0.0.0 --loop uvloop
+    exec uv run python3 -m uvicorn src.ml.serving.serve:app --port $PORT --host 0.0.0.0 --loop uvloop
 fi

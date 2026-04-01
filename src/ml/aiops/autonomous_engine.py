@@ -574,7 +574,7 @@ class AutonomousEngine:
     async def _check_ml_inference_ready(self) -> bool:
         """Polls the ML Inference health endpoint until it's ready."""
         import httpx
-        url = "http://ml-inference:5001/health"
+        url = "http://localhost:5002/health"  # Changed to localhost:5002 for local development / testing
         logger.info("polling_ml_inference_readiness", url=url)
         
         async with httpx.AsyncClient() as client:
@@ -582,7 +582,7 @@ class AutonomousEngine:
                 resp = await client.get(url, timeout=2.0)
                 if resp.status_code == 200:
                     data = resp.json()
-                    if data.get("status") == "healthy" and data.get("models", {}).get("xgb", False):
+                    if data.get("status") == "healthy" and data.get("model_loaded", False):
                         logger.info("ml_inference_ready")
                         return True
             except Exception as e:

@@ -534,8 +534,7 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.workers.streaming.kafka_producer import MarketDataProducer
-    from src.workers.streaming.kafka_consumer import MarketDataConsumer
+    from src.workers.ray_workers import MathActor
 
 DUMMY_VAR = True
     """
@@ -569,8 +568,7 @@ DUMMY_VAR = True
 
         assert dummy_streaming_module.DUMMY_VAR is True
 
-        assert "src.workers.streaming.kafka_producer" in attempted_imports
-        assert "src.workers.streaming.kafka_consumer" in attempted_imports
+        assert "src.workers.ray_workers" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))

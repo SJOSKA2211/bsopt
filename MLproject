@@ -31,8 +31,7 @@ entry_points:
     parameters:
       batch_size: {type: int, default: 10}
       topic: {type: string, default: "scraper.news"}
-      broker: {type: string, default: "kafka-1:9092"}
-    command: "python -m src.ml.sentiment_pipeline --batch_size {batch_size} --topic {topic} --broker {broker}"
+    command: "python -m src.ml.sentiment_pipeline --batch_size {batch_size} --topic {topic}"
 
   offline_train_dt:
     parameters:

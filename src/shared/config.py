@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         return v.upper()
 
     DATABASE_URL: str = Field(
-        default="postgresql://admin:password@postgres:5432/bsopt",
+        ...,
         validation_alias="DATABASE_URL",
     )
     DATABASE_MIN_POOL_SIZE: int = 5
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     SLOW_QUERY_THRESHOLD_MS: int = 100
     PGBOUNCER_ENABLED: bool = Field(default=False, validation_alias="PGBOUNCER_ENABLED")
     PGBOUNCER_ADMIN_USER: str = Field(default="admin", validation_alias="PGBOUNCER_ADMIN_USER")
-    PGBOUNCER_ADMIN_PASSWORD: str = Field(default="password", validation_alias="PGBOUNCER_ADMIN_PASSWORD")
+    PGBOUNCER_ADMIN_PASSWORD: str = Field(..., validation_alias="PGBOUNCER_ADMIN_PASSWORD")
     PGBOUNCER_HOST: str = Field(default="pgbouncer", validation_alias="PGBOUNCER_HOST")
     PGBOUNCER_PORT: int = Field(default=6432, validation_alias="PGBOUNCER_PORT")
 
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = Field(default=6379, validation_alias="REDIS_PORT")
     REDIS_DB: int = Field(default=0, validation_alias="REDIS_DB")
     REDIS_PASSWORD: str = Field(
-        default="bsopt_redis_secret", 
+        ..., 
         validation_alias="REDIS_PASSWORD"
     )
 
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
 
     # RabbitMQ Configuration
     RABBITMQ_USER: str = Field(default="guest", validation_alias="RABBITMQ_USER")
-    RABBITMQ_PASSWORD: str = Field(default="this_is_a_very_long_password_for_security_compliance_32_chars", validation_alias="RABBITMQ_PASSWORD")
+    RABBITMQ_PASSWORD: str = Field(..., validation_alias="RABBITMQ_PASSWORD")
     RABBITMQ_HOST: str = Field(default="rabbitmq", validation_alias="RABBITMQ_HOST")
     RABBITMQ_PORT: int = Field(default=5672, validation_alias="RABBITMQ_PORT")
 
@@ -202,7 +202,7 @@ class Settings(BaseSettings):
     # MinIO Configuration
     MINIO_ENDPOINT: str = Field(default="minio:9000", validation_alias="MINIO_ENDPOINT")
     MINIO_ROOT_USER: str = Field(default="minio_admin", validation_alias="MINIO_ROOT_USER")
-    MINIO_ROOT_PASSWORD: str = Field(default="minio_secret_key", validation_alias="MINIO_ROOT_PASSWORD")
+    MINIO_ROOT_PASSWORD: str = Field(..., validation_alias="MINIO_ROOT_PASSWORD")
     MINIO_USE_SSL: bool = Field(default=False, validation_alias="MINIO_USE_SSL")
 
     @property

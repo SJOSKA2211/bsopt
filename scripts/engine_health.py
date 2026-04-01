@@ -13,7 +13,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 SERVICES = {
     "API Gateway": {"url": "http://localhost:8000/health", "type": "http"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
-    "ML Inference": {"url": "http://localhost:5001/health", "type": "http"},
+    "ML Inference": {"url": "http://localhost:5002/health", "type": "http"},
     "Portfolio": {"url": "http://localhost:8003/health", "type": "http"},
     "Ingestion": {"heartbeat": "/tmp/ingestion_heartbeat", "type": "heartbeat"},
     "NSE Scraper": {"heartbeat": "/tmp/scraper_heartbeat", "type": "heartbeat"},

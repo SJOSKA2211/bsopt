@@ -15,14 +15,13 @@ async def check_ml_inference_healthy(timeout: int = 60, interval: int = 5):
                 resp = await client.get(url, timeout=2.0)
                 if resp.status_code == 200:
                     data = resp.json()
-                    models = data.get("models", {})
-                    if data.get("status") == "healthy" and models.get("xgb"):
-                        print("[+] ML INFERENCE IS HEALTHY AND MODELS ARE LOADED")
-                        print(f"    - XGB Model: {models.get('xgb')}")
-                        print(f"    - NN Model: {models.get('nn')}")
+                    model_loaded = data.get("model_loaded", False)
+                    if data.get("status") == "healthy" and model_loaded:
+                        print("[+] ML INFERENCE IS HEALTHY AND MODEL IS LOADED")
+                        print(f"    - Model Path: {data.get('model_path')}")
                         return True
                     else:
-                        print(f"[-] Service OK but models not ready: {models}")
+                        print(f"[-] Service OK but model not ready: {data}")
                 else:
                     print(f"[-] Service reported {resp.status_code}, retrying...")
         except Exception as e:
