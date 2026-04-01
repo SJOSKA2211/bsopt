@@ -4,19 +4,25 @@ Supports multi-device registration and authentication.
 """
 
 import logging
-from webauthn import (
-    generate_registration_options,
-    verify_registration_response,
-    generate_authentication_options,
-    verify_authentication_response,
-    options_to_json,
-)
-from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria,
-    UserVerificationRequirement,
-    RegistrationCredential,
-    AuthenticationCredential,
-)
+try:
+    from webauthn import (
+        generate_registration_options,
+        verify_registration_response,
+        generate_authentication_options,
+        verify_authentication_response,
+        options_to_json,
+    )
+    from webauthn.helpers.structs import (
+        AuthenticatorSelectionCriteria,
+        UserVerificationRequirement,
+        RegistrationCredential,
+        AuthenticationCredential,
+    )
+    HAS_WEBAUTHN = True
+except ImportError:
+    HAS_WEBAUTHN = False
+    logging.warning("webauthn library not found. WebAuthn features will be disabled/mocked.")
+
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -32,6 +38,9 @@ class WebAuthnService:
 
     def get_registration_options(self, user_id: str, email: str, existing_credentials: list[bytes] = []):
         """Generate options for a new passkey registration."""
+        if not HAS_WEBAUTHN:
+            return '{"status": "mocked", "message": "WebAuthn disabled"}'
+            
         options = generate_registration_options(
             rp_id=self.rp_id,
             rp_name=self.rp_name,
@@ -46,6 +55,9 @@ class WebAuthnService:
 
     def verify_registration(self, registration_response: dict, expected_challenge: str):
         """Verify the response from the authenticator during registration."""
+        if not HAS_WEBAUTHN:
+            raise NotImplementedError("WebAuthn is not installed")
+            
         verification = verify_registration_response(
             credential=RegistrationCredential.parse_obj(registration_response),
             expected_challenge=expected_challenge,
@@ -56,6 +68,9 @@ class WebAuthnService:
 
     def get_authentication_options(self, allow_credentials: list[bytes] = []):
         """Generate options for passkey login."""
+        if not HAS_WEBAUTHN:
+            return '{"status": "mocked", "message": "WebAuthn disabled"}'
+            
         options = generate_authentication_options(
             rp_id=self.rp_id,
             allow_credentials=allow_credentials,
@@ -71,6 +86,9 @@ class WebAuthnService:
         credential_current_sign_count: int,
     ):
         """Verify the response from the authenticator during login."""
+        if not HAS_WEBAUTHN:
+            raise NotImplementedError("WebAuthn is not installed")
+            
         verification = verify_authentication_response(
             credential=AuthenticationCredential.parse_obj(authentication_response),
             expected_challenge=expected_challenge,

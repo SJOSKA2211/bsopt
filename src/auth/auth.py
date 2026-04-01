@@ -234,6 +234,20 @@ class AuthService:
 # Global instance
 auth_service = AuthService()
 
+class TokenBlacklistShim:
+    """Legacy shim for token blacklist operations."""
+    async def initialize(self, redis_client=None):
+        pass
+    async def add(self, jti: str, exp: datetime):
+        from src.auth.core.tokens import TokenData
+        await session_service.revoke_token(TokenData(jti=jti, exp=exp, user_id="", email="", tier="", token_type="access", iat=datetime.now()))
+    async def contains(self, jti: str) -> bool:
+        return await session_service.is_token_revoked(jti)
+
+token_blacklist = TokenBlacklistShim()
+auth_service.token_blacklist = token_blacklist
+
+
 def get_auth_service() -> AuthService:
     return auth_service
 

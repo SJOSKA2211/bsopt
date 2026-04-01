@@ -4,7 +4,9 @@ import os
 import sys
 from fastapi import FastAPI
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 from src.auth.grpc_server import serve as serve_grpc
+from src.auth.health import get_overall_health
 
 # Configure logging
 logging.basicConfig(
@@ -16,15 +18,32 @@ logger = logging.getLogger("auth_server")
 
 app = FastAPI(title="Manifold Auth Service", version="1.0.0")
 
+# Instrument for Prometheus
+Instrumentator().instrument(app).expose(app)
+
 @app.get("/")
 async def root():
     """Root endpoint for basic connectivity check."""
     return {"status": "online", "message": "Manifold Auth Service (Python gRPC Bridge) Running"}
 
+@app.get("/health/liveness")
+async def liveness():
+    """Basic process check."""
+    return {"status": "alive"}
+
+@app.get("/health/readiness")
+async def readiness():
+    """Deep check for database and vault connectivity."""
+    health_data = await get_overall_health()
+    if health_data["status"] != "healthy":
+        from fastapi import Response
+        return Response(content=str(health_data), status_code=503)
+    return health_data
+
 @app.get("/health")
-async def health():
-    """Standard health check endpoint."""
-    return {"status": "healthy", "service": "auth-service"}
+async def legacy_health():
+    """Backward compatibility health endpoint."""
+    return await get_overall_health()
 
 async def run_servers():
     """Run both gRPC and HTTP servers concurrently."""

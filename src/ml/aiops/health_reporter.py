@@ -22,7 +22,15 @@ from src.ml.aiops.schemas import (
     RedisAnomaly, 
     RabbitMQStatus, 
     RedisStatus,
-    TimescaleStatus,
+    PostgresStatus,
+    APIStatus,
+    AuthStatus,
+    IngestionStatus,
+    PortfolioStatus,
+    MathKernelStatus,
+    MLInferenceStatus,
+    WorkerStatus,
+    RayStatus,
     RemediationStatus,
     GuardianStatus
 )
@@ -39,6 +47,11 @@ class HealthReporter:
         self.mlflow_client = MlflowClient() if MlflowClient else None
         self.prometheus_client = PrometheusClient(url=prometheus_url)
         self.api_service_name = api_service_name
+        self.auth_service_name = "auth-service"
+        self.ingestion_service_name = "ingestion-service"
+        self.portfolio_service_name = "portfolio-service"
+        self.math_kernel_service_name = "math-kernel"
+        self.ml_inference_service_name = "ml-inference"
         self.anomaly_history_key = "aiops:anomaly_history"
         self.rmq = get_rabbitmq()
 
@@ -67,17 +80,46 @@ class HealthReporter:
         # 5. Fetch Redis connectivity status
         redis_status = await self._get_redis_status()
 
-        # 6. Fetch TimescaleDB health status
-        timescale_status = await self._get_timescale_status()
+        # 6. Fetch Postgres health status
+        postgres_status = await self._get_postgres_status()
         
-        # 7. Fetch Remediation and Guardian statuses
+        # 7. Fetch API detailed status
+        api_status = await self._get_api_status(prometheus_metrics)
+        
+        # 8. Fetch Auth detailed status
+        auth_status = await self._get_auth_status()
+        
+        # 9. Fetch Ingestion detailed status
+        ingestion_status = await self._get_ingestion_status()
+        
+        # 10. Fetch Portfolio detailed status
+        portfolio_status = await self._get_portfolio_status()
+        
+        # 11. Fetch Math Kernel detailed status
+        math_kernel_status = await self._get_math_kernel_status()
+        
+        # 12. Fetch ML Inference detailed status
+        ml_inference_status = await self._get_ml_inference_status()
+
+        # 13. Fetch Worker cluster status
+        worker_status = await self._get_worker_status()
+
+        # 14. Fetch Ray cluster status
+        ray_status = await self._get_ray_status()
+        
+        # 15. Fetch Remediation and Guardian statuses
         remediations = self._get_remediation_statuses(planner)
         guardian_status = self._get_guardian_status(guardian)
         
-        # 8. Determine overall status
+        # 16. Determine overall status
         status = "healthy"
-        if mlflow_status.drift_detected or prometheus_metrics.error_rate_5xx > 0.05 or \
-           not rabbitmq_status.connected or not redis_status.connected or not timescale_status.connected:
+        if mlflow_status.drift_detected or api_status.error_rate_5xx > 0.05 or \
+           not rabbitmq_status.connected or not redis_status.connected or \
+           not postgres_status.connected or not api_status.reachable or \
+           not auth_status.reachable or not ingestion_status.reachable or \
+           not portfolio_status.reachable or not math_kernel_status.reachable or \
+           not ml_inference_status.reachable or not worker_status.reachable or \
+           not ray_status.reachable:
             status = "degraded"
         if prometheus_metrics.error_rate_5xx > 0.2:
             status = "critical"
@@ -89,7 +131,15 @@ class HealthReporter:
             redis_anomalies=redis_anomalies,
             rabbitmq=rabbitmq_status,
             redis=redis_status,
-            timescale=timescale_status,
+            postgres=postgres_status,
+            api=api_status,
+            auth=auth_status,
+            ingestion=ingestion_status,
+            portfolio=portfolio_status,
+            quant=math_kernel_status,
+            inference=ml_inference_status,
+            workers=worker_status,
+            ray=ray_status,
             remediations=remediations,
             guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -142,31 +192,271 @@ class HealthReporter:
             
             results = await asyncio.gather(error_rate_task, latency_task, cpu_task, mem_task)
             
-            error_rate = results[0]
-            latency = results[1]
-            
-            cpu_usage = 0.0
-            if results[2] and len(results[2]) > 0:
-                cpu_usage = float(results[2][0]["value"][1])
-                
-            mem_usage = 0.0
-            if results[3] and len(results[3]) > 0:
-                mem_usage = float(results[3][0]["value"][1])
-                
+            # Fetch request count (Sum of rates)
+            req_count_query = f'sum(rate(http_requests_total{{service="{self.api_service_name}"}}[5m]))'
+            req_count_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=req_count_query)
+            request_count = 0
+            if req_count_res:
+                request_count = int(float(req_count_res[0]["value"][1]))
+
             return PrometheusMetrics(
                 error_rate_5xx=error_rate,
                 p95_latency=latency,
                 cpu_usage=cpu_usage,
-                memory_usage=mem_usage
+                memory_usage=mem_usage,
+                request_count=request_count
             )
         except Exception as e:
             logger.error("prometheus_metrics_fetch_failed", error=str(e))
-            return PrometheusMetrics(
-                error_rate_5xx=0.0,
-                p95_latency=0.0,
-                cpu_usage=0.0,
-                memory_usage=0.0
+            return PrometheusMetrics(0.0, 0.0, 0.0, 0.0, 0)
+
+    async def _get_api_status(self, metrics: PrometheusMetrics) -> APIStatus:
+        """Determines if the API is reachable and healthy based on metrics."""
+        # Simple reachability check (mock-friendly)
+        reachable = True
+        if metrics.request_count == 0 and metrics.error_rate_5xx == 0:
+            reachable = False
+            
+        return APIStatus(
+            reachable=reachable,
+            p95_latency=round(metrics.p95_latency, 4),
+            error_rate_5xx=round(metrics.error_rate_5xx, 4),
+            request_count=metrics.request_count
+        )
+
+    async def _get_auth_status(self) -> AuthStatus:
+        """Fetches detailed Auth service metrics from Prometheus."""
+        try:
+            # 1. Reachability (based on request rate)
+            query_rate = f'sum(rate(http_requests_total{{service="{self.auth_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Latency
+            latency = await asyncio.to_thread(self.prometheus_client.get_p95_latency, self.auth_service_name)
+            
+            # 3. Success Rate
+            # Assuming auth-service exports success/failure counters
+            success_query = f'sum(rate(auth_requests_total{{status="success"}}[5m])) / sum(rate(auth_requests_total[5m]))'
+            success_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=success_query)
+            success_rate = float(success_res[0]["value"][1]) if success_res else 1.0
+            
+            # 4. Active Tokens (Mocked from Redis or Prometheus gauge)
+            token_query = f'sum(auth_active_tokens_gauge)'
+            token_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=token_query)
+            active_tokens = int(float(token_res[0]["value"][1])) if token_res else 0
+            
+            return AuthStatus(
+                reachable=reachable,
+                p95_latency=round(latency, 4),
+                auth_success_rate=round(success_rate, 4),
+                active_tokens=active_tokens
             )
+        except Exception as e:
+            logger.error("auth_status_fetch_failed", error=str(e))
+            return AuthStatus(reachable=False, p95_latency=0.0, auth_success_rate=0.0, active_tokens=0)
+
+    async def _get_ingestion_status(self) -> IngestionStatus:
+        """Checks for ingestion service heartbeat and throughput metrics."""
+        import os
+        heartbeat_file = "/tmp/ingestion_heartbeat"
+        reachable = False
+        heartbeat_age = 9999.0
+        
+        try:
+            if os.path.exists(heartbeat_file):
+                mtime = os.path.getmtime(heartbeat_file)
+                heartbeat_age = time.time() - mtime
+                reachable = heartbeat_age < 60 # Fresh if within 1 min
+            
+            # 1. Ticks per second
+            query_tps = f'sum(rate(ingestion_ticks_total{{service="{self.ingestion_service_name}"}}[5m]))'
+            tps_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_tps)
+            ticks_per_second = float(tps_res[0]["value"][1]) if tps_res else 0.0
+            
+            # 2. Rejection Rate
+            reject_query = f'sum(rate(ingestion_ticks_rejected_total[5m])) / sum(rate(ingestion_ticks_total[5m]))'
+            reject_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=reject_query)
+            rejection_rate = float(reject_res[0]["value"][1]) if reject_res else 0.0
+            
+            return IngestionStatus(
+                reachable=reachable,
+                heartbeat_age=round(heartbeat_age, 2),
+                ticks_per_second=round(ticks_per_second, 2),
+                rejection_rate=round(rejection_rate, 4)
+            )
+        except Exception as e:
+            logger.error("ingestion_status_fetch_failed", error=str(e))
+            return IngestionStatus(reachable=False, heartbeat_age=9999.0, ticks_per_second=0.0, rejection_rate=0.0)
+
+    async def _get_portfolio_status(self) -> PortfolioStatus:
+        """Checks for portfolio service reachability and Greek exposure metrics."""
+        try:
+            # 1. Reachability (HTTP ping or gRPC)
+            query_rate = f'sum(rate(http_requests_total{{service="{self.portfolio_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Position Count
+            pos_query = f'sum(portfolio_positions_count)'
+            pos_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=pos_query)
+            positions_count = int(float(pos_res[0]["value"][1])) if pos_res else 0
+            
+            # 3. Greeks (Delta, Gamma, Vega)
+            delta_query = f'sum(portfolio_net_delta)'
+            vega_query = f'sum(portfolio_total_vega)'
+            gamma_query = f'sum(portfolio_total_gamma)'
+            
+            d_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=delta_query)
+            v_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=vega_query)
+            g_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=gamma_query)
+            
+            net_delta = float(d_res[0]["value"][1]) if d_res else 0.0
+            total_vega = float(v_res[0]["value"][1]) if v_res else 0.0
+            total_gamma = float(g_res[0]["value"][1]) if g_res else 0.0
+            
+            return PortfolioStatus(
+                reachable=reachable,
+                positions_count=positions_count,
+                net_delta=round(net_delta, 2),
+                total_vega=round(total_vega, 2),
+                total_gamma=round(total_gamma, 4)
+            )
+        except Exception as e:
+            logger.error("portfolio_status_fetch_failed", error=str(e))
+            return PortfolioStatus(reachable=False, positions_count=0, net_delta=0.0, total_vega=0.0, total_gamma=0.0)
+
+    async def _get_math_kernel_status(self) -> MathKernelStatus:
+        """Checks for pricing engine reachability and performance metrics."""
+        try:
+            # 1. Reachability (gRPC or HTTP)
+            query_rate = f'sum(rate(http_requests_total{{service="{self.math_kernel_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Avg Pricing Latency (ms)
+            latency_query = f'avg(pricing_computation_time_ms)'
+            lat_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=latency_query)
+            avg_latency = float(lat_res[0]["value"][1]) if lat_res else 0.0
+            
+            # 3. Requests per second
+            tps_query = f'sum(rate(pricing_requests_total[5m]))'
+            tps_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=tps_query)
+            requests_per_sec = float(tps_res[0]["value"][1]) if tps_res else 0.0
+            
+            # 4. Error Rate
+            err_query = f'sum(rate(pricing_errors_total[5m])) / sum(rate(pricing_requests_total[5m]))'
+            err_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=err_query)
+            error_rate = float(err_res[0]["value"][1]) if err_res and err_res[0]["value"][1] != "NaN" else 0.0
+            
+            return MathKernelStatus(
+                reachable=reachable,
+                avg_latency_ms=round(avg_latency, 2),
+                requests_per_sec=round(requests_per_sec, 2),
+                error_rate=round(error_rate, 4)
+            )
+        except Exception as e:
+            logger.error("math_kernel_status_fetch_failed", error=str(e))
+            return MathKernelStatus(reachable=False, avg_latency_ms=0.0, requests_per_sec=0.0, error_rate=0.0)
+
+    async def _get_ml_inference_status(self) -> MLInferenceStatus:
+        """Checks for ML inference service reachability and model performance."""
+        try:
+            # 1. Reachability
+            query_rate = f'sum(rate(http_requests_total{{service="{self.ml_inference_service_name}"}}[5m]))'
+            rate_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=query_rate)
+            reachable = len(rate_res) > 0
+            
+            # 2. Inference Latency (ms)
+            latency_query = f'avg(onnx_inference_latency_ms)'
+            lat_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=latency_query)
+            avg_latency = float(lat_res[0]["value"][1]) if lat_res else 0.0
+            
+            # 3. Model Loaded Check
+            # This is available via Prometheus gauge if we add it, otherwise assume reachable implies loaded
+            model_loaded = reachable
+            
+            # 4. Throughput (req/s)
+            tps_query = f'sum(rate(http_requests_total{{service="{self.ml_inference_service_name}",path="/predict"}}[5m]))'
+            tps_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=tps_query)
+            requests_per_sec = float(tps_res[0]["value"][1]) if tps_res else 0.0
+            
+            return MLInferenceStatus(
+                reachable=reachable,
+                model_loaded=model_loaded,
+                avg_latency_ms=round(avg_latency, 2),
+                requests_per_sec=round(requests_per_sec, 2)
+            )
+        except Exception as e:
+            logger.error("ml_inference_status_fetch_failed", error=str(e))
+            return MLInferenceStatus(reachable=False, model_loaded=False, avg_latency_ms=0.0, requests_per_sec=0.0)
+
+    async def _get_worker_status(self) -> WorkerStatus:
+        """Checks Celery worker health and queue status."""
+        try:
+            from src.workers.tasks.celery_app import celery_app
+            
+            # 1. Reachability & Broker
+            reachable = False
+            with celery_app.connection() as conn:
+                conn.ensure_connection(max_retries=1)
+                reachable = True
+            
+            # 2. Active Workers (from Celery Inspector)
+            # This is slow, so we use a short timeout or rely on Prometheus in prod
+            inspector = celery_app.control.inspect(timeout=1.0)
+            pings = inspector.ping()
+            active_workers = len(pings) if pings else 0
+            
+            # 3. Queue Backlog (from Prometheus if available, else RabbitMQ report)
+            q_backlog = {}
+            # We already fetch queue depths in _get_rabbitmq_status, but here we group them for workers
+            rmq_report = await self._get_rabbitmq_status()
+            q_backlog = rmq_report.queue_depths
+            
+            # 4. Task Latency (from Prometheus)
+            lat_query = 'avg(celery_task_wait_time_seconds)'
+            lat_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=lat_query)
+            avg_latency = float(lat_res[0]["value"][1]) * 1000 if lat_res else 0.0
+            
+            return WorkerStatus(
+                reachable=reachable,
+                broker_connected=reachable,
+                active_workers=active_workers,
+                queue_backlog=q_backlog,
+                avg_task_latency_ms=round(avg_latency, 2)
+            )
+        except Exception as e:
+            logger.error("worker_status_fetch_failed", error=str(e))
+            return WorkerStatus(reachable=False, broker_connected=False, active_workers=0, queue_backlog={}, avg_task_latency_ms=0.0)
+
+    async def _get_ray_status(self) -> RayStatus:
+        """Checks Ray cluster health and actor availability."""
+        try:
+            import ray
+            if not ray.is_initialized():
+                # Don't initialize here to avoid side effects if head node is down
+                reachable = False
+                alive_nodes = 0
+            else:
+                reachable = True
+                nodes = ray.nodes()
+                alive_nodes = len([n for n in nodes if n["Alive"]])
+            
+            # Metrics from Prometheus (assuming ray-exporter is used)
+            # count(ray_actor_status{status="ALIVE"})
+            count_query = 'sum(ray_actor_count)'
+            count_res = await asyncio.to_thread(self.prometheus_client.prom.custom_query, query=count_query)
+            worker_count = int(float(count_res[0]["value"][1])) if count_res else 0
+            
+            return RayStatus(
+                reachable=reachable,
+                nodes_alive=alive_nodes,
+                worker_count=worker_count
+            )
+        except Exception as e:
+            logger.error("ray_status_fetch_failed", error=str(e))
+            return RayStatus(reachable=False, nodes_alive=0, worker_count=0)
 
     async def _get_redis_anomalies(self) -> List[RedisAnomaly]:
         try:
@@ -239,13 +529,16 @@ class HealthReporter:
             logger.error("redis_status_fetch_failed", error=str(e))
             return RedisStatus(connected=False, memory_usage_bytes=0, total_keys=0)
 
-    async def _get_timescale_status(self) -> TimescaleStatus:
-        """Checks TimescaleDB connectivity and basic hypertable stats."""
+    async def _get_postgres_status(self) -> PostgresStatus:
+        """Checks Postgres/TimescaleDB connectivity and detailed stats."""
         try:
             engine = get_async_engine()
             async with engine.connect() as conn:
-                # 1. Connected check
-                await conn.execute(text("SELECT 1"))
+                # 1. Version and basic stats
+                res = await conn.execute(text("SELECT version(), count(*) FROM pg_stat_activity"))
+                row = res.fetchone()
+                version = str(row[0]) if row else "unknown"
+                active_connections = int(row[1]) if row else 0
                 
                 # 2. Hypertable count
                 hypertables = await conn.execute(
@@ -270,15 +563,20 @@ class HealthReporter:
                 )
                 ratio = float(compression.scalar() or 1.0)
                 
-                return TimescaleStatus(
+                return PostgresStatus(
                     connected=True,
+                    version=version.split(",")[0],  # Short version string
+                    active_connections=active_connections,
                     hypertables=int(hyper_count),
                     compression_ratio=round(ratio, 2),
                     job_count=int(job_count)
                 )
         except Exception as e:
-            logger.error("timescale_status_fetch_failed", error=str(e))
-            return TimescaleStatus(connected=False, hypertables=0, compression_ratio=1.0, job_count=0)
+            logger.error("postgres_status_fetch_failed", error=str(e))
+            return PostgresStatus(
+                connected=False, version="unknown", active_connections=0, 
+                hypertables=0, compression_ratio=1.0, job_count=0
+            )
 
     def _get_remediation_statuses(self, planner: Any | None) -> List[RemediationStatus]:
         """Collects status info from all registered remediators."""

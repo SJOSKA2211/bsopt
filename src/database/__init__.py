@@ -67,12 +67,16 @@ class DatabaseManager:
         except ImportError:
             driver = "psycopg2"
 
-        sync_url = f"{db_url}{separator}application_name={app_name}".replace(
-            "postgresql://", f"postgresql+{driver}://"
-        )
+        if "sqlite" in db_url:
+            sync_url = db_url
+        else:
+            sync_url = f"{db_url}{separator}application_name={app_name}".replace(
+                "postgresql://", f"postgresql+{driver}://"
+            )
 
         # Async path favors asyncpg
         async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+
 
         if "sqlite" in db_url:
             async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
@@ -179,13 +183,10 @@ class DatabaseManager:
                 "pool_recycle": settings.DATABASE_POOL_RECYCLE,
             }
 
-        self._async_engine = create_async_engine(
-            async_url,
-            poolclass=async_pool_class,
-            json_serializer=msgspec_dumps,
-            json_deserializer=msgspec_loads,
-            connect_args={
-                "ssl": (True if settings.is_production and "postgresql" in async_url else False),
+        connect_args: dict[str, Any] = {}
+        if "postgresql" in async_url:
+            connect_args = {
+                "ssl": (True if settings.is_production else False),
                 "server_settings": {
                     "application_name": app_name,
                     "tcp_keepalives_idle": "60",
@@ -194,9 +195,17 @@ class DatabaseManager:
                     "statement_timeout": "600000",  # 10 minutes
                 },
                 "command_timeout": settings.DATABASE_POOL_TIMEOUT,
-            },
+            }
+
+        self._async_engine = create_async_engine(
+            async_url,
+            poolclass=async_pool_class,
+            json_serializer=msgspec_dumps,
+            json_deserializer=msgspec_loads,
+            connect_args=connect_args,
             **async_pool_kwargs,
         )
+
         # Event listeners for async engine are slightly different in SQLAlchemy,
         # but for simplicity we use the same sync-style events which are supported for AsyncEngine's sync_engine.
         self._setup_events(self._async_engine.sync_engine)
