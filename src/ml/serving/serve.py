@@ -48,34 +48,6 @@ from src.shared.utils.cache import get_redis
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(
-    title="BSOPT ML Serving",
-    version="1.0.0",
-    description="Production-grade ML model serving for option pricing",
-    default_response_class=MsgspecJSONResponse,
-    lifespan=lifespan,
-)
-
-# Metrics
-INFERENCE_LATENCY = Histogram(
-    "ml_inference_latency_seconds",
-    "Time spent processing prediction",
-    ["model_type"],
-    buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
-)
-PREDICTION_COUNT = Counter(
-    "ml_predictions_total", "Total number of predictions", ["status", "model_type"]
-)
-MODEL_LOAD_STATUS = Gauge(
-    "ml_model_load_status",
-    "Status of model loading (1 for success, 0 for failure)",
-    ["model_type"],
-)
-
-# Circuit Breakers
-ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(
-    failure_threshold=5, recovery_timeout=30
-)  # Default to in-memory
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -133,6 +105,14 @@ async def lifespan(app: FastAPI):
         except Exception:
             pass
 
+
+app = FastAPI(
+    title="BSOPT ML Serving",
+    version="1.0.0",
+    description="Production-grade ML model serving for option pricing",
+    default_response_class=MsgspecJSONResponse,
+    lifespan=lifespan,
+)
 
 # Global model state
 state: dict[str, Any] = {
@@ -213,6 +193,11 @@ async def generic_exception_handler(request: Request, exc: Exception):
             "request_id": request_id,
         },
     )
+
+# Circuit Breakers
+ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(
+    failure_threshold=5, recovery_timeout=30
+)  # Default to in-memory
 
 @app.post(
     "/predict",

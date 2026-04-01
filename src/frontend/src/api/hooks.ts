@@ -1,7 +1,7 @@
-import { gql } from '@apollo/client';
-const useQuery = <T,>(_query: any, _options?: any): { data: T | undefined, loading: boolean, error: any } => ({ data: undefined, loading: false, error: null });
-import { useQuery as useReactQuery } from '@tanstack/react-query';
+import { useQuery, useSubscription } from '@apollo/client';
+import { useQuery as useReactQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { useEffect, useRef } from 'react';
 import type { MarketData, MLPrediction, OptionConnection, Ticker, PortfolioSummary } from './types';
 
 // Production GraphQL Fragments
@@ -156,13 +156,62 @@ export function useComparisonData() {
   });
 }
 
-export function useMarketTickers() {
+export function useLiveTickers(symbols: string[]) {
+  const queryClient = useQueryClient();
+  const ws = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    //  This is a placeholder for a real auth token
+    const token = "dummy-jwt-for-ws"; 
+    
+    const connect = () => {
+      const wsUrl = `ws://${window.location.host}/api/v1/market/ws/market-data?token=${token}`;
+      ws.current = new WebSocket(wsUrl);
+
+      ws.current.onopen = () => {
+        console.log('Market data WebSocket connected');
+        // Subscribe to initial symbols
+        symbols.forEach(symbol => {
+          ws.current?.send(JSON.stringify({ action: 'subscribe', symbol }));
+        });
+      };
+
+      ws.current.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'ticker') {
+          queryClient.setQueryData<Ticker[]>(['market', 'tickers'], (oldData) => {
+            const newData = oldData ? [...oldData] : [];
+            const index = newData.findIndex(t => t.symbol === message.data.symbol);
+            if (index !== -1) {
+              newData[index] = { ...newData[index], ...message.data };
+            } else {
+              newData.push(message.data);
+            }
+            return newData;
+          });
+        }
+      };
+
+      ws.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      ws.current.onclose = () => {
+        console.log('Market data WebSocket disconnected. Reconnecting...');
+        setTimeout(connect, 5000); // Reconnect after 5s
+      };
+    };
+
+    connect();
+
+    return () => {
+      ws.current?.close();
+    };
+  }, [symbols, queryClient]);
+
   return useReactQuery<Ticker[]>({
     queryKey: ['market', 'tickers'],
-    queryFn: async () => {
-      const { data } = await api.get('/market/tickers');
-      return data;
-    },
-    refetchInterval: 5000,
+    queryFn: () => [], // Data is managed by WebSocket
+    staleTime: Infinity,
   });
 }

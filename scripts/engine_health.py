@@ -39,12 +39,30 @@ def check_heartbeat(path):
     if not os.path.exists(path):
         return "missing", "Heartbeat file not found"
     try:
+        import json
         with open(path, "r") as f:
-            ts = float(f.read().strip())
-        delta = time.time() - ts
-        if delta < 60:
-            return "healthy", f"Active ({delta:.1f}s ago)"
-        return "stale", f"Last active {delta:.1f}s ago"
+            content = f.read().strip()
+            
+        # Attempt to parse as new high-throughput JSON format
+        try:
+            data = json.loads(content)
+            ts = data.get("time", 0.0)
+            metrics = data.get("metrics", {})
+            processed = metrics.get("processed", 0)
+            health_status = metrics.get("health", "ACTIVE")
+            
+            delta = time.time() - ts
+            if delta < 15: # Expecting frequent heartbeats for high throughput
+                return "healthy", f"{health_status} | Processed: {processed:,} ticks"
+            return "stale", f"Last active {delta:.1f}s ago"
+        except json.JSONDecodeError:
+            # Fallback to legacy float format
+            ts = float(content)
+            delta = time.time() - ts
+            if delta < 60:
+                return "healthy", f"Active ({delta:.1f}s ago)"
+            return "stale", f"Last active {delta:.1f}s ago"
+            
     except Exception as e:
         return "error", str(e)
 

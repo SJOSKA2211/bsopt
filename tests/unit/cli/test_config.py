@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from scripts.config import ConfigManager
+from scripts.cli.config import ConfigManager
 
 @pytest.fixture
 def config_manager(tmp_path):

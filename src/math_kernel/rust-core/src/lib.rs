@@ -9,6 +9,16 @@ use memmap2::Mmap;
 use std::fs::File;
 use prometheus::{CounterVec, HistogramVec, Gauge, Registry, Opts, HistogramOpts, TextEncoder, Encoder};
 use lazy_static::lazy_static;
+use std::path::Path;
+use std::net::SocketAddr;
+use std::sync::atomic::Ordering;
+
+mod generated;
+mod ingest;
+mod quarantine;
+
+use crate::ingest::NativeIngestEngine;
+use crate::quarantine::QuarantineBuffer;
 
 lazy_static! {
     pub static ref REGISTRY: Registry = Registry::new();
@@ -36,6 +46,7 @@ fn register_metrics() {
 }
 
 const INV_365: f64 = 1.0 / 365.0;
+const INV_SQRT_2PI: f64 = 0.3989422804014327;
 
 /// High-speed rational approximation for the standard normal CDF.
 /// Significantly faster than statrs::distribution::Normal for tight loops.
@@ -45,7 +56,7 @@ fn fast_cdf(x: f64) -> f64 {
     if x < -6.0 { return 0.0; }
     
     let t = 1.0 / (1.0 + 0.2316419 * x.abs());
-    let d = 0.3989422804014327 * (-x * x / 2.0).exp();
+    let d = INV_SQRT_2PI * (-x * x / 2.0).exp();
     let prob = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
     if x > 0.0 { 1.0 - prob } else { prob }
 }
@@ -248,6 +259,45 @@ fn batch_black_scholes_greeks<'py>(
         });
 
     Ok((delta, gamma, theta, vega, rho))
+}
+
+#[pyfunction]
+pub fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> bool {
+    if last_price == 0.0 {
+        return true;
+    }
+    let diff = (price - last_price).abs();
+    let pct_change = diff / last_price;
+    pct_change < 0.10
+}
+
+#[pyfunction]
+pub fn batch_validate_ticks(
+    prices: PyReadonlyArray1<f64>,
+    last_prices: PyReadonlyArray1<f64>,
+) -> PyResult<Vec<bool>> {
+    let p = prices.as_array();
+    let lp = last_prices.as_array();
+    let n = p.len();
+
+    if n != lp.len() {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Prices and last_prices must have same length"));
+    }
+
+    let results: Vec<bool> = (0..n)
+        .into_par_iter()
+        .map(|i| {
+            let price = p[i];
+            let last = lp[i];
+            if last == 0.0 {
+                true
+            } else {
+                (price - last).abs() / last < 0.10
+            }
+        })
+        .collect();
+
+    Ok(results)
 }
 
 #[pyfunction]
@@ -570,6 +620,67 @@ fn Manifold_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
     m.add_function(wrap_pyfunction!(simulate_gbm_rk4, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_validate_ticks, m)?)?;
+    m.add_class::<PyNativeIngest>()?;
     m.add_function(wrap_pyfunction!(get_manifold_metrics, m)?)?;
     Ok(())
+}
+
+#[pyclass]
+pub struct PyNativeIngest {
+    engine: Option<Arc<NativeIngestEngine>>,
+    quarantine: Arc<QuarantineBuffer>,
+}
+
+#[pymethods]
+impl PyNativeIngest {
+    #[new]
+    pub fn new(addr: String, quarantine_path: String) -> PyResult<Self> {
+        let socket_addr: SocketAddr = addr.parse()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid address: {}", e)))?;
+        
+        let q_inner = QuarantineBuffer::new(Path::new(&quarantine_path), 10000)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Failed to init quarantine: {}", e)))?;
+        
+        let quarantine = Arc::new(q_inner);
+        
+        Ok(Self {
+            engine: Some(Arc::new(NativeIngestEngine::new(socket_addr, quarantine.clone()))),
+            quarantine,
+        })
+    }
+
+    pub fn start(&mut self) -> PyResult<()> {
+        if let Some(engine) = self.engine.clone() {
+            // Spawn in a background tokio thread
+            std::thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                rt.block_on(async {
+                    if let Err(e) = engine.run().await {
+                        eprintln!("Native ingest engine error: {}", e);
+                    }
+                });
+            });
+            Ok(())
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Engine already started or not initialized"))
+        }
+    }
+
+    pub fn get_metrics(&self) -> PyResult<String> {
+        if let Some(ref engine) = self.engine {
+            let processed = engine.processed_count.load(Ordering::Relaxed);
+            let total_rejected = self.quarantine.TotalRejections.load(Ordering::Relaxed);
+            
+            let val = serde_json::json!({
+                "processed": processed,
+                "rejected": total_rejected,
+                "health": "HIGH_THROUGHPUT_ACTIVE"
+            });
+            Ok(val.to_string())
+        } else {
+            Ok(serde_json::json!({"health": "INACTIVE"}).to_string())
+        }
+    }
 }

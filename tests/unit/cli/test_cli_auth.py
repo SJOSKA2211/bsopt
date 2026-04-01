@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from scripts.auth import AuthManager
+from scripts.cli.auth import AuthManager
 
 @pytest.fixture
 def auth_manager(tmp_path):
