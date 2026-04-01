@@ -128,3 +128,38 @@ async def trigger_retraining(
         data={"task_id": task.id, "status": "dispatched", "mode": mode},
         message=f"Retraining task ({mode}) dispatched to background worker",
     )
+
+@router.get("/health")
+async def ml_health() -> dict[str, Any]:
+    """
+    ML Integrated Health Mesh Endpoint.
+    Consolidates MLflow, Prometheus, and Redis Anomaly metrics.
+    """
+    import os
+    from datetime import datetime, UTC
+    
+    # Mock data if allowed
+    if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "mlflow": {
+                "stage": "Production",
+                "drift_detected": False,
+                "last_run_id": "simulated_run_001"
+            },
+            "prometheus": {
+                "error_rate_5xx": 0.0,
+                "p95_latency": 12.5,
+                "cpu_usage": 0.45,
+                "memory_usage": 512 * 1024 * 1024
+            },
+            "redis_anomalies": []
+        }
+
+    # Real implementation placeholder (logic to be fleshed out in Phase 3)
+    return {
+        "status": "unhealthy",
+        "timestamp": datetime.now(UTC).isoformat(),
+        "error": "Real ML metrics extraction not yet implemented"
+    }

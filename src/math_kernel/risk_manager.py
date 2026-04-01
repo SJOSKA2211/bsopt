@@ -23,10 +23,10 @@ class RiskManager:
     ) -> tuple[bool, str]:
         """
         Atomic global sync via Redis LUA.
-        Checks kill-switch, blockchain circuit breaker, and greeks limits.
+        Checks kill-switch and greeks limits.
         """
         try:
-            # Keys: [risk_state_hash, global_kill_switch, blockchain_breaker]
+            # Keys: [risk_state_hash, global_kill_switch]
             # Args: [d_delta, d_gamma, d_vega, max_d, max_g, max_v]
             result = await self.redis.eval(
                 ADVANCED_RISK_MATRIX,

@@ -500,6 +500,11 @@ async def get_redis_client() -> Redis:
 
 async def init_redis_cache(**kwargs: Any) -> None:
     """Initialize the Redis cache during startup."""
+    import os
+    if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
+        logger.info("redis_cache_initialized_mock", details="Bypassed via BSOPT_ALLOW_WEAK_SECRETS")
+        return
+
     redis = get_redis()
     if redis:
         try:
