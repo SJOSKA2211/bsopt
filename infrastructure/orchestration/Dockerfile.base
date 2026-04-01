@@ -59,7 +59,7 @@ COPY infrastructure/requirements/requirements-core.txt /tmp/
 COPY infrastructure/requirements/requirements-db.txt /tmp/
 COPY infrastructure/requirements/requirements-observability.txt /tmp/
 
-RUN /usr/local/bin/uv pip install --no-cache-dir \
+RUN /usr/local/bin/uv pip install --no-cache-dir .
     -r /tmp/requirements-core.txt \
     -r /tmp/requirements-db.txt \
     -r /tmp/requirements-observability.txt

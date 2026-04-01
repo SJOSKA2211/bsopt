@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 
-from src.auth.security import RoleChecker, get_jwks, jwks_cache, verify_token
+# Removed unused import for RoleChecker, get_jwks, jwks_cache, verify_token
 
 # Helper to generate RSA keys for testing
 def generate_rsa_keys():
