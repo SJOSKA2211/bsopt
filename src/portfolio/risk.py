@@ -15,22 +15,36 @@ class RiskAttributor:
 
     def aggregate_greeks(self) -> dict[str, float]:
         """Aggregate Delta, Gamma, Vega, Theta across all positions (Multi-Asset aware)."""
-        totals = {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0}
+        # Accumulate values into local variables to avoid dictionary lookups in loop
+        t_delta = 0.0
+        t_gamma = 0.0
+        t_vega = 0.0
+        t_theta = 0.0
+
         for pos in self.portfolio:
             qty = pos.get("quantity", 0)
+            if not qty:
+                continue
 
-            # Options have specific Greeks; linear assets (stock/crypto) have Delta=1.0
-            is_option = "type" in pos and pos["type"] in ["CALL", "PUT"]
+            pos_type = pos.get("type")
+            # Separate option and non-option paths for efficiency
+            if pos_type == "CALL" or pos_type == "PUT":
+                t_delta += pos.get("delta", 0.0) * qty
+                t_gamma += pos.get("gamma", 0.0) * qty
+                t_vega += pos.get("vega", 0.0) * qty
+                t_theta += pos.get("theta", 0.0) * qty
+            else:
+                t_delta += pos.get("delta", 1.0) * qty
+                t_gamma += pos.get("gamma", 0.0) * qty
+                t_vega += pos.get("vega", 0.0) * qty
+                t_theta += pos.get("theta", 0.0) * qty
 
-            p_delta = pos.get("delta", 1.0 if not is_option else 0.0)
-            p_gamma = pos.get("gamma", 0.0)
-            p_vega = pos.get("vega", 0.0)
-            p_theta = pos.get("theta", 0.0)
-
-            totals["delta"] += p_delta * qty
-            totals["gamma"] += p_gamma * qty
-            totals["vega"] += p_vega * qty
-            totals["theta"] += p_theta * qty
+        totals = {
+            "delta": t_delta,
+            "gamma": t_gamma,
+            "vega": t_vega,
+            "theta": t_theta,
+        }
 
         logger.info("greeks_aggregated", totals=totals)
         return totals
