@@ -84,9 +84,9 @@ async def startup():
     # Attempt to initialize DistributedCircuitBreaker if Redis is available
     global ml_circuit
     try:
-        from src.shared.utils.cache import _redis_pool
+        from src.shared.utils.cache import get_redis
 
-        redis_client = _redis_pool
+        redis_client = get_redis()
 
         if redis_client is not None:
             ml_circuit = DistributedCircuitBreaker(
@@ -400,13 +400,20 @@ async def metrics():
 @app.get("/health")
 async def health():
     """Health check endpoint."""
+    models_loaded = (
+        state["xgb_model"] is not None
+        or state["nn_ort_session"] is not None
+        or state["xgb_ort_session"] is not None
+    )
     return {
-        "status": "healthy",
+        "healthy": True,
+        "model_loaded": models_loaded,
         "models": {
             "xgb": state["xgb_model"] is not None,
             "nn": state["nn_ort_session"] is not None,
+            "xgb_onnx": state["xgb_ort_session"] is not None,
         },
-        "timestamp": datetime.now(UTC).isoformat(),  # Use timezone-aware datetime
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 if __name__ == "__main__":

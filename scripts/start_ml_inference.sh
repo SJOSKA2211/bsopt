@@ -21,11 +21,16 @@ load_decrypted_secrets
 
 # Fix hostname resolution when running locally outside of docker
 export DATABASE_URL="${DATABASE_URL:-}"
-export DATABASE_URL="${DATABASE_URL//pgbouncer:6432/localhost:5432}"
-export DATABASE_URL="${DATABASE_URL//pgbouncer/localhost}"
+export DATABASE_URL="${DATABASE_URL//pgbouncer:6432/localhost:5435}"
+export DATABASE_URL="${DATABASE_URL//pgbouncer/localhost:5435}"
 export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI:-}"
-export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer:6432/localhost:5432}"
-export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer/localhost}"
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer:6432/localhost:5435}"
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer/localhost:5435}"
+
+# Local gRPC and model overrides
+export ML_SERVICE_GRPC_URL="0.0.0.0:50051"
+export NN_MODEL_PATH="models/latest_pricing.onnx"
+export XGB_ONNX_MODEL_PATH="models/latest_pricing.onnx"
 
 # We use port 5002 to avoid conflict with existing services
 PORT=5002

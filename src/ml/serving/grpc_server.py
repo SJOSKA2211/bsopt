@@ -102,7 +102,10 @@ async def serve_grpc(xgb_model, nn_ort_session):
     # Ensure it's in the format expected by gRPC (e.g., [::]:50051)
     if ":" in listen_addr and not listen_addr.startswith("["):
         host, port = listen_addr.split(":")
-        if host == "localhost":
+        # In development/test, we usually want to bind to all interfaces regardless of config
+        if not getattr(settings, "is_production", False):
+            listen_addr = f"0.0.0.0:{port}"
+        elif host == "localhost":
             listen_addr = f"0.0.0.0:{port}"
 
     server.add_insecure_port(listen_addr)

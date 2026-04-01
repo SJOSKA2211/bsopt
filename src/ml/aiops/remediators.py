@@ -91,7 +91,7 @@ class RestartServiceRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.aiops.docker_remediator import DockerRemediator
+        from src.ml.aiops.docker_remediator import DockerRemediator
 
         service = anomaly.get("metrics", {}).get("service", "bsopt-api")
         logger.warning("remediator_restart_initiated", service=service)
@@ -172,7 +172,7 @@ class AutonomousScalerRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.aiops.docker_remediator import DockerRemediator
+        from src.ml.aiops.docker_remediator import DockerRemediator
 
         service = anomaly.get("service", "bsopt-api")
         current_replicas = anomaly.get("metrics", {}).get("replicas", 1)
@@ -212,7 +212,7 @@ class SiliconResetRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.aiops.docker_remediator import DockerRemediator
+        from src.ml.aiops.docker_remediator import DockerRemediator
 
         logger.warning("remediator_silicon_reset_initiated")
         docker = DockerRemediator()
@@ -354,7 +354,7 @@ class RabbitMQCongestionRemediator(BaseRemediator):
 
             elif action == "restart_consumers":
                 # Signal consumer restart via Redis pub/sub or direct restart
-                from src.aiops.docker_remediator import DockerRemediator
+                from src.ml.aiops.docker_remediator import DockerRemediator
 
                 docker = DockerRemediator()
                 await docker.restart_service("worker")

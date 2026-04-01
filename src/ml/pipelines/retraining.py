@@ -8,7 +8,7 @@ from typing import Any
 
 import structlog
 
-from src.aiops.data_drift_detector import DataDriftDetector
+from src.ml.aiops.data_drift_detector import DataDriftDetector
 
 logger = structlog.get_logger(__name__)
 
@@ -35,7 +35,7 @@ class NeuralGreeksRetrainer:
                 raise ValueError("data drift")
 
         try:
-            from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
+            from src.ml.aiops.ml_pipeline_trigger import MLPipelineTrigger
 
             trigger = MLPipelineTrigger({"ticker": self.ticker, "framework": "xgboost"})
             success = trigger.trigger_retraining()

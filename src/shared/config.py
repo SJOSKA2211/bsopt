@@ -84,6 +84,9 @@ class Settings(BaseSettings):
 
     # ML Serving Configuration
     ML_SERVICE_GRPC_URL: str = "worker:50051"
+    NN_MODEL_PATH: str = "models/latest_nn_pricing.onnx"
+    XGB_ONNX_MODEL_PATH: str = "models/latest_xgb_pricing.onnx"
+    XGB_INT8_MODEL_PATH: str = "models/latest_xgb_pricing.int8.onnx"
 
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")

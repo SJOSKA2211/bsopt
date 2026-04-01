@@ -582,7 +582,8 @@ class AutonomousEngine:
                 resp = await client.get(url, timeout=2.0)
                 if resp.status_code == 200:
                     data = resp.json()
-                    if data.get("status") == "healthy" and data.get("model_loaded", False):
+                    is_healthy = data.get("healthy") is True or data.get("status") == "healthy"
+                    if is_healthy and data.get("model_loaded", False):
                         logger.info("ml_inference_ready")
                         return True
             except Exception as e:
