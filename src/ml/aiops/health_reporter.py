@@ -4,10 +4,10 @@ import structlog
 from typing import List, Any, Dict, Optional
 import msgspec
 
-try:
-    from mlflow.tracking import MlflowClient
-except ImportError:
-    MlflowClient = None
+import os
+import ray
+from mlflow.tracking import MlflowClient
+
 
 from src.ml.aiops.prometheus_adapter import PrometheusClient
 from src.shared.utils.cache import get_redis_client
@@ -212,8 +212,8 @@ class HealthReporter:
 
     async def _get_api_status(self, metrics: PrometheusMetrics) -> APIStatus:
         """Determines if the API is reachable and healthy based on metrics."""
-        # Simple reachability check (mock-friendly)
         reachable = True
+
         if metrics.request_count == 0 and metrics.error_rate_5xx == 0:
             reachable = False
             
@@ -258,7 +258,7 @@ class HealthReporter:
 
     async def _get_ingestion_status(self) -> IngestionStatus:
         """Checks for ingestion service heartbeat and throughput metrics."""
-        import os
+
         heartbeat_file = "/tmp/ingestion_heartbeat"
         reachable = False
         heartbeat_age = 9999.0
@@ -393,8 +393,9 @@ class HealthReporter:
 
     async def _get_worker_status(self) -> WorkerStatus:
         """Checks Celery worker health and queue status."""
+        from src.workers.tasks.celery_app import celery_app
         try:
-            from src.workers.tasks.celery_app import celery_app
+
             
             # 1. Reachability & Broker
             reachable = False
@@ -433,8 +434,8 @@ class HealthReporter:
     async def _get_ray_status(self) -> RayStatus:
         """Checks Ray cluster health and actor availability."""
         try:
-            import ray
             if not ray.is_initialized():
+
                 # Don't initialize here to avoid side effects if head node is down
                 reachable = False
                 alive_nodes = 0

@@ -2,16 +2,19 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
+import aio_pika
+import httpx
 import structlog
 
-class monitor_drift_and_retrain_task:
-    """Stub for missing Celery task."""
-    @staticmethod
-    def delay(*args, **kwargs):
-        logger.warning("stale_remediator_task_triggered_but_missing", args=args, kwargs=kwargs)
-        return None
+from src.shared.config import settings
+from src.shared.utils.cache import get_redis
+from src.ml.aiops.docker_remediator import DockerRemediator
+from src.ml.pipelines.retraining import NeuralGreeksRetrainer
+from src.math_kernel.factory import PricingEngineFactory
+from src.database import db_manager
 
 logger = structlog.get_logger(__name__)
+
 
 class BaseRemediator(ABC):
     """
@@ -63,7 +66,8 @@ class ClearRedisCacheRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.shared.utils.cache import get_redis
+        logger.warning("remediator_clear_cache_initiated")
+
 
         logger.warning("remediator_clear_cache_initiated")
         try:
@@ -96,7 +100,7 @@ class RestartServiceRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.ml.aiops.docker_remediator import DockerRemediator
+
 
         service = anomaly.get("metrics", {}).get("service", "bsopt-api")
         logger.warning("remediator_restart_initiated", service=service)
@@ -120,13 +124,16 @@ class RetrainModelRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.shared.config import settings
-
         ticker = anomaly.get("metrics", {}).get("ticker", settings.DEFAULT_TICKER)
         logger.warning("remediator_retrain_initiated", ticker=ticker, score=anomaly.get("score"))
-        monitor_drift_and_retrain_task.delay(ticker=ticker)
-        logger.info("remediator_retrain_task_queued", ticker=ticker)
+        
+        # Purged: No longer uses stub task. Uses deterministic retrainer.
+        retrainer = NeuralGreeksRetrainer(ticker=ticker)
+        await retrainer.retrain_now()
+        
+        logger.info("remediator_retrain_task_completed", ticker=ticker)
         return True
+
 
 class ArgoCDRollbackRemediator(BaseRemediator):
     """
@@ -139,9 +146,7 @@ class ArgoCDRollbackRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        import httpx
 
-        from src.shared.config import settings
 
         service = anomaly.get("service", "unknown")
         logger.warning("remediator_argocd_rollback_initiated", app=service)
@@ -177,7 +182,7 @@ class AutonomousScalerRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.ml.aiops.docker_remediator import DockerRemediator
+
 
         service = anomaly.get("service", "bsopt-api")
         current_replicas = anomaly.get("metrics", {}).get("replicas", 1)
@@ -197,7 +202,7 @@ class ModelSwitchRemediator(BaseRemediator):
         super().__init__("model_switch", supported_types=["data_drift", "model_instability"])
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.math_kernel.factory import PricingEngineFactory
+
 
         fallback = anomaly.get("fallback_model", "black_scholes")
         current = anomaly.get("model", "unknown")
@@ -217,7 +222,7 @@ class SiliconResetRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.ml.aiops.docker_remediator import DockerRemediator
+
 
         logger.warning("remediator_silicon_reset_initiated")
         docker = DockerRemediator()
@@ -274,7 +279,7 @@ class DatabasePoolRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_db_pool_recovery_initiated")
         try:
-            from src.database import db_manager
+
 
             # Dispose all connections in the pool, forcing new ones to be created
             await db_manager.dispose()
@@ -297,7 +302,7 @@ class DatabasePoolRemediator(BaseRemediator):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """Verify that the pool is accepting new connections."""
         try:
-            from src.database import db_manager
+
 
             engine = db_manager.engine
             with engine.connect() as conn:
@@ -320,7 +325,7 @@ class RabbitMQCongestionRemediator(BaseRemediator):
             supported_types=["queue_backpressure", "consumer_lag", "dlq_overflow"],
         )
         self.cooldown = 180.0  # 3 min cooldown
-        self.allowed_queues = {"default", "ml_tasks", "pricing", "scraper", "trading"}
+        self.allowed_queues = {"default", "ml_tasks", "pricing", "scraper"}
         self.allowed_actions = {"purge_dlq", "increase_prefetch", "restart_consumers"}
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
@@ -338,10 +343,6 @@ class RabbitMQCongestionRemediator(BaseRemediator):
         )
 
         try:
-            import aio_pika
-
-            from src.config import settings
-
             broker_url = f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@{settings.RABBITMQ_HOST}:5672/"
             connection = await aio_pika.connect_robust(broker_url)
             channel = await connection.channel()
@@ -359,8 +360,6 @@ class RabbitMQCongestionRemediator(BaseRemediator):
 
             elif action == "restart_consumers":
                 # Signal consumer restart via Redis pub/sub or direct restart
-                from src.ml.aiops.docker_remediator import DockerRemediator
-
                 docker = DockerRemediator()
                 await docker.restart_service("worker")
                 logger.info("remediator_rabbitmq_consumers_restarted")

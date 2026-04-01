@@ -1,8 +1,11 @@
+import anyio
 import logging
+import msgspec
 import os
 import time
 import uuid
-from datetime import UTC, datetime  # Added timezone
+import uvicorn
+from datetime import UTC, datetime
 from typing import Any
 
 import mlflow
@@ -18,6 +21,7 @@ from prometheus_client import (
     generate_latest,
 )
 
+
 from api.responses import MsgspecJSONResponse, Response
 from api.schemas.common import DataResponse
 from api.schemas.ml import (
@@ -27,6 +31,7 @@ from api.schemas.ml import (
     InferenceResponse,
 )
 from src.ml.utils.inference import ONNXInferenceEngine
+from src.ml.serving.grpc_server import serve_grpc
 from src.shared.observability import (
     increment_counter,
     observe_latency,
@@ -36,6 +41,8 @@ from src.shared.utils.circuit_breaker import (
     InMemoryCircuitBreaker,
 )
 from src.shared.config import settings
+from src.shared.utils.cache import get_redis
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -84,9 +91,8 @@ async def startup():
     # Attempt to initialize DistributedCircuitBreaker if Redis is available
     global ml_circuit
     try:
-        from src.shared.utils.cache import get_redis
-
         redis_client = get_redis()
+
 
         if redis_client is not None:
             ml_circuit = DistributedCircuitBreaker(
@@ -109,7 +115,7 @@ async def startup():
     await load_onnx_model()
 
     # Start gRPC server in background
-    from src.ml.serving.grpc_server import serve_grpc
+
 
     servicer = await serve_grpc(
         (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
@@ -119,7 +125,7 @@ async def startup():
 
 async def load_xgb_model():
     """Load XGBoost model, favoring quantized ONNX for maximum performance."""
-    import anyio
+
 
     try:
         # Check for Quantized ONNX first
@@ -150,7 +156,7 @@ async def load_xgb_model():
 
 async def load_onnx_model():
     """Load deep learning model."""
-    import anyio
+
 
     try:
         path = getattr(settings, "NN_MODEL_PATH", "models/latest_nn_pricing.onnx")
@@ -220,9 +226,8 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
                 ).reshape(1, -1)
                 prediction = state["xgb_ort_session"].predict(input_data)[0][0]
             elif state["xgb_model"]:
-                import msgspec
-
                 df = pd.DataFrame([msgspec.to_builtins(request)])
+
                 prediction = state["xgb_model"].predict(df)[0]
             else:
                 raise HTTPException(status_code=503, detail="XGB model currently unavailable")
@@ -417,8 +422,5 @@ async def health():
     }
 
 if __name__ == "__main__":
-    import uvicorn
-
-    from src.config import settings
-
     uvicorn.run(app, host=settings.ML_SERVICE_HOST, port=settings.ML_SERVICE_PORT)
+

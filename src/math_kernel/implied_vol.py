@@ -7,9 +7,9 @@ Features:
 - Robust error handling with Brent fallback
 """
 
-from typing import cast
-
 import numpy as np
+import structlog
+from scipy.optimize import brentq
 
 from src.math_kernel.quant_utils import (
     corrado_miller_initial_guess,
@@ -19,10 +19,10 @@ from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
     import bsopt_core
-
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
+
 
 class ImpliedVolatilityError(Exception):
     """Exception raised when IV calculation fails to converge."""
@@ -129,7 +129,7 @@ def _brent_iv(
     tolerance: float = 1e-8,
 ) -> float:
     """Brent's method for IV fallback."""
-    from scipy.optimize import brentq
+
 
     def obj(sigma):
         price_val = calculate_price(spot, strike, maturity, sigma, rate, dividend, is_call)
@@ -234,9 +234,8 @@ def vectorized_implied_volatility(
                 max_iterations,
             )
         except Exception as e:
-            import structlog
-
             structlog.get_logger().warning("core_batch_iv_failed_fallback_to_jit", error=str(e))
+
 
     # 2. Corrado-Miller Initial Guess
     # 0 for call, 1 for put in corrado_miller_initial_guess

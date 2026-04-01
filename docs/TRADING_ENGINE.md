@@ -1,7 +1,7 @@
 # Architecture: Trading Engine Flow 
 
 ## Overview
-The Trading Engine is a low-latency gateway designed for high-frequency execution across both centralized and decentralized (DeFi) venues. It bridges the Gap between the "Market Mesh" (Real-time data) and "Execution Venues" (Polygon/Exchanges).
+The Trading Engine is a low-latency gateway designed for high-frequency execution across centralized venues. It bridges the Gap between the "Market Mesh" (Real-time data) and "Execution Venues" (Exchanges).
 
 ## Data Flow
 1. **Ingestion**: `XDPIngester` (`src/data/xdp_ingest.py`) receives binary market ticks over UDP/TCP.
@@ -9,7 +9,6 @@ The Trading Engine is a low-latency gateway designed for high-frequency executio
 3. **Gateway**: `OrderEngine` (`src/trading/order_engine.py`) monitors the mesh and strategy signals via high-precision adaptive polling (1ms).
 4. **Risk Check**: Every order is validated via **Silicon Risk Kernels** (`src/trading/risk_kernels.py`) in < 300ns.
 5. **Execution**:
-    - **DeFi**: Orders are dispatched via `DeFiOptionsProtocol` (`src/blockchain/defi_options.py`) using Multicall3 for batching and EIP-1559 for gas management.
     - **Centralized**: Traditional API integration via the Trading Engine Gateway with Speculative Concurrency routing.
 
 ## High-Performance Performance

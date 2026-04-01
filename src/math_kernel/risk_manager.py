@@ -16,7 +16,6 @@ class RiskManager:
         self.redis = redis_client
         self.risk_shm = risk_shm
         self.kill_switch_key = "risk:kill_switch"
-        self.breaker_key = "blockchain:breaker:state"
         self.matrix_key = "risk:state:matrix"
 
     async def global_risk_sync(
@@ -31,10 +30,9 @@ class RiskManager:
             # Args: [d_delta, d_gamma, d_vega, max_d, max_g, max_v]
             result = await self.redis.eval(
                 ADVANCED_RISK_MATRIX,
-                3,
+                2,
                 self.matrix_key,
                 self.kill_switch_key,
-                self.breaker_key,
                 d_delta,
                 d_gamma,
                 d_vega,

@@ -249,18 +249,6 @@ KS_TEST_SCORE = Gauge("ml_ks_test_p_value", "P-value from Kolmogorov-Smirnov tes
 PERFORMANCE_DRIFT_ALERT = Gauge("ml_performance_drift_alert", "Binary alert for performance drift")
 TRAINING_ERRORS = Counter("ml_training_errors_total", "Total training failures", ["framework"])
 
-# Blockchain Metrics
-BLOCKCHAIN_RPC_LATENCY = Histogram(
-    "blockchain_rpc_latency_seconds",
-    "Latency of RPC calls",
-    ["method"],
-    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0],
-)
-BLOCKCHAIN_RPC_ERRORS = Counter(
-    "blockchain_rpc_errors_total", "Total number of RPC errors", ["method"]
-)
-BLOCKCHAIN_GAS_PRICE = Gauge("blockchain_gas_price_gwei", "Current network gas price")
-
 # Proxy/Scraper Metrics
 PROXY_LATENCY = Histogram(
     "proxy_latency_seconds",

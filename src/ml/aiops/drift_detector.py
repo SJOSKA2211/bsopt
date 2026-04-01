@@ -51,13 +51,22 @@ class PricingDriftDetector:
 async def run_cli():
     parser = argparse.ArgumentParser(description="Pricing Drift Detector")
     parser.add_argument("--ticker", required=True, help="Ticker symbol")
-    parser.add_argument("--tracking_uri", default="http://mlflow:5000", help="MLflow tracking URI")
+    parser.add_argument("--reference", help="Path to reference data (.npy)")
+    parser.add_argument("--current", help="Path to current data (.npy)")
+    parser.add_argument("--tracking_uri", default=None, help="MLflow tracking URI")
     args = parser.parse_args()
 
-    # Mock data for demonstration if not provided
-    # In a real scenario, this would fetch data from MLflow or Feature Store
-    reference_data = np.random.normal(0, 1, (100, 5))
-    current_data = np.random.normal(0.1, 1.1, (100, 5))
+    if not args.reference or not args.current:
+        logger.error("missing_required_data", 
+                     message="Reference and current data files are required for deterministic drift detection. Mocks purged.")
+        return
+
+    try:
+        reference_data = np.load(args.reference)
+        current_data = np.load(args.current)
+    except Exception as e:
+        logger.error("data_load_failed", error=str(e))
+        return
 
     detector = PricingDriftDetector()
     result = await detector.check_drift(args.ticker, current_data, reference_data)

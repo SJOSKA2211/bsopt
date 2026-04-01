@@ -90,12 +90,11 @@ end
 """
 
 # Advanced Greeks Matrix & Safety Sync
-# Keys: [risk_state_hash, global_kill_switch, blockchain_breaker]
+# Keys: [risk_state_hash, global_kill_switch]
 # Args: [d_delta, d_gamma, d_vega, max_d, max_g, max_v]
 ADVANCED_RISK_MATRIX = """
 local risk_key = KEYS[1]
 local kill_switch = KEYS[2]
-local breaker_key = KEYS[3]
 
 local d_delta = tonumber(ARGV[1])
 local d_gamma = tonumber(ARGV[2])
@@ -109,10 +108,6 @@ if redis.call('GET', kill_switch) == '1' then
     return {0, 'KILL_SWITCH_ACTIVE'}
 end
 
--- 2. Blockchain Breaker Check
-if redis.call('GET', breaker_key) == 'OPEN' then
-    return {0, 'BLOCKCHAIN_CIRCUIT_OPEN'}
-end
 
 -- 3. Fetch Current Greeks
 local state = redis.call('HMGET', risk_key, 'delta', 'gamma', 'vega')

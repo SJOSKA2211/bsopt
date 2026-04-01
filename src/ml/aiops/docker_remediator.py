@@ -3,14 +3,8 @@ import re
 import subprocess
 from typing import Any
 
+import docker
 import structlog
-
-try:
-    import docker
-
-    HAS_DOCKER_SDK = True
-except ImportError:
-    HAS_DOCKER_SDK = False
 
 logger = structlog.get_logger()
 
@@ -20,7 +14,7 @@ ALLOWED_SERVICES = {
     "redis",
     "postgres",
     "rabbitmq",
-    "neural-pricing",
+    "ml-inference", # Updated from neural-pricing
     "portfolio",
     "scraper",
     "envoy",
@@ -32,18 +26,19 @@ SERVICE_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
 class DockerRemediator:
     """
     Advanced Docker remediator supporting restarts and autonomous scaling.
-    OPTIMIZED: Non-blocking execution via thread pool.
+    Deterministic: Requires docker-py library.
     """
 
     def __init__(self) -> None:
         self.client: Any = None
-        if HAS_DOCKER_SDK:
-            try:
-                self.client = docker.from_env()
-                logger.info("docker_remediator_init", status="success")
-            except Exception as e:
-                logger.error("docker_remediator_init", status="failure", error=str(e))
-                self.client = None
+        try:
+            self.client = docker.from_env()
+            logger.info("docker_remediator_init", status="success")
+        except Exception as e:
+            logger.error("docker_remediator_init", status="failure", error=str(e))
+            # If we don't have a client, we will fallback to CLI, which is fine,
+            # but we no longer hide the fact that we expected the SDK.
+            self.client = None
 
     async def _run_cmd(self, cmd: list[str]) -> bool:
         """Helper to run shell commands in the background."""

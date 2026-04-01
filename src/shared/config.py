@@ -94,7 +94,7 @@ class Settings(BaseSettings):
         default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
     )
     
-    @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD", "BLOCKCHAIN_PRIVATE_KEY")
+    @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD")
     @classmethod
     def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
         if v is None:
@@ -103,14 +103,6 @@ class Settings(BaseSettings):
             raise ValueError(f"{info.field_name} must be at least 32 characters for production security.")
         return v
 
-    # Blockchain Configuration
-    BLOCKCHAIN_RPC_URL: str = Field(
-        default="http://geth:8545", validation_alias="BLOCKCHAIN_RPC_URL"
-    )
-    BLOCKCHAIN_PRIVATE_KEY: str = Field(
-        default="0x0000000000000000000000000000000000000000000000000000000000000000",
-        validation_alias="BLOCKCHAIN_PRIVATE_KEY",
-    )
 
     # IBM Quantum Configuration
     IBM_QUANTUM_TOKEN: str | None = Field(default=None, validation_alias="IBM_QUANTUM_TOKEN")

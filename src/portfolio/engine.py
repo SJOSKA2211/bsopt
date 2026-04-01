@@ -1,12 +1,18 @@
-from typing import Any
-
+import asyncio
 import numpy as np
 import pandas as pd
 import ray
 import structlog
 from scipy.cluster.hierarchy import linkage
+from scipy.optimize import minimize
 
 from src.shared.distributed import RayOrchestrator
+from src.math_kernel.backtesting.kernel import (
+    calculate_metrics_kernel,
+    run_simulation_kernel,
+)
+from src.ml.models.neural_engine import NeuralPricingEngine
+from src.shared.utils.cache import get_redis
 
 logger = structlog.get_logger()
 
@@ -126,11 +132,7 @@ class BacktestEngine:
         if "target_position" not in df.columns:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
-        # 2. Vectorized P&L Calculation using Numba Kernel
-        from src.math_kernel.backtesting.kernel import (
-            calculate_metrics_kernel,
-            run_simulation_kernel,
-        )
+
 
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)
@@ -189,7 +191,7 @@ class BacktestEngine:
 
     def optimize_mvo(self) -> np.ndarray:
         """Markowitz Mean-Variance Optimization (MVO)."""
-        from scipy.optimize import minimize
+
 
         n = len(self.symbols)
 
@@ -210,7 +212,7 @@ class BacktestEngine:
         Black-Litterman model for Production view incorporation.
         Combines market prior (equilibrium) with investor views.
         """
-        from scipy.optimize import minimize
+
 
         n = len(self.symbols)
 
@@ -250,11 +252,8 @@ class BacktestEngine:
         Autonomous Strategy: Uses Neural Pricing Engine for alpha generation.
         Strictly data-driven with zero-mock execution.
         """
-        from src.ml.models.neural_engine import NeuralPricingEngine
-        
         # Check for autonomous circuit breaker
-        from src.shared.utils.cache import get_redis
-        import asyncio
+
         
         async def check_paused():
             redis = get_redis()
