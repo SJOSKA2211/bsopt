@@ -7,7 +7,7 @@ import httpx
 
 def main():
     parser = argparse.ArgumentParser(description="ML Health CLI Tool")
-    parser.add_argument("--url", default=os.getenv("ML_HEALTH_URL", "http://localhost:8000/ml/health"), help="URL of the ML health endpoint")
+    parser.add_argument("--url", default=os.getenv("ML_HEALTH_URL", "http://localhost:8000/api/v1/ml/health"), help="URL of the ML health endpoint")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
 

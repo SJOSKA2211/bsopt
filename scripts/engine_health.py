@@ -19,6 +19,7 @@ SERVICES = {
     "NSE Scraper": {"heartbeat": "/tmp/scraper_heartbeat", "type": "heartbeat"},
     "yfinance Scraper": {"heartbeat": "/tmp/yfinance_heartbeat", "type": "heartbeat"},
     "Transformer": {"heartbeat": "/tmp/transformer_heartbeat", "type": "heartbeat"},
+    "Manifold Core": {"type": "native"},
 }
 
 console = Console()
@@ -47,14 +48,28 @@ def check_heartbeat(path):
     except Exception as e:
         return "error", str(e)
 
+async def check_native_manifold():
+    try:
+        import Manifold_core
+        metrics = Manifold_core.get_manifold_metrics()
+        # Simple health check: if we can get metrics, it's alive.
+        # Future: parse Prometheus text format for specific thresholds.
+        return "healthy", "Native/SIMD Optimized"
+    except ImportError:
+        return "down", "Extension not built"
+    except Exception as e:
+        return "error", str(e)
+
 async def get_health_data():
     tasks = []
     for name, config in SERVICES.items():
         if config["type"] == "http":
             tasks.append(check_http(config["url"]))
-        else:
+        elif config["type"] == "heartbeat":
             # Heartbeat check is synchronous but we wrap it for consistency
             tasks.append(asyncio.to_thread(check_heartbeat, config["heartbeat"]))
+        elif config["type"] == "native":
+            tasks.append(check_native_manifold())
     
     results = await asyncio.gather(*tasks)
     return dict(zip(SERVICES.keys(), results))

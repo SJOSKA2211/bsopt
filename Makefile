@@ -9,26 +9,37 @@ help:
 	@echo "  make test          Run all pytest suites"
 	@echo "  make lint          Run linting checks"
 	@echo "  make run-api       Start the FastAPI engine"
-	@echo "  make health-check  Report engine health"
-	@echo "  make clean         Cleanup temporary files"
+	make health-check  Report engine health
+	make ml-train      Trigger ML model training
+	make ml-serve      Start the ML inference engine
+	make clean         Cleanup temporary files
 
-build:
+	build:
 	@echo "Building BS-OPT..."
 	pip install -r requirements.txt
 
-test:
+	test:
 	@echo "Running tests..."
 	pytest tests/unit
 
-lint:
+	lint:
 	@echo "Linting codebase..."
 	ruff check .
 
-run-api:
+	run-api:
 	@echo "Starting API..."
 	uvicorn api.index:app --host 0.0.0.0 --port 8000
 
-health-check:
+	ml-train:
+	@echo "Training models..."
+	python3 src/ml/training/train_all.py
+
+	ml-serve:
+	@echo "Starting ML Inference Service..."
+	uvicorn src.ml.serving.serve:app --host 0.0.0.0 --port 8001
+
+	health-check:
+
 	@echo "Checking health..."
 	python3 scripts/engine_health.py --simulate
 

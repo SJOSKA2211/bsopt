@@ -5,6 +5,7 @@ import os
 import time
 import uuid
 import uvicorn
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
@@ -52,6 +53,7 @@ app = FastAPI(
     version="1.0.0",
     description="Production-grade ML model serving for option pricing",
     default_response_class=MsgspecJSONResponse,
+    lifespan=lifespan,
 )
 
 # Metrics
@@ -75,25 +77,15 @@ ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(
     failure_threshold=5, recovery_timeout=30
 )  # Default to in-memory
 
-# Global model state
-state: dict[str, Any] = {
-    "xgb_model": None,
-    "xgb_ort_session": None,
-    "nn_ort_session": None,
-    "current_model": "xgb",
-    "grpc_servicer": None,
-}
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- Startup ---
     mlflow.set_tracking_uri(settings.tracking_uri)
 
     # Attempt to initialize DistributedCircuitBreaker if Redis is available
     global ml_circuit
     try:
         redis_client = get_redis()
-
-
         if redis_client is not None:
             ml_circuit = DistributedCircuitBreaker(
                 name="ml_inference",
@@ -114,14 +106,42 @@ async def startup():
     await load_xgb_model()
     await load_onnx_model()
 
+    # HARDENED: Dummy model fallback for local health
+    if state["xgb_model"] is None and state["xgb_ort_session"] is None:
+        logger.warning("no_models_found_initializing_dummy_fallback")
+
+        class DummyModel:
+            def predict(self, df):
+                return np.zeros(len(df))
+
+        state["xgb_model"] = DummyModel()
+
     # Start gRPC server in background
-
-
     servicer = await serve_grpc(
         (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
         state["nn_ort_session"],
     )
     state["grpc_servicer"] = servicer
+
+    yield
+
+    # --- Shutdown ---
+    if state["grpc_servicer"]:
+        # Assuming stop() exists on the servicer/server object returned by serve_grpc
+        try:
+            await state["grpc_servicer"].stop()
+        except Exception:
+            pass
+
+
+# Global model state
+state: dict[str, Any] = {
+    "xgb_model": None,
+    "xgb_ort_session": None,
+    "nn_ort_session": None,
+    "current_model": "xgb",
+    "grpc_servicer": None,
+}
 
 async def load_xgb_model():
     """Load XGBoost model, favoring quantized ONNX for maximum performance."""

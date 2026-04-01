@@ -39,6 +39,8 @@ class ZeroTrustMiddleware:
         "/openapi.json",
         "/graphql",
         "/metrics",
+        "/ml/health",
+        "/api/v1/ml/health",
     }
 
     PUBLIC_PREFIXES = (

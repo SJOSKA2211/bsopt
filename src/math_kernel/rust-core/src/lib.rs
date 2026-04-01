@@ -1,10 +1,9 @@
-use numpy::{PyArray1, PyArray2, PyReadonlyArray1, PyArrayMethods, Element, PyArray, PyArrayDescrMethods};
+use numpy::{PyArray1, PyArray2, PyReadonlyArray1, PyArrayMethods, ToPyArray};
+use numpy::ndarray::ShapeBuilder;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::Bound;
-use pyo3::ffi::Py_XINCREF;
 use rayon::prelude::*;
-use statrs::distribution::{ContinuousCDF, Normal};
 use std::sync::Arc;
 use memmap2::Mmap;
 use std::fs::File;
@@ -38,9 +37,17 @@ fn register_metrics() {
 
 const INV_365: f64 = 1.0 / 365.0;
 
-/// High-Precision Normal Distribution Helper
-fn get_norm() -> Normal {
-    Normal::new(0.0, 1.0).unwrap()
+/// High-speed rational approximation for the standard normal CDF.
+/// Significantly faster than statrs::distribution::Normal for tight loops.
+#[inline(always)]
+fn fast_cdf(x: f64) -> f64 {
+    if x > 6.0 { return 1.0; }
+    if x < -6.0 { return 0.0; }
+    
+    let t = 1.0 / (1.0 + 0.2316419 * x.abs());
+    let d = 0.3989422804014327 * (-x * x / 2.0).exp();
+    let prob = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    if x > 0.0 { 1.0 - prob } else { prob }
 }
 
 #[pyfunction]
@@ -60,15 +67,14 @@ fn black_scholes_price(
         timer.observe_duration();
         return Ok(if is_call { (s - k).max(0.0) } else { (k - s).max(0.0) });
     }
-    let norm = get_norm();
     let sqrt_t = t.sqrt();
     let d1 = ((s / k).ln() + (r - q + 0.5 * v * v) * t) / (v * sqrt_t);
     let d2 = d1 - v * sqrt_t;
 
     let price = if is_call {
-        s * (-q * t).exp() * norm.cdf(d1) - k * (-r * t).exp() * norm.cdf(d2)
+        s * (-q * t).exp() * fast_cdf(d1) - k * (-r * t).exp() * fast_cdf(d2)
     } else {
-        k * (-r * t).exp() * norm.cdf(-d2) - s * (-q * t).exp() * norm.cdf(-d1)
+        k * (-r * t).exp() * fast_cdf(-d2) - s * (-q * t).exp() * fast_cdf(-d1)
     };
     timer.observe_duration();
     Ok(price)
@@ -98,10 +104,8 @@ fn batch_black_scholes<'py>(
 
     let n = s.len();
     RESOURCE_GAUGE.set(n as f64);
-    let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
-    
-    let norm = Arc::new(get_norm());
 
     res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
         let si = s[i];
@@ -120,9 +124,9 @@ fn batch_black_scholes<'py>(
             let d2 = d1 - vi * sqrt_t;
 
             *out = if call {
-                si * (-qi * ti).exp() * norm.cdf(d1) - ki * (-ri * ti).exp() * norm.cdf(d2)
+                si * (-qi * ti).exp() * fast_cdf(d1) - ki * (-ri * ti).exp() * fast_cdf(d2)
             } else {
-                ki * (-ri * ti).exp() * norm.cdf(-d2) - si * (-qi * ti).exp() * norm.cdf(-d1)
+                ki * (-ri * ti).exp() * fast_cdf(-d2) - si * (-qi * ti).exp() * fast_cdf(-d1)
             };
         }
     });
@@ -147,13 +151,12 @@ fn black_scholes_greeks(
         return Ok((if is_call { call_delta } else { put_delta }, 0.0, 0.0, 0.0, 0.0));
     }
 
-    let norm = get_norm();
     let sqrt_t = t.sqrt();
     let d1 = ((s / k).ln() + (r - q + 0.5 * v * v) * t) / (v * sqrt_t);
     let d2 = d1 - v * sqrt_t;
 
     let nd1 = ( -0.5 * d1 * d1 ).exp() * 0.3989422804014327;
-    let cdf_d1 = norm.cdf(d1);
+    let cdf_d1 = fast_cdf(d1);
 
     let exp_qt = (-q * t).exp();
     let exp_rt = (-r * t).exp();
@@ -163,10 +166,10 @@ fn black_scholes_greeks(
     let vega = s * exp_qt * nd1 * sqrt_t * 0.01;
 
     let theta_call = (-(s * v * exp_qt * nd1) / (2.0 * sqrt_t)) + (q * s * exp_qt * cdf_d1)
-        - (r * k * exp_rt * norm.cdf(d2));
+        - (r * k * exp_rt * fast_cdf(d2));
 
     let theta = if is_call { theta_call * INV_365 } else { (theta_call + r * k * exp_rt - q * s * exp_qt) * INV_365 };
-    let rho = if is_call { k * t * exp_rt * norm.cdf(d2) * 0.01 } else { -k * t * exp_rt * norm.cdf(-d2) * 0.01 };
+    let rho = if is_call { k * t * exp_rt * fast_cdf(d2) * 0.01 } else { -k * t * exp_rt * fast_cdf(-d2) * 0.01 };
 
     Ok((delta, gamma, theta, vega, rho))
 }
@@ -191,19 +194,17 @@ fn batch_black_scholes_greeks<'py>(
     let is_call = is_call_arr.as_array();
 
     let n = s.len();
-    let delta = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
-    let gamma = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
-    let theta = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
-    let vega = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
-    let rho = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let delta = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let gamma = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let theta = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let vega = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let rho = unsafe { PyArray1::<f64>::new(py, [n], false) };
 
     let d_s = unsafe { delta.as_slice_mut().unwrap() };
     let g_s = unsafe { gamma.as_slice_mut().unwrap() };
     let th_s = unsafe { theta.as_slice_mut().unwrap() };
     let v_s = unsafe { vega.as_slice_mut().unwrap() };
     let r_s = unsafe { rho.as_slice_mut().unwrap() };
-
-    let norm = Arc::new(get_norm());
 
     d_s.par_iter_mut()
         .zip(g_s.par_iter_mut())
@@ -233,16 +234,16 @@ fn batch_black_scholes_greeks<'py>(
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
                 let d2 = d1 - vi * sqrt_t;
                 let nd1 = (-0.5 * d1 * d1).exp() * 0.3989422804014327;
-                let cdf_d1 = norm.cdf(d1);
+                let cdf_d1 = fast_cdf(d1);
                 let exp_qt = (-qi * ti).exp();
                 let exp_rt = (-ri * ti).exp();
 
                 *d_out = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
                 *g_out = exp_qt * nd1 / (si * vi * sqrt_t);
                 *v_out = si * exp_qt * nd1 * sqrt_t * 0.01;
-                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * norm.cdf(d2));
+                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * fast_cdf(d2));
                 *th_out = if call { theta_call * INV_365 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) * INV_365 };
-                *rh_out = if call { ki * ti * exp_rt * norm.cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm.cdf(-d2) * 0.01 };
+                *rh_out = if call { ki * ti * exp_rt * fast_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * fast_cdf(-d2) * 0.01 };
             }
         });
 
@@ -277,7 +278,7 @@ fn batch_heston_price<'py>(
 
     let n = s.len();
     RESOURCE_GAUGE.set(n as f64);
-    let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
     res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
@@ -293,24 +294,51 @@ mod heston_engine {
     use num_complex::Complex;
 
     pub fn price_heston(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64) -> f64 {
-        let p1 = 0.5 + (1.0 / PI) * integral(s, k, t, r, kappa, theta, sigma, rho, v0, 1);
-        let p2 = 0.5 + (1.0 / PI) * integral(s, k, t, r, kappa, theta, sigma, rho, v0, 2);
-        s * p1 - k * (-r * t).exp() * p2
+        let p1 = 0.5 + (1.0 / PI) * adaptive_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 1);
+        let p2 = 0.5 + (1.0 / PI) * adaptive_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 2);
+        (s.ln().exp() * p1 - k * (-r * t).exp() * p2).max(0.0)
     }
 
-    fn integral(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
-        let mut sum = 0.0;
-        let n = 100;
-        let upper_limit = 100.0;
-        let dw = upper_limit / n as f64;
+    fn adaptive_integral(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+        const TOL: f64 = 1e-7;
+        const UPPER_LIMIT: f64 = 100.0;
         
-        for i in 0..n {
-            let w = (i as f64 + 0.5) * dw;
+        fn f(w: f64, s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+            if w == 0.0 { return 0.0; }
             let cf = char_func(s, t, r, kappa, theta, sigma, rho, v0, w, j);
-            let val = (Complex::new(0.0, -w * k.ln()).exp() * cf / Complex::new(0.0, w)).re;
-            sum += val * dw;
+            (Complex::new(0.0, -w * k.ln()).exp() * cf / Complex::new(0.0, w)).re
         }
-        sum
+
+        fn simpson(a: f64, b: f64, fa: f64, fb: f64, fm: f64) -> f64 {
+            (b - a) / 6.0 * (fa + 4.0 * fm + fb)
+        }
+
+        fn adaptive_step(a: f64, b: f64, eps: f64, whole: f64, fa: f64, fb: f64, fm: f64, 
+                         s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+            let m = (a + b) / 2.0;
+            let lm = (a + m) / 2.0;
+            let rm = (m + b) / 2.0;
+            let flm = f(lm, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+            let frm = f(rm, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+            
+            let left = simpson(a, m, fa, fm, flm);
+            let right = simpson(m, b, fm, fb, frm);
+            
+            if (left + right - whole).abs() <= 15.0 * eps {
+                left + right + (left + right - whole) / 15.0
+            } else {
+                adaptive_step(a, m, eps / 2.0, left, fa, fm, flm, s, k, t, r, kappa, theta, sigma, rho, v0, j) +
+                adaptive_step(m, b, eps / 2.0, right, fm, fb, frm, s, k, t, r, kappa, theta, sigma, rho, v0, j)
+            }
+        }
+
+        let a = 0.00001; 
+        let b = UPPER_LIMIT;
+        let fa = f(a, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+        let fb = f(b, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+        let fm = f((a + b) / 2.0, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+        
+        adaptive_step(a, b, TOL, simpson(a, b, fa, fb, fm), fa, fb, fm, s, k, t, r, kappa, theta, sigma, rho, v0, j)
     }
 
     fn char_func(s: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, w: f64, j: i32) -> Complex<f64> {
@@ -318,12 +346,14 @@ mod heston_engine {
         let b = if j == 1 { kappa - rho * sigma } else { kappa };
         let a = kappa * theta;
         let i_w = Complex::new(0.0, w);
+        let sig_sq = sigma * sigma;
         
-        let d = ((rho * sigma * i_w - b).powi(2) - sigma.powi(2) * (2.0 * u * i_w - w.powi(2))).sqrt();
+        let d = ((rho * sigma * i_w - b).powi(2) - sig_sq * (2.0 * u * i_w - w * w)).sqrt();
         let g = (b - rho * sigma * i_w + d) / (b - rho * sigma * i_w - d);
         
-        let c = r * i_w * t + (a / sigma.powi(2)) * ((b - rho * sigma * i_w + d) * t - 2.0 * ((1.0 - g * (d * t).exp()) / (1.0 - g)).ln());
-        let d_val = ((b - rho * sigma * i_w + d) / sigma.powi(2)) * ((1.0 - (d * t).exp()) / (1.0 - g * (d * t).exp()));
+        let exp_dt = (d * t).exp();
+        let c = r * i_w * t + (a / sig_sq) * ((b - rho * sigma * i_w + d) * t - 2.0 * ((1.0 - g * exp_dt) / (1.0 - g)).ln());
+        let d_val = ((b - rho * sigma * i_w + d) / sig_sq) * ((1.0 - exp_dt) / (1.0 - g * exp_dt));
         
         (c + d_val * v0 + i_w * s.ln()).exp()
     }
@@ -343,6 +373,10 @@ pub struct TickData {
     pub side: u8,
 }
 
+const TICK_HEADER_SIZE: usize = 8;
+const TICK_RECORD_SIZE: usize = 32;
+const PRICE_OFFSET: usize = 12;
+
 #[pyclass]
 pub struct TickDataBuffer {
     mmap: Arc<Mmap>,
@@ -360,39 +394,65 @@ impl TickDataBuffer {
     pub fn size(&self) -> usize { self.mmap.len() }
 
     pub fn get_n_records(&self) -> PyResult<usize> {
-        let header_size = 8;
-        let tick_size = 32;
-        if self.mmap.len() < header_size { return Ok(0); }
-        Ok((self.mmap.len() - header_size) / tick_size)
+        if self.mmap.len() < TICK_HEADER_SIZE { return Ok(0); }
+        Ok((self.mmap.len() - TICK_HEADER_SIZE) / TICK_RECORD_SIZE)
     }
 
     /// Extract prices as a zero-copy NumPy array
     pub fn get_prices<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
-        // Offset: Header(8) + Timestamp(8) + SymbolID(4) = 20
-        let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12) };
-        unsafe { create_strided_array::<f64, numpy::ndarray::Ix1>(slf, ptr, &[n_records as isize], &[32 as isize]) }
+        if n_records == 0 { return Ok(PyArray1::zeros(slf.py(), [0], false)); }
+        
+        let offset = TICK_HEADER_SIZE + PRICE_OFFSET;
+        if slf.mmap.len() < offset + n_records * TICK_RECORD_SIZE {
+             return Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Mmap buffer too small for requested stride"));
+        }
+
+        let ptr = unsafe { slf.mmap.as_ptr().add(offset) } as *const f64;
+        
+        // Use ndarray to create a view, then convert to a PyArray.
+        // For zero-copy, we need to ensure the data lives as long as the array.
+        // TickDataBuffer holds the Arc<Mmap>, so it's safe.
+        let view = unsafe {
+            numpy::ndarray::ArrayView1::from_shape_ptr(
+                numpy::ndarray::Ix1(n_records).strides(numpy::ndarray::Ix1(TICK_RECORD_SIZE / 8)),
+                ptr
+            )
+        };
+        // In numpy 0.23, use to_pyarray for a view.
+        Ok(view.to_pyarray(slf.py()))
     }
 
     /// Extract volumes as a zero-copy NumPy array
     pub fn get_volumes<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
-        // Offset: Header(8) + Timestamp(8) + SymbolID(4) + Price(8) = 28
-        let ptr = unsafe { slf.mmap.as_ptr().add(8 + 20) };
-        unsafe { create_strided_array::<f64, numpy::ndarray::Ix1>(slf, ptr, &[n_records as isize], &[32 as isize]) }
+        if n_records == 0 { return Ok(PyArray1::zeros(slf.py(), [0], false)); }
+        
+        let offset = TICK_HEADER_SIZE + 20; 
+        if slf.mmap.len() < offset + n_records * TICK_RECORD_SIZE {
+             return Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Mmap buffer too small for requested stride"));
+        }
+
+        let ptr = unsafe { slf.mmap.as_ptr().add(offset) } as *const f64;
+        let view = unsafe {
+            numpy::ndarray::ArrayView1::from_shape_ptr(
+                numpy::ndarray::Ix1(n_records).strides(numpy::ndarray::Ix1(TICK_RECORD_SIZE / 8)),
+                ptr
+            )
+        };
+        Ok(view.to_pyarray(slf.py()))
     }
 
     /// Bulk parse ticks into a vector of structs (heavier parsing)
     pub fn parse_all(&self) -> PyResult<Vec<TickData>> {
         let n = self.get_n_records()?;
         let mut ticks = Vec::with_capacity(n);
-        let data = &self.mmap[8..];
+        let data = &self.mmap[TICK_HEADER_SIZE..];
 
         for i in 0..n {
-            let offset = i * 32;
-            let tick_slice = &data[offset..offset + 32];
+            let offset = i * TICK_RECORD_SIZE;
+            if offset + TICK_RECORD_SIZE > data.len() { break; }
+            let tick_slice = &data[offset..offset + TICK_RECORD_SIZE];
             
             ticks.push(TickData {
                 timestamp: u64::from_le_bytes(tick_slice[0..8].try_into().unwrap()),
@@ -406,35 +466,10 @@ impl TickDataBuffer {
     }
 }
 
-unsafe fn create_strided_array<'py, T, D>(
-    slf: PyRef<'py, TickDataBuffer>,
-    data_ptr: *const u8,
-    dims: &[isize],
-    strides: &[isize],
-) -> PyResult<Bound<'py, PyArray<T, D>>>
-where
-    T: Element,
-    D: numpy::ndarray::Dimension,
-{
-    let py = slf.py();
-    let type_num = T::get_dtype_bound(py).num();
-    extern "C" {
-        fn PyArray_New(subtype: *mut std::ffi::c_void, nd: i32, dims: *mut isize, type_num: i32, strides: *mut isize, data: *mut std::ffi::c_void, itemsize: i32, flags: i32, obj: *mut std::ffi::c_void) -> *mut pyo3::ffi::PyObject;
-        static mut PyArray_Type: pyo3::ffi::PyTypeObject;
-    }
-    let array_ptr = PyArray_New(&mut PyArray_Type as *mut _ as *mut std::ffi::c_void, dims.len() as i32, dims.as_ptr() as *mut isize, type_num, strides.as_ptr() as *mut isize, data_ptr as *mut std::ffi::c_void, 0, 0x0400, std::ptr::null_mut());
-    if array_ptr.is_null() { return Err(PyErr::fetch(py)); }
-    let array_bound = Bound::from_owned_ptr(py, array_ptr).downcast_into_unchecked::<PyArray<T, D>>();
-    let base_ptr = slf.as_ptr();
-    Py_XINCREF(base_ptr);
-    #[repr(C)]
-    struct PyArrayObject { ob_base: pyo3::ffi::PyObject, data: *mut std::ffi::c_void, nd: i32, dimensions: *mut isize, strides: *mut isize, base: *mut pyo3::ffi::PyObject }
-    let array_ffi_ptr = array_ptr as *mut PyArrayObject;
-    (*array_ffi_ptr).base = base_ptr;
-    Ok(array_bound)
-}
+// Replaced unsafe custom strided creation with safe ndarray views above.
 
 #[pyfunction]
+#[pyo3(signature = (s0_arr, mu_arr, sigma_arr, t, dt, seed=None))]
 fn simulate_gbm_rk4<'py>(
     py: Python<'py>,
     s0_arr: PyReadonlyArray1<f64>,
@@ -459,7 +494,7 @@ fn simulate_gbm_rk4<'py>(
     let n_steps = (t / dt) as usize;
     let sqrt_dt = dt.sqrt();
 
-    let res = unsafe { PyArray2::<f64>::new_bound(py, [n_steps + 1, n_paths], false) };
+    let res = unsafe { PyArray2::<f64>::new(py, [n_steps + 1, n_paths], false) };
     
     // Safety: We get a raw pointer to the data to avoid sharing Bound across threads.
     // We ensure the array is not reallocated during the loop.
@@ -526,7 +561,7 @@ fn get_manifold_metrics() -> PyResult<String> {
 }
 
 #[pymodule]
-fn Manifold_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn Manifold_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     register_metrics();
     m.add_class::<TickDataBuffer>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
