@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.api.routes.websocket import market_data_ws
-from src.api.websockets.codec import ProtocolType
+from api.routes.websocket import market_data_ws
+from api.websockets.codec import ProtocolType
 
 @pytest.mark.asyncio
 async def test_market_data_ws_protocol_negotiation():

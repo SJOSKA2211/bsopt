@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import Request, Response
 
-from src.api.middleware.security import (
+from api.middleware.security import (
     CSRFMiddleware,
     InputSanitizationMiddleware,
     IPBlockMiddleware,

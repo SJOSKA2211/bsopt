@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.api.schemas.ml import InferenceRequest
+from api.schemas.ml import InferenceRequest
 from src.ml_service import MLService
 
 @pytest.fixture

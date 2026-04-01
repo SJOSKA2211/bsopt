@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.api.websockets.manager import (
+from api.websockets.manager import (
     ConnectionManager,
     ConnectionMetadata,
     ProtocolType,

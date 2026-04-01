@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import Request
 
-from src.api.middleware.logging import RequestLoggingMiddleware
+from api.middleware.logging import RequestLoggingMiddleware
 
 @pytest.mark.asyncio
 async def test_persist_log_correctly_uses_session_local():

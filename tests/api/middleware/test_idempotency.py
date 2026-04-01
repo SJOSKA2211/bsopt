@@ -5,7 +5,7 @@ import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from src.api.middleware.idempotency import IdempotencyMiddleware
+from api.middleware.idempotency import IdempotencyMiddleware
 
 app = FastAPI()
 

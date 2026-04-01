@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from api.index import app
 from src.auth.auth import get_current_user_flexible
 from src.auth.rate_limit import rate_limit
 from src.shared.cache import get_redis_client
@@ -40,7 +40,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
-    from src.api.routes.pricing import pricing_service
+    from api.routes.pricing import pricing_service
     from src.shared.circuit_breaker import pricing_circuit
 
     pricing_circuit.reset()

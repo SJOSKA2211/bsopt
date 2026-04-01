@@ -1,7 +1,7 @@
 import pytest
 from strawberry.types import ExecutionResult
 
-from src.api.graphql.options import schema
+from api.graphql.options import schema
 
 @pytest.mark.asyncio
 async def test_options_subgraph_schema_valid():
@@ -52,7 +52,7 @@ def test_graphql_endpoint():
 
     from fastapi.testclient import TestClient
 
-    from src.api.main import app
+    from api.index import app
 
     client = TestClient(app)
 

@@ -8,11 +8,24 @@ cd "$PROJECT_ROOT"
 
 echo "🧠 Launching ML Inference (Option Pricing ONNX Model)..."
 
+# Load Production# Set environment variables
+export ENVIRONMENT="development"
+export PORT=5002
+export PYTHONPATH=${PYTHONPATH:-}:$(pwd):$(pwd)/src
+export BSOPT_ALLOW_WEAK_SECRETS=1
+export PGBOUNCER_ADMIN_PASSWORD="change_it_for_development"
+
 # Load Production environment
 source scripts/utils_env.sh
 load_decrypted_secrets
 
-export PYTHONPATH=${PYTHONPATH:-}:$(pwd):$(pwd)/src
+# Fix hostname resolution when running locally outside of docker
+export DATABASE_URL="${DATABASE_URL:-}"
+export DATABASE_URL="${DATABASE_URL//pgbouncer:6432/localhost:5432}"
+export DATABASE_URL="${DATABASE_URL//pgbouncer/localhost}"
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI:-}"
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer:6432/localhost:5432}"
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI//pgbouncer/localhost}"
 
 # We use port 5002 to avoid conflict with existing services
 PORT=5002

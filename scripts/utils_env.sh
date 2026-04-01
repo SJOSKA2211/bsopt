@@ -44,7 +44,7 @@ detect_container_engine() {
     # 2. Host-land docker (Silverblue/Toolbox)
     elif command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host docker version >/dev/null 2>&1; then
         export CONTAINER_ENGINE="flatpak-spawn --host docker"
-        export COMPOSE_ENGINE="flatpak-spawn --host docker compose"
+        export COMPOSE_ENGINE="flatpak-spawn --host docker-compose"
     # 3. uv run podman-compose (Portable installation)
     elif uv run podman-compose --version >/dev/null 2>&1; then
         export CONTAINER_ENGINE="podman"

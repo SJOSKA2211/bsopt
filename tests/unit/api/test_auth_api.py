@@ -6,7 +6,7 @@ import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from api.index import app
 from src.auth.auth import get_current_active_user, get_current_user
 from src.database import get_db
 from src.database.models import User
@@ -597,7 +597,7 @@ def test_mfa_verify_backup_code_success(mock_user):
     app.dependency_overrides[get_db] = lambda: mock_db
 
     # TOTP fails, but backup code succeeds
-    from src.api.routes.auth import _verify_mfa_code
+    from api.routes.auth import _verify_mfa_code
 
     with patch("src.api.routes.auth._verify_mfa_code", wraps=_verify_mfa_code):
         with patch("cryptography.fernet.Fernet") as mock_fernet:

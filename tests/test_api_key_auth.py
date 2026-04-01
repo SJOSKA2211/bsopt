@@ -2,7 +2,7 @@ from fastapi import Request  # Import Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from src.api.main import app
+from api.index import app
 from src.auth.auth import get_api_key
 from src.database import get_db
 from src.database.models import User

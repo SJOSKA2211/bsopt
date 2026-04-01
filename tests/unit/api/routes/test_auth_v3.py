@@ -5,13 +5,13 @@ from uuid import uuid4
 import pytest
 from fastapi import BackgroundTasks, Request
 
-from src.api.routes.auth import (
+from api.routes.auth import (
     change_password,
     mfa_setup,
     mfa_verify,
     request_password_reset,
 )
-from src.api.schemas.auth import (
+from api.schemas.auth import (
     MFAVerifyRequest,
     PasswordChangeRequest,
     PasswordResetRequest,

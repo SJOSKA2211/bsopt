@@ -138,7 +138,7 @@ def api_client():
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
 
-    from src.api.main import app
+    from api.index import app
     from src.shared.config import settings
 
     # Truncate users to avoid ConflictException

@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import the FastAPI app AFTER patching
-from src.api.main import app
+from api.index import app
 
 client = TestClient(app)
 

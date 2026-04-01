@@ -92,7 +92,6 @@ async def serve_grpc(xgb_model, nn_ort_session):
         ("grpc.max_send_message_length", 16 * 1024 * 1024),
         ("grpc.max_receive_message_length", 16 * 1024 * 1024),
         ("grpc.default_compression_algorithm", grpc.Compression.Gzip),
-        ("grpc.default_compression_level", grpc.CompressionLevel.High),
     ]
     server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10), options=options)
     servicer = MLInferenceServicer(xgb_model, nn_ort_session)

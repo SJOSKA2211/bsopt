@@ -1,7 +1,7 @@
 from strawberry.federation import Schema
 
 def test_options_subgraph():
-    from src.api.graphql.schema import schema
+    from api.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()

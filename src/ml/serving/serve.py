@@ -123,7 +123,7 @@ async def load_xgb_model():
 
     try:
         # Check for Quantized ONNX first
-        int8_path = settings.XGB_INT8_MODEL_PATH or "models/latest_xgb_pricing.int8.onnx"
+        int8_path = getattr(settings, "XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
         exists_int8 = await anyio.to_thread.run_sync(os.path.exists, int8_path)
         if exists_int8:
             state["xgb_ort_session"] = ONNXInferenceEngine(int8_path)
@@ -132,7 +132,7 @@ async def load_xgb_model():
             return
 
         # Fallback to standard ONNX
-        onnx_path = settings.XGB_ONNX_MODEL_PATH or "models/latest_xgb_pricing.onnx"
+        onnx_path = getattr(settings, "XGB_ONNX_MODEL_PATH", "models/latest_xgb_pricing.onnx")
         exists_onnx = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
         if exists_onnx:
             state["xgb_ort_session"] = ONNXInferenceEngine(onnx_path)
@@ -140,7 +140,7 @@ async def load_xgb_model():
             MODEL_LOAD_STATUS.labels(model_type="xgb_onnx").set(1)
             return
 
-        model_uri = settings.XGB_MODEL_URI or "models:/XGBoostOptionPricer/Production"
+        model_uri = getattr(settings, "XGB_MODEL_URI", None) or "models:/XGBoostOptionPricer/Production"
         logger.info(f"Loading XGBoost model from {model_uri} via MLflow...")
         state["xgb_model"] = mlflow.pyfunc.load_model(model_uri)
         MODEL_LOAD_STATUS.labels(model_type="xgb").set(1)
@@ -149,22 +149,18 @@ async def load_xgb_model():
         MODEL_LOAD_STATUS.labels(model_type="xgb").set(0)
 
 async def load_onnx_model():
+    """Load deep learning model."""
     import anyio
 
     try:
-        # Construct absolute path relative to the current file
-        abs_path = await anyio.to_thread.run_sync(os.path.abspath, __file__)
-        base_dir = os.path.dirname(abs_path)
-        default_onnx_path = os.path.join(base_dir, "models", "nn_option_pricer.onnx")
-        onnx_path = settings.NN_MODEL_PATH or default_onnx_path
-
-        exists = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
-        if exists:
-            state["nn_ort_session"] = ONNXInferenceEngine(onnx_path)
-            logger.info(f"ONNX NN engine initialized from {onnx_path}.")
+        path = getattr(settings, "NN_MODEL_PATH", "models/latest_nn_pricing.onnx")
+        exists_nn = await anyio.to_thread.run_sync(os.path.exists, path)
+        if exists_nn:
+            state["nn_ort_session"] = ONNXInferenceEngine(path)
+            logger.info(f"ONNX NN engine initialized from {path}.")
             MODEL_LOAD_STATUS.labels(model_type="nn").set(1)
         else:
-            logger.warning(f"ONNX model not found at {onnx_path}")
+            logger.warning(f"ONNX model not found at {path}")
             MODEL_LOAD_STATUS.labels(model_type="nn").set(0)
     except Exception as e:
         logger.error(f"ONNX load failed: {e}")

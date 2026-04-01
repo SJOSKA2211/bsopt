@@ -214,6 +214,7 @@ wait_for_service() {
 # 5. Main Bootstrap Sequence
 # ==============================================================================
 main() {
+    export DOCKER_BUILDKIT=0
     echo "=============================================================================="
     echo -e "${BLUE}🚀 Manifold Production Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
@@ -232,7 +233,7 @@ main() {
     fi
 
     log_info "Building core operational cluster..."
-    compose_cmd -f "$COMPOSE_FILE" build --parallel api auth-service worker neural-pricing
+    compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
     
     echo ""
     echo "------------------------------------------------------------------------------"

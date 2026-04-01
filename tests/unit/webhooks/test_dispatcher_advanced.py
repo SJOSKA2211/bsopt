@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import orjson
 import pytest
 
-from src.api.webhooks.dispatcher import (
+from api.webhooks.dispatcher import (
     WebhookDispatcher,
     _generate_signature,
     _verify_signature,

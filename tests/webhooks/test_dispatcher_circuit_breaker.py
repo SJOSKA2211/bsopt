@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from src.api.webhooks.dispatcher import WebhookDispatcher
+from api.webhooks.dispatcher import WebhookDispatcher
 from src.shared.circuit_breaker import (
     CircuitBreaker,
 )

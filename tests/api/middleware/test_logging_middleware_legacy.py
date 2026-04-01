@@ -5,7 +5,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.middleware.logging import RequestLoggingMiddleware
+from api.middleware.logging import RequestLoggingMiddleware
 
 app = FastAPI()
 

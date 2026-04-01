@@ -19,7 +19,7 @@ mock_config = MagicMock()
 mock_config.settings.ENVIRONMENT = "dev"
 sys.modules["src.shared.config"] = mock_config
 
-from src.api.middleware.security import JWTAuthenticationMiddleware  # noqa: E402
+from api.middleware.security import JWTAuthenticationMiddleware  # noqa: E402
 
 app = FastAPI()
 app.add_middleware(JWTAuthenticationMiddleware)

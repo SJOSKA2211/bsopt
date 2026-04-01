@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from api.index import app
 
 client = TestClient(app)
 
@@ -13,7 +13,7 @@ async def test_get_tracemalloc_snapshot_not_active():
     # and the middleware likely relies on the request state being set.
     with (
         patch("tracemalloc.is_tracing", return_value=False),
-        patch("src.api.main.verify_token", return_value={"id": "admin"}),
+        patch("src.api.index.verify_token", return_value={"id": "admin"}),
         patch("src.api.middleware.security.JWTAuthenticationMiddleware.dispatch") as mock_dispatch,
     ):
 

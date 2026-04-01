@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from src.api.websockets.codec import WebSocketCodec
-from src.api.websockets.manager import ConnectionMetadata, ProtocolType
+from api.websockets.codec import WebSocketCodec
+from api.websockets.manager import ConnectionMetadata, ProtocolType
 from src.shared.protos.market_data_pb2 import TickerUpdate
 
 def test_connection_metadata_initialization():

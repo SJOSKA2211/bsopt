@@ -2,7 +2,7 @@ import uuid
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from api.index import app
 from src.database import get_db
 from src.database.models import User
 from src.auth.auth import auth_service

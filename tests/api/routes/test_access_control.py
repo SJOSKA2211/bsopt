@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from api.index import app
 from src.auth.auth import get_current_active_user
 
 client = TestClient(app)

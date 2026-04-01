@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from src.api.main import app
+from api.index import app
 
 @pytest.mark.asyncio
 async def test_health_check():

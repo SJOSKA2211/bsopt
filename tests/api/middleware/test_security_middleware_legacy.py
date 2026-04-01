@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.middleware.security import (
+from api.middleware.security import (
     CSRFMiddleware,
     InputSanitizationMiddleware,
     IPBlockMiddleware,

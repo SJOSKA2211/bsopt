@@ -12,7 +12,7 @@ from faker import Faker
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.orm import Session
 
-from src.api.main import app
+from api.index import app
 from src.database import get_db
 from src.database.models import User
 
