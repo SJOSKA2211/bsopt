@@ -49,6 +49,17 @@ static_resources:
                             cluster: pricing_service
                             timeout: 10s
                 http_filters:
+                  - name: envoy.filters.http.compressor
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor
+                      compressor_library:
+                        name: text_optimized
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip
+                          memory_level: 5
+                          window_bits: 12
+                          compression_level: DEFAULT
+                          compression_strategy: DEFAULT
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -74,6 +85,18 @@ static_resources:
           healthy_threshold: 2
           http_health_check:
             path: "/health"
+      outlier_detection:
+        consecutive_5xx: 5
+        interval: 10s
+        base_ejection_time: 30s
+        max_ejection_percent: 50
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 1024
+            max_pending_requests: 1024
+            max_requests: 4096
+            max_retries: 3
 
     - name: api_service
       connect_timeout: 0.25s
@@ -95,6 +118,18 @@ static_resources:
           healthy_threshold: 2
           http_health_check:
             path: "/health"
+      outlier_detection:
+        consecutive_5xx: 5
+        interval: 10s
+        base_ejection_time: 30s
+        max_ejection_percent: 50
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 2048
+            max_pending_requests: 2048
+            max_requests: 8192
+            max_retries: 5
 
     - name: ml_service
       connect_timeout: 0.5s
@@ -116,6 +151,18 @@ static_resources:
           healthy_threshold: 1
           http_health_check:
             path: "/health"
+      outlier_detection:
+        consecutive_5xx: 3
+        interval: 10s
+        base_ejection_time: 60s
+        max_ejection_percent: 100
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 512
+            max_pending_requests: 512
+            max_requests: 1024
+            max_retries: 2
 
     - name: pricing_service
       connect_timeout: 0.25s
@@ -137,4 +184,16 @@ static_resources:
           healthy_threshold: 2
           http_health_check:
             path: "/health"
+      outlier_detection:
+        consecutive_5xx: 5
+        interval: 5s
+        base_ejection_time: 30s
+        max_ejection_percent: 50
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 2048
+            max_pending_requests: 2048
+            max_requests: 8192
+            max_retries: 5
 

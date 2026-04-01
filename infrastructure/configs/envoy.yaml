@@ -194,7 +194,20 @@ static_resources:
           
           # HTTP filters pipeline
           http_filters:
-          # 1. Health filter (first, bypass everything)
+          # 1. Gzip Compression (prioritize for 1M+ ticks bandwidth optimization)
+          - name: envoy.filters.http.compressor
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor
+              compressor_library:
+                name: text_optimized
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip
+                  memory_level: 5
+                  window_bits: 12
+                  compression_level: DEFAULT
+                  compression_strategy: DEFAULT
+
+          # 2. Health filter (bypass everything)
           - name: envoy.filters.http.health_check
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.common.health_check.v3.HealthCheckFilter
@@ -332,6 +345,11 @@ static_resources:
       healthy_threshold: 2
       http_health_check:
         path: "/health"
+    outlier_detection:
+      consecutive_5xx: 5
+      interval: 10s
+      base_ejection_time: 30s
+      max_ejection_percent: 50
   
   # Auth Service Cluster
   - name: auth_service

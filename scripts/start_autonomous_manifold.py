@@ -55,6 +55,7 @@ async def verify_infrastructure_stack():
         "run_portfolio_healthy.py",
         "run_math_kernel_healthy.py",
         "run_ml_inference_healthy.py",
+        "run_envoy_healthy.py",
         "run_worker_healthy.py"
     ]
     
