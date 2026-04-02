@@ -405,6 +405,30 @@ class DatabaseQueryCache:
             logger.error("db_cache_set_user_failed", error=str(e), user_id=user_id)
             return False
 
+    async def get_api_key(self, key_hash: str) -> dict[str, Any] | None:
+        """Retrieve cached API key response data."""
+        redis = get_redis()
+        if redis is None:
+            return None
+        try:
+            val = await redis.get(f"{self.PREFIX}api_key:{key_hash}")
+            return cast(dict[str, Any], msgspec.json.decode(val)) if val else None
+        except Exception as e:
+            logger.error("db_cache_get_api_key_failed", error=str(e), key_hash=key_hash[:10])
+            return None
+
+    async def set_api_key(self, key_hash: str, key_data: dict[str, Any], ttl: int = 600) -> bool:
+        """Cache API key response data."""
+        redis = get_redis()
+        if redis is None:
+            return False
+        try:
+            await redis.setex(f"{self.PREFIX}api_key:{key_hash}", ttl, msgspec.json.encode(key_data))
+            return True
+        except Exception as e:
+            logger.error("db_cache_set_api_key_failed", error=str(e), key_hash=key_hash[:10])
+            return False
+
 db_cache = DatabaseQueryCache()
 
 # --- Real-time updates support ---
