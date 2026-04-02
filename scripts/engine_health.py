@@ -25,6 +25,7 @@ SERVICES = {
     "Geth Blockchain": {"url": "http://localhost:8545", "type": "rpc"},
     "CI Test Runner": {"heartbeat": "/tmp/ci_heartbeat", "type": "heartbeat"},
     "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster/status", "type": "http"},
+    "MinIO Storage": {"url": "http://localhost:9000/minio/health/live", "type": "minio"},
 }
 
 console = Console()
@@ -36,6 +37,22 @@ async def check_http(url):
             if resp.status_code == 200:
                 data = resp.json()
                 return "healthy", str(data.get("status", "ok"))
+            return "unhealthy", f"HTTP {resp.status_code}"
+    except Exception as e:
+        return "down", str(e)
+
+async def check_minio(url):
+    """Check MinIO liveness; also probes the cluster health endpoint."""
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get(url)
+            if resp.status_code == 200:
+                try:
+                    cluster = await client.get("http://localhost:9000/minio/health/cluster")
+                    cluster_status = "Cluster OK" if cluster.status_code == 200 else f"Cluster {cluster.status_code}"
+                    return "healthy", f"Live ✓ | {cluster_status}"
+                except Exception:
+                    return "healthy", "Live ✓"
             return "unhealthy", f"HTTP {resp.status_code}"
     except Exception as e:
         return "down", str(e)
@@ -118,6 +135,8 @@ async def get_health_data():
             tasks.append(check_native_manifold())
         elif config["type"] == "rpc":
             tasks.append(check_rpc(config["url"]))
+        elif config["type"] == "minio":
+            tasks.append(check_minio(config["url"]))
     
     results = await asyncio.gather(*tasks)
     return dict(zip(SERVICES.keys(), results))

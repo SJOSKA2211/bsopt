@@ -171,39 +171,64 @@ services:
   minio:
     env_file: ../../.env
     image: quay.io/minio/minio:latest
+    pull_policy: if_not_present
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      # Enable Prometheus metrics (unauthenticated for internal scrape)
+      MINIO_PROMETHEUS_AUTH_TYPE: public
+      MINIO_PROMETHEUS_URL: http://prometheus:9090
+      # Cluster identity for multi-node readiness
+      MINIO_SITE_NAME: bsopt-object-store
+      # Performance tuning
+      MINIO_API_REQUESTS_MAX: "10000"
+      MINIO_API_REQUESTS_DEADLINE: 2m
+      GOGC: "20"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":9001" --address ":9000"
     deploy:
       resources:
         limits:
-          memory: 1gb
+          cpus: '2'
+          memory: 2gb
+        reservations:
+          memory: 512mb
     networks:
       - bsopt-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 30s
 
   minio-mc:
     image: quay.io/minio/mc:latest
+    pull_policy: if_not_present
+    restart: 'no'
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio_admin} ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP};
+      echo 'Provisioning MinIO buckets...';
+      /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio_admin} ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP} --api S3v4;
       /usr/bin/mc mb --ignore-existing local/Manifold-artifacts;
       /usr/bin/mc mb --ignore-existing local/Manifold-raw-data;
-      /usr/bin/mc anonymous set public local/Manifold-artifacts;
+      /usr/bin/mc mb --ignore-existing local/mlflow;
+      /usr/bin/mc version enable local/Manifold-artifacts;
+      /usr/bin/mc version enable local/mlflow;
+      /usr/bin/mc anonymous set download local/Manifold-artifacts;
+      /usr/bin/mc ilm import local/Manifold-raw-data <<EOF
+      {\"Rules\":[{\"ID\":\"expire-raw-90d\",\"Status\":\"Enabled\",\"Expiration\":{\"Days\":90}}]}
+EOF
+      echo 'MinIO provisioning complete.';
       exit 0;
       "
     networks:
@@ -1323,6 +1348,7 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+    driver: local
   prometheus_data:
   grafana_data:
   loki_data:
