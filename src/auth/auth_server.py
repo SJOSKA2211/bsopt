@@ -52,11 +52,14 @@ async def run_servers():
     
     logger.info(f"🚀 Starting Auth Service Mesh...")
     
-    # Start gRPC in the background
-    grpc_task = asyncio.create_task(serve_grpc(port=grpc_port))
-    logger.info(f"📡 gRPC Server listening on port {grpc_port}")
+    # Start background tasks
+    from src.auth.tasks import flush_api_key_usage_loop
+    tasks = [
+        asyncio.create_task(serve_grpc(port=grpc_port)),
+        asyncio.create_task(flush_api_key_usage_loop())
+    ]
     
-    # Start HTTP server
+    logger.info(f"📡 gRPC Server listening on port {grpc_port}")
     logger.info(f"🌐 HTTP Server (healthcheck) listening on port {http_port}")
     config = uvicorn.Config(
         app, 
