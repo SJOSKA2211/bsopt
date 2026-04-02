@@ -3,7 +3,8 @@ import os
 import time
 import httpx
 import sys
-from rich.console import Console
+from rich.console import Consol
+
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
@@ -11,7 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 # Service configurations
 SERVICES = {
-    "API Gateway": {"url": "http://localhost:8000/health", "type": "http"},
+    "API Gateway": {"url": "http://localhost:8081/health", "type": "http"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
     "ML Inference": {"url": "http://localhost:5002/health", "type": "http"},
     "Portfolio": {"url": "http://localhost:8003/health", "type": "http"},

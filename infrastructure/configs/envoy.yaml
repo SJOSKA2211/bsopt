@@ -157,9 +157,9 @@ static_resources:
                   timeout: 60s
                   circuit_breakers:
                     thresholds:
-                    - max_pending_requests: 2000
-                      max_requests: 5000
-                      max_connections: 2000
+                    - max_pending_requests: 5000
+                      max_requests: 10000
+                      max_connections: 5000
                       max_retries: 10
               
               # Neural Pricing service
@@ -330,18 +330,18 @@ static_resources:
                 end: 300
     circuit_breakers:
       thresholds:
-      - max_pending_requests: 500
-        max_requests: 1000
-        max_connections: 500
-        max_retries: 5
+      - max_pending_requests: 5000
+        max_requests: 10000
+        max_connections: 5000
+        max_retries: 10
         retry_budget:
           budget_percent:
-            value: 20
-          min_retry_concurrency: 3
+            value: 25
+          min_retry_concurrency: 10
     health_checks:
-    - timeout: 5s
-      interval: 10s
-      unhealthy_threshold: 3
+    - timeout: 1s
+      interval: 2s
+      unhealthy_threshold: 2
       healthy_threshold: 2
       http_health_check:
         path: "/health"
@@ -389,9 +389,9 @@ static_resources:
     lb_policy: ROUND_ROBIN
     http2_protocol_options:
       hpack_table_size: 65536
-      max_concurrent_streams: 500
-      initial_stream_window_size: 1048576
-      initial_connection_window_size: 1048576
+      max_concurrent_streams: 1000
+      initial_stream_window_size: 2097152 # 2MB
+      initial_connection_window_size: 2097152 # 2MB
     load_assignment:
       cluster_name: ml_inference
       endpoints:
@@ -424,9 +424,9 @@ static_resources:
                 port_value: 8000
     circuit_breakers:
       thresholds:
-      - max_pending_requests: 10
-        max_requests: 20
-        max_connections: 10
+      - max_pending_requests: 100
+        max_requests: 200
+        max_connections: 100
 
 
   # OpenTelemetry Collector (gRPC)

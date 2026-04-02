@@ -37,37 +37,41 @@ load_decrypted_secrets() {
 
 # Detect container engine
 detect_container_engine() {
-    # 1. Host-land rootless podman (Silverblue/Toolbox)
-    if command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host systemctl --user is-active podman.socket >/dev/null 2>&1; then
+    # 1. Host-land docker (Silverblue/Toolbox)
+    if command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host docker version >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="flatpak-spawn --host docker"
+        if flatpak-spawn --host docker compose version >/dev/null 2>&1; then
+            export COMPOSE_ENGINE="flatpak-spawn --host docker compose"
+        else
+            export COMPOSE_ENGINE="flatpak-spawn --host docker-compose"
+        fi
+    # 2. Host-land rootless podman (Silverblue/Toolbox)
+    elif command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host systemctl --user is-active podman.socket >/dev/null 2>&1; then
         export CONTAINER_ENGINE="flatpak-spawn --host podman"
         export COMPOSE_ENGINE="flatpak-spawn --host env DOCKER_HOST=unix:///run/user/1000/podman/podman.sock podman compose"
-    # 2. Host-land docker (Silverblue/Toolbox)
-    elif command -v flatpak-spawn >/dev/null 2>&1 && flatpak-spawn --host docker version >/dev/null 2>&1; then
-        export CONTAINER_ENGINE="flatpak-spawn --host docker"
-        export COMPOSE_ENGINE="flatpak-spawn --host docker-compose"
-    # 3. uv run podman-compose (Portable installation)
-    elif uv run podman-compose --version >/dev/null 2>&1; then
-        export CONTAINER_ENGINE="podman"
-        export COMPOSE_ENGINE="uv run podman-compose"
-    # 3. Native podman-compose (Python-based, better in toolboxes)
-    elif command -v podman-compose >/dev/null 2>&1; then
-        export CONTAINER_ENGINE="podman"
-        export COMPOSE_ENGINE="podman-compose"
-    # 3. Standard podman compose plugin
-    elif command -v podman >/dev/null 2>&1; then
-        export CONTAINER_ENGINE="podman"
-        if podman compose version >/dev/null 2>&1; then
-            export COMPOSE_ENGINE="podman compose"
-        else
-            export COMPOSE_ENGINE="podman-compose"
-        fi
-    # 4. Docker
+    # 3. Docker
     elif command -v docker >/dev/null 2>&1; then
         export CONTAINER_ENGINE="docker"
         if docker compose version >/dev/null 2>&1; then
             export COMPOSE_ENGINE="docker compose"
         else
             export COMPOSE_ENGINE="docker-compose"
+        fi
+    # 4. uv run podman-compose (Portable installation)
+    elif uv run podman-compose --version >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="podman"
+        export COMPOSE_ENGINE="uv run podman-compose"
+    # 5. Native podman-compose (Python-based, better in toolboxes)
+    elif command -v podman-compose >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="podman"
+        export COMPOSE_ENGINE="podman-compose"
+    # 6. Standard podman compose plugin
+    elif command -v podman >/dev/null 2>&1; then
+        export CONTAINER_ENGINE="podman"
+        if podman compose version >/dev/null 2>&1; then
+            export COMPOSE_ENGINE="podman compose"
+        else
+            export COMPOSE_ENGINE="podman-compose"
         fi
     else
         echo "❌ Error: Container engine not detected."

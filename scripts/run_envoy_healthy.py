@@ -4,57 +4,106 @@ import requests
 import os
 import sys
 import subprocess
+from rich.console import Console
+from rich.panel import Panel
 
-def check_envoy_ready(url: str, timeout: int = 60, interval: int = 5):
-    print(f"[*] Monitoring Envoy Readiness at {url}...")
+console = Console()
+
+def get_container_engine():
+    """Detect container engine similar to scripts/utils_env.sh."""
+    # Check for flatpak-spawn (Silverblue host-land) or toolbox
+    try:
+        is_toolbox = os.path.exists("/run/.containerenv") or os.path.exists("/.dockerenv")
+        if is_toolbox:
+            sock_path = "/run/host/run/user/1000/podman/podman.sock"
+            if os.path.exists(sock_path):
+                return "podman", f"env DOCKER_HOST=unix://{sock_path} podman compose"
+            
+        if subprocess.run(["command", "-v", "flatpak-spawn"], shell=True, capture_output=True).returncode == 0:
+            if subprocess.run(["flatpak-spawn", "--host", "podman", "version"], capture_output=True).returncode == 0:
+                return "flatpak-spawn --host podman", "flatpak-spawn --host env DOCKER_HOST=unix:///run/user/1000/podman/podman.sock podman compose"
+    except Exception:
+        pass
+        
+    # Standard engines
+    engines = [
+        ("podman", "podman compose"),
+        ("docker", "docker compose"),
+        ("podman", "podman-compose")
+    ]
+    
+    for engine, compose in engines:
+        try:
+            if subprocess.run(["command", "-v", engine], shell=True, capture_output=True).returncode == 0:
+                # Check if compose works
+                if subprocess.run(compose.split() + ["version"], capture_output=True).returncode == 0:
+                    return engine, compose
+        except Exception:
+            continue
+            
+    return "docker", "docker compose" # Fallback
+
+def check_envoy_ready(ready_url: str, health_url: str, timeout: int = 120, interval: int = 5):
+    console.print(f"[bold blue][*][/bold blue] Monitoring Envoy Readiness at {ready_url}...")
+    console.print(f"[bold blue][*][/bold blue] Monitoring Upstream Health at {health_url}...")
+    
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            # Envoy Admin /ready endpoint
-            response = requests.get(url, timeout=2)
-            if response.status_code == 200 and "LIVE" in response.text:
-                print(f"[+] Envoy is LIVE and READY")
+            # 1. Check Envoy Admin /ready endpoint
+            ready_resp = requests.get(ready_url, timeout=2)
+            is_live = ready_resp.status_code == 200 and "LIVE" in ready_resp.text
+            
+            # 2. Check Gateway health (which depends on API)
+            health_resp = requests.get(health_url, timeout=2)
+            is_healthy = health_resp.status_code == 200
+            
+            if is_live and is_healthy:
+                console.print(Panel("[bold green]✅ ENVOY GATEWAY IS LIVE AND UPSTREAM IS HEALTHY[/bold green]"))
                 return True
             else:
-                print(f"[-] Envoy status: {response.status_code} ({response.text.strip()}), retrying...")
-        except requests.exceptions.RequestException:
-            print(f"[-] Envoy not reachable yet...")
+                status = "READY" if is_live else "NOT_READY"
+                up_status = "HEALTHY" if is_healthy else "UNHEALTHY"
+                console.print(f"[yellow][-][/yellow] Envoy: {status} | Upstream: {up_status}, retrying...")
+        except requests.exceptions.RequestException as e:
+            console.print(f"[dim][-] Connectivity gap: {e}[/dim]")
+        
         time.sleep(interval)
     return False
 
-def try_start_envoy():
-    print("[*] Attempting to start Envoy via flatpak-spawn --host...")
-    # Based on scripts/utils_env.sh discovery:
-    p_cmd = ["flatpak-spawn", "--host", "docker", "compose", "-f", "infrastructure/orchestration/docker-compose.yml", "up", "-d", "envoy"]
+def start_envoy(compose_cmd):
+    console.print(f"[bold blue][*][/bold blue] Starting Envoy via [cyan]{compose_cmd}[/cyan]...")
+    cmd = compose_cmd.split() + ["-f", "infrastructure/orchestration/docker-compose.yml", "up", "-d", "envoy"]
     
     try:
-        print(f"[*] Executing: {' '.join(p_cmd)}")
-        result = subprocess.run(p_cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0:
-            print("[+] Successfully requested Envoy start via host.")
+            console.print("[bold green][+][/bold green] Envoy start command issued successfully.")
             return True
         else:
-            print(f"[-] flatpak-spawn failed: {result.stderr}")
-            # Fallback to local docker compose if available
-            subprocess.run(["docker", "compose", "-f", "infrastructure/orchestration/docker-compose.yml", "up", "-d", "envoy"])
+            console.print(f"[bold red][!][/bold red] Failed to start Envoy: {result.stderr}")
+            return False
     except Exception as e:
-        print(f"[-] Command failed: {e}")
-    
-    return False
+        console.print(f"[bold red][!][/bold red] Exception during start: {e}")
+        return False
 
 if __name__ == "__main__":
-    # In Docker, admin is often on 9901. In the compose file, host 9901 maps to 9901.
+    # Standardized ports
     ready_url = "http://localhost:9901/ready"
+    health_url = "http://localhost:8081/health"
     
-    # Try to start it first
-    try_start_envoy()
+    engine, compose = get_container_engine()
+    console.print(f"[bold blue][*][/bold blue] Environment: [cyan]Engine={engine}[/cyan], [cyan]Compose={compose}[/cyan]")
     
-    # Now monitor health
-    if check_envoy_ready(ready_url):
-        print("[***] ENVOY API GATEWAY IS FULLY OPTIMIZED AND HEALTHY [***]")
-        sys.exit(0)
+    if start_envoy(compose):
+        if check_envoy_ready(ready_url, health_url):
+            console.print(Panel("[bold green]🚀 ENVOY API GATEWAY IS FULLY OPTIMIZED AND HEALTHY[/bold green]", title="Success"))
+            sys.exit(0)
+        else:
+            console.print(Panel("[bold red]❌ ERROR: Envoy failed to reach healthy state within timeout.[/bold red]", title="Failure"))
+            # Dump logs for diagnostics
+            log_cmd = compose.split() + ["-f", "infrastructure/orchestration/docker-compose.yml", "logs", "--tail=50", "envoy"]
+            subprocess.run(log_cmd)
+            sys.exit(1)
     else:
-        print("[!] ERROR: Envoy failed to reach healthy state.")
-        # Try to show logs
-        subprocess.run(["docker", "compose", "-f", "infrastructure/orchestration/docker-compose.yml", "logs", "envoy"])
         sys.exit(1)
