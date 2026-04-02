@@ -3,7 +3,7 @@ import os
 import time
 import httpx
 import sys
-from rich.console import Consol
+from rich.console import Console
 
 from rich.table import Table
 from rich.live import Live

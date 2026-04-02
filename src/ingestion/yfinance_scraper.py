@@ -40,10 +40,18 @@ class YFinanceScraper:
                 duration = time.time() - start_time
                 logger.info("yfinance_universe_scrape_complete", duration=duration)
 
-                # Robust Healthcheck Heartbeat
+                # Robust Healthcheck Heartbeat (AIOps Compliant)
+                import json
                 try:
                     with open("/tmp/scraper_heartbeat", "w") as f:
-                        f.write(str(time.time()))
+                        heartbeat_data = {
+                            "time": time.time(),
+                            "metrics": {
+                                "processed": len(self.symbols),
+                                "health": "ACTIVE"
+                            }
+                        }
+                        f.write(json.dumps(heartbeat_data))
                 except Exception:
                     pass
 

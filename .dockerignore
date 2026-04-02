@@ -16,6 +16,7 @@ __pycache__
 *.pyc
 *.pyo
 *.pyd
+*.egg-info
 .db
 .ipynb_checkpoints
 .pytest_cache

@@ -512,10 +512,19 @@ async def main():
                 await scraper._refresh_cache()
                 logger.info("scraper_loop_ok")
 
-                # Best Practice: Robust Healthcheck Heartbeat
+                # Best Practice: Robust Healthcheck Heartbeat (AIOps Compliant)
+                import json
                 def _write_heartbeat():
                     with open("/tmp/scraper_heartbeat", "w") as f:
-                        f.write(str(time.time()))
+                        processed_count = len(scraper._data_cache)
+                        heartbeat_data = {
+                            "time": time.time(),
+                            "metrics": {
+                                "processed": processed_count,
+                                "health": "ACTIVE"
+                            }
+                        }
+                        f.write(json.dumps(heartbeat_data))
 
                 await asyncio.to_thread(_write_heartbeat)
             except Exception as e:
