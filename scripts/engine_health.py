@@ -21,7 +21,7 @@ SERVICES = {
     "Manifold Core": {"type": "native"},
     "Geth Blockchain": {"url": "http://localhost:8545", "type": "rpc"},
     "CI Test Runner": {"heartbeat": "/tmp/ci_heartbeat", "type": "heartbeat"},
-    "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster_status", "type": "http"},
+    "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster_status", "type": "ray"},
     "MinIO Storage": {"url": "http://localhost:9000/minio/health/live", "type": "minio"},
 }
 
@@ -53,6 +53,24 @@ async def check_http(url):
                 return "healthy", str(data.get("status", "ok"))
             except:
                 return "healthy", "OK"
+        return "unhealthy", f"HTTP {code}"
+    except Exception as e:
+        return "down", str(e)
+
+async def check_ray(url):
+    """Check Ray cluster status and node counts."""
+    try:
+        code, body = await asyncio.to_thread(fetch_url, url)
+        if code == 200:
+            data = json.loads(body)
+            # api/cluster_status response structure
+            # { "result": { "nodes": [...], "status": "...", "ray_version": "..." } }
+            # Or direct { "nodes": [...] }
+            nodes = data.get("result", data).get("nodes", [])
+            active_nodes = len([n for n in nodes if n.get("state") == "ALIVE"])
+            total_nodes = len(nodes)
+            version = data.get("result", data).get("ray_version", "unknown")
+            return "healthy", f"v{version} | Nodes: {active_nodes}/{total_nodes} Alive"
         return "unhealthy", f"HTTP {code}"
     except Exception as e:
         return "down", str(e)
@@ -143,6 +161,8 @@ async def get_health_data():
             tasks.append(check_rpc(config["url"]))
         elif config["type"] == "minio":
             tasks.append(check_minio(config["url"]))
+        elif config["type"] == "ray":
+            tasks.append(check_ray(config["url"]))
     
     results = await asyncio.gather(*tasks)
     return dict(zip(SERVICES.keys(), results))

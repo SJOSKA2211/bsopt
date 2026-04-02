@@ -831,9 +831,9 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 4gb
+          memory: 6gb
         reservations:
-          memory: 2gb
+          memory: 4gb
     healthcheck:
       test: ["CMD-SHELL", "ray status || exit 1"]
       interval: 10s
@@ -873,9 +873,9 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 4gb
+          memory: 6gb
         reservations:
-          memory: 2gb
+          memory: 4gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
 
@@ -912,7 +912,7 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 4gb
+          memory: 6gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
