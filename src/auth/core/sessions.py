@@ -46,7 +46,7 @@ class SessionService:
                 await redis.setex(
                     f"session_v3:{hashed_key}",
                     ttl,
-                    msgspec.json.encode(token_data.model_dump(mode="json")),
+                    msgspec.json.encode(token_data),
                 )
         except Exception as e:
             logger.warning("session_cache_write_failed", error=str(e))
@@ -58,8 +58,7 @@ class SessionService:
             hashed_key = self._hash_token(token)
             cached_data = await redis.get(f"session_v3:{hashed_key}")
             if cached_data:
-                data = msgspec.json.decode(cached_data)
-                return TokenData(**data)
+                return msgspec.json.decode(cached_data, type=TokenData)
         except Exception:
             return None
 

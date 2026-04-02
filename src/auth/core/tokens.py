@@ -14,8 +14,8 @@ from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
-class TokenData(BaseModel):
-    """Standardized Token Data (Pydantic V2)."""
+class TokenData(msgspec.Struct, frozen=True):
+    """Standardized Token Data (msgspec)."""
     user_id: str
     email: str
     tier: str
@@ -24,8 +24,6 @@ class TokenData(BaseModel):
     iat: datetime
     jti: str | None = None
     scopes: list[str] = []
-
-    model_config = ConfigDict(frozen=True)
 
 class TokenPair(BaseModel):
     """Standardized Token Pair (Pydantic V2)."""

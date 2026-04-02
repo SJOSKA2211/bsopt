@@ -164,6 +164,12 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             cached_data = await db_cache.get_api_key(key_hash)
             if cached_data:
                 logger.debug("api_key_cache_hit", key_hash=key_hash[:10] + "...")
+                # Buffer the last_used_at update in Redis
+                from src.shared.utils.cache import get_redis
+                redis = get_redis()
+                if redis:
+                    await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
+                
                 api_key_resp = auth_pb2.APIKeyResponse()
                 return ParseDict(cached_data, api_key_resp)
 

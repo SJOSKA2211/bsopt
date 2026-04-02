@@ -317,16 +317,46 @@ async def get_api_key(
         return None
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    result = await db.execute(select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active))
+    
+    from src.shared.utils.cache import db_cache
+    
+    # 1. Fast path: Cache
+    cached_data = await db_cache.get_api_key(key_hash)
+    if cached_data:
+        user_id = cached_data.get("user_id")
+        cached_user = await db_cache.get_user(user_id)
+        if cached_user:
+            # Buffer the last_used_at update in Redis
+            redis = await get_redis_client()
+            await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
+            return User(**cached_user)
+
+    # 2. Slow path: DB
+    from sqlalchemy.orm import joinedload
+    result = await db.execute(
+        select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
+    )
     key_record = result.scalar_one_or_none()
 
     if not key_record:
         return None
 
+    user = key_record.user
+    
+    # Update cache
+    await db_cache.set_api_key(key_hash, {
+        "user_id": str(user.id),
+        "email": user.email,
+        "tier": user.tier,
+        "key_name": key_record.name
+    })
+    
+    # Async update for last_used_at (non-blocking for this request)
     key_record.last_used_at = datetime.now(UTC)
+    # We still commit here for the first time or if not in cache
     await db.commit()
 
-    return key_record.user
+    return user
 
 async def get_current_user_flexible(
     request: Request,
