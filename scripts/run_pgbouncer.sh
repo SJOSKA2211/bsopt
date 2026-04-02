@@ -8,12 +8,10 @@ cd "$PROJECT_ROOT"
 # 1. Detect Container Engine
 if command -v docker &> /dev/null && docker compose version &> /dev/null; then
     COMPOSE_CMD="docker compose"
-elif command -v podman &> /dev/null; then
-    COMPOSE_CMD="podman-compose"
 elif command -v docker-compose &> /dev/null; then
     COMPOSE_CMD="docker-compose"
 else
-    echo "❌ Error: Neither docker compose, podman, nor docker-compose is installed."
+    echo "❌ Error: docker compose is not installed."
     exit 1
 fi
 

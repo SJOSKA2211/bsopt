@@ -16,7 +16,7 @@ echo "🚀 Starting Blue-Green Deployment: [Current: $CURRENT_COLOR] -> [Target:
 # We use a suffix for src in the compose file or manage multiple projects
 echo "🏗️ Building and starting $NEW_COLOR stack..."
 export ENV_COLOR=$NEW_COLOR
-podman-compose -p "bsopt-$NEW_COLOR" up -d --build
+docker compose -p "bsopt-$NEW_COLOR" up -d --build
 
 # 3. Health Check the NEW stack
 echo "🩺 Verifying $NEW_COLOR stack health..."
@@ -36,7 +36,7 @@ done
 
 if [ "$HEALTHY" = false ]; then
     echo "❌ $NEW_COLOR stack health check FAILED. Rolling back..."
-    podman-compose -p "bsopt-$NEW_COLOR" down
+    docker compose -p "bsopt-$NEW_COLOR" down
     exit 1
 fi
 
@@ -48,13 +48,13 @@ if ! curl -s "http://localhost:$( [[ $NEW_COLOR == "green" ]] && echo "5002" || 
     exit 1
 fi
 
-ENVOY_CONTAINER=$(docker ps --format "{{.Names}}" | grep envoy || podman ps --format "{{.Names}}" | grep envoy)
+ENVOY_CONTAINER=$(docker ps --format "{{.Names}}" | grep envoy)
 docker cp infrastructure/orchestration/envoy.yaml "$ENVOY_CONTAINER":/etc/envoy/envoy.yaml
-docker kill -s SIGHUP "$ENVOY_CONTAINER" || podman kill -s SIGHUP "$ENVOY_CONTAINER"
+docker kill -s SIGHUP "$ENVOY_CONTAINER"
 
 # 5. Cleanup (Optional: keep Blue for 5 mins then scale down)
 echo "🧹 Deployment successful. $NEW_COLOR is now LIVE."
 echo "Blue stack (bsopt-$CURRENT_COLOR) will be retained for 300s for emergency rollback."
 sleep 300
-podman-compose -p "bsopt-$CURRENT_COLOR" down
+docker compose -p "bsopt-$CURRENT_COLOR" down
 echo "✅ Finished. $CURRENT_COLOR stack decommissioned."

@@ -10,7 +10,7 @@ IMAGE="docker.io/ethereum/client-go:stable"
 NETWORK="bsopt_bsopt-network"
 
 echo "🚀 Starting Geth container: $CONTAINER_NAME..."
-podman run -d --name "$CONTAINER_NAME" \
+docker run -d --name "$CONTAINER_NAME" \
   -p 8545:8545 -p 8546:8546 \
   --network "$NETWORK" \
   --memory 2gb \
@@ -33,7 +33,7 @@ done
 
 if [ "$SUCCESS" = false ]; then
     echo "❌ Fatal: Geth failed to reach stable state within timeout."
-    podman logs "$CONTAINER_NAME"
+    docker logs "$CONTAINER_NAME"
     exit 1
 fi
 
