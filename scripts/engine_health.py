@@ -22,6 +22,9 @@ SERVICES = {
     "yfinance Scraper": {"heartbeat": "/tmp/yfinance_heartbeat", "type": "heartbeat"},
     "Transformer": {"heartbeat": "/tmp/transformer_heartbeat", "type": "heartbeat"},
     "Manifold Core": {"type": "native"},
+    "Geth Blockchain": {"url": "http://localhost:8545", "type": "rpc"},
+    "CI Test Runner": {"heartbeat": "/tmp/ci_heartbeat", "type": "heartbeat"},
+    "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster/status", "type": "http"},
 }
 
 console = Console()
@@ -33,6 +36,29 @@ async def check_http(url):
             if resp.status_code == 200:
                 data = resp.json()
                 return "healthy", str(data.get("status", "ok"))
+            return "unhealthy", f"HTTP {resp.status_code}"
+    except Exception as e:
+        return "down", str(e)
+
+async def check_rpc(url):
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            payload = {
+                "jsonrpc": "2.0",
+                "method": "net_version",
+                "params": [],
+                "id": 67
+            }
+            resp = await client.post(url, json=payload, headers={"Content-Type": "application/json"})
+            if resp.status_code == 200:
+                data = resp.json()
+                if "result" in data:
+                    # Also check peer count if available
+                    peer_payload = {"jsonrpc": "2.0", "method": "net_peerCount", "params": [], "id": 68}
+                    peer_resp = await client.post(url, json=peer_payload)
+                    peers = int(peer_resp.json().get("result", "0x0"), 16) if peer_resp.status_code == 200 else "unknown"
+                    return "healthy", f"Net: {data['result']} | Peers: {peers}"
+                return "unhealthy", "Invalid RPC response"
             return "unhealthy", f"HTTP {resp.status_code}"
     except Exception as e:
         return "down", str(e)
@@ -90,6 +116,8 @@ async def get_health_data():
             tasks.append(asyncio.to_thread(check_heartbeat, config["heartbeat"]))
         elif config["type"] == "native":
             tasks.append(check_native_manifold())
+        elif config["type"] == "rpc":
+            tasks.append(check_rpc(config["url"]))
     
     results = await asyncio.gather(*tasks)
     return dict(zip(SERVICES.keys(), results))

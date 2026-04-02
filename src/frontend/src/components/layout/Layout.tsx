@@ -244,9 +244,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        {/* Institutional Grade Noise Overlay */}
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            inset: 0, 
+            zIndex: 10, 
+            pointerEvents: 'none', 
+            opacity: 0.015,
+            mixBlendMode: 'overlay',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+          }} 
+        />
+        
         {/* Global Abstract Background Decorations */}
-        <Box className="stitch-abstract-shard float-animation" sx={{ top: '5%', right: '-10%', width: 500, height: 500, background: 'linear-gradient(135deg, rgba(0, 255, 163, 0.05), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(40px)', zIndex: 0 }} />
-        <Box className="stitch-abstract-shard float-animation" sx={{ bottom: '5%', left: '-5%', width: 400, height: 400, background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.04), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(30px)', animationDelay: '-3s', zIndex: 0 }} />
+        <Box className="stitch-abstract-shard float-animation" sx={{ top: '5%', right: '-10%', width: 500, height: 500, background: 'linear-gradient(135deg, rgba(0, 255, 163, 0.05), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(60px)', zIndex: 0 }} />
+        <Box className="stitch-abstract-shard float-animation" sx={{ bottom: '5%', left: '-5%', width: 400, height: 400, background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.04), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(50px)', animationDelay: '-3s', zIndex: 0 }} />
 
         {/* Top Header */}
         <Box sx={{ 
@@ -314,10 +327,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
            <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, scale: 1.02, filter: 'blur(10px)' }}
-                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                initial={{ opacity: 0, x: -10, filter: 'blur(10px) brightness(1.5)' }}
+                animate={{ opacity: 1, x: 0, filter: 'blur(0px) brightness(1)' }}
+                exit={{ opacity: 0, x: 10, filter: 'blur(10px) brightness(0.8)' }}
+                transition={{ 
+                  duration: 0.5, 
+                  ease: [0.16, 1, 0.3, 1], // Custom out-expo
+                }}
                 style={{ height: '100%', width: '100%' }}
               >
                  {children}

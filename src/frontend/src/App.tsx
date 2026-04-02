@@ -34,24 +34,73 @@ const queryClient = new QueryClient({
 });
 
 const PageLoader = () => (
-  <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999 }}>
-    <motion.div
-      initial={{ scaleX: 0, originX: 0 }}
-      animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1] }}
-      transition={{ 
-        duration: 2, 
-        ease: "easeInOut",
-        times: [0, 0.2, 0.5, 0.8, 1],
-        repeat: Infinity,
-        repeatDelay: 0.2
-      }}
-      style={{ 
-        height: 3, 
-        background: `linear-gradient(90deg, ${stitchTokens.colors.primary} 0%, ${stitchTokens.colors.secondary} 100%)`, 
-        boxShadow: `0 0 10px ${stitchTokens.colors.primary}`
-      }}
-    />
+  <Box
+    sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(10, 11, 20, 0.9)',
+      backdropFilter: 'blur(20px)',
+    }}
+  >
+    <Box sx={{ width: 300, position: 'relative' }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 0.5, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        style={{
+          fontSize: '0.65rem',
+          fontWeight: 900,
+          color: stitchTokens.colors.primary,
+          fontFamily: stitchTokens.typography.data,
+          textAlign: 'center',
+          letterSpacing: '0.3em',
+          marginBottom: 16,
+          textTransform: 'uppercase'
+        }}
+      >
+        Synchronizing_Neural_Manifold
+      </motion.div>
+      <Box sx={{ height: 2, bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1, overflow: 'hidden', position: 'relative' }}>
+        <motion.div
+          initial={{ x: '-100%' }}
+          animate={{ x: ['100%', '-100%'] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(90deg, transparent, ${stitchTokens.colors.primary}, transparent)`,
+            width: '50%',
+          }}
+        />
+      </Box>
+    </Box>
   </Box>
+);
+
+const QuantumOverlay = () => (
+  <Box
+    sx={{
+      position: 'fixed',
+      inset: 0,
+      pointerEvents: 'none',
+      zIndex: 10000,
+      opacity: 0.03,
+      background: `
+        radial-gradient(circle at 2px 2px, ${stitchTokens.colors.primary} 1px, transparent 0)
+      `,
+      backgroundSize: '40px 40px',
+    }}
+  />
 );
 
 function AppContent() {
@@ -95,6 +144,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <QuantumField />
+          <QuantumOverlay />
           <BrowserRouter>
             <AppContent />
           </BrowserRouter>

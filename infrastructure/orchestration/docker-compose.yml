@@ -685,6 +685,7 @@ services:
   test-runner:
     profiles: [ "test", "benchmark" ]
     pull_policy: never
+    shm_size: '2gb'
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.ci
@@ -699,6 +700,14 @@ services:
       - ../../.pki/test-runner.key:/etc/postgresql/test-runner.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../../.pki/vault.key:/app/vault_key.pem
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 8gb
+        reservations:
+          memory: 2gb
     depends_on:
       postgres:
         condition: service_healthy
@@ -716,23 +725,35 @@ services:
     ports:
       - "8545:8545"
       - "8546:8546"
+      - "30303:30303"
+      - "30303:30303/udp"
+    volumes:
+      - geth_data:/root/.ethereum
     command:
       - --http
       - --http.addr=0.0.0.0
       - --http.vhosts=*
-      - --http.api=eth,net,web3
+      - --http.api=eth,net,web3,debug,txpool
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.api=eth,net,web3
       - --networkid=1337
+      - --syncmode=snap
+      - --cache=2048
+      - --maxpeers=50
       - --nodiscover
     deploy:
       resources:
         limits:
-          memory: 2gb
+          memory: 4gb
+        reservations:
+          memory: 1gb
     healthcheck:
       test: [ "CMD-SHELL", "wget --quiet --post-data='{\"jsonrpc\":\"2.0\",\"method\":\"net_version\",\"params\":[],\"id\":67}' --header='Content-Type: application/json' --output-document - http://localhost:8545 | grep -q result" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
     networks:
       - bsopt-network
 
@@ -786,13 +807,15 @@ services:
         limits:
           cpus: '4'
           memory: 4gb
+        reservations:
+          memory: 2gb
     healthcheck:
       test: ["CMD-SHELL", "ray status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
 
   ray-worker-1:
     profiles: [ "ml" ]
@@ -826,8 +849,10 @@ services:
         limits:
           cpus: '4'
           memory: 4gb
+        reservations:
+          memory: 2gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -913,7 +938,7 @@ services:
           memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://Manifold-artifacts/mlflow
+    command: ["mlflow", "server", "--workers", "8", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
@@ -1068,6 +1093,7 @@ services:
       - ../../.pki:/etc/envoy/ssl:ro
     ports:
       - "8081:8080"
+      - "80:8080"
       - "443:443"
       - "9901:9901"
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
@@ -1075,6 +1101,7 @@ services:
       - api
       - auth-service
       - ml-inference
+      - nginx
     networks:
       - bsopt-network
     healthcheck:
@@ -1095,7 +1122,7 @@ services:
     container_name: nginx
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - "8080"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
@@ -1305,3 +1332,4 @@ volumes:
       type: tmpfs
       device: tmpfs
       o: "size=4096m"
+  geth_data:

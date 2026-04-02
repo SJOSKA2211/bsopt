@@ -37,11 +37,33 @@ static_resources:
           codec_type: AUTO
           
           # High-performance buffer tuning
-          per_connection_buffer_limit_bytes: 1048576 # 1MB buffer for bursty data
+          per_connection_buffer_limit_bytes: 4194304 # 4MB buffer for bursty data
           
+          common_http_protocol_options:
+            idle_timeout: 300s
+            max_headers_count: 100
+          
+          http2_protocol_options:
+            max_concurrent_streams: 1000
+            initial_stream_window_size: 65536
+            initial_connection_window_size: 65536
+
           # Request ID generation for distributed tracing
           generate_request_id: true
           preserve_external_request_id: true
+
+          # Sampled access logging (10% sampling)
+          access_log:
+          - name: envoy.access_loggers.file
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+              path: /tmp/envoy_access.log
+            filter:
+              runtime_filter:
+                runtime_key: access_log.sampling
+                percent_sampled:
+                  numerator: 10
+                  denominator: HUNDRED
           
           tracing:
             provider:
@@ -157,10 +179,20 @@ static_resources:
                   timeout: 60s
                   circuit_breakers:
                     thresholds:
-                    - max_pending_requests: 5000
-                      max_requests: 10000
-                      max_connections: 5000
-                      max_retries: 10
+                    - max_pending_requests: 10000
+                      max_requests: 20000
+                      max_connections: 10000
+                      max_retries: 20
+              
+              # Ray Dashboard
+              - match:
+                  prefix: "/ray/"
+                route:
+                  cluster: ray_dashboard
+                  prefix_rewrite: "/"
+                  timeout: 3600s
+                  upgrade_configs:
+                    - upgrade_type: websocket
               
               # Neural Pricing service
               - match:
@@ -181,11 +213,11 @@ static_resources:
                   - upgrade_type: websocket
                   timeout: 3600s
               
-              # Default route (catch-all)
+              # Default route (Static Frontend)
               - match:
                   prefix: "/"
                 route:
-                  cluster: api_service
+                  cluster: frontend_service
                   retry_policy:
                     retry_on: "5xx,reset,connect-failure"
                     num_retries: 1
@@ -444,6 +476,36 @@ static_resources:
               socket_address:
                 address: otel-collector
                 port_value: 4317
+
+  # Frontend Service Cluster (Static Assets via Nginx)
+  - name: frontend_service
+    connect_timeout: 2s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: frontend_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: nginx
+                port_value: 80
+
+  # Ray ML Dashboard Cluster
+  - name: ray_dashboard
+    connect_timeout: 5s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: ray_dashboard
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: ray-head
+                port_value: 8265
 
 # ============================================================================
 # Runtime Configuration

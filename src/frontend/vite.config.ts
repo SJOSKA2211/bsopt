@@ -98,7 +98,8 @@ export default defineConfig(({ mode }) => {
               if (id.includes('echarts') || id.includes('lightweight-charts')) return 'vendor-viz';
               if (id.includes('three') || id.includes('@react-three')) return 'vendor-3d';
               if (id.includes('@tanstack/react-query') || id.includes('axios')) return 'vendor-data';
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor-src.shared';
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor-core';
+              if (id.includes('better-auth') || id.includes('@apollo')) return 'vendor-auth-api';
               return 'vendor-utils';
             }
           }
