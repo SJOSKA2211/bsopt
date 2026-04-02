@@ -91,8 +91,7 @@ class TokenService:
     def decode_token(self, token: str) -> TokenData:
         """Decode and validate a JWT token."""
         try:
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
+            algorithm = settings.JWT_ALGORITHM
             key = self._get_key_for_algorithm(algorithm, is_private=False)
             payload = jwt.decode(token, key, algorithms=[algorithm])
 
