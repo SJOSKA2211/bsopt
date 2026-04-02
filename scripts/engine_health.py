@@ -21,7 +21,7 @@ SERVICES = {
     "Manifold Core": {"type": "native"},
     "Geth Blockchain": {"url": "http://localhost:8545", "type": "rpc"},
     "CI Test Runner": {"heartbeat": "/tmp/ci_heartbeat", "type": "heartbeat"},
-    "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster/status", "type": "http"},
+    "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster_status", "type": "http"},
     "MinIO Storage": {"url": "http://localhost:9000/minio/health/live", "type": "minio"},
 }
 
