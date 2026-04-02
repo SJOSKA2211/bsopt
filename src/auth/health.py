@@ -1,4 +1,5 @@
 import asyncio
+import os
 import structlog
 from sqlalchemy import text
 from src.database import db_manager
