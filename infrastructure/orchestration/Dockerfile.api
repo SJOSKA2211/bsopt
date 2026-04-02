@@ -6,6 +6,9 @@ FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # Install build-time specific dependencies (Api-specific)
 COPY infrastructure/requirements/requirements-api.txt /tmp/
 COPY infrastructure/requirements/requirements-ml.txt /tmp/
@@ -20,6 +23,9 @@ RUN /usr/local/bin/uv pip install --no-cache-dir .
 FROM manifold-base:latest AS development
 USER root
 WORKDIR /app
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Copy source + requirements
 COPY . .

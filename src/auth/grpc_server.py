@@ -1,5 +1,5 @@
 import asyncio
-import logging
+import structlog
 from datetime import UTC, datetime
 
 import grpc
@@ -10,15 +10,20 @@ from src.protos import auth_pb2, auth_pb2_grpc
 from src.database import db_manager
 from src.database.models import User, APIKey
 from sqlalchemy import select
+from cachetools import TTLCache
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     """
     Consolidated High-Performance Auth gRPC Servicer.
     Implements all methods defined in auth.proto for zero-trust internal comms.
     """
+
+    def __init__(self):
+        self._user_cache = TTLCache(maxsize=1000, ttl=300)  # 5 min user profile cache
+        self._api_key_cache = TTLCache(maxsize=1000, ttl=600)  # 10 min API key cache
 
     async def ValidateToken(self, request, context):
         try:
@@ -82,6 +87,12 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def GetUserInfo(self, request, context):
         try:
             token_data = await auth_service.validate_token(request.token)
+
+            # Check L1 Cache
+            if token_data.user_id in self._user_cache:
+                logger.debug("user_info_cache_hit", user_id=token_data.user_id)
+                return self._user_cache[token_data.user_id]
+
             async with db_manager.async_session_factory() as db:
                 result = await db.execute(select(User).where(User.id == token_data.user_id))
                 user = result.scalar_one_or_none()
@@ -96,7 +107,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 if user.last_login_at:
                     last_login.FromDatetime(user.last_login_at)
 
-                return auth_pb2.UserInfo(
+                user_info = auth_pb2.UserInfo(
                     user_id=str(user.id),
                     email=user.email,
                     tier=user.tier,
@@ -107,6 +118,10 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                     last_login=last_login,
                     roles=[user.tier]
                 )
+
+                # Update Cache
+                self._user_cache[token_data.user_id] = user_info
+                return user_info
         except Exception as e:
             logger.error("grpc_get_user_info_failed", error=str(e))
             context.set_code(grpc.StatusCode.INTERNAL)
@@ -140,9 +155,17 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
         try:
             import hashlib
             key_hash = hashlib.sha256(request.api_key.encode()).hexdigest()
+
+            # Check L1 Cache
+            if key_hash in self._api_key_cache:
+                logger.debug("api_key_cache_hit", key_hash=key_hash[:10] + "...")
+                return self._api_key_cache[key_hash]
+
             async with db_manager.async_session_factory() as db:
+                # Optimized join query to avoid lazy loading of user
+                from sqlalchemy.orm import joinedload
                 result = await db.execute(
-                    select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active)
+                    select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
                 )
                 key_record = result.scalar_one_or_none()
                 if not key_record:
@@ -152,7 +175,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 created_at = timestamp_pb2.Timestamp()
                 created_at.FromDatetime(key_record.created_at)
                 
-                return auth_pb2.APIKeyResponse(
+                api_key_resp = auth_pb2.APIKeyResponse(
                     valid=True,
                     user_id=str(user.id),
                     email=user.email,
@@ -160,6 +183,10 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                     key_name=key_record.name or "",
                     created_at=created_at
                 )
+
+                # Update Cache
+                self._api_key_cache[key_hash] = api_key_resp
+                return api_key_resp
         except Exception as e:
             logger.error("grpc_validate_api_key_failed", error=str(e))
             return auth_pb2.APIKeyResponse(valid=False)
