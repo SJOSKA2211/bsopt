@@ -13,6 +13,7 @@ import { theme } from './theme';
 import { Layout } from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
 import { QuantumField } from './components/common/QuantumField';
+import { stitchTokens } from './theme/stitch-tokens';
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
@@ -33,8 +34,23 @@ const queryClient = new QueryClient({
 });
 
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#0a0b14' }}>
-    <CircularProgress size={60} aria-label="Loading page" sx={{ color: '#00ffa3' }} />
+  <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999 }}>
+    <motion.div
+      initial={{ scaleX: 0, originX: 0 }}
+      animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1] }}
+      transition={{ 
+        duration: 2, 
+        ease: "easeInOut",
+        times: [0, 0.2, 0.5, 0.8, 1],
+        repeat: Infinity,
+        repeatDelay: 0.2
+      }}
+      style={{ 
+        height: 3, 
+        background: `linear-gradient(90deg, ${stitchTokens.colors.primary} 0%, ${stitchTokens.colors.secondary} 100%)`, 
+        boxShadow: `0 0 10px ${stitchTokens.colors.primary}`
+      }}
+    />
   </Box>
 );
 

@@ -33,6 +33,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { stitchTokens } from '../../theme/stitch-tokens';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TickerTape } from '../TickerTape';
+import { useGatewayHealth } from '../../hooks/useGatewayHealth';
 
 const drawerWidth = 260;
 
@@ -116,6 +117,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const health = useGatewayHealth();
 
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', color: stitchTokens.colors.primary },
@@ -174,9 +176,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 1, bgcolor: 'rgba(0,0,0,0.2)' }}>
         <Stack spacing={2}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1 }}>
-            <div className="stitch-live-indicator" />
+            <div className={`stitch-live-indicator ${health.status}`} />
             <Typography className="stitch-label" sx={{ fontSize: '8px', opacity: 0.6 }}>
-              RDMA_CORE // LATENCY: 0.4ms
+              GATEWAY_{health.status.toUpperCase()} // LATENCY: {health.latency}ms
             </Typography>
           </Box>
           
@@ -264,10 +266,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <MenuIcon />
               </IconButton>
             )}
-            <Box sx={{ px: 1.5, py: 0.5, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <Box sx={{ px: 1.5, py: 0.5, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 1 }}>
                <Typography sx={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.4)', fontFamily: stitchTokens.typography.labels }}>
                  TERMINAL_ID: <Box component="span" sx={{ color: '#fff' }}>QUANT_NODE_042</Box>
                </Typography>
+               <Box sx={{ width: 1, height: 10, bgcolor: health.status === 'healthy' ? stitchTokens.colors.primary : '#ff2e7e', opacity: 0.6 }} />
             </Box>
             
             {!isMobile && (

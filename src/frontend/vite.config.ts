@@ -2,6 +2,36 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 // import path from 'path' // Unused
 import compression from 'vite-plugin-compression'
+import fs from 'fs'
+
+// AIOps Heartbeat Plugin: Reports frontend health to the manifold
+const AIOpsHeartbeatPlugin = () => ({
+  name: 'aiops-heartbeat',
+  configureServer(server) {
+    const heartbeatPath = '/tmp/frontend_heartbeat';
+    const writeHeartbeat = () => {
+      const data = {
+        time: Date.now() / 1000,
+        metrics: {
+          health: 'ACTIVE',
+          status: 'Vite Dev Server Running',
+          processed: 0 // Frontend doesn't "process" ticks in the same way as scrapers
+        }
+      };
+      try {
+        fs.writeFileSync(heartbeatPath, JSON.stringify(data));
+      } catch (err) {
+        console.warn('Failed to write AIOps heartbeat:', err);
+      }
+    };
+    
+    // Initial write and interval
+    writeHeartbeat();
+    const interval = setInterval(writeHeartbeat, 5000);
+    
+    server.httpServer?.on('close', () => clearInterval(interval));
+  }
+});
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -16,6 +46,7 @@ export default defineConfig(({ mode }) => {
     assetsInclude: ['**/*.wasm'],
     plugins: [
       react(),
+      AIOpsHeartbeatPlugin(),
       compression({
         algorithm: 'brotliCompress',
         ext: '.br',

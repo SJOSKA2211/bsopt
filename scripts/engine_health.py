@@ -12,6 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 # Service configurations
 SERVICES = {
+    "App Gateway": {"heartbeat": "/tmp/frontend_heartbeat", "type": "heartbeat"},
     "API Gateway": {"url": "http://localhost:8081/health", "type": "http"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
     "ML Inference": {"url": "http://localhost:5002/health", "type": "http"},
