@@ -170,28 +170,6 @@ class AuthService:
     async def authenticate_client(
         self, db: AsyncSession, client_id: str, client_secret: str
     ) -> OAuth2Client:
-        result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
-        client = result.scalar_one_or_none()
-
-        if not client or client.client_secret != client_secret:
-            raise HTTPException(status_code=401, detail="Invalid client credentials")
-
-        return client
-
-    def create_client_credentials_token(self, client: OAuth2Client, scopes: list[str]) -> TokenPair:
-        return self.tokens.create_client_credentials_token(client, scopes)
-
-    # --- mTLS Support ---
-
-    def verify_mtls(self, request: Request) -> bool:
-        client_verify = request.headers.get("X-SSL-Client-Verify")
-        return client_verify == "SUCCESS"
-
-    # --- OAuth2 Client Logic ---
-
-    async def authenticate_client(
-        self, db: AsyncSession, client_id: str, client_secret: str
-    ) -> OAuth2Client:
         """Authenticate a confidential OAuth2 client."""
         result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
         client = result.scalar_one_or_none()
@@ -208,14 +186,31 @@ class AuthService:
         if not requested_scopes.issubset(allowed_scopes):
             raise HTTPException(status_code=400, detail="Invalid scope requested")
 
-        access_token = self._create_token(
-            {"sub": client.client_id, "type": "client_credentials", "scopes": scopes},
-            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        )
-        return TokenPair(
-            access_token=access_token,
-            refresh_token="",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        return self.tokens.create_client_credentials_token(client, scopes)
+
+    # --- WebAuthn / Passkey (Delegated) ---
+
+    def get_webauthn_registration_options(self, user_id: str, email: str, existing_credentials: list[bytes] = []):
+        return webauthn_service.get_registration_options(user_id, email, existing_credentials)
+
+    def verify_webauthn_registration(self, registration_response: dict, expected_challenge: str):
+        return webauthn_service.verify_registration(registration_response, expected_challenge)
+
+    def get_webauthn_authentication_options(self, allow_credentials: list[bytes] = []):
+        return webauthn_service.get_authentication_options(allow_credentials)
+
+    def verify_webauthn_authentication(
+        self,
+        authentication_response: dict,
+        expected_challenge: str,
+        credential_public_key: bytes,
+        credential_current_sign_count: int,
+    ):
+        return webauthn_service.verify_authentication(
+            authentication_response,
+            expected_challenge,
+            credential_public_key,
+            credential_current_sign_count,
         )
 
     # --- mTLS Support ---

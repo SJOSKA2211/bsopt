@@ -60,11 +60,18 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY infrastructure/requirements/requirements-core.txt /tmp/
 COPY infrastructure/requirements/requirements-db.txt /tmp/
 COPY infrastructure/requirements/requirements-observability.txt /tmp/
+COPY pyproject.toml /tmp/
+COPY README.md /tmp/
+# Create a dummy src/shared directory to allow installing optional dependencies that might refer to it
+RUN mkdir -p /tmp/src/shared && touch /tmp/src/__init__.py /tmp/src/shared/__init__.py
 
 RUN /usr/local/bin/uv pip install --no-cache-dir \
     -r /tmp/requirements-core.txt \
     -r /tmp/requirements-db.txt \
     -r /tmp/requirements-observability.txt
+
+# Install the project with all relevant extras to ensure binaries like granian are in the venv
+RUN cd /tmp && /usr/local/bin/uv pip install --no-cache-dir ".[api,auth,observability,ml,quant,distributed]"
 
 # --- FINAL PRODUCTION BASE ---
 FROM runtime AS final

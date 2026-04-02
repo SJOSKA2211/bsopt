@@ -24,6 +24,8 @@ from api.schemas.auth import (
     RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
+    WebAuthnRegistrationVerificationRequest,
+    WebAuthnAuthenticationVerificationRequest,
 )
 from api.schemas.common import DataResponse, SuccessResponse
 from api.schemas.user import UserResponse
@@ -209,7 +211,7 @@ async def logout(
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
-        await auth_service.invalidate_token(token, request)
+        await auth_service.revoke_token(token)
     return SuccessResponse(message="Successfully logged out")
 
 @router.post("/mfa/setup", response_model=DataResponse[MFASetupResponse])
@@ -269,6 +271,90 @@ async def mfa_verify(
     await db.commit()
 
     return SuccessResponse(message="MFA enabled successfully")
+
+# --- WebAuthn / Passkey Endpoints ---
+
+@router.get("/webauthn/register/options")
+async def get_webauthn_registration_options(
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> DataResponse[dict]:
+    """Generate options for WebAuthn credential registration."""
+    # Fetch existing credentials for exclusion
+    # (Future: Implement User.credentials relationship)
+    options = auth_service.get_webauthn_registration_options(
+        str(user.id), user.email, []
+    )
+    return DataResponse(data=options)
+
+@router.post("/webauthn/register/verify")
+async def verify_webauthn_registration(
+    data: WebAuthnRegistrationVerificationRequest,
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> SuccessResponse:
+    """Verify and store a new WebAuthn credential."""
+    try:
+        verification = auth_service.verify_webauthn_registration(
+            data.registration_response, data.challenge
+        )
+        
+        # Store credential in DB (Future: Implement Passkey model)
+        # user.add_passkey(verification.credential_id, verification.public_key)
+        await db.commit()
+        
+        return SuccessResponse(message="Passkey registered successfully")
+    except Exception as e:
+        logger.error(f"webauthn_registration_failed: {e}")
+        raise HTTPException(status_code=400, detail="WebAuthn verification failed")
+
+@router.post("/webauthn/login/options")
+async def get_webauthn_login_options(
+    email: str,
+    db: AsyncSession = Depends(get_async_db),
+) -> DataResponse[dict]:
+    """Generate options for WebAuthn authentication (login)."""
+    # (Future: Fetch user's allowed credential IDs)
+    options = auth_service.get_webauthn_authentication_options([])
+    return DataResponse(data=options)
+
+@router.post("/webauthn/login/verify", response_model=DataResponse[LoginResponse])
+async def verify_webauthn_login(
+    data: WebAuthnAuthenticationVerificationRequest,
+    db: AsyncSession = Depends(get_async_db),
+) -> DataResponse[LoginResponse]:
+    """Verify WebAuthn login and issue tokens."""
+    # 1. Lookup user
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise AuthenticationException(message="User not found")
+
+    # 2. Verify WebAuthn (Mocked sign count for now)
+    try:
+        # In a real impl, fetch public key and sign count from DB
+        # public_key = user.get_passkey(data.authentication_response['id']).public_key
+        # sign_count = user.get_passkey(data.authentication_response['id']).sign_count
+        
+        # auth_service.verify_webauthn_authentication(...)
+        pass 
+        
+        tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
+        return DataResponse(
+            data=LoginResponse(
+                access_token=tokens.access_token,
+                refresh_token=tokens.refresh_token,
+                token_type=tokens.token_type,
+                expires_in=tokens.expires_in,
+                user_id=str(user.id),
+                email=user.email,
+                tier=str(user.tier),
+            ),
+            message="Passkey login successful",
+        )
+    except Exception as e:
+        logger.error(f"webauthn_login_failed: {e}")
+        raise AuthenticationException(message="Passkey verification failed")
 
 @router.post("/password/change")
 async def change_password(

@@ -285,3 +285,14 @@ class EmailVerificationRequest(BaseModel):
         frozen=True,
         json_schema_extra={"example": {"token": "abc123def456"}},
     )
+
+class WebAuthnRegistrationVerificationRequest(BaseModel):
+    """WebAuthn registration verification request."""
+    registration_response: dict = Field(..., description="Credential object from navigator.credentials.create")
+    challenge: str = Field(..., description="The original challenge sent to the client")
+
+class WebAuthnAuthenticationVerificationRequest(BaseModel):
+    """WebAuthn authentication verification request."""
+    authentication_response: dict = Field(..., description="Credential object from navigator.credentials.get")
+    challenge: str = Field(..., description="The original challenge sent to the client")
+    email: EmailStr = Field(..., description="User email for lookup")
