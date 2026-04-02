@@ -52,8 +52,9 @@ ENV UV_CACHE_DIR=/root/.cache/uv \
     UV_LINK_MODE=copy
 
 # Create a virtual environment for all services
-RUN uv venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+ENV VIRTUAL_ENV=/opt/venv
+RUN uv venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Pre-install Core Dependencies (Shared across all services)
 COPY infrastructure/requirements/requirements-core.txt /tmp/
