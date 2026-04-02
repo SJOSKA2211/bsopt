@@ -960,6 +960,8 @@ services:
     deploy:
       resources:
         limits:
+          memory: 4g
+        reservations:
           memory: 2g
     networks:
       - bsopt-network
@@ -977,7 +979,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4gb
+          memory: 6gb
           cpus: '4'
     depends_on:
       mlflow:

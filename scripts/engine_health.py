@@ -23,6 +23,8 @@ SERVICES = {
     "CI Test Runner": {"heartbeat": "/tmp/ci_heartbeat", "type": "heartbeat"},
     "Ray ML Cluster": {"url": "http://localhost:8265/api/cluster_status", "type": "ray"},
     "MinIO Storage": {"url": "http://localhost:9000/minio/health/live", "type": "minio"},
+    "MLFlow Tracking": {"url": "http://localhost:5000/health", "type": "http"},
+    "MLOps Pipeline": {"url": "http://localhost:8080/health", "type": "http"},
 }
 
 def fetch_url(url, method="GET", json_data=None, timeout=10.0):

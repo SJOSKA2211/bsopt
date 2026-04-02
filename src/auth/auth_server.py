@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
 from src.auth.grpc_server import serve as serve_grpc
@@ -16,7 +17,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("auth_server")
 
-app = FastAPI(title="Manifold Auth Service", version="1.0.0")
+app = FastAPI(
+    title="Manifold Auth Service", 
+    version="1.0.0",
+    default_response_class=ORJSONResponse
+)
 
 # Instrument for Prometheus
 Instrumentator().instrument(app).expose(app)
@@ -73,12 +78,11 @@ async def run_servers():
     try:
         await server.serve()
     finally:
-        logger.info("🛑 Shutting down servers...")
-        grpc_task.cancel()
-        try:
-            await grpc_task
-        except asyncio.CancelledError:
-            pass
+        logger.info("🛑 Shutting down servers and background tasks...")
+        for task in tasks:
+            task.cancel()
+        
+        await asyncio.gather(*tasks, return_exceptions=True)
 
 if __name__ == "__main__":
     logger.info("!!! AUTH SERVER MANIFOLD INITIALIZING !!!")
