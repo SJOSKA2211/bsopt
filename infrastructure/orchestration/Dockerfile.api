@@ -42,7 +42,8 @@ WORKDIR /app
 # Note: manifold-base:final already has the core venv.
 # We copy the one from our local builder which has the core + api + app.
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+ENV VIRTUAL_ENV="/opt/venv" \
+    PATH="/opt/venv/bin:$PATH"
 
 # Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh

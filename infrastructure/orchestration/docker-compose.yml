@@ -227,7 +227,7 @@ services:
       /usr/bin/mc anonymous set download local/Manifold-artifacts;
       /usr/bin/mc ilm import local/Manifold-raw-data <<EOF
       {\"Rules\":[{\"ID\":\"expire-raw-90d\",\"Status\":\"Enabled\",\"Expiration\":{\"Days\":90}}]}
-EOF
+      EOF
       echo 'MinIO provisioning complete.';
       exit 0;
       "
