@@ -5,6 +5,7 @@ import os
 import time
 import uuid
 import uvicorn
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
@@ -21,7 +22,6 @@ from prometheus_client import (
     Histogram,
     generate_latest,
 )
-
 
 from api.responses import MsgspecJSONResponse, Response
 from api.schemas.common import DataResponse
@@ -44,89 +44,44 @@ from src.shared.utils.circuit_breaker import (
 from src.shared.config import settings
 from src.shared.utils.cache import get_redis
 
+# High-Performance Metrics
+INFERENCE_LATENCY = Histogram(
+    "ml_inference_latency_seconds",
+    "Time spent performing ML inference",
+    ["model_type"],
+    buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
+)
+PREDICTION_COUNT = Counter(
+    "ml_prediction_total", "Total number of predictions", ["status", "model_type"]
+)
+MODEL_LOAD_STATUS = Gauge("ml_model_load_status", "Model loading status (1=OK, 0=FAIL)", ["model_type"])
+
+# Attempt to use uvloop
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # --- Startup ---
-    mlflow.set_tracking_uri(settings.tracking_uri)
-
-    # Attempt to initialize DistributedCircuitBreaker if Redis is available
-    global ml_circuit
-    try:
-        redis_client = get_redis()
-        if redis_client is not None:
-            ml_circuit = DistributedCircuitBreaker(
-                name="ml_inference",
-                redis_client=redis_client,
-                failure_threshold=5,
-                recovery_timeout=30,
-            )
-            logger.info("Distributed Circuit Breaker initialized for ML inference.")
-        else:
-            logger.warning(
-                "Redis pool not available, using in-memory circuit breaker for ML inference."
-            )
-    except Exception as e:
-        logger.warning(
-            f"Failed to initialize distributed circuit breaker: {e}. Falling back to in-memory."
-        )
-
-    await load_xgb_model()
-    await load_onnx_model()
-
-    # HARDENED: Dummy model fallback for local health
-    if state["xgb_model"] is None and state["xgb_ort_session"] is None:
-        logger.warning("no_models_found_initializing_dummy_fallback")
-
-        class DummyModel:
-            def predict(self, df):
-                return np.zeros(len(df))
-
-        state["xgb_model"] = DummyModel()
-
-    # Start gRPC server in background
-    servicer = await serve_grpc(
-        (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
-        state["nn_ort_session"],
-    )
-    state["grpc_servicer"] = servicer
-
-    yield
-
-    # --- Shutdown ---
-    if state["grpc_servicer"]:
-        # Assuming stop() exists on the servicer/server object returned by serve_grpc
-        try:
-            await state["grpc_servicer"].stop()
-        except Exception:
-            pass
-
-
-app = FastAPI(
-    title="BSOPT ML Serving",
-    version="1.0.0",
-    description="Production-grade ML model serving for option pricing",
-    default_response_class=MsgspecJSONResponse,
-    lifespan=lifespan,
-)
-
-# Global model state
+# Global state
 state: dict[str, Any] = {
     "xgb_model": None,
     "xgb_ort_session": None,
     "nn_ort_session": None,
     "current_model": "xgb",
     "grpc_servicer": None,
+    "circuit_breaker": None,
 }
+
+def get_ml_circuit():
+    """Dependency provider for the circuit breaker."""
+    return state["circuit_breaker"]
 
 async def load_xgb_model():
     """Load XGBoost model, favoring quantized ONNX for maximum performance."""
-
-
     try:
         # Check for Quantized ONNX first
         int8_path = getattr(settings, "XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
@@ -148,7 +103,8 @@ async def load_xgb_model():
 
         model_uri = getattr(settings, "XGB_MODEL_URI", None) or "models:/XGBoostOptionPricer/Production"
         logger.info(f"Loading XGBoost model from {model_uri} via MLflow...")
-        state["xgb_model"] = mlflow.pyfunc.load_model(model_uri)
+        # Since mlflow.pyfunc.load_model is synchronous and might be slow, run in threadpool
+        state["xgb_model"] = await anyio.to_thread.run_sync(mlflow.pyfunc.load_model, model_uri)
         MODEL_LOAD_STATUS.labels(model_type="xgb").set(1)
     except Exception as e:
         logger.error(f"XGBoost load failed: {e}")
@@ -156,10 +112,8 @@ async def load_xgb_model():
 
 async def load_onnx_model():
     """Load deep learning model."""
-
-
     try:
-        path = getattr(settings, "NN_MODEL_PATH", "models/latest_nn_pricing.onnx")
+        path = getattr(settings, "NN_MODEL_PATH", "models/latest_pricing.onnx")
         exists_nn = await anyio.to_thread.run_sync(os.path.exists, path)
         if exists_nn:
             state["nn_ort_session"] = ONNXInferenceEngine(path)
@@ -172,6 +126,58 @@ async def load_onnx_model():
         logger.error(f"ONNX load failed: {e}")
         MODEL_LOAD_STATUS.labels(model_type="nn").set(0)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- Startup ---
+    mlflow.set_tracking_uri(settings.tracking_uri)
+
+    # Initialize Circuit Breaker
+    try:
+        redis_client = get_redis()
+        if redis_client is not None:
+            state["circuit_breaker"] = DistributedCircuitBreaker(
+                name="ml_inference",
+                redis_client=redis_client,
+                failure_threshold=5,
+                recovery_timeout=30,
+            )
+            logger.info("Distributed Circuit Breaker initialized for ML inference.")
+        else:
+            state["circuit_breaker"] = InMemoryCircuitBreaker(
+                name="ml_inference",
+                failure_threshold=5,
+                recovery_timeout=30
+            )
+            logger.warning("Using in-memory circuit breaker for ML inference.")
+    except Exception as e:
+        logger.warning(f"Failed to initialize circuit breaker: {e}. Falling back to in-memory.")
+        state["circuit_breaker"] = InMemoryCircuitBreaker(name="ml_inference")
+
+    await load_xgb_model()
+    await load_onnx_model()
+
+    # Start gRPC server in background
+    # Note: Мы передаем либо xgb_ort_session либо xgb_model.
+    xgb_target = state["xgb_ort_session"] if state["xgb_ort_session"] else state["xgb_model"]
+    state["grpc_servicer"] = await serve_grpc(xgb_target, state["nn_ort_session"])
+
+    yield
+
+    # --- Shutdown ---
+    if state["grpc_servicer"]:
+        try:
+            await state["grpc_servicer"].stop()
+        except Exception:
+            pass
+
+app = FastAPI(
+    title="BSOPT ML Serving",
+    version="1.0.0",
+    description="Production-grade ML model serving for option pricing",
+    default_response_class=MsgspecJSONResponse,
+    lifespan=lifespan,
+)
+
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
@@ -180,31 +186,16 @@ async def add_request_id(request: Request, call_next):
     response.headers["X-Request-ID"] = request_id
     return response
 
-@app.exception_handler(Exception)
-async def generic_exception_handler(request: Request, exc: Exception):
-    request_id = getattr(request.state, "request_id", "unknown")
-    logger.exception(f"Unhandled exception [RID: {request_id}]: {exc}")
-    return MsgspecJSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "InternalServerError",
-            "message": "An unexpected error occurred during inference",
-            "details": None,
-            "request_id": request_id,
-        },
-    )
+@app.post("/predict")
+async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataResponse:
+    """
+    Perform ML-based option price prediction.
+    """
+    # Manual circuit breaker call since we can't use it as decorator easily here
+    cb = state["circuit_breaker"]
+    if cb and not cb.can_execute():
+        raise HTTPException(status_code=503, detail="Circuit breaker is open")
 
-# Global model state
-state: dict[str, Any] = {
-    "xgb_model": None,
-    "xgb_ort_session": None,
-    "nn_ort_session": None,
-    "current_model": "xgb",
-    "grpc_servicer": None,
-}
-
-async def load_xgb_model():
-    """Load XGBoost model, favoring quantized ONNX for maximum performance."""
     start_time = time.perf_counter()
 
     try:
@@ -227,7 +218,6 @@ async def load_xgb_model():
                 prediction = state["xgb_ort_session"].predict(input_data)[0][0]
             elif state["xgb_model"]:
                 df = pd.DataFrame([msgspec.to_builtins(request)])
-
                 prediction = state["xgb_model"].predict(df)[0]
             else:
                 raise HTTPException(status_code=503, detail="XGB model currently unavailable")
@@ -260,6 +250,8 @@ async def load_xgb_model():
         latency_ms = (time.perf_counter() - start_time) * 1000
         observe_latency(INFERENCE_LATENCY, latency_ms / 1000, {"model_type": model_type})
         PREDICTION_COUNT.labels(status="success", model_type=model_type).inc()
+        
+        if cb: cb.record_success()
 
         return DataResponse(
             data=InferenceResponse(
@@ -268,28 +260,23 @@ async def load_xgb_model():
         )
 
     except HTTPException:
-        increment_counter(PREDICTION_COUNT, labels={"status": "error", "model_type": model_type})
+        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc()
         raise
     except Exception as e:
-        increment_counter(PREDICTION_COUNT, labels={"status": "error", "model_type": model_type})
+        if cb: cb.record_failure()
+        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc()
         logger.error(f"Inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal inference error") from e
 
-@app.post(
-    "/predict/batch",
-    response_model=None,
-)
-@ml_circuit
+@app.post("/predict/batch")
 async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb") -> DataResponse:
-    """
-    Perform batch ML-based option price prediction.
-    - **xgb**: eXtreme Gradient Boosting model (Default, ONNX-accelerated if available)
-    - **nn**: Deep Neural Network (ONNX)
-    """
+    cb = state["circuit_breaker"]
+    if cb and not cb.can_execute():
+        raise HTTPException(status_code=503, detail="Circuit breaker is open")
+
     start_time = time.perf_counter()
 
     try:
-        # Optimization: Pre-allocate numpy array for zero-copy batch construction
         n_reqs = len(request.requests)
         input_data = np.empty((n_reqs, 9), dtype=np.float32)
 
@@ -309,7 +296,6 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
                 preds = state["xgb_ort_session"].predict(input_data)
                 predictions = [float(p[0]) for p in preds]
             elif state["xgb_model"]:
-                # Fallback for non-ONNX models (slower)
                 cols = [
                     "underlying_price",
                     "strike",
@@ -335,25 +321,19 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
 
             preds = state["nn_ort_session"].predict(input_data)
             predictions = [float(p[0]) for p in preds]
-
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
 
         total_latency_ms = (time.perf_counter() - start_time) * 1000
         avg_latency = total_latency_ms / len(predictions)
 
-        # Log metrics once for the batch to save overhead
         observe_latency(INFERENCE_LATENCY, total_latency_ms / 1000, {"model_type": model_type})
-        increment_counter(
-            PREDICTION_COUNT, len(predictions), {"status": "success", "model_type": model_type}
-        )
+        PREDICTION_COUNT.labels(status="success", model_type=model_type).inc(len(predictions))
+        
+        if cb: cb.record_success()
 
         response_items = [
-            InferenceResponse(
-                price=p,
-                model_type=model_type,
-                latency_ms=avg_latency,
-            )
+            InferenceResponse(price=p, model_type=model_type, latency_ms=avg_latency)
             for p in predictions
         ]
 
@@ -367,51 +347,21 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
         PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(len(request.requests))
         raise
     except Exception as e:
+        if cb: cb.record_failure()
         PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(len(request.requests))
         logger.error(f"Batch inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal batch inference error") from e
 
-@app.post("/ml/reload")
-async def reload_models(request: Request):
-    """
-    Trigger a reload of models from the registry.
-    """
-    try:
-        # Re-initialize models
-        await load_xgb_model()
-        await load_onnx_model()
-
-        # Live-update gRPC servicer
-        if state["grpc_servicer"]:
-            state["grpc_servicer"].update_models(
-                (
-                    state["xgb_model"]
-                    if state["xgb_ort_session"] is None
-                    else state["xgb_ort_session"]
-                ),
-                state["nn_ort_session"],
-            )
-
-        return {"status": "reloaded", "timestamp": datetime.now(UTC).isoformat()}
-    except Exception as e:
-        logger.error(f"Reload failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Reload failed: {str(e)}")
-
-@app.get("/metrics")
-async def metrics():
-    """Prometheus metrics endpoint."""
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
 @app.get("/health")
 async def health():
-    """Health check endpoint."""
+    """Enhanced health check endpoint."""
     models_loaded = (
         state["xgb_model"] is not None
         or state["nn_ort_session"] is not None
         or state["xgb_ort_session"] is not None
     )
     return {
-        "healthy": True,
+        "status": "healthy" if models_loaded else "degraded",
         "model_loaded": models_loaded,
         "models": {
             "xgb": state["xgb_model"] is not None,
@@ -421,6 +371,9 @@ async def health():
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
-if __name__ == "__main__":
-    uvicorn.run(app, host=settings.ML_SERVICE_HOST, port=settings.ML_SERVICE_PORT)
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 5002)))
