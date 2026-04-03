@@ -4,6 +4,7 @@ import time
 from typing import Any
 
 import msgspec
+
 try:
     import ray
     RAY_AVAILABLE = True

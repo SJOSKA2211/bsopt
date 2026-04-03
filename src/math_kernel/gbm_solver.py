@@ -373,7 +373,8 @@ def simulate_gbm(
     Automatically offloads to Rust core if available and prefer_rust is True.
     """
     if prefer_rust:
-        from src.math_kernel.rust_engine import is_rust_available, simulate_gbm_rk4 as rust_gbm
+        from src.math_kernel.rust_engine import is_rust_available
+        from src.math_kernel.rust_engine import simulate_gbm_rk4 as rust_gbm
         if is_rust_available():
             # Rust simulate_gbm_rk4 now uses the exact solution internally
             return rust_gbm(s0, mu, sigma, t, dt, seed=seed)
