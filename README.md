@@ -88,14 +88,29 @@ The BS-OPT platform is designed for autonomous, "Zero-Touch" initialization.
 # 1. Autonomous Bootstrap (PKI, Secrets, Database, Infra)
 make bootstrap
 
-# 2. Start Full Application Ecosystem
-make up
+# 2. Build the Rust math core
+make rust-build
 
-# 3. Run Comprehensive Verification
-make test-all
+# 3. Start the API locally
+make run-api
+```
 
-# 4. Access Administrative CLI
-make cli ARGS="status"
+## 🧪 Testing & Validation
+Verify the integrity of the manifold across all layers:
+
+```bash
+# Run Python unit tests
+make test
+
+# Run Rust core tests
+make rust-test
+
+# Run high-performance benchmarks
+make rust-bench
+
+# Run linting and formatting
+make lint
+make format
 ```
 
 ## 📂 Final Repository Structure

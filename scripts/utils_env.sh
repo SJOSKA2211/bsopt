@@ -27,9 +27,13 @@ load_decrypted_secrets() {
         if [[ $line =~ ^ENC_([A-Z0-9_]+)=\"(.+)\"$ ]]; then
             local var_name="${BASH_REMATCH[1]}"
             local encrypted_val="${BASH_REMATCH[2]}"
-            local decrypted_val=$(echo -n "$encrypted_val" | base64 -d | openssl pkeyutl -decrypt -inkey "$vault_key" 2>/dev/null)
-            if [ -n "$decrypted_val" ]; then
-                export "$var_name"="$decrypted_val"
+            local decrypted_val=$(echo -n "$encrypted_val" | base64 -d | openssl pkeyutl -decrypt -inkey "$vault_key" 2>/dev/null || echo "__DECRYPT_FAILED__")
+            if [ "$decrypted_val" != "__DECRYPT_FAILED__" ]; then
+                # Clean any trailing nulls or non-printable chars that Bash dislikes
+                local clean_val=$(echo -n "$decrypted_val" | tr -d '\000-\010\013\014\016-\037')
+                export "$var_name"="$clean_val"
+            else
+                echo "🔴 Failed to decrypt $var_name"
             fi
         fi
     done < "$ENV_FILE"

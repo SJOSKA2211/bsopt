@@ -1,48 +1,86 @@
 # BS-OPT Unified Makefile
 
-.PHONY: help build test lint run-api ml-train ml-serve health-check clean
+PYTHON := ./.venv/bin/python
+PIP := ./.venv/bin/pip
+UVICORN := ./.venv/bin/uvicorn
+PYTEST := ./.venv/bin/pytest
+RUFF := ./.venv/bin/ruff
+MATURIN := $(shell pwd)/.venv/bin/maturin
+
+.PHONY: help build rust-build test rust-test rust-bench lint format run-api ml-train ml-serve health-check clean bootstrap setup-pki
 
 help:
 	@echo "BS-OPT Unified Build System"
 	@echo "Usage:"
-	@echo "  make build         Build the project"
-	@echo "  make test          Run all pytest suites"
-	@echo "  make lint          Run linting checks"
-	@echo "  make run-api       Start the FastAPI engine"
+	@echo "  make build         Build the Python project"
+	@echo "  make rust-build    Build the Rust math core"
+	@echo "  make bootstrap     Full system bootstrap (mTLS, Secrets, Containers)"
+	@echo "  make setup-pki     Initialize mTLS certificates"
+	@echo "  make test          Run Python unit tests"
+	@echo "  make rust-test     Run Rust unit tests"
+	@echo "  make rust-bench    Run Rust micro-benchmarks"
+	@echo "  make lint          Run linting (Ruff)"
+	@echo "  make format        Run formatting (Ruff)"
+	@echo "  make run-api       Start the FastAPI engine locally"
 	@echo "  make ml-train      Trigger ML model training"
 	@echo "  make ml-serve      Start the ML inference engine"
 	@echo "  make health-check  Report engine health"
 	@echo "  make clean         Cleanup temporary files"
 
 build:
-	@echo "Building BS-OPT..."
-	pip install -r requirements.txt
+	@echo "Building BS-OPT Python..."
+	$(PIP) install -e .
+
+rust-build:
+	@echo "Building Rust Core..."
+	cd src/math_kernel/rust-core && PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 $(MATURIN) develop --release
+
+setup-pki:
+	@echo "Setting up PKI..."
+	./scripts/setup_pki.sh
+
+bootstrap:
+	@echo "Starting Full Bootstrap..."
+	./bootstrap.sh
 
 test:
-	@echo "Running tests..."
-	pytest tests/unit
+	@echo "Running Python tests..."
+	$(PYTEST) tests/unit
+
+rust-test:
+	@echo "Running Rust tests..."
+	cd src/math_kernel/rust-core && cargo test --release
+
+rust-bench:
+	@echo "Running Rust benchmarks..."
+	cd src/math_kernel/rust-core && cargo bench
 
 lint:
 	@echo "Linting codebase..."
-	ruff check .
+	$(RUFF) check .
+
+format:
+	@echo "Formatting codebase..."
+	$(RUFF) format .
 
 run-api:
 	@echo "Starting API..."
-	uvicorn api.index:app --host 0.0.0.0 --port 8000
+	bash start_api.sh
 
 ml-train:
 	@echo "Training models..."
-	python3 src/ml/training/train_all.py
+	$(PYTHON) src/ml/training/train_all.py
 
 ml-serve:
 	@echo "Starting ML Inference Service..."
-	uvicorn src.ml.serving.serve:app --host 0.0.0.0 --port 8001
+	$(UVICORN) src.ml.serving.serve:app --host 0.0.0.0 --port 8001
 
 health-check:
 	@echo "Checking health..."
-	python3 scripts/engine_health.py --simulate
+	curl -s http://localhost:8000/health | jq .
 
 clean:
 	@echo "Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf .pytest_cache .ruff_cache
+	rm -rf .pytest_cache .ruff_cache .mypy_cache
+	cd src/math_kernel/rust-core && cargo clean

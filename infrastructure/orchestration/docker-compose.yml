@@ -698,11 +698,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    depends_on:
-      nginx:
-        condition: service_healthy
-      auth-service:
-        condition: service_started
     networks:
       - bsopt-network
 

@@ -18,16 +18,18 @@ def is_port_open(port):
         return s.connect_ex(('localhost', port)) == 0
 
 def check_heartbeat(path):
-    if not os.path.exists(path):
-        return False
     try:
-        with open(path, "r") as f:
-            data = json.load(f)
-            ts = data.get("time", 0)
-            # Heartbeat must be within last 15 seconds
-            if time.time() - ts < 15:
-                return True
-    except:
+        import subprocess
+        result = subprocess.run(["docker", "compose", "-f", "infrastructure/orchestration/docker-compose.yml", "exec", "frontend", "cat", path], capture_output=True, text=True)
+        if result.returncode != 0:
+            return False
+        data = json.loads(result.stdout)
+        ts = data.get("time", 0)
+        # Heartbeat must be within last 15 seconds
+        if time.time() - ts < 15:
+            return True
+    except Exception as e:
+        print(f"Heartbeat error: {e}")
         pass
     return False
 

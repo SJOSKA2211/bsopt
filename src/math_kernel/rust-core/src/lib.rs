@@ -344,51 +344,35 @@ mod heston_engine {
     use num_complex::Complex;
 
     pub fn price_heston(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64) -> f64 {
-        let p1 = 0.5 + (1.0 / PI) * adaptive_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 1);
-        let p2 = 0.5 + (1.0 / PI) * adaptive_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 2);
-        (s.ln().exp() * p1 - k * (-r * t).exp() * p2).max(0.0)
+        let p1 = 0.5 + (1.0 / PI) * quadrature_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 1);
+        let p2 = 0.5 + (1.0 / PI) * quadrature_integral(s, k, t, r, kappa, theta, sigma, rho, v0, 2);
+        (s * p1 - k * (-r * t).exp() * p2).max(0.0)
     }
 
-    fn adaptive_integral(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
-        const TOL: f64 = 1e-7;
-        const UPPER_LIMIT: f64 = 100.0;
+    fn f(w: f64, s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+        if w == 0.0 { return 0.0; }
+        let cf = char_func(s, t, r, kappa, theta, sigma, rho, v0, w, j);
+        (Complex::new(0.0, -w * k.ln()).exp() * cf / Complex::new(0.0, w)).re
+    }
+
+    const W10: [f64; 5] = [0.0666713443, 0.1494513492, 0.2190863625, 0.2692667193, 0.2955242247];
+    const X10: [f64; 5] = [0.9739065285, 0.8650633667, 0.6794095683, 0.4333953941, 0.1488743390];
+
+    fn quadrature_integral(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+        let upper = 100.0;
+        let mut sum = 0.0;
         
-        fn f(w: f64, s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
-            if w == 0.0 { return 0.0; }
-            let cf = char_func(s, t, r, kappa, theta, sigma, rho, v0, w, j);
-            (Complex::new(0.0, -w * k.ln()).exp() * cf / Complex::new(0.0, w)).re
-        }
-
-        fn simpson(a: f64, b: f64, fa: f64, fb: f64, fm: f64) -> f64 {
-            (b - a) / 6.0 * (fa + 4.0 * fm + fb)
-        }
-
-        fn adaptive_step(a: f64, b: f64, eps: f64, whole: f64, fa: f64, fb: f64, fm: f64, 
-                         s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
-            let m = (a + b) / 2.0;
-            let lm = (a + m) / 2.0;
-            let rm = (m + b) / 2.0;
-            let flm = f(lm, s, k, t, r, kappa, theta, sigma, rho, v0, j);
-            let frm = f(rm, s, k, t, r, kappa, theta, sigma, rho, v0, j);
+        for i in 0..5 {
+            let w = W10[i];
+            let x = X10[i];
             
-            let left = simpson(a, m, fa, fm, flm);
-            let right = simpson(m, b, fm, fb, frm);
+            // Map [-1, 1] to [0, upper]
+            let p1 = 0.5 * upper * (1.0 + x);
+            let p2 = 0.5 * upper * (1.0 - x);
             
-            if (left + right - whole).abs() <= 15.0 * eps {
-                left + right + (left + right - whole) / 15.0
-            } else {
-                adaptive_step(a, m, eps / 2.0, left, fa, fm, flm, s, k, t, r, kappa, theta, sigma, rho, v0, j) +
-                adaptive_step(m, b, eps / 2.0, right, fm, fb, frm, s, k, t, r, kappa, theta, sigma, rho, v0, j)
-            }
+            sum += w * (f(p1, s, k, t, r, kappa, theta, sigma, rho, v0, j) + f(p2, s, k, t, r, kappa, theta, sigma, rho, v0, j));
         }
-
-        let a = 0.00001; 
-        let b = UPPER_LIMIT;
-        let fa = f(a, s, k, t, r, kappa, theta, sigma, rho, v0, j);
-        let fb = f(b, s, k, t, r, kappa, theta, sigma, rho, v0, j);
-        let fm = f((a + b) / 2.0, s, k, t, r, kappa, theta, sigma, rho, v0, j);
-        
-        adaptive_step(a, b, TOL, simpson(a, b, fa, fb, fm), fa, fb, fm, s, k, t, r, kappa, theta, sigma, rho, v0, j)
+        sum * 0.5 * upper
     }
 
     fn char_func(s: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, w: f64, j: i32) -> Complex<f64> {
