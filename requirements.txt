@@ -5,7 +5,7 @@
 # Core Math & Data Science
 numpy>=1.26.4,<2.3
 pandas>=2.3.3
-scipy>=1.12.0,<1.15.0
+scipy
 numba>=0.60.0
 
 # API & Pydantic
@@ -48,10 +48,9 @@ beautifulsoup4>=4.12.3
 
 # ML & MLOps
 mlflow>=2.11.0
-ray[default,serve,train,tune]>=2.10.0
 evidently>=0.4.18
 onnx>=1.16.0
-onnxruntime-gpu>=1.17.1
+onnxruntime-gpu
 
 # Observability
 prometheus-client>=0.20.0

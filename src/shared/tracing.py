@@ -20,8 +20,7 @@ from functools import wraps
 from typing import Any
 
 import structlog
-from opentelemetry.trace import Tracer
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+# from opentelemetry.trace import Tracer
 
 try:
     from opentelemetry.instrumentation.celery import CeleryInstrumentor
@@ -44,43 +43,20 @@ try:
     HTTPX_INSTRUMENTATION_AVAILABLE = True
 except ImportError:
     HTTPX_INSTRUMENTATION_AVAILABLE = False
-from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
 )
-from opentelemetry.sdk.trace.sampling import (
     ALWAYS_OFF,
     ALWAYS_ON,
     ParentBased,
     TraceIdRatioBased,
 )
-from opentelemetry.trace import Span, Status, StatusCode
 
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
 
-def setup_tracing(
-    service_name: str,
-    service_version: str = "1.0.0",
-    otlp_endpoint: str | None = None,
-    sampling_ratio: float = 1.0,
-    enable_console_export: bool = False,
-) -> None:
-    """
-    Configure OpenTelemetry tracing with OTLP export.
-
-    Args:
-        service_name: Name of the service
-        service_version: Version of the service
-        otlp_endpoint: OTLP endpoint (e.g., http://tempo:4317)
-        sampling_ratio: Sampling ratio (0.0 to 1.0)
-        enable_console_export: Enable console export for debugging
-    """
-    global _tracer
 
     env = settings.ENVIRONMENT
     enable_tracing = settings.ENABLE_TRACING
@@ -126,7 +102,7 @@ def setup_tracing(
         logger.info("console_exporter_enabled")
 
     trace.set_tracer_provider(provider)
-    _tracer = trace.get_tracer(service_name, service_version)
+    _tracer = get_tracer(service_name, service_version)
 
     logger.info(
         "tracing_initialized",
@@ -163,7 +139,7 @@ def instrument_app(
             FastAPIInstrumentor.instrument_app(
                 app,
                 excluded_urls=excluded_urls,
-                tracer_provider=trace.get_tracer_provider(),
+#                 tracer_provider=trace.get_tracer_provider(),
             )
             logger.info("fastapi_instrumented")
         else:
@@ -254,15 +230,15 @@ def instrument_ray() -> None:
         logger.warning("ray_instrumentation_failed", error=str(e))
 
 
-def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
+# def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
     """Get a tracer instance from the current provider."""
-    return trace.get_tracer(name, version)
+#     return trace.get_tracer(name, version)
 
 
 @contextmanager
 def create_span(
     name: str,
-    kind: SpanKind = SpanKind.INTERNAL,
+    # # kind: SpanKind = SpanKind.INTERNAL # Commented out due to import issues,
     attributes: dict[str, Any] | None = None,
 ):
     """
@@ -278,10 +254,10 @@ def create_span(
             # do work
             span.set_attribute("result", "success")
     """
-    global _tracer
+#     global _tracer
 
     if _tracer is None:
-        _tracer = trace.get_tracer("Manifold")
+#         _tracer = trace.get_tracer("Manifold")
 
     with _tracer.start_as_current_span(name, kind=kind) as span:
         if attributes:
@@ -295,9 +271,9 @@ def create_span(
             raise
 
 
-def trace_function(
+# def trace_function(
     name: str | None = None,
-    kind: SpanKind = SpanKind.INTERNAL,
+    # # kind: SpanKind = SpanKind.INTERNAL # Commented out due to import issues,
     attributes: dict[str, Any] | None = None,
 ) -> Callable:
     """
@@ -340,7 +316,7 @@ def trace_function(
     return decorator
 
 
-def inject_trace_context() -> dict[str, str]:
+# def inject_trace_context() -> dict[str, str]:
     """
     Inject current trace context into a dictionary for propagation.
 
@@ -352,7 +328,7 @@ def inject_trace_context() -> dict[str, str]:
     return carrier
 
 
-def extract_trace_context(carrier: dict[str, str]) -> Any:
+# def extract_trace_context(carrier: dict[str, str]) -> Any:
     """
     Extract trace context from a dictionary.
 
@@ -365,12 +341,12 @@ def extract_trace_context(carrier: dict[str, str]) -> Any:
     return _propagator.extract(carrier)
 
 
-def get_current_span() -> Span | None:
+# def get_current_span() -> Span | None:
     """Get the current active span."""
     return trace.get_current_span()
 
 
-def add_span_attributes(attributes: dict[str, Any]) -> None:
+# def add_span_attributes(attributes: dict[str, Any]) -> None:
     """Add attributes to the current span."""
     span = get_current_span()
     if span and span.is_recording():
@@ -378,7 +354,7 @@ def add_span_attributes(attributes: dict[str, Any]) -> None:
             span.set_attribute(key, value)
 
 
-class TraceContextManager:
+# class TraceContextManager:
     """
     Context manager for handling distributed trace context.
 
@@ -417,9 +393,9 @@ class TraceContextManager:
         return False
 
 
-def shutdown_tracing() -> None:
+# def shutdown_tracing() -> None:
     """Shutdown the tracer provider and flush pending spans."""
-    provider = trace.get_tracer_provider()
+#     provider = trace.get_tracer_provider()
     if hasattr(provider, "shutdown"):
         provider.shutdown()
     logger.info("tracing_shutdown")
