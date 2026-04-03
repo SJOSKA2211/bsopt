@@ -78,37 +78,63 @@ def get_rsi(prices: np.ndarray, length: int = 14) -> np.ndarray:
     return _rsi_kernel(prices, length)
 
 
+@njit(cache=True, fastmath=True)
+def _bbands_kernel(
+    prices: np.ndarray, length: int, num_std: float
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    n = prices.shape[0]
+    out_lower = np.full(n, np.nan, dtype=np.float64)
+    out_mid = np.full(n, np.nan, dtype=np.float64)
+    out_upper = np.full(n, np.nan, dtype=np.float64)
+
+    if n < length:
+        return out_lower, out_mid, out_upper
+
+    sum_x = 0.0
+    sum_x2 = 0.0
+
+    for i in range(length):
+        val = prices[i]
+        sum_x += val
+        sum_x2 += val * val
+
+    mean = sum_x / length
+    mean_sq = sum_x2 / length
+    variance = mean_sq - mean * mean
+    if variance < 0:
+        variance = 0.0
+    std = np.sqrt(variance)
+
+    out_mid[length - 1] = mean
+    out_upper[length - 1] = mean + num_std * std
+    out_lower[length - 1] = mean - num_std * std
+
+    for i in range(length, n):
+        old_val = prices[i - length]
+        new_val = prices[i]
+
+        sum_x = sum_x - old_val + new_val
+        sum_x2 = sum_x2 - old_val * old_val + new_val * new_val
+
+        mean = sum_x / length
+        mean_sq = sum_x2 / length
+        variance = mean_sq - mean * mean
+        if variance < 0:
+            variance = 0.0
+        std = np.sqrt(variance)
+
+        out_mid[i] = mean
+        out_upper[i] = mean + num_std * std
+        out_lower[i] = mean - num_std * std
+
+    return out_lower, out_mid, out_upper
+
+
 def get_bbands(
     prices: np.ndarray, length: int = 20, num_std: float = 2.0
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """OPTIMIZED: O(n) Bollinger Bands using rolling windows via cumulative sums."""
-    # Using pandas rolling for convenience if available, but staying in NumPy for pure JIT-level speed
-    # We use the relationship: Var(X) = E[X^2] - (E[X])^2
-    n = len(prices)
-    if n < length:
-        return np.full(n, np.nan), np.full(n, np.nan), np.full(n, np.nan)
-
-    # 1. Moving Average (E[X])
-    cumsum = np.cumsum(prices)
-    mid = np.full(n, np.nan)
-    mid[length - 1 :] = (
-        cumsum[length - 1 :] - np.concatenate([np.zeros(1), cumsum[: n - length]])
-    ) / length
-
-    # 2. Moving Variance
-    cumsum_sq = np.cumsum(prices**2)
-    mean_sq = (
-        cumsum_sq[length - 1 :] - np.concatenate([np.zeros(1), cumsum_sq[: n - length]])
-    ) / length
-    variance = np.maximum(mean_sq - mid[length - 1 :] ** 2, 0)
-    std = np.sqrt(variance)
-
-    upper = np.full(n, np.nan)
-    lower = np.full(n, np.nan)
-    upper[length - 1 :] = mid[length - 1 :] + num_std * std
-    lower[length - 1 :] = mid[length - 1 :] - num_std * std
-
-    return lower, mid, upper
+    """OPTIMIZED: O(n) Bollinger Bands using rolling windows via Numba JIT."""
+    return _bbands_kernel(prices, length, num_std)
 
 
 def get_macd(
