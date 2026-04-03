@@ -11,7 +11,11 @@ from src.ml.aiops.health_reporter import HealthReporter
 from src.ml.aiops.prometheus_adapter import PrometheusClient
 from src.ml.aiops.remediators import BaseRemediator, RemediationPlanner
 from src.ml.drift import calculate_ks_test, calculate_psi
-from src.ml.forecasting.tft_model import PriceTFTModel
+try:
+    from src.ml.forecasting.tft_model import PriceTFTModel
+    TFT_AVAILABLE = True
+except (ImportError, Exception):
+    TFT_AVAILABLE = False
 from src.shared.observability import (
     post_grafana_annotation,
     setup_logging,
@@ -67,7 +71,7 @@ class AutonomousEngine:
 
         self.forecaster = (
             PriceTFTModel(config=self.config.get("tft_config"))
-            if self.config.get("predictive_scaling_enabled")
+            if (self.config.get("predictive_scaling_enabled") and TFT_AVAILABLE)
             else None
         )
         self.max_history = 1000

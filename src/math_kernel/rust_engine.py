@@ -177,18 +177,18 @@ class RustTickBuffer:
         return self._buffer.size()
 
 
-def simulate_gbm_rk4(
+def simulate_gbm_native(
     s0: np.ndarray, mu: np.ndarray, sigma: np.ndarray, t: float, dt: float, seed: int | None = None
 ) -> np.ndarray:
     """
-    Highly optimized GBM simulation using 4th-order Runge-Kutta in Rust.
+    Highly optimized GBM simulation using native Rust core.
     """
     if not RUST_AVAILABLE:
-        from .gbm_solver import simulate_gbm_rk4 as gbm_rk4_py
+        from .gbm_solver import simulate_gbm_exact as gbm_exact_py
 
-        return gbm_rk4_py(s0, mu, sigma, t, dt, seed=seed)
+        return gbm_exact_py(s0, mu, sigma, t, dt, seed=seed)
 
-    return Manifold_core.simulate_gbm_rk4(
+    return Manifold_core.simulate_gbm_native(
         s0.astype(np.float64),
         mu.astype(np.float64),
         sigma.astype(np.float64),
@@ -196,6 +196,13 @@ def simulate_gbm_rk4(
         float(dt),
         seed,
     )
+
+
+def simulate_gbm_rk4(
+    s0: np.ndarray, mu: np.ndarray, sigma: np.ndarray, t: float, dt: float, seed: int | None = None
+) -> np.ndarray:
+    """Legacy wrapper for simulate_gbm_native."""
+    return simulate_gbm_native(s0, mu, sigma, t, dt, seed=seed)
 
 
 def get_rust_metrics() -> str:

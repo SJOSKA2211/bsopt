@@ -445,8 +445,9 @@ def monte_carlo_price(
     is_call: bool,
     n_paths: int = 100_000,
     dt: float = 1 / 252,
-    method: str = "milstein",
+    method: str = "exact",
     seed: int | None = None,
+    prefer_rust: bool = True,
 ) -> dict:
     """
     Price European option using Monte Carlo simulation of GBM.
@@ -460,8 +461,9 @@ def monte_carlo_price(
         is_call: True for call, False for put
         n_paths: Number of simulation paths
         dt: Time step for simulation
-        method: 'euler', 'milstein', or 'rk4'
+        method: 'exact', 'euler', 'milstein', or 'rk4'
         seed: Random seed
+        prefer_rust: Whether to offload to Rust if available
 
     Returns:
         Dictionary with price, std_error, and confidence interval
@@ -473,12 +475,9 @@ def monte_carlo_price(
     mu_arr = np.full(n_paths, r)
     sigma_arr = np.full(n_paths, sigma)
 
-    if method == "euler":
-        paths = simulate_gbm_euler(s0_arr, mu_arr, sigma_arr, t, dt)
-    elif method == "rk4":
-        paths = simulate_gbm_rk4(s0_arr, mu_arr, sigma_arr, t, dt)
-    else:
-        paths = simulate_gbm_milstein(s0_arr, mu_arr, sigma_arr, t, dt)
+    paths = simulate_gbm(
+        s0_arr, mu_arr, sigma_arr, t, dt, seed=seed, method=method, prefer_rust=prefer_rust
+    )
 
     final_prices = paths[-1]
     discount_factor = np.exp(-r * t)

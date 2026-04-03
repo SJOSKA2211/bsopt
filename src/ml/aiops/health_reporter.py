@@ -4,7 +4,11 @@ import time
 from typing import Any
 
 import msgspec
-import ray
+try:
+    import ray
+    RAY_AVAILABLE = True
+except ImportError:
+    RAY_AVAILABLE = False
 import structlog
 from mlflow.tracking import MlflowClient
 from sqlalchemy import text
@@ -505,6 +509,8 @@ class HealthReporter:
 
     async def _get_ray_status(self) -> RayStatus:
         """Checks Ray cluster health and actor availability."""
+        if not RAY_AVAILABLE:
+            return RayStatus(reachable=False, nodes_alive=0, worker_count=0)
         try:
             if not ray.is_initialized():
                 # Don't initialize here to avoid side effects if head node is down

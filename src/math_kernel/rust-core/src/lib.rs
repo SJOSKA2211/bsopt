@@ -504,7 +504,7 @@ impl TickDataBuffer {
 
 #[pyfunction]
 #[pyo3(signature = (s0_arr, mu_arr, sigma_arr, t, dt, seed=None))]
-fn simulate_gbm_rk4<'py>(
+fn simulate_gbm_native<'py>(
     py: Python<'py>,
     s0_arr: PyReadonlyArray1<f64>,
     mu_arr: PyReadonlyArray1<f64>,
@@ -513,8 +513,8 @@ fn simulate_gbm_rk4<'py>(
     dt: f64,
     seed: Option<u64>,
 ) -> PyResult<Bound<'py, PyArray2<f64>>> {
-    let timer = LATENCY_HISTOGRAM.with_label_values(&["simulate_gbm_rk4"]).start_timer();
-    CALL_COUNTER.with_label_values(&["simulate_gbm_rk4"]).inc();
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["simulate_gbm_native"]).start_timer();
+    CALL_COUNTER.with_label_values(&["simulate_gbm_native"]).inc();
     
     use rand::SeedableRng;
     use rand_distr::{Distribution, Normal};
@@ -599,7 +599,7 @@ fn Manifold_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
-    m.add_function(wrap_pyfunction!(simulate_gbm_rk4, m)?)?;
+    m.add_function(wrap_pyfunction!(simulate_gbm_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     m.add_function(wrap_pyfunction!(batch_validate_ticks, m)?)?;
     m.add_class::<PyNativeIngest>()?;
