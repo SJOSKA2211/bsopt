@@ -5,6 +5,7 @@ import structlog
 from datetime import UTC, datetime
 
 import grpc
+from cachetools import TTLCache
 from google.protobuf import timestamp_pb2, empty_pb2
 
 from src.auth.auth import auth_service
@@ -26,7 +27,8 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     """
 
     def __init__(self):
-        pass # No local cache needed, using distributed db_cache
+        self._user_cache = TTLCache(maxsize=10000, ttl=300)
+        self._api_key_cache = TTLCache(maxsize=10000, ttl=300)
 
     async def ValidateToken(self, request, context):
         try:
@@ -90,12 +92,19 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
         try:
             token_data = await auth_service.validate_token(request.token)
             
+            # Local In-Memory Cache
+            if token_data.user_id in self._user_cache:
+                logger.debug("user_info_local_cache_hit", user_id=token_data.user_id)
+                return self._user_cache[token_data.user_id]
+                
             # Check Distributed Cache
             cached_data = await db_cache.get_user(token_data.user_id)
             if cached_data:
                 logger.debug("user_info_cache_hit", user_id=token_data.user_id)
                 user_info = auth_pb2.UserInfo()
-                return ParseDict(cached_data, user_info)
+                ParseDict(cached_data, user_info)
+                self._user_cache[token_data.user_id] = user_info
+                return user_info
 
             async with db_manager.async_session_factory() as db:
                 result = await db.execute(select(User).where(User.id == token_data.user_id))
@@ -125,6 +134,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 
                 # Update Cache (Convert to Dict for Redis storage)
                 await db_cache.set_user(token_data.user_id, MessageToDict(user_info))
+                self._user_cache[token_data.user_id] = user_info
                 return user_info
         except Exception as e:
             logger.error("grpc_get_user_info_failed", error=str(e))
@@ -160,6 +170,13 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             import hashlib
             key_hash = hashlib.sha256(request.api_key.encode()).hexdigest()
             
+            # Local In-Memory Cache
+            if key_hash in self._api_key_cache:
+                logger.debug("api_key_local_cache_hit", key_hash=key_hash[:10] + "...")
+                # We can skip updating the last_used_at in Redis synchronously for max perf,
+                # or buffer it, but we'll stick to serving from cache.
+                return self._api_key_cache[key_hash]
+                
             # Check Distributed Cache
             cached_data = await db_cache.get_api_key(key_hash)
             if cached_data:
@@ -171,7 +188,9 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                     await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
                 
                 api_key_resp = auth_pb2.APIKeyResponse()
-                return ParseDict(cached_data, api_key_resp)
+                ParseDict(cached_data, api_key_resp)
+                self._api_key_cache[key_hash] = api_key_resp
+                return api_key_resp
 
             async with db_manager.async_session_factory() as db:
                 # Optimized join query to avoid lazy loading of user
@@ -198,6 +217,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 
                 # Update Cache
                 await db_cache.set_api_key(key_hash, MessageToDict(api_key_resp))
+                self._api_key_cache[key_hash] = api_key_resp
                 return api_key_resp
         except Exception as e:
             logger.error("grpc_validate_api_key_failed", error=str(e))
