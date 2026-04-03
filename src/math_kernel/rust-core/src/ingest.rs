@@ -59,7 +59,7 @@ impl NativeIngestEngine {
                 // 3. Increment counters
                 self.processed_count.fetch_add(1, Ordering::Relaxed);
             } else {
-                self.quarantine.TotalRejections.fetch_add(1, Ordering::Relaxed);
+                self.quarantine.total_rejections.fetch_add(1, Ordering::Relaxed);
             }
         }
     }

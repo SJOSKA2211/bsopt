@@ -5,6 +5,7 @@ import os
 import sys
 import socket
 import grpc
+import json
 from grpc_health.v1 import health_pb2, health_pb2_grpc
 
 def check_http_readiness(url: str, timeout: int = 60, interval: int = 5):
@@ -14,10 +15,16 @@ def check_http_readiness(url: str, timeout: int = 60, interval: int = 5):
         try:
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
+                health_report = response.json()
                 print(f"[+] Auth HTTP is READY (Status: {response.status_code})")
+                print(f"    - Health Report: {json.dumps(health_report, indent=2)}")
                 return True
             else:
-                print(f"[-] Auth HTTP returned status {response.status_code} (Not Ready), retrying...")
+                try:
+                    error_data = response.json()
+                    print(f"[-] Auth HTTP returned status {response.status_code} (Not Ready): {error_data}")
+                except:
+                    print(f"[-] Auth HTTP returned status {response.status_code} (Not Ready), retrying...")
         except requests.exceptions.RequestException as e:
             print(f"[-] Auth HTTP connection failed: {e}")
         time.sleep(interval)

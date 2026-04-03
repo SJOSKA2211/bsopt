@@ -573,20 +573,16 @@ fn simulate_gbm_rk4<'py>(
         let mut current_s = s0[j];
         let base_ptr = data_ptr as *mut f64;
 
+        // Pre-calculate drift component for the exact solution
+        let drift_step = (muj - 0.5 * sigmaj * sigmaj) * dt;
+        let vol_step = sigmaj * sqrt_dt;
+
         for i in 1..=n_steps {
             let z = norm.sample(&mut rng);
-            let z_sq = z * z;
-
-            let k1 = muj * current_s;
-            let k2 = muj * (current_s + 0.5 * dt * k1);
-            let k3 = muj * (current_s + 0.5 * dt * k2);
-            let k4 = muj * (current_s + dt * k3);
-            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-
-            let diffusion = sigmaj * current_s * sqrt_dt * z;
-            let milstein_correction = 0.5 * sigmaj * sigmaj * current_s * (z_sq - dt);
-
-            current_s += drift + diffusion + milstein_correction;
+            
+            // Exact GBM solution: S(t+dt) = S(t) * exp((mu - 0.5*sigma^2)*dt + sigma*sqrt(dt)*Z)
+            current_s *= (drift_step + vol_step * z).exp();
+            
             if current_s < 0.0 {
                 current_s = 1e-10;
             }
@@ -671,7 +667,7 @@ impl PyNativeIngest {
     pub fn get_metrics(&self) -> PyResult<String> {
         if let Some(ref engine) = self.engine {
             let processed = engine.processed_count.load(Ordering::Relaxed);
-            let total_rejected = self.quarantine.TotalRejections.load(Ordering::Relaxed);
+            let total_rejected = self.quarantine.total_rejections.load(Ordering::Relaxed);
             
             let val = serde_json::json!({
                 "processed": processed,

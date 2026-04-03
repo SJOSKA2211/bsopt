@@ -20,9 +20,9 @@ pub struct QuarantineBuffer {
     mmap: MmapMut,
     capacity: usize,
     write_pos: AtomicU64,
-    pub TotalRejections: AtomicU64,
-    pub OutlierRejections: AtomicU64,
-    pub InvalidRejections: AtomicU64,
+    pub total_rejections: AtomicU64,
+    pub outlier_rejections: AtomicU64,
+    pub invalid_rejections: AtomicU64,
 }
 
 // SAFETY: MmapMut is Send/Sync, and we use atomic offsets for safe parallel writes to unique segments.
@@ -46,14 +46,14 @@ impl QuarantineBuffer {
             mmap,
             capacity,
             write_pos: AtomicU64::new(0),
-            TotalRejections: AtomicU64::new(0),
-            OutlierRejections: AtomicU64::new(0),
-            InvalidRejections: AtomicU64::new(0),
+            total_rejections: AtomicU64::new(0),
+            outlier_rejections: AtomicU64::new(0),
+            invalid_rejections: AtomicU64::new(0),
         })
     }
 
     pub fn push(&self, tick: &RejectedTick) {
-        let total = self.TotalRejections.fetch_add(1, Ordering::Relaxed);
+        let total = self.total_rejections.fetch_add(1, Ordering::Relaxed);
         
         // Approved Plan Refinement: 0.1% Sampling Rate (1 in 1000)
         if total % 1000 != 0 {

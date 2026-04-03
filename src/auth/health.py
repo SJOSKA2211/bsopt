@@ -4,6 +4,8 @@ import structlog
 from sqlalchemy import text
 from src.database import db_manager
 from src.auth.vault_service import vault_service
+from src.shared.utils.cache import get_redis_client
+from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
@@ -25,6 +27,26 @@ def check_vault() -> bool:
         logger.error("health_vault_check_failed", error=str(e))
         return False
 
+async def check_redis() -> bool:
+    """Verifies connection to the Redis cluster."""
+    try:
+        redis = await get_redis_client()
+        return bool(await redis.ping())
+    except Exception as e:
+        logger.error("health_redis_check_failed", error=str(e))
+        return False
+
+async def check_rabbitmq() -> bool:
+    """Verifies connectivity with RabbitMQ."""
+    try:
+        rmq = get_rabbitmq()
+        if not rmq.connection or rmq.connection.is_closed:
+            await rmq.connect()
+        return not rmq.connection.is_closed
+    except Exception as e:
+        logger.error("health_rabbitmq_check_failed", error=str(e))
+        return False
+
 async def get_overall_health() -> dict:
     """Aggregates sub-service health into a single status report."""
     
@@ -33,21 +55,31 @@ async def get_overall_health() -> dict:
             "status": "healthy",
             "database": "simulated",
             "vault": "simulated",
+            "redis": "simulated",
+            "rabbitmq": "simulated",
             "service": "auth-service",
             "note": "Simulation mode active"
         }
 
-    # 1. DB Check
-    db_ok = await check_database()
+    # Parallel Health Checks
+    db_task = asyncio.create_task(check_database())
+    redis_task = asyncio.create_task(check_redis())
+    rmq_task = asyncio.create_task(check_rabbitmq())
     
-    # 2. Vault Check
     vault_ok = check_vault()
+    db_ok = await db_task
+    redis_ok = await redis_task
+    rmq_ok = await rmq_task
     
-    status = "healthy" if db_ok and vault_ok else "degraded"
+    all_ok = all([db_ok, vault_ok, redis_ok, rmq_ok])
+    status = "healthy" if all_ok else "degraded"
     
     return {
         "status": status,
         "database": "connected" if db_ok else "disconnected",
         "vault": "active" if vault_ok else "inactive",
-        "service": "auth-service"
+        "redis": "connected" if redis_ok else "disconnected",
+        "rabbitmq": "connected" if rmq_ok else "disconnected",
+        "service": "auth-service",
+        "timestamp": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip()
     }
