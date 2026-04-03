@@ -16,6 +16,7 @@ import pyotp
 import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from cachetools import TTLCache
 from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
@@ -42,6 +43,10 @@ from src.auth.core.mfa import mfa_service
 from src.auth.core.sessions import session_service
 from src.auth.core.webauthn import webauthn_service
 from src.auth.core.social import social_service
+
+# High-performance local caches for FastAPI dependencies
+user_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for users
+api_key_local_cache = TTLCache(maxsize=10000, ttl=60) # 1 minute local TTL for API keys
 
 class AuthService:
     """
@@ -267,23 +272,44 @@ async def get_current_user(
     token_data = await service.validate_token(token)
     user_id = token_data.user_id
 
-    # Try cache first
+    # 1. Fast Path: Local Cache
+    if user_id in user_local_cache:
+        user_dict = user_local_cache[user_id]
+        user = User(**user_dict)
+        request.state.user = user
+        return user
+
+    # 2. Medium Path: Redis Cache
     from src.shared.utils.cache import db_cache
 
     try:
         cached_user = await db_cache.get_user(user_id)
         if cached_user:
+            user_local_cache[user_id] = cached_user
             user = User(**cached_user)
             request.state.user = user
             return user
     except Exception:
         pass
 
+    # 3. Slow Path: DB
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+
+    # Update caches
+    user_dict = {
+        "id": str(user.id),
+        "email": user.email,
+        "tier": user.tier,
+        "is_active": user.is_active,
+        "is_verified": user.is_verified,
+        "mfa_enabled": user.mfa_enabled
+    }
+    user_local_cache[user_id] = user_dict
+    await db_cache.set_user(user_id, user_dict)
 
     request.state.user = user
     return user
@@ -318,20 +344,26 @@ async def get_api_key(
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
     
+    # 1. Fast path: Local Cache
+    if key_hash in api_key_local_cache:
+        user_dict = api_key_local_cache[key_hash]
+        return User(**user_dict)
+
     from src.shared.utils.cache import db_cache
     
-    # 1. Fast path: Cache
+    # 2. Medium path: Redis Cache
     cached_data = await db_cache.get_api_key(key_hash)
     if cached_data:
         user_id = cached_data.get("user_id")
         cached_user = await db_cache.get_user(user_id)
         if cached_user:
+            api_key_local_cache[key_hash] = cached_user
             # Buffer the last_used_at update in Redis
             redis = await get_redis_client()
             await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
             return User(**cached_user)
 
-    # 2. Slow path: DB
+    # 3. Slow path: DB
     from sqlalchemy.orm import joinedload
     result = await db.execute(
         select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
@@ -342,8 +374,17 @@ async def get_api_key(
         return None
 
     user = key_record.user
+    user_dict = {
+        "id": str(user.id),
+        "email": user.email,
+        "tier": user.tier,
+        "is_active": user.is_active,
+        "is_verified": user.is_verified,
+        "mfa_enabled": user.mfa_enabled
+    }
     
-    # Update cache
+    # Update caches
+    api_key_local_cache[key_hash] = user_dict
     await db_cache.set_api_key(key_hash, {
         "user_id": str(user.id),
         "email": user.email,
@@ -351,12 +392,11 @@ async def get_api_key(
         "key_name": key_record.name
     })
     
-    # Async update for last_used_at (non-blocking for this request)
+    # Async update for last_used_at
     key_record.last_used_at = datetime.now(UTC)
-    # We still commit here for the first time or if not in cache
     await db.commit()
 
-    return user
+    return User(**user_dict)
 
 async def get_current_user_flexible(
     request: Request,
