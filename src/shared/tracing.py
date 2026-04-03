@@ -262,7 +262,7 @@ def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
 @contextmanager
 def create_span(
     name: str,
-    kind: trace.SpanKind = trace.SpanKind.INTERNAL,
+    kind: SpanKind = SpanKind.INTERNAL,
     attributes: dict[str, Any] | None = None,
 ):
     """
@@ -297,7 +297,7 @@ def create_span(
 
 def trace_function(
     name: str | None = None,
-    kind: trace.SpanKind = trace.SpanKind.INTERNAL,
+    kind: SpanKind = SpanKind.INTERNAL,
     attributes: dict[str, Any] | None = None,
 ) -> Callable:
     """

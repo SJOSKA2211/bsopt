@@ -118,8 +118,9 @@ class ModelTrainer(BaseTrainer):
         try:
             initial_type = [('float_input', FloatTensorType([None, X_train.shape[1]]))]
             onnx_model = onnxmltools.convert_xgboost(self.model, initial_types=initial_type, target_opset=15)
-            mlflow.onnx.log_model(onnx_model, "onnx_model")
-            logger.info("xgboost_onnx_export_success", artifact_path="onnx_model") # Log artifact path
+            artifact_path = "onnx_model"
+            mlflow.onnx.log_model(onnx_model, artifact_path)
+            logger.info("xgboost_onnx_export_success", artifact_path=artifact_path) # Log artifact path
         except Exception as e:
             logger.warning("xgboost_onnx_export_failed", error=str(e))
             

@@ -52,3 +52,8 @@ python3 scripts/aiops_dashboard.py || echo "⚠️ Dashboard failed (Prometheus/
 echo "✅ AIops Health Check Complete."
 export RABBITMQ_HOST=localhost
 export RABBITMQ_PORT=5673
+export RABBITMQ_HOST=localhost
+export RABBITMQ_PORT=5673
+export RABBITMQ_USER=bsopt_admin
+export RABBITMQ_PASSWORD=bsopt_rmq_secret
+export PROMETHEUS_URL=http://localhost:9090
