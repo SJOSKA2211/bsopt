@@ -1,4 +1,4 @@
-import pickle  # nosec B403
+import json
 import time
 from typing import Any, cast
 
@@ -42,14 +42,21 @@ def expectile_loss(diff: th.Tensor, tau: float = 0.7) -> th.Tensor:
 
 def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
     """
+    DEPRECATED: Pickle deserialization is insecure and strictly prohibited.
+    """
+    raise RuntimeError("Pickle deserialization is strictly prohibited. Use JSON or Parquet formats.")
+
+
+def convert_json_to_parquet(json_path: str, parquet_path: str) -> None:
+    """
      OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
     """
     import pandas as pd
 
     try:
-        with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
+        with open(json_path, "r") as f:
+            data = json.load(f)
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)
@@ -96,8 +103,8 @@ def train_offline(
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        with open(dataset_path, "r") as f:
+            trajectories = cast(list[dict[str, Any]], json.load(f))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
