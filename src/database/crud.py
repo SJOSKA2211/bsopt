@@ -651,7 +651,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
                 INSERT INTO options_prices ({col_list})
                 SELECT {col_list} FROM staging_option_prices
                 ON CONFLICT DO NOTHING
-            """  # nosec B608
+            """  # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
             await db.execute(text(query))
 
             await db.commit()
@@ -714,7 +714,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
                 INSERT INTO market_ticks ({col_list})
                 SELECT {col_list} FROM staging_market_ticks
                 ON CONFLICT DO NOTHING
-            """  # nosec B608
+            """  # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
             await db.execute(text(query))
 
             await db.commit()
@@ -791,7 +791,7 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
                 INSERT INTO market_data_mesh ({col_list})
                 SELECT {col_list} FROM staging_market_mesh
                 ON CONFLICT DO NOTHING
-            """  # nosec B608
+            """  # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
             await db.execute(text(query))
 
             await db.commit()
