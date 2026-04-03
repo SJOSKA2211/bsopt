@@ -220,6 +220,12 @@ main() {
     echo "=============================================================================="
     
     detect_container_engine
+    
+    if [ "${SKIP_DOCKER_CLEAN:-0}" != "1" ]; then
+        log_info "Cleaning up unused Docker artifacts (Aggressive Clean)..."
+        make docker-clean || log_warn "Docker cleanup failed, proceeding anyway"
+    fi
+
     setup_env_file
     secure_env_file
     

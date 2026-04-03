@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     DATABASE_POOL_RECYCLE: int = 1800
     DATABASE_POOL_PRE_PING: bool = True
     SLOW_QUERY_THRESHOLD_MS: int = 100
-    PGBOUNCER_ENABLED: bool = Field(default=False, validation_alias="PGBOUNCER_ENABLED")
+    PGBOUNCER_ENABLED: bool = Field(default=True, validation_alias="PGBOUNCER_ENABLED")
     PGBOUNCER_ADMIN_USER: str = Field(default="admin", validation_alias="PGBOUNCER_ADMIN_USER")
     PGBOUNCER_ADMIN_PASSWORD: str = Field(..., validation_alias="PGBOUNCER_ADMIN_PASSWORD")
     PGBOUNCER_HOST: str = Field(default="pgbouncer", validation_alias="PGBOUNCER_HOST")

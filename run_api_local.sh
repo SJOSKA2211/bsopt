@@ -10,7 +10,7 @@ load_decrypted_secrets
 # Override some variables for local run (pointing to Docker mapped ports)
 export DATABASE_URL="postgresql://admin:${POSTGRES_PASSWORD}@localhost:5435/bsopt?sslmode=disable"
 export REDIS_URL="redis://:${REDIS_PASSWORD}@localhost:6380/0"
-export PGBOUNCER_ENABLED=False
+export PGBOUNCER_ENABLED=True
 export INSIDE_DOCKER=0
 export PYTHONPATH=$(pwd)
 

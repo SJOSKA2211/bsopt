@@ -1,11 +1,9 @@
 import mlflow
 import numpy as np
 import structlog
-import torch
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 
-from src.ml.models.neural_engine import NeuralPricingEngine
 from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
@@ -19,7 +17,7 @@ class ModelTrainer(BaseTrainer):
 
     def __init__(self, study_name: str, tracking_uri: str | None = None) -> None:
         super().__init__(study_name=study_name, tracking_uri=tracking_uri)
-        self.model: torch.nn.Module | xgb.XGBRegressor | None = None
+        self.model:  xgb.XGBRegressor | None = None
         self.best_score: float = -float("inf")
 
     def train_and_evaluate(
@@ -97,7 +95,10 @@ class ModelTrainer(BaseTrainer):
         config: TrainingConfig,
     ) -> float:
         """Train PyTorch Neural Pricing Engine."""
+        import torch
         from sklearn.metrics import r2_score
+
+        from src.ml.models.neural_engine import NeuralPricingEngine
 
         engine = NeuralPricingEngine()
         engine.train_model(
