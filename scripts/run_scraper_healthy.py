@@ -10,10 +10,8 @@ from rich.panel import Panel
 console = Console()
 
 def get_container_engine():
-    """Detect container engine with toolbox/Silverblue support."""
-    if os.path.exists("/run/.containerenv"):
-        return "flatpak-spawn", "flatpak-spawn --host podman compose"
-    return "podman", "podman compose"
+    """Detect container engine, strictly prioritizing docker."""
+    return "docker", "docker compose"
 
 def check_heartbeat(path, timeout=300, interval=10):
     console.print(f"[bold blue][*][/bold blue] Monitoring Heartbeat at {path}...")

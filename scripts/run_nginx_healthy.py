@@ -10,18 +10,8 @@ from rich.panel import Panel
 console = Console()
 
 def get_container_engine():
-    """Detect container engine with toolbox/Silverblue support."""
-    # 1. Check if we're in a toolbox (standard method)
-    if os.path.exists("/run/.containerenv"):
-        console.print("[dim][*] Detected Toolbox environment, using flatpak-spawn...[/dim]")
-        return "flatpak-spawn", "flatpak-spawn --host podman compose"
-
-    # 2. Check for Podman socket if NOT in toolbox
-    sock_path = "/run/user/1000/podman/podman.sock"
-    if os.path.exists(sock_path):
-        return "podman", "podman compose"
-        
-    return "podman", "podman compose"
+    """Detect container engine, strictly prioritizing docker."""
+    return "docker", "docker compose"
 
 def check_health(url, timeout=120, interval=5):
     console.print(f"[bold blue][*][/bold blue] Monitoring NGINX Health at {url}...")

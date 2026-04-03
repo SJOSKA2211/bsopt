@@ -10,38 +10,8 @@ from rich.panel import Panel
 console = Console()
 
 def get_container_engine():
-    """Detect container engine similar to scripts/utils_env.sh."""
-    # Check for flatpak-spawn (Silverblue host-land) or toolbox
-    try:
-        is_toolbox = os.path.exists("/run/.containerenv") or os.path.exists("/.dockerenv")
-        if is_toolbox:
-            sock_path = "/run/host/run/user/1000/podman/podman.sock"
-            if os.path.exists(sock_path):
-                return "podman", f"env DOCKER_HOST=unix://{sock_path} podman compose"
-            
-        if subprocess.run(["command", "-v", "flatpak-spawn"], shell=True, capture_output=True).returncode == 0:
-            if subprocess.run(["flatpak-spawn", "--host", "podman", "version"], capture_output=True).returncode == 0:
-                return "flatpak-spawn --host podman", "flatpak-spawn --host env DOCKER_HOST=unix:///run/user/1000/podman/podman.sock podman compose"
-    except Exception:
-        pass
-        
-    # Standard engines
-    engines = [
-        ("podman", "podman compose"),
-        ("docker", "docker compose"),
-        ("podman", "podman-compose")
-    ]
-    
-    for engine, compose in engines:
-        try:
-            if subprocess.run(["command", "-v", engine], shell=True, capture_output=True).returncode == 0:
-                # Check if compose works
-                if subprocess.run(compose.split() + ["version"], capture_output=True).returncode == 0:
-                    return engine, compose
-        except Exception:
-            continue
-            
-    return "docker", "docker compose" # Fallback
+    """Detect container engine, strictly prioritizing docker."""
+    return "docker", "docker compose"
 
 def check_envoy_ready(ready_url: str, health_url: str, timeout: int = 120, interval: int = 5):
     console.print(f"[bold blue][*][/bold blue] Monitoring Envoy Readiness at {ready_url}...")

@@ -5,8 +5,8 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-COMPOSE_CMD="podman compose"
-DOCKER_CMD="podman"
+COMPOSE_CMD="docker compose"
+DOCKER_CMD="docker"
 
 echo "🚀 Starting Geth with blockchain profile..."
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile blockchain up -d geth

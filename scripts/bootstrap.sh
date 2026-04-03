@@ -13,14 +13,7 @@ chmod +x scripts/*.sh scripts/*.py
 command -v openssl >/dev/null 2>&1 || { echo >&2 "❌ Error: openssl is required but not installed."; exit 1; }
 
 # 1. Detect Container Engine
-if command -v podman &> /dev/null; then
-    CONTAINER_CMD="podman"
-    if podman compose version &> /dev/null; then
-        COMPOSE_CMD="podman compose"
-    else
-        COMPOSE_CMD="podman-compose"
-    fi
-elif command -v docker &> /dev/null; then
+if command -v docker &> /dev/null; then
     CONTAINER_CMD="docker"
     if $CONTAINER_CMD compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
@@ -28,7 +21,7 @@ elif command -v docker &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "❌ Error: Neither docker nor podman is installed."
+    echo "❌ Error: Docker is required but not installed."
     exit 1
 fi
 

@@ -9,28 +9,8 @@ from rich.panel import Panel
 console = Console()
 
 def get_container_engine():
-    """Detect if we should use podman or docker."""
-    # On Silverblue/Toolbox, podman is standard.
-    try:
-        subprocess.run(["podman", "--version"], check=True, capture_output=True)
-        return "podman"
-    except:
-        try:
-            subprocess.run(["docker", "--version"], check=True, capture_output=True)
-            return "docker"
-        except:
-            # Fallback to podman as it's likely a toolbox
-            return "podman"
-
-def run_command(cmd):
-    """Run a host command via flatpak-spawn if in a toolbox/container, otherwise run directly."""
-    # Check for common toolbox/flatpak indicators
-    is_toolbox = os.path.exists("/run/.toolboxenv") or os.path.exists("/run/.containerenv")
-    is_flatpak = os.path.exists("/.flatpak-info")
-    
-    if is_toolbox or is_flatpak:
-        return ["flatpak-spawn", "--host"] + cmd
-    return cmd
+    """Detect container engine, strictly prioritizing docker."""
+    return "docker"
 
 def is_port_open(port):
     import socket
@@ -65,7 +45,7 @@ def main():
 
     # Start the service
     console.print("[yellow]Starting frontend service...[/yellow]")
-    cmd = run_command([engine, "compose", "-f", compose_file, "up", "-d", "frontend"])
+    cmd = [engine, "compose", "-f", compose_file, "up", "-d", "frontend"]
     subprocess.run(cmd, check=True)
 
     # Phase 1: Port Gating

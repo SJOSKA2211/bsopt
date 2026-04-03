@@ -6,20 +6,14 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # 1. Detect Container Engine
-if command -v podman &> /dev/null; then
-    if podman compose version &> /dev/null; then
-        COMPOSE_CMD="podman compose"
-    else
-        COMPOSE_CMD="podman-compose"
-    fi
-elif command -v docker &> /dev/null; then
+if command -v docker &> /dev/null; then
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "❌ Error: Neither docker nor podman is installed."
+    echo "❌ Error: Docker is required but not installed."
     exit 1
 fi
 

@@ -20,16 +20,7 @@ def get_dynamic_targets():
         )
         return [n for n in output if "bsopt" in n]
     except Exception:
-        try:
-            output = (
-                subprocess.check_output(["podman", "ps", "--format", "{{.Names}}"])
-                .decode()
-                .strip()
-                .split("\n")
-            )
-            return [n for n in output if "bsopt" in n]
-        except Exception:
-            return []
+        return []
 
 def log_chaos_event(target, event_type):
     """Push chaos event to Prometheus Pushgateway."""
@@ -50,12 +41,8 @@ def kill_container(container_name):
         log_chaos_event(container_name, "kill")
         subprocess.run(["docker", "kill", container_name], check=True)
         logger.info("chaos_monkey_attack_success", target=container_name)
-    except subprocess.CalledProcessError:
-        try:
-            subprocess.run(["podman", "kill", container_name], check=True)
-            logger.info("chaos_monkey_attack_success", target=container_name, engine="podman")
-        except Exception as e:
-            logger.error("chaos_monkey_attack_failed", target=container_name, error=str(e))
+    except Exception as e:
+        logger.error("chaos_monkey_attack_failed", target=container_name, error=str(e))
 
 def monitor_recovery(container_name, timeout=60):
     """Wait for a container to return to 'running' state."""
@@ -74,19 +61,7 @@ def monitor_recovery(container_name, timeout=60):
                 logger.info("recovery_detected", target=container_name)
                 return True
         except Exception:
-            try:
-                output = (
-                    subprocess.check_output(
-                        ["podman", "inspect", "-f", "{{.State.Running}}", container_name]
-                    )
-                    .decode()
-                    .strip()
-                )
-                if output == "true":
-                    logger.info("recovery_detected", target=container_name, engine="podman")
-                    return True
-            except Exception:
-                pass
+            pass
         time.sleep(2)
     logger.error("recovery_timeout", target=container_name)
     return False
