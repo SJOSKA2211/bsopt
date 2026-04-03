@@ -1,12 +1,14 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
 
-from src.ml.main import app
 from src.ml.aiops.autonomous_engine import AutonomousEngine
 from src.ml.aiops.remediators import BaseRemediator
+from src.ml.main import app
 
 client = TestClient(app)
+
 
 @pytest.fixture
 def mock_health_dependencies():
@@ -20,7 +22,7 @@ def mock_health_dependencies():
         mock_mlflow.search_runs.return_value = [
             MagicMock(
                 info=MagicMock(run_id="test-run"),
-                data=MagicMock(tags={"drift_detected": "false", "stage": "production"})
+                data=MagicMock(tags={"drift_detected": "false", "stage": "production"}),
             )
         ]
 
@@ -35,11 +37,8 @@ def mock_health_dependencies():
         MockGetRedisClient.return_value = mock_redis
         mock_redis.lrange.return_value = []
 
-        yield {
-            "mlflow": mock_mlflow,
-            "prometheus": mock_prom,
-            "redis": mock_redis
-        }
+        yield {"mlflow": mock_mlflow, "prometheus": mock_prom, "redis": mock_redis}
+
 
 def test_ml_health_endpoint(mock_health_dependencies):
     """
@@ -52,6 +51,7 @@ def test_ml_health_endpoint(mock_health_dependencies):
     assert "mlflow" in data
     assert "prometheus" in data
     assert "redis_anomalies" in data
+
 
 @pytest.mark.asyncio
 async def test_autonomous_engine_e2e_flow():
@@ -77,13 +77,14 @@ async def test_autonomous_engine_e2e_flow():
             def __init__(self):
                 super().__init__("restart_service", ["high_error_rate"])
                 self.remediate_mock = MagicMock(return_value=True)
+
             async def remediate(self, anomaly):
                 return self.remediate_mock(anomaly)
 
         remediator = MockRemediator()
         engine = AutonomousEngine(config=config, remediators=[remediator])
-        
+
         await engine.run_cycle()
-        
+
         remediator.remediate_mock.assert_called_once()
         assert MockNotify.called

@@ -2,6 +2,7 @@ import numpy as np
 
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
+
 def test_reward_function_risk_awareness():
     """Test that the reward function accounts for volatility/risk."""
     env = TradingEnvironment(initial_balance=100000)
@@ -17,6 +18,7 @@ def test_reward_function_risk_awareness():
     # Both have same 'ret' in the last step: (103000 - 102000) / 102000
     # But high_vol has much higher historical volatility in the last 5 steps.
     assert reward_high_vol < reward_low_vol
+
 
 def test_transaction_cost_deduction():
     """Test that transaction costs are accurately deducted from balance."""
@@ -48,6 +50,7 @@ def test_transaction_cost_deduction():
     assert (
         env.balance == 100000 - 10 - 1000
     )  # Correct behavior: cash decreases by (cost + asset_price)
+
 
 def test_action_clipping():
     """Test that actions are clipped to the action space."""

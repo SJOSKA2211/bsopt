@@ -2,6 +2,7 @@ import torch
 
 from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
 
+
 def test_gnn_feature_extractor_forward_pass():
     # Setup extractor
     input_dim = 16
@@ -22,6 +23,7 @@ def test_gnn_feature_extractor_forward_pass():
     # Verify output
     assert features.shape == (num_nodes, output_dim)
     assert not torch.isnan(features).any()
+
 
 def test_gnn_feature_extractor_with_different_sizes():
     extractor = GNNFeatureExtractor(input_dim=8, output_dim=32)

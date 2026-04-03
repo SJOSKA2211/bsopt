@@ -2,6 +2,7 @@ from typing import Any
 
 import msgspec
 
+
 class MarketData(msgspec.Struct):
     """Binary-level schema for high-throughput market data."""
 
@@ -13,6 +14,7 @@ class MarketData(msgspec.Struct):
     rate: float
     is_call: bool
     timestamp: float
+
 
 class OptionsDataValidator:
     """
@@ -27,7 +29,6 @@ class OptionsDataValidator:
     def validate_raw(self, data: bytes) -> bool:
         """Ultra-fast validation of raw bytes."""
         try:
-            
             records = self._decoder.decode(data)
             if len(records) < self.min_samples:
                 return False

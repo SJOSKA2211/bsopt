@@ -1,11 +1,11 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.math_kernel.implied_vol import (
     implied_volatility,
     vectorized_implied_volatility,
 )
+
 
 class TestImpliedVol:
     def test_implied_vol_scalar(self):
@@ -33,4 +33,3 @@ class TestImpliedVol:
         # Price below intrinsic
         with pytest.raises(ValueError):
             implied_volatility(1.0, 100.0, 100.0, 1.0, 0.05)
-

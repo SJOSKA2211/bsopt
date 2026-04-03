@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
+
 class DataResponseStruct(msgspec.Struct, Generic[T], frozen=True):
     """OPTIMIZED: Zero-copy response wrapper (msgspec)."""
 
@@ -20,6 +21,7 @@ class DataResponseStruct(msgspec.Struct, Generic[T], frozen=True):
     success: bool = True
     message: str | None = None
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
+
 
 class PaginationMetaStruct(msgspec.Struct, frozen=True):
     """OPTIMIZED: Pagination metadata (msgspec)."""
@@ -31,11 +33,13 @@ class PaginationMetaStruct(msgspec.Struct, frozen=True):
     has_next: bool
     has_prev: bool
 
+
 class PaginatedResponseStruct(msgspec.Struct, Generic[T], frozen=True):
     """OPTIMIZED: Paginated response wrapper (msgspec)."""
 
     items: list[T]
     pagination: PaginationMetaStruct
+
 
 class ErrorDetail(BaseModel):
     """Detailed error information (Pydantic)."""
@@ -54,6 +58,7 @@ class ErrorDetail(BaseModel):
             }
         },
     )
+
 
 class ErrorResponse(BaseModel):
     """Standard error response (Pydantic)."""
@@ -97,6 +102,7 @@ class ErrorResponse(BaseModel):
             else datetime.utcnow(),
         )
 
+
 class SuccessResponse(BaseModel):
     """Standard success response (Pydantic)."""
 
@@ -105,6 +111,7 @@ class SuccessResponse(BaseModel):
     data: dict[str, Any] | None = None
 
     model_config = ConfigDict(frozen=True)
+
 
 class DataResponse[T](BaseModel):
     """Standard response wrapper with data field (Pydantic)."""
@@ -115,6 +122,7 @@ class DataResponse[T](BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
 
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+
 
 class PaginationMeta(BaseModel):
     """Pagination metadata (Pydantic)."""
@@ -140,6 +148,7 @@ class PaginationMeta(BaseModel):
             has_prev=proto_msg.has_previous,
         )
 
+
 class PaginatedResponse[T](BaseModel):
     """Paginated response wrapper (Pydantic)."""
 
@@ -147,6 +156,7 @@ class PaginatedResponse[T](BaseModel):
     pagination: PaginationMeta
 
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+
 
 class HealthResponse(BaseModel):
     """Health check response (Pydantic)."""

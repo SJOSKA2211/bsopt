@@ -9,13 +9,14 @@ Uso:
     db.insert_post({...})
     stats = db.get_stats()
 """
+
 from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config import DB_PATH
 
@@ -133,11 +134,25 @@ CREATE INDEX IF NOT EXISTS idx_hashtag_searched    ON hashtag_searches (searched
 """
 
 
-_POSTS_COLUMNS = frozenset({
-    "account_id", "media_type", "media_url", "local_path", "caption",
-    "hashtags", "template_id", "status", "scheduled_at", "published_at",
-    "ig_media_id", "ig_container_id", "permalink", "error_msg", "created_at",
-})
+_POSTS_COLUMNS = frozenset(
+    {
+        "account_id",
+        "media_type",
+        "media_url",
+        "local_path",
+        "caption",
+        "hashtags",
+        "template_id",
+        "status",
+        "scheduled_at",
+        "published_at",
+        "ig_media_id",
+        "ig_container_id",
+        "permalink",
+        "error_msg",
+        "created_at",
+    }
+)
 
 
 class Database:
@@ -160,7 +175,7 @@ class Database:
 
     # ── Accounts ──────────────────────────────────────────────────────────────
 
-    def upsert_account(self, data: Dict[str, Any]) -> int:
+    def upsert_account(self, data: dict[str, Any]) -> int:
         """Insere ou atualiza conta. Retorna o id da conta."""
         sql = """
         INSERT INTO accounts (ig_user_id, username, account_type, access_token,
@@ -180,12 +195,11 @@ class Database:
         with self._connect() as conn:
             conn.execute(sql, data)
             row = conn.execute(
-                "SELECT id FROM accounts WHERE ig_user_id = ?",
-                [data["ig_user_id"]]
+                "SELECT id FROM accounts WHERE ig_user_id = ?", [data["ig_user_id"]]
             ).fetchone()
             return row["id"]
 
-    def get_active_account(self) -> Optional[Dict[str, Any]]:
+    def get_active_account(self) -> dict[str, Any] | None:
         """Retorna a conta ativa (primeira ativa encontrada)."""
         with self._connect() as conn:
             row = conn.execute(
@@ -193,11 +207,9 @@ class Database:
             ).fetchone()
         return dict(row) if row else None
 
-    def get_account_by_id(self, account_id: int) -> Optional[Dict[str, Any]]:
+    def get_account_by_id(self, account_id: int) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM accounts WHERE id = ?", [account_id]
-            ).fetchone()
+            row = conn.execute("SELECT * FROM accounts WHERE id = ?", [account_id]).fetchone()
         return dict(row) if row else None
 
     def update_token(self, account_id: int, access_token: str, expires_at: str) -> None:
@@ -209,7 +221,7 @@ class Database:
 
     # ── Posts (Pipeline) ──────────────────────────────────────────────────────
 
-    def insert_post(self, data: Dict[str, Any]) -> int:
+    def insert_post(self, data: dict[str, Any]) -> int:
         """Cria um novo post (draft por padrão). Retorna o id."""
         keys = [k for k in data.keys() if k != "id" and k in _POSTS_COLUMNS]
         if not keys:
@@ -238,11 +250,11 @@ class Database:
 
     def get_posts(
         self,
-        account_id: Optional[int] = None,
-        status: Optional[str] = None,
+        account_id: int | None = None,
+        status: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         conditions = []
         params: list = []
         if account_id:
@@ -258,9 +270,9 @@ class Database:
             rows = conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
-    def get_posts_for_publishing(self, account_id: int) -> List[Dict[str, Any]]:
+    def get_posts_for_publishing(self, account_id: int) -> list[dict[str, Any]]:
         """Posts aprovados/agendados prontos para publicar."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         sql = """
         SELECT * FROM posts
         WHERE account_id = ? AND (
@@ -274,14 +286,14 @@ class Database:
             rows = conn.execute(sql, [account_id, now]).fetchall()
         return [dict(r) for r in rows]
 
-    def get_post_by_id(self, post_id: int) -> Optional[Dict[str, Any]]:
+    def get_post_by_id(self, post_id: int) -> dict[str, Any] | None:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM posts WHERE id = ?", [post_id]).fetchone()
         return dict(row) if row else None
 
     # ── Comments ──────────────────────────────────────────────────────────────
 
-    def upsert_comments(self, comments: List[Dict[str, Any]]) -> int:
+    def upsert_comments(self, comments: list[dict[str, Any]]) -> int:
         sql = """
         INSERT INTO comments (account_id, ig_comment_id, ig_media_id, username, text, timestamp)
         VALUES (:account_id, :ig_comment_id, :ig_media_id, :username, :text, :timestamp)
@@ -295,11 +307,11 @@ class Database:
 
     def get_comments(
         self,
-        ig_media_id: Optional[str] = None,
-        account_id: Optional[int] = None,
+        ig_media_id: str | None = None,
+        account_id: int | None = None,
         unreplied_only: bool = False,
         limit: int = 50,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         conditions = []
         params: list = []
         if ig_media_id:
@@ -319,7 +331,7 @@ class Database:
 
     # ── Insights ──────────────────────────────────────────────────────────────
 
-    def insert_insights(self, records: List[Dict[str, Any]]) -> int:
+    def insert_insights(self, records: list[dict[str, Any]]) -> int:
         sql = """
         INSERT INTO insights (account_id, ig_media_id, metric_name, metric_value, period, raw_json)
         VALUES (:account_id, :ig_media_id, :metric_name, :metric_value, :period, :raw_json)
@@ -328,7 +340,7 @@ class Database:
             conn.executemany(sql, records)
             return len(records)
 
-    def insert_user_insights(self, records: List[Dict[str, Any]]) -> int:
+    def insert_user_insights(self, records: list[dict[str, Any]]) -> int:
         sql = """
         INSERT INTO user_insights (account_id, metric_name, metric_value, period, end_time)
         VALUES (:account_id, :metric_name, :metric_value, :period, :end_time)
@@ -339,7 +351,7 @@ class Database:
 
     # ── Templates ─────────────────────────────────────────────────────────────
 
-    def upsert_template(self, data: Dict[str, Any]) -> int:
+    def upsert_template(self, data: dict[str, Any]) -> int:
         sql = """
         INSERT INTO templates (name, caption_template, hashtag_set, default_schedule_time)
         VALUES (:name, :caption_template, :hashtag_set, :default_schedule_time)
@@ -353,12 +365,12 @@ class Database:
             row = conn.execute("SELECT id FROM templates WHERE name = ?", [data["name"]]).fetchone()
             return row["id"]
 
-    def get_templates(self) -> List[Dict[str, Any]]:
+    def get_templates(self) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute("SELECT * FROM templates ORDER BY name").fetchall()
         return [dict(r) for r in rows]
 
-    def get_template_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_template_by_name(self, name: str) -> dict[str, Any] | None:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM templates WHERE name = ?", [name]).fetchone()
         return dict(row) if row else None
@@ -370,7 +382,7 @@ class Database:
 
     # ── Hashtag Searches ──────────────────────────────────────────────────────
 
-    def insert_hashtag_search(self, data: Dict[str, Any]) -> None:
+    def insert_hashtag_search(self, data: dict[str, Any]) -> None:
         sql = """
         INSERT INTO hashtag_searches (account_id, hashtag, ig_hashtag_id)
         VALUES (:account_id, :hashtag, :ig_hashtag_id)
@@ -388,7 +400,7 @@ class Database:
 
     # ── Action Log ────────────────────────────────────────────────────────────
 
-    def log_action(self, data: Dict[str, Any]) -> None:
+    def log_action(self, data: dict[str, Any]) -> None:
         sql = """
         INSERT INTO action_log (account_id, action, params, result, confirmed, rate_remaining)
         VALUES (:account_id, :action, :params, :result, :confirmed, :rate_remaining)
@@ -396,7 +408,9 @@ class Database:
         with self._connect() as conn:
             conn.execute(sql, data)
 
-    def get_recent_actions(self, limit: int = 20, action: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_recent_actions(
+        self, limit: int = 20, action: str | None = None
+    ) -> list[dict[str, Any]]:
         if action:
             sql = "SELECT * FROM action_log WHERE action = ? ORDER BY created_at DESC LIMIT ?"
             params = [action, limit]
@@ -409,16 +423,26 @@ class Database:
 
     # ── Stats ─────────────────────────────────────────────────────────────────
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Retorna estatísticas gerais do banco."""
         with self._connect() as conn:
-            accounts = conn.execute("SELECT COUNT(*) FROM accounts WHERE is_active = 1").fetchone()[0]
+            accounts = conn.execute("SELECT COUNT(*) FROM accounts WHERE is_active = 1").fetchone()[
+                0
+            ]
             posts_total = conn.execute("SELECT COUNT(*) FROM posts").fetchone()[0]
-            posts_published = conn.execute("SELECT COUNT(*) FROM posts WHERE status = 'published'").fetchone()[0]
-            posts_draft = conn.execute("SELECT COUNT(*) FROM posts WHERE status = 'draft'").fetchone()[0]
-            posts_scheduled = conn.execute("SELECT COUNT(*) FROM posts WHERE status = 'scheduled'").fetchone()[0]
+            posts_published = conn.execute(
+                "SELECT COUNT(*) FROM posts WHERE status = 'published'"
+            ).fetchone()[0]
+            posts_draft = conn.execute(
+                "SELECT COUNT(*) FROM posts WHERE status = 'draft'"
+            ).fetchone()[0]
+            posts_scheduled = conn.execute(
+                "SELECT COUNT(*) FROM posts WHERE status = 'scheduled'"
+            ).fetchone()[0]
             comments_total = conn.execute("SELECT COUNT(*) FROM comments").fetchone()[0]
-            comments_unreplied = conn.execute("SELECT COUNT(*) FROM comments WHERE replied = 0").fetchone()[0]
+            comments_unreplied = conn.execute(
+                "SELECT COUNT(*) FROM comments WHERE replied = 0"
+            ).fetchone()[0]
             templates = conn.execute("SELECT COUNT(*) FROM templates").fetchone()[0]
             actions_today = conn.execute(
                 "SELECT COUNT(*) FROM action_log WHERE created_at >= date('now')"

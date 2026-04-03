@@ -6,9 +6,11 @@ from src.workers.tasks.trading_tasks import (
     execute_trade_task,
 )
 
+
 def test_check_risk_limits():
     assert check_risk_limits({"quantity": 10, "limit_price": 100}) is True
     assert check_risk_limits({"quantity": 1000, "limit_price": 200}) is False
+
 
 @patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_success(mock_request):
@@ -20,6 +22,7 @@ def test_execute_trade_task_success(mock_request):
         assert result["status"] == "filled"
         assert result["symbol"] == "AAPL"
 
+
 @patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_risk_reject(mock_request):
     order = {"symbol": "AAPL", "quantity": 1000, "limit_price": 200.0}
@@ -29,6 +32,7 @@ def test_execute_trade_task_risk_reject(mock_request):
     assert result["status"] == "rejected"
     assert result["reason"] == "risk_limit_exceeded"
 
+
 @patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_invalid(mock_request):
     order = {}  # Missing params
@@ -37,6 +41,7 @@ def test_execute_trade_task_invalid(mock_request):
     result = execute_trade_task.apply(args=[order], task_id=mock_request.id).get()
     assert result["status"] == "failed"
     assert "Invalid order parameters" in result["error"]
+
 
 @patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_backtest_strategy_task_success(mock_request):
@@ -53,6 +58,7 @@ def test_backtest_strategy_task_success(mock_request):
         ).get()
         assert result["status"] == "completed"
         assert result["strategy"] == strategy
+
 
 @patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_backtest_strategy_task_error(mock_request):

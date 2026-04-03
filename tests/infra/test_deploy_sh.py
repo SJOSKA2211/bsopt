@@ -4,16 +4,19 @@ import subprocess
 
 DEPLOY_SH = os.path.abspath("./deploy.sh")
 
+
 def test_deploy_sh_exists():
     """Verify that deploy.sh exists and is executable."""
     assert os.path.exists(DEPLOY_SH)
     assert os.access(DEPLOY_SH, os.X_OK)
+
 
 def test_check_dependencies_success():
     """Verify that check_dependencies passes when tools are present."""
     result = subprocess.run([DEPLOY_SH, "help"], capture_output=True, text=True)
     assert "deploy" in result.stdout
     assert "help" in result.stdout
+
 
 def test_check_dependencies_failure():
     """Verify that check_dependencies fails when a tool is missing."""
@@ -31,6 +34,7 @@ def test_check_dependencies_failure():
     assert result.returncode == 0 or "ERROR" in result.stderr
     shutil.rmtree(fake_path)
 
+
 def test_optimize_kernel_attempts_sysctl():
     """Verify that optimize_kernel attempts to call sysctl."""
     fake_path = "/tmp/fake_bin_sudo"
@@ -46,6 +50,7 @@ def test_optimize_kernel_attempts_sysctl():
     )
     assert "MOCK_SUDO sysctl" in result.stdout
     shutil.rmtree(fake_path)
+
 
 def test_setup_env_creates_new_file():
     """Verify that setup_env creates a .env file if missing."""
@@ -63,6 +68,7 @@ def test_setup_env_creates_new_file():
     assert "DB_PASSWORD" in content
     shutil.rmtree(temp_dir)
 
+
 def test_scaffold_configs_creates_directories_and_files():
     """Verify that scaffold_configs creates the required directory structure."""
     temp_dir = "/tmp/test_scaffold"
@@ -75,6 +81,7 @@ def test_scaffold_configs_creates_directories_and_files():
     assert os.path.isdir(os.path.join(temp_dir, "monitoring/prometheus"))
     assert os.path.exists(os.path.join(temp_dir, "docker/nginx/nginx.conf"))
     shutil.rmtree(temp_dir)
+
 
 def test_deploy_stack_calls_docker_compose():
     """Verify that deploy_stack attempts to call docker-compose."""
@@ -93,6 +100,7 @@ def test_deploy_stack_calls_docker_compose():
     assert "MOCK_COMPOSE -f docker-compose.yml build" in result.stdout
     shutil.rmtree(fake_path)
 
+
 def test_lifecycle_commands_call_docker_compose():
     """Verify that down and logs commands call docker-compose."""
     fake_path = "/tmp/fake_bin_lifecycle"
@@ -108,6 +116,7 @@ def test_lifecycle_commands_call_docker_compose():
     )
     assert "MOCK_COMPOSE -f docker-compose.yml down" in result_down.stdout
     shutil.rmtree(fake_path)
+
 
 def test_verify_deployment_health_checks():
     """Verify that verify-deployment health check works."""
@@ -129,6 +138,7 @@ def test_verify_deployment_health_checks():
     assert "Running Health Checks" in result.stdout
     assert "API is healthy" in result.stdout
     shutil.rmtree(fake_path)
+
 
 def test_verify_deployment_db_audit():
     """Verify that verify-deployment includes a DB audit step."""

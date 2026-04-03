@@ -6,6 +6,7 @@ Uso:
     python scripts/hashtags.py --top "tecnologia"
     python scripts/hashtags.py --info "marketing"
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,9 +18,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from api_client import InstagramAPI
-from auth import auto_refresh_if_needed
 from db import Database
 from governance import GovernanceManager, RateLimitExceeded
+
+from auth import auto_refresh_if_needed
 
 db = Database()
 db.init()
@@ -55,11 +57,13 @@ async def search_hashtag(hashtag: str, limit: int = 25, mode: str = "recent") ->
     hashtag_id = hashtag_data[0]["id"]
 
     # Registrar busca
-    db.insert_hashtag_search({
-        "account_id": account["id"],
-        "hashtag": hashtag,
-        "ig_hashtag_id": hashtag_id,
-    })
+    db.insert_hashtag_search(
+        {
+            "account_id": account["id"],
+            "hashtag": hashtag,
+            "ig_hashtag_id": hashtag_id,
+        }
+    )
 
     # Step 2: Buscar posts
     if mode == "top":
@@ -90,7 +94,11 @@ async def hashtag_info(hashtag: str) -> None:
     api = InstagramAPI()
     result = await api.search_hashtag(hashtag)
     await api.close()
-    print(json.dumps({"hashtag": hashtag, "data": result.get("data", [])}, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {"hashtag": hashtag, "data": result.get("data", [])}, indent=2, ensure_ascii=False
+        )
+    )
 
 
 def main():

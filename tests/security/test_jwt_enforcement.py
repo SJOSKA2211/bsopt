@@ -24,15 +24,19 @@ from api.middleware.security import JWTAuthenticationMiddleware  # noqa: E402
 app = FastAPI()
 app.add_middleware(JWTAuthenticationMiddleware)
 
+
 @app.get("/protected")
 def protected_endpoint():
     return {"message": "protected"}
+
 
 @app.get("/api/v1/auth/verify-email")
 def public_endpoint():
     return {"message": "public"}
 
+
 client = TestClient(app)
+
 
 def test_auth_enforced_in_dev():
     # Ensure environment is dev
@@ -44,6 +48,7 @@ def test_auth_enforced_in_dev():
     # Should be BLOCKED (401) now
     assert response.status_code == 401
     assert response.json() == {"detail": "Authentication token missing"}
+
 
 def test_public_path_allowed():
     # Request without token to public endpoint

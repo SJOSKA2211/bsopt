@@ -4,13 +4,13 @@ Gerador de relatorios Markdown.
 Produz relatorio estruturado com resumo executivo, scores por skill,
 findings por severidade, recomendacoes e plano de acao.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from config import DIMENSION_WEIGHTS, REPORTS_DIR, SEVERITY_ORDER, get_score_label
+from config import REPORTS_DIR, SEVERITY_ORDER, get_score_label
 
 
 def _severity_icon(severity: str) -> str:
@@ -25,7 +25,7 @@ def _severity_icon(severity: str) -> str:
     return icons.get(severity, "[?]")
 
 
-def _format_score(score: Optional[float]) -> str:
+def _format_score(score: float | None) -> str:
     """Formata score como string."""
     if score is None:
         return "N/A"
@@ -33,15 +33,15 @@ def _format_score(score: Optional[float]) -> str:
 
 
 def generate_report(
-    snapshots: List[Dict[str, Any]],
-    findings: List[Dict[str, Any]],
-    recommendations: List[Dict[str, Any]],
+    snapshots: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+    recommendations: list[dict[str, Any]],
     overall_score: float,
-    previous_snapshots: Optional[List[Dict[str, Any]]] = None,
+    previous_snapshots: list[dict[str, Any]] | None = None,
 ) -> str:
     """Gera relatorio Markdown completo."""
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines: List[str] = []
+    now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+    lines: list[str] = []
 
     # -- Header ----------------------------------------------------------------
     lines.append("# Relatorio Sentinel - Auditoria do Ecossistema de Skills")
@@ -56,8 +56,12 @@ def generate_report(
     # -- Resumo Executivo (tabela) ---------------------------------------------
     lines.append("## Resumo Executivo")
     lines.append("")
-    lines.append("| Skill | Score | Qualidade | Seguranca | Performance | Governanca | Docs | Deps |")
-    lines.append("|-------|-------|-----------|-----------|-------------|------------|------|------|")
+    lines.append(
+        "| Skill | Score | Qualidade | Seguranca | Performance | Governanca | Docs | Deps |"
+    )
+    lines.append(
+        "|-------|-------|-----------|-----------|-------------|------------|------|------|"
+    )
 
     for snap in sorted(snapshots, key=lambda s: -(s.get("overall_score") or 0)):
         name = snap.get("skill_name", "?")
@@ -98,7 +102,7 @@ def generate_report(
     lines.append("")
 
     # Agrupar
-    by_severity: Dict[str, List[Dict[str, Any]]] = {}
+    by_severity: dict[str, list[dict[str, Any]]] = {}
     for f in findings:
         sev = f.get("severity", "info")
         by_severity.setdefault(sev, []).append(f)
@@ -144,18 +148,26 @@ def generate_report(
         lines.append("")
         lines.append(f"- Arquivos Python: {snap.get('file_count', 0)}")
         lines.append(f"- Linhas de codigo: {snap.get('line_count', 0)}")
-        lines.append(f"- Qualidade: {_format_score(snap.get('code_quality'))} | "
-                     f"Seguranca: {_format_score(snap.get('security'))} | "
-                     f"Performance: {_format_score(snap.get('performance'))}")
-        lines.append(f"- Governanca: {_format_score(snap.get('governance'))} | "
-                     f"Docs: {_format_score(snap.get('documentation'))} | "
-                     f"Deps: {_format_score(snap.get('dependencies'))}")
+        lines.append(
+            f"- Qualidade: {_format_score(snap.get('code_quality'))} | "
+            f"Seguranca: {_format_score(snap.get('security'))} | "
+            f"Performance: {_format_score(snap.get('performance'))}"
+        )
+        lines.append(
+            f"- Governanca: {_format_score(snap.get('governance'))} | "
+            f"Docs: {_format_score(snap.get('documentation'))} | "
+            f"Deps: {_format_score(snap.get('dependencies'))}"
+        )
         lines.append("")
 
         # Findings desta skill
-        skill_findings = [f for f in findings if f.get("skill_name") == name and f.get("severity") != "info"]
+        skill_findings = [
+            f for f in findings if f.get("skill_name") == name and f.get("severity") != "info"
+        ]
         if skill_findings:
-            for f in sorted(skill_findings, key=lambda x: SEVERITY_ORDER.get(x.get("severity", "info"), 9)):
+            for f in sorted(
+                skill_findings, key=lambda x: SEVERITY_ORDER.get(x.get("severity", "info"), 9)
+            ):
                 lines.append(f"  - {_severity_icon(f['severity'])} {f['title']}")
         else:
             lines.append("  Nenhum finding significativo.")
@@ -185,13 +197,16 @@ def generate_report(
     lines.append("")
 
     actionable = [
-        f for f in findings
+        f
+        for f in findings
         if f.get("severity") in ("critical", "high", "medium") and f.get("recommendation")
     ]
-    actionable.sort(key=lambda x: (
-        SEVERITY_ORDER.get(x.get("severity", "info"), 9),
-        {"low": 0, "medium": 1, "high": 2}.get(x.get("effort", "medium"), 1),
-    ))
+    actionable.sort(
+        key=lambda x: (
+            SEVERITY_ORDER.get(x.get("severity", "info"), 9),
+            {"low": 0, "medium": 1, "high": 2}.get(x.get("effort", "medium"), 1),
+        )
+    )
 
     if actionable:
         lines.append("| # | Severidade | Skill | Acao | Esforco |")
@@ -212,10 +227,10 @@ def generate_report(
     return "\n".join(lines)
 
 
-def save_report(content: str, filename: Optional[str] = None) -> str:
+def save_report(content: str, filename: str | None = None) -> str:
     """Salva relatorio em arquivo e retorna o path."""
     if not filename:
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         filename = f"audit_{timestamp}.md"
 
     filepath = REPORTS_DIR / filename

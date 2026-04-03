@@ -16,6 +16,7 @@ SCHEME_EULER = 0
 SCHEME_MILSTEIN = 1
 SCHEME_EULER_MULTI = 2
 
+
 @njit_engine
 def fast_normal_ppf_v2(p: float) -> float:
     """
@@ -31,6 +32,7 @@ def fast_normal_ppf_v2(p: float) -> float:
     else:
         # Upper tail
         return float(_moro_inv_norm(1.0 - p))
+
 
 @njit_engine
 def _moro_inv_norm(p: float) -> float:
@@ -67,6 +69,7 @@ def _moro_inv_norm(p: float) -> float:
         x = c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8)))))))
         return float(x)
 
+
 @njit_engine(parallel=True)
 def vectorized_fast_normal_ppf_v2(
     p: np.ndarray[Any, np.dtype[np.float64]],
@@ -77,6 +80,7 @@ def vectorized_fast_normal_ppf_v2(
     for i in loop_prange(n):
         res[i] = fast_normal_ppf_v2(p[i])
     return res
+
 
 @njit_engine
 def fast_normal_cdf_v2(x: float) -> float:
@@ -90,10 +94,12 @@ def fast_normal_cdf_v2(x: float) -> float:
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return float(0.5 * (1.0 + np.sign(x) * y))
 
+
 @njit_engine
 def fast_normal_pdf_v2(x: float) -> float:
     """Standard normal PDF."""
     return float((1.0 / np.sqrt(2.0 * np.pi)) * np.exp(-0.5 * x**2))
+
 
 @njit_engine(fastmath=True, parallel=True)
 def generate_log_paths_v2(
@@ -109,6 +115,7 @@ def generate_log_paths_v2(
         for i in range(n_steps):
             log_paths[i + 1, j] = log_paths[i, j] + drift + diffusion * np.random.standard_normal()
     return log_paths
+
 
 @njit_engine(fastmath=True, parallel=True)
 def generate_paths_v2(
@@ -135,6 +142,7 @@ def generate_paths_v2(
 
     log_paths = generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps)
     return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(log_paths).T)
+
 
 @njit_engine(fastmath=True, parallel=True)
 def fused_arithmetic_asian_payoff_v2(
@@ -164,6 +172,7 @@ def fused_arithmetic_asian_payoff_v2(
 
         payoffs[j] = max(po, 0.0) * exp_rt
     return payoffs
+
 
 @njit_engine(fastmath=True, parallel=True)
 def fused_lookback_payoff_v2(
@@ -209,6 +218,7 @@ def fused_lookback_payoff_v2(
         payoffs[j] = max(po, 0.0) * exp_rt
     return payoffs
 
+
 @njit_engine(fastmath=True, parallel=True)
 def batch_bs_price_jit_v2(
     S: np.ndarray[Any, np.dtype[np.float64]],
@@ -248,6 +258,7 @@ def batch_bs_price_jit_v2(
 
     return res
 
+
 @njit_engine(fastmath=True, parallel=True)
 def batch_bs_price_jit_v2_out(
     S: np.ndarray[Any, np.dtype[np.float64]],
@@ -285,6 +296,7 @@ def batch_bs_price_jit_v2_out(
                 i
             ] * fast_normal_cdf_v2(-d1)
 
+
 @njit_engine(fastmath=True, parallel=True)
 def batch_greeks_jit_v2(
     S: np.ndarray[Any, np.dtype[np.float64]],
@@ -308,6 +320,7 @@ def batch_greeks_jit_v2(
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
     return delta, gamma, vega, theta, rho
 
+
 @njit_engine(fastmath=True, parallel=True)
 def batch_greeks_jit_v2_out(
     S: np.ndarray[Any, np.dtype[np.float64]],
@@ -329,6 +342,7 @@ def batch_greeks_jit_v2_out(
         d, g, th, v, rh = scalar_greeks_jit_v2(S[i], K[i], T[i], sigma[i], r[i], q[i], is_call[i])
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
 
+
 @njit_engine
 def scalar_greeks_jit_v2(
     S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool
@@ -349,6 +363,7 @@ def scalar_greeks_jit_v2(
         delta, rho = exp_qt * (nd1 - 1.0), (-K * Ti * exp_rt * (1.0 - nd2)) * 0.01
         theta = (common_theta + r * K * exp_rt * (1.0 - nd2) - q * S * exp_qt * (1.0 - nd1)) / 365.0
     return float(delta), float(gamma), float(theta), float(vega), float(rho)
+
 
 @njit_engine
 def corrado_miller_initial_guess(
@@ -372,6 +387,7 @@ def corrado_miller_initial_guess(
         sigma[i] = val * (term + np.sqrt(max(term**2 - intrinsic**2 / np.pi, 0.0)))
     return np.clip(sigma, 0.001, 5.0)
 
+
 @njit_engine
 def heston_char_func_jit(
     u: float, T: float, r: float, v0: float, kappa: float, theta: float, sigma: float, rho: float
@@ -383,6 +399,7 @@ def heston_char_func_jit(
     A = (kappa * theta / sigma**2) * ((xi + d) * T - 2.0 * np.log((1.0 - g * exp_dT) / (1.0 - g)))
     B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
     return complex(np.exp(A + B))
+
 
 @njit_engine(fastmath=True)
 def jit_mc_european_price_v2(
@@ -414,7 +431,9 @@ def jit_mc_european_price_v2(
         payoffs = np.maximum(st - K if is_call else K - st, 0.0) * exp_rt
     return float(np.mean(payoffs)), float(np.sqrt(max(np.var(payoffs) / n_paths, 0.0)))
 
+
 # ─── JIT Kernels & Quantitative Utilities ──────────────────────────────────────────
+
 
 @njit_engine
 def scalar_bs_price_jit(
@@ -431,6 +450,7 @@ def scalar_bs_price_jit(
         return float(S * exp_qt * fast_normal_cdf_v2(d1) - K * exp_rt * fast_normal_cdf_v2(d2))
     return float(K * exp_rt * fast_normal_cdf_v2(-d2) - S * exp_qt * fast_normal_cdf_v2(-d1))
 
+
 @njit_engine
 def _laguerre_basis_jit(
     x: np.ndarray[Any, np.dtype[np.float64]], n: int
@@ -445,6 +465,7 @@ def _laguerre_basis_jit(
     if n == 3:
         return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2) * (1 - 2 * x + x**2 / 2))
     return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2))
+
 
 @njit_engine(fastmath=True, parallel=True)
 def vectorized_newton_raphson_iv_jit(
@@ -517,6 +538,7 @@ def vectorized_newton_raphson_iv_jit(
 
     return iv
 
+
 @njit_engine
 def thomas_algorithm(
     a: np.ndarray[Any, np.dtype[np.float64]],
@@ -531,6 +553,7 @@ def thomas_algorithm(
     x = np.zeros(n)
     f_thomas = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)
     return f_thomas(a, b, c, d, c_new, d_new, x)
+
 
 @njit_engine
 def thomas_algorithm_out(
@@ -560,6 +583,7 @@ def thomas_algorithm_out(
             x[i] = d_new[i] - c_new[i] * x[i + 1]
         return x
     return np.zeros(0)
+
 
 @njit_engine(fastmath=True)
 def jit_mc_european_price_and_greeks(
@@ -636,6 +660,7 @@ def jit_mc_european_price_and_greeks(
 
     return price, delta, gamma, vega, rho
 
+
 @njit_engine(fastmath=True, parallel=True)
 def batch_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, antithetic):
     """
@@ -667,6 +692,7 @@ def batch_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, 
         rhos[i] = rh
 
     return prices, deltas, gammas, vegas, rhos
+
 
 @njit_engine(fastmath=True, parallel=True)
 def jit_lsm_american(
@@ -765,6 +791,7 @@ def jit_lsm_american(
 
     return float(np.mean(cash_flows * df))
 
+
 @njit_engine
 def jit_mc_european_with_control_variate(
     S0: float,
@@ -800,6 +827,7 @@ def jit_mc_european_with_control_variate(
     # But usually this is used for complex options using a vanilla one as control.
     # Here, we just return the analytical price as a "perfect" control variate.
     return bs_analytic, 0.0  # Error is theoretically zero if control matches target
+
 
 @njit_engine(fastmath=True)
 def jit_cn_solver(
@@ -885,6 +913,7 @@ def jit_cn_solver(
 
     return V
 
+
 def warmup_jit() -> None:
     """
     Triggers JIT compilation for critical kernels by running small dummy calculations.
@@ -913,6 +942,7 @@ def warmup_jit() -> None:
 
     # Warmup American LSM
     jit_lsm_american(100.0, 100.0, 0.1, 0.05, 0.2, 0.0, 100, 10, True)
+
 
 fast_normal_cdf = fast_normal_cdf_v2
 jit_generate_log_paths = generate_log_paths_v2

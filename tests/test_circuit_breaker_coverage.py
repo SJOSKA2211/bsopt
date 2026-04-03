@@ -10,6 +10,7 @@ from src.shared.utils.circuit_breaker import (
     pricing_circuit,
 )
 
+
 @pytest.mark.asyncio
 async def test_circuit_breaker_state_transitions():
     cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
@@ -49,6 +50,7 @@ async def test_circuit_breaker_state_transitions():
     assert cb.state == CircuitState.CLOSED
     assert cb.failure_count == 0
 
+
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker():
     mock_redis = AsyncMock()
@@ -73,6 +75,7 @@ async def test_distributed_circuit_breaker():
     assert await wrapped() == "ok"
     mock_redis.delete.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_still_open():
     mock_redis = AsyncMock()
@@ -91,6 +94,7 @@ async def test_distributed_circuit_breaker_still_open():
     with pytest.raises(Exception, match="is OPEN"):
         await wrapped()
 
+
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_sync_func():
     mock_redis = AsyncMock()
@@ -107,6 +111,7 @@ async def test_distributed_circuit_breaker_sync_func():
 
     wrapped = cb(sync_func)
     assert await wrapped() == "ok"
+
 
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_fail_below_threshold():
@@ -131,6 +136,7 @@ async def test_distributed_circuit_breaker_fail_below_threshold():
     open_calls = [call for call in mock_redis.set.call_args_list if "OPEN" in str(call)]
     assert len(open_calls) == 0
 
+
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_fail():
     mock_redis = AsyncMock()
@@ -152,6 +158,7 @@ async def test_distributed_circuit_breaker_fail():
     # verify set OPEN called
     mock_redis.set.assert_any_call("dist:cb_state", "OPEN", ex=60)
 
+
 @pytest.mark.asyncio
 async def test_pricing_circuit_global():
     # Reset global state for test
@@ -171,6 +178,7 @@ async def test_pricing_circuit_global():
 
     with pytest.raises(Exception, match="is OPEN"):
         await wrapped()
+
 
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_helpers():

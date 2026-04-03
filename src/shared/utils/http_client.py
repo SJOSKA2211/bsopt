@@ -12,6 +12,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class HttpClientManager:
     _client: httpx.AsyncClient | None = None
     _semaphore: asyncio.Semaphore | None = None
@@ -49,6 +50,7 @@ class HttpClientManager:
             await cls._client.aclose()
             cls._client = None
             logger.info("closed_shared_http_client")
+
 
 def get_http_client() -> httpx.AsyncClient:
     """Dependency injection helper."""

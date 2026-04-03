@@ -11,9 +11,9 @@ import structlog
 from celery import Celery
 
 from src.config import get_settings
-from src.ingestion.router import MarketDataRouter
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
+from src.ingestion.router import MarketDataRouter
 from src.math_kernel.calibration.engine import HestonCalibrator
 from src.math_kernel.models.heston_fft import HestonParams
 from src.shared.observability import (
@@ -27,6 +27,7 @@ from src.workers.ray_workers import MathActor
 # Optimized event loop
 try:
     import uvloop
+
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
     pass
@@ -47,15 +48,17 @@ app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS
 # math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
 _math_swarm = None
 
+
 def get_math_swarm():
     """Lazy initialize the Ray swarm."""
     global _math_swarm
     if _math_swarm is None:
         RayOrchestrator.init()
-        
+
         num_workers = int(ray.cluster_resources().get("CPU", 2))
         _math_swarm = [MathActor.remote() for _ in range(num_workers)]
     return _math_swarm
+
 
 def _calibration_worker(market_data: Any) -> tuple[HestonParams, dict, dict]:
     """
@@ -67,6 +70,7 @@ def _calibration_worker(market_data: Any) -> tuple[HestonParams, dict, dict]:
     surface = calibrator.calibrate_surface(market_data)
     return params, metrics, surface
 
+
 @app.task(bind=True, max_retries=3, default_retry_delay=60)
 def recalibrate_symbol(self, symbol: str) -> dict:
     """Delegate calibration to the optimal Ray Actor."""
@@ -74,14 +78,15 @@ def recalibrate_symbol(self, symbol: str) -> dict:
         # Simple round-robin or Ray's internal scheduler can be used here
         swarm = get_math_swarm()
         if not swarm:
-             raise RuntimeError("Ray swarm not available")
-        actor = swarm[0] 
+            raise RuntimeError("Ray swarm not available")
+        actor = swarm[0]
         result = ray.get(actor.run_calibration.remote(symbol, []))
         return result
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
         # If Ray fails, fallback to the async local implementation
         return asyncio.run(_recalibrate_symbol_async(self, symbol))
+
 
 async def _recalibrate_symbol_async(self, symbol: str) -> dict:
     """
@@ -90,7 +95,7 @@ async def _recalibrate_symbol_async(self, symbol: str) -> dict:
     start_time = time.time()
     try:
         logger.info("calibration_started", symbol=symbol)
-        
+
         router = MarketDataRouter()
         market_data = await router.get_option_chain_snapshot(symbol)
 
@@ -105,37 +110,41 @@ async def _recalibrate_symbol_async(self, symbol: str) -> dict:
 
         # Store in Redis
         cache_value = {
-            'params': params.__dict__,
-            'surface': {str(k): list(v) for k, v in surface_params.items()},
-            'metrics': quality_metrics,
-            'timestamp': time.time()
+            "params": params.__dict__,
+            "surface": {str(k): list(v) for k, v in surface_params.items()},
+            "metrics": quality_metrics,
+            "timestamp": time.time(),
         }
         await async_redis_client.setex(f"heston_params:{symbol}", 600, orjson.dumps(cache_value))
-        
+
         # Persist to PostgreSQL (Async)
         async with get_async_db_context() as db:
             db_res = CalibrationResult(
                 symbol=symbol,
-                v0=params.v0, kappa=params.kappa, theta=params.theta, 
-                sigma=params.sigma, rho=params.rho,
-                rmse=quality_metrics['rmse'],
-                r_squared=quality_metrics['r_squared'],
-                num_options=quality_metrics['num_options'],
-                svi_params=cache_value['surface']
+                v0=params.v0,
+                kappa=params.kappa,
+                theta=params.theta,
+                sigma=params.sigma,
+                rho=params.rho,
+                rmse=quality_metrics["rmse"],
+                r_squared=quality_metrics["r_squared"],
+                num_options=quality_metrics["num_options"],
+                svi_params=cache_value["surface"],
             )
             db.add(db_res)
             await db.commit()
-        
+
         duration = time.time() - start_time
         CALIBRATION_DURATION.labels(symbol=symbol).observe(duration)
-        logger.info("calibration_complete", symbol=symbol, rmse=quality_metrics['rmse'])
-        return {'symbol': symbol, 'status': 'success'}
-        
+        logger.info("calibration_complete", symbol=symbol, rmse=quality_metrics["rmse"])
+        return {"symbol": symbol, "status": "success"}
+
     except Exception as exc:
         logger.error("calibration_error", symbol=symbol, error=str(exc))
         if hasattr(self, "retry"):
             raise self.retry(exc=exc, countdown=60)
         raise exc
+
 
 def health_check() -> bool:
     """Check if the math worker and its dependencies are healthy."""

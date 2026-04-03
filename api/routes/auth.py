@@ -3,7 +3,6 @@ Authentication Routes (Optimized for PG16 + Async)
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
@@ -11,7 +10,7 @@ from jwt.exceptions import PyJWTError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.exceptions import AuthenticationException, ConflictException, ValidationException
+from api.exceptions import AuthenticationException, ConflictException
 from api.responses import MsgspecJSONResponse
 from api.schemas.auth import (
     LoginRequest,
@@ -24,8 +23,8 @@ from api.schemas.auth import (
     RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
-    WebAuthnRegistrationVerificationRequest,
     WebAuthnAuthenticationVerificationRequest,
+    WebAuthnRegistrationVerificationRequest,
 )
 from api.schemas.common import DataResponse, SuccessResponse
 from api.schemas.user import UserResponse
@@ -48,7 +47,10 @@ router = APIRouter(
     default_response_class=MsgspecJSONResponse,
 )
 
-@router.post("/register", response_model=DataResponse[TokenResponse], status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/register", response_model=DataResponse[TokenResponse], status_code=status.HTTP_201_CREATED
+)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
@@ -99,6 +101,7 @@ async def register(
         message="User created in High-Performance (Legacy)",
     )
 
+
 @router.post("/login", response_model=DataResponse[LoginResponse])
 async def login(
     request: Request,
@@ -146,6 +149,7 @@ async def login(
     except Exception as e:
         logger.error(f"login_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Authentication failure")
+
 
 @router.post("/refresh", response_model=DataResponse[TokenResponse])
 async def refresh_token(
@@ -196,9 +200,11 @@ async def refresh_token(
         logger.error(f"refresh_failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Token refresh failure")
 
+
 @router.get("/me")
 async def read_users_me(user: User = Depends(get_current_active_user)):
     return DataResponse(data=UserResponse.from_orm(user))
+
 
 @router.post("/logout")
 async def logout(
@@ -213,6 +219,7 @@ async def logout(
         token = auth_header.split(" ")[1]
         await auth_service.revoke_token(token)
     return SuccessResponse(message="Successfully logged out")
+
 
 @router.post("/mfa/setup", response_model=DataResponse[MFASetupResponse])
 async def mfa_setup(
@@ -246,6 +253,7 @@ async def mfa_setup(
         )
     )
 
+
 @router.post("/mfa/verify")
 async def mfa_verify(
     data: MFAVerifyRequest,
@@ -272,7 +280,9 @@ async def mfa_verify(
 
     return SuccessResponse(message="MFA enabled successfully")
 
+
 # --- WebAuthn / Passkey Endpoints ---
+
 
 @router.get("/webauthn/register/options")
 async def get_webauthn_registration_options(
@@ -282,10 +292,9 @@ async def get_webauthn_registration_options(
     """Generate options for WebAuthn credential registration."""
     # Fetch existing credentials for exclusion
     # (Future: Implement User.credentials relationship)
-    options = auth_service.get_webauthn_registration_options(
-        str(user.id), user.email, []
-    )
+    options = auth_service.get_webauthn_registration_options(str(user.id), user.email, [])
     return DataResponse(data=options)
+
 
 @router.post("/webauthn/register/verify")
 async def verify_webauthn_registration(
@@ -298,15 +307,16 @@ async def verify_webauthn_registration(
         verification = auth_service.verify_webauthn_registration(
             data.registration_response, data.challenge
         )
-        
+
         # Store credential in DB (Future: Implement Passkey model)
         # user.add_passkey(verification.credential_id, verification.public_key)
         await db.commit()
-        
+
         return SuccessResponse(message="Passkey registered successfully")
     except Exception as e:
         logger.error(f"webauthn_registration_failed: {e}")
         raise HTTPException(status_code=400, detail="WebAuthn verification failed")
+
 
 @router.post("/webauthn/login/options")
 async def get_webauthn_login_options(
@@ -317,6 +327,7 @@ async def get_webauthn_login_options(
     # (Future: Fetch user's allowed credential IDs)
     options = auth_service.get_webauthn_authentication_options([])
     return DataResponse(data=options)
+
 
 @router.post("/webauthn/login/verify", response_model=DataResponse[LoginResponse])
 async def verify_webauthn_login(
@@ -335,10 +346,10 @@ async def verify_webauthn_login(
         # In a real impl, fetch public key and sign count from DB
         # public_key = user.get_passkey(data.authentication_response['id']).public_key
         # sign_count = user.get_passkey(data.authentication_response['id']).sign_count
-        
+
         # auth_service.verify_webauthn_authentication(...)
-        pass 
-        
+        pass
+
         tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
         return DataResponse(
             data=LoginResponse(
@@ -355,6 +366,7 @@ async def verify_webauthn_login(
     except Exception as e:
         logger.error(f"webauthn_login_failed: {e}")
         raise AuthenticationException(message="Passkey verification failed")
+
 
 @router.post("/password/change")
 async def change_password(
@@ -379,6 +391,7 @@ async def change_password(
     await db.commit()
 
     return SuccessResponse(message="Password changed successfully")
+
 
 @router.post("/password/reset")
 async def request_password_reset(
@@ -406,6 +419,7 @@ async def request_password_reset(
     return SuccessResponse(
         message="If the email is registered, a reset link has been sent.",
     )
+
 
 @router.post("/password/reset/confirm")
 async def reset_password_confirm(
@@ -435,9 +449,11 @@ async def reset_password_confirm(
 
     return SuccessResponse(message="Password has been reset successfully")
 
+
 # ---------------------------------------------------------------------------
 # Internal Helpers
 # ---------------------------------------------------------------------------
+
 
 async def _send_verification_email(email: str, token: str) -> None:
     """
@@ -455,6 +471,7 @@ async def _send_verification_email(email: str, token: str) -> None:
         template_name="verification_email.html",
         context={"verification_link": verification_link, "email": email},
     )
+
 
 async def _send_password_reset_email(email: str, token: str) -> None:
     """

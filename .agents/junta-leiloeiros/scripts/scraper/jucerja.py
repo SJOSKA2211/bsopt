@@ -10,11 +10,11 @@ Estrutura HTML: <ul class="ats-listaLnks ats-container--estrutura">
 Total: ~334 leiloeiros (108 Regular + 132 Cancelados + 94 outros)
 67 paginas x 5 registros/pagina com SituacaoFuncionalId em branco
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -29,7 +29,7 @@ class JucerjaScraper(AbstractJuntaScraper):
     # Endpoint AJAX real da paginacao (descoberto em 2026-02-25)
     _PAGINAR_URL = "https://www.jucerja.rj.gov.br/AuxiliaresComercio/FiltrarLeiloeiros"
 
-    def _parse_lista(self, soup) -> List[dict]:
+    def _parse_lista(self, soup) -> list[dict]:
         """
         Extrai leiloeiros da lista HTML.
         Estrutura: <ul class="ats-listaLnks"> com <li> contendo <h5> (label) e <h6> (valor).
@@ -37,7 +37,9 @@ class JucerjaScraper(AbstractJuntaScraper):
         records = []
 
         # Seletor primario: li dentro da lista de leiloeiros
-        items = soup.select("ul.ats-listaLnks li, ul.ats-container--estrutura li, #listaLeiloeiros li, .listagemLeiloeiros li")
+        items = soup.select(
+            "ul.ats-listaLnks li, ul.ats-container--estrutura li, #listaLeiloeiros li, .listagemLeiloeiros li"
+        )
         if not items:
             # Fallback: qualquer li com h5 e h6
             items = [li for li in soup.find_all("li") if li.find("h5") and li.find("h6")]
@@ -65,27 +67,30 @@ class JucerjaScraper(AbstractJuntaScraper):
             if not nome or len(nome) < 3:
                 continue
 
-            records.append({
-                "nome": nome,
-                "matricula": get_val("matr", "registro", "nº matr", "n° matr"),
-                "situacao": get_val("situ", "funcional", "status"),
-                "municipio": get_val("munic", "cidade"),
-                "telefone": get_val("tel", "fone"),
-                "email": get_val("email", "e-mail"),
-                "endereco": get_val("ender", "logr", "rua", "endere"),
-                "data_registro": get_val("data matrícula", "posse", "data"),
-            })
+            records.append(
+                {
+                    "nome": nome,
+                    "matricula": get_val("matr", "registro", "nº matr", "n° matr"),
+                    "situacao": get_val("situ", "funcional", "status"),
+                    "municipio": get_val("munic", "cidade"),
+                    "telefone": get_val("tel", "fone"),
+                    "email": get_val("email", "e-mail"),
+                    "endereco": get_val("ender", "logr", "rua", "endere"),
+                    "data_registro": get_val("data matrícula", "posse", "data"),
+                }
+            )
 
         return records
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         """
         Coleta todos os leiloeiros via endpoint AJAX de paginacao.
         GET /AuxiliaresComercio/FiltrarLeiloeiros?pagina=N&ordenacao=matricula&SituacaoFuncionalId=
         Pagina 5 registros por vez; SituacaoFuncionalId em branco = todos os status.
         """
         import httpx
-        results: List[Leiloeiro] = []
+
+        results: list[Leiloeiro] = []
         pagina = 1
         seen_names: set = set()
 
@@ -113,13 +118,16 @@ class JucerjaScraper(AbstractJuntaScraper):
                     try:
                         resp = await client.get(url_pagina)
                         if resp.status_code >= 400:
-                            logger.warning("[RJ] Pagina %d retornou HTTP %d", pagina, resp.status_code)
+                            logger.warning(
+                                "[RJ] Pagina %d retornou HTTP %d", pagina, resp.status_code
+                            )
                             break
                     except Exception as exc:
                         logger.error("[RJ] Erro na pagina %d: %s", pagina, exc)
                         break
 
                     from bs4 import BeautifulSoup
+
                     soup = BeautifulSoup(resp.text, "lxml")
                     page_records = self._parse_lista(soup)
 

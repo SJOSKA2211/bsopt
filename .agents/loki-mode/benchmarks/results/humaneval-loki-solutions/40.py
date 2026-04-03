@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def triples_sum_to_zero(l: list):
     """
     triples_sum_to_zero takes a list of integers as an input.
@@ -23,14 +24,14 @@ def triples_sum_to_zero(l: list):
     n = len(l)
     if n < 3:
         return False
-    
+
     sorted_list = sorted(l)
-    
+
     for i in range(n - 2):
         target = -sorted_list[i]
         left = i + 1
         right = n - 1
-        
+
         while left < right:
             current_sum = sorted_list[left] + sorted_list[right]
             if current_sum == target:
@@ -39,5 +40,5 @@ def triples_sum_to_zero(l: list):
                 left += 1
             else:
                 right -= 1
-    
+
     return False

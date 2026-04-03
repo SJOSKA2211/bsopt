@@ -19,13 +19,13 @@ from api.responses import MsgspecJSONResponse
 from api.routes import (
     auth_router,
     debug_router,
+    market_router,
     ml_router,
     options_router,
     portfolio_router,
     pricing_router,
     users_router,
     websocket_router,
-    market_router,
 )
 from src.auth.auth import RoleChecker
 from src.config import settings
@@ -34,17 +34,20 @@ from src.shared.observability import logging_middleware, start_system_metrics_lo
 # Initialize logging
 logger = structlog.get_logger()
 
+
 def get_context(request: Request) -> dict[str, Any]:
     """GraphQL Context factory."""
     if os.getenv("TESTING") == "true":
         return {}
     return {"request": request}
 
+
 # Optimized event loop
 try:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except (ImportError, AttributeError):
     pass
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -95,6 +98,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await close_redis_cache()
     logger.info("api_shutdown_complete_database_engines_disposed")
 
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     default_response_class=MsgspecJSONResponse,
@@ -120,6 +124,7 @@ app.add_middleware(
 app.middleware("http")(logging_middleware)
 
 app.add_middleware(ZeroTrustMiddleware)
+
 
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSONResponse:
@@ -167,6 +172,7 @@ async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSON
         },
     )
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
@@ -176,6 +182,7 @@ async def validation_exception_handler(
         status_code=422,
         content={"detail": exc.errors(), "body": exc.body},
     )
+
 
 app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
@@ -199,13 +206,14 @@ if settings.ENVIRONMENT not in ("prod", "production"):
 app.include_router(api_router)
 app.include_router(graphql_app, prefix="/graphql")
 
+
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health() -> dict[str, Any]:
     from src.database import health_check
     from src.math_kernel.rust_engine import is_rust_available
     from src.shared.utils.cache import get_redis
-    
+
     redis_status = "unhealthy"
     try:
         redis = get_redis()
@@ -215,7 +223,7 @@ async def health() -> dict[str, Any]:
         pass
 
     db_health = await health_check()
-    
+
     return {
         "status": "healthy",
         "database": db_health,
@@ -226,13 +234,16 @@ async def health() -> dict[str, Any]:
         },
     }
 
+
 @app.get("/api/diagnostics/imports")
 async def diagnostics_imports() -> dict[str, bool]:
     return {"successful_imports": True}
 
+
 @app.get("/admin-only")
 async def admin_only(user: dict[str, Any] = Depends(RoleChecker(["admin"]))) -> dict[str, str]:
     return {"message": "Welcome, Admin"}
+
 
 @app.get("/metrics")
 async def metrics(request: Request) -> Response:
@@ -241,12 +252,15 @@ async def metrics(request: Request) -> Response:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             from api.responses import MsgspecJSONResponse
+
             return MsgspecJSONResponse(status_code=401, content={"detail": "Not authenticated"})
-    
+
     from src.math_kernel.rust_engine import get_rust_metrics
+
     python_metrics = generate_latest().decode("utf-8")
     rust_metrics = get_rust_metrics()
     return Response(content=f"{python_metrics}\n{rust_metrics}", media_type=CONTENT_TYPE_LATEST)
+
 
 @app.get("/")
 async def root() -> dict[str, str]:

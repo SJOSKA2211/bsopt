@@ -9,32 +9,40 @@ Uso:
     python run_audit.py --history           # Ver historico de auditorias
     python run_audit.py --format json       # Output em JSON
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Garantir que o diretorio scripts esta no path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import DIMENSION_WEIGHTS, get_score_label
+import cost_optimizer
+import recommender
+
+# Importar analyzers
+from analyzers import (
+    code_quality,
+    dependencies,
+    documentation,
+    governance_audit,
+    performance,
+    security,
+)
+from analyzers import cross_skill as cross_skill_analyzer
 from db import Database
 from governance import SentinelGovernance
 from report_generator import generate_report, save_report
 from scanner import SkillScanner
 
-# Importar analyzers
-from analyzers import code_quality, security, performance
-from analyzers import governance_audit, documentation, dependencies
-from analyzers import cross_skill as cross_skill_analyzer
-import cost_optimizer
-import recommender
+from config import DIMENSION_WEIGHTS, get_score_label
 
 
-def _compute_overall_score(scores: Dict[str, float]) -> float:
+def _compute_overall_score(scores: dict[str, float]) -> float:
     """Calcula score composto ponderado."""
     total = 0.0
     weight_sum = 0.0
@@ -47,9 +55,9 @@ def _compute_overall_score(scores: Dict[str, float]) -> float:
     return total / weight_sum
 
 
-def _run_analyzers(skill_data: Dict[str, Any]) -> Dict[str, Any]:
+def _run_analyzers(skill_data: dict[str, Any]) -> dict[str, Any]:
     """Executa todos os analyzers em uma skill e retorna resultados."""
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         "scores": {},
         "findings": [],
     }
@@ -79,11 +87,11 @@ def _run_analyzers(skill_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def run_audit(
-    skill_filter: Optional[str] = None,
+    skill_filter: str | None = None,
     include_recommendations: bool = True,
     compare_previous: bool = False,
     output_format: str = "markdown",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Executa auditoria completa. Retorna dict com resultados.
     """
@@ -167,8 +175,11 @@ def run_audit(
 
     # Gerar relatorio
     report_content = generate_report(
-        all_snapshots, all_findings, all_recommendations,
-        ecosystem_score, previous_snapshots,
+        all_snapshots,
+        all_findings,
+        all_recommendations,
+        ecosystem_score,
+        previous_snapshots,
     )
     report_path = save_report(report_content)
 
@@ -208,9 +219,11 @@ def show_history(db: Database) -> None:
     for r in runs:
         score = r.get("overall_score")
         score_str = f"{score:.0f}/100" if score else "N/A"
-        print(f"  #{r['id']} | {r['started_at'][:19]} | "
-              f"{r['status']:10s} | Score: {score_str} | "
-              f"Skills: {r['skills_scanned']} | Findings: {r['total_findings']}")
+        print(
+            f"  #{r['id']} | {r['started_at'][:19]} | "
+            f"{r['status']:10s} | Score: {score_str} | "
+            f"Skills: {r['skills_scanned']} | Findings: {r['total_findings']}"
+        )
 
 
 def main():
@@ -228,10 +241,14 @@ Exemplos:
         """,
     )
     parser.add_argument("--skill", help="Auditar apenas esta skill")
-    parser.add_argument("--recommend", action="store_true", help="Apenas gap analysis e recomendacoes")
+    parser.add_argument(
+        "--recommend", action="store_true", help="Apenas gap analysis e recomendacoes"
+    )
     parser.add_argument("--compare", action="store_true", help="Comparar com auditoria anterior")
     parser.add_argument("--history", action="store_true", help="Mostrar historico de auditorias")
-    parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Formato de output")
+    parser.add_argument(
+        "--format", choices=["markdown", "json"], default="markdown", help="Formato de output"
+    )
 
     args = parser.parse_args()
 
@@ -256,21 +273,21 @@ Exemplos:
         print(json.dumps(result, indent=2, ensure_ascii=False, default=str))
     else:
         # Exibir resumo no terminal
-        print(f"\n{'='*60}")
-        print(f"  SENTINEL - Auditoria do Ecossistema")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("  SENTINEL - Auditoria do Ecossistema")
+        print(f"{'=' * 60}")
         print(f"  Skills analisadas: {result['skills_scanned']}")
         print(f"  Score geral: {result['overall_score']:.0f}/100 ({result['score_label']})")
         print(f"  Total de findings: {result['total_findings']}")
 
         if result.get("findings_by_severity"):
-            print(f"\n  Por severidade:")
+            print("\n  Por severidade:")
             for sev in ["critical", "high", "medium", "low", "info"]:
                 count = result["findings_by_severity"].get(sev, 0)
                 if count:
                     print(f"    {sev:10s}: {count}")
 
-        print(f"\n  Scores por skill:")
+        print("\n  Scores por skill:")
         for snap in result.get("snapshots", []):
             name = snap["skill_name"]
             score = snap["overall_score"]
@@ -283,7 +300,7 @@ Exemplos:
                 print(f"    [{rec.get('priority', '?'):6s}] {rec['suggested_name']}")
 
         print(f"\n  Relatorio completo: {result['report_path']}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

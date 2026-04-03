@@ -1,28 +1,29 @@
 import asyncio
+import json
+import os
 
 import grpc
+import Manifold_core
 import structlog
 
-import Manifold_core
-import os
-import json
 from src.shared.protos import market_data_pb2, market_data_pb2_grpc
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
+
 
 class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
     def __init__(self):
         self.rmq = get_rabbitmq()
         self.last_price_cache = {}
         self.quarantine_path = "/tmp/ingestion_quarantine.bin"
-        
+
         # Initialize High-Throughput Native Engine
         try:
             if Manifold_core:
                 self.native_ingest = Manifold_core.PyNativeIngest(
-                    "0.0.0.0:5555", # High-speed UDP port
-                    self.quarantine_path
+                    "0.0.0.0:5555",  # High-speed UDP port
+                    self.quarantine_path,
                 )
                 self.native_ingest.start()
                 logger.info("native_ingest_engine_started", addr="0.0.0.0:5555")
@@ -50,6 +51,7 @@ class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
             valid_mask = [True] * n
             if Manifold_core:
                 import numpy as np
+
                 p_arr = np.array(prices, dtype=np.float64)
                 lp_arr = np.array(last_prices, dtype=np.float64)
                 valid_mask = Manifold_core.batch_validate_ticks(p_arr, lp_arr)
@@ -57,19 +59,23 @@ class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
             batch = []
             for i, tick in enumerate(request.ticks):
                 if not valid_mask[i]:
-                    logger.warning("ingestion_tick_rejected_outlier", ticker=tick.ticker, price=tick.price)
+                    logger.warning(
+                        "ingestion_tick_rejected_outlier", ticker=tick.ticker, price=tick.price
+                    )
                     continue
-                
+
                 price = prices[i]
                 ticker = tick.ticker
                 self.last_price_cache[ticker] = price
-                
-                batch.append({
-                    "time": float(tick.timestamp),
-                    "symbol": ticker,
-                    "last": price,
-                    "source": tick.source,
-                })
+
+                batch.append(
+                    {
+                        "time": float(tick.timestamp),
+                        "symbol": ticker,
+                        "last": price,
+                        "source": tick.source,
+                    }
+                )
 
             # 3. Optimized Asynchronous Publishing
             if batch:
@@ -123,6 +129,7 @@ class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
             context.set_details(str(e))
             return market_data_pb2.HistoryResponse()
 
+
 async def serve():
     server = grpc.aio.server()
     servicer = DataIngestionServicer()
@@ -135,6 +142,7 @@ async def serve():
     # Heartbeat task
     async def heartbeat():
         import time
+
         while True:
             try:
                 metrics = {}
@@ -143,19 +151,17 @@ async def serve():
                     metrics = json.loads(metrics_str)
 
                 with open("/tmp/ingestion_heartbeat", "w") as f:
-                    heartbeat_data = {
-                        "time": time.time(),
-                        "metrics": metrics
-                    }
+                    heartbeat_data = {"time": time.time(), "metrics": metrics}
                     f.write(json.dumps(heartbeat_data))
                     # Ensure the file is flushed
-                    os.fsync(f.fileno()) if hasattr(os, 'fsync') else None
+                    os.fsync(f.fileno()) if hasattr(os, "fsync") else None
             except Exception as e:
                 logger.error("heartbeat_failed", error=str(e))
-            await asyncio.sleep(5) # Frequent heartbeats for high-throughput monitoring
+            await asyncio.sleep(5)  # Frequent heartbeats for high-throughput monitoring
 
     asyncio.create_task(heartbeat())
     await server.wait_for_termination()
+
 
 if __name__ == "__main__":
     asyncio.run(serve())

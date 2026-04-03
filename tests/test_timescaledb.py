@@ -9,6 +9,7 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL_SYNC", "postgresql://admin:29a47839acf362c9ebb5679a@postgres:5432/bsopt"
 )
 
+
 def is_db_available():
     try:
         conn = psycopg2.connect(DATABASE_URL, connect_timeout=1)
@@ -16,6 +17,7 @@ def is_db_available():
         return True
     except Exception:
         return False
+
 
 @pytest.fixture(scope="module")
 def db_conn():
@@ -26,6 +28,7 @@ def db_conn():
     yield conn
     conn.close()
 
+
 def test_hypertables_exist(db_conn):
     with db_conn.cursor() as cur:
         cur.execute("SELECT hypertable_name FROM timescaledb_information.hypertables;")
@@ -33,6 +36,7 @@ def test_hypertables_exist(db_conn):
         assert "options_prices" in hypertables
         assert "model_predictions" in hypertables
         assert "market_ticks" in hypertables
+
 
 def test_continuous_aggregates_exist(db_conn):
     with db_conn.cursor() as cur:
@@ -43,6 +47,7 @@ def test_continuous_aggregates_exist(db_conn):
         assert "hourly_stats_chained_cagg" in views
         assert "daily_stats_chained_cagg" in views
         assert "greeks_drift_cagg" in views
+
 
 def test_insert_and_aggregate(db_conn):
     with db_conn.cursor() as cur:
@@ -101,6 +106,7 @@ def test_insert_and_aggregate(db_conn):
         assert row[0] == "TEST_AAPL"
         assert float(row[1]) == 10.75
         assert row[2] == 300
+
 
 def test_model_predictions_aggregate(db_conn):
     with db_conn.cursor() as cur:

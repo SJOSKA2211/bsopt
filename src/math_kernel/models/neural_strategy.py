@@ -8,6 +8,7 @@ from src.math_kernel.models import BSParameters, OptionGreeks
 
 logger = structlog.get_logger(__name__)
 
+
 class NeuralPricingStrategy(PricingStrategy):
     """
     OPTIMIZED: Neural Network based pricing using ONNX Runtime.

@@ -18,10 +18,10 @@ Usage:
     python package_skill.py --all --output "C:\\Users\\renat\\Desktop"
 """
 
-import os
-import sys
 import json
+import os
 import re
+import sys
 import zipfile
 from pathlib import Path
 
@@ -32,23 +32,41 @@ DEFAULT_OUTPUT = Path(os.path.expanduser("~")) / "Desktop"
 
 # Directories to exclude from ZIP
 EXCLUDE_DIRS = {
-    ".git", "__pycache__", "node_modules", ".venv", "venv",
-    ".tox", ".mypy_cache", ".pytest_cache", "data",
+    ".git",
+    "__pycache__",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".tox",
+    ".mypy_cache",
+    ".pytest_cache",
+    "data",
 }
 
 # File patterns to exclude
 EXCLUDE_FILES = {
-    ".env", ".gitignore", ".DS_Store", "Thumbs.db",
-    "credentials.json", "token.json",
+    ".env",
+    ".gitignore",
+    ".DS_Store",
+    "Thumbs.db",
+    "credentials.json",
+    "token.json",
 }
 
 EXCLUDE_EXTENSIONS = {
-    ".pyc", ".pyo", ".db", ".sqlite", ".sqlite3",
-    ".log", ".tmp", ".bak",
+    ".pyc",
+    ".pyo",
+    ".db",
+    ".sqlite",
+    ".sqlite3",
+    ".log",
+    ".tmp",
+    ".bak",
 }
 
 
 # ── YAML Frontmatter Parser ───────────────────────────────────────────────
+
 
 def parse_yaml_frontmatter(path: Path) -> dict:
     """Extract YAML frontmatter from a SKILL.md file."""
@@ -63,6 +81,7 @@ def parse_yaml_frontmatter(path: Path) -> dict:
 
     try:
         import yaml
+
         return yaml.safe_load(match.group(1)) or {}
     except Exception:
         result = {}
@@ -72,9 +91,7 @@ def parse_yaml_frontmatter(path: Path) -> dict:
             if m:
                 result[key] = m.group(1).strip()
             else:
-                m2 = re.search(
-                    rf'^{key}:\s*>-?\s*\n((?:\s+.+\n?)+)', block, re.MULTILINE
-                )
+                m2 = re.search(rf"^{key}:\s*>-?\s*\n((?:\s+.+\n?)+)", block, re.MULTILINE)
                 if m2:
                     lines = m2.group(1).strip().split("\n")
                     result[key] = " ".join(line.strip() for line in lines)
@@ -82,6 +99,7 @@ def parse_yaml_frontmatter(path: Path) -> dict:
 
 
 # ── Validation ─────────────────────────────────────────────────────────────
+
 
 def validate_for_web(skill_dir: Path) -> dict:
     """Validate skill meets Claude.ai web upload requirements."""
@@ -104,14 +122,16 @@ def validate_for_web(skill_dir: Path) -> dict:
             warnings.append(f"Name '{name}' should be lowercase: '{name.lower()}'")
         name_lower = name.lower()
         if len(name_lower) == 1:
-            if not re.match(r'^[a-z0-9]$', name_lower):
+            if not re.match(r"^[a-z0-9]$", name_lower):
                 warnings.append(f"Name '{name}' should only contain lowercase letters or numbers")
-        elif not re.match(r'^[a-z0-9][a-z0-9-]*[a-z0-9]$', name_lower):
-            warnings.append(f"Name '{name}' should only contain lowercase letters, numbers, and hyphens")
+        elif not re.match(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$", name_lower):
+            warnings.append(
+                f"Name '{name}' should only contain lowercase letters, numbers, and hyphens"
+            )
         if len(name) > 64:
             errors.append(f"Name exceeds 64 characters: {len(name)}")
         if "anthropic" in name_lower or "claude" in name_lower:
-            errors.append(f"Name cannot contain reserved words 'anthropic' or 'claude'")
+            errors.append("Name cannot contain reserved words 'anthropic' or 'claude'")
 
     # Description: required, max 1024 chars
     desc = meta.get("description", "")
@@ -150,6 +170,7 @@ def should_include(file_path: Path, skill_dir: Path) -> bool:
 
 
 # ── Packaging ──────────────────────────────────────────────────────────────
+
 
 def package_skill(skill_dir: Path, output_dir: Path = None) -> dict:
     """
@@ -293,6 +314,7 @@ def package_all(output_dir: Path = None) -> dict:
 
 # ── Verify Existing ZIPs ──────────────────────────────────────────────────
 
+
 def verify_zips(output_dir: Path = None) -> dict:
     """Verify all existing skill ZIPs for integrity.
 
@@ -366,6 +388,7 @@ def verify_zips(output_dir: Path = None) -> dict:
 
 # ── CLI Entry Point ───────────────────────────────────────────────────────
 
+
 def main():
     args = sys.argv[1:]
 
@@ -390,17 +413,22 @@ def main():
         sys.exit(0 if result["invalid"] == 0 else 1)
 
     if not source and not do_all:
-        print(json.dumps({
-            "error": "Usage: python package_skill.py <command>",
-            "commands": {
-                "--source <path>": "Package a single skill",
-                "--source <path> --output <dir>": "Package to specific directory",
-                "--all": "Package all installed skills",
-                "--all --output <dir>": "Package all to specific directory",
-                "--verify": "Verify integrity of all existing ZIPs",
-                "--verify --output <dir>": "Verify ZIPs in specific directory",
-            },
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "error": "Usage: python package_skill.py <command>",
+                    "commands": {
+                        "--source <path>": "Package a single skill",
+                        "--source <path> --output <dir>": "Package to specific directory",
+                        "--all": "Package all installed skills",
+                        "--all --output <dir>": "Package all to specific directory",
+                        "--verify": "Verify integrity of all existing ZIPs",
+                        "--verify --output <dir>": "Verify ZIPs in specific directory",
+                    },
+                },
+                indent=2,
+            )
+        )
         sys.exit(1)
 
     if source:

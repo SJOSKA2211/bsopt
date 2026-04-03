@@ -11,6 +11,7 @@ from fastapi import HTTPException
 
 # Removed unused import for RoleChecker, get_jwks, jwks_cache, verify_token
 
+
 # Helper to generate RSA keys for testing
 def generate_rsa_keys():
     private_key = rsa.generate_private_key(
@@ -40,10 +41,12 @@ def generate_rsa_keys():
 
     return private_pem, n, e
 
+
 PRIVATE_PEM, N, E = generate_rsa_keys()
 
 MOCK_KEY = {"kty": "RSA", "kid": "test_kid", "use": "sig", "n": N, "e": E}
 MOCK_JWKS = {"keys": [MOCK_KEY]}
+
 
 @pytest.mark.asyncio
 async def test_get_jwks_success():
@@ -61,6 +64,7 @@ async def test_get_jwks_success():
         assert keys_cached == MOCK_JWKS
         assert mock_get.call_count == 1
 
+
 @pytest.mark.asyncio
 async def test_verify_token_success():
     payload = {"sub": "user123", "aud": "account", "realm_access": {"roles": ["admin"]}}
@@ -69,6 +73,7 @@ async def test_verify_token_success():
     with patch("src.auth.security.get_jwks", return_value=MOCK_JWKS):
         verified_payload = await verify_token(token)
         assert verified_payload["sub"] == "user123"
+
 
 @pytest.mark.asyncio
 async def test_verify_token_invalid_kid():
@@ -79,6 +84,7 @@ async def test_verify_token_invalid_kid():
         with pytest.raises(HTTPException) as exc:
             await verify_token(token)
         assert exc.value.status_code == 401
+
 
 @pytest.mark.asyncio
 async def test_verify_token_jwt_error():
@@ -94,11 +100,13 @@ async def test_verify_token_jwt_error():
             await verify_token(token)
         assert exc.value.status_code == 401
 
+
 def test_role_checker_success():
     checker = RoleChecker(allowed_roles=["admin"])
     payload = {"sub": "user123", "realm_access": {"roles": ["user", "admin"]}}
     result = checker(payload)
     assert result == payload
+
 
 def test_role_checker_failure():
     checker = RoleChecker(allowed_roles=["admin"])

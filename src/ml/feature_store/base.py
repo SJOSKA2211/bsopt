@@ -5,6 +5,7 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class Feature(ABC):
     """
     Abstract base class for a single feature definition.
@@ -20,6 +21,7 @@ class Feature(ABC):
         Apply the transformation logic to generate the feature.
         """
         pass
+
 
 class FeatureStore(ABC):
     """

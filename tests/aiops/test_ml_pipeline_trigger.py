@@ -4,6 +4,7 @@ import pytest
 
 from src.ml.aiops.ml_pipeline_trigger import MLPipelineTrigger  # Assuming this path
 
+
 @patch("src.ml.aiops.ml_pipeline_trigger.logger")
 @patch("src.ml.aiops.ml_pipeline_trigger.AutonomousMLPipeline")
 class TestMLPipelineTrigger:

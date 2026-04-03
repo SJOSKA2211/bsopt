@@ -26,6 +26,7 @@ logger = structlog.get_logger(__name__)
 
 _redis: Redis | None = None
 
+
 def get_redis() -> Redis | None:
     """Get or initialize the global Redis client instance."""
     global _redis
@@ -33,7 +34,6 @@ def get_redis() -> Redis | None:
         from src.shared.config import settings
 
         try:
-            
             _redis = Redis.from_url(
                 settings.REDIS_URL,
                 decode_responses=False,
@@ -49,6 +49,7 @@ def get_redis() -> Redis | None:
             return None
     return _redis
 
+
 def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -> str:
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
@@ -56,6 +57,7 @@ def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -
     # msgspec is the fastest serialization library available for Python
     param_json = msgspec.json.encode(kwargs)
     return f"{prefix}:{hashlib.sha256(param_json).hexdigest()}"
+
 
 class PricingCache:
     async def get_option_price(
@@ -96,6 +98,7 @@ class PricingCache:
     async def get_greeks(self, params: "BSParameters", option_type: str) -> "OptionGreeks | None":
         """Retrieve cached Greeks."""
         from src.math_kernel.models import OptionGreeks
+
         redis = get_redis()
         if redis is None:
             return None
@@ -128,6 +131,7 @@ class PricingCache:
         except Exception as e:
             logger.error("cache_set_greeks_failed", error=str(e), key=key)
             return False
+
 
 def multi_layer_cache(
     prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None
@@ -166,7 +170,6 @@ def multi_layer_cache(
 
             if redis:
                 try:
-                    
                     pipe = redis.pipeline()
                     pipe.get(cache_key)
                     pipe.pttl(cache_key)
@@ -201,7 +204,6 @@ def multi_layer_cache(
             l1_cache[cache_key] = result
             if redis:
                 try:
-                    
                     await redis.setex(cache_key, 3600, msgspec.json.encode(result))
                 except Exception as e:
                     logger.warning("l2_cache_write_failed", error=str(e))
@@ -212,16 +214,19 @@ def multi_layer_cache(
 
     return decorator
 
+
 class RateLimitTier(StrEnum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"
+
 
 @dataclass
 class RateLimitConfig:
     requests_per_minute: int
     pricing_requests_per_minute: int
     burst_size: int
+
 
 RATE_LIMIT_CONFIGS = {
     RateLimitTier.FREE: RateLimitConfig(100, 50, 10),
@@ -230,6 +235,7 @@ RATE_LIMIT_CONFIGS = {
 }
 
 pricing_cache = PricingCache()
+
 
 class RateLimiter:
     async def check_rate_limit(
@@ -324,7 +330,9 @@ class RateLimiter:
             logger.error("db_rate_limit_fallback_failed", error=str(e), user_id=user_id)
             return True  # Fail open
 
+
 rate_limiter = RateLimiter()
+
 
 async def warm_cache() -> None:
     """Pre-warm cache with common option parameters in parallel."""
@@ -343,6 +351,7 @@ async def warm_cache() -> None:
             for t in maturities:
                 for v in vols:
                     from src.math_kernel.models import BSParameters
+
                     params = BSParameters(s, k, t, v, 0.05, 0.02)
                     price = BlackScholesEngine.price_options(
                         spot=s,
@@ -361,6 +370,7 @@ async def warm_cache() -> None:
         await asyncio.gather(*tasks)
     logger.info("warming_cache_complete", count=len(tasks))
 
+
 class IdempotencyManager:
     PREFIX = "idem:"
 
@@ -378,7 +388,9 @@ class IdempotencyManager:
         result = await redis.set(full_key, "1", ex=ttl, nx=True)
         return bool(result)
 
+
 idempotency_manager = IdempotencyManager()
+
 
 class DatabaseQueryCache:
     PREFIX = "db:"
@@ -423,16 +435,20 @@ class DatabaseQueryCache:
         if redis is None:
             return False
         try:
-            await redis.setex(f"{self.PREFIX}api_key:{key_hash}", ttl, msgspec.json.encode(key_data))
+            await redis.setex(
+                f"{self.PREFIX}api_key:{key_hash}", ttl, msgspec.json.encode(key_data)
+            )
             return True
         except Exception as e:
             logger.error("db_cache_set_api_key_failed", error=str(e), key_hash=key_hash[:10])
             return False
 
+
 db_cache = DatabaseQueryCache()
 
 # --- Real-time updates support ---
 redis_channel_updates: str = "pricing_updates"
+
 
 async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
     """Publish a message to a Redis channel using msgspec."""
@@ -444,6 +460,7 @@ async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
             logger.debug("redis_publish_success", channel=channel)
         except Exception as e:
             logger.error("redis_publish_failed", error=str(e), channel=channel)
+
 
 class RedisStreamManager:
     """
@@ -511,7 +528,9 @@ class RedisStreamManager:
             logger.error("redis_xack_failed", error=str(e), stream=stream)
             return 0
 
+
 stream_manager = RedisStreamManager()
+
 
 async def get_redis_client() -> Redis:
     """FastAPI dependency to get the Redis client."""
@@ -522,9 +541,11 @@ async def get_redis_client() -> Redis:
         raise HTTPException(status_code=500, detail="Redis client not initialized")
     return redis
 
+
 async def init_redis_cache(**kwargs: Any) -> None:
     """Initialize the Redis cache during startup."""
     import os
+
     if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
         logger.info("redis_cache_initialized_mock", details="Bypassed via BSOPT_ALLOW_WEAK_SECRETS")
         return
@@ -537,6 +558,7 @@ async def init_redis_cache(**kwargs: Any) -> None:
         except Exception as e:
             logger.error("redis_cache_init_failed", error=str(e))
 
+
 async def close_redis_cache() -> None:
     """Close the Redis client connection."""
     global _redis
@@ -548,9 +570,10 @@ async def close_redis_cache() -> None:
         except Exception as e:
             logger.error("redis_cache_close_failed", error=str(e))
 
+
 def generate_consistent_key(request: Any, prefix: str) -> str:
     """Generate a high-performance consistent cache key for HTTP requests."""
-    
+
     params = sorted(request.query_params.items())
 
     # Use blake2b for faster hashing than sha256
@@ -561,7 +584,10 @@ def generate_consistent_key(request: Any, prefix: str) -> str:
 
     return f"{prefix}:{hasher.hexdigest()}"
 
-def cached_endpoint(prefix: str = "api_cache", ttl: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+
+def cached_endpoint(
+    prefix: str = "api_cache", ttl: int = 60
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator for FastAPI endpoints with Response-aware caching.
     """
@@ -600,7 +626,6 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60) -> Callable[[Calla
             try:
                 data = None
                 if isinstance(response, Response):
-                    
                     data = response.body
                 elif hasattr(response, "model_dump_json"):
                     data = response.model_dump_json().encode()

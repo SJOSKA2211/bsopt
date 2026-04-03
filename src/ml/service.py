@@ -18,6 +18,7 @@ from src.shared.protos import inference_pb2, inference_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
+
 class MLService:
     """
     Enhanced ML pricing service with automated hypertable persistence.
@@ -143,7 +144,9 @@ class MLService:
             self._channel = None
             self._stub = None
 
+
 _ml_service_instance: MLService | None = None
+
 
 def get_ml_service() -> MLService:
     """Returns the singleton MLService instance."""

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
 
+
 def test_structured_logger_full():
     sl = StructuredLogger("test_logger")
     sl.set_default_fields(app="bsopt")
@@ -31,6 +32,7 @@ def test_structured_logger_full():
         assert mock_error.call_count == 2
         assert mock_crit.called
 
+
 def test_request_logging_internals():
     middleware = RequestLoggingMiddleware(MagicMock())
 
@@ -53,6 +55,7 @@ def test_request_logging_internals():
     assert truncated.startswith("12345")
     assert "[truncated" in truncated
 
+
 def test_request_logging_middleware_basic():
     app = FastAPI()
     app.add_middleware(RequestLoggingMiddleware, persist_to_db=False)
@@ -65,6 +68,7 @@ def test_request_logging_middleware_basic():
     with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         client.get("/test")
         assert mock_log.called
+
 
 def test_request_logging_malformed_json():
     app = FastAPI()
@@ -81,6 +85,7 @@ def test_request_logging_malformed_json():
         assert response.status_code == 200
         log_entry = json.loads(mock_log.call_args[0][1])
         assert log_entry["body"] == "not a json"
+
 
 def test_request_logging_user_info():
     app = FastAPI()
@@ -109,6 +114,7 @@ def test_request_logging_user_info():
         log_entry = json.loads(mock_log.call_args[0][1])
         assert log_entry["user_email"] == "user@test.com"
 
+
 @patch("src.database.get_session")
 def test_persist_log_full(mock_get_session):
     with patch("src.database.models.RequestLog"):
@@ -134,6 +140,7 @@ def test_persist_log_full(mock_get_session):
 
         mock_session.add.assert_called()
         mock_session.commit.assert_called()
+
 
 def test_request_logging_error_capture():
     app = FastAPI()

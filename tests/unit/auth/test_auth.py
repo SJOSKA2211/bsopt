@@ -15,6 +15,7 @@ TEST_EMAIL = "test_auth_unique_2025@example.com"
 TEST_PASSWORD = "Short_Secure_Pass_123!"
 TEST_NAME = "Test User"
 
+
 @pytest.fixture
 def auth_data():
     return {
@@ -25,12 +26,14 @@ def auth_data():
         "accept_terms": True,
     }
 
+
 def test_health_check(api_client):
     """Test if the API is running."""
     response = api_client.get("/health")
     assert_equal(response.status_code, 200)
     data = response.json()
     assert data["status"] == "healthy"
+
 
 def test_register(api_client, auth_data):
     """Test user registration."""
@@ -42,6 +45,7 @@ def test_register(api_client, auth_data):
     if response.status_code == 201:
         user = response.json()["data"]
         assert_equal(user["email"], TEST_EMAIL)
+
 
 def test_login(api_client, auth_data):
     """Test user login."""
@@ -59,6 +63,7 @@ def test_login(api_client, auth_data):
     assert "access_token" in tokens
     assert "refresh_token" in tokens
 
+
 @pytest.fixture
 def logged_in_client(api_client, auth_data):
     # Register and login to get real tokens
@@ -71,6 +76,7 @@ def logged_in_client(api_client, auth_data):
 
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     return api_client, tokens
+
 
 def test_get_me(logged_in_client):
     """Test getting current user info."""
@@ -86,6 +92,7 @@ def test_get_me(logged_in_client):
     assert_equal(response.status_code, 200)
     user = response.json()["data"]
     assert_equal(user["email"], TEST_EMAIL)
+
 
 def test_refresh_token(api_client, auth_data):
     """Test token refresh."""
@@ -105,6 +112,7 @@ def test_refresh_token(api_client, auth_data):
     new_tokens = response.json()["data"]
     assert "access_token" in new_tokens
 
+
 def test_invalid_token(api_client):
     """Test authentication with invalid token."""
     response = api_client.get(
@@ -119,6 +127,7 @@ def test_invalid_token(api_client):
 
     assert response.status_code in [401, 403]
 
+
 def test_logout(api_client, auth_data):
     """Test logout."""
     # Register and Login to get real tokens
@@ -132,6 +141,7 @@ def test_logout(api_client, auth_data):
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     response = api_client.post("/api/v1/auth/logout")
     assert_equal(response.status_code, 200)
+
 
 def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
     """Test that the MFA secret is encrypted in the database."""

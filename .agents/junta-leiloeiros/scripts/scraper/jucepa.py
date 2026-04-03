@@ -5,10 +5,10 @@ Método: httpx + BeautifulSoup (Drupal CMS, node ID fixo)
 Nota: URL /index.php/leiloeiros retornava 404. Node 171 = Leiloeiros Ativos.
       Lista inclui registros desde 1985 até 2026.
 """
+
 from __future__ import annotations
 
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -18,14 +18,14 @@ class JucepaScraper(AbstractJuntaScraper):
     junta = "JUCEPA"
     url = "https://www.jucepa.pa.gov.br/node/171"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
             soup = await self.fetch_page_js(wait_ms=3000)
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         # Tabela HTML (formato Drupal)
         for table in soup.find_all("table"):
@@ -48,17 +48,19 @@ class JucepaScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro", "nº", "numero"]),
-                    cpf_cnpj=gcol(cells, ["cpf", "cnpj"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or "Belém",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                    endereco=gcol(cells, ["ender", "logr"]),
-                    data_registro=gcol(cells, ["data", "posse", "registro"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro", "nº", "numero"]),
+                        cpf_cnpj=gcol(cells, ["cpf", "cnpj"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or "Belém",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                        endereco=gcol(cells, ["ender", "logr"]),
+                        data_registro=gcol(cells, ["data", "posse", "registro"]),
+                    )
+                )
             if results:
                 break
 

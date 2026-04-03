@@ -4,6 +4,7 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class RotaryEmbedding(nn.Module):  # type: ignore
     """
     High-Performance: Rotary Positional Embeddings (RoPE).
@@ -26,14 +27,17 @@ class RotaryEmbedding(nn.Module):  # type: ignore
             th.Tensor, self.sin_cached
         )[:, :, :seq_len, ...]
 
+
 def rotate_half(x: th.Tensor) -> th.Tensor:
     x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2 :]
     return th.cat((-x2, x1), dim=-1)
+
 
 def apply_rotary_pos_emb(
     q: th.Tensor, k: th.Tensor, cos: th.Tensor, sin: th.Tensor
 ) -> tuple[th.Tensor, th.Tensor]:
     return (q * cos) + (rotate_half(q) * sin), (k * cos) + (rotate_half(k) * sin)
+
 
 class GatedMLP(nn.Module):  # type: ignore
     """
@@ -50,6 +54,7 @@ class GatedMLP(nn.Module):  # type: ignore
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         return cast(th.Tensor, self.w3(self.dropout(F.silu(self.w1(x)) * self.w2(x))))
+
 
 class AttentionBlock(nn.Module):  # type: ignore
     """
@@ -119,6 +124,7 @@ class AttentionBlock(nn.Module):  # type: ignore
         # 2. MLP Path
         x = x + self._drop_path(self.mlp(self.ln_2(x)), self.drop_path, self.training)
         return x
+
 
 class DecisionTransformer(nn.Module):  # type: ignore
     """
@@ -212,6 +218,7 @@ class DecisionTransformer(nn.Module):  # type: ignore
 
         return state_preds, action_preds, return_preds
 
+
 class QNetwork(nn.Module):  # type: ignore
     """
     Critic Network for IQL/CQL integration.
@@ -237,6 +244,7 @@ class QNetwork(nn.Module):  # type: ignore
     def forward(self, state: th.Tensor, action: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         sa = th.cat([state, action], dim=-1)
         return cast(th.Tensor, self.q1(sa)), cast(th.Tensor, self.q2(sa))
+
 
 class ValueNetwork(nn.Module):  # type: ignore
     """

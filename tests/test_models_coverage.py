@@ -3,6 +3,7 @@ import pytest
 
 from src.quant.pricing.models import BSParameters, OptionGreeks
 
+
 def test_bs_parameters_validation():
     # Valid
     p = BSParameters(100, 100, 1.0, 0.2, 0.05)
@@ -20,6 +21,7 @@ def test_bs_parameters_validation():
     with pytest.raises(ValueError, match="Rate and dividend cannot be negative"):
         BSParameters(100, 100, 1.0, 0.2, -0.05)
 
+
 def test_bs_parameters_vectorized_validation():
     # Vectorized valid
     BSParameters(np.array([100, 110]), 100, 1.0, 0.2, 0.05)
@@ -27,6 +29,7 @@ def test_bs_parameters_vectorized_validation():
     # Vectorized invalid
     with pytest.raises(ValueError, match="Spot, strike, and volatility must be positive"):
         BSParameters(np.array([100, -1]), 100, 1.0, 0.2, 0.05)
+
 
 def test_option_greeks_getitem():
     g = OptionGreeks(delta=0.5, gamma=0.01, theta=-5.0, vega=10.0, rho=20.0)

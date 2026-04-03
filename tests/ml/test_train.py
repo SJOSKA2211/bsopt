@@ -4,11 +4,13 @@ import pytest
 
 from src.ml.reinforcement_learning.train import train_td3
 
+
 @pytest.fixture
 def mock_mlflow():
     with patch("src.ml.reinforcement_learning.train.mlflow") as mock:
         mock.start_run.return_value.__enter__.return_value = MagicMock()
         yield mock
+
 
 @pytest.fixture
 def mock_td3():
@@ -16,6 +18,7 @@ def mock_td3():
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock
+
 
 def test_train_td3_initialization(mock_mlflow, mock_td3):
     """Test that train_td3 initializes environment, model and MLflow correctly."""
@@ -51,6 +54,7 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     assert result["mean_reward"] == 10.0
     assert result["model_path"] == model_path
 
+
 @patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
 @patch("src.ml.reinforcement_learning.train.ray.init")
 @patch("src.ml.reinforcement_learning.train.ray.get")
@@ -83,6 +87,7 @@ def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ra
     assert results == mock_results
     assert best_result == mock_results[1]
 
+
 def test_train_td3_logs_params(mock_mlflow, mock_td3):
     """Test that train_td3 logs parameters to MLflow."""
     # Mock eval_callback
@@ -95,6 +100,7 @@ def test_train_td3_logs_params(mock_mlflow, mock_td3):
     assert params["algorithm"] == "TD3"
     assert params["total_timesteps"] == 100
 
+
 def test_train_td3_logs_model(mock_mlflow, mock_td3):
     """Test that train_td3 logs model to MLflow."""
     # Mock eval_callback
@@ -103,6 +109,7 @@ def test_train_td3_logs_model(mock_mlflow, mock_td3):
         train_td3(total_timesteps=100)
 
     mock_mlflow.pytorch.log_model.assert_called_once()
+
 
 def test_main_function():
     """Test the main function of train.py."""
@@ -119,6 +126,7 @@ def test_main_function():
 
             main()
             mock_train.assert_called_once_with(total_timesteps=1000, model_path="test_model")
+
 
 @patch("src.ml.reinforcement_learning.train.mlflow")
 def test_mlflow_callback(mock_mlflow_cb):
@@ -151,6 +159,7 @@ def test_mlflow_callback(mock_mlflow_cb):
         assert metrics["train/actor_loss"] == 0.5
         assert metrics["rollout/ep_rew_mean"] == 10.0
 
+
 @patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", False)
 def test_train_distributed_ray_not_available():
     """Test train_distributed when Ray is not available."""
@@ -163,6 +172,7 @@ def test_train_distributed_ray_not_available():
             "ray_not_available",
             message="Ray not installed. Cannot run distributed training.",
         )
+
 
 @patch("src.ml.reinforcement_learning.train.train_td3")
 @patch("src.ml.reinforcement_learning.train.train_distributed")

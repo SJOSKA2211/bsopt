@@ -10,7 +10,7 @@ def poly(xs: list, x: float):
 
 
 def find_zero(xs: list):
-    """ xs are coefficients of a polynomial.
+    """xs are coefficients of a polynomial.
     find_zero find x such that poly(x) = 0.
     find_zero returns only only zero point, even if there are many.
     Moreover, find_zero only takes list xs having even number of coefficients
@@ -23,20 +23,20 @@ def find_zero(xs: list):
     """
     # Use Newton-Raphson method to find a zero
     # First, find a suitable starting point and bounds
-    
+
     # For a polynomial with odd degree (even number of coefficients),
     # there's guaranteed to be at least one real root
-    
+
     # Use bisection method to find bounds, then Newton-Raphson
-    
+
     # Find bounds where the polynomial changes sign
     lo, hi = -1.0, 1.0
-    
+
     # Expand bounds until we find a sign change
     while poly(xs, lo) * poly(xs, hi) > 0:
         lo *= 2
         hi *= 2
-    
+
     # Bisection method for reliability
     while hi - lo > 1e-10:
         mid = (lo + hi) / 2.0
@@ -46,5 +46,5 @@ def find_zero(xs: list):
             hi = mid
         else:
             lo = mid
-    
+
     return (lo + hi) / 2.0

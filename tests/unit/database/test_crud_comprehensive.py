@@ -10,12 +10,14 @@ from sqlalchemy.orm import sessionmaker
 from src.database import crud
 from src.database.models import Base, OptionPrice
 
+
 @pytest.fixture(autouse=True)
 def mock_password_service():
     with patch("src.database.crud.password_service") as mock:
         mock.hash_password.return_value = "hashed_password"
         mock.generate_reset_token.return_value = "token"
         yield mock
+
 
 @pytest.fixture
 def db_session():
@@ -42,6 +44,7 @@ def db_session():
         yield session
     finally:
         session.close()
+
 
 def test_user_operations(db_session):
     user = crud.create_user(db_session, "test@ex.com", "pass", "Test User")
@@ -72,6 +75,7 @@ def test_user_operations(db_session):
     # get_active_users_by_tier
     active_users = crud.get_active_users_by_tier(db_session, "pro")
     assert len(active_users) >= 1
+
 
 def test_portfolio_operations(db_session):
     user = crud.create_user(db_session, "p@ex.com", "pass", "P User")
@@ -105,6 +109,7 @@ def test_portfolio_operations(db_session):
     assert success
     db_session.refresh(portfolio)
     assert portfolio.cash_balance == Decimal("1000.00")
+
 
 def test_position_operations(db_session):
     user = crud.create_user(db_session, "pos@ex.com", "pass", "Pos User")
@@ -169,6 +174,7 @@ def test_position_operations(db_session):
     # bulk_create_positions empty
     assert crud.bulk_create_positions(db_session, []) == 0
 
+
 def test_order_operations(db_session):
     user = crud.create_user(db_session, "ord@ex.com", "pass", "Ord User")
     portfolio = crud.create_portfolio(db_session, user.id, "Main")
@@ -215,6 +221,7 @@ def test_order_operations(db_session):
     db_session.refresh(order)
     assert order.status == "filled"
 
+
 def test_ml_model_operations(db_session):
     model = crud.create_model(db_session, "price_pred", "xgboost")
     assert model.version == 1
@@ -239,6 +246,7 @@ def test_ml_model_operations(db_session):
 
     # set_production_model non-existent
     assert not crud.set_production_model(db_session, uuid.uuid4())
+
 
 def test_option_price_operations(db_session):
     expiry = date.today() + timedelta(days=30)
@@ -268,6 +276,7 @@ def test_option_price_operations(db_session):
     # get_option_chain
     chain = crud.get_option_chain(db_session, "AAPL", expiry, option_type="call")
     assert len(chain) == 1
+
 
 def test_aggregation_queries(db_session):
     user = crud.create_user(db_session, "agg@ex.com", "pass", "Agg User")

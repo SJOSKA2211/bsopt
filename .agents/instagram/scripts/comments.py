@@ -8,6 +8,7 @@ Uso:
     python scripts/comments.py --mentions
     python scripts/comments.py --unreplied
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,9 +20,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from api_client import InstagramAPI
-from auth import auto_refresh_if_needed
 from db import Database
 from governance import GovernanceManager
+
+from auth import auto_refresh_if_needed
 
 db = Database()
 db.init()
@@ -41,14 +43,18 @@ async def list_comments(media_id: str, limit: int = 50) -> None:
     account = db.get_active_account()
     if account:
         for c in comments:
-            db.upsert_comments([{
-                "account_id": account["id"],
-                "ig_comment_id": c["id"],
-                "ig_media_id": media_id,
-                "username": c.get("username", ""),
-                "text": c.get("text", ""),
-                "timestamp": c.get("timestamp", ""),
-            }])
+            db.upsert_comments(
+                [
+                    {
+                        "account_id": account["id"],
+                        "ig_comment_id": c["id"],
+                        "ig_media_id": media_id,
+                        "username": c.get("username", ""),
+                        "text": c.get("text", ""),
+                        "timestamp": c.get("timestamp", ""),
+                    }
+                ]
+            )
 
     print(json.dumps({"total": len(comments), "comments": comments}, indent=2, ensure_ascii=False))
 

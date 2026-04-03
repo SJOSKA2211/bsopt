@@ -10,6 +10,7 @@ from src.quant.pricing.vol_surface import (
     VolatilitySurface,
 )
 
+
 def test_svi_model():
     params = SVIParameters(a=0.1, b=0.1, rho=-0.5, m=0.0, sigma=0.1)
     model = SVIModel(params)
@@ -19,6 +20,7 @@ def test_svi_model():
     assert len(var) == 3
     assert np.all(var > 0)
 
+
 def test_sabr_model():
     # SABRModel expects SABRParameters
     params = SABRParameters(alpha=0.2, beta=0.5, rho=-0.2, nu=0.3)
@@ -26,6 +28,7 @@ def test_sabr_model():
     # Check ATM vol
     vol = model.implied_volatility(100.0, 100.0, 1.0)
     assert vol > 0
+
 
 def test_vol_surface_interpolation():
     surface = VolatilitySurface()
@@ -38,6 +41,7 @@ def test_vol_surface_interpolation():
     # Method is implied_volatility
     vol = surface.implied_volatility(100.0, 0.75)
     assert vol > 0
+
 
 def test_calibration_engine_svi():
     engine = CalibrationEngine()

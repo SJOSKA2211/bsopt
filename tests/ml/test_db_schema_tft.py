@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, inspect
 
 from src.database.models import MarketTick
 
+
 @pytest.fixture
 def test_engine():
     """Create a memory SQLite engine for schema validation."""
@@ -10,6 +11,7 @@ def test_engine():
     # Only create the table we care about to avoid JSONB/other Postgres specific issues
     MarketTick.__table__.create(engine)
     return engine
+
 
 def test_market_data_symbol_tagging(test_engine):
     """Verify that market_data table has consistent symbol tagging for TFT group_ids."""
@@ -26,6 +28,7 @@ def test_market_data_symbol_tagging(test_engine):
     # In SQLite, we check if symbol is in any index
     has_symbol_index = any("symbol" in idx["column_names"] for idx in indexes)
     assert has_symbol_index, "symbol column should be indexed for TFT grouping performance"
+
 
 def test_timescaledb_hypertable_status_mocked(test_engine):
     """

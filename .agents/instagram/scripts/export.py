@@ -8,19 +8,21 @@ Uso:
     python scripts/export.py --type all --format csv
     python scripts/export.py --type actions --format json --output /caminho/
 """
+
 from __future__ import annotations
 
 import argparse
 import csv
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import EXPORTS_DIR
 from db import Database
+
+from config import EXPORTS_DIR
 
 db = Database()
 db.init()
@@ -28,12 +30,14 @@ db.init()
 
 def export_json(records: list, output_dir: Path, name: str) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"instagram_{name}_{ts}.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(
-            {"exported_at": datetime.now(timezone.utc).isoformat(), "total": len(records), "data": records},
-            f, ensure_ascii=False, indent=2,
+            {"exported_at": datetime.now(UTC).isoformat(), "total": len(records), "data": records},
+            f,
+            ensure_ascii=False,
+            indent=2,
         )
     print(f"[JSON] {len(records)} registros ->{path}")
     return path
@@ -41,7 +45,7 @@ def export_json(records: list, output_dir: Path, name: str) -> Path:
 
 def export_jsonl(records: list, output_dir: Path, name: str) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"instagram_{name}_{ts}.jsonl"
     with open(path, "w", encoding="utf-8") as f:
         for rec in records:
@@ -55,7 +59,7 @@ def export_csv_file(records: list, output_dir: Path, name: str) -> Path:
         print("[CSV] Nenhum registro para exportar.")
         return None
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"instagram_{name}_{ts}.csv"
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=list(records[0].keys()), extrasaction="ignore")
@@ -109,12 +113,21 @@ def do_export(records: list, name: str, fmt: str, output_dir: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Exportar dados do Instagram")
-    parser.add_argument("--type", required=True,
-                        choices=["posts", "comments", "insights", "user_insights", "templates", "actions", "all"],
-                        help="Tipo de dados")
-    parser.add_argument("--format", default="csv", choices=["json", "jsonl", "csv", "all"],
-                        help="Formato (default: csv)")
-    parser.add_argument("--output", default=str(EXPORTS_DIR), help=f"Diretório (default: {EXPORTS_DIR})")
+    parser.add_argument(
+        "--type",
+        required=True,
+        choices=["posts", "comments", "insights", "user_insights", "templates", "actions", "all"],
+        help="Tipo de dados",
+    )
+    parser.add_argument(
+        "--format",
+        default="csv",
+        choices=["json", "jsonl", "csv", "all"],
+        help="Formato (default: csv)",
+    )
+    parser.add_argument(
+        "--output", default=str(EXPORTS_DIR), help=f"Diretório (default: {EXPORTS_DIR})"
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output)

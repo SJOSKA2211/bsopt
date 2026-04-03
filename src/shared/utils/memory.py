@@ -8,6 +8,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 def profile_memory(func: Callable) -> Callable:
     """
     Decorator to profile memory and execution time of a function.
@@ -40,6 +41,7 @@ def profile_memory(func: Callable) -> Callable:
         return result
 
     return wrapper
+
 
 def profile_gpu_memory(func: Callable) -> Callable:
     """

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 EMAILS_SENT_TOTAL = Counter("emails_sent_total", "Total emails sent", ["status", "type"])
 EMAIL_DELIVERY_TIME = Histogram("email_delivery_time_seconds", "Time taken to send email", ["type"])
 
+
 class TransactionalEmailService:
     """
     Service for sending transactional emails via SendGrid.

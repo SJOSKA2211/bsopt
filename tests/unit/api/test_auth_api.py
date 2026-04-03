@@ -13,11 +13,13 @@ from src.database.models import User
 
 client = TestClient(app)
 
+
 # Patch log_audit globally for all tests in this file
 @pytest.fixture(autouse=True)
 def mock_log_audit_fixture():  # Renamed to avoid conflict if `mock_log_audit` is called elsewhere
     with patch("src.auth.audit.log_audit") as mock_audit:
         yield mock_audit
+
 
 @pytest.fixture
 def mock_user():
@@ -34,12 +36,14 @@ def mock_user():
     )
     return user
 
+
 # Helper to provide mock_user to dependencies
 @pytest.fixture
 def override_get_current_active_user_dependency(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     yield
     app.dependency_overrides = {}
+
 
 def test_login_success(mock_user):
     mock_db = MagicMock()
@@ -59,6 +63,7 @@ def test_login_success(mock_user):
         assert response.status_code == 200
         assert response.json()["data"]["access_token"] == "access"
     app.dependency_overrides = {}
+
 
 def test_login_db_error_updating_last_login(mock_user):
     mock_user.is_verified = True
@@ -90,6 +95,7 @@ def test_login_db_error_updating_last_login(mock_user):
         mock_db.rollback.assert_called_once()  # Rollback should be called if commit fails after error
     app.dependency_overrides = {}
 
+
 def test_login_invalid_credentials():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -98,6 +104,7 @@ def test_login_invalid_credentials():
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 401
     app.dependency_overrides = {}
+
 
 def test_login_unverified(mock_user):
     mock_user.is_verified = False
@@ -110,6 +117,7 @@ def test_login_unverified(mock_user):
         assert response.status_code == 403
     app.dependency_overrides = {}
 
+
 def test_login_inactive(mock_user):
     mock_user.is_active = False
     mock_user.is_verified = True  # Ensure verified for this test
@@ -120,6 +128,7 @@ def test_login_inactive(mock_user):
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 403
     app.dependency_overrides = {}
+
 
 def test_login_mfa_required(mock_user):
     mock_user.is_mfa_enabled = True
@@ -133,6 +142,7 @@ def test_login_mfa_required(mock_user):
         assert response.status_code == 200
         assert response.json()["data"]["requires_mfa"] is True
     app.dependency_overrides = {}
+
 
 def test_login_mfa_invalid_code(mock_user):
     mock_user.is_mfa_enabled = True
@@ -152,6 +162,7 @@ def test_login_mfa_invalid_code(mock_user):
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 401
     app.dependency_overrides = {}
+
 
 def test_register_success():
     mock_db = MagicMock()
@@ -188,6 +199,7 @@ def test_register_success():
         )  # Verify correct helper called
     app.dependency_overrides = {}
 
+
 def test_register_idempotency_conflict():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -208,6 +220,7 @@ def test_register_idempotency_conflict():
         assert response.status_code == 409
     app.dependency_overrides = {}
 
+
 def test_register_email_exists():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -221,6 +234,7 @@ def test_register_email_exists():
     response = client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 409
     app.dependency_overrides = {}
+
 
 def test_register_db_error():
     mock_db = MagicMock()
@@ -255,6 +269,7 @@ def test_register_db_error():
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
 
+
 def test_verify_email_success(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -265,6 +280,7 @@ def test_verify_email_success(mock_user):
     mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
+
 def test_verify_email_invalid_token():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -272,6 +288,7 @@ def test_verify_email_invalid_token():
     response = client.post("/api/v1/auth/verify-email", json={"token": "bad"})
     assert response.status_code == 422
     app.dependency_overrides = {}
+
 
 def test_verify_email_db_error(mock_user):
     mock_db = MagicMock()
@@ -282,6 +299,7 @@ def test_verify_email_db_error(mock_user):
     assert response.status_code == 500
     mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
+
 
 # Modified test_logout
 def test_logout(mock_user):
@@ -300,6 +318,7 @@ def test_logout(mock_user):
         assert response.json()["message"] == "Successfully logged out and session invalidated"
         mock_invalidate_token.assert_called_once_with("some_token", ANY)
     app.dependency_overrides = {}
+
 
 def test_refresh_token_success(mock_user):
     mock_db = MagicMock()
@@ -323,6 +342,7 @@ def test_refresh_token_success(mock_user):
         assert response.status_code == 200
     app.dependency_overrides = {}
 
+
 def test_refresh_token_invalid_type():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -331,6 +351,7 @@ def test_refresh_token_invalid_type():
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "token"})
         assert response.status_code == 401
     app.dependency_overrides = {}
+
 
 def test_refresh_token_user_inactive(mock_user):
     mock_user.is_active = False
@@ -343,6 +364,7 @@ def test_refresh_token_user_inactive(mock_user):
         assert response.status_code == 401
     app.dependency_overrides = {}
 
+
 def test_refresh_token_generic_exception():
     with patch(
         "src.auth.auth.auth_service.validate_token",
@@ -352,6 +374,7 @@ def test_refresh_token_generic_exception():
         assert response.status_code == 401
     app.dependency_overrides = {}
 
+
 def test_request_password_reset_nonexistent_user():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -359,6 +382,7 @@ def test_request_password_reset_nonexistent_user():
     response = client.post("/api/v1/auth/password-reset", json={"email": "notfound@example.com"})
     assert response.status_code == 200  # Always return 200 to prevent enumeration
     app.dependency_overrides = {}
+
 
 def test_request_password_reset_db_error(mock_user):
     mock_db = MagicMock()
@@ -373,6 +397,7 @@ def test_request_password_reset_db_error(mock_user):
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
 
+
 def test_request_password_reset_background_task_called(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -383,6 +408,7 @@ def test_request_password_reset_background_task_called(mock_user):
         mock_add_task.assert_called_once()
         assert mock_add_task.call_args[0][0].__name__ == "_send_password_reset_email"
     app.dependency_overrides = {}
+
 
 def test_confirm_password_reset_success(mock_user):
     mock_user.verification_token = "reset:tok"
@@ -408,6 +434,7 @@ def test_confirm_password_reset_success(mock_user):
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
+
 def test_confirm_password_reset_invalid_password_validation(mock_user):
     mock_user.verification_token = "reset:tok"
     mock_db = MagicMock()
@@ -425,6 +452,7 @@ def test_confirm_password_reset_invalid_password_validation(mock_user):
         response = client.post("/api/v1/auth/password-reset/confirm", json=payload)
         assert response.status_code == 422
     app.dependency_overrides = {}
+
 
 def test_confirm_password_reset_db_error(mock_user):
     mock_user.verification_token = "reset:tok"
@@ -449,6 +477,7 @@ def test_confirm_password_reset_db_error(mock_user):
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_change_password_success(mock_user):
     mock_db = MagicMock()
@@ -472,6 +501,7 @@ def test_change_password_success(mock_user):
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_change_password_wrong_current(mock_user):
     mock_db = MagicMock()
@@ -485,6 +515,7 @@ def test_change_password_wrong_current(mock_user):
         response = client.post("/api/v1/auth/password-change", json=payload)
         assert response.status_code == 401
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_change_password_weak_password(mock_user):
@@ -505,6 +536,7 @@ def test_change_password_weak_password(mock_user):
         response = client.post("/api/v1/auth/password-change", json=payload)
         assert response.status_code == 422
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_change_password_db_error(mock_user):
@@ -528,6 +560,7 @@ def test_change_password_db_error(mock_user):
         assert response.status_code == 500
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_setup_success(mock_user):
@@ -557,6 +590,7 @@ def test_mfa_setup_success(mock_user):
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_setup_mfa_db_error(mock_user):
     mock_db = MagicMock()
@@ -567,6 +601,7 @@ def test_setup_mfa_db_error(mock_user):
         assert response.status_code == 500
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_verify_success(mock_user):
@@ -582,6 +617,7 @@ def test_mfa_verify_success(mock_user):
         assert mock_user.is_mfa_enabled is True
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_verify_backup_code_success(mock_user):
@@ -612,6 +648,7 @@ def test_mfa_verify_backup_code_success(mock_user):
             mock_db.commit.assert_called()
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_verify_no_setup(mock_user):
     mock_user.mfa_secret = None
@@ -620,6 +657,7 @@ def test_mfa_verify_no_setup(mock_user):
     response = client.post("/api/v1/auth/mfa/verify", json={"code": "123456"})
     assert response.status_code == 422
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_verify_invalid_code(mock_user):
@@ -633,6 +671,7 @@ def test_mfa_verify_invalid_code(mock_user):
         assert response.status_code == 401  # Expect 401 from AuthenticationException
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_verify_db_error(mock_user):
     mock_user.is_mfa_enabled = False  # Ensure is_mfa_enabled is False before db error
@@ -645,6 +684,7 @@ def test_mfa_verify_db_error(mock_user):
         assert response.status_code == 500
         mock_db.rollback.assert_called_once()
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_disable_success(mock_user):
@@ -662,6 +702,7 @@ def test_mfa_disable_success(mock_user):
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
+
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_mfa_disable_not_enabled(mock_user):
     mock_user.is_mfa_enabled = False
@@ -670,6 +711,7 @@ def test_mfa_disable_not_enabled(mock_user):
     response = client.post("/api/v1/auth/mfa/disable", json={"code": "123456"})
     assert response.status_code == 422
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_disable_mfa_invalid_code(mock_user):
@@ -683,6 +725,7 @@ def test_disable_mfa_invalid_code(mock_user):
         )  # Use valid digit code that will fail verification
         assert response.status_code == 401  # Expect 401 from AuthenticationException
     app.dependency_overrides = {}
+
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")
 def test_disable_mfa_db_error(mock_user):

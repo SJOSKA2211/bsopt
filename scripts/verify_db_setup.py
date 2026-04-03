@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from src.database import create_tables, db_manager
 
+
 def verify_god_mode():
     print(" BSOpt High-Performance Database Verification")
     print("----------------------------------------")
@@ -54,6 +55,7 @@ def verify_god_mode():
     except Exception as e:
         print(f"\n❌ VERIFICATION FAILED: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     verify_god_mode()

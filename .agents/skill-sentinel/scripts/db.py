@@ -12,13 +12,14 @@ Uso:
     db.insert_skill_snapshot(run_id, {...})
     db.insert_finding(run_id, {...})
 """
+
 from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config import DB_PATH
 
@@ -139,19 +140,21 @@ class Database:
 
     def create_audit_run(self) -> int:
         """Cria uma nova execucao de auditoria. Retorna o id."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         with self._connect() as conn:
-            cursor = conn.execute(
-                "INSERT INTO audit_runs (started_at) VALUES (?)", [now]
-            )
+            cursor = conn.execute("INSERT INTO audit_runs (started_at) VALUES (?)", [now])
             return cursor.lastrowid
 
     def complete_audit_run(
-        self, run_id: int, skills_scanned: int, total_findings: int,
-        overall_score: float, report_path: str
+        self,
+        run_id: int,
+        skills_scanned: int,
+        total_findings: int,
+        overall_score: float,
+        report_path: str,
     ) -> None:
         """Marca uma auditoria como completa."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         with self._connect() as conn:
             conn.execute(
                 """UPDATE audit_runs SET
@@ -161,7 +164,7 @@ class Database:
                 [now, skills_scanned, total_findings, overall_score, report_path, run_id],
             )
 
-    def get_audit_runs(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_audit_runs(self, limit: int = 10) -> list[dict[str, Any]]:
         """Retorna ultimas auditorias."""
         with self._connect() as conn:
             rows = conn.execute(
@@ -169,7 +172,7 @@ class Database:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_latest_completed_run(self) -> Optional[Dict[str, Any]]:
+    def get_latest_completed_run(self) -> dict[str, Any] | None:
         """Retorna a ultima auditoria completa."""
         with self._connect() as conn:
             row = conn.execute(
@@ -180,7 +183,7 @@ class Database:
 
     # -- Skill Snapshots -------------------------------------------------------
 
-    def insert_skill_snapshot(self, run_id: int, data: Dict[str, Any]) -> int:
+    def insert_skill_snapshot(self, run_id: int, data: dict[str, Any]) -> int:
         """Insere snapshot de uma skill. Retorna o id."""
         data["audit_run_id"] = run_id
         if "raw_metrics" in data and isinstance(data["raw_metrics"], dict):
@@ -193,7 +196,7 @@ class Database:
             cursor = conn.execute(sql, data)
             return cursor.lastrowid
 
-    def get_snapshots_for_run(self, run_id: int) -> List[Dict[str, Any]]:
+    def get_snapshots_for_run(self, run_id: int) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM skill_snapshots WHERE audit_run_id = ? ORDER BY skill_name",
@@ -201,7 +204,7 @@ class Database:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    def get_latest_snapshot(self, skill_name: str) -> Optional[Dict[str, Any]]:
+    def get_latest_snapshot(self, skill_name: str) -> dict[str, Any] | None:
         """Retorna o snapshot mais recente de uma skill."""
         with self._connect() as conn:
             row = conn.execute(
@@ -213,7 +216,7 @@ class Database:
 
     # -- Findings --------------------------------------------------------------
 
-    def insert_finding(self, run_id: int, data: Dict[str, Any]) -> int:
+    def insert_finding(self, run_id: int, data: dict[str, Any]) -> int:
         """Insere um finding. Retorna o id."""
         data["audit_run_id"] = run_id
         keys = list(data.keys())
@@ -224,7 +227,7 @@ class Database:
             cursor = conn.execute(sql, data)
             return cursor.lastrowid
 
-    def insert_findings_batch(self, run_id: int, findings: List[Dict[str, Any]]) -> int:
+    def insert_findings_batch(self, run_id: int, findings: list[dict[str, Any]]) -> int:
         """Insere multiplos findings de uma vez."""
         count = 0
         for f in findings:
@@ -233,9 +236,12 @@ class Database:
         return count
 
     def get_findings_for_run(
-        self, run_id: int, skill_name: Optional[str] = None,
-        severity: Optional[str] = None, dimension: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self,
+        run_id: int,
+        skill_name: str | None = None,
+        severity: str | None = None,
+        dimension: str | None = None,
+    ) -> list[dict[str, Any]]:
         conditions = ["audit_run_id = ?"]
         params: list = [run_id]
         if skill_name:
@@ -253,7 +259,7 @@ class Database:
             rows = conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
-    def count_findings_by_severity(self, run_id: int) -> Dict[str, int]:
+    def count_findings_by_severity(self, run_id: int) -> dict[str, int]:
         """Conta findings por severidade."""
         with self._connect() as conn:
             rows = conn.execute(
@@ -265,7 +271,7 @@ class Database:
 
     # -- Skill Recommendations -------------------------------------------------
 
-    def insert_recommendation(self, run_id: int, data: Dict[str, Any]) -> int:
+    def insert_recommendation(self, run_id: int, data: dict[str, Any]) -> int:
         data["audit_run_id"] = run_id
         if "capabilities" in data and isinstance(data["capabilities"], list):
             data["capabilities"] = json.dumps(data["capabilities"], ensure_ascii=False)
@@ -277,7 +283,7 @@ class Database:
             cursor = conn.execute(sql, data)
             return cursor.lastrowid
 
-    def get_recommendations_for_run(self, run_id: int) -> List[Dict[str, Any]]:
+    def get_recommendations_for_run(self, run_id: int) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM skill_recommendations WHERE audit_run_id = ? ORDER BY priority",
@@ -287,7 +293,9 @@ class Database:
 
     # -- Score History ---------------------------------------------------------
 
-    def insert_score_history(self, run_id: int, skill_name: str, dimension: str, score: float) -> None:
+    def insert_score_history(
+        self, run_id: int, skill_name: str, dimension: str, score: float
+    ) -> None:
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO score_history (audit_run_id, skill_name, dimension, score) "
@@ -295,7 +303,9 @@ class Database:
                 [run_id, skill_name, dimension, score],
             )
 
-    def get_score_trend(self, skill_name: str, dimension: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_score_trend(
+        self, skill_name: str, dimension: str, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """Retorna historico de scores para uma skill/dimensao."""
         with self._connect() as conn:
             rows = conn.execute(
@@ -307,7 +317,9 @@ class Database:
 
     # -- Action Log (Auto-Governanca) ------------------------------------------
 
-    def log_action(self, action: str, params: Optional[Dict] = None, result: Optional[Dict] = None) -> None:
+    def log_action(
+        self, action: str, params: dict | None = None, result: dict | None = None
+    ) -> None:
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO action_log (action, params, result) VALUES (?, ?, ?)",
@@ -318,7 +330,7 @@ class Database:
                 ],
             )
 
-    def get_recent_actions(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_recent_actions(self, limit: int = 20) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM action_log ORDER BY created_at DESC LIMIT ?", [limit]
@@ -327,7 +339,7 @@ class Database:
 
     # -- Stats -----------------------------------------------------------------
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Retorna estatisticas gerais do sentinel."""
         with self._connect() as conn:
             total_runs = conn.execute("SELECT COUNT(*) FROM audit_runs").fetchone()[0]

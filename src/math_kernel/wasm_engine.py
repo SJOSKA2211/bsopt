@@ -3,8 +3,8 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
-from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.base import PricingStrategy
+from src.math_kernel.models import BSParameters, OptionGreeks
 
 logger = structlog.get_logger()
 
@@ -19,6 +19,7 @@ try:
 except ImportError:
     WASM_AVAILABLE = False
     logger.warning("wasm_engine_unavailable", reason="wasm_loader_not_found")
+
 
 class WASMPricingEngine(PricingStrategy):
     """

@@ -16,6 +16,7 @@ logger = logging.getLogger("audit")
 
 __all__ = ["robust_pricing_task", "ServiceUnavailableException"]
 
+
 def robust_pricing_task(error_return_value: Any = None):
     """
     OPTIMIZED: Async-aware decorator for fail-safe task execution.

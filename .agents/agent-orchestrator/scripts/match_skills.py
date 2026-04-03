@@ -19,10 +19,9 @@ Usage:
 """
 
 import json
-import sys
-import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 # ── Configuration ──────────────────────────────────────────────────────────
@@ -39,103 +38,304 @@ SCAN_SCRIPT = _SCRIPT_DIR / "scan_registry.py"
 # Capability keywords for query -> category matching (PT + EN)
 CAPABILITY_KEYWORDS = {
     "data-extraction": [
-        "scrape", "extract", "crawl", "parse", "harvest", "collect", "data",
-        "raspar", "extrair", "coletar", "dados", "tabela", "table", "csv",
-        "web data", "pull info", "get data",
+        "scrape",
+        "extract",
+        "crawl",
+        "parse",
+        "harvest",
+        "collect",
+        "data",
+        "raspar",
+        "extrair",
+        "coletar",
+        "dados",
+        "tabela",
+        "table",
+        "csv",
+        "web data",
+        "pull info",
+        "get data",
     ],
     "messaging": [
-        "whatsapp", "message", "send", "chat", "notify", "notification", "sms",
-        "mensagem", "enviar", "notificar", "notificacao", "atendimento",
-        "comunicar", "avisar",
+        "whatsapp",
+        "message",
+        "send",
+        "chat",
+        "notify",
+        "notification",
+        "sms",
+        "mensagem",
+        "enviar",
+        "notificar",
+        "notificacao",
+        "atendimento",
+        "comunicar",
+        "avisar",
     ],
     "social-media": [
-        "instagram", "facebook", "twitter", "post", "stories", "reels",
-        "social", "feed", "follower", "publicar", "rede social", "engajamento",
+        "instagram",
+        "facebook",
+        "twitter",
+        "post",
+        "stories",
+        "reels",
+        "social",
+        "feed",
+        "follower",
+        "publicar",
+        "rede social",
+        "engajamento",
     ],
     "government-data": [
-        "junta", "leiloeiro", "cadastro", "governo", "comercial", "tribunal",
-        "diario oficial", "certidao", "registro", "uf", "estado",
+        "junta",
+        "leiloeiro",
+        "cadastro",
+        "governo",
+        "comercial",
+        "tribunal",
+        "diario oficial",
+        "certidao",
+        "registro",
+        "uf",
+        "estado",
     ],
     "web-automation": [
-        "browser", "selenium", "playwright", "automate", "click", "fill form",
-        "navegador", "automatizar", "automacao", "preencher",
+        "browser",
+        "selenium",
+        "playwright",
+        "automate",
+        "click",
+        "fill form",
+        "navegador",
+        "automatizar",
+        "automacao",
+        "preencher",
     ],
     "api-integration": [
-        "api", "endpoint", "webhook", "rest", "graph", "oauth", "token",
-        "integracao", "integrar", "conectar",
+        "api",
+        "endpoint",
+        "webhook",
+        "rest",
+        "graph",
+        "oauth",
+        "token",
+        "integracao",
+        "integrar",
+        "conectar",
     ],
     "analytics": [
-        "insight", "analytics", "metrics", "dashboard", "report", "stats",
-        "relatorio", "metricas", "analise", "estatistica",
+        "insight",
+        "analytics",
+        "metrics",
+        "dashboard",
+        "report",
+        "stats",
+        "relatorio",
+        "metricas",
+        "analise",
+        "estatistica",
     ],
     "content-management": [
-        "publish", "schedule", "template", "content", "media", "upload",
-        "publicar", "agendar", "conteudo", "midia",
+        "publish",
+        "schedule",
+        "template",
+        "content",
+        "media",
+        "upload",
+        "publicar",
+        "agendar",
+        "conteudo",
+        "midia",
     ],
     "legal": [
-        "advogado", "direito", "juridico", "lei", "processo",
-        "acao", "peticao", "recurso", "sentenca", "juiz",
-        "divorcio", "guarda", "alimentos", "pensao", "alimenticia", "inventario", "heranca", "partilha",
-        "acidente de trabalho", "acidente",
-        "familia", "criminal", "penal", "crime", "feminicidio", "maria da penha",
-        "violencia domestica", "medida protetiva", "stalking",
-        "danos morais", "responsabilidade civil", "indenizacao", "dano",
-        "consumidor", "cdc", "plano de saude",
-        "trabalhista", "clt", "rescisao", "fgts", "horas extras",
-        "previdenciario", "aposentadoria", "aposentar", "inss",
-        "imobiliario", "usucapiao", "despejo", "inquilinato",
-        "alienacao fiduciaria", "bem de familia",
-        "tributario", "imposto", "icms", "execucao fiscal",
-        "administrativo", "licitacao", "improbidade", "mandado de seguranca",
-        "empresarial", "societario", "falencia", "recuperacao judicial",
-        "empresa", "ltda", "cnpj", "mei", "eireli", "contrato social",
-        "contrato", "clausula", "contestacao", "apelacao", "agravo",
-        "habeas corpus", "mandado", "liminar", "tutela",
-        "cpc", "stj", "stf", "sumula", "jurisprudencia",
-        "oab", "honorarios", "custas",
+        "advogado",
+        "direito",
+        "juridico",
+        "lei",
+        "processo",
+        "acao",
+        "peticao",
+        "recurso",
+        "sentenca",
+        "juiz",
+        "divorcio",
+        "guarda",
+        "alimentos",
+        "pensao",
+        "alimenticia",
+        "inventario",
+        "heranca",
+        "partilha",
+        "acidente de trabalho",
+        "acidente",
+        "familia",
+        "criminal",
+        "penal",
+        "crime",
+        "feminicidio",
+        "maria da penha",
+        "violencia domestica",
+        "medida protetiva",
+        "stalking",
+        "danos morais",
+        "responsabilidade civil",
+        "indenizacao",
+        "dano",
+        "consumidor",
+        "cdc",
+        "plano de saude",
+        "trabalhista",
+        "clt",
+        "rescisao",
+        "fgts",
+        "horas extras",
+        "previdenciario",
+        "aposentadoria",
+        "aposentar",
+        "inss",
+        "imobiliario",
+        "usucapiao",
+        "despejo",
+        "inquilinato",
+        "alienacao fiduciaria",
+        "bem de familia",
+        "tributario",
+        "imposto",
+        "icms",
+        "execucao fiscal",
+        "administrativo",
+        "licitacao",
+        "improbidade",
+        "mandado de seguranca",
+        "empresarial",
+        "societario",
+        "falencia",
+        "recuperacao judicial",
+        "empresa",
+        "ltda",
+        "cnpj",
+        "mei",
+        "eireli",
+        "contrato social",
+        "contrato",
+        "clausula",
+        "contestacao",
+        "apelacao",
+        "agravo",
+        "habeas corpus",
+        "mandado",
+        "liminar",
+        "tutela",
+        "cpc",
+        "stj",
+        "stf",
+        "sumula",
+        "jurisprudencia",
+        "oab",
+        "honorarios",
+        "custas",
     ],
     "auction": [
-        "leilao", "leilao judicial", "leilao extrajudicial", "hasta publica",
-        "arrematacao", "arrematar", "arrematante", "lance", "desagio",
-        "edital leilao", "penhora", "adjudicacao", "praca",
-        "imissao na posse", "carta arrematacao", "vil preco",
-        "avaliacao imovel", "laudo", "perito", "matricula",
-        "leiloeiro", "comissao leiloeiro",
+        "leilao",
+        "leilao judicial",
+        "leilao extrajudicial",
+        "hasta publica",
+        "arrematacao",
+        "arrematar",
+        "arrematante",
+        "lance",
+        "desagio",
+        "edital leilao",
+        "penhora",
+        "adjudicacao",
+        "praca",
+        "imissao na posse",
+        "carta arrematacao",
+        "vil preco",
+        "avaliacao imovel",
+        "laudo",
+        "perito",
+        "matricula",
+        "leiloeiro",
+        "comissao leiloeiro",
     ],
     "security": [
-        "seguranca", "security", "owasp", "vulnerability", "incident",
-        "pentest", "firewall", "malware", "phishing", "cve",
-        "autenticacao", "criptografia", "encryption",
+        "seguranca",
+        "security",
+        "owasp",
+        "vulnerability",
+        "incident",
+        "pentest",
+        "firewall",
+        "malware",
+        "phishing",
+        "cve",
+        "autenticacao",
+        "criptografia",
+        "encryption",
     ],
     "image-generation": [
-        "imagem", "image", "gerar imagem", "generate image",
-        "stable diffusion", "comfyui", "midjourney", "dall-e",
-        "foto", "ilustracao", "arte", "design",
+        "imagem",
+        "image",
+        "gerar imagem",
+        "generate image",
+        "stable diffusion",
+        "comfyui",
+        "midjourney",
+        "dall-e",
+        "foto",
+        "ilustracao",
+        "arte",
+        "design",
     ],
     "monitoring": [
-        "monitor", "monitorar", "health", "status",
-        "audit", "auditoria", "sentinel", "check",
+        "monitor",
+        "monitorar",
+        "health",
+        "status",
+        "audit",
+        "auditoria",
+        "sentinel",
+        "check",
     ],
     "context-management": [
-        "contexto", "context", "sessao", "session", "compactacao", "compaction",
-        "comprimir", "compress", "snapshot", "checkpoint", "briefing",
-        "continuidade", "continuity", "preservar", "preserve",
-        "memoria", "memory", "resumo", "summary",
-        "salvar estado", "save state", "context window", "janela de contexto",
-        "perda de dados", "data loss", "backup",
+        "contexto",
+        "context",
+        "sessao",
+        "session",
+        "compactacao",
+        "compaction",
+        "comprimir",
+        "compress",
+        "snapshot",
+        "checkpoint",
+        "briefing",
+        "continuidade",
+        "continuity",
+        "preservar",
+        "preserve",
+        "memoria",
+        "memory",
+        "resumo",
+        "summary",
+        "salvar estado",
+        "save state",
+        "context window",
+        "janela de contexto",
+        "perda de dados",
+        "data loss",
+        "backup",
     ],
 }
 
 
 # ── Functions ──────────────────────────────────────────────────────────────
 
+
 def ensure_registry():
     """Run scan if registry doesn't exist."""
     if not REGISTRY_PATH.exists():
-        subprocess.run(
-            [sys.executable, str(SCAN_SCRIPT)],
-            capture_output=True, text=True
-        )
+        subprocess.run([sys.executable, str(SCAN_SCRIPT)], capture_output=True, text=True)
 
 
 def load_registry() -> list[dict]:
@@ -172,7 +372,7 @@ def get_project_skills(project_name: str) -> set:
 def query_to_capabilities(query: str) -> list[str]:
     """Map a query to capability categories using word boundary matching."""
     q_lower = query.lower()
-    q_words = set(re.findall(r'[a-zA-ZÀ-ÿ]+', q_lower))
+    q_words = set(re.findall(r"[a-zA-ZÀ-ÿ]+", q_lower))
     caps = []
     for cap, keywords in CAPABILITY_KEYWORDS.items():
         for kw in keywords:
@@ -189,7 +389,7 @@ def query_to_capabilities(query: str) -> list[str]:
 
 def normalize(text: str) -> set[str]:
     """Normalize text to a set of lowercase words."""
-    return set(re.findall(r'[a-zA-ZÀ-ÿ]{3,}', text.lower()))
+    return set(re.findall(r"[a-zA-ZÀ-ÿ]{3,}", text.lower()))
 
 
 def score_skill(skill: dict, query: str, project_skills: set = None) -> dict:
@@ -213,7 +413,7 @@ def score_skill(skill: dict, query: str, project_skills: set = None) -> dict:
         reasons.append(f"name:{name}")
 
     # 2. Trigger keyword matches (+10 each) - word boundary matching
-    q_words = set(re.findall(r'[a-zA-ZÀ-ÿ]+', q_lower))
+    q_words = set(re.findall(r"[a-zA-ZÀ-ÿ]+", q_lower))
     for trigger in triggers:
         trigger_lower = trigger.lower()
         # Multi-word triggers: substring match. Single-word: exact word match.
@@ -281,6 +481,7 @@ def match(query: str, project: str = None, top_n: int = 5, threshold: int = 5) -
 
 # ── CLI Entry Point ────────────────────────────────────────────────────────
 
+
 def main():
     args = sys.argv[1:]
     project = None
@@ -298,10 +499,12 @@ def main():
     query = " ".join(query_parts)
 
     if not query:
-        print(json.dumps({
-            "error": "No query provided",
-            "usage": 'python match_skills.py "your query here"'
-        }, indent=2))
+        print(
+            json.dumps(
+                {"error": "No query provided", "usage": 'python match_skills.py "your query here"'},
+                indent=2,
+            )
+        )
         sys.exit(1)
 
     results = match(query, project=project)
@@ -314,7 +517,9 @@ def main():
     }
 
     if len(results) == 0:
-        output["recommendation"] = "No skills matched. Operate without skills or suggest creating a new one."
+        output["recommendation"] = (
+            "No skills matched. Operate without skills or suggest creating a new one."
+        )
     elif len(results) == 1:
         output["recommendation"] = f"Single skill match: use '{results[0]['name']}' directly."
         output["action"] = "load_skill"

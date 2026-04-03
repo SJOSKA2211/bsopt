@@ -59,12 +59,14 @@ celery_app.conf.task_routes = {
     "aiops.*": {"queue": "mlops"},
 }
 
+
 class BaseTaskWithRetry(celery_app.Task):
     autoretry_for = (Exception,)
     retry_kwargs = {"max_retries": 5}
     retry_backoff = True
     retry_backoff_max = 600
     retry_jitter = True
+
 
 @worker_process_init.connect
 def init_worker(**kwargs):

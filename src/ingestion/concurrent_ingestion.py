@@ -30,6 +30,7 @@ RATE_LIMIT_HITS = Counter("bsopt_rate_limit_hits_total", "Rate limit attempts")
 
 yahoo_rate_limiter = AsyncLimiter(max_rate=10, time_period=1.0)
 
+
 class MarketTick(BaseModel):
     symbol: str
     market: str
@@ -42,6 +43,7 @@ class MarketTick(BaseModel):
     @classmethod
     def round_floats(cls, v: float) -> float:
         return round(float(v), 4)
+
 
 class OptionData(BaseModel):
     symbol: str
@@ -56,10 +58,12 @@ class OptionData(BaseModel):
     open_interest: int
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+
 class SymbolMetadata(BaseModel):
     symbol: str
     name: str
     exchange: str
+
 
 @yfinance_breaker
 async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
@@ -117,6 +121,7 @@ async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
                                     )
                     return ticks
 
+
 async def bulk_insert_ticks(ticks: list[MarketTick]):
     if not ticks:
         return
@@ -133,17 +138,21 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
         )
     logger.info("bulk_insert_ticks_success", count=len(ticks))
 
+
 async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
     # Idempotent symbol registration
     pass
+
 
 async def bulk_insert_options(options: list[OptionData]):
     # Options insertion
     pass
 
+
 async def run_concurrent_ingestion(us_universe: list[str], interval: int = 300):
-    from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
     import time
+
+    from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
 
     # Discovery if needed
     if not us_universe:
@@ -170,7 +179,7 @@ async def run_concurrent_ingestion(us_universe: list[str], interval: int = 300):
 
                 # Rate limiting between batches
                 await asyncio.sleep(1)
-            
+
             # Robust Healthcheck Heartbeat
             try:
                 with open("/tmp/transformer_heartbeat", "w") as f:
@@ -187,6 +196,8 @@ async def run_concurrent_ingestion(us_universe: list[str], interval: int = 300):
         await producer.close()
         logger.info("ingestion_pipeline_complete")
 
+
 if __name__ == "__main__":
     from src.shared.config import settings
+
     asyncio.run(run_concurrent_ingestion(settings.MARKET_TICKER_SYMBOLS))

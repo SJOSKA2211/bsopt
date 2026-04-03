@@ -14,24 +14,23 @@ Endpoints:
     GET /export/json            → dump completo em JSON
     GET /export/csv             → dump completo em CSV
 """
+
 from __future__ import annotations
 
 import argparse
 import csv
 import io
-import json
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from db import Database
 
 try:
+    import uvicorn
     from fastapi import FastAPI, HTTPException, Query
     from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
-    import uvicorn
 except ImportError:
     print("FastAPI não instalado. Execute: pip install fastapi uvicorn")
     sys.exit(1)
@@ -66,9 +65,9 @@ def root():
 
 @app.get("/leiloeiros", summary="Lista leiloeiros com filtros")
 def list_leiloeiros(
-    estado: Optional[str] = Query(None, description="UF ex: SP, RJ, MG"),
-    situacao: Optional[str] = Query(None, description="ATIVO, CANCELADO, SUSPENSO"),
-    nome: Optional[str] = Query(None, description="Busca parcial por nome"),
+    estado: str | None = Query(None, description="UF ex: SP, RJ, MG"),
+    situacao: str | None = Query(None, description="ATIVO, CANCELADO, SUSPENSO"),
+    nome: str | None = Query(None, description="Busca parcial por nome"),
     limit: int = Query(100, ge=1, le=5000),
     offset: int = Query(0, ge=0),
 ):

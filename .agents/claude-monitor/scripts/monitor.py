@@ -12,7 +12,6 @@ Uso:
 """
 
 import json
-import os
 import signal
 import subprocess
 import sys
@@ -90,19 +89,23 @@ def analyze_snapshots(snapshots, alert_cpu, alert_ram):
     alerts = []
     for s in snapshots:
         if s["cpu_percent"] >= alert_cpu:
-            alerts.append({
-                "time": s["timestamp"],
-                "type": "cpu",
-                "value": s["cpu_percent"],
-                "threshold": alert_cpu,
-            })
+            alerts.append(
+                {
+                    "time": s["timestamp"],
+                    "type": "cpu",
+                    "value": s["cpu_percent"],
+                    "threshold": alert_cpu,
+                }
+            )
         if s["ram_percent"] >= alert_ram:
-            alerts.append({
-                "time": s["timestamp"],
-                "type": "ram",
-                "value": s["ram_percent"],
-                "threshold": alert_ram,
-            })
+            alerts.append(
+                {
+                    "time": s["timestamp"],
+                    "type": "ram",
+                    "value": s["ram_percent"],
+                    "threshold": alert_ram,
+                }
+            )
 
     # Tendência (compara primeira metade com segunda metade)
     mid = n // 2
@@ -130,9 +133,14 @@ def analyze_snapshots(snapshots, alert_cpu, alert_ram):
     report = {
         "samples": n,
         "duration_seconds": round(
-            (datetime.fromisoformat(snapshots[-1]["timestamp"]) -
-             datetime.fromisoformat(snapshots[0]["timestamp"])).total_seconds(), 0
-        ) if n > 1 else 0,
+            (
+                datetime.fromisoformat(snapshots[-1]["timestamp"])
+                - datetime.fromisoformat(snapshots[0]["timestamp"])
+            ).total_seconds(),
+            0,
+        )
+        if n > 1
+        else 0,
         "cpu": {
             "avg": round(sum(cpu_values) / n, 1),
             "max": round(max(cpu_values), 1),
@@ -199,7 +207,7 @@ def format_report(report):
     lines.append(f"- Pico RAM: {report['browsers']['max_ram_gb']} GB")
     lines.append(f"- Media processos: {report['browsers']['avg_processes']}\n")
 
-    lines.append(f"### Recomendacao")
+    lines.append("### Recomendacao")
     lines.append(f"{report['recommendation']}")
 
     return "\n".join(lines)
@@ -209,16 +217,31 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Claude Monitor - Monitor Continuo")
-    parser.add_argument("--interval", type=int, default=MONITOR_DEFAULTS["interval"],
-                        help=f"Segundos entre amostras (default: {MONITOR_DEFAULTS['interval']})")
-    parser.add_argument("--duration", type=int, default=MONITOR_DEFAULTS["duration"],
-                        help=f"Duracao total em segundos (default: {MONITOR_DEFAULTS['duration']})")
-    parser.add_argument("--output", type=str, default=None,
-                        help="Arquivo de saida JSON")
-    parser.add_argument("--alert-cpu", type=int, default=MONITOR_DEFAULTS["alert_cpu"],
-                        help=f"Threshold CPU para alerta (default: {MONITOR_DEFAULTS['alert_cpu']})")
-    parser.add_argument("--alert-ram", type=int, default=MONITOR_DEFAULTS["alert_ram"],
-                        help=f"Threshold RAM para alerta (default: {MONITOR_DEFAULTS['alert_ram']})")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=MONITOR_DEFAULTS["interval"],
+        help=f"Segundos entre amostras (default: {MONITOR_DEFAULTS['interval']})",
+    )
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=MONITOR_DEFAULTS["duration"],
+        help=f"Duracao total em segundos (default: {MONITOR_DEFAULTS['duration']})",
+    )
+    parser.add_argument("--output", type=str, default=None, help="Arquivo de saida JSON")
+    parser.add_argument(
+        "--alert-cpu",
+        type=int,
+        default=MONITOR_DEFAULTS["alert_cpu"],
+        help=f"Threshold CPU para alerta (default: {MONITOR_DEFAULTS['alert_cpu']})",
+    )
+    parser.add_argument(
+        "--alert-ram",
+        type=int,
+        default=MONITOR_DEFAULTS["alert_ram"],
+        help=f"Threshold RAM para alerta (default: {MONITOR_DEFAULTS['alert_ram']})",
+    )
     parser.add_argument("--json", action="store_true", help="Output em JSON")
     args = parser.parse_args()
 

@@ -10,6 +10,7 @@ except ImportError:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
+
 try:
     from qiskit_ibm_provider import IBMProvider
 
@@ -21,6 +22,7 @@ except ImportError:
 from src.config import settings
 
 logger = structlog.get_logger()
+
 
 class QuantumBackendManager:
     """
@@ -97,7 +99,7 @@ class QuantumBackendManager:
                     # Estimate the zero-noise limit by linear extrapolation
                     # Simplified as: count_mitigated = 2.0 * count_actual - count_noise_doubled
                     # Here we model noise-doubling as a floor-bound dampening factor
-                    mitigated_counts[state] = max(0, int(count * 1.05)) # Recalibrated baseline
+                    mitigated_counts[state] = max(0, int(count * 1.05))  # Recalibrated baseline
                 result["counts"] = mitigated_counts
             elif hasattr(result, "get_counts"):
                 try:

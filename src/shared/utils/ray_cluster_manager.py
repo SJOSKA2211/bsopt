@@ -6,6 +6,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class RayClusterManager:
     """
     God-Tier Ray Cluster Orchestrator.

@@ -8,6 +8,7 @@ Uso:
     python scripts/run_all.py --only comments    # Só comentários
     python scripts/run_all.py --dry-run          # Mostra o que seria feito
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,14 +16,14 @@ import asyncio
 import json
 import logging
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from api_client import InstagramAPI
-from auth import auto_refresh_if_needed
 from db import Database
+
+from auth import auto_refresh_if_needed
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,16 +57,18 @@ async def sync_media(api: InstagramAPI, limit: int = 50) -> dict:
         existing_ig_ids = {p["ig_media_id"] for p in existing if p.get("ig_media_id")}
 
         if m["id"] not in existing_ig_ids:
-            db.insert_post({
-                "account_id": api.account_id,
-                "media_type": m.get("media_type", "IMAGE"),
-                "media_url": m.get("media_url", ""),
-                "caption": m.get("caption", ""),
-                "status": "published",
-                "published_at": m.get("timestamp", ""),
-                "ig_media_id": m["id"],
-                "permalink": m.get("permalink", ""),
-            })
+            db.insert_post(
+                {
+                    "account_id": api.account_id,
+                    "media_type": m.get("media_type", "IMAGE"),
+                    "media_url": m.get("media_url", ""),
+                    "caption": m.get("caption", ""),
+                    "status": "published",
+                    "published_at": m.get("timestamp", ""),
+                    "ig_media_id": m["id"],
+                    "permalink": m.get("permalink", ""),
+                }
+            )
             count += 1
 
     logger.info("Mídia: %d encontradas, %d novas salvas", len(media_list), count)
@@ -91,14 +94,18 @@ async def sync_insights(api: InstagramAPI, limit: int = 20) -> dict:
             for item in insights.get("data", []):
                 values = item.get("values", [{}])
                 value = values[0].get("value", 0) if values else 0
-                db.insert_insights([{
-                    "account_id": api.account_id,
-                    "ig_media_id": m["id"],
-                    "metric_name": item.get("name", ""),
-                    "metric_value": float(value) if isinstance(value, (int, float)) else 0,
-                    "period": item.get("period", ""),
-                    "raw_json": raw,
-                }])
+                db.insert_insights(
+                    [
+                        {
+                            "account_id": api.account_id,
+                            "ig_media_id": m["id"],
+                            "metric_name": item.get("name", ""),
+                            "metric_value": float(value) if isinstance(value, (int, float)) else 0,
+                            "period": item.get("period", ""),
+                            "raw_json": raw,
+                        }
+                    ]
+                )
             success += 1
         except Exception as e:
             errors += 1
@@ -121,14 +128,18 @@ async def sync_comments(api: InstagramAPI, limit: int = 10) -> dict:
             comments = comments_result.get("data", [])
 
             for c in comments:
-                db.upsert_comments([{
-                    "account_id": api.account_id,
-                    "ig_comment_id": c["id"],
-                    "ig_media_id": m["id"],
-                    "username": c.get("username", ""),
-                    "text": c.get("text", ""),
-                    "timestamp": c.get("timestamp", ""),
-                }])
+                db.upsert_comments(
+                    [
+                        {
+                            "account_id": api.account_id,
+                            "ig_comment_id": c["id"],
+                            "ig_media_id": m["id"],
+                            "username": c.get("username", ""),
+                            "text": c.get("text", ""),
+                            "timestamp": c.get("timestamp", ""),
+                        }
+                    ]
+                )
             total_comments += len(comments)
         except Exception as e:
             logger.warning("Comentários para %s: %s", m["id"], e)
@@ -176,8 +187,12 @@ async def run(only: list = None, dry_run: bool = False, limit: int = 50) -> None
 
 def main():
     parser = argparse.ArgumentParser(description="Sync completo do Instagram")
-    parser.add_argument("--only", nargs="+", choices=["profile", "media", "insights", "comments"],
-                        help="Executar apenas tarefas específicas")
+    parser.add_argument(
+        "--only",
+        nargs="+",
+        choices=["profile", "media", "insights", "comments"],
+        help="Executar apenas tarefas específicas",
+    )
     parser.add_argument("--limit", type=int, default=50, help="Limite de mídia a buscar")
     parser.add_argument("--dry-run", action="store_true", help="Mostra o que seria feito")
     args = parser.parse_args()

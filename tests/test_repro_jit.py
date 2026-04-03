@@ -3,6 +3,7 @@ import pytest
 
 from src.shared.math_utils import _vec_price_impl
 
+
 def test_minimal_jit_vec():
     import os
 
@@ -21,6 +22,7 @@ def test_minimal_jit_vec():
 
     res = _vec_price_impl(S, K, T, sigma, r, q, is_call)
     assert np.isclose(res[0], 9.22699372262055)
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

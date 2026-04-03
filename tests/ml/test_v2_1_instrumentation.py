@@ -6,6 +6,7 @@ from prometheus_client import Histogram
 from src.ml.trainer import InstrumentedTrainer
 from src.shared import observability
 
+
 def test_training_duration_is_histogram():
     """Verify that ml_training_duration_seconds is a Histogram as per PRD."""
     # Note: In the current code it might be a Summary. This test will fail if it's not a Histogram.
@@ -13,6 +14,7 @@ def test_training_duration_is_histogram():
     metric = observability.TRAINING_DURATION
     assert isinstance(metric, Histogram), "TRAINING_DURATION should be a Histogram"
     assert metric._name == "ml_training_duration_seconds"
+
 
 def test_push_metrics_integration():
     """Verify push_metrics uses the correct gateway URL and job name."""
@@ -27,12 +29,14 @@ def test_push_metrics_integration():
         assert args[0] == "http://pushgateway:9091"
         assert kwargs["job"] == "test_job"
 
+
 def test_metric_names_match_prd():
     """Verify metric names match PRD v2.1 spec."""
     assert observability.MODEL_RMSE._name == "ml_model_rmse"
     assert observability.DATA_DRIFT_SCORE._name == "ml_data_drift_score"
     # Counter strips _total suffix internally but exposes it.
     assert observability.TRAINING_ERRORS._name == "ml_training_errors"
+
 
 def test_trainer_updates_rmse():
     """Verify that trainer updates ml_model_rmse Gauge."""
@@ -49,6 +53,7 @@ def test_trainer_updates_rmse():
 
         mock_rmse.labels.assert_called_with(model_type="xgboost", dataset="validation")
         assert mock_labels.set.called
+
 
 def test_pipeline_updates_drift_score():
     """Verify that pipeline updates ml_data_drift_score Gauge."""
@@ -96,6 +101,7 @@ def test_pipeline_updates_drift_score():
 
         assert mock_drift_gauge.set.called
         assert mock_ks_gauge.set.called
+
 
 def test_structlog_json_formatting():
     """Verify that structlog is configured with JSONRenderer."""

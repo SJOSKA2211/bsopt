@@ -10,6 +10,7 @@ from src.shared.shm_mesh import GreeksMesh
 logger = structlog.get_logger(__name__)
 _greeks_mesh = GreeksMesh(create=False)
 
+
 @strawberry.type
 class Position:
     id: strawberry.ID
@@ -44,6 +45,7 @@ class Position:
             pos.rho = shm_greeks["rho"]
 
         return pos
+
 
 @strawberry.type
 class Portfolio:
@@ -83,6 +85,7 @@ class Portfolio:
                 logger.error("ws_fetch_positions_failed", portfolio_id=self.id, error=str(e))
                 return []
 
+
 async def get_portfolio(id: str) -> Portfolio | None:
     """Fetch real portfolio from DB (Async)."""
     async with get_async_db_context() as session:
@@ -98,6 +101,7 @@ async def get_portfolio(id: str) -> Portfolio | None:
         except Exception as e:
             logger.error("ws_fetch_portfolio_failed", portfolio_id=id, error=str(e))
         return None
+
 
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
     """Implement real portfolio creation (Async SQLAlchemy Persistence)."""

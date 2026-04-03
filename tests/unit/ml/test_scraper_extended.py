@@ -4,9 +4,11 @@ import pytest
 
 from src.ml.scraper import MarketDataScraper
 
+
 @pytest.fixture
 def scraper():
     return MarketDataScraper(api_key="test_key", provider="alpha_vantage")
+
 
 @pytest.fixture
 def mock_client():
@@ -15,14 +17,17 @@ def mock_client():
         mock_get.return_value = client
         yield client
 
+
 def test_validate_inputs(scraper):
     scraper._validate_inputs("AAPL", "2023-01-01", "2023-01-31")
     with pytest.raises(ValueError):
         scraper._validate_inputs("INVALID$", "2023-01-01", "2023-01-31")
 
+
 def test_redact_message(scraper):
     msg = "Error with key test_key at URL"
     assert scraper._redact_message(msg) == "Error with key [REDACTED] at URL"
+
 
 @pytest.mark.asyncio
 async def test_fetch_historical_data_alpha_vantage_success(scraper, mock_client):
@@ -43,6 +48,7 @@ async def test_fetch_historical_data_alpha_vantage_success(scraper, mock_client)
     df = await scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-01")
     assert not df.empty
     assert df.iloc[0]["close"] == 102.0
+
 
 @pytest.mark.asyncio
 async def test_fetch_historical_data_polygon_success(scraper, mock_client):
@@ -67,6 +73,7 @@ async def test_fetch_historical_data_polygon_success(scraper, mock_client):
     assert not df.empty
     assert df.iloc[0]["close"] == 102.0
 
+
 @pytest.mark.asyncio
 async def test_fetch_historical_data_alpha_vantage_rate_limit(scraper, mock_client):
     mock_client.get.return_value = MagicMock(
@@ -75,6 +82,7 @@ async def test_fetch_historical_data_alpha_vantage_rate_limit(scraper, mock_clie
     with patch("asyncio.sleep"):  # Skip sleep
         with pytest.raises(Exception, match="rate limit reached"):
             await scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-01")
+
 
 @pytest.mark.asyncio
 async def test_fetch_historical_data_auto_fallback(mock_client):

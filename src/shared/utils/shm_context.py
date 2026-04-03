@@ -11,6 +11,7 @@ logger = structlog.get_logger(__name__)
 
 HAS_IO_URING = importlib.util.find_spec("liburing") is not None
 
+
 class AsyncIOPersister:
     """
     Persistence utility for background disk I/O.
@@ -29,6 +30,7 @@ class AsyncIOPersister:
 
     def close(self):
         os.close(self.fd)
+
 
 class PersistentSHMMapper:
     """
@@ -66,6 +68,7 @@ class PersistentSHMMapper:
             self._shm = None
             self._array = None
 
+
 class SHMContextManager:
     """
     Context manager for handling SharedMemory lifecycles in workers.
@@ -94,6 +97,7 @@ class SHMContextManager:
             except Exception:
                 pass
         self.shm_objects.clear()
+
 
 @contextmanager
 def map_shm_to_numpy(shm_name: str, shape: tuple, dtype=np.float64) -> Generator[np.ndarray]:

@@ -19,6 +19,7 @@ from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -28,6 +29,7 @@ class ImpliedVolatilityError(Exception):
     """Exception raised when IV calculation fails to converge."""
 
     pass
+
 
 def _calculate_intrinsic_value(
     spot: float,
@@ -51,6 +53,7 @@ def _calculate_intrinsic_value(
             0.0,
         )
     )
+
 
 def _validate_inputs(
     market_price: float,
@@ -79,6 +82,7 @@ def _validate_inputs(
 
     if market_price < 1e-12:
         raise ImpliedVolatilityError("market price too close to zero")
+
 
 def _newton_raphson_iv(
     market_price: float,
@@ -118,6 +122,7 @@ def _newton_raphson_iv(
 
     raise ImpliedVolatilityError("failed to converge")
 
+
 def _brent_iv(
     market_price: float,
     spot: float,
@@ -130,7 +135,6 @@ def _brent_iv(
 ) -> float:
     """Brent's method for IV fallback."""
 
-
     def obj(sigma):
         price_val = calculate_price(spot, strike, maturity, sigma, rate, dividend, is_call)
         return float(price_val) - market_price
@@ -139,6 +143,7 @@ def _brent_iv(
         return float(brentq(obj, 1e-6, 5.0, xtol=tolerance))
     except Exception:
         raise ImpliedVolatilityError("failed to converge") from None
+
 
 def implied_volatility(
     market_price: float,
@@ -203,6 +208,7 @@ def implied_volatility(
             )
         raise
 
+
 def vectorized_implied_volatility(
     market_prices: np.ndarray,
     spots: np.ndarray,
@@ -217,7 +223,7 @@ def vectorized_implied_volatility(
     """
     State-of-the-art vectorized IV calculation.
     """
-    
+
     is_call = np.char.lower(option_types.astype(str)) == "call"
 
     if CORE_AVAILABLE:
@@ -235,7 +241,6 @@ def vectorized_implied_volatility(
             )
         except Exception as e:
             structlog.get_logger().warning("core_batch_iv_failed_fallback_to_jit", error=str(e))
-
 
     # 2. Corrado-Miller Initial Guess
     # 0 for call, 1 for put in corrado_miller_initial_guess

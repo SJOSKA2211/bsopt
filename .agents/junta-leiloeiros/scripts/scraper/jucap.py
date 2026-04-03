@@ -7,10 +7,10 @@ Estrutura: h4/h5 com nome + paragrafos com detalhes (Laravel/Livewire SSR)
 Registros: ~12 leiloeiros
 Nota: www.jucap.ap.gov.br falha por DNS — usar jucap.portal.ap.gov.br
 """
+
 from __future__ import annotations
 
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -20,16 +20,18 @@ class JucapScraper(AbstractJuntaScraper):
     junta = "JUCAP"
     url = "https://jucap.portal.ap.gov.br/pagina/informacoes/leiloleiros"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
-            soup = await self.fetch_page(url="https://jucap.portal.ap.gov.br/pagina/informacoes/leiloeiros")
+            soup = await self.fetch_page(
+                url="https://jucap.portal.ap.gov.br/pagina/informacoes/leiloeiros"
+            )
         if not soup:
             soup = await self.fetch_page_js(url=self.url, wait_ms=3000)
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         # Tenta tabela primeiro
         for table in soup.find_all("table"):
@@ -52,16 +54,18 @@ class JucapScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or "Macapa",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                    endereco=gcol(cells, ["ender", "logr"]),
-                    data_registro=gcol(cells, ["data", "posse"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or "Macapa",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                        endereco=gcol(cells, ["ender", "logr"]),
+                        data_registro=gcol(cells, ["data", "posse"]),
+                    )
+                )
             if results:
                 return results
 
@@ -104,7 +108,11 @@ class JucapScraper(AbstractJuntaScraper):
         if not results:
             for line in soup.get_text("\n").split("\n"):
                 line = self.clean(line)
-                if line and len(line) > 5 and re.match(r"^[A-ZÁÉÍÓÚÀÃÕÇ][A-ZÁÉÍÓÚÀÃÕÇ\s]{4,}$", line):
+                if (
+                    line
+                    and len(line) > 5
+                    and re.match(r"^[A-ZÁÉÍÓÚÀÃÕÇ][A-ZÁÉÍÓÚÀÃÕÇ\s]{4,}$", line)
+                ):
                     results.append(self.make_leiloeiro(nome=line, municipio="Macapa"))
 
         return results

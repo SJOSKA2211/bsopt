@@ -2,7 +2,7 @@
 
 import sys
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Add lib to path
@@ -79,7 +79,7 @@ class TestNormalizeTo100(unittest.TestCase):
 
 class TestScoreRedditItems(unittest.TestCase):
     def test_scores_items(self):
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         items = [
             schema.RedditItem(
                 id="R1",
@@ -118,7 +118,7 @@ class TestScoreRedditItems(unittest.TestCase):
 
 class TestScoreXItems(unittest.TestCase):
     def test_scores_items(self):
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         items = [
             schema.XItem(
                 id="X1",

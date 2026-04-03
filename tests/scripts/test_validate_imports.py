@@ -8,6 +8,7 @@ from pathlib import Path
 VALIDATE_IMPORTS_SCRIPT = Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
 os.chmod(VALIDATE_IMPORTS_SCRIPT, 0o755)
 
+
 def run_validator_script(base_path: Path) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     # Ensure project root (parent of the mock package) is in PYTHONPATH
@@ -20,6 +21,7 @@ def run_validator_script(base_path: Path) -> subprocess.CompletedProcess:
         check=False,
     )
     return result
+
 
 class TestImportValidationIntegration:
     def create_mock_package(self, tmp_path):

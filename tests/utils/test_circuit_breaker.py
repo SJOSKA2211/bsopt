@@ -9,6 +9,7 @@ from src.shared.utils.circuit_breaker import (
     InMemoryCircuitBreaker,
 )
 
+
 def test_local_circuit_breaker_flow():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)
 
@@ -38,6 +39,7 @@ def test_local_circuit_breaker_flow():
     # Call while OPEN after timeout -> HALF_OPEN -> Success -> CLOSED
     assert cb(success_func)() == "Success"
     assert cb.state == CircuitState.CLOSED
+
 
 @pytest.mark.asyncio
 async def test_redis_circuit_breaker_flow():
@@ -77,6 +79,7 @@ async def test_redis_circuit_breaker_flow():
     assert res == "Success"
     mock_redis.set.assert_any_call("test:cb_state", "CLOSED", ex=None)
 
+
 @pytest.mark.asyncio
 async def test_redis_circuit_breaker_open_rejection():
     mock_redis = AsyncMock()
@@ -90,6 +93,7 @@ async def test_redis_circuit_breaker_open_rejection():
     with pytest.raises(Exception, match="is OPEN. Request rejected"):
         await cb(some_func)()
 
+
 @pytest.mark.asyncio
 async def test_redis_circuit_breaker_sync_func():
     mock_redis = AsyncMock()
@@ -101,6 +105,7 @@ async def test_redis_circuit_breaker_sync_func():
         return "sync_ok"
 
     assert await cb(sync_func)() == "sync_ok"
+
 
 @pytest.mark.asyncio
 async def test_redis_circuit_breaker_get_failures():

@@ -12,6 +12,7 @@ import numpy as np
 
 from src.math_kernel.models import BSParameters, OptionGreeks
 
+
 class PricingStrategy(ABC):
     """Abstract base class for all pricing strategies."""
 
@@ -25,7 +26,9 @@ class PricingStrategy(ABC):
         """Calculate option sensitivity measures."""
         pass
 
+
 BasePricingEngine = PricingStrategy
+
 
 class VectorizedPricingStrategy(ABC):
     """Abstract base class for high-performance vectorized pricing."""
@@ -48,6 +51,7 @@ class VectorizedPricingStrategy(ABC):
     def price_single(self, params: BSParameters, option_type: str = "call") -> float:
         """Calculate the price of a single option."""
         pass
+
 
 class PricingEngine:
     """

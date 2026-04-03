@@ -30,21 +30,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (  # noqa: E402
-    BASE_DIR,
-    DATA_DIR,
-    SCORING_WEIGHTS,
-    SCORING_LABELS,
-    SCORE_HISTORY_PATH,
-    SEVERITY,
-    SCANNABLE_EXTENSIONS,
-    SKIP_DIRECTORIES,
     LIMITS,
+    SCANNABLE_EXTENSIONS,
+    SCORE_HISTORY_PATH,
+    SCORING_LABELS,
+    SCORING_WEIGHTS,
+    SKIP_DIRECTORIES,
+    calculate_weighted_score,
     ensure_directories,
-    get_verdict,
     get_timestamp,
+    get_verdict,
     log_audit_event,
     setup_logging,
-    calculate_weighted_score,
 )
 
 # ---------------------------------------------------------------------------
@@ -52,12 +49,12 @@ from config import (  # noqa: E402
 # ---------------------------------------------------------------------------
 sys.path.insert(0, str(Path(__file__).resolve().parent / "scanners"))
 
-import secrets_scanner  # noqa: E402
 import dependency_scanner  # noqa: E402
 import injection_scanner  # noqa: E402
 
 # quick_scan is a sibling script in the same directory
 import quick_scan  # noqa: E402
+import secrets_scanner  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Logger
@@ -83,7 +80,9 @@ _SENSITIVE_FINDING_KEYS = {
 # in the relevant domain.
 
 _AUTH_PATTERNS = [
-    re.compile(r"""(?i)(?:@login_required|@auth|@require_auth|@authenticated|@permission_required)"""),
+    re.compile(
+        r"""(?i)(?:@login_required|@auth|@require_auth|@authenticated|@permission_required)"""
+    ),
     re.compile(r"""(?i)(?:passport\.authenticate|isAuthenticated|requireAuth|authMiddleware)"""),
     re.compile(r"""(?i)(?:jwt\.verify|jwt\.decode|verify_jwt|decode_token)"""),
     re.compile(r"""(?i)(?:OAuth|oauth2|OpenID|openid)"""),
@@ -136,6 +135,7 @@ _INPUT_VALIDATION_PATTERNS = [
 # File collection (lightweight, only for positive-signal detection)
 # ---------------------------------------------------------------------------
 
+
 def _collect_source_files(target: Path) -> list[Path]:
     """Collect source files for positive-signal pattern scanning."""
     files: list[Path] = []
@@ -181,6 +181,7 @@ def _count_pattern_matches(files: list[Path], patterns: list[re.Pattern]) -> int
 # Deduplication
 # ---------------------------------------------------------------------------
 
+
 def _deduplicate_findings(findings: list[dict]) -> list[dict]:
     """Remove duplicate findings by (file, line, pattern) tuple."""
     seen: set[tuple] = set()
@@ -198,6 +199,7 @@ def _deduplicate_findings(findings: list[dict]) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Per-domain score calculators
 # ---------------------------------------------------------------------------
+
 
 def _score_from_findings(findings: list[dict], max_deduction: int = 100) -> int:
     """Compute a 0-100 score from findings.  Fewer findings = higher score.
@@ -251,10 +253,15 @@ def compute_domain_scores(
     # ---- input_validation ----
     # Based on injection findings (fewer = higher) + positive validation patterns
     injection_input_related = [
-        f for f in injection_findings
-        if f.get("injection_type") in (
-            "sql_injection", "code_injection", "command_injection",
-            "xss", "path_traversal",
+        f
+        for f in injection_findings
+        if f.get("injection_type")
+        in (
+            "sql_injection",
+            "code_injection",
+            "command_injection",
+            "xss",
+            "path_traversal",
         )
     ]
     negative_score = _score_from_findings(injection_input_related)
@@ -269,17 +276,25 @@ def compute_domain_scores(
     elif auth_count == 0:
         scores["authn_authz"] = 25.0  # no auth patterns found = low score
     else:
-        scores["authn_authz"] = float(_score_from_positive_signals(
-            auth_count, total_source_files, base_score=40, max_score=95,
-        ))
+        scores["authn_authz"] = float(
+            _score_from_positive_signals(
+                auth_count,
+                total_source_files,
+                base_score=40,
+                max_score=95,
+            )
+        )
 
     # ---- data_protection ----
     enc_count = _count_pattern_matches(source_files, _ENCRYPTION_PATTERNS)
     # Also penalize for hardcoded IPs, secrets with data exposure risk
     data_exposure = [
-        f for f in secrets_findings
-        if f.get("pattern") in (
-            "db_connection_string", "url_embedded_credentials",
+        f
+        for f in secrets_findings
+        if f.get("pattern")
+        in (
+            "db_connection_string",
+            "url_embedded_credentials",
             "hardcoded_public_ip",
         )
     ]
@@ -289,15 +304,25 @@ def compute_domain_scores(
 
     # ---- resilience ----
     res_count = _count_pattern_matches(source_files, _RESILIENCE_PATTERNS)
-    scores["resilience"] = float(_score_from_positive_signals(
-        res_count, total_source_files, base_score=30, max_score=95,
-    ))
+    scores["resilience"] = float(
+        _score_from_positive_signals(
+            res_count,
+            total_source_files,
+            base_score=30,
+            max_score=95,
+        )
+    )
 
     # ---- monitoring ----
     mon_count = _count_pattern_matches(source_files, _MONITORING_PATTERNS)
-    scores["monitoring"] = float(_score_from_positive_signals(
-        mon_count, total_source_files, base_score=20, max_score=95,
-    ))
+    scores["monitoring"] = float(
+        _score_from_positive_signals(
+            mon_count,
+            total_source_files,
+            base_score=20,
+            max_score=95,
+        )
+    )
 
     # ---- supply_chain ----
     dep_score = dependency_report.get("score", 50)
@@ -305,9 +330,7 @@ def compute_domain_scores(
 
     # ---- compliance ----
     # Aggregate of other scores weighted equally as a proxy
-    other_scores = [
-        scores.get(k, 0.0) for k in SCORING_WEIGHTS if k != "compliance"
-    ]
+    other_scores = [scores.get(k, 0.0) for k in SCORING_WEIGHTS if k != "compliance"]
     if other_scores:
         scores["compliance"] = float(round(sum(other_scores) / len(other_scores), 2))
     else:
@@ -319,6 +342,7 @@ def compute_domain_scores(
 # ---------------------------------------------------------------------------
 # Score history persistence
 # ---------------------------------------------------------------------------
+
 
 def _save_score_history(
     target: str,
@@ -364,6 +388,7 @@ def _save_score_history(
 # ---------------------------------------------------------------------------
 # Report formatters
 # ---------------------------------------------------------------------------
+
 
 def _bar(score: float, width: int = 20) -> str:
     """Render a simple ASCII progress bar."""
@@ -459,9 +484,7 @@ def format_text_report(
         score = domain_scores.get(domain, 0.0)
         label = SCORING_LABELS.get(domain, domain)
         weight_pct = f"{weight * 100:.0f}%"
-        lines.append(
-            f"    {label:<30} {weight_pct:>6}  {score:>5.1f}  {_bar(score)}"
-        )
+        lines.append(f"    {label:<30} {weight_pct:>6}  {score:>5.1f}  {_bar(score)}")
     lines.append("")
 
     # Final score and verdict
@@ -508,6 +531,7 @@ def build_json_report(
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def run_score(
     target_path: str,
@@ -627,7 +651,8 @@ def run_score(
 
     logger.info(
         "Aggregated %d raw findings -> %d unique (deduplicated)",
-        len(all_findings_raw), total_findings,
+        len(all_findings_raw),
+        total_findings,
     )
 
     # ------------------------------------------------------------------
@@ -659,7 +684,9 @@ def run_score(
     elapsed = time.time() - start_time
     logger.info(
         "Score calculation complete in %.2fs: final_score=%.1f, verdict=%s",
-        elapsed, final_score, verdict["label"],
+        elapsed,
+        final_score,
+        verdict["label"],
     )
 
     # ------------------------------------------------------------------
@@ -696,15 +723,17 @@ def run_score(
     if output_format == "json":
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print(format_text_report(
-            target=target_str,
-            domain_scores=domain_scores,
-            final_score=final_score,
-            verdict=verdict,
-            scanner_summaries=safe_scanner_summaries,
-            total_findings=safe_total_findings,
-            elapsed=elapsed,
-        ))
+        print(
+            format_text_report(
+                target=target_str,
+                domain_scores=domain_scores,
+                final_score=final_score,
+                verdict=verdict,
+                scanner_summaries=safe_scanner_summaries,
+                total_findings=safe_total_findings,
+                elapsed=elapsed,
+            )
+        )
 
     return report
 

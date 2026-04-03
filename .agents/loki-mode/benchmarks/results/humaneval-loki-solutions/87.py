@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def get_row(lst, x):
     """
     You are given a 2 dimensional data, as a nested lists,
@@ -13,7 +14,7 @@ def get_row(lst, x):
     each tuple is a coordinate - (row, columns), starting with 0.
     Sort coordinates initially by rows in ascending order.
     Also, sort coordinates of the row by columns in descending order.
-    
+
     Examples:
     get_row([
       [1,2,3,4,5,6],

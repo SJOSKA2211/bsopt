@@ -4,11 +4,13 @@ HTTP Header and Cookie Functional Tests (Principles 64, 79, 95)
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_header_content_type_json(client):
     """79. Test Assertions: Check content types."""
     response = await client.get("/health")
     assert response.headers.get("content-type").startswith("application/json")
+
 
 @pytest.mark.asyncio
 async def test_header_security_and_server_info(client):
@@ -20,6 +22,7 @@ async def test_header_security_and_server_info(client):
     # Ensure server info is not leaked or is generic
     server = response.headers.get("server", "").lower()
     assert "uvicorn" in server or server == ""  # Standard/Generic allowed
+
 
 @pytest.mark.asyncio
 async def test_no_sensitive_cookies_set(client):

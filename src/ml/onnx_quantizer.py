@@ -12,6 +12,7 @@ from onnxruntime.quantization import QuantType, quantize_dynamic
 
 logger = structlog.get_logger(__name__)
 
+
 class ONNXQuantizer:
     """
     Handles ONNX export and quantization for high-performance inference.
@@ -28,7 +29,6 @@ class ONNXQuantizer:
             raise FileNotFoundError(f"ONNX model not found at {input_onnx_path}")
 
         try:
-            
             quantize_dynamic(
                 model_input=input_onnx_path,
                 model_output=output_onnx_path,
@@ -52,6 +52,7 @@ class ONNXQuantizer:
         except Exception as e:
             logger.error("onnx_quantization_failed", error=str(e))
             raise
+
 
 if __name__ == "__main__":
     # Example integration test

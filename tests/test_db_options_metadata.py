@@ -8,17 +8,20 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
 
+
 def test_option_contracts_table_exists(db_engine):
     """Test that option_contracts table exists."""
     with db_engine.connect() as conn:
         result = conn.execute(text("SELECT to_regclass('option_contracts');"))
         assert result.scalar() is not None, "option_contracts table does not exist"
+
 
 def test_option_contracts_indices(db_engine):
     """Test that optimized indices exist for option_contracts."""
@@ -33,6 +36,7 @@ def test_option_contracts_indices(db_engine):
             )
         )
         assert result.fetchone() is not None, "Optimized composite index is missing"
+
 
 def test_insert_and_query_option(db_engine):
     """Test inserting and retrieving an option contract."""

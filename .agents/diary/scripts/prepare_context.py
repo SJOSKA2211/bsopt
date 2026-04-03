@@ -10,12 +10,11 @@ Generates a standardized AGENT_CONTEXT.md with 5 core sections:
   5. 目前進度與待辦 (Status & TODO) - from latest diary
 """
 
+import json
 import os
 import sys
-import json
-import glob
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def get_tree(path, prefix="", max_depth=3, current_depth=0):
@@ -88,7 +87,7 @@ def extract_tech_stack(root):
     pyproject = root / "pyproject.toml"
     if pyproject.exists():
         text = pyproject.read_text(encoding="utf-8", errors="ignore")
-        stack_info.append(f"* **Python 專案**：使用 pyproject.toml 管理")
+        stack_info.append("* **Python 專案**：使用 pyproject.toml 管理")
         # Simple dependency extraction
         if "dependencies" in text:
             stack_info.append("* _詳見 pyproject.toml 的 dependencies 區塊_")
@@ -96,9 +95,11 @@ def extract_tech_stack(root):
     # requirements.txt
     reqs = root / "requirements.txt"
     if reqs.exists():
-        req_lines = [l.strip().split("==")[0].split(">=")[0]
-                     for l in reqs.read_text(encoding="utf-8", errors="ignore").strip().split("\n")
-                     if l.strip() and not l.startswith("#")]
+        req_lines = [
+            l.strip().split("==")[0].split(">=")[0]
+            for l in reqs.read_text(encoding="utf-8", errors="ignore").strip().split("\n")
+            if l.strip() and not l.startswith("#")
+        ]
         if req_lines:
             stack_info.append(f"* **Python 套件**：{', '.join(req_lines[:10])}")
 
@@ -110,7 +111,12 @@ def extract_latest_diary_todos(root):
     # Search common diary locations
     diary_dirs = [
         root / "diary",
-        Path(os.path.expanduser("~")) / ".gemini" / "antigravity" / "global_skills" / "auto-skill" / "diary",
+        Path(os.path.expanduser("~"))
+        / ".gemini"
+        / "antigravity"
+        / "global_skills"
+        / "auto-skill"
+        / "diary",
     ]
 
     latest_file = None
@@ -140,7 +146,9 @@ def extract_latest_diary_todos(root):
     for line in lines:
         stripped = line.strip()
         # Detect "Next Steps" or "下一步" sections
-        if any(kw in stripped.lower() for kw in ["next step", "下一步", "next steps", "待辦", "todo"]):
+        if any(
+            kw in stripped.lower() for kw in ["next step", "下一步", "next steps", "待辦", "todo"]
+        ):
             in_next_section = True
             continue
         if in_next_section:
@@ -163,7 +171,7 @@ def prepare_context(root_path):
         # Header
         f.write(f"# 專案上下文 (Agent Context)：{root.name}\n\n")
         f.write(f"> **最後更新時間**：{now}\n")
-        f.write(f"> **自動生成**：由 `prepare_context.py` 產生，供 AI Agent 快速掌握專案全局\n\n")
+        f.write("> **自動生成**：由 `prepare_context.py` 產生，供 AI Agent 快速掌握專案全局\n\n")
         f.write("---\n\n")
 
         # Section 1: 專案目標
@@ -175,7 +183,7 @@ def prepare_context(root_path):
             f.write("* **核心目的**：_（請手動補充，或建立 README.md）_\n")
         readme = root / "README.md"
         if readme.exists():
-            f.write(f"* _完整說明見 [README.md](README.md)_\n")
+            f.write("* _完整說明見 [README.md](README.md)_\n")
         f.write("\n")
 
         # Section 2: 技術棧與環境
@@ -188,7 +196,13 @@ def prepare_context(root_path):
             f.write("* _（未偵測到 package.json / pyproject.toml / requirements.txt）_\n")
 
         # Also include raw config snippets for AI reference
-        config_files = ["package.json", "pyproject.toml", "requirements.txt", ".env.example", "clasp.json"]
+        config_files = [
+            "package.json",
+            "pyproject.toml",
+            "requirements.txt",
+            ".env.example",
+            "clasp.json",
+        ]
         has_config = False
         for cfg in config_files:
             cfg_path = root / cfg
@@ -203,7 +217,9 @@ def prepare_context(root_path):
                 # Truncate very long config files
                 if len(content) > 3000:
                     content = content[:3000] + "\n... (truncated)"
-                f.write(f"\n<details><summary>{cfg}</summary>\n\n```{lang}\n{content}\n```\n</details>\n")
+                f.write(
+                    f"\n<details><summary>{cfg}</summary>\n\n```{lang}\n{content}\n```\n</details>\n"
+                )
         f.write("\n")
 
         # Section 3: 核心目錄結構

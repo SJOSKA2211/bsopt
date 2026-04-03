@@ -4,10 +4,11 @@ Configuração central da skill Instagram.
 Todos os paths, constantes da API e specs de mídia ficam aqui.
 Importado por todos os outros scripts.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 ROOT_DIR = Path(__file__).parent.parent
@@ -51,12 +52,12 @@ RATE_LIMIT_DMS_PER_HOUR = 200
 RATE_LIMIT_WARNING_THRESHOLD = 0.9  # alerta em 90% do limite
 
 # ── Media Specs ───────────────────────────────────────────────────────────────
-MEDIA_SPECS: Dict[str, Dict[str, Any]] = {
+MEDIA_SPECS: dict[str, dict[str, Any]] = {
     "PHOTO": {
         "formats": ["JPEG"],
         "min_width": 320,
         "max_width": 1440,
-        "aspect_ratio_min": 4 / 5,   # 0.8
+        "aspect_ratio_min": 4 / 5,  # 0.8
         "aspect_ratio_max": 1.91,
         "max_size_mb": 8,
     },
@@ -104,8 +105,14 @@ REQUEST_TIMEOUT = 30.0
 ACTION_CATEGORIES = {
     "READ": [],  # sem confirmação
     "ENGAGE": ["reply_comment", "hide_comment", "unhide_comment"],
-    "PUBLISH": ["publish_photo", "publish_video", "publish_reel",
-                "publish_story", "publish_carousel", "schedule_post"],
+    "PUBLISH": [
+        "publish_photo",
+        "publish_video",
+        "publish_reel",
+        "publish_story",
+        "publish_carousel",
+        "schedule_post",
+    ],
     "DELETE": ["delete_comment"],
     "MESSAGE": ["send_dm"],
 }

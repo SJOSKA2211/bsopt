@@ -9,6 +9,7 @@ from src.shared.observability import PERFORMANCE_DRIFT_ALERT
 
 logger = structlog.get_logger(__name__)
 
+
 class PerformanceDriftMonitor:
     """
     Monitors model performance metrics for degradation over time.
@@ -105,6 +106,7 @@ class PerformanceDriftMonitor:
         PERFORMANCE_DRIFT_ALERT.set(1 if is_drifted else 0)
         return bool(is_drifted)
 
+
 def calculate_ks_test(
     expected: np.ndarray[Any, np.dtype[np.float64]],
     actual: np.ndarray[Any, np.dtype[np.float64]] | list[float],
@@ -115,6 +117,7 @@ def calculate_ks_test(
     """
     res = ks_2samp(expected, actual)
     return float(res.statistic), float(res.pvalue)
+
 
 def calculate_psi(
     expected: np.ndarray[Any, np.dtype[np.float64]],

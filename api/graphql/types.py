@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 import strawberry
 
+
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Option:
     """Federated Option type - shared across subgraphs"""
@@ -33,6 +34,7 @@ class Option:
 
     time: datetime = strawberry.federation.field(shareable=True)
 
+
 @strawberry.federation.type(shareable=True)
 class MarketData:
     symbol: str
@@ -41,6 +43,7 @@ class MarketData:
     ask: float | None
     volume: int | None
     timestamp: datetime
+
 
 @strawberry.federation.type(shareable=True)
 class OHLCV:

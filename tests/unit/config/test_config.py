@@ -8,6 +8,7 @@ from pydantic import ValidationError
 import src.shared.config
 from tests.test_utils import assert_equal
 
+
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_initialization():
     from src.shared.config import Settings
@@ -21,6 +22,7 @@ def test_settings_initialization():
     )
     assert_equal(settings.PROJECT_NAME, "Black-Scholes Advanced Option Pricing Platform")
     assert settings.ENVIRONMENT in ["dev", "staging", "prod"]
+
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_validation():
@@ -48,6 +50,7 @@ def test_settings_validation():
             JWT_SECRET="test-secret",
         )
 
+
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_password_min_length_validation():
     from src.shared.config import Settings
@@ -60,6 +63,7 @@ def test_password_min_length_validation():
             RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
             JWT_SECRET="test-secret",
         )
+
 
 # Reuse the fixture from conftest.py which handles reload
 @pytest.mark.usefixtures("unmocked_config_settings")
@@ -216,6 +220,7 @@ def test_validators_coverage():
                 RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
             )
 
+
 def test_fallback_initialization_no_reload(monkeypatch):
     """Test fallback by patching functions in place without reload."""
     # We need to patch get_settings in src.shared.config
@@ -241,6 +246,7 @@ def test_fallback_initialization_no_reload(monkeypatch):
     # Verify fallback to MagicMock
     assert isinstance(src.shared.config.settings, MagicMock)
     assert src.shared.config.settings.ENVIRONMENT == "dev"
+
 
 def test_configure_logging_execution(monkeypatch):
     # Mock sys.modules to exclude pytest to trigger configure_logging call

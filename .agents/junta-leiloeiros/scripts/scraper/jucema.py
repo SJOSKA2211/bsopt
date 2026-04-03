@@ -11,11 +11,11 @@ Mecanismo real descoberto em 2026-02-25:
   - Ultima atualizacao: 2025-10-20 18:29:59
 Total: 53 leiloeiros (39 Regular + 12 Irregular + 2 Cancelada)
 """
+
 from __future__ import annotations
 
 import logging
 import re
-from typing import List
 
 import httpx
 from bs4 import BeautifulSoup
@@ -24,7 +24,9 @@ from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
 logger = logging.getLogger(__name__)
 
-RE_MATRICULA = re.compile(r"[Mm]atr[íi]cula\s+N[º°o]?\s*(\d+(?:/\d+)?)\s*[–\-]\s*[Ee]m:\s*(\d{2}/\d{2}/\d{4})")
+RE_MATRICULA = re.compile(
+    r"[Mm]atr[íi]cula\s+N[º°o]?\s*(\d+(?:/\d+)?)\s*[–\-]\s*[Ee]m:\s*(\d{2}/\d{2}/\d{4})"
+)
 RE_SITUACAO = re.compile(r"SITUA[ÇC][ÃA]O:\s*(.+)", re.IGNORECASE)
 RE_CONTATO = re.compile(r"[Cc]ontato:\s*(.+)")
 RE_EMAIL = re.compile(r"[Ee]-?[Mm]ail:\s*(.+)")
@@ -37,7 +39,7 @@ class JucemaScraper(AbstractJuntaScraper):
     url = "https://portal.jucema.ma.gov.br/"
     _API_URL = "https://api.jucema.ma.gov.br/api/public/posts/11"
 
-    async def _fetch_api(self) -> List[dict]:
+    async def _fetch_api(self) -> list[dict]:
         """
         Busca dados do post de leiloeiros via API REST do CMS.
         GET /api/public/posts/11 retorna JSON com campo 'content' em HTML.
@@ -58,11 +60,7 @@ class JucemaScraper(AbstractJuntaScraper):
                 # O campo pode estar em data.content ou diretamente em content
                 # API retorna { success: true, data: { content: "..." }, message: "..." }
                 inner = data.get("data") or {}
-                content_html = (
-                    inner.get("content") or
-                    data.get("content") or
-                    ""
-                )
+                content_html = inner.get("content") or data.get("content") or ""
                 if not content_html:
                     logger.warning("[MA] Campo 'content' vazio na API")
                     return []
@@ -75,7 +73,7 @@ class JucemaScraper(AbstractJuntaScraper):
             logger.error("[MA] Erro na API: %s", exc)
             return []
 
-    def _parse_cms_content(self, soup) -> List[dict]:
+    def _parse_cms_content(self, soup) -> list[dict]:
         """
         Parseia conteudo HTML do CMS da JUCEMA.
         Formato dos paragrafos:
@@ -87,7 +85,9 @@ class JucemaScraper(AbstractJuntaScraper):
           <p>E-mail: ...</p>
         """
         records = []
-        paragraphs = [self.clean(p.get_text()) for p in soup.find_all("p") if self.clean(p.get_text())]
+        paragraphs = [
+            self.clean(p.get_text()) for p in soup.find_all("p") if self.clean(p.get_text())
+        ]
 
         # Tambem tentar com outros elementos se nao houver <p>
         if len(paragraphs) < 3:
@@ -137,13 +137,20 @@ class JucemaScraper(AbstractJuntaScraper):
             # Detectar inicio de nova entrada: nome em maiusculas
             # Excluir titulos de secao como "RELACAO DOS LEILOEIROS", "CEP:", linhas curtas
             is_nome = (
-                len(text) > 8 and
-                not re.match(r"(SITUA|Matr|MATR|[Ee]ndere|[Cc]ontato|[Ee]-?mail|www\.|http|^\d|Site:|CEP:|RELA[ÇC])", text) and
-                not re.search(r"^(RELA[ÇC][ÃA]O|LISTA|CADASTRO|JUNTA|COMERCIAL|LEILOEIROS\s*$)", text, re.IGNORECASE) and
-                sum(1 for c in text if c.isupper()) > len(text) * 0.3 and
-                " " in text and
-                len(text.split()) >= 2 and
-                len(text) < 120
+                len(text) > 8
+                and not re.match(
+                    r"(SITUA|Matr|MATR|[Ee]ndere|[Cc]ontato|[Ee]-?mail|www\.|http|^\d|Site:|CEP:|RELA[ÇC])",
+                    text,
+                )
+                and not re.search(
+                    r"^(RELA[ÇC][ÃA]O|LISTA|CADASTRO|JUNTA|COMERCIAL|LEILOEIROS\s*$)",
+                    text,
+                    re.IGNORECASE,
+                )
+                and sum(1 for c in text if c.isupper()) > len(text) * 0.3
+                and " " in text
+                and len(text.split()) >= 2
+                and len(text) < 120
             )
 
             if is_nome:
@@ -174,7 +181,7 @@ class JucemaScraper(AbstractJuntaScraper):
             pass
         return None
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         # Estrategia 1: API REST (direto ao dado, sem renderizacao JS)
         records = await self._fetch_api()
 

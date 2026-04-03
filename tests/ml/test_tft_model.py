@@ -7,6 +7,7 @@ import pytest
 from src.ml.forecasting.tft_model import TFTModel
 from src.ml.utils.validation import WalkForwardValidator
 
+
 @pytest.fixture
 def sample_data():
     """OPTIMIZED: Structured synthetic data for TFT validation."""
@@ -30,6 +31,7 @@ def sample_data():
             )
     return pd.DataFrame(data)
 
+
 def test_tft_temporal_validation(sample_data, tft_config):
     """OPTIMIZED: Test TFT with WalkForwardValidator."""
     model = TFTModel(config=tft_config)
@@ -47,6 +49,7 @@ def test_tft_temporal_validation(sample_data, tft_config):
         processed = model.prepare_data(train_df)
         assert "train_loader" in processed
 
+
 @pytest.fixture
 def tft_config():
     """TFT model configuration."""
@@ -61,11 +64,13 @@ def tft_config():
         "max_epochs": 1,
     }
 
+
 def test_tft_model_initialization(tft_config):
     """Test that TFTModel initializes with correct parameters."""
     model = TFTModel(config=tft_config)
     assert model.config == tft_config
     assert model.model is None
+
 
 def test_prepare_data_logic(sample_data, tft_config):
     """Test the data preparation logic for TFT."""
@@ -76,6 +81,7 @@ def test_prepare_data_logic(sample_data, tft_config):
     assert "val_loader" in processed_data
     assert processed_data["group_ids"] == ["symbol"]
     assert model.training_dataset is not None
+
 
 @pytest.mark.asyncio
 @patch("src.ml.forecasting.tft_model.mlflow")
@@ -94,6 +100,7 @@ async def test_tft_model_train(mock_mlflow, sample_data, tft_config):
         mock_trainer.fit.assert_called_once()
         mock_mlflow.log_params.assert_called()
 
+
 def test_tft_model_predict(sample_data, tft_config):
     """Test the prediction functionality."""
     model = TFTModel(config=tft_config)
@@ -108,6 +115,7 @@ def test_tft_model_predict(sample_data, tft_config):
 
     assert predictions is not None
     model.model.predict.assert_called_once()
+
 
 def test_get_interpretability_report_trained(sample_data, tft_config):
     """Test that TFT provides feature importance/attention insights when trained."""
@@ -124,6 +132,7 @@ def test_get_interpretability_report_trained(sample_data, tft_config):
     assert "price" in importance["encoder_variables"]
     assert importance["encoder_variables"]["price"] == 0.6
 
+
 def test_tft_model_invalid_data(tft_config):
     """Test data preparation with missing columns."""
     model = TFTModel(config=tft_config)
@@ -131,15 +140,18 @@ def test_tft_model_invalid_data(tft_config):
     with pytest.raises(KeyError):
         model.prepare_data(bad_data)
 
+
 def test_tft_model_predict_not_trained(tft_config):
     """Test predict when model is not trained."""
     model = TFTModel(config=tft_config)
     assert model.predict(pd.DataFrame()) is None
 
+
 def test_get_interpretability_report_not_trained(tft_config):
     """Test interpretability report when model is not trained."""
     model = TFTModel(config=tft_config)
     assert model.get_interpretability_report() == {}
+
 
 def test_prepare_data_with_volume(sample_data, tft_config):
     """Test data preparation specifically including volume."""

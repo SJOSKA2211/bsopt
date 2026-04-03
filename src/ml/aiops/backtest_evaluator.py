@@ -5,8 +5,6 @@ Fetches models from MLflow 'Staging', evaluates them against Out-Of-Sample (OOS)
 and compares metrics with the current 'Production' model.
 """
 
-from typing import Any
-
 import mlflow
 import structlog
 from mlflow.tracking import MlflowClient
@@ -14,6 +12,7 @@ from mlflow.tracking import MlflowClient
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
+
 
 class BacktestEvaluator:
     def __init__(self, model_name: str):
@@ -37,9 +36,9 @@ class BacktestEvaluator:
         return None
 
     def evaluate_performance(
-        self, 
-        staging_v: dict[str, str | dict[str, float]], 
-        prod_v: dict[str, str | dict[str, float]]
+        self,
+        staging_v: dict[str, str | dict[str, float]],
+        prod_v: dict[str, str | dict[str, float]],
     ) -> bool:
         """
         Compare metrics. Returns True if staging should be promoted.
@@ -98,6 +97,7 @@ class BacktestEvaluator:
                 name=self.model_name, version=staging["version"], stage="Archived"
             )
             # Alerting mechanism would be triggered here
+
 
 if __name__ == "__main__":
     evaluator = BacktestEvaluator("OptionPricingModel_v2")

@@ -4,35 +4,40 @@ Supports multi-device registration and authentication.
 """
 
 import logging
+
 from webauthn import (
-    generate_registration_options,
-    verify_registration_response,
     generate_authentication_options,
-    verify_authentication_response,
+    generate_registration_options,
     options_to_json,
+    verify_authentication_response,
+    verify_registration_response,
 )
 from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria,
-    UserVerificationRequirement,
-    RegistrationCredential,
     AuthenticationCredential,
+    AuthenticatorSelectionCriteria,
+    RegistrationCredential,
+    UserVerificationRequirement,
 )
 
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class WebAuthnService:
     """
     WebAuthn/Passkey registration and authentication orchestration.
     Deterministic implementation: No mocks allowed.
     """
+
     def __init__(self):
         self.rp_id = settings.WEBAUTHN_RP_ID
         self.rp_name = settings.WEBAUTHN_RP_NAME
         self.origin = settings.WEBAUTHN_ORIGIN
 
-    def get_registration_options(self, user_id: str, email: str, existing_credentials: list[bytes] = []):
+    def get_registration_options(
+        self, user_id: str, email: str, existing_credentials: list[bytes] = []
+    ):
         """Generate options for a new passkey registration."""
         # Purged: No longer returns mocked status if library is missing.
         options = generate_registration_options(
@@ -85,6 +90,7 @@ class WebAuthnService:
             credential_current_sign_count=credential_current_sign_count,
         )
         return verification
+
 
 # Global instance for easy access
 webauthn_service = WebAuthnService()

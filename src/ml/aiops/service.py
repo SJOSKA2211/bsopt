@@ -9,6 +9,7 @@ from src.workers.tasks.ml_tasks import train_model_task
 
 logger = structlog.get_logger(__name__)
 
+
 class MLOpsService:
     def run_pipeline(
         self,

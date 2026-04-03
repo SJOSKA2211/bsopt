@@ -13,8 +13,8 @@ import argparse
 import json
 import os
 import sys
-from urllib.request import urlopen, Request
 from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 
 def _mask_token(token: str) -> str:
@@ -38,8 +38,9 @@ def api_call(token: str, method: str, data: dict) -> dict:
         return error_body
 
 
-def send_text(token: str, chat_id: str, text: str, parse_mode: str = None,
-              silent: bool = False) -> dict:
+def send_text(
+    token: str, chat_id: str, text: str, parse_mode: str = None, silent: bool = False
+) -> dict:
     """Send a text message."""
     data = {"chat_id": chat_id, "text": text}
     if parse_mode:
@@ -67,20 +68,16 @@ def send_document_url(token: str, chat_id: str, document: str, caption: str = No
 
 def send_location(token: str, chat_id: str, lat: float, lon: float) -> dict:
     """Send a location."""
-    return api_call(token, "sendLocation", {
-        "chat_id": chat_id,
-        "latitude": lat,
-        "longitude": lon
-    })
+    return api_call(token, "sendLocation", {"chat_id": chat_id, "latitude": lat, "longitude": lon})
 
 
 def send_poll(token: str, chat_id: str, question: str, options: list) -> dict:
     """Send a poll."""
-    return api_call(token, "sendPoll", {
-        "chat_id": chat_id,
-        "question": question,
-        "options": [{"text": opt} for opt in options]
-    })
+    return api_call(
+        token,
+        "sendPoll",
+        {"chat_id": chat_id, "question": question, "options": [{"text": opt} for opt in options]},
+    )
 
 
 def main():
@@ -88,8 +85,12 @@ def main():
     parser.add_argument("--token", type=str, help="Bot token (or TELEGRAM_BOT_TOKEN env)")
     parser.add_argument("--chat-id", type=str, required=True, help="Target chat ID")
     parser.add_argument("--text", type=str, help="Text message to send")
-    parser.add_argument("--parse-mode", type=str, choices=["HTML", "MarkdownV2", "Markdown"],
-                        help="Parse mode for text formatting")
+    parser.add_argument(
+        "--parse-mode",
+        type=str,
+        choices=["HTML", "MarkdownV2", "Markdown"],
+        help="Parse mode for text formatting",
+    )
     parser.add_argument("--photo", type=str, help="Photo URL to send")
     parser.add_argument("--document", type=str, help="Document URL to send")
     parser.add_argument("--caption", type=str, help="Caption for photo/document")
@@ -130,7 +131,9 @@ def main():
     if result and result.get("ok"):
         msg = result["result"]
         print(f"OK - Message sent! ID: {msg.get('message_id')}")
-        print(f"     Chat: {msg.get('chat', {}).get('title', msg.get('chat', {}).get('first_name', 'N/A'))}")
+        print(
+            f"     Chat: {msg.get('chat', {}).get('title', msg.get('chat', {}).get('first_name', 'N/A'))}"
+        )
         print(f"     Date: {msg.get('date')}")
     else:
         # Mask token in error output to prevent credential leakage

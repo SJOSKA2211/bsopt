@@ -4,6 +4,7 @@ import pytest
 
 from src.shared.security import MTLSVerifier, OPAEnforcer
 
+
 def test_mtls_verifier_success():
     verifier = MTLSVerifier(required_dn="CN=backend")
     request = MagicMock()
@@ -12,6 +13,7 @@ def test_mtls_verifier_success():
         "X-SSL-Client-S-DN": "CN=backend",
     }
     assert verifier.verify(request) is True
+
 
 def test_mtls_verifier_fail_status():
     verifier = MTLSVerifier()
@@ -22,6 +24,7 @@ def test_mtls_verifier_fail_status():
     }
     assert verifier.verify(request) is False
 
+
 def test_mtls_verifier_fail_dn():
     verifier = MTLSVerifier(required_dn="CN=backend")
     request = MagicMock()
@@ -30,6 +33,7 @@ def test_mtls_verifier_fail_dn():
         "X-SSL-Client-S-DN": "CN=hacker",
     }
     assert verifier.verify(request) is False
+
 
 @pytest.mark.asyncio
 @patch("src.shared.security.HttpClientManager.get_client")
@@ -44,6 +48,7 @@ async def test_opa_enforcer_allow(mock_get_client):
     enforcer = OPAEnforcer()
     authorized = await enforcer.is_authorized({"id": "1"}, "read", "data")
     assert authorized is True
+
 
 @pytest.mark.asyncio
 @patch("src.shared.security.HttpClientManager.get_client")

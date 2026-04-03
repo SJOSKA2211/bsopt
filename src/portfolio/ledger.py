@@ -5,6 +5,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class PortfolioLedger:
     """
     Production Portfolio Ledger.

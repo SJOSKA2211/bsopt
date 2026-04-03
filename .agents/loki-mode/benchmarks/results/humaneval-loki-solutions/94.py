@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def skjkasdkd(lst):
     """You are given a list of integers.
     You need to find the largest prime value and return the sum of its digits.
@@ -15,6 +16,7 @@ def skjkasdkd(lst):
     For lst = [0,81,12,3,1,21] the output should be 3
     For lst = [0,8,1,2,1,7] the output should be 7
     """
+
     def is_prime(n):
         if n < 2:
             return False
@@ -26,7 +28,7 @@ def skjkasdkd(lst):
             if n % i == 0:
                 return False
         return True
-    
+
     primes = [x for x in lst if is_prime(x)]
     largest_prime = max(primes)
     return sum(int(d) for d in str(largest_prime))

@@ -1,5 +1,6 @@
 import cupy as cp
 
+
 def gpu_black_scholes(
     s: cp.ndarray, k: cp.ndarray, t: cp.ndarray, v: cp.ndarray, r: cp.ndarray, is_call: cp.ndarray
 ) -> cp.ndarray:
@@ -21,6 +22,7 @@ def gpu_black_scholes(
         # Vectorized for mixed calls/puts using is_call as 1.0 or -1.0 potentially
         # But standard bool where is cleaner
         return cp.zeros_like(s)
+
 
 def gpu_greeks(
     s: cp.ndarray, k: cp.ndarray, t: cp.ndarray, v: cp.ndarray, r: cp.ndarray, is_call: cp.ndarray

@@ -13,6 +13,7 @@ else:
 from api.schemas.ml import InferenceRequest
 from src.ml.serving.serve import predict, state
 
+
 @pytest.mark.asyncio
 async def test_predict_xgb_success():
     # Mock XGB model
@@ -35,6 +36,7 @@ async def test_predict_xgb_success():
         response = await predict(request, model_type="xgb")
         assert response.data.price == 15.5
         assert response.data.model_type == "xgb"
+
 
 @pytest.mark.asyncio
 async def test_predict_unsupported_model():

@@ -3,6 +3,7 @@ import numpy as np
 from src.quant.pricing.factory import PricingEngineFactory
 from src.quant.pricing.models import BSParameters
 
+
 def test_neural_engine_lifecycle():
     # 1. Get Engine (lazy load)
     # Note: factory returns BasePricingEngine, but we know it's Neural
@@ -38,6 +39,7 @@ def test_neural_engine_lifecycle():
     print(f"Greeks: {greeks}")
     assert greeks.delta is not None
     assert isinstance(greeks.gamma, float)
+
 
 if __name__ == "__main__":
     test_neural_engine_lifecycle()

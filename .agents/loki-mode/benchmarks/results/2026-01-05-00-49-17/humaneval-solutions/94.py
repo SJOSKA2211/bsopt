@@ -10,6 +10,7 @@ def skjkasdkd(lst):
     For lst = [0,81,12,3,1,21] the output should be 3
     For lst = [0,8,1,2,1,7] the output should be 7
     """
+
     def is_prime(n):
         if n < 2:
             return False
@@ -21,13 +22,13 @@ def skjkasdkd(lst):
             if n % i == 0:
                 return False
         return True
-    
+
     largest_prime = -1
     for num in lst:
         if is_prime(num) and num > largest_prime:
             largest_prime = num
-    
+
     if largest_prime == -1:
         return 0
-    
+
     return sum(int(d) for d in str(largest_prime))

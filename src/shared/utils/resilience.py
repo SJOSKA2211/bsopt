@@ -4,6 +4,7 @@ Resilience Utilities for BS-Opt (Manifold)
 Implements Circuit Breaker, Exponential Backoff with Jitter,
 and advanced error handling for external dependencies.
 """
+
 import asyncio
 import random
 import time
@@ -17,6 +18,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
+
 
 def retry_with_backoff(
     retries: int = 3,
@@ -64,6 +66,7 @@ class CircuitState(Enum):
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
+
 
 class CircuitBreaker:
     """
@@ -123,6 +126,7 @@ class CircuitBreaker:
         self.failure_count = 0
         self.state = CircuitState.CLOSED
         self.last_failure_time = 0.0
+
 
 # Pre-defined breakers
 yfinance_breaker = CircuitBreaker("yfinance", failure_threshold=10, recovery_timeout=60)

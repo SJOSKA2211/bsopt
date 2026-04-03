@@ -1,23 +1,24 @@
 import asyncio
 import logging
 import os
-import structlog
 from datetime import UTC, datetime
 
 import grpc
+import structlog
 from cachetools import TTLCache
-from google.protobuf import timestamp_pb2, empty_pb2
+from google.protobuf import empty_pb2, timestamp_pb2
+from google.protobuf.json_format import MessageToDict, ParseDict
+from grpc_health.v1 import health, health_pb2, health_pb2_grpc
+from sqlalchemy import select
 
 from src.auth.auth import auth_service
-from src.protos import auth_pb2, auth_pb2_grpc
 from src.database import db_manager
-from src.database.models import User, APIKey
-from sqlalchemy import select
+from src.database.models import APIKey, User
+from src.protos import auth_pb2, auth_pb2_grpc
 from src.shared.utils.cache import db_cache
-from grpc_health.v1 import health, health_pb2, health_pb2_grpc
-from google.protobuf.json_format import MessageToDict, ParseDict
 
 logger = structlog.get_logger(__name__)
+
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     """
@@ -41,7 +42,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 expires_at=int(token_data.exp.timestamp()),
                 issued_at=int(token_data.iat.timestamp()),
                 token_type=token_data.token_type,
-                roles=token_data.scopes
+                roles=token_data.scopes,
             )
         except Exception as e:
             logger.warning("grpc_validate_token_failed", error=str(e))
@@ -59,9 +60,9 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 user_id=token_data.user_id,
                 email=token_data.email,
                 tier=token_data.tier,
-                scopes=token_data.scopes
+                scopes=token_data.scopes,
             )
-            
+
             # We return the new access token info
             new_access_data = auth_service.decode_token(token_pair.access_token)
 
@@ -73,7 +74,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 expires_at=int(new_access_data.exp.timestamp()),
                 issued_at=int(new_access_data.iat.timestamp()),
                 token_type="access",
-                roles=new_access_data.scopes
+                roles=new_access_data.scopes,
             )
         except Exception as e:
             logger.error("grpc_refresh_token_failed", error=str(e))
@@ -91,12 +92,12 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def GetUserInfo(self, request, context):
         try:
             token_data = await auth_service.validate_token(request.token)
-            
+
             # Local In-Memory Cache
             if token_data.user_id in self._user_cache:
                 logger.debug("user_info_local_cache_hit", user_id=token_data.user_id)
                 return self._user_cache[token_data.user_id]
-                
+
             # Check Distributed Cache
             cached_data = await db_cache.get_user(token_data.user_id)
             if cached_data:
@@ -112,10 +113,10 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 if not user:
                     context.set_code(grpc.StatusCode.NOT_FOUND)
                     return auth_pb2.UserInfo()
-                
+
                 created_at = timestamp_pb2.Timestamp()
                 created_at.FromDatetime(user.created_at)
-                
+
                 last_login = timestamp_pb2.Timestamp()
                 if user.last_login_at:
                     last_login.FromDatetime(user.last_login_at)
@@ -129,9 +130,9 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                     mfa_enabled=user.mfa_enabled,
                     created_at=created_at,
                     last_login=last_login,
-                    roles=[user.tier]
+                    roles=[user.tier],
                 )
-                
+
                 # Update Cache (Convert to Dict for Redis storage)
                 await db_cache.set_user(token_data.user_id, MessageToDict(user_info))
                 self._user_cache[token_data.user_id] = user_info
@@ -147,9 +148,9 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 user_id=request.user_id,
                 email=request.email,
                 tier=request.tier,
-                scopes=list(request.scopes) if hasattr(request, 'scopes') else []
+                scopes=list(request.scopes) if hasattr(request, "scopes") else [],
             )
-            
+
             issued_at = timestamp_pb2.Timestamp()
             issued_at.GetCurrentTime()
 
@@ -158,7 +159,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 refresh_token=token_pair.refresh_token,
                 token_type=token_pair.token_type,
                 expires_in=token_pair.expires_in,
-                issued_at=issued_at
+                issued_at=issued_at,
             )
         except Exception as e:
             logger.error("grpc_create_token_pair_failed", error=str(e))
@@ -168,25 +169,27 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def ValidateAPIKey(self, request, context):
         try:
             import hashlib
+
             key_hash = hashlib.sha256(request.api_key.encode()).hexdigest()
-            
+
             # Local In-Memory Cache
             if key_hash in self._api_key_cache:
                 logger.debug("api_key_local_cache_hit", key_hash=key_hash[:10] + "...")
                 # We can skip updating the last_used_at in Redis synchronously for max perf,
                 # or buffer it, but we'll stick to serving from cache.
                 return self._api_key_cache[key_hash]
-                
+
             # Check Distributed Cache
             cached_data = await db_cache.get_api_key(key_hash)
             if cached_data:
                 logger.debug("api_key_cache_hit", key_hash=key_hash[:10] + "...")
                 # Buffer the last_used_at update in Redis
                 from src.shared.utils.cache import get_redis
+
                 redis = get_redis()
                 if redis:
                     await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
-                
+
                 api_key_resp = auth_pb2.APIKeyResponse()
                 ParseDict(cached_data, api_key_resp)
                 self._api_key_cache[key_hash] = api_key_resp
@@ -195,26 +198,29 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             async with db_manager.async_session_factory() as db:
                 # Optimized join query to avoid lazy loading of user
                 from sqlalchemy.orm import joinedload
+
                 result = await db.execute(
-                    select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
+                    select(APIKey)
+                    .options(joinedload(APIKey.user))
+                    .where(APIKey.key_hash == key_hash, APIKey.is_active)
                 )
                 key_record = result.scalar_one_or_none()
                 if not key_record:
                     return auth_pb2.APIKeyResponse(valid=False)
-                
+
                 user = key_record.user
                 created_at = timestamp_pb2.Timestamp()
                 created_at.FromDatetime(key_record.created_at)
-                
+
                 api_key_resp = auth_pb2.APIKeyResponse(
                     valid=True,
                     user_id=str(user.id),
                     email=user.email,
                     tier=user.tier,
                     key_name=key_record.name or "",
-                    created_at=created_at
+                    created_at=created_at,
                 )
-                
+
                 # Update Cache
                 await db_cache.set_api_key(key_hash, MessageToDict(api_key_resp))
                 self._api_key_cache[key_hash] = api_key_resp
@@ -234,10 +240,11 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 exp=int(token_data.exp.timestamp()),
                 iat=int(token_data.iat.timestamp()),
                 scope=" ".join(token_data.scopes),
-                iss="manifold-auth-v2"
+                iss="manifold-auth-v2",
             )
         except Exception:
             return auth_pb2.IntrospectionResponse(active=False)
+
 
 async def serve(port: str = "50051"):
     server = grpc.aio.server()
@@ -250,7 +257,7 @@ async def serve(port: str = "50051"):
     health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
 
     listen_addr = f"0.0.0.0:{port}"
-    
+
     # Secure gRPC implementation
     try:
         PROJECT_ROOT = os.getcwd()
@@ -264,7 +271,7 @@ async def serve(port: str = "50051"):
         server_credentials = grpc.ssl_server_credentials(
             [(private_key, certificate_chain)],
             root_certificates=root_certificates,
-            require_client_auth=True
+            require_client_auth=True,
         )
         server.add_secure_port(listen_addr, server_credentials)
         logger.info("grpc_auth_server_starting_secure", port=port)
@@ -275,6 +282,7 @@ async def serve(port: str = "50051"):
 
     await server.start()
     await server.wait_for_termination()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

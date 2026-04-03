@@ -16,6 +16,7 @@ from src.quant.pricing.black_scholes import BSParameters
 from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, _laguerre_basis
 from tests.test_utils import assert_equal
 
+
 class TestMCConfig:
     """Test Monte Carlo configuration validation."""
 
@@ -54,6 +55,7 @@ class TestMCConfig:
         with pytest.raises(ValueError, match="n_steps must be positive"):
             MCConfig(n_steps=-1)
 
+
 class TestLaguerreBasis:
     """Test Laguerre polynomial basis functions."""
 
@@ -90,6 +92,7 @@ class TestLaguerreBasis:
         assert_equal(basis.shape, (3, 4))
         # Verify first polynomial is constant
         assert_equal(np.all(basis[:, 0] == 1.0), True)
+
 
 class TestMonteCarloEngineBasics:
     """Test basic functionality of Monte Carlo engine."""
@@ -148,6 +151,7 @@ class TestMonteCarloEngineBasics:
         """Test that invalid option type raises error."""
         with pytest.raises(ValueError, match="option_type must be 'call' or 'put'"):
             engine.price_european(atm_params, "invalid")
+
 
 class TestEuropeanPricing:
     """Test European option pricing accuracy."""
@@ -257,6 +261,7 @@ class TestEuropeanPricing:
         # Deep OTM put should have low value
         assert price < 3.0  # Increased from 1.0 as BS price is ~1.46
 
+
 class TestVarianceReduction:
     """Test variance reduction techniques."""
 
@@ -319,6 +324,7 @@ class TestVarianceReduction:
 
         # Control variates should reduce CI
         assert ci_cv < ci_no_cv
+
 
 class TestAmericanPricing:
     """Test American option pricing using Longstaff-Schwartz."""
@@ -413,6 +419,7 @@ class TestAmericanPricing:
 
         assert american_put >= intrinsic_put * 0.95
 
+
 class TestEdgeCases:
     """Test edge cases and numerical stability."""
 
@@ -486,6 +493,7 @@ class TestEdgeCases:
         price, ci = engine.price_european(params, "call")
         assert price > 0
         assert ci > 0
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

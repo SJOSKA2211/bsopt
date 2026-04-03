@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 
-import numpy as np
-
 from src.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
+
 
 class TestMMD:
     def test_calculate_mmd_same_dist(self):
@@ -31,4 +31,3 @@ class TestMMD:
         assert not is_drifted_no
         assert is_drifted_yes
         self.assertGreater(mmd_yes, mmd_no)
-

@@ -38,6 +38,7 @@ HYBRID_CAPABILITIES = {"api-integration", "web-automation"}
 
 # ── Functions ──────────────────────────────────────────────────────────────
 
+
 def load_registry() -> dict[str, dict]:
     """Load registry as name->skill dict."""
     if not REGISTRY_PATH.exists():
@@ -155,15 +156,17 @@ def generate_plan(skills: list[dict], query: str, pattern: str) -> dict:
                 else:
                     action = f"Continue processing with data from {prev}"
 
-            steps.append({
-                "order": i + 1,
-                "skill": skill["name"],
-                "skill_md": skill.get("skill_md", skill.get("location", "")),
-                "action": action,
-                "input": input_src,
-                "output": f"{skill['name']}.output",
-                "role": role,
-            })
+            steps.append(
+                {
+                    "order": i + 1,
+                    "skill": skill["name"],
+                    "skill_md": skill.get("skill_md", skill.get("location", "")),
+                    "action": action,
+                    "input": input_src,
+                    "output": f"{skill['name']}.output",
+                    "role": role,
+                }
+            )
 
         flow_parts = [s["skill"] for s in steps]
         data_flow = " -> ".join(["user_query"] + flow_parts + ["result"])
@@ -178,14 +181,16 @@ def generate_plan(skills: list[dict], query: str, pattern: str) -> dict:
     elif pattern == "parallel":
         steps = []
         for i, skill in enumerate(skills):
-            steps.append({
-                "order": 1,  # All run at the same "order" level
-                "skill": skill["name"],
-                "skill_md": skill.get("skill_md", skill.get("location", "")),
-                "action": f"Handle independently: aspect of '{query}' related to {', '.join(skill.get('capabilities', []))}",
-                "input": "user_query",
-                "output": f"{skill['name']}.output",
-            })
+            steps.append(
+                {
+                    "order": 1,  # All run at the same "order" level
+                    "skill": skill["name"],
+                    "skill_md": skill.get("skill_md", skill.get("location", "")),
+                    "action": f"Handle independently: aspect of '{query}' related to {', '.join(skill.get('capabilities', []))}",
+                    "input": "user_query",
+                    "output": f"{skill['name']}.output",
+                }
+            )
 
         return {
             "pattern": "parallel",
@@ -212,15 +217,17 @@ def generate_plan(skills: list[dict], query: str, pattern: str) -> dict:
         ]
 
         for i, skill in enumerate(support):
-            steps.append({
-                "order": 2,
-                "skill": skill["name"],
-                "skill_md": skill.get("skill_md", skill.get("location", "")),
-                "action": f"Support: provide {', '.join(skill.get('capabilities', []))} data if needed",
-                "input": "user_query",
-                "output": f"{skill['name']}.output",
-                "role": "support",
-            })
+            steps.append(
+                {
+                    "order": 2,
+                    "skill": skill["name"],
+                    "skill_md": skill.get("skill_md", skill.get("location", "")),
+                    "action": f"Support: provide {', '.join(skill.get('capabilities', []))} data if needed",
+                    "input": "user_query",
+                    "output": f"{skill['name']}.output",
+                    "role": "support",
+                }
+            )
 
         return {
             "pattern": "primary_support",
@@ -233,6 +240,7 @@ def generate_plan(skills: list[dict], query: str, pattern: str) -> dict:
 
 
 # ── CLI Entry Point ────────────────────────────────────────────────────────
+
 
 def main():
     args = sys.argv[1:]
@@ -269,17 +277,27 @@ def main():
                 skills.append(skill_data)
 
     if not skills:
-        print(json.dumps({
-            "error": "No skills provided",
-            "usage": 'python orchestrate.py --skills skill1,skill2 --query "your query"'
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "error": "No skills provided",
+                    "usage": 'python orchestrate.py --skills skill1,skill2 --query "your query"',
+                },
+                indent=2,
+            )
+        )
         sys.exit(1)
 
     if not query:
-        print(json.dumps({
-            "error": "No query provided",
-            "usage": 'python orchestrate.py --skills skill1,skill2 --query "your query"'
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "error": "No query provided",
+                    "usage": 'python orchestrate.py --skills skill1,skill2 --query "your query"',
+                },
+                indent=2,
+            )
+        )
         sys.exit(1)
 
     # Classify and generate plan

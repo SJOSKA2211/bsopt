@@ -4,6 +4,7 @@ from prometheus_client import REGISTRY
 
 from src.shared.observability import push_metrics
 
+
 @patch("src.shared.observability.push_to_gateway")
 @patch("src.shared.observability.os.environ.get")
 @patch("src.shared.observability.structlog.get_logger")
@@ -25,6 +26,7 @@ def test_push_metrics_success(mock_logger, mock_environ_get, mock_push_to_gatewa
     )
     assert result is None  # push_metrics does not return a value
 
+
 @patch("src.shared.observability.push_to_gateway")
 @patch("src.shared.observability.os.environ.get")
 @patch("src.shared.observability.structlog.get_logger")
@@ -43,6 +45,7 @@ def test_push_metrics_no_gateway_url(mock_logger, mock_environ_get, mock_push_to
         "metrics_push_skipped", reason="no_gateway_url"
     )
     assert result is None
+
 
 @patch("src.shared.observability.push_to_gateway", side_effect=Exception("Push failed"))
 @patch("src.shared.observability.os.environ.get")

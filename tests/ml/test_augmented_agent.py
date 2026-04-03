@@ -5,9 +5,11 @@ import pytest
 
 from src.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
 
+
 @pytest.fixture
 def agent_config():
     return {"price_state_dim": 10, "sentiment_state_dim": 1, "action_dim": 3}
+
 
 def test_augmented_agent_initialization(agent_config):
     """Test that AugmentedRLAgent initializes with correct observation space."""
@@ -15,6 +17,7 @@ def test_augmented_agent_initialization(agent_config):
     # Total observation space should be price_state + sentiment_state
     assert agent.observation_dim == 11
     assert agent.action_dim == 3
+
 
 def test_observation_concatenation(agent_config):
     """Test that Price_State and Sentiment_State are correctly concatenated."""
@@ -29,6 +32,7 @@ def test_observation_concatenation(agent_config):
     assert observation[-1] == 0.75  # Sentiment should be the last element
     assert np.array_equal(observation[:10], price_state)
 
+
 def test_agent_act_no_model(agent_config):
     """Test that agent produces random actions when no model is loaded."""
     agent = AugmentedRLAgent(config=agent_config)
@@ -39,6 +43,7 @@ def test_agent_act_no_model(agent_config):
 
     assert len(action) == 3
     assert np.all(action >= -1) and np.all(action <= 1)
+
 
 def test_agent_act_with_augmented_state(agent_config):
     """Test that agent can produce an action from the augmented state."""

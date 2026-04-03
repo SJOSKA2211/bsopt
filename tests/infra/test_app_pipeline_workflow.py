@@ -2,9 +2,11 @@ import os
 
 import yaml
 
+
 def test_app_pipeline_workflow_exists():
     """Verify that the app-pipeline workflow file exists."""
     assert os.path.exists(".github/workflows/app-pipeline.yml")
+
 
 def test_app_pipeline_workflow_contents():
     """Verify that the app-pipeline workflow contains the required quality gates."""
@@ -33,6 +35,7 @@ def test_app_pipeline_workflow_contents():
     assert "pytest" in test_steps.lower()
     assert "--cov-fail-under=85" in test_steps  # Coverage threshold
 
+
 def test_app_pipeline_matrix_build():
     """Verify that the app-pipeline workflow contains matrix build and push logic."""
     with open(".github/workflows/app-pipeline.yml") as f:
@@ -60,6 +63,7 @@ def test_app_pipeline_matrix_build():
     assert "ghcr.io" in steps.lower()
     assert "latest" in steps.lower()
 
+
 def test_app_pipeline_gitops_update():
     """Verify that the app-pipeline workflow contains GitOps update logic."""
     with open(".github/workflows/app-pipeline.yml") as f:
@@ -77,11 +81,13 @@ def test_app_pipeline_gitops_update():
     assert "git commit" in steps.lower()
     assert "infrastructure/manifests" in steps.lower()
 
+
 def test_infrastructure_manifests_exist():
     """Verify that the infrastructure manifests exist."""
     src = ["api", "worker-pricing", "worker-ml", "scraper"]
     for service in src:
         assert os.path.exists(f"infrastructure/manifests/{service}-deployment.yaml")
+
 
 def test_argocd_canary_manifests_exist():
     """Verify that the ArgoCD and Canary manifests exist."""

@@ -4,16 +4,17 @@ Analyzer de seguranca.
 Verifica: secrets hardcoded, SQL injection, validacao de input,
 HTTPS enforcement, tokens em logs, padroes de autenticacao.
 """
+
 from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from config import SECRET_EXCEPTIONS, SECRET_PATTERNS, SQL_INJECTION_PATTERNS
 
 
-def _check_secrets(source: str, rel_path: str, skill_name: str) -> List[Dict[str, Any]]:
+def _check_secrets(source: str, rel_path: str, skill_name: str) -> list[dict[str, Any]]:
     """Verifica patterns de secrets hardcoded."""
     findings = []
     for i, line in enumerate(source.splitlines(), 1):
@@ -23,120 +24,129 @@ def _check_secrets(source: str, rel_path: str, skill_name: str) -> List[Dict[str
                 is_exception = any(exc in line for exc in SECRET_EXCEPTIONS)
                 if is_exception:
                     continue
-                findings.append({
-                    "skill_name": skill_name,
-                    "dimension": "security",
-                    "severity": "critical",
-                    "category": "hardcoded_secret",
-                    "title": f"Possivel secret hardcoded em {rel_path}:{i}",
-                    "description": "Credencial ou token encontrado no codigo-fonte. "
-                                   "Mover para variavel de ambiente.",
-                    "file_path": rel_path,
-                    "line_number": i,
-                    "recommendation": "Usar os.environ.get() ou arquivo .env (nao versionado)",
-                    "effort": "low",
-                    "impact": "high",
-                })
+                findings.append(
+                    {
+                        "skill_name": skill_name,
+                        "dimension": "security",
+                        "severity": "critical",
+                        "category": "hardcoded_secret",
+                        "title": f"Possivel secret hardcoded em {rel_path}:{i}",
+                        "description": "Credencial ou token encontrado no codigo-fonte. "
+                        "Mover para variavel de ambiente.",
+                        "file_path": rel_path,
+                        "line_number": i,
+                        "recommendation": "Usar os.environ.get() ou arquivo .env (nao versionado)",
+                        "effort": "low",
+                        "impact": "high",
+                    }
+                )
     return findings
 
 
-def _check_sql_injection(source: str, rel_path: str, skill_name: str) -> List[Dict[str, Any]]:
+def _check_sql_injection(source: str, rel_path: str, skill_name: str) -> list[dict[str, Any]]:
     """Verifica uso de f-strings/format em queries SQL."""
     findings = []
     for i, line in enumerate(source.splitlines(), 1):
         for pattern in SQL_INJECTION_PATTERNS:
             if pattern.search(line):
-                findings.append({
-                    "skill_name": skill_name,
-                    "dimension": "security",
-                    "severity": "high",
-                    "category": "sql_injection",
-                    "title": f"Possivel SQL injection em {rel_path}:{i}",
-                    "description": "Interpolacao de string em query SQL. Usar queries parametrizadas (?)",
-                    "file_path": rel_path,
-                    "line_number": i,
-                    "recommendation": "Substituir f-string/format por query parametrizada: cursor.execute(sql, [param])",
-                    "effort": "low",
-                    "impact": "high",
-                })
+                findings.append(
+                    {
+                        "skill_name": skill_name,
+                        "dimension": "security",
+                        "severity": "high",
+                        "category": "sql_injection",
+                        "title": f"Possivel SQL injection em {rel_path}:{i}",
+                        "description": "Interpolacao de string em query SQL. Usar queries parametrizadas (?)",
+                        "file_path": rel_path,
+                        "line_number": i,
+                        "recommendation": "Substituir f-string/format por query parametrizada: cursor.execute(sql, [param])",
+                        "effort": "low",
+                        "impact": "high",
+                    }
+                )
     return findings
 
 
-def _check_https(source: str, rel_path: str, skill_name: str) -> List[Dict[str, Any]]:
+def _check_https(source: str, rel_path: str, skill_name: str) -> list[dict[str, Any]]:
     """Verifica se URLs usam HTTP em vez de HTTPS."""
     findings = []
     http_pattern = re.compile(r'["\']http://(?!localhost|127\.0\.0\.1|0\.0\.0\.0)')
     for i, line in enumerate(source.splitlines(), 1):
         if http_pattern.search(line):
-            findings.append({
-                "skill_name": skill_name,
-                "dimension": "security",
-                "severity": "medium",
-                "category": "insecure_http",
-                "title": f"URL HTTP insegura em {rel_path}:{i}",
-                "description": "Uso de HTTP em vez de HTTPS para comunicacao externa.",
-                "file_path": rel_path,
-                "line_number": i,
-                "recommendation": "Trocar http:// por https://",
-                "effort": "low",
-                "impact": "medium",
-            })
+            findings.append(
+                {
+                    "skill_name": skill_name,
+                    "dimension": "security",
+                    "severity": "medium",
+                    "category": "insecure_http",
+                    "title": f"URL HTTP insegura em {rel_path}:{i}",
+                    "description": "Uso de HTTP em vez de HTTPS para comunicacao externa.",
+                    "file_path": rel_path,
+                    "line_number": i,
+                    "recommendation": "Trocar http:// por https://",
+                    "effort": "low",
+                    "impact": "medium",
+                }
+            )
     return findings
 
 
-def _check_token_in_logs(source: str, rel_path: str, skill_name: str) -> List[Dict[str, Any]]:
+def _check_token_in_logs(source: str, rel_path: str, skill_name: str) -> list[dict[str, Any]]:
     """Verifica se tokens/secrets aparecem em print/logging."""
     findings = []
     log_pattern = re.compile(
-        r'(?:print|logging\.\w+|logger\.\w+)\s*\(.*(?:token|secret|password|key|credential)',
-        re.I
+        r"(?:print|logging\.\w+|logger\.\w+)\s*\(.*(?:token|secret|password|key|credential)", re.I
     )
     for i, line in enumerate(source.splitlines(), 1):
         if log_pattern.search(line):
-            findings.append({
-                "skill_name": skill_name,
-                "dimension": "security",
-                "severity": "high",
-                "category": "token_in_log",
-                "title": f"Possivel token em log em {rel_path}:{i}",
-                "description": "Dados sensiveis podem estar sendo logados.",
-                "file_path": rel_path,
-                "line_number": i,
-                "recommendation": "Nao logar tokens/secrets. Usar mascaramento ou remover do log.",
-                "effort": "low",
-                "impact": "high",
-            })
+            findings.append(
+                {
+                    "skill_name": skill_name,
+                    "dimension": "security",
+                    "severity": "high",
+                    "category": "token_in_log",
+                    "title": f"Possivel token em log em {rel_path}:{i}",
+                    "description": "Dados sensiveis podem estar sendo logados.",
+                    "file_path": rel_path,
+                    "line_number": i,
+                    "recommendation": "Nao logar tokens/secrets. Usar mascaramento ou remover do log.",
+                    "effort": "low",
+                    "impact": "high",
+                }
+            )
     return findings
 
 
-def _check_input_validation(source: str, rel_path: str, skill_name: str) -> List[Dict[str, Any]]:
+def _check_input_validation(source: str, rel_path: str, skill_name: str) -> list[dict[str, Any]]:
     """Verifica se argumentos CLI sao validados."""
     findings = []
     # Se usa argparse mas nao tem choices/type/nargs restritivos, e warning leve
     if "argparse" in source and "add_argument" in source:
         # Verificar se ao menos alguns args tem type= ou choices=
         args_count = source.count("add_argument")
-        typed_count = len(re.findall(r'add_argument\([^)]*(?:type=|choices=)', source))
+        typed_count = len(re.findall(r"add_argument\([^)]*(?:type=|choices=)", source))
         if args_count > 3 and typed_count == 0:
-            findings.append({
-                "skill_name": skill_name,
-                "dimension": "security",
-                "severity": "low",
-                "category": "weak_input_validation",
-                "title": f"Validacao fraca de argumentos CLI em {rel_path}",
-                "description": f"{args_count} argumentos sem type= ou choices=",
-                "file_path": rel_path,
-                "recommendation": "Adicionar type= e choices= nos argumentos do argparse",
-                "effort": "low",
-                "impact": "low",
-            })
+            findings.append(
+                {
+                    "skill_name": skill_name,
+                    "dimension": "security",
+                    "severity": "low",
+                    "category": "weak_input_validation",
+                    "title": f"Validacao fraca de argumentos CLI em {rel_path}",
+                    "description": f"{args_count} argumentos sem type= ou choices=",
+                    "file_path": rel_path,
+                    "recommendation": "Adicionar type= e choices= nos argumentos do argparse",
+                    "effort": "low",
+                    "impact": "low",
+                }
+            )
     return findings
 
 
-def analyze(skill_data: Dict[str, Any]) -> Tuple[float, List[Dict[str, Any]]]:
+def analyze(skill_data: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
     """Analisa seguranca de uma skill. Retorna (score, findings)."""
     score = 100.0
-    findings: List[Dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
     skill_name = skill_data["name"]
     skill_path = Path(skill_data["path"])
 

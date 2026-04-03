@@ -11,8 +11,8 @@ import argparse
 import json
 import os
 import sys
-from urllib.request import urlopen, Request
-from urllib.error import URLError, HTTPError
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 
 def _mask_token(token: str) -> str:
@@ -26,12 +26,7 @@ def test_bot(token: str) -> dict:
     """Test bot token and return bot info."""
     base_url = f"https://api.telegram.org/bot{token}"
     masked_token = _mask_token(token)
-    results = {
-        "token_valid": False,
-        "bot_info": None,
-        "webhook_info": None,
-        "errors": []
-    }
+    results = {"token_valid": False, "bot_info": None, "webhook_info": None, "errors": []}
 
     # Test 1: getMe
     print(f"[1/3] Testing token ({masked_token}) with getMe...")
@@ -47,7 +42,9 @@ def test_bot(token: str) -> dict:
                 print(f"       Name: {bot.get('first_name', 'N/A')}")
                 print(f"       ID: {bot.get('id', 'N/A')}")
                 print(f"       Can join groups: {bot.get('can_join_groups', 'N/A')}")
-                print(f"       Can read group messages: {bot.get('can_read_all_group_messages', 'N/A')}")
+                print(
+                    f"       Can read group messages: {bot.get('can_read_all_group_messages', 'N/A')}"
+                )
                 print(f"       Supports inline: {bot.get('supports_inline_queries', 'N/A')}")
             else:
                 results["errors"].append(f"getMe returned ok=false: {data}")

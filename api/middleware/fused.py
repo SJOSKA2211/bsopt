@@ -10,11 +10,12 @@ from fastapi import HTTPException, Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from api.responses import MsgspecJSONResponse
-from src.config import settings
 from src.auth.auth import auth_service
+from src.config import settings
 from src.shared.security import SecurityContext, is_trusted_proxy
 
 logger = structlog.get_logger(__name__)
+
 
 class ZeroTrustMiddleware:
     """
@@ -66,14 +67,29 @@ class ZeroTrustMiddleware:
             (b"x-frame-options", b"DENY"),
             (b"x-xss-protection", b"1; mode=block"),
             (b"referrer-policy", b"strict-origin-when-cross-origin"),
-            (b"permissions-policy", b"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"),
-            (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"),
+            (
+                b"permissions-policy",
+                b"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
+            ),
+            (
+                b"content-security-policy",
+                b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
+            ),
         ]
-        
-        if settings.is_production:
-            self.security_headers.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
 
-    async def _handle_auth(self, request: Request, path: str, is_trusted: bool, ssl_verify: str | None, ssl_dn: str | None) -> SecurityContext:
+        if settings.is_production:
+            self.security_headers.append(
+                (b"strict-transport-security", b"max-age=31536000; includeSubDomains")
+            )
+
+    async def _handle_auth(
+        self,
+        request: Request,
+        path: str,
+        is_trusted: bool,
+        ssl_verify: str | None,
+        ssl_dn: str | None,
+    ) -> SecurityContext:
         """Dedicated auth layer for Zero-Trust validation."""
         is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
         is_internal = path.startswith(self.INTERNAL_PREFIXES)
@@ -101,7 +117,9 @@ class ZeroTrustMiddleware:
         # 4. Internal Path Cryptographic Certainty
         if is_internal and ssl_verify != "SUCCESS":
             logger.warning("internal_access_denied_no_mtls", path=path)
-            raise HTTPException(status_code=403, detail="Internal access requires valid client certificate.")
+            raise HTTPException(
+                status_code=403, detail="Internal access requires valid client certificate."
+            )
 
         # 5. Populate SecurityContext
         security_context.user_id = token_data.user_id
@@ -116,7 +134,9 @@ class ZeroTrustMiddleware:
         limit_tier = getattr(RateLimitTier, tier_str, RateLimitTier.FREE)
 
         if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
-            logger.warning("rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str)
+            logger.warning(
+                "rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str
+            )
             raise HTTPException(
                 status_code=429,
                 detail="Too many requests. Upgrade tier for higher limits.",
@@ -146,8 +166,10 @@ class ZeroTrustMiddleware:
         ssl_dn = request.headers.get("X-SSL-Client-S-DN") if is_trusted else None
 
         try:
-            security_context = await self._handle_auth(request, path, is_trusted, ssl_verify, ssl_dn)
-            
+            security_context = await self._handle_auth(
+                request, path, is_trusted, ssl_verify, ssl_dn
+            )
+
             # Attach to scope state
             state = scope.setdefault("state", {})
             state["security_context"] = security_context

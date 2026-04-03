@@ -25,7 +25,7 @@ def setup_project(language: str, path: str, name: str | None = None) -> None:
 
     if not os.path.exists(boilerplate_dir):
         print(f"Error: Boilerplate not found for language '{language}'")
-        print(f"Available: nodejs, python")
+        print("Available: nodejs, python")
         sys.exit(1)
 
     target_path = os.path.abspath(path)
@@ -52,7 +52,7 @@ def setup_project(language: str, path: str, name: str | None = None) -> None:
     if name and language == "nodejs":
         package_json = os.path.join(target_path, "package.json")
         if os.path.exists(package_json):
-            with open(package_json, "r") as f:
+            with open(package_json) as f:
                 content = f.read()
             content = content.replace('"whatsapp-cloud-api"', f'"{name}"')
             with open(package_json, "w") as f:

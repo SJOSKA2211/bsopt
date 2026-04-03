@@ -8,13 +8,16 @@ from sqlalchemy.orm import Session
 
 from src.database import AsyncSessionLocal, SessionLocal
 
+
 def get_db_session() -> Session:
     """Creates a new sync database session (use with caution)."""
     return SessionLocal()
 
+
 async def get_async_db_session() -> AsyncSession:
     """Creates a new high-performance async database session."""
     return AsyncSessionLocal()
+
 
 class MinioStorage:
     """

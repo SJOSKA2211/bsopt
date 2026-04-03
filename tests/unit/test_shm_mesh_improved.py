@@ -2,6 +2,7 @@ import pytest
 
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 
+
 class TestSHMMesh:
     def test_ring_buffer_lifecycle(self):
         # Test creation and unlinking
@@ -35,4 +36,3 @@ class TestSHMMesh:
     def test_wrap_around(self):
         # Small capacity for wrap test? No, it's fixed at 100k.
         pass
-

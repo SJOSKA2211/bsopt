@@ -12,8 +12,8 @@ def odd_count(lst):
     """
     result = []
     for s in lst:
-        count = sum(1 for c in s if c in '13579')
+        count = sum(1 for c in s if c in "13579")
         template = "the number of odd elements in the string i of the input."
-        replaced = template.replace('i', str(count))
+        replaced = template.replace("i", str(count))
         result.append(replaced)
     return result

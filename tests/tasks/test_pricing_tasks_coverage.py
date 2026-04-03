@@ -10,6 +10,7 @@ from src.workers.tasks.pricing_tasks import (
     price_option_task,
 )
 
+
 @patch("src.workers.tasks.pricing_tasks.calculate_greeks_scalar")
 @patch("src.workers.tasks.pricing_tasks.calculate_price_scalar")
 @patch("src.workers.tasks.pricing_tasks.pricing_cache")
@@ -40,6 +41,7 @@ def test_price_option_task_success(mock_cache, mock_price, mock_greeks):
 
     assert mock_cache.set_option_price.called
 
+
 @patch("src.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_cache_hit(mock_cache):
     async def mock_get(*args, **kwargs):
@@ -54,6 +56,7 @@ def test_price_option_task_cache_hit(mock_cache):
     assert result["price"] == 20.0
 
     assert result["cache_hit"] is True
+
 
 @patch("src.workers.tasks.pricing_tasks.calculate_greeks")
 @patch("src.workers.tasks.pricing_tasks.calculate_price")
@@ -79,6 +82,7 @@ def test_batch_price_options_task_vectorized(mock_price, mock_greeks):
 
     assert result["vectorized"] is True
 
+
 @patch("src.workers.tasks.pricing_tasks.implied_volatility")
 def test_calculate_implied_volatility_task(mock_iv):
     mock_iv.return_value = 0.25
@@ -88,6 +92,7 @@ def test_calculate_implied_volatility_task(mock_iv):
     )
 
     assert result["implied_vol"] == 0.25
+
 
 def test_generate_volatility_surface_task():
     strikes = [90, 100, 110]
@@ -104,9 +109,11 @@ def test_generate_volatility_surface_task():
 
     assert len(result["surface"]) == 2
 
+
 def test_price_option_task_invalid_params():
     with pytest.raises(ValueError, match="Invalid input parameters"):
         price_option_task(spot=-100, strike=100, maturity=1, volatility=0.2, rate=0.05)
+
 
 def test_price_option_task_invalid_type():
     with pytest.raises(ValueError, match="Invalid option type"):
@@ -118,6 +125,7 @@ def test_price_option_task_invalid_type():
             rate=0.05,
             option_type="invalid",
         )
+
 
 @patch("src.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_cache_exception(mock_cache):
@@ -134,6 +142,7 @@ def test_price_option_task_cache_exception(mock_cache):
     assert "price" in result
 
     assert result["cache_hit"] is False
+
 
 @patch("src.workers.tasks.pricing_tasks.calculate_greeks_scalar")
 @patch("src.workers.tasks.pricing_tasks.calculate_price_scalar")
@@ -153,12 +162,14 @@ def test_price_option_task_cache_set_exception(mock_cache, mock_price, mock_gree
 
     assert result["price"] == 15.0
 
+
 @patch("src.workers.tasks.pricing_tasks.calculate_price_scalar")
 def test_price_option_task_general_exception(mock_price):
     mock_price.side_effect = Exception("General error")
 
     with pytest.raises(Exception, match="General error"):
         price_option_task(spot=100, strike=100, maturity=1, volatility=0.2, rate=0.05)
+
 
 def test_batch_price_options_task_non_vectorized():
     # Pass minimal valid options

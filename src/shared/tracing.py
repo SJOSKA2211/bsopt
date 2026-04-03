@@ -22,8 +22,10 @@ from typing import Any
 import structlog
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
 try:
     from opentelemetry.instrumentation.celery import CeleryInstrumentor
+
     CELERY_INSTRUMENTATION_AVAILABLE = True
 except ImportError:
     CELERY_INSTRUMENTATION_AVAILABLE = False
@@ -31,12 +33,14 @@ except ImportError:
     logger.warning("celery_instrumentation_not_available")
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     FASTAPI_INSTRUMENTATION_AVAILABLE = True
 except ImportError:
     FASTAPI_INSTRUMENTATION_AVAILABLE = False
 
 try:
     from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
     HTTPX_INSTRUMENTATION_AVAILABLE = True
 except ImportError:
     HTTPX_INSTRUMENTATION_AVAILABLE = False
@@ -53,11 +57,11 @@ from opentelemetry.sdk.trace.sampling import (
     TraceIdRatioBased,
 )
 from opentelemetry.trace import Span, Status, StatusCode
-from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
+
 
 def setup_tracing(
     service_name: str,
@@ -131,6 +135,7 @@ def setup_tracing(
         sampling=sampling_ratio,
     )
 
+
 def instrument_app(
     app: Any,
     excluded_urls: list[str] | None = None,
@@ -175,6 +180,7 @@ def instrument_app(
     except Exception as e:
         logger.warning("httpx_instrumentation_failed", error=str(e))
 
+
 def instrument_database(engine: Any) -> None:
     """
     Instrument SQLAlchemy database engine.
@@ -194,6 +200,7 @@ def instrument_database(engine: Any) -> None:
         logger.warning("sqlalchemy_instrumentation_not_available")
     except Exception as e:
         logger.warning("sqlalchemy_instrumentation_failed", error=str(e))
+
 
 def instrument_redis(client: Any) -> None:
     """
@@ -215,6 +222,7 @@ def instrument_redis(client: Any) -> None:
     except Exception as e:
         logger.warning("redis_instrumentation_failed", error=str(e))
 
+
 def instrument_celery() -> None:
     """Instrument Celery worker with OpenTelemetry."""
     if not settings.ENABLE_TRACING or not CELERY_INSTRUMENTATION_AVAILABLE:
@@ -228,6 +236,7 @@ def instrument_celery() -> None:
 
     except Exception as e:
         logger.warning("celery_instrumentation_failed", error=str(e))
+
 
 def instrument_ray() -> None:
     """Instrument Ray tasks and actors."""
@@ -244,9 +253,11 @@ def instrument_ray() -> None:
     except Exception as e:
         logger.warning("ray_instrumentation_failed", error=str(e))
 
+
 def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
     """Get a tracer instance from the current provider."""
     return trace.get_tracer(name, version)
+
 
 @contextmanager
 def create_span(
@@ -282,6 +293,7 @@ def create_span(
             span.set_status(Status(StatusCode.ERROR, str(e)))
             span.record_exception(e)
             raise
+
 
 def trace_function(
     name: str | None = None,
@@ -327,6 +339,7 @@ def trace_function(
 
     return decorator
 
+
 def inject_trace_context() -> dict[str, str]:
     """
     Inject current trace context into a dictionary for propagation.
@@ -337,6 +350,7 @@ def inject_trace_context() -> dict[str, str]:
     carrier: dict[str, str] = {}
     _propagator.inject(carrier)
     return carrier
+
 
 def extract_trace_context(carrier: dict[str, str]) -> Any:
     """
@@ -350,9 +364,11 @@ def extract_trace_context(carrier: dict[str, str]) -> Any:
     """
     return _propagator.extract(carrier)
 
+
 def get_current_span() -> Span | None:
     """Get the current active span."""
     return trace.get_current_span()
+
 
 def add_span_attributes(attributes: dict[str, Any]) -> None:
     """Add attributes to the current span."""
@@ -360,6 +376,7 @@ def add_span_attributes(attributes: dict[str, Any]) -> None:
     if span and span.is_recording():
         for key, value in attributes.items():
             span.set_attribute(key, value)
+
 
 class TraceContextManager:
     """
@@ -399,12 +416,14 @@ class TraceContextManager:
                 span.record_exception(exc_val)
         return False
 
+
 def shutdown_tracing() -> None:
     """Shutdown the tracer provider and flush pending spans."""
     provider = trace.get_tracer_provider()
     if hasattr(provider, "shutdown"):
         provider.shutdown()
     logger.info("tracing_shutdown")
+
 
 if __name__ == "__main__":
     import sys

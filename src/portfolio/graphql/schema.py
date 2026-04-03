@@ -13,6 +13,7 @@ from api.graphql.resolvers.portfolio_service import (
     get_portfolio as service_get_portfolio,
 )
 
+
 @strawberry.type
 class Query:
     @strawberry.field
@@ -23,13 +24,14 @@ class Query:
         port_id = "port_123" if user_id == "user_123" else user_id
         return await service_get_portfolio(port_id)
 
+
 @strawberry.type
 class Mutation:
-
     @strawberry.mutation
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         """Persist a new portfolio to the database."""
         return await service_create_portfolio(user_id=user_id, name=name, initial_cash=initial_cash)
+
 
 @strawberry.type
 class Subscription:
@@ -64,5 +66,6 @@ class Subscription:
         finally:
             await pubsub.unsubscribe(channel)
             await pubsub.close()
+
 
 schema = Schema(query=Query, mutation=Mutation, subscription=Subscription)

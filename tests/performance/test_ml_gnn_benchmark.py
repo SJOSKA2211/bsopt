@@ -4,6 +4,7 @@ import torch
 
 from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
 
+
 def test_gnn_feature_extractor_latency_benchmark():
     # Setup
     input_dim = 16
@@ -41,6 +42,7 @@ def test_gnn_feature_extractor_latency_benchmark():
 
     # We want sub-5ms for real-time arbitrage
     assert avg_latency_ms < 5.0
+
 
 def test_gnn_throughput_massive_batch():
     input_dim = 16

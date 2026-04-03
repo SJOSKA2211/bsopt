@@ -10,6 +10,7 @@ from .transformer_policy import TransformerTD3Policy
 
 logger = structlog.get_logger()
 
+
 class AugmentedRLAgent:
     """
     OPTIMIZED: Multimodal RL Agent.
@@ -61,6 +62,7 @@ class AugmentedRLAgent:
         action, _ = self.model.predict(augmented_obs, deterministic=True)
         return action
 
+
 class SentimentExtractor:
     """
     High-Performance Transformer-based Sentiment Extractor.
@@ -77,6 +79,7 @@ class SentimentExtractor:
         if self._pipeline is None:
             try:
                 from transformers import pipeline
+
                 self._pipeline = pipeline("sentiment-analysis", model=self.model_name)
             except ImportError:
                 logger.error("transformers_not_installed", action="falling_back_to_lexicon")
@@ -92,10 +95,10 @@ class SentimentExtractor:
         if pipe:
             try:
                 # FinBERT returns: labels (positive, negative, neutral) and scores
-                result = pipe(text[:512])[0] # Truncate to model max length
+                result = pipe(text[:512])[0]  # Truncate to model max length
                 label = result["label"].lower()
                 score = result["score"]
-                
+
                 if label == "positive":
                     return float(score)
                 elif label == "negative":
@@ -106,11 +109,21 @@ class SentimentExtractor:
 
         # --- OPTIMIZED LEXICON FALLBACK ---
         keyword_map = {
-             "bullish": 0.8, "bearish": -0.8, "upgraded": 0.5, "downgraded": -0.5,
-             "beat": 0.4, "missed": -0.4, "profit": 0.2, "loss": -0.3,
-             "buy": 0.3, "sell": -0.3, "growth": 0.2, "debt": -0.2
+            "bullish": 0.8,
+            "bearish": -0.8,
+            "upgraded": 0.5,
+            "downgraded": -0.5,
+            "beat": 0.4,
+            "missed": -0.4,
+            "profit": 0.2,
+            "loss": -0.3,
+            "buy": 0.3,
+            "sell": -0.3,
+            "growth": 0.2,
+            "debt": -0.2,
         }
         import re
+
         words = re.findall(r"\w+", text.lower())
         score, matches = 0.0, 0
         for word in words:

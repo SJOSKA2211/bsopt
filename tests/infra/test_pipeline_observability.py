@@ -2,6 +2,7 @@ import os
 
 import yaml
 
+
 def test_github_exporter_in_docker_compose():
     """Verify that github-exporter is in the production docker-compose file."""
     with open("docker-compose.yml") as f:
@@ -11,6 +12,7 @@ def test_github_exporter_in_docker_compose():
     exporter = config["src"]["github-exporter"]
     assert "caarlos0/github-exporter" in exporter["image"]
     assert "9101:9101" in exporter["ports"]
+
 
 def test_prometheus_scrapes_github_exporter():
     """Verify that Prometheus is configured to scrape github-exporter."""
@@ -24,6 +26,7 @@ def test_prometheus_scrapes_github_exporter():
     for job in config["scrape_configs"]:
         if job["job_name"] == "github-exporter":
             assert job["static_configs"][0]["targets"] == ["github-exporter:9101"]
+
 
 def test_grafana_pipeline_dashboard_exists():
     """Verify that the Grafana pipeline dashboard file exists."""

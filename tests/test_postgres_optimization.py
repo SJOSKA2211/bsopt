@@ -2,10 +2,12 @@ import subprocess
 
 import pytest
 
+
 def run_command(command):
     """Run a shell command and return the output."""
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout.strip(), result.stderr.strip(), result.returncode
+
 
 def test_postgres_extensions():
     """Verify that the PostgreSQL container has TimescaleDB and pgvector extensions installed."""
@@ -29,6 +31,7 @@ def test_postgres_extensions():
 
     assert "timescaledb" in extensions, "TimescaleDB extension is missing"
     assert "vector" in extensions, "pgvector extension is missing"
+
 
 def test_postgres_config_overrides():
     """Verify that performance tuning configurations are applied."""

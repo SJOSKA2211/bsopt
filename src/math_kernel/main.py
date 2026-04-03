@@ -13,6 +13,7 @@ from src.shared.observability import (
     tune_gc,
 )
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """High-Performance Lifespan for Pricing Service."""
@@ -29,11 +30,13 @@ async def lifespan(app: FastAPI):
 
     await dispose_engine()
 
+
 app = FastAPI(
     title="BS-Opt Pricing Service", lifespan=lifespan, default_response_class=MsgspecJSONResponse
 )
 
 app.middleware("http")(logging_middleware)
+
 
 # Standardized Error Handling
 @app.exception_handler(Exception)
@@ -46,8 +49,10 @@ async def universal_exception_handler(request: Request, exc: Exception):
         content={"message": "Internal pricing engine error", "type": "computation_failure"},
     )
 
+
 graphql_app = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
+
 
 @app.get("/health")
 async def health():

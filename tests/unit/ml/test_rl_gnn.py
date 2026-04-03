@@ -7,6 +7,7 @@ import torch
 from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor, SACGNNPolicy
 from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
+
 @pytest.fixture
 def rl_agent():
     with patch("src.ml.reinforcement_learning.online_agent.TD3") as mock_td3:
@@ -14,10 +15,12 @@ def rl_agent():
         agent = OnlineRLAgent(model_path="mock_model", initial_balance=100000)
         return agent
 
+
 def test_agent_init(rl_agent):
     assert rl_agent.balance == 100000
     assert len(rl_agent.positions) == 10
     assert np.all(rl_agent.positions == 0)
+
 
 def test_get_state_vector(rl_agent):
     market_data = {
@@ -29,6 +32,7 @@ def test_get_state_vector(rl_agent):
     state = rl_agent._get_state_vector(market_data)
     assert len(state) == 100
     assert state[0] == 1.0  # balance / initial_balance
+
 
 def test_process_market_data(rl_agent):
     market_data = {
@@ -43,6 +47,7 @@ def test_process_market_data(rl_agent):
     assert rl_agent.last_state is not None
     assert rl_agent.last_action is not None
 
+
 def test_calculate_reward(rl_agent):
     market_data = {"prices": np.random.uniform(150, 160, 10)}
     # First call initializes prev_value
@@ -54,6 +59,7 @@ def test_calculate_reward(rl_agent):
     reward2 = rl_agent._calculate_reward(market_data)
     assert reward2 > 0
 
+
 def test_store_transition(rl_agent):
     state = np.zeros(100)
     action = np.zeros(10)
@@ -63,6 +69,7 @@ def test_store_transition(rl_agent):
     rl_agent._store_transition(state, action, reward, next_state)
     assert rl_agent._buffer_idx == 1
     assert np.all(rl_agent._obs_buffer[0] == state)
+
 
 # GNN Policy Tests
 def test_gnn_feature_extractor():
@@ -76,6 +83,7 @@ def test_gnn_feature_extractor():
 
     output = model(x, edge_index)
     assert output.shape == (5, output_dim)
+
 
 def test_sac_gnn_policy():
     state_dim = 10

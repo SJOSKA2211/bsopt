@@ -9,28 +9,30 @@ from src.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger(__name__)
 
+
 @ray.remote
 class MathActor:
     """
     Persistent Ray Actor for high-speed mathematical computations.
     """
+
     def __init__(self):
         logger.info("math_worker_ready")
 
     async def calibrate(self, symbol: str, data: list[dict]) -> dict:
         """Perform real mathematical calibration using silicon kernels."""
         start_time = time.time()
-        
+
         #  REAL WORK: Perform a batch of BS calculations
         from src.pricing.factory import PricingEngineFactory
         from src.pricing.models import BSParameters
-        
+
         engine = PricingEngineFactory.get_engine("black_scholes")
         params = BSParameters(S=100.0, K=100.0, T=0.1, sigma=0.2, r=0.05)
         # Force some CPU cycles
         for _ in range(100):
             engine.calculate_greeks(params)
-            
+
         duration = (time.time() - start_time) * 1000
         logger.info("calibration_done", symbol=symbol, ms=duration)
         return {"status": "ok", "symbol": symbol, "latency_ms": duration}
@@ -46,11 +48,13 @@ class MathActor:
             # No running event loop, use asyncio.run
             return asyncio.run(self.calibrate(symbol, data))
 
+
 @ray.remote
 class WebhookActor:
     """
     Persistent Ray Actor for high-throughput webhook delivery.
     """
+
     def __init__(self):
         # Use shared HTTP/2 connection pool
         self.client = HttpClientManager.get_client()
@@ -69,6 +73,7 @@ class WebhookActor:
     def run_delivery(self, url: str, payload: dict):
         """Synchronous bridge."""
         return asyncio.run(self.deliver(url, payload))
+
 
 if __name__ == "__main__":
     # Local test

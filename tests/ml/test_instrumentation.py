@@ -6,11 +6,13 @@ import pytest
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 from src.ml.trainer import InstrumentedTrainer
 
+
 @pytest.fixture
 def sample_data():
     X = np.random.rand(100, 5)
     y = np.random.randint(0, 2, 100)
     return X, y
+
 
 @pytest.fixture(autouse=True)
 def mock_mlflow():
@@ -25,6 +27,7 @@ def mock_mlflow():
         patch("mlflow.pytorch.log_model"),
     ):
         yield
+
 
 def test_trainer_new_prometheus_metrics(sample_data):
     """Verify that new Prometheus metrics (RMSE, Errors, duration Histogram) are updated."""
@@ -53,6 +56,7 @@ def test_trainer_new_prometheus_metrics(sample_data):
         mock_rmse.labels.assert_called_with(model_type="xgboost", dataset="validation")
         assert mock_rmse_labels.set.called
 
+
 def test_trainer_error_metrics(sample_data):
     """Verify that training errors increment the error counter."""
     X, y = sample_data
@@ -73,6 +77,7 @@ def test_trainer_error_metrics(sample_data):
         mock_errors.labels.assert_called_with(framework="xgboost")
         assert mock_errors_labels.inc.called
 
+
 def test_structlog_configuration():
     """Verify that structlog is configured correctly."""
     import structlog
@@ -88,6 +93,7 @@ def test_structlog_configuration():
     renderer_types = [type(p) for p in processors]
     assert any("JSONRenderer" in str(t) for t in renderer_types)
     assert any("TimeStamper" in str(t) for t in renderer_types)
+
 
 @pytest.mark.asyncio
 async def test_pipeline_scrape_execution():

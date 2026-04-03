@@ -65,7 +65,9 @@ def test_api_connection() -> tuple[bool, str]:
     try:
         response = httpx.get(
             f"{GRAPH_API}/{phone_id}",
-            params={"fields": "verified_name,code_verification_status,display_phone_number,quality_rating"},
+            params={
+                "fields": "verified_name,code_verification_status,display_phone_number,quality_rating"
+            },
             headers={"Authorization": f"Bearer {token}"},
             timeout=10.0,
         )
@@ -120,7 +122,9 @@ def main():
     print("=" * 50)
     print("WhatsApp Cloud API - Configuration Validator")
     print("=" * 50)
-    print("Detailed API payloads are intentionally omitted to protect sensitive configuration data.")
+    print(
+        "Detailed API payloads are intentionally omitted to protect sensitive configuration data."
+    )
     print()
 
     all_ok = True

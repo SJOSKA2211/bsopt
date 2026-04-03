@@ -10,6 +10,7 @@ from scipy.stats import norm
 
 from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
+
 def step_by_step_calculation():
     """
     Demonstrate Black-Scholes calculation with detailed step-by-step output.
@@ -271,6 +272,7 @@ def step_by_step_calculation():
     print("=" * 80)
     print("All calculations match library implementation to machine precision!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     step_by_step_calculation()

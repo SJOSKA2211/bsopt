@@ -6,9 +6,9 @@ import anyio
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.middleware.jwt_validator import require_tier
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import DataResponse, DataResponseStruct
-from api.middleware.jwt_validator import require_tier
 from src.database import crud, get_async_db
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.shared.utils.circuit_breaker import db_circuit, pricing_circuit
@@ -19,7 +19,12 @@ logger = logging.getLogger(__name__)
 # Global Probe Cache
 _shm_probe = None
 
-@router.get("/health/deep", response_model=DataResponse[dict[str, Any]], dependencies=[Depends(require_tier(["admin", "enterprise"]))])
+
+@router.get(
+    "/health/deep",
+    response_model=DataResponse[dict[str, Any]],
+    dependencies=[Depends(require_tier(["admin", "enterprise"]))],
+)
 async def get_deep_health():
     """High-fidelity stack probe with cached connections."""
     global _shm_probe
@@ -100,7 +105,12 @@ async def get_deep_health():
 
     return DataResponseStruct(data=health)
 
-@router.get("/status", response_model=DataResponse[dict[str, Any]], dependencies=[Depends(require_tier(["admin", "enterprise"]))])
+
+@router.get(
+    "/status",
+    response_model=DataResponse[dict[str, Any]],
+    dependencies=[Depends(require_tier(["admin", "enterprise"]))],
+)
 async def get_system_status():
     """Returns the status of various system components and circuit breakers."""
     return DataResponseStruct(
@@ -119,7 +129,12 @@ async def get_system_status():
         }
     )
 
-@router.get("/diagnostics/db", response_model=DataResponse[dict[str, Any]], dependencies=[Depends(require_tier(["enterprise", "admin"]))])
+
+@router.get(
+    "/diagnostics/db",
+    response_model=DataResponse[dict[str, Any]],
+    dependencies=[Depends(require_tier(["enterprise", "admin"]))],
+)
 async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     High-Performance Database Diagnostics.
@@ -127,7 +142,12 @@ async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     return DataResponseStruct(data=await crud.get_system_health_dashboard(db))
 
-@router.get("/diagnostics/io", response_model=DataResponse[dict[str, Any]], dependencies=[Depends(require_tier(["enterprise", "admin"]))])
+
+@router.get(
+    "/diagnostics/io",
+    response_model=DataResponse[dict[str, Any]],
+    dependencies=[Depends(require_tier(["enterprise", "admin"]))],
+)
 async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     PostgreSQL 16 I/O Performance Audit.

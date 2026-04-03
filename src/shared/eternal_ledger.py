@@ -7,6 +7,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class EternalLedger:
     """
     Advanced Zero-Copy Binary Persistence.
@@ -44,7 +45,6 @@ class EternalLedger:
     def write_batch(self, batch: list[dict[str, Any]]) -> None:
         """HOT PATH: Optimized batch write to mmap."""
         try:
-            
             # We use a memoryview of the mmap for faster slicing
             mv = memoryview(self.mmap)
             pack = self._TICK_STRUCT.pack

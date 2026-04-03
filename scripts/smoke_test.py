@@ -8,6 +8,7 @@ from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
+
 async def test_pillar_1_ingestion():
     """Simulate actual high-performance ingestion."""
     print("📥 Pillar 1: High-Performance Ingestion Verification...")
@@ -27,11 +28,14 @@ async def test_pillar_1_ingestion():
     except Exception as e:
         print(f"   ❌ Ingestion Pillar Failed: {e}")
 
+
 async def test_pillar_2_pricing():
     """Execute actual multi-engine pricing."""
     print("📈 Pillar 2: Multi-Engine Pricing Core...")
     try:
-        params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.0)
+        params = BSParameters(
+            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.0
+        )
 
         # Test Standard Engine
         bs_engine = PricingEngineFactory.get_engine("black_scholes")
@@ -45,6 +49,7 @@ async def test_pillar_2_pricing():
         print(f"   ✅ Prices: BS={price_bs:.4f}, Rust={price_rust:.4f}")
     except Exception as e:
         print(f"   ❌ Pricing Pillar Failed: {e}")
+
 
 async def test_pillar_3_mlops():
     """Verify MLflow and Watchdog readiness."""
@@ -61,6 +66,7 @@ async def test_pillar_3_mlops():
     except Exception as e:
         print(f"   ⚠️  MLOps Pillar Warning: MLflow not detected ({e})")
 
+
 async def test_pillar_4_security():
     """Verify Zero-Trust Auth infrastructure."""
     print("🛡️  Pillar 4: Zero-Trust Security Infrastructure...")
@@ -69,6 +75,7 @@ async def test_pillar_4_security():
         print("   ✅ Asymmetric ECC P-256 keys detected.")
     else:
         print("   ❌ Security Pillar Failed: Key pairs missing.")
+
 
 async def run_smoke_test():
     print("=" * 60)
@@ -82,6 +89,7 @@ async def run_smoke_test():
 
     print("\n✅ SMOKE TEST COMPLETE: Production Readiness Verified.")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(run_smoke_test())

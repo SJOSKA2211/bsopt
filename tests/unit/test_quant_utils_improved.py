@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.math_kernel.quant_utils import (
     batch_bs_price_jit,
@@ -19,6 +18,7 @@ from src.math_kernel.quant_utils import (
     thomas_algorithm,
     vectorized_newton_raphson_iv_jit,
 )
+
 
 class TestQuantUtils:
     def test_jit_generate_paths(self):
@@ -138,4 +138,3 @@ class TestQuantUtils:
         option_type = np.array([0])  # Call
         iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, option_type)
         self.assertGreater(iv[0], 0)
-

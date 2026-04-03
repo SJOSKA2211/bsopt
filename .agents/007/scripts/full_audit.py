@@ -24,7 +24,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -33,21 +33,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (  # noqa: E402
-    BASE_DIR,
-    DATA_DIR,
     REPORTS_DIR,
-    SCANNABLE_EXTENSIONS,
-    SKIP_DIRECTORIES,
-    SCORING_WEIGHTS,
     SCORING_LABELS,
-    SEVERITY,
-    LIMITS,
+    SCORING_WEIGHTS,
+    SKIP_DIRECTORIES,
+    calculate_weighted_score,
     ensure_directories,
-    get_verdict,
     get_timestamp,
+    get_verdict,
     log_audit_event,
     setup_logging,
-    calculate_weighted_score,
 )
 
 # ---------------------------------------------------------------------------
@@ -55,11 +50,11 @@ from config import (  # noqa: E402
 # ---------------------------------------------------------------------------
 sys.path.insert(0, str(Path(__file__).resolve().parent / "scanners"))
 
-import secrets_scanner  # noqa: E402
 import dependency_scanner  # noqa: E402
 import injection_scanner  # noqa: E402
 import quick_scan  # noqa: E402
 import score_calculator  # noqa: E402
+import secrets_scanner  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Logger
@@ -370,6 +365,7 @@ _BLUE_TEAM_FALLBACK = {
 # PHASE IMPLEMENTATIONS
 # =========================================================================
 
+
 def _phase1_surface_mapping(target: Path, verbose: bool = False) -> dict:
     """Phase 1: Surface Mapping -- inventory files, entry points, dependencies."""
     logger.info("Phase 1: Surface Mapping")
@@ -388,11 +384,26 @@ def _phase1_surface_mapping(target: Path, verbose: bool = False) -> dict:
     ]
 
     _dep_file_names = {
-        "requirements.txt", "requirements-dev.txt", "requirements-test.txt",
-        "setup.py", "setup.cfg", "pyproject.toml", "Pipfile", "Pipfile.lock",
-        "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
-        "go.mod", "go.sum", "Cargo.toml", "Cargo.lock",
-        "Gemfile", "Gemfile.lock", "composer.json", "composer.lock",
+        "requirements.txt",
+        "requirements-dev.txt",
+        "requirements-test.txt",
+        "setup.py",
+        "setup.cfg",
+        "pyproject.toml",
+        "Pipfile",
+        "Pipfile.lock",
+        "package.json",
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+        "go.mod",
+        "go.sum",
+        "Cargo.toml",
+        "Cargo.lock",
+        "Gemfile",
+        "Gemfile.lock",
+        "composer.json",
+        "composer.lock",
     }
 
     _config_extensions = {".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf", ".env"}
@@ -443,30 +454,36 @@ def _phase2_threat_modeling_hints(surface_map: dict, findings: list[dict]) -> di
 
     # Entry points are high-value STRIDE targets
     for ep in surface_map.get("entry_points", []):
-        components.append({
-            "component": ep,
-            "type": "entry_point",
-            "stride_focus": ["Spoofing", "Tampering", "Elevation of Privilege"],
-            "reason": "Application entry point -- critical for authentication and authorization",
-        })
+        components.append(
+            {
+                "component": ep,
+                "type": "entry_point",
+                "stride_focus": ["Spoofing", "Tampering", "Elevation of Privilege"],
+                "reason": "Application entry point -- critical for authentication and authorization",
+            }
+        )
 
     # Dependency files = supply chain
     for dep_file in surface_map.get("dependency_files", []):
-        components.append({
-            "component": dep_file,
-            "type": "dependency_manifest",
-            "stride_focus": ["Tampering", "Elevation of Privilege"],
-            "reason": "Dependency manifest -- supply chain attack vector",
-        })
+        components.append(
+            {
+                "component": dep_file,
+                "type": "dependency_manifest",
+                "stride_focus": ["Tampering", "Elevation of Privilege"],
+                "reason": "Dependency manifest -- supply chain attack vector",
+            }
+        )
 
     # Config files = information disclosure
     for cfg in surface_map.get("config_files", []):
-        components.append({
-            "component": cfg,
-            "type": "configuration",
-            "stride_focus": ["Information Disclosure", "Tampering"],
-            "reason": "Configuration file -- may contain secrets or security settings",
-        })
+        components.append(
+            {
+                "component": cfg,
+                "type": "configuration",
+                "stride_focus": ["Information Disclosure", "Tampering"],
+                "reason": "Configuration file -- may contain secrets or security settings",
+            }
+        )
 
     # Files with critical findings
     critical_files: set[str] = set()
@@ -476,16 +493,21 @@ def _phase2_threat_modeling_hints(surface_map: dict, findings: list[dict]) -> di
 
     for cf in sorted(critical_files):
         if cf:
-            components.append({
-                "component": cf,
-                "type": "high_risk_source",
-                "stride_focus": [
-                    "Spoofing", "Tampering", "Repudiation",
-                    "Information Disclosure", "Denial of Service",
-                    "Elevation of Privilege",
-                ],
-                "reason": "Source file with CRITICAL/HIGH severity findings",
-            })
+            components.append(
+                {
+                    "component": cf,
+                    "type": "high_risk_source",
+                    "stride_focus": [
+                        "Spoofing",
+                        "Tampering",
+                        "Repudiation",
+                        "Information Disclosure",
+                        "Denial of Service",
+                        "Elevation of Privilege",
+                    ],
+                    "reason": "Source file with CRITICAL/HIGH severity findings",
+                }
+            )
 
     return {
         "components_for_stride": components,
@@ -511,42 +533,50 @@ def _phase3_security_checklist(
 
     # Secrets check
     secrets_count = secrets_report.get("total_findings", 0)
-    checklist.append({
-        "check": "No hardcoded secrets in source code",
-        "status": "PASS" if secrets_count == 0 else "FAIL",
-        "details": f"{secrets_count} secret(s) detected",
-        "scanner": "secrets_scanner",
-    })
+    checklist.append(
+        {
+            "check": "No hardcoded secrets in source code",
+            "status": "PASS" if secrets_count == 0 else "FAIL",
+            "details": f"{secrets_count} secret(s) detected",
+            "scanner": "secrets_scanner",
+        }
+    )
 
     # Dependency check
     dep_score = dep_report.get("score", 0)
     dep_count = dep_report.get("total_findings", 0)
-    checklist.append({
-        "check": "Dependencies are secure and pinned",
-        "status": "PASS" if dep_score >= 80 else ("WARN" if dep_score >= 50 else "FAIL"),
-        "details": f"{dep_count} finding(s), score={dep_score}",
-        "scanner": "dependency_scanner",
-    })
+    checklist.append(
+        {
+            "check": "Dependencies are secure and pinned",
+            "status": "PASS" if dep_score >= 80 else ("WARN" if dep_score >= 50 else "FAIL"),
+            "details": f"{dep_count} finding(s), score={dep_score}",
+            "scanner": "dependency_scanner",
+        }
+    )
 
     # Injection check
     inj_count = inj_report.get("total_findings", 0)
     inj_critical = inj_report.get("severity_counts", {}).get("CRITICAL", 0)
-    checklist.append({
-        "check": "No injection vulnerabilities",
-        "status": "PASS" if inj_count == 0 else ("FAIL" if inj_critical > 0 else "WARN"),
-        "details": f"{inj_count} finding(s), {inj_critical} CRITICAL",
-        "scanner": "injection_scanner",
-    })
+    checklist.append(
+        {
+            "check": "No injection vulnerabilities",
+            "status": "PASS" if inj_count == 0 else ("FAIL" if inj_critical > 0 else "WARN"),
+            "details": f"{inj_count} finding(s), {inj_critical} CRITICAL",
+            "scanner": "injection_scanner",
+        }
+    )
 
     # Quick scan check
     quick_score = quick_report.get("score", 0)
     quick_count = quick_report.get("total_findings", 0)
-    checklist.append({
-        "check": "No dangerous code patterns",
-        "status": "PASS" if quick_score >= 80 else ("WARN" if quick_score >= 50 else "FAIL"),
-        "details": f"{quick_count} finding(s), score={quick_score}",
-        "scanner": "quick_scan",
-    })
+    checklist.append(
+        {
+            "check": "No dangerous code patterns",
+            "status": "PASS" if quick_score >= 80 else ("WARN" if quick_score >= 50 else "FAIL"),
+            "details": f"{quick_count} finding(s), score={quick_score}",
+            "scanner": "quick_scan",
+        }
+    )
 
     # Summary counts
     pass_count = sum(1 for c in checklist if c["status"] == "PASS")
@@ -618,38 +648,42 @@ def _phase4_red_team_scenarios(all_findings: list[dict], auth_score: float) -> d
             file=file_path,
         )
 
-        scenarios.append({
-            "title": template["title"],
-            "persona": template["persona"],
-            "scenario": scenario_text,
-            "impact": template["impact"],
-            "difficulty": template["difficulty"],
-            "severity": finding.get("severity", "MEDIUM"),
-            "source_finding": {
-                "type": finding_type,
-                "pattern": pattern,
-                "file": file_path,
-                "line": finding.get("line", 0),
-            },
-        })
+        scenarios.append(
+            {
+                "title": template["title"],
+                "persona": template["persona"],
+                "scenario": scenario_text,
+                "impact": template["impact"],
+                "difficulty": template["difficulty"],
+                "severity": finding.get("severity", "MEDIUM"),
+                "source_finding": {
+                    "type": finding_type,
+                    "pattern": pattern,
+                    "file": file_path,
+                    "line": finding.get("line", 0),
+                },
+            }
+        )
 
     # Add no-auth scenario if auth score is low
     if auth_score < 40 and "no_auth" not in seen_types:
         template = _RED_TEAM_TEMPLATES["no_auth"]
-        scenarios.append({
-            "title": template["title"],
-            "persona": template["persona"],
-            "scenario": template["scenario"],
-            "impact": template["impact"],
-            "difficulty": template["difficulty"],
-            "severity": "HIGH",
-            "source_finding": {
-                "type": "architectural",
-                "pattern": "missing_auth",
-                "file": "(project-wide)",
-                "line": 0,
-            },
-        })
+        scenarios.append(
+            {
+                "title": template["title"],
+                "persona": template["persona"],
+                "scenario": template["scenario"],
+                "impact": template["impact"],
+                "difficulty": template["difficulty"],
+                "severity": "HIGH",
+                "source_finding": {
+                    "type": "architectural",
+                    "pattern": "missing_auth",
+                    "file": "(project-wide)",
+                    "line": 0,
+                },
+            }
+        )
 
     return {
         "scenarios": scenarios,
@@ -683,33 +717,35 @@ def _phase5_blue_team_recommendations(all_findings: list[dict], auth_score: floa
 
             # Count affected findings
             affected = [
-                f for f in all_findings
-                if f.get("injection_type", "") == rec_key
-                or f.get("type", "") == rec_key
+                f
+                for f in all_findings
+                if f.get("injection_type", "") == rec_key or f.get("type", "") == rec_key
             ]
 
-            recommendations.append({
-                "category": rec_key,
-                "recommendation": template["recommendation"],
-                "priority": template["priority"],
-                "effort": template["effort"],
-                "affected_findings": len(affected),
-                "example_files": sorted(set(
-                    f.get("file", "") for f in affected[:5]
-                )),
-            })
+            recommendations.append(
+                {
+                    "category": rec_key,
+                    "recommendation": template["recommendation"],
+                    "priority": template["priority"],
+                    "effort": template["effort"],
+                    "affected_findings": len(affected),
+                    "example_files": sorted(set(f.get("file", "") for f in affected[:5])),
+                }
+            )
 
     # Add no-auth recommendation if applicable
     if auth_score < 40 and "no_auth" not in seen_types:
         template = _BLUE_TEAM_TEMPLATES["no_auth"]
-        recommendations.append({
-            "category": "no_auth",
-            "recommendation": template["recommendation"],
-            "priority": template["priority"],
-            "effort": template["effort"],
-            "affected_findings": 0,
-            "example_files": [],
-        })
+        recommendations.append(
+            {
+                "category": "no_auth",
+                "recommendation": template["recommendation"],
+                "priority": template["priority"],
+                "effort": template["effort"],
+                "affected_findings": 0,
+                "example_files": [],
+            }
+        )
 
     # Sort by priority (CRITICAL first)
     priority_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
@@ -760,6 +796,7 @@ def _phase6_verdict(
 # =========================================================================
 # REPORT GENERATION
 # =========================================================================
+
 
 def _generate_markdown_report(
     target: str,
@@ -826,7 +863,9 @@ def _generate_markdown_report(
         p2 = phases["phase2"]
         lines.append("## Phase 2: Threat Modeling Hints")
         lines.append("")
-        lines.append(f"**Components identified for STRIDE analysis:** {p2.get('total_components', 0)}")
+        lines.append(
+            f"**Components identified for STRIDE analysis:** {p2.get('total_components', 0)}"
+        )
         lines.append("")
 
         for comp in p2.get("components_for_stride", [])[:30]:
@@ -882,7 +921,9 @@ def _generate_markdown_report(
             lines.append(f"- **Description:** {sc['scenario']}")
             src = sc.get("source_finding", {})
             if src.get("file"):
-                lines.append(f"- **Source:** `{src['file']}`:L{src.get('line', 0)} ({src.get('pattern', '')})")
+                lines.append(
+                    f"- **Source:** `{src['file']}`:L{src.get('line', 0)} ({src.get('pattern', '')})"
+                )
             lines.append("")
 
         lines.append("---")
@@ -935,9 +976,7 @@ def _generate_markdown_report(
 
         lines.append(f"### Final Score: **{final_score:.1f} / 100**")
         lines.append("")
-        lines.append(
-            f"### Verdict: **{verdict.get('emoji', '')} {verdict.get('label', 'N/A')}**"
-        )
+        lines.append(f"### Verdict: **{verdict.get('emoji', '')} {verdict.get('label', 'N/A')}**")
         lines.append("")
         lines.append(f"> {verdict.get('description', '')}")
         lines.append("")
@@ -972,15 +1011,19 @@ def _generate_text_summary(
     # Phase 1 summary
     if "phase1" in phases:
         p1 = phases["phase1"]
-        lines.append(f"  Phase 1 -- Surface: {p1.get('total_files', 0)} files, "
-                      f"{len(p1.get('entry_points', []))} entry points, "
-                      f"{len(p1.get('dependency_files', []))} dep files")
+        lines.append(
+            f"  Phase 1 -- Surface: {p1.get('total_files', 0)} files, "
+            f"{len(p1.get('entry_points', []))} entry points, "
+            f"{len(p1.get('dependency_files', []))} dep files"
+        )
 
     # Phase 2 summary
     if "phase2" in phases:
         p2 = phases["phase2"]
-        lines.append(f"  Phase 2 -- Threat Model Hints: "
-                      f"{p2.get('total_components', 0)} components for STRIDE")
+        lines.append(
+            f"  Phase 2 -- Threat Model Hints: "
+            f"{p2.get('total_components', 0)} components for STRIDE"
+        )
 
     # Phase 3 summary
     if "phase3" in phases:
@@ -1001,7 +1044,9 @@ def _generate_text_summary(
     # Phase 5 summary
     if "phase5" in phases:
         p5 = phases["phase5"]
-        lines.append(f"  Phase 5 -- Blue Team: {p5.get('total_recommendations', 0)} recommendations")
+        lines.append(
+            f"  Phase 5 -- Blue Team: {p5.get('total_recommendations', 0)} recommendations"
+        )
 
     # Phase 6 verdict
     if "phase6" in phases:
@@ -1023,6 +1068,7 @@ def _generate_text_summary(
 # =========================================================================
 # MAIN ENTRY POINT
 # =========================================================================
+
 
 def run_audit(
     target_path: str,
@@ -1088,28 +1134,36 @@ def run_audit(
 
         try:
             secrets_report = secrets_scanner.run_scan(
-                target_path=target_str, output_format="json", verbose=verbose,
+                target_path=target_str,
+                output_format="json",
+                verbose=verbose,
             )
         except SystemExit:
             pass
 
         try:
             dep_report = dependency_scanner.run_scan(
-                target_path=target_str, output_format="json", verbose=verbose,
+                target_path=target_str,
+                output_format="json",
+                verbose=verbose,
             )
         except SystemExit:
             pass
 
         try:
             inj_report = injection_scanner.run_scan(
-                target_path=target_str, output_format="json", verbose=verbose,
+                target_path=target_str,
+                output_format="json",
+                verbose=verbose,
             )
         except SystemExit:
             pass
 
         try:
             quick_report = quick_scan.run_scan(
-                target_path=target_str, output_format="json", verbose=verbose,
+                target_path=target_str,
+                output_format="json",
+                verbose=verbose,
             )
         except SystemExit:
             pass
@@ -1148,7 +1202,10 @@ def run_audit(
 
     if 3 in phases_list:
         phases_data["phase3"] = _phase3_security_checklist(
-            secrets_report, dep_report, inj_report, quick_report,
+            secrets_report,
+            dep_report,
+            inj_report,
+            quick_report,
         )
 
     # Auth score for phases 4 and 5
@@ -1156,13 +1213,17 @@ def run_audit(
     if 6 in phases_list or 4 in phases_list or 5 in phases_list:
         if source_files:
             auth_count = score_calculator._count_pattern_matches(
-                source_files, score_calculator._AUTH_PATTERNS,
+                source_files,
+                score_calculator._AUTH_PATTERNS,
             )
             if auth_count == 0:
                 auth_score = 25.0
             else:
                 auth_score = score_calculator._score_from_positive_signals(
-                    auth_count, total_source_files, base_score=40, max_score=95,
+                    auth_count,
+                    total_source_files,
+                    base_score=40,
+                    max_score=95,
                 )
 
     if 4 in phases_list:
@@ -1190,7 +1251,7 @@ def run_audit(
     # ------------------------------------------------------------------
     md_report = _generate_markdown_report(target_str, phases_data, elapsed, phases_list)
 
-    ts_file = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
+    ts_file = datetime.now(UTC).strftime("%Y-%m-%d_%H-%M-%S")
     report_filename = f"audit_{ts_file}.md"
     report_path = REPORTS_DIR / report_filename
 

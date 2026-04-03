@@ -3,10 +3,8 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with High-Performance Database integration and RLS enforcement.
 """
 
-from typing import Any
 from uuid import UUID
 
-import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,12 +22,14 @@ router = APIRouter(
 
 from pydantic import BaseModel
 
+
 class PositionSchema(BaseModel):
     id: str
     symbol: str
     quantity: int
     entry_price: float
     status: str
+
 
 class PortfolioOverview(BaseModel):
     id: str
@@ -39,6 +39,7 @@ class PortfolioOverview(BaseModel):
     positions_count: int
     positions: list[PositionSchema]
     message: str | None = None
+
 
 @router.get("", response_model=None)
 @router.get("/", response_model=None)
@@ -95,6 +96,7 @@ async def get_portfolio(
         ],
     )
 
+
 @router.get("/summary")
 async def get_portfolio_summary(
     db: AsyncSession = Depends(get_async_db),
@@ -115,10 +117,12 @@ async def get_portfolio_summary(
 
     return DataResponse(data=dict(row._mapping))
 
+
 class PositionCreate(BaseModel):
     symbol: str
     quantity: int
     entry_price: float
+
 
 @router.post("/positions", status_code=201, response_model=DataResponse[dict[str, str]])
 async def add_position(
@@ -150,6 +154,7 @@ async def add_position(
     await db.refresh(new_pos)
 
     return DataResponse(data={"id": str(new_pos.id)}, message="position_created__tight")
+
 
 @router.delete("/positions/{position_id}")
 async def delete_position(

@@ -4,6 +4,7 @@ import numpy as np
 
 from src.shared.math_utils import njit_engine
 
+
 @njit_engine(  # type: ignore
     cache=True,
     fastmath=True,
@@ -52,7 +53,6 @@ def _fused_state_kernel(
     )
 
     for i in range(20):
-        
         p_norm = prices[i % 10] / 100.0
         angle = p_norm * (3.141592653589793 * primes[i])
         state[51 + i] = np.sin(angle)
@@ -74,7 +74,7 @@ def _fused_state_kernel(
     window_buffer[idx] = state
 
     # Create chronological window (return view if possible, but here we need a specific order)
-    
+
     # For SB3/Transformer, we usually want chronological [t-N, ..., t]
     out: np.ndarray[Any, np.dtype[np.float32]] = np.empty((window_size, 128), dtype=np.float32)
     for i in range(window_size):
@@ -82,6 +82,7 @@ def _fused_state_kernel(
         out[i] = window_buffer[src_idx]
 
     return out
+
 
 @njit_engine(cache=True, fastmath=True)  # type: ignore
 def _calculate_reward_kernel(
@@ -98,6 +99,7 @@ def _calculate_reward_kernel(
     current_val = balance + option_val
     ret = (current_val - prev_portfolio_value) / max(prev_portfolio_value, 1e-6)
     return float(current_val), float(ret)
+
 
 @njit_engine(cache=True, fastmath=True)  # type: ignore
 def _trading_step_kernel(

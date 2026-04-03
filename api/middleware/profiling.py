@@ -12,6 +12,7 @@ from starlette.responses import HTMLResponse
 
 logger = logging.getLogger(__name__)
 
+
 class ProfilingMiddleware(BaseHTTPMiddleware):
     """
     Middleware that profiles requests and logs slow ones.

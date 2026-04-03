@@ -8,11 +8,13 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
+
 
 def test_portfolio_tables_exist(db_engine):
     """Test that users, portfolios, and positions tables exist."""
@@ -20,6 +22,7 @@ def test_portfolio_tables_exist(db_engine):
         for table in ["users", "portfolios", "positions"]:
             result = conn.execute(text(f"SELECT to_regclass('{table}');"))
             assert result.scalar() is not None, f"{table} table does not exist"
+
 
 def test_portfolio_relationships(db_engine):
     """Test inserting related user, portfolio, and position."""
@@ -87,6 +90,7 @@ def test_portfolio_relationships(db_engine):
         assert row is not None
         assert row.email == unique_email
         assert row.symbol == "AAPL"
+
 
 def test_rls_enforcement(db_engine):
     """Test that RLS prevents unauthorized access."""

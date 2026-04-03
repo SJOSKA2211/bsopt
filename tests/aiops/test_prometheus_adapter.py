@@ -7,11 +7,13 @@ from src.ml.aiops.prometheus_adapter import PrometheusClient
 TEST_PROMETHEUS_URL = "http://test-prometheus:9090"
 TEST_SERVICE = "test-service"
 
+
 def test_prometheus_client_class_exists():
     """
     Test that the PrometheusClient class can be imported.
     """
     assert PrometheusClient is not None, "PrometheusClient class is not defined or importable."
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 def test_prometheus_client_init(mock_prometheus_connect):
@@ -25,6 +27,7 @@ def test_prometheus_client_init(mock_prometheus_connect):
 
     mock_prometheus_connect.assert_called_once_with(url=TEST_PROMETHEUS_URL, disable_ssl=True)
     assert client.prom == mock_connect_instance
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
@@ -42,6 +45,7 @@ def test_check_connectivity_success(mock_logger, mock_prometheus_connect):
     mock_connect_instance.all_metrics.assert_called_once()
     mock_logger.info.assert_called_once_with("prometheus_connectivity_ok", url=TEST_PROMETHEUS_URL)
     mock_logger.error.assert_not_called()
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
@@ -65,6 +69,7 @@ def test_check_connectivity_failure(mock_logger, mock_prometheus_connect):
     )
     mock_logger.info.assert_not_called()
 
+
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
 def test_get_5xx_error_rate_success(mock_logger, mock_prometheus_connect):
@@ -83,6 +88,7 @@ def test_get_5xx_error_rate_success(mock_logger, mock_prometheus_connect):
     assert error_rate == 0.05
     mock_logger.error.assert_not_called()
 
+
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
 def test_get_5xx_error_rate_empty_service(mock_logger, mock_prometheus_connect):
@@ -93,6 +99,7 @@ def test_get_5xx_error_rate_empty_service(mock_logger, mock_prometheus_connect):
     with pytest.raises(ValueError, match="Service name cannot be empty"):
         client.get_5xx_error_rate("")
     mock_logger.error.assert_not_called()
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
@@ -117,6 +124,7 @@ def test_get_5xx_error_rate_query_failure(mock_logger, mock_prometheus_connect):
     )
     assert error_rate == 0.0
 
+
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
 def test_get_5xx_error_rate_empty_result(mock_logger, mock_prometheus_connect):
@@ -130,6 +138,7 @@ def test_get_5xx_error_rate_empty_result(mock_logger, mock_prometheus_connect):
     client = PrometheusClient(TEST_PROMETHEUS_URL)
     error_rate = client.get_5xx_error_rate(TEST_SERVICE)
     assert error_rate == 0.0
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
@@ -149,6 +158,7 @@ def test_get_p95_latency_success(mock_logger, mock_prometheus_connect):
     assert latency == 0.123
     mock_logger.error.assert_not_called()
 
+
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
 def test_get_p95_latency_empty_service(mock_logger, mock_prometheus_connect):
@@ -159,6 +169,7 @@ def test_get_p95_latency_empty_service(mock_logger, mock_prometheus_connect):
     with pytest.raises(ValueError, match="Service name cannot be empty"):
         client.get_p95_latency("")
     mock_logger.error.assert_not_called()
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")
@@ -182,6 +193,7 @@ def test_get_p95_latency_query_failure(mock_logger, mock_prometheus_connect):
         query=expected_query,
     )
     assert latency == 0.0
+
 
 @patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
 @patch("src.ml.aiops.prometheus_adapter.logger")

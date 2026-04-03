@@ -8,17 +8,20 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
 
+
 def test_option_greeks_table_exists(db_engine):
     """Test that option_greeks table exists."""
     with db_engine.connect() as conn:
         result = conn.execute(text("SELECT to_regclass('option_greeks');"))
         assert result.scalar() is not None, "option_greeks table does not exist"
+
 
 def test_option_greeks_is_hypertable(db_engine):
     """Test that option_greeks is a hypertable."""
@@ -29,6 +32,7 @@ def test_option_greeks_is_hypertable(db_engine):
             )
         )
         assert result.fetchone() is not None, "option_greeks is not a hypertable"
+
 
 def test_insert_and_query_greeks(db_engine):
     """Test inserting and retrieving option greeks."""

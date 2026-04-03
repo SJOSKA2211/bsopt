@@ -5,8 +5,8 @@ Todas as constantes, paths, modelos, formatos, tecnicas e configuracoes
 baseadas na documentacao oficial do Google AI Studio (Fev 2026).
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 # =============================================================================
 # PATHS
@@ -24,6 +24,7 @@ OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 # =============================================================================
 # API KEY MANAGEMENT (com fallback para backup keys)
 # =============================================================================
+
 
 def get_api_key(try_backup: bool = True) -> str | None:
     """
@@ -123,7 +124,6 @@ MODELS = {
         "text_limit": 25,
         "cost_per_image": 0.02,
     },
-
     # ---- Gemini com geracao de imagem nativa (Nano Banana) ----
     "gemini-flash-image": {
         "id": "gemini-2.5-flash-image",
@@ -465,7 +465,7 @@ PROMPT_TEMPLATES = {
         "description": "Template oficial para ilustracoes estilizadas",
     },
     "text_in_image": {
-        "pattern": "Create a {image_type} for {brand} with the text \"{text}\" in a {font_style}. The design should be {style}, with a {color_scheme}.",
+        "pattern": 'Create a {image_type} for {brand} with the text "{text}" in a {font_style}. The design should be {style}, with a {color_scheme}.',
         "description": "Template oficial para texto em imagens",
     },
     "infographic": {
@@ -549,7 +549,13 @@ OUTPUT_SETTINGS = {
 # Modelos com custo real (nao usar sem intencao explicita)
 # imagen-4: $0.03/img | imagen-4-ultra: $0.06/img | imagen-4-fast: $0.02/img
 # gemini-flash-image: $0.039/img | gemini-pro-image: $0.134/img
-PAID_MODELS = {"imagen-4", "imagen-4-ultra", "imagen-4-fast", "gemini-flash-image", "gemini-pro-image"}
+PAID_MODELS = {
+    "imagen-4",
+    "imagen-4-ultra",
+    "imagen-4-fast",
+    "gemini-flash-image",
+    "gemini-pro-image",
+}
 
 # Unico modelo GRATUITO para geracao de imagem (experimental)
 FREE_MODELS = {"gemini-2-flash-exp"}
@@ -580,6 +586,7 @@ def get_daily_usage_count() -> int:
     """Retorna quantas imagens foram geradas hoje (via metadados salvos)."""
     import json
     from datetime import date
+
     today = date.today().isoformat()
     count = 0
     if OUTPUTS_DIR.exists():

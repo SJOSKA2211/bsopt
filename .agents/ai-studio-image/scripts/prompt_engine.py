@@ -17,19 +17,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from config import (
+    DEFAULT_HUMANIZATION,
+    DEFAULT_LIGHTING,
+    DEFAULT_MODE,
+    FORMAT_ALIASES,
     HUMANIZATION_LEVELS,
     LIGHTING_OPTIONS,
     MODES,
-    SHOT_TYPES,
-    PROMPT_TEMPLATES,
-    IMAGE_FORMATS,
-    FORMAT_ALIASES,
-    DEFAULT_HUMANIZATION,
-    DEFAULT_MODE,
-    DEFAULT_LIGHTING,
     RATE_LIMITS,
+    SHOT_TYPES,
 )
-
 
 # =============================================================================
 # CAMADAS DE HUMANIZACAO — Sistema de 5 camadas
@@ -109,8 +106,13 @@ LAYER_ENVIRONMENT = {
 
 def _get_layers_for_level(level: str) -> list[str]:
     """Seleciona modificadores de camada baseado no nivel de humanizacao."""
-    all_layers = [LAYER_DEVICE, LAYER_LIGHTING, LAYER_IMPERFECTION,
-                  LAYER_AUTHENTICITY, LAYER_ENVIRONMENT]
+    all_layers = [
+        LAYER_DEVICE,
+        LAYER_LIGHTING,
+        LAYER_IMPERFECTION,
+        LAYER_AUTHENTICITY,
+        LAYER_ENVIRONMENT,
+    ]
 
     modifiers = []
     for layer in all_layers:
@@ -126,17 +128,64 @@ def _detect_shot_type(prompt: str) -> str | None:
     prompt_lower = prompt.lower()
 
     shot_hints = {
-        "close-up": ["rosto", "face", "retrato", "portrait", "close-up", "detalhe",
-                     "macro", "olhos", "eyes", "labios"],
-        "medium": ["sentado", "sitting", "mesa", "table", "cadeira", "chair",
-                   "cafe", "coffee", "trabalhando", "working"],
-        "wide": ["paisagem", "landscape", "praia", "beach", "montanha", "mountain",
-                "cidade", "city", "parque", "park", "rua", "street"],
-        "top-down": ["flat lay", "comida", "food", "mesa vista de cima", "overhead",
-                    "ingredients", "ingredientes"],
+        "close-up": [
+            "rosto",
+            "face",
+            "retrato",
+            "portrait",
+            "close-up",
+            "detalhe",
+            "macro",
+            "olhos",
+            "eyes",
+            "labios",
+        ],
+        "medium": [
+            "sentado",
+            "sitting",
+            "mesa",
+            "table",
+            "cadeira",
+            "chair",
+            "cafe",
+            "coffee",
+            "trabalhando",
+            "working",
+        ],
+        "wide": [
+            "paisagem",
+            "landscape",
+            "praia",
+            "beach",
+            "montanha",
+            "mountain",
+            "cidade",
+            "city",
+            "parque",
+            "park",
+            "rua",
+            "street",
+        ],
+        "top-down": [
+            "flat lay",
+            "comida",
+            "food",
+            "mesa vista de cima",
+            "overhead",
+            "ingredients",
+            "ingredientes",
+        ],
         "medium-close": ["selfie", "busto", "conversando", "talking", "explicando"],
-        "over-shoulder": ["tela", "screen", "computador", "computer", "notebook",
-                        "livro", "book", "reading"],
+        "over-shoulder": [
+            "tela",
+            "screen",
+            "computador",
+            "computer",
+            "notebook",
+            "livro",
+            "book",
+            "reading",
+        ],
         "pov": ["minha visao", "my view", "perspectiva", "primeira pessoa"],
     }
 
@@ -150,6 +199,7 @@ def _detect_shot_type(prompt: str) -> str | None:
 # =============================================================================
 # FUNCAO PRINCIPAL DE HUMANIZACAO
 # =============================================================================
+
 
 def humanize_prompt(
     user_prompt: str,
@@ -245,6 +295,7 @@ def humanize_prompt(
 # ANALISADOR INTELIGENTE DE PROMPT
 # =============================================================================
 
+
 def analyze_prompt(user_prompt: str) -> dict:
     """
     Analisa o prompt do usuario e sugere configuracoes ideais para cada parametro.
@@ -254,20 +305,57 @@ def analyze_prompt(user_prompt: str) -> dict:
 
     # ---- Detectar modo ----
     edu_keywords = [
-        "aula", "curso", "tutorial", "ensino", "treino", "explicar",
-        "demonstrar", "passo", "step", "educacao", "teach", "learn",
-        "lesson", "workshop", "apresentacao", "presentation", "slide",
-        "infografico", "diagram", "how-to", "how to", "como fazer",
-        "aprenda", "aprender", "classe", "class", "professor", "teacher",
-        "aluno", "student", "quadro", "whiteboard", "lousa",
+        "aula",
+        "curso",
+        "tutorial",
+        "ensino",
+        "treino",
+        "explicar",
+        "demonstrar",
+        "passo",
+        "step",
+        "educacao",
+        "teach",
+        "learn",
+        "lesson",
+        "workshop",
+        "apresentacao",
+        "presentation",
+        "slide",
+        "infografico",
+        "diagram",
+        "how-to",
+        "how to",
+        "como fazer",
+        "aprenda",
+        "aprender",
+        "classe",
+        "class",
+        "professor",
+        "teacher",
+        "aluno",
+        "student",
+        "quadro",
+        "whiteboard",
+        "lousa",
     ]
     mode = "educacional" if any(kw in prompt_lower for kw in edu_keywords) else "influencer"
 
     # ---- Detectar formato ----
     format_hints = {
         "stories": ["stories", "story", "reels", "reel", "tiktok", "vertical", "shorts"],
-        "widescreen": ["banner", "thumbnail", "youtube", "desktop", "panorama",
-                       "landscape", "wide", "widescreen", "tv", "cinematico"],
+        "widescreen": [
+            "banner",
+            "thumbnail",
+            "youtube",
+            "desktop",
+            "panorama",
+            "landscape",
+            "wide",
+            "widescreen",
+            "tv",
+            "cinematico",
+        ],
         "ultrawide": ["ultrawide", "panoramico", "cinematico ultra", "21:9"],
         "portrait-45": ["retrato", "portrait", "instagram portrait", "vertical photo"],
         "portrait-23": ["pinterest", "pin", "poster", "cartaz"],
@@ -283,15 +371,48 @@ def analyze_prompt(user_prompt: str) -> dict:
 
     # ---- Detectar iluminacao ----
     lighting_hints = {
-        "morning": ["manha", "morning", "amanhecer", "sunrise", "cafe da manha",
-                    "breakfast", "early morning"],
-        "golden-hour": ["por do sol", "sunset", "golden hour", "entardecer",
-                        "dourado", "golden", "magic hour"],
-        "night": ["noite", "night", "balada", "bar", "restaurante a noite",
-                  "neon", "club", "evening"],
+        "morning": [
+            "manha",
+            "morning",
+            "amanhecer",
+            "sunrise",
+            "cafe da manha",
+            "breakfast",
+            "early morning",
+        ],
+        "golden-hour": [
+            "por do sol",
+            "sunset",
+            "golden hour",
+            "entardecer",
+            "dourado",
+            "golden",
+            "magic hour",
+        ],
+        "night": [
+            "noite",
+            "night",
+            "balada",
+            "bar",
+            "restaurante a noite",
+            "neon",
+            "club",
+            "evening",
+        ],
         "overcast": ["nublado", "overcast", "cloudy", "chuva", "rain", "dia cinza"],
-        "indoor": ["escritorio", "office", "casa", "home", "indoor", "sala",
-                   "quarto", "cozinha", "kitchen", "bedroom", "living room"],
+        "indoor": [
+            "escritorio",
+            "office",
+            "casa",
+            "home",
+            "indoor",
+            "sala",
+            "quarto",
+            "cozinha",
+            "kitchen",
+            "bedroom",
+            "living room",
+        ],
         "midday": ["meio dia", "midday", "noon", "sol forte", "praia", "beach"],
         "blue-hour": ["hora azul", "blue hour", "twilight", "crepusculo"],
         "shade": ["sombra", "shade", "under tree", "debaixo", "coberto"],
@@ -305,13 +426,25 @@ def analyze_prompt(user_prompt: str) -> dict:
 
     # ---- Detectar humanizacao ----
     humanization = "natural"
-    if any(kw in prompt_lower for kw in ["ultra real", "super real", "celular velho",
-                                          "raw", "sem filtro", "amateur", "amador"]):
+    if any(
+        kw in prompt_lower
+        for kw in [
+            "ultra real",
+            "super real",
+            "celular velho",
+            "raw",
+            "sem filtro",
+            "amateur",
+            "amador",
+        ]
+    ):
         humanization = "ultra"
     elif any(kw in prompt_lower for kw in ["editorial", "revista", "magazine", "vogue"]):
         humanization = "editorial"
-    elif any(kw in prompt_lower for kw in ["polido", "polished", "limpo", "clean",
-                                            "profissional", "professional"]):
+    elif any(
+        kw in prompt_lower
+        for kw in ["polido", "polished", "limpo", "clean", "profissional", "professional"]
+    ):
         humanization = "polished"
 
     # ---- Detectar shot type ----
@@ -319,8 +452,19 @@ def analyze_prompt(user_prompt: str) -> dict:
 
     # ---- Detectar modelo ideal ----
     model = "imagen-4"  # default
-    if any(kw in prompt_lower for kw in ["texto", "text", "logo", "titulo", "title",
-                                          "4k", "ultra qualidade", "referencia"]):
+    if any(
+        kw in prompt_lower
+        for kw in [
+            "texto",
+            "text",
+            "logo",
+            "titulo",
+            "title",
+            "4k",
+            "ultra qualidade",
+            "referencia",
+        ]
+    ):
         model = "gemini-pro-image"
     elif any(kw in prompt_lower for kw in ["rapido", "fast", "batch", "lote", "volume"]):
         model = "imagen-4-fast"
@@ -353,6 +497,7 @@ def analyze_prompt(user_prompt: str) -> dict:
 # HELPER: Resolver aliases de formato
 # =============================================================================
 
+
 def resolve_format(user_input: str) -> str:
     """Resolve alias de formato para o nome canonico."""
     return FORMAT_ALIASES.get(user_input.lower().strip(), user_input)
@@ -362,18 +507,19 @@ def resolve_format(user_input: str) -> str:
 # CLI
 # =============================================================================
 
+
 def main():
     parser = argparse.ArgumentParser(description="Motor de humanizacao de prompts para imagens")
     parser.add_argument("--prompt", required=True, help="Prompt do usuario")
     parser.add_argument("--mode", default=DEFAULT_MODE, choices=list(MODES.keys()))
-    parser.add_argument("--humanization", default=DEFAULT_HUMANIZATION,
-                       choices=list(HUMANIZATION_LEVELS.keys()))
-    parser.add_argument("--lighting", default=None,
-                       choices=list(LIGHTING_OPTIONS.keys()))
-    parser.add_argument("--shot-type", default=None,
-                       choices=list(SHOT_TYPES.keys()))
-    parser.add_argument("--analyze", action="store_true",
-                       help="Analisa prompt e sugere configuracoes")
+    parser.add_argument(
+        "--humanization", default=DEFAULT_HUMANIZATION, choices=list(HUMANIZATION_LEVELS.keys())
+    )
+    parser.add_argument("--lighting", default=None, choices=list(LIGHTING_OPTIONS.keys()))
+    parser.add_argument("--shot-type", default=None, choices=list(SHOT_TYPES.keys()))
+    parser.add_argument(
+        "--analyze", action="store_true", help="Analisa prompt e sugere configuracoes"
+    )
     parser.add_argument("--json", action="store_true")
 
     args = parser.parse_args()
@@ -417,7 +563,7 @@ def main():
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
         print(humanized)
-        print(f"\n--- {len(humanized)} chars | ~{len(humanized)//4} tokens ---")
+        print(f"\n--- {len(humanized)} chars | ~{len(humanized) // 4} tokens ---")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ def prime_length(string):
         return True
     if length % 2 == 0:
         return False
-    for i in range(3, int(length ** 0.5) + 1, 2):
+    for i in range(3, int(length**0.5) + 1, 2):
         if length % i == 0:
             return False
     return True

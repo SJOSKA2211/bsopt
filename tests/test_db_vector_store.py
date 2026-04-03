@@ -7,17 +7,20 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
 
+
 def test_model_embeddings_table_exists(db_engine):
     """Test that model_embeddings table exists."""
     with db_engine.connect() as conn:
         result = conn.execute(text("SELECT to_regclass('model_embeddings');"))
         assert result.scalar() is not None, "model_embeddings table does not exist"
+
 
 def test_vector_similarity_search(db_engine):
     """Test L2 distance similarity search using pgvector."""
@@ -68,6 +71,7 @@ def test_vector_similarity_search(db_engine):
         row = result.fetchone()
         assert row is not None
         assert row.model_id == "model_a"
+
 
 def test_hnsw_index_exists(db_engine):
     """Test that HNSW index exists for embeddings."""

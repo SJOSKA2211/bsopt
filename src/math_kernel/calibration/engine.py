@@ -18,6 +18,7 @@ from src.shared.observability import (
 
 logger = structlog.get_logger()
 
+
 @dataclass
 class MarketOption:
     """Market option data point."""
@@ -43,6 +44,7 @@ class MarketOption:
     @property
     def moneyness(self) -> float:
         return self.strike / self.spot
+
 
 class HestonCalibrator:
     """

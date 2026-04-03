@@ -5,6 +5,7 @@ from src.math_kernel import quant_utils
 # Set a consistent seed for reproducibility
 np.random.seed(42)
 
+
 def test_corrado_miller_initial_guess():
     """
     Tests the Corrado-Miller initial IV guess with a single option.
@@ -29,6 +30,7 @@ def test_corrado_miller_initial_guess():
     # For these params, a volatility around 30-60% is reasonable.
     assert 0.1 < iv_guess[0] < 1.0
 
+
 def test_batch_bs_price_jit_call():
     """
     Tests the JIT-compiled Black-Scholes pricing kernel for a batch of call options.
@@ -49,6 +51,7 @@ def test_batch_bs_price_jit_call():
     # Assert: Known result for these parameters is ~7.11
     assert prices.shape == (n,)
     assert np.allclose(prices, 7.11, atol=0.02)
+
 
 def test_batch_bs_price_jit_put():
     """

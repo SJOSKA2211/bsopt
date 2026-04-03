@@ -32,11 +32,14 @@ T = TypeVar("T")
 _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
+
 def msgspec_dumps(obj: object) -> str:
     return _encoder.encode(obj).decode()
 
+
 def msgspec_loads(s: str | bytes) -> Any:
     return _decoder.decode(s)
+
 
 class DatabaseManager:
     """
@@ -78,7 +81,6 @@ class DatabaseManager:
         # Async path favors asyncpg
         async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
-
         if "sqlite" in db_url:
             async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
@@ -100,6 +102,7 @@ class DatabaseManager:
         def _normalize_statement(statement: str) -> str:
             """Simple normalization to group similar queries."""
             import re
+
             # Replace numeric literals and UUIDs with placeholders
             s = re.sub(r"'\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b'", "?", statement)
             s = re.sub(r"\b\d+\b", "?", s)
@@ -110,10 +113,10 @@ class DatabaseManager:
             conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
         ) -> None:
             conn.info.setdefault("query_start_time", []).append(time.time())
-            
+
             # Start a manual span if tracing is enabled and we're in a trace context
             if hasattr(context, "attributes"):
-                 context.attributes["db.statement.normalized"] = _normalize_statement(statement)
+                context.attributes["db.statement.normalized"] = _normalize_statement(statement)
 
         @event.listens_for(engine, "after_cursor_execute")
         def after_cursor_execute(
@@ -121,17 +124,17 @@ class DatabaseManager:
         ) -> None:
             if not conn.info.get("query_start_time"):
                 return
-            
+
             start_time = conn.info["query_start_time"].pop()
             duration_ms = (time.time() - start_time) * 1000
-            
+
             if duration_ms > settings.SLOW_QUERY_THRESHOLD_MS:
                 normalized = _normalize_statement(statement)
                 logger.warning(
                     "slow_query_detected",
                     duration_ms=round(duration_ms, 2),
                     statement_norm=normalized[:500],
-                    original_sample=statement[:100] + "..." if len(statement) > 100 else statement
+                    original_sample=statement[:100] + "..." if len(statement) > 100 else statement,
                 )
 
     def initialize(self) -> None:
@@ -173,7 +176,6 @@ class DatabaseManager:
             async_pool_class: type[NullPool] | None = NullPool
             async_pool_kwargs = {}
         else:
-            
             # if we don't specify it explicitly.
             async_pool_class = None
             async_pool_kwargs = {
@@ -257,23 +259,30 @@ class DatabaseManager:
         self._initialized = False
         logger.info("database_engines_disposed")
 
+
 db_manager = DatabaseManager()
+
 
 # --- COMPATIBILITY EXPORTS ---
 def get_engine() -> Engine:
     return db_manager.engine
 
+
 def get_async_engine() -> AsyncEngine:
     return db_manager.async_engine
+
 
 def get_sessionmaker() -> sessionmaker[Session]:
     return db_manager.session_factory
 
+
 def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return db_manager.async_session_factory
 
+
 # Legacy Lazy Loaders
-from typing import Callable
+from collections.abc import Callable
+
 
 class LazySessionFactory:
     def __init__(self, getter: Callable[[], Any]) -> None:
@@ -285,8 +294,10 @@ class LazySessionFactory:
     def __getattr__(self, name: str) -> Any:
         return getattr(self._getter(), name)
 
+
 SessionLocal = LazySessionFactory(get_sessionmaker)
 AsyncSessionLocal = LazySessionFactory(get_async_sessionmaker)
+
 
 # --- DEPENDENCIES ---
 def get_db() -> Generator[Session, None, None]:
@@ -297,13 +308,16 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 def get_session() -> Generator[Session, None, None]:
     return get_db()
+
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for asynchronous DB sessions."""
     async with db_manager.async_session_factory() as session:
         yield session
+
 
 @contextmanager
 def get_db_context() -> Generator[Session, None, None]:
@@ -313,10 +327,12 @@ def get_db_context() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 @asynccontextmanager
 async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
     async with db_manager.async_session_factory() as session:
         yield session
+
 
 # --- UTILITIES ---
 async def set_user_context(session: AsyncSession, user_id: str) -> None:
@@ -324,6 +340,7 @@ async def set_user_context(session: AsyncSession, user_id: str) -> None:
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
     )
+
 
 async def health_check() -> dict[str, Any]:
     """Enhanced database connectivity health check with retry (Asynchronous)."""
@@ -348,6 +365,7 @@ async def health_check() -> dict[str, Any]:
                 await asyncio.sleep(1)  # Async backoff
     return status
 
+
 def create_tables() -> None:
     """Creates all metadata tables with optimization hooks."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
@@ -370,6 +388,7 @@ def create_tables() -> None:
             logger.info("database_metadata_synchronized")
         except Exception as e:
             logger.error("database_metadata_sync_failed", error=str(e))
+
 
 async def dispose_engine() -> None:
     await db_manager.dispose()

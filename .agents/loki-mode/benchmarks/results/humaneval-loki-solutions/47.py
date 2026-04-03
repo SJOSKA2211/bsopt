@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def median(l: list):
     """Return median of elements in the list l.
     >>> median([3, 1, 2, 4, 5])

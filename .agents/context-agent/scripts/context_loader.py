@@ -5,11 +5,11 @@ Gera briefings de diferentes níveis de detalhe.
 
 from pathlib import Path
 
-from config import SESSIONS_DIR, MAX_RECENT_SESSIONS
-from models import SessionSummary
-from active_context import load_active_context, ACTIVE_CONTEXT_PATH
-from project_registry import load_registry, PROJECT_REGISTRY_PATH
+from active_context import load_active_context
 from compressor import get_archive_summary
+from project_registry import load_registry
+
+from config import MAX_RECENT_SESSIONS, SESSIONS_DIR
 
 
 def generate_briefing() -> str:
@@ -34,7 +34,9 @@ def generate_briefing() -> str:
         for p in active_projects:
             session_ref = f"session-{p.last_session:03d}" if p.last_session else "—"
             actions = "; ".join(p.next_actions) if p.next_actions else "nenhuma definida"
-            sections.append(f"- **{p.name}** ({p.status}) — última: {session_ref} — próxima: {actions}")
+            sections.append(
+                f"- **{p.name}** ({p.status}) — última: {session_ref} — próxima: {actions}"
+            )
         sections.append("")
 
     # 4. Tarefas pendentes de alta prioridade

@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def simplify(x, n):
     """Your task is to implement a function that will simplify the expression
     x * n. The function returns True if x * n evaluates to a whole number and False
@@ -15,10 +16,10 @@ def simplify(x, n):
     simplify("1/6", "2/1") = False
     simplify("7/10", "10/2") = False
     """
-    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-    
+    x_num, x_den = map(int, x.split("/"))
+    n_num, n_den = map(int, n.split("/"))
+
     numerator = x_num * n_num
     denominator = x_den * n_den
-    
+
     return numerator % denominator == 0

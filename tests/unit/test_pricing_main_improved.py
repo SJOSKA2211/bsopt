@@ -1,6 +1,7 @@
 import sys
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock strawberry as a package with submodules
 strawberry = MagicMock()
@@ -20,10 +21,10 @@ with (
 ):
     from src.math_kernel.main import app
 
+
 class TestPricingMain:
     def test_app_setup(self):
         assert app.title == "BS-Opt Pricing Service"
         # Check if health route exists
         routes = [r.path for r in app.routes]
         assert "/health" in routes
-

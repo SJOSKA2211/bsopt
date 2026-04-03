@@ -9,17 +9,20 @@ Metodo: httpx + BeautifulSoup
 Pagina /pagina/140 contem paragrafos com nome + matricula + endereco + telefone + email
 Total: 218 leiloeiros ativos (alguns com status inline: Suspenso, Licenciado)
 """
+
 from __future__ import annotations
 
 import logging
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
 logger = logging.getLogger(__name__)
 
-RE_MATRICULA_MG = re.compile(r"[Mm]atr[íi]cula:?\s*(\d+)\s+de\s+(\d{2}/\d{2}/\d{4})|[Mm]atr[íi]cula:?\s*n[º°]?\s*(\d+)", re.IGNORECASE)
+RE_MATRICULA_MG = re.compile(
+    r"[Mm]atr[íi]cula:?\s*(\d+)\s+de\s+(\d{2}/\d{2}/\d{4})|[Mm]atr[íi]cula:?\s*n[º°]?\s*(\d+)",
+    re.IGNORECASE,
+)
 RE_PREPOSTO = re.compile(r"[Pp]reposto:?\s*(.+)")
 RE_TELEFONE = re.compile(r"[Tt]elefones?:?\s*(.+)")
 RE_EMAIL = re.compile(r"(?:e-mail|email):?\s*(.+)", re.IGNORECASE)
@@ -36,7 +39,7 @@ class JucemgScraper(AbstractJuntaScraper):
     # URL da lista por antiguidade com tabela (nome + matricula)
     _URL_ANT = "https://jucemg.mg.gov.br/pagina/141/leiloeiros-antiguidade"
 
-    def _parse_alfabetica(self, soup) -> List[dict]:
+    def _parse_alfabetica(self, soup) -> list[dict]:
         """
         Parseia a pagina /pagina/140 (ordem alfabetica).
         Cada leiloeiro e um bloco <p>:
@@ -107,10 +110,12 @@ class JucemgScraper(AbstractJuntaScraper):
                     record["email"] = self.clean(m.group(1))
                     continue
                 # Linha de endereco: contem cidade/MG ou CEP
-                if (re.search(r"/\s*MG\b|\bMG\s*,?\s*CEP|CEP\s*\d", line) or
-                        (len(line) > 10 and not RE_PREPOSTO.match(line) and
-                         not RE_SITE.match(line) and
-                         not record.get("endereco"))):
+                if re.search(r"/\s*MG\b|\bMG\s*,?\s*CEP|CEP\s*\d", line) or (
+                    len(line) > 10
+                    and not RE_PREPOSTO.match(line)
+                    and not RE_SITE.match(line)
+                    and not record.get("endereco")
+                ):
                     m_cidade = re.search(r"([A-ZÁÉÍÓÚÀÃÕÇ][A-Za-záéíóúàãõç\s]+)\s*-?\s*MG", line)
                     if m_cidade:
                         record["municipio"] = m_cidade.group(1).strip()
@@ -121,7 +126,7 @@ class JucemgScraper(AbstractJuntaScraper):
 
         return records
 
-    def _parse_antiguidade(self, soup) -> List[dict]:
+    def _parse_antiguidade(self, soup) -> list[dict]:
         """
         Parseia tabela /pagina/141 (antiguidade).
         Tabela com 2 colunas: "Ordem de antiguidade e nome" + "No de matricula"
@@ -148,17 +153,19 @@ class JucemgScraper(AbstractJuntaScraper):
                     situacao = status_match.group(0).strip("()")
                     nome_raw = RE_STATUS_INLINE.sub("", nome_raw).strip()
 
-                records.append({
-                    "nome": nome_raw,
-                    "matricula": matricula,
-                    "situacao": situacao,
-                    "municipio": "Belo Horizonte",
-                })
+                records.append(
+                    {
+                        "nome": nome_raw,
+                        "matricula": matricula,
+                        "situacao": situacao,
+                        "municipio": "Belo Horizonte",
+                    }
+                )
             if records:
                 break
         return records
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         # Estrategia 1: Pagina alfabetica (tem contatos completos)
         soup = await self.fetch_page(url=self._URL_ALFA)
         if soup:
@@ -182,7 +189,7 @@ class JucemgScraper(AbstractJuntaScraper):
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         # Tenta tabela
         for table in soup.find_all("table"):
@@ -205,14 +212,16 @@ class JucemgScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio="Belo Horizonte",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio="Belo Horizonte",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                    )
+                )
 
         logger.info("[MG] Total: %d registros", len(results))
         return results

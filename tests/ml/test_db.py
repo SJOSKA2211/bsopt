@@ -4,13 +4,16 @@ import pytest
 
 from src.database.models import MarketTick
 
+
 @pytest.fixture
 def mock_engine():
     return MagicMock()
 
+
 @pytest.fixture
 def mock_session():
     return MagicMock()
+
 
 def test_market_tick_model():
     """Verify that the MarketTick model has the correct columns."""
@@ -19,6 +22,7 @@ def test_market_tick_model():
     assert hasattr(MarketTick, "symbol")
     assert hasattr(MarketTick, "price")
     assert hasattr(MarketTick, "volume")
+
 
 @patch("src.shared.db.create_engine")
 @patch("src.shared.db.sessionmaker")
@@ -33,6 +37,7 @@ def test_db_connection(mock_sessionmaker, mock_create_engine):
 
     mock_create_engine.assert_called_with("postgresql://user:pass@localhost/db")
     mock_sessionmaker.assert_called_once()
+
 
 @patch("src.shared.db.Minio")
 def test_minio_storage(mock_minio):

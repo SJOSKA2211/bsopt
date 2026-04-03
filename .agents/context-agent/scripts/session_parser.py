@@ -4,9 +4,8 @@ Lê arquivos de sessão e extrai informações estruturadas.
 """
 
 import json
-from pathlib import Path
 from datetime import datetime
-from typing import Optional
+from pathlib import Path
 
 from config import CLAUDE_SESSION_DIR, FILE_MODIFYING_TOOLS
 from models import SessionEntry
@@ -15,7 +14,7 @@ from models import SessionEntry
 def parse_session_file(path: Path) -> list[SessionEntry]:
     """Lê um arquivo JSONL e retorna lista de SessionEntry."""
     entries = []
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -30,7 +29,7 @@ def parse_session_file(path: Path) -> list[SessionEntry]:
     return entries
 
 
-def _parse_raw_entry(raw: dict) -> Optional[SessionEntry]:
+def _parse_raw_entry(raw: dict) -> SessionEntry | None:
     """Converte um dict JSON bruto em SessionEntry."""
     entry_type = raw.get("type", "")
 
@@ -183,7 +182,7 @@ def get_session_metadata(entries: list[SessionEntry]) -> dict:
     }
 
 
-def get_latest_session_file() -> Optional[Path]:
+def get_latest_session_file() -> Path | None:
     """Encontra o arquivo JSONL mais recente."""
     if not CLAUDE_SESSION_DIR.exists():
         return None

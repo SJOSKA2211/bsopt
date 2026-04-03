@@ -12,11 +12,11 @@ Estrutura HTML: <b><font color="#A01A14">MATRICULA</font> - NOME<br>
 Total: 376 leiloeiros (261 ativos + 111 cancelados)
 Nota: Antigo dominio jucers.rs.gov.br foi aposentado. Junta renomeada para JUCISRS.
 """
+
 from __future__ import annotations
 
 import logging
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -41,7 +41,7 @@ class JucisrsScraper(AbstractJuntaScraper):
 
     _POST_URL = "https://sistemas.jucisrs.rs.gov.br/leiloeiros/busca/listar"
 
-    def _parse_plain_html(self, html: str) -> List[dict]:
+    def _parse_plain_html(self, html: str) -> list[dict]:
         """
         Parseia o formato plano HTML da JUCISRS.
         Toda a lista esta dentro de um unico grande <b> com <hr> como separadores.
@@ -97,11 +97,11 @@ class JucisrsScraper(AbstractJuntaScraper):
                         situacao = "CANCELADO"
                         nome_raw = RE_CANCELADO.sub("", nome_raw).strip(" ")
                     nome = self.clean(nome_raw)
-                    remaining = lines[i+1:]
+                    remaining = lines[i + 1 :]
                     break
                 # Padrao 2: so matricula (numero puro), proximo e "- NOME"
                 if line.isdigit() and i + 1 < len(lines):
-                    next_line = lines[i+1]
+                    next_line = lines[i + 1]
                     if next_line.startswith("- ") or next_line.startswith("– "):
                         matricula = line
                         nome_raw = next_line[2:].strip()
@@ -109,7 +109,7 @@ class JucisrsScraper(AbstractJuntaScraper):
                             situacao = "CANCELADO"
                             nome_raw = RE_CANCELADO.sub("", nome_raw).strip(" ")
                         nome = self.clean(nome_raw)
-                        remaining = lines[i+2:]
+                        remaining = lines[i + 2 :]
                         break
 
             if not nome or len(nome) < 3:
@@ -159,15 +159,14 @@ class JucisrsScraper(AbstractJuntaScraper):
                 if line.startswith("www.") or line.startswith("http"):
                     continue
                 # Linha de endereco
-                if (not record["endereco"] and len(line) > 5 and
-                        re.search(r"[A-ZÁÉÍÓÚÀÃÕÇ]", line)):
+                if not record["endereco"] and len(line) > 5 and re.search(r"[A-ZÁÉÍÓÚÀÃÕÇ]", line):
                     record["endereco"] = line
 
             records.append(record)
 
         return records
 
-    async def _fetch_post(self) -> List[dict]:
+    async def _fetch_post(self) -> list[dict]:
         """
         POST para /leiloeiros/busca/listar com Nome=Todos.
         Retorna todos os 376 registros em resposta unica.
@@ -212,7 +211,7 @@ class JucisrsScraper(AbstractJuntaScraper):
             logger.error("[RS] Erro no POST: %s", exc)
             return []
 
-    async def _fetch_get_all(self) -> List[dict]:
+    async def _fetch_get_all(self) -> list[dict]:
         """
         Fallback: GET simples na URL principal com verify=False.
         Pode retornar formulario ou lista parcial.
@@ -240,7 +239,7 @@ class JucisrsScraper(AbstractJuntaScraper):
         """Playwright com SSL completamente desabilitado para cert autoassinado."""
         try:
             from playwright.async_api import async_playwright
-            from bs4 import BeautifulSoup
+
             async with async_playwright() as pw:
                 browser = await pw.chromium.launch(
                     headless=True,
@@ -274,7 +273,7 @@ class JucisrsScraper(AbstractJuntaScraper):
             logger.error("[RS] Playwright SSL bypass falhou: %s", exc)
             return []
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         # Estrategia 1: POST direto (mais eficiente, retorna todos de uma vez)
         records = await self._fetch_post()
 

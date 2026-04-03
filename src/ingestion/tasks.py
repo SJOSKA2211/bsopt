@@ -5,6 +5,7 @@ from src.workers.tasks.celery_app import BaseTaskWithRetry, celery_app
 
 logger = structlog.get_logger(__name__)
 
+
 @celery_app.task(bind=True, base=BaseTaskWithRetry, name="scrapers.refresh_nse_cache")
 def refresh_nse_cache_task(self):
     """
@@ -15,7 +16,6 @@ def refresh_nse_cache_task(self):
     logger.info("nse_refresh_task_triggered")
     scraper = NSEScraper()
     try:
-        
         self.run_async(scraper._refresh_cache())
         logger.info("nse_refresh_task_success")
     except Exception as e:

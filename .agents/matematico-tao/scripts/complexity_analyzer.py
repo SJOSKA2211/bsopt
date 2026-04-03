@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Prof. Euler — Complexity Analyzer
 Análise automática de complexidade ciclomática, cognitiva e acoplamento
@@ -11,23 +10,21 @@ Uso:
   python complexity_analyzer.py C:/Users/renat/earbudllm --module llm --threshold 10
 """
 
-import os
+import argparse
+import json
 import re
 import sys
-import json
-import argparse
 from pathlib import Path
 
 # Fix Unicode output on Windows (cp1252 terminal)
-if sys.platform == 'win32':
+if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except AttributeError:
         pass  # Python < 3.7 fallback
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -48,8 +45,8 @@ class FunctionMetrics:
 class FileMetrics:
     path: str
     module: str
-    functions: List[FunctionMetrics] = field(default_factory=list)
-    imports: List[str] = field(default_factory=list)
+    functions: list[FunctionMetrics] = field(default_factory=list)
+    imports: list[str] = field(default_factory=list)
     total_lines: int = 0
     blank_lines: int = 0
     comment_lines: int = 0
@@ -76,8 +73,8 @@ class FileMetrics:
 @dataclass
 class ModuleCoupling:
     module: str
-    efferent: List[str] = field(default_factory=list)  # Ce: modules this depends on
-    afferent: List[str] = field(default_factory=list)   # Ca: modules that depend on this
+    efferent: list[str] = field(default_factory=list)  # Ce: modules this depends on
+    afferent: list[str] = field(default_factory=list)  # Ca: modules that depend on this
 
     @property
     def instability(self) -> float:
@@ -93,31 +90,43 @@ class KotlinComplexityAnalyzer:
 
     # Tokens que incrementam complexidade ciclomática
     CYCLOMATIC_TOKENS = [
-        r'\bif\b', r'\belse if\b', r'\bwhen\b', r'\bfor\b', r'\bwhile\b',
-        r'\bdo\b', r'\btry\b', r'\bcatch\b', r'\band\b', r'\bor\b',
-        r'\?\?', r'\?\.',  # Elvis operator e safe call
-        r'&&', r'\|\|',
+        r"\bif\b",
+        r"\belse if\b",
+        r"\bwhen\b",
+        r"\bfor\b",
+        r"\bwhile\b",
+        r"\bdo\b",
+        r"\btry\b",
+        r"\bcatch\b",
+        r"\band\b",
+        r"\bor\b",
+        r"\?\?",
+        r"\?\.",  # Elvis operator e safe call
+        r"&&",
+        r"\|\|",
     ]
 
     # Tokens de quebra de fluxo (aumentam complexidade cognitiva mais que cicl.)
     COGNITIVE_BREAK_TOKENS = [
-        r'\bbreak\b', r'\bcontinue\b', r'\breturn\b(?!\s+\w+\s*$)',  # return no meio
-        r'\bthrow\b',
+        r"\bbreak\b",
+        r"\bcontinue\b",
+        r"\breturn\b(?!\s+\w+\s*$)",  # return no meio
+        r"\bthrow\b",
     ]
 
     def __init__(self, project_root: str, threshold: int = 10):
         self.project_root = Path(project_root)
         self.threshold = threshold
-        self.metrics: List[FileMetrics] = []
+        self.metrics: list[FileMetrics] = []
 
-    def analyze(self, module_filter: Optional[str] = None) -> None:
+    def analyze(self, module_filter: str | None = None) -> None:
         """Analisa todos os arquivos Kotlin no projeto."""
         pattern = "**/*.kt"
         kt_files = list(self.project_root.glob(pattern))
 
         for kt_file in kt_files:
             # Filtra arquivos de teste se não especificado
-            if 'test' in kt_file.parts and module_filter is None:
+            if "test" in kt_file.parts and module_filter is None:
                 continue
 
             # Filtro de módulo
@@ -131,25 +140,32 @@ class KotlinComplexityAnalyzer:
     def _detect_module(self, file_path: Path) -> str:
         """Detecta qual módulo um arquivo pertence."""
         parts = file_path.parts
-        known_modules = ['app', 'bluetooth', 'audio', 'voice', 'llm',
-                         'integrations', 'core-logging']
+        known_modules = [
+            "app",
+            "bluetooth",
+            "audio",
+            "voice",
+            "llm",
+            "integrations",
+            "core-logging",
+        ]
         for part in parts:
             if part in known_modules:
                 return part
-        return 'unknown'
+        return "unknown"
 
     def _analyze_file(self, file_path: Path, module: str) -> FileMetrics:
         """Analisa um arquivo Kotlin."""
         try:
-            content = file_path.read_text(encoding='utf-8', errors='ignore')
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
         except Exception:
             return FileMetrics(str(file_path), module)
 
-        lines = content.split('\n')
+        lines = content.split("\n")
         metrics = FileMetrics(
             path=str(file_path.relative_to(self.project_root)),
             module=module,
-            total_lines=len(lines)
+            total_lines=len(lines),
         )
 
         # Contar linhas
@@ -157,34 +173,34 @@ class KotlinComplexityAnalyzer:
             stripped = line.strip()
             if not stripped:
                 metrics.blank_lines += 1
-            elif stripped.startswith('//') or stripped.startswith('*') or stripped.startswith('/*'):
+            elif stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("/*"):
                 metrics.comment_lines += 1
 
         # Extrair imports
-        metrics.imports = re.findall(r'^import\s+(.+)$', content, re.MULTILINE)
+        metrics.imports = re.findall(r"^import\s+(.+)$", content, re.MULTILINE)
 
         # Analisar funções
         metrics.functions = self._extract_functions(content, str(file_path))
 
         return metrics
 
-    def _extract_functions(self, content: str, filepath: str) -> List[FunctionMetrics]:
+    def _extract_functions(self, content: str, filepath: str) -> list[FunctionMetrics]:
         """Extrai e analisa todas as funções do arquivo."""
         functions = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         # Pattern para declarações de função Kotlin
         fun_pattern = re.compile(
-            r'^(\s*)((?:suspend\s+)?(?:private\s+|protected\s+|internal\s+|public\s+)?'
-            r'(?:override\s+)?(?:suspend\s+)?fun\s+(\w+)\s*\(([^)]*)\))',
-            re.MULTILINE
+            r"^(\s*)((?:suspend\s+)?(?:private\s+|protected\s+|internal\s+|public\s+)?"
+            r"(?:override\s+)?(?:suspend\s+)?fun\s+(\w+)\s*\(([^)]*)\))",
+            re.MULTILINE,
         )
 
         for match in fun_pattern.finditer(content):
             fun_name = match.group(3)
             params_str = match.group(4)
-            is_suspend = 'suspend' in match.group(2)
-            line_num = content[:match.start()].count('\n') + 1
+            is_suspend = "suspend" in match.group(2)
+            line_num = content[: match.start()].count("\n") + 1
 
             # Extrair corpo da função
             body = self._extract_function_body(content, match.end())
@@ -196,20 +212,22 @@ class KotlinComplexityAnalyzer:
             cog = self._cognitive_complexity(body)
             params = self._count_parameters(params_str)
             nullable = self._count_nullable_params(params_str)
-            has_try = bool(re.search(r'\btry\b', body))
+            has_try = bool(re.search(r"\btry\b", body))
 
-            functions.append(FunctionMetrics(
-                name=fun_name,
-                file=filepath,
-                line=line_num,
-                cyclomatic=cc,
-                cognitive=cog,
-                lines=body.count('\n'),
-                parameters=params,
-                nullable_params=nullable,
-                has_try_catch=has_try,
-                coroutine=is_suspend
-            ))
+            functions.append(
+                FunctionMetrics(
+                    name=fun_name,
+                    file=filepath,
+                    line=line_num,
+                    cyclomatic=cc,
+                    cognitive=cog,
+                    lines=body.count("\n"),
+                    parameters=params,
+                    nullable_params=nullable,
+                    has_try_catch=has_try,
+                    coroutine=is_suspend,
+                )
+            )
 
         return functions
 
@@ -221,16 +239,16 @@ class KotlinComplexityAnalyzer:
 
         while i < len(content):
             c = content[i]
-            if c == '{':
+            if c == "{":
                 depth += 1
                 started = True
-            elif c == '}':
+            elif c == "}":
                 depth -= 1
                 if started and depth == 0:
-                    return content[start:i+1]
+                    return content[start : i + 1]
             i += 1
 
-        return content[start:min(start + 500, len(content))]
+        return content[start : min(start + 500, len(content))]
 
     def _cyclomatic_complexity(self, code: str) -> int:
         """Calcula CC de McCabe."""
@@ -244,18 +262,18 @@ class KotlinComplexityAnalyzer:
         """Calcula complexidade cognitiva (aproximação)."""
         cog = 0
         nesting = 0
-        lines = code.split('\n')
+        lines = code.split("\n")
 
         for line in lines:
             stripped = line.strip()
 
             # Aumenta nesting
-            if re.search(r'\b(if|when|for|while|try)\b', stripped):
-                cog += (1 + nesting)
+            if re.search(r"\b(if|when|for|while|try)\b", stripped):
+                cog += 1 + nesting
                 nesting += 1
 
             # Fecha nesting
-            elif stripped == '}':
+            elif stripped == "}":
                 nesting = max(0, nesting - 1)
 
             # Breaks de fluxo
@@ -269,22 +287,22 @@ class KotlinComplexityAnalyzer:
         """Conta parâmetros de uma função."""
         if not params_str.strip():
             return 0
-        return len([p for p in params_str.split(',') if p.strip()])
+        return len([p for p in params_str.split(",") if p.strip()])
 
     def _count_nullable_params(self, params_str: str) -> int:
         """Conta parâmetros nullable (tipo?)."""
-        return len(re.findall(r'\w+\?', params_str))
+        return len(re.findall(r"\w+\?", params_str))
 
-    def analyze_coupling(self) -> Dict[str, ModuleCoupling]:
+    def analyze_coupling(self) -> dict[str, ModuleCoupling]:
         """Analisa acoplamento entre módulos."""
-        module_imports: Dict[str, set] = defaultdict(set)
+        module_imports: dict[str, set] = defaultdict(set)
 
         for file_metrics in self.metrics:
             for imp in file_metrics.imports:
                 # Detecta qual módulo está sendo importado
-                for mod in ['bluetooth', 'audio', 'voice', 'llm', 'integrations', 'core.logging']:
+                for mod in ["bluetooth", "audio", "voice", "llm", "integrations", "core.logging"]:
                     if mod in imp:
-                        module_imports[file_metrics.module].add(mod.replace('.', '-'))
+                        module_imports[file_metrics.module].add(mod.replace(".", "-"))
 
         coupling = {}
         all_modules = set(m.module for m in self.metrics)
@@ -293,13 +311,13 @@ class KotlinComplexityAnalyzer:
             c = ModuleCoupling(module=mod)
             c.efferent = list(module_imports.get(mod, set()))
             for other_mod, deps in module_imports.items():
-                if mod.replace('-', '.') in deps or mod in deps:
+                if mod.replace("-", ".") in deps or mod in deps:
                     c.afferent.append(other_mod)
             coupling[mod] = c
 
         return coupling
 
-    def generate_report(self) -> Dict:
+    def generate_report(self) -> dict:
         """Gera relatório completo com análise matemática."""
         # Funções problemáticas
         high_cc = []
@@ -312,98 +330,106 @@ class KotlinComplexityAnalyzer:
         for file_m in self.metrics:
             for func in file_m.functions:
                 if func.cyclomatic > self.threshold:
-                    high_cc.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'line': func.line,
-                        'cc': func.cyclomatic,
-                        'risk': self._cc_risk_label(func.cyclomatic)
-                    })
+                    high_cc.append(
+                        {
+                            "function": func.name,
+                            "file": file_m.path,
+                            "line": func.line,
+                            "cc": func.cyclomatic,
+                            "risk": self._cc_risk_label(func.cyclomatic),
+                        }
+                    )
 
                 if func.cognitive > self.threshold * 1.5:
-                    high_cognitive.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'line': func.line,
-                        'cognitive': func.cognitive
-                    })
+                    high_cognitive.append(
+                        {
+                            "function": func.name,
+                            "file": file_m.path,
+                            "line": func.line,
+                            "cognitive": func.cognitive,
+                        }
+                    )
 
                 if func.lines > 50:
-                    too_long.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'line': func.line,
-                        'lines': func.lines
-                    })
+                    too_long.append(
+                        {
+                            "function": func.name,
+                            "file": file_m.path,
+                            "line": func.line,
+                            "lines": func.lines,
+                        }
+                    )
 
                 if func.parameters > 5:
-                    too_many_params.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'params': func.parameters
-                    })
+                    too_many_params.append(
+                        {"function": func.name, "file": file_m.path, "params": func.parameters}
+                    )
 
                 if func.nullable_params > 2:
-                    unsafe_nullable.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'nullable_params': func.nullable_params
-                    })
+                    unsafe_nullable.append(
+                        {
+                            "function": func.name,
+                            "file": file_m.path,
+                            "nullable_params": func.nullable_params,
+                        }
+                    )
 
                 if func.coroutine and func.has_try_catch:
-                    coroutine_issues.append({
-                        'function': func.name,
-                        'file': file_m.path,
-                        'note': 'suspend fun with try-catch: verify structured concurrency'
-                    })
+                    coroutine_issues.append(
+                        {
+                            "function": func.name,
+                            "file": file_m.path,
+                            "note": "suspend fun with try-catch: verify structured concurrency",
+                        }
+                    )
 
         # Ordenar por severidade
-        high_cc.sort(key=lambda x: x['cc'], reverse=True)
+        high_cc.sort(key=lambda x: x["cc"], reverse=True)
 
         # Módulos com maior complexidade
-        module_stats = defaultdict(lambda: {'total_cc': 0, 'max_cc': 0, 'functions': 0, 'files': 0})
+        module_stats = defaultdict(lambda: {"total_cc": 0, "max_cc": 0, "functions": 0, "files": 0})
         for file_m in self.metrics:
             mod = file_m.module
-            module_stats[mod]['files'] += 1
-            module_stats[mod]['functions'] += len(file_m.functions)
+            module_stats[mod]["files"] += 1
+            module_stats[mod]["functions"] += len(file_m.functions)
             for f in file_m.functions:
-                module_stats[mod]['total_cc'] += f.cyclomatic
-                module_stats[mod]['max_cc'] = max(module_stats[mod]['max_cc'], f.cyclomatic)
+                module_stats[mod]["total_cc"] += f.cyclomatic
+                module_stats[mod]["max_cc"] = max(module_stats[mod]["max_cc"], f.cyclomatic)
 
         # Calcular média CC por módulo
         for mod, stats in module_stats.items():
-            if stats['functions'] > 0:
-                stats['avg_cc'] = round(stats['total_cc'] / stats['functions'], 2)
+            if stats["functions"] > 0:
+                stats["avg_cc"] = round(stats["total_cc"] / stats["functions"], 2)
             else:
-                stats['avg_cc'] = 0
+                stats["avg_cc"] = 0
 
         coupling = self.analyze_coupling()
         coupling_data = {}
         for mod, c in coupling.items():
             coupling_data[mod] = {
-                'Ca': len(c.afferent),
-                'Ce': len(c.efferent),
-                'instability': round(c.instability, 3),
-                'depends_on': c.efferent,
-                'depended_by': c.afferent
+                "Ca": len(c.afferent),
+                "Ce": len(c.efferent),
+                "instability": round(c.instability, 3),
+                "depends_on": c.efferent,
+                "depended_by": c.afferent,
             }
 
         return {
-            'summary': {
-                'total_files': len(self.metrics),
-                'total_functions': sum(len(f.functions) for f in self.metrics),
-                'total_code_lines': sum(f.code_lines for f in self.metrics),
-                'high_cc_functions': len(high_cc),
-                'high_cognitive_functions': len(high_cognitive),
+            "summary": {
+                "total_files": len(self.metrics),
+                "total_functions": sum(len(f.functions) for f in self.metrics),
+                "total_code_lines": sum(f.code_lines for f in self.metrics),
+                "high_cc_functions": len(high_cc),
+                "high_cognitive_functions": len(high_cognitive),
             },
-            'high_cyclomatic_complexity': high_cc[:20],  # top 20
-            'high_cognitive_complexity': high_cognitive[:10],
-            'overly_long_functions': too_long[:10],
-            'too_many_parameters': too_many_params[:10],
-            'nullable_risks': unsafe_nullable[:10],
-            'coroutine_issues': coroutine_issues[:10],
-            'module_statistics': dict(module_stats),
-            'module_coupling': coupling_data,
+            "high_cyclomatic_complexity": high_cc[:20],  # top 20
+            "high_cognitive_complexity": high_cognitive[:10],
+            "overly_long_functions": too_long[:10],
+            "too_many_parameters": too_many_params[:10],
+            "nullable_risks": unsafe_nullable[:10],
+            "coroutine_issues": coroutine_issues[:10],
+            "module_statistics": dict(module_stats),
+            "module_coupling": coupling_data,
         }
 
     def _cc_risk_label(self, cc: int) -> str:
@@ -416,69 +442,79 @@ class KotlinComplexityAnalyzer:
         else:
             return "CRITICAL — must refactor"
 
-    def print_report(self, report: Dict) -> None:
+    def print_report(self, report: dict) -> None:
         """Imprime relatório formatado."""
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("  PROF. EULER — ANÁLISE DE COMPLEXIDADE MATEMÁTICA")
-        print("="*70)
+        print("=" * 70)
 
-        s = report['summary']
-        print(f"\n📊 RESUMO:")
+        s = report["summary"]
+        print("\n📊 RESUMO:")
         print(f"  Arquivos analisados:    {s['total_files']}")
         print(f"  Funções analisadas:     {s['total_functions']}")
         print(f"  Linhas de código:       {s['total_code_lines']}")
         print(f"  Funções alta CC:        {s['high_cc_functions']} (threshold={self.threshold})")
         print(f"  Funções alta cognitiva: {s['high_cognitive_functions']}")
 
-        if report['high_cyclomatic_complexity']:
-            print(f"\n⚠️  TOP FUNÇÕES POR COMPLEXIDADE CICLOMÁTICA:")
+        if report["high_cyclomatic_complexity"]:
+            print("\n⚠️  TOP FUNÇÕES POR COMPLEXIDADE CICLOMÁTICA:")
             print(f"  {'Função':<35} {'CC':>5}  {'Arquivo':<40} Risco")
-            print(f"  {'-'*35} {'-'*5}  {'-'*40} {'-'*25}")
-            for item in report['high_cyclomatic_complexity'][:10]:
-                fname = item['function'][:34]
-                ffile = item['file'][:39]
+            print(f"  {'-' * 35} {'-' * 5}  {'-' * 40} {'-' * 25}")
+            for item in report["high_cyclomatic_complexity"][:10]:
+                fname = item["function"][:34]
+                ffile = item["file"][:39]
                 print(f"  {fname:<35} {item['cc']:>5}  {ffile:<40} {item['risk']}")
 
-        if report['module_statistics']:
-            print(f"\n📦 ESTATÍSTICAS POR MÓDULO:")
-            print(f"  {'Módulo':<20} {'Arquivos':>8} {'Funções':>8} {'CC Médio':>10} {'CC Máximo':>10} {'Instabilidade':>14}")
-            print(f"  {'-'*20} {'-'*8} {'-'*8} {'-'*10} {'-'*10} {'-'*14}")
-            coupling = report['module_coupling']
-            for mod, stats in sorted(report['module_statistics'].items()):
-                inst = coupling.get(mod, {}).get('instability', 'N/A')
+        if report["module_statistics"]:
+            print("\n📦 ESTATÍSTICAS POR MÓDULO:")
+            print(
+                f"  {'Módulo':<20} {'Arquivos':>8} {'Funções':>8} {'CC Médio':>10} {'CC Máximo':>10} {'Instabilidade':>14}"
+            )
+            print(f"  {'-' * 20} {'-' * 8} {'-' * 8} {'-' * 10} {'-' * 10} {'-' * 14}")
+            coupling = report["module_coupling"]
+            for mod, stats in sorted(report["module_statistics"].items()):
+                inst = coupling.get(mod, {}).get("instability", "N/A")
                 inst_str = f"{inst:.3f}" if isinstance(inst, float) else inst
-                print(f"  {mod:<20} {stats['files']:>8} {stats['functions']:>8} "
-                      f"{stats['avg_cc']:>10.2f} {stats['max_cc']:>10} {inst_str:>14}")
+                print(
+                    f"  {mod:<20} {stats['files']:>8} {stats['functions']:>8} "
+                    f"{stats['avg_cc']:>10.2f} {stats['max_cc']:>10} {inst_str:>14}"
+                )
 
-        if report['coroutine_issues']:
-            print(f"\n🔄 PROBLEMAS POTENCIAIS EM COROUTINES:")
-            for item in report['coroutine_issues'][:5]:
+        if report["coroutine_issues"]:
+            print("\n🔄 PROBLEMAS POTENCIAIS EM COROUTINES:")
+            for item in report["coroutine_issues"][:5]:
                 print(f"  ⚠️  {item['function']} ({item['file']})")
                 print(f"     → {item['note']}")
 
-        if report['nullable_risks']:
-            print(f"\n❓ NULLABLE RISKS (muitos parâmetros nullable):")
-            for item in report['nullable_risks'][:5]:
-                print(f"  {item['function']}: {item['nullable_params']} nullable params ({item['file']})")
+        if report["nullable_risks"]:
+            print("\n❓ NULLABLE RISKS (muitos parâmetros nullable):")
+            for item in report["nullable_risks"][:5]:
+                print(
+                    f"  {item['function']}: {item['nullable_params']} nullable params ({item['file']})"
+                )
 
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("  Análise matemática completa. Consulte Prof. Euler para interpretação.")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Prof. Euler — Análise de Complexidade Matemática para Kotlin/Android'
+        description="Prof. Euler — Análise de Complexidade Matemática para Kotlin/Android"
     )
-    parser.add_argument('path', nargs='?',
-                        default=r'C:\Users\renat\earbudllm',
-                        help='Caminho raiz do projeto')
-    parser.add_argument('--module', '-m', help='Analisar apenas este módulo')
-    parser.add_argument('--threshold', '-t', type=int, default=10,
-                        help='Threshold de complexidade ciclomática (default: 10)')
-    parser.add_argument('--json', '-j', action='store_true',
-                        help='Saída em formato JSON')
-    parser.add_argument('--output', '-o', help='Salvar relatório em arquivo')
+    parser.add_argument(
+        "path", nargs="?", default=r"C:\Users\renat\earbudllm", help="Caminho raiz do projeto"
+    )
+    parser.add_argument("--module", "-m", help="Analisar apenas este módulo")
+    parser.add_argument(
+        "--threshold",
+        "-t",
+        type=int,
+        default=10,
+        help="Threshold de complexidade ciclomática (default: 10)",
+    )
+    parser.add_argument("--json", "-j", action="store_true", help="Saída em formato JSON")
+    parser.add_argument("--output", "-o", help="Salvar relatório em arquivo")
 
     args = parser.parse_args()
 
@@ -509,7 +545,7 @@ def main():
     return report
 
 
-def save_as_markdown(report: Dict, path: Path, threshold: int) -> None:
+def save_as_markdown(report: dict, path: Path, threshold: int) -> None:
     """Salva relatório em formato Markdown."""
     lines = [
         "# Prof. Euler — Relatório de Complexidade Matemática\n",
@@ -523,7 +559,7 @@ def save_as_markdown(report: Dict, path: Path, threshold: int) -> None:
         "| Função | CC | Arquivo | Risco |\n",
         "|--------|-----|---------|-------|\n",
     ]
-    for item in report['high_cyclomatic_complexity'][:15]:
+    for item in report["high_cyclomatic_complexity"][:15]:
         lines.append(
             f"| `{item['function']}` | {item['cc']} | `{item['file']}` | {item['risk']} |\n"
         )
@@ -531,14 +567,14 @@ def save_as_markdown(report: Dict, path: Path, threshold: int) -> None:
     lines.append("\n## Acoplamento de Módulos\n")
     lines.append("| Módulo | Ca | Ce | Instabilidade | Depende de |\n")
     lines.append("|--------|----|----|--------------|------------|\n")
-    for mod, data in sorted(report['module_coupling'].items()):
-        deps = ', '.join(data['depends_on']) or 'nenhum'
+    for mod, data in sorted(report["module_coupling"].items()):
+        deps = ", ".join(data["depends_on"]) or "nenhum"
         lines.append(
             f"| {mod} | {data['Ca']} | {data['Ce']} | {data['instability']:.3f} | {deps} |\n"
         )
 
-    path.write_text(''.join(lines), encoding='utf-8')
+    path.write_text("".join(lines), encoding="utf-8")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

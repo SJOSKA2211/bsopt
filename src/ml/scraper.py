@@ -12,6 +12,7 @@ from src.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 
+
 class MarketDataScraper:
     def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3) -> None:
         self.api_key = api_key
@@ -88,12 +89,11 @@ class MarketDataScraper:
                         response = await client.get(self.base_url, params=params)
                         last_response = response
                         if response.status_code == 200:
-                            
                             data = msgspec.json.decode(response.content)
                             if "Time Series (Daily)" in data:
                                 time_series = data["Time Series (Daily)"]
                                 records = []
-                                
+
                                 for date_str, values in time_series.items():
                                     if start_date <= date_str <= end_date:
                                         # Use faster date parsing
@@ -215,7 +215,6 @@ class MarketDataScraper:
                     response = await client.get(url, params=params)
                     last_response = response
                     if response.status_code == 200:
-                        
                         data = msgspec.json.decode(response.content)
                         if data.get("status") == "OK" and "results" in data:
                             df = pd.DataFrame(data["results"])
@@ -311,7 +310,6 @@ class MarketDataScraper:
                 data = yf.download(ticker, period="1mo", interval=yf_interval, progress=False)
 
                 if not data.empty:
-                    
                     df = data.reset_index()
                     df.columns = [c.lower() for c in df.columns]
                     # Map 'date' or 'datetime' to 'timestamp'

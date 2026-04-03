@@ -6,12 +6,12 @@ and Pydantic V2 for request validation.
 """
 
 import re
-from typing import Any
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings
+
 
 class LoginRequest(BaseModel):
     """User login request (Pydantic V2)."""
@@ -31,6 +31,7 @@ class LoginRequest(BaseModel):
             }
         },
     )
+
 
 class TokenResponse(msgspec.Struct):
     """Successful token response (OPTIMIZED: msgspec)."""
@@ -63,8 +64,10 @@ class TokenResponse(msgspec.Struct):
             "expires_in": self.expires_in or 0,
         }
 
+
 # Alias for backward compatibility or specific use cases
 LoginResponse = TokenResponse
+
 
 class AuthResponse(msgspec.Struct):
     """Internal authentication state response."""
@@ -81,6 +84,7 @@ class AuthResponse(msgspec.Struct):
             user_id=proto_msg.user_id,
             factors_verified=list(proto_msg.factors_verified),
         )
+
 
 class RegisterRequest(BaseModel):
     """User registration request (Pydantic V2)."""
@@ -146,6 +150,7 @@ class RegisterRequest(BaseModel):
         },
     )
 
+
 class RegisterResponse(msgspec.Struct):
     """Successful registration response."""
 
@@ -153,6 +158,7 @@ class RegisterResponse(msgspec.Struct):
     email: str
     message: str
     verification_required: bool = True
+
 
 class RefreshTokenRequest(BaseModel):
     """Token refresh request."""
@@ -164,6 +170,7 @@ class RefreshTokenRequest(BaseModel):
         json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}},
     )
 
+
 class PasswordResetRequest(BaseModel):
     """Password reset request."""
 
@@ -173,6 +180,7 @@ class PasswordResetRequest(BaseModel):
         frozen=True,
         json_schema_extra={"example": {"email": "user@example.com"}},
     )
+
 
 class PasswordResetConfirmRequest(BaseModel):
     """Password reset confirmation."""
@@ -223,6 +231,7 @@ class PasswordResetConfirmRequest(BaseModel):
         },
     )
 
+
 class PasswordChangeRequest(BaseModel):
     """Password change request (for authenticated users)."""
 
@@ -248,6 +257,7 @@ class PasswordChangeRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+
 class MFASetupResponse(msgspec.Struct):
     """MFA setup response with secret and QR code."""
 
@@ -255,6 +265,7 @@ class MFASetupResponse(msgspec.Struct):
     provisioning_uri: str
     qr_code_uri: str | None = None
     backup_codes: list[str] = []
+
 
 class MFAVerifyRequest(BaseModel):
     """MFA verification request."""
@@ -276,6 +287,7 @@ class MFAVerifyRequest(BaseModel):
         json_schema_extra={"example": {"code": "123456"}},
     )
 
+
 class EmailVerificationRequest(BaseModel):
     """Email verification request."""
 
@@ -286,13 +298,21 @@ class EmailVerificationRequest(BaseModel):
         json_schema_extra={"example": {"token": "abc123def456"}},
     )
 
+
 class WebAuthnRegistrationVerificationRequest(BaseModel):
     """WebAuthn registration verification request."""
-    registration_response: dict = Field(..., description="Credential object from navigator.credentials.create")
+
+    registration_response: dict = Field(
+        ..., description="Credential object from navigator.credentials.create"
+    )
     challenge: str = Field(..., description="The original challenge sent to the client")
+
 
 class WebAuthnAuthenticationVerificationRequest(BaseModel):
     """WebAuthn authentication verification request."""
-    authentication_response: dict = Field(..., description="Credential object from navigator.credentials.get")
+
+    authentication_response: dict = Field(
+        ..., description="Credential object from navigator.credentials.get"
+    )
     challenge: str = Field(..., description="The original challenge sent to the client")
     email: EmailStr = Field(..., description="User email for lookup")

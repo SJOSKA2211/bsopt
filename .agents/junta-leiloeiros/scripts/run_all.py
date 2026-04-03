@@ -7,6 +7,7 @@ Uso:
     python scripts/run_all.py --concurrency 5      # paralelismo (default: 5)
     python scripts/run_all.py --dry-run            # mostra o que seria coletado
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,15 +15,14 @@ import asyncio
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Optional
 
 # Ajusta PYTHONPATH para imports relativos funcionarem
 sys.path.insert(0, str(Path(__file__).parent))
 
-from scraper.states import SCRAPERS, get_all_scrapers, get_scraper
 from db import Database
+from scraper.states import SCRAPERS, get_scraper
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,7 +45,7 @@ async def scrape_state(estado: str, semaphore: asyncio.Semaphore) -> dict:
                 "count": 0,
                 "records": [],
                 "error": None,
-                "scraped_at": datetime.now(timezone.utc).isoformat(),
+                "scraped_at": datetime.now(UTC).isoformat(),
             }
 
         try:
@@ -58,7 +58,7 @@ async def scrape_state(estado: str, semaphore: asyncio.Semaphore) -> dict:
                 "count": len(records),
                 "records": [r.to_dict() for r in records],
                 "error": None,
-                "scraped_at": datetime.now(timezone.utc).isoformat(),
+                "scraped_at": datetime.now(UTC).isoformat(),
             }
         except Exception as exc:
             logger.exception("[%s] Erro no scraping: %s", estado, exc)
@@ -68,11 +68,11 @@ async def scrape_state(estado: str, semaphore: asyncio.Semaphore) -> dict:
                 "count": 0,
                 "records": [],
                 "error": str(exc),
-                "scraped_at": datetime.now(timezone.utc).isoformat(),
+                "scraped_at": datetime.now(UTC).isoformat(),
             }
 
 
-async def run(estados: Optional[List[str]], concurrency: int, dry_run: bool) -> None:
+async def run(estados: list[str] | None, concurrency: int, dry_run: bool) -> None:
     estados_alvo = [e.upper() for e in estados] if estados else list(SCRAPERS.keys())
 
     if dry_run:
@@ -114,22 +114,24 @@ async def run(estados: Optional[List[str]], concurrency: int, dry_run: bool) -> 
                 status = "VAZIO"
             logger.warning("[%s] STATUS=%s error=%s", estado, status, res.get("error"))
 
-        log_entries.append({
-            "estado": estado,
-            "junta": res.get("junta", "?"),
-            "url": res.get("url", "?"),
-            "status": status,
-            "count": count,
-            "error": res.get("error"),
-            "scraped_at": res["scraped_at"],
-        })
+        log_entries.append(
+            {
+                "estado": estado,
+                "junta": res.get("junta", "?"),
+                "url": res.get("url", "?"),
+                "status": status,
+                "count": count,
+                "error": res.get("error"),
+                "scraped_at": res["scraped_at"],
+            }
+        )
 
     # Salvar log
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "w", encoding="utf-8") as f:
         json.dump(
             {
-                "run_at": datetime.now(timezone.utc).isoformat(),
+                "run_at": datetime.now(UTC).isoformat(),
                 "total_estados": len(estados_alvo),
                 "total_coletados": total_coletados,
                 "total_salvos": total_salvos,
@@ -142,7 +144,7 @@ async def run(estados: Optional[List[str]], concurrency: int, dry_run: bool) -> 
 
     # Resumo final
     print("\n" + "=" * 60)
-    print(f"RESUMO DA COLETA")
+    print("RESUMO DA COLETA")
     print("=" * 60)
     ok = [e for e in log_entries if e["status"] == "OK"]
     vazios = [e for e in log_entries if e["status"] == "VAZIO"]
@@ -170,16 +172,16 @@ def main():
         description="Coleta dados de leiloeiros de todas as Juntas Comerciais do Brasil"
     )
     parser.add_argument(
-        "--estado", nargs="*", metavar="UF",
-        help="Estados específicos (ex: SP RJ MG). Padrão: todos os 27."
+        "--estado",
+        nargs="*",
+        metavar="UF",
+        help="Estados específicos (ex: SP RJ MG). Padrão: todos os 27.",
     )
     parser.add_argument(
-        "--concurrency", type=int, default=5,
-        help="Número de scrapers em paralelo (default: 5)"
+        "--concurrency", type=int, default=5, help="Número de scrapers em paralelo (default: 5)"
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Mostra o que seria coletado sem executar"
+        "--dry-run", action="store_true", help="Mostra o que seria coletado sem executar"
     )
     args = parser.parse_args()
 

@@ -37,15 +37,18 @@ from tests.test_utils import assert_equal
 
 # Test Fixtures and Utilities
 
+
 @pytest.fixture
 def typical_svi_params():
     """Realistic SVI parameters for equity index options"""
     return SVIParameters(a=0.04, b=0.1, rho=-0.4, m=0.0, sigma=0.2)
 
+
 @pytest.fixture
 def typical_sabr_params():
     """Realistic SABR parameters for FX options"""
     return SABRParameters(alpha=0.25, beta=0.5, rho=-0.3, nu=0.4)
+
 
 @pytest.fixture
 def sample_market_quotes():
@@ -73,13 +76,16 @@ def sample_market_quotes():
 
     return quotes
 
+
 def assert_close(actual: float, expected: float, rtol: float = 1e-5, atol: float = 1e-8):
     """Assert two floats are close with relative and absolute tolerance"""
     assert np.isclose(actual, expected, rtol=rtol, atol=atol), (
         f"Expected {expected}, got {actual} (diff: {abs(actual - expected)})"
     )
 
+
 # SVI Model Tests
+
 
 class TestSVIParameters:
     """Test SVI parameter validation and conversion"""
@@ -134,6 +140,7 @@ class TestSVIParameters:
         assert_close(raw.m, natural.mu)
         assert_close(raw.rho, natural.rho)
         assert_close(raw.sigma, natural.zeta * denominator)
+
 
 class TestSVIModel:
     """Test SVI model calculations"""
@@ -239,7 +246,9 @@ class TestSVIModel:
         with pytest.raises(ValueError, match="Maturity must be positive"):
             model.implied_volatility(Decimal("100.0"), Decimal("100.0"), 0.0)
 
+
 # SABR Model Tests
+
 
 class TestSABRParameters:
     """Test SABR parameter validation"""
@@ -271,6 +280,7 @@ class TestSABRParameters:
         """Negative ν should raise error"""
         with pytest.raises(ValueError, match="nu must be non-negative"):
             SABRParameters(alpha=0.2, beta=0.5, rho=0.0, nu=-0.1)
+
 
 class TestSABRModel:
     """Test SABR model calculations"""
@@ -371,7 +381,9 @@ class TestSABRModel:
         with pytest.raises(ValueError, match="Maturity must be positive"):
             model.implied_volatility(Decimal("100.0"), Decimal("100.0"), 0.0)
 
+
 # Calibration Engine Tests
+
 
 class TestCalibrationEngine:
     """Test volatility model calibration"""
@@ -501,7 +513,9 @@ class TestCalibrationEngine:
         with pytest.raises(ValueError, match="No market quotes"):
             engine.calibrate_svi([])
 
+
 # Arbitrage Detection Tests
+
 
 class TestArbitrageDetector:
     """Test arbitrage detection algorithms"""
@@ -579,7 +593,9 @@ class TestArbitrageDetector:
         assert not results["is_arbitrage_free"]
         assert results["num_violations"] > 0
 
+
 # Volatility Surface Tests
+
 
 class TestVolatilitySurface:
     """Test multi-maturity volatility surface"""
@@ -696,7 +712,9 @@ class TestVolatilitySurface:
         with pytest.raises(ValueError, match="No models in surface"):
             surface.implied_volatility(Decimal("100.0"), 0.5)
 
+
 # Integration Tests
+
 
 class TestIntegration:
     """End-to-end integration tests"""
@@ -817,7 +835,9 @@ class TestIntegration:
         # For this data, SVI may fit slightly better (more parameters)
         # But SABR provides more financial interpretation
 
+
 # Edge Case Tests
+
 
 class TestEdgeCases:
     """Test edge cases and numerical stability"""
@@ -882,7 +902,9 @@ class TestEdgeCases:
 
         assert diag["rmse"] is not None
 
+
 # Performance Benchmarks
+
 
 class TestPerformance:
     """Performance benchmark tests"""
@@ -916,6 +938,7 @@ class TestPerformance:
 
         # Should compute 1000 vols very fast (<10ms)
         assert elapsed < 0.01, f"1000 vol calculations took {elapsed * 1000:.1f}ms"
+
 
 if __name__ == "__main__":
     # Run tests with pytest

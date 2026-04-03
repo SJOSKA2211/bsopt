@@ -13,7 +13,6 @@ Uso:
 """
 
 import json
-import os
 import socket
 import subprocess
 import sys
@@ -31,10 +30,7 @@ except ImportError:
 
 # Importa config do mesmo diretório
 sys.path.insert(0, str(Path(__file__).parent))
-from config import (
-    BROWSER_NAMES, CLAUDE_NAMES, API_ENDPOINT,
-    THRESHOLDS, classify
-)
+from config import API_ENDPOINT, BROWSER_NAMES, CLAUDE_NAMES, classify
 
 
 def check_cpu():
@@ -85,10 +81,9 @@ def check_browsers(detail=False):
                     browsers[bname]["count"] += 1
                     browsers[bname]["ram_mb"] += ram_mb
                     if detail:
-                        browsers[bname]["pids"].append({
-                            "pid": info["pid"],
-                            "ram_mb": round(ram_mb, 0)
-                        })
+                        browsers[bname]["pids"].append(
+                            {"pid": info["pid"], "ram_mb": round(ram_mb, 0)}
+                        )
                     break
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
@@ -122,11 +117,13 @@ def check_claude_processes():
             for cname in CLAUDE_NAMES:
                 if cname in name_lower:
                     ram_mb = info["memory_info"].rss / 1024**2
-                    claude_procs.append({
-                        "pid": info["pid"],
-                        "name": info["name"],
-                        "ram_mb": round(ram_mb, 0),
-                    })
+                    claude_procs.append(
+                        {
+                            "pid": info["pid"],
+                            "name": info["name"],
+                            "ram_mb": round(ram_mb, 0),
+                        }
+                    )
                     total_ram += ram_mb
                     break
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -170,7 +167,7 @@ def check_network():
             "reachable": True,
             "status": classify(latency_ms, "network_latency_ms"),
         }
-    except (socket.timeout, socket.error, OSError) as e:
+    except (TimeoutError, OSError) as e:
         return {
             "latency_ms": None,
             "endpoint": API_ENDPOINT,
@@ -186,11 +183,13 @@ def check_top_processes(n=10):
     for proc in psutil.process_iter(["pid", "name", "memory_info"]):
         try:
             info = proc.info
-            procs.append({
-                "name": info["name"],
-                "ram_mb": round(info["memory_info"].rss / 1024**2, 0),
-                "pid": info["pid"],
-            })
+            procs.append(
+                {
+                    "name": info["name"],
+                    "ram_mb": round(info["memory_info"].rss / 1024**2, 0),
+                    "pid": info["pid"],
+                }
+            )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
@@ -238,11 +237,15 @@ def diagnose(results):
 
     # Browsers
     if browsers["ram_status"] == "critical":
-        issues.append(f"Browsers consumindo {browsers['total_ram_gb']} GB ({browsers['total_processes']} processos)")
+        issues.append(
+            f"Browsers consumindo {browsers['total_ram_gb']} GB ({browsers['total_processes']} processos)"
+        )
         suggestions.append("Fechar abas desnecessarias nos browsers")
         browser_detail = []
         for bname, info in browsers["browsers"].items():
-            browser_detail.append(f"  - {bname}: {info['count']} processos, {info['ram_mb']:.0f} MB")
+            browser_detail.append(
+                f"  - {bname}: {info['count']} processos, {info['ram_mb']:.0f} MB"
+            )
         suggestions.append("Detalhamento:\n" + "\n".join(browser_detail))
         if bottleneck == "ok":
             bottleneck = "browsers"
@@ -253,7 +256,9 @@ def diagnose(results):
 
     # Disco
     if disk["status"] == "critical":
-        issues.append(f"Disco quase cheio: apenas {disk['free_gb']:.0f} GB livres ({disk['free_percent']}%)")
+        issues.append(
+            f"Disco quase cheio: apenas {disk['free_gb']:.0f} GB livres ({disk['free_percent']}%)"
+        )
         suggestions.append("Limpar arquivos temporarios, cache e lixeira")
         suggestions.append("Verificar pasta Downloads e Temp por arquivos grandes")
         if bottleneck == "ok":
@@ -279,7 +284,9 @@ def diagnose(results):
 
     # Claude Code RAM
     if claude["total_ram_gb"] > 8:
-        issues.append(f"Claude Code usando {claude['total_ram_gb']} GB ({claude['count']} processos)")
+        issues.append(
+            f"Claude Code usando {claude['total_ram_gb']} GB ({claude['count']} processos)"
+        )
         suggestions.append("Considerar fechar sessoes de conversa antigas no Claude Code")
 
     # Tudo ok
@@ -308,9 +315,13 @@ def diagnose(results):
         else:
             summary_lines.append(f"{i}. {sug}")
 
-    summary_lines.append(f"\n### Numeros-chave:")
-    summary_lines.append(f"- CPU: {cpu['percent']}% | RAM: {ram['percent']}% ({ram['used_gb']}/{ram['total_gb']} GB)")
-    summary_lines.append(f"- Browsers: {browsers['total_processes']} processos, {browsers['total_ram_gb']} GB")
+    summary_lines.append("\n### Numeros-chave:")
+    summary_lines.append(
+        f"- CPU: {cpu['percent']}% | RAM: {ram['percent']}% ({ram['used_gb']}/{ram['total_gb']} GB)"
+    )
+    summary_lines.append(
+        f"- Browsers: {browsers['total_processes']} processos, {browsers['total_ram_gb']} GB"
+    )
     summary_lines.append(f"- Claude Code: {claude['count']} processos, {claude['total_ram_gb']} GB")
     summary_lines.append(f"- Disco C: {disk['free_gb']:.0f} GB livres ({disk['free_percent']}%)")
     if network.get("latency_ms"):
@@ -329,7 +340,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Claude Monitor - Diagnostico Rapido")
-    parser.add_argument("--browsers-detail", action="store_true", help="Mostra detalhes por browser")
+    parser.add_argument(
+        "--browsers-detail", action="store_true", help="Mostra detalhes por browser"
+    )
     parser.add_argument("--json", action="store_true", help="Output em JSON puro")
     parser.add_argument("--quick", action="store_true", help="Pula teste de rede")
     args = parser.parse_args()
@@ -355,7 +368,7 @@ def main():
         print(json.dumps(results, indent=2, ensure_ascii=False))
     else:
         print(results["diagnosis"]["summary"])
-        print(f"\n(Para output completo em JSON, use: python health_check.py --json)")
+        print("\n(Para output completo em JSON, use: python health_check.py --json)")
 
 
 if __name__ == "__main__":

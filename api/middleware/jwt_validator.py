@@ -14,24 +14,14 @@ Features:
 
 from __future__ import annotations
 
-import hashlib
-import json
-import time
 from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import UTC, datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 if TYPE_CHECKING:
     from redis.asyncio import Redis
 
-import jwt
 import structlog
 from fastapi import HTTPException, Request, Response
-from jwt.exceptions import (
-    ExpiredSignatureError,
-    InvalidTokenError,
-    PyJWTError,
-)
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -39,8 +29,10 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-from src.auth.core.tokens import token_service, TokenData as JWTClaims
 from src.auth.core.sessions import session_service
+from src.auth.core.tokens import TokenData as JWTClaims
+from src.auth.core.tokens import token_service
+
 
 class JWTValidator:
     """
@@ -73,7 +65,7 @@ class JWTValidator:
 
         # 3. Cache valid result
         await self.sessions.cache_session(token, token_data)
-        
+
         return JWTClaims(**token_data.model_dump())
 
     def create_token(
@@ -89,6 +81,7 @@ class JWTValidator:
         token_pair = self.tokens.create_token_pair(user_id, email, tier, scopes=roles or [])
         token = token_pair.access_token if token_type == "access" else token_pair.refresh_token
         return token, settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
 
 class JWTValidatorMiddleware(BaseHTTPMiddleware):
     """
@@ -172,9 +165,11 @@ class JWTValidatorMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
 def get_jwt_validator() -> JWTValidator:
     """Get JWT validator instance."""
     return JWTValidator()
+
 
 async def require_auth(request: Request) -> JWTClaims:
     """FastAPI dependency for requiring authentication."""
@@ -188,6 +183,7 @@ async def require_auth(request: Request) -> JWTClaims:
         )
 
     return claims
+
 
 def require_tier(allowed_tiers: list[str]):
     """FastAPI dependency factory for tier-based access control."""
@@ -204,6 +200,7 @@ def require_tier(allowed_tiers: list[str]):
         return claims
 
     return _require_tier
+
 
 def require_role(required_roles: list[str]):
     """FastAPI dependency factory for role-based access control."""

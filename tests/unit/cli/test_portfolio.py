@@ -1,12 +1,15 @@
 from unittest.mock import patch
 
 import pytest
+
 from scripts.cli.portfolio import PortfolioManager, Position
+
 
 @pytest.fixture
 def portfolio_manager(tmp_path):
     with patch("scripts.portfolio.Path.home", return_value=tmp_path):
         yield PortfolioManager()
+
 
 def test_add_list_remove_position(portfolio_manager):
     pos = Position(
@@ -30,6 +33,7 @@ def test_add_list_remove_position(portfolio_manager):
     assert portfolio_manager.remove_position("test-id") is True
     assert len(portfolio_manager.list_positions()) == 0
 
+
 def test_calculate_position_value(portfolio_manager):
     pos = Position(
         id="test-id",
@@ -49,6 +53,7 @@ def test_calculate_position_value(portfolio_manager):
     val = portfolio_manager.calculate_position_value(pos)
     assert val["current_price"] > 0
     assert val["pnl"] is not None
+
 
 def test_get_portfolio_summary(portfolio_manager):
     pos = Position(

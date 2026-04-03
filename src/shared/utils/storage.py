@@ -1,4 +1,3 @@
-import os
 from typing import BinaryIO
 
 import boto3
@@ -6,6 +5,7 @@ import structlog
 from botocore.client import Config
 
 logger = structlog.get_logger()
+
 
 class ObjectStorageManager:
     """
@@ -67,5 +67,6 @@ class ObjectStorageManager:
         except Exception as e:
             logger.error("presigned_url_generation_failed", object=object_name, error=str(e))
             raise
+
 
 storage_manager = ObjectStorageManager()

@@ -5,6 +5,7 @@ import pytest
 
 from src.shared.config import _DEFAULT_DEV_MFA_KEY, Settings
 
+
 def test_secret_derivation_from_better_auth_secret():
     """Test that secrets are derived deterministically from BETTER_AUTH_SECRET."""
     master_secret = "test-master-secret-at-least-32-chars-long-123"
@@ -26,6 +27,7 @@ def test_secret_derivation_from_better_auth_secret():
     expected_jwt_seed = hashlib.sha256(f"jwt-derivation-{master_secret}".encode()).hexdigest()
     assert settings.JWT_SECRET == expected_jwt_seed
 
+
 def test_explicit_secrets_override_derivation():
     """Test that explicitly provided secrets are not overridden by derivation."""
     master_secret = "test-master-secret-at-least-32-chars-long-123"
@@ -44,6 +46,7 @@ def test_explicit_secrets_override_derivation():
 
     assert settings.MFA_ENCRYPTION_KEY == explicit_mfa
     assert settings.JWT_SECRET == explicit_jwt
+
 
 def test_production_requires_robust_better_auth_secret():
     """Test that production environment requires robust BETTER_AUTH_SECRET."""

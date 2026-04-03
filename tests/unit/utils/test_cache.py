@@ -11,11 +11,13 @@ from src.shared.utils.cache import (
     generate_cache_key,
 )
 
+
 def test_generate_cache_key():
     key1 = generate_cache_key("test", spot=100.0, strike=100.0)
     key2 = generate_cache_key("test", strike=100.0, spot=100.0)
     assert key1 == key2
     assert "test:" in key1
+
 
 @pytest.mark.asyncio
 @patch("src.shared.utils.cache.get_redis")
@@ -40,6 +42,7 @@ async def test_pricing_cache(mock_get_redis):
     price = await cache.get_option_price(params, "call", "bs")
     assert price is None
 
+
 @pytest.mark.asyncio
 @patch("src.shared.utils.cache.get_redis")
 async def test_idempotency_manager(mock_get_redis):
@@ -55,6 +58,7 @@ async def test_idempotency_manager(mock_get_redis):
     # Second time
     mock_redis.set.return_value = False
     assert await idem.check_and_set("key1") is False
+
 
 @pytest.mark.asyncio
 @patch("src.shared.utils.cache.get_redis")

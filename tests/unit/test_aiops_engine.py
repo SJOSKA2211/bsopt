@@ -7,6 +7,7 @@ import pytest
 from src.ml.aiops.autonomous_engine import AutonomousEngine
 from src.ml.aiops.remediators import BaseRemediator
 
+
 @pytest.fixture
 def orchestrator_config():
     return {
@@ -19,6 +20,7 @@ def orchestrator_config():
         "transformer_input_dim": 10,
     }
 
+
 class MockRemediator(BaseRemediator):
     def __init__(self, name, supported_types):
         super().__init__(name, supported_types)
@@ -26,6 +28,7 @@ class MockRemediator(BaseRemediator):
 
     async def remediate(self, anomaly):
         return self.remediate_mock(anomaly)
+
 
 @pytest.mark.asyncio
 @patch("src.ml.aiops.autonomous_engine.PrometheusClient")
@@ -50,6 +53,7 @@ async def test_engine_remediates_high_error_rate(
     # Verify notification was sent
     assert mock_notify.called
 
+
 @pytest.mark.asyncio
 @patch("src.ml.aiops.autonomous_engine.PrometheusClient")
 async def test_engine_detects_data_drift(mock_prometheus_class, orchestrator_config):
@@ -63,7 +67,7 @@ async def test_engine_detects_data_drift(mock_prometheus_class, orchestrator_con
 
     # Create some dummy data for drift
     ref_data = pd.DataFrame({"val": [1.0] * 100})
-    curr_data = pd.DataFrame({"val": [10.0] * 100}) # Significant drift
+    curr_data = pd.DataFrame({"val": [10.0] * 100})  # Significant drift
 
     # Set reference data
     engine.reference_data = ref_data
@@ -73,6 +77,7 @@ async def test_engine_detects_data_drift(mock_prometheus_class, orchestrator_con
 
     # Verify that retrain_model was called
     mock_remediator.remediate_mock.assert_called_once()
+
 
 @pytest.mark.asyncio
 @patch("src.ml.aiops.autonomous_engine.PrometheusClient")
@@ -84,7 +89,7 @@ async def test_engine_integrates_health_reporter(
     mock_health_reporter.get_health_report.return_value = MagicMock(status="healthy")
 
     engine = AutonomousEngine(config=orchestrator_config)
-    
+
     await engine.run_cycle()
-    
+
     mock_health_reporter.get_health_report.assert_called_once()

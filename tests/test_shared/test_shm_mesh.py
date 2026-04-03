@@ -5,6 +5,7 @@ import pytest
 
 from src.shared.shm_mesh import BUFFER_CAPACITY, TICK_SIZE, SharedMemoryRingBuffer
 
+
 @pytest.fixture
 def mock_shm():
     with patch("src.shared.shm_mesh.shared_memory.SharedMemory") as MockSHM:
@@ -15,9 +16,11 @@ def mock_shm():
         MockSHM.return_value = instance
         yield instance
 
+
 def test_init_create(mock_shm):
     rb = SharedMemoryRingBuffer(create=True)
     assert rb.shm is not None
+
 
 def test_write_read_tick(mock_shm):
     rb = SharedMemoryRingBuffer(create=True)
@@ -35,6 +38,7 @@ def test_write_read_tick(mock_shm):
     assert view[0]["symbol"].decode().strip("\x00") == "AAPL"
     assert view[0]["price"] == 150.0
 
+
 def test_wrap_around(mock_shm):
     SharedMemoryRingBuffer(create=True)
 
@@ -42,6 +46,7 @@ def test_wrap_around(mock_shm):
     # We can't easily fake 100k writes fast in python test
     # But we can check the read logic by manually setting head and view
     pass
+
 
 def test_msgspec_read(mock_shm):
     rb = SharedMemoryRingBuffer(create=True)

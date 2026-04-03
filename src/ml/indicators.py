@@ -3,6 +3,7 @@ import numpy as np
 # High-Performance Indicator Kernels (Pure NumPy)
 from numba import njit, prange
 
+
 @njit(cache=True, fastmath=True)
 def _ema_kernel(values: np.ndarray, span: int) -> np.ndarray:
     alpha = 2.0 / (span + 1)
@@ -27,8 +28,10 @@ def _ema_kernel(values: np.ndarray, span: int) -> np.ndarray:
             out[i] = alpha * values[i] + (1.0 - alpha) * out[i - 1]
     return out
 
+
 def get_ema(values: np.ndarray, span: int) -> np.ndarray:
     return _ema_kernel(values, span)
+
 
 @njit(cache=True, fastmath=True)
 def _rsi_kernel(prices: np.ndarray, length: int) -> np.ndarray:
@@ -70,8 +73,10 @@ def _rsi_kernel(prices: np.ndarray, length: int) -> np.ndarray:
             out[i] = 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
     return out
 
+
 def get_rsi(prices: np.ndarray, length: int = 14) -> np.ndarray:
     return _rsi_kernel(prices, length)
+
 
 def get_bbands(
     prices: np.ndarray, length: int = 20, num_std: float = 2.0
@@ -105,6 +110,7 @@ def get_bbands(
 
     return lower, mid, upper
 
+
 def get_macd(
     prices: np.ndarray, fast: int = 12, slow: int = 26, signal: int = 9
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -116,6 +122,7 @@ def get_macd(
     macd_hist = macd_line - signal_line
     return macd_line, signal_line, macd_hist
 
+
 @njit(cache=True, fastmath=True)
 def _atr_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int) -> np.ndarray:
     n = high.shape[0]
@@ -126,9 +133,11 @@ def _atr_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
         tr[i] = max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
     return _ema_kernel(tr, length)
 
+
 def get_atr(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
     """Average True Range."""
     return _atr_kernel(high, low, close, length)
+
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int) -> np.ndarray:
@@ -168,6 +177,7 @@ def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
         adx[i] = dx
 
     return _ema_kernel(adx, length)
+
 
 def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
     """Average Directional Index."""

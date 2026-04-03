@@ -6,9 +6,10 @@ import pandas as pd
 import structlog
 
 from src.ml.aiops.anomaly_detector import AnomalyDetector
+from src.ml.aiops.autonomous_guardian import AutonomousGuardian
+from src.ml.aiops.health_reporter import HealthReporter
 from src.ml.aiops.prometheus_adapter import PrometheusClient
 from src.ml.aiops.remediators import BaseRemediator, RemediationPlanner
-from src.ml.aiops.health_reporter import HealthReporter
 from src.ml.drift import calculate_ks_test, calculate_psi
 from src.ml.forecasting.tft_model import PriceTFTModel
 from src.shared.observability import (
@@ -16,9 +17,8 @@ from src.shared.observability import (
     setup_logging,
 )
 
-from src.ml.aiops.autonomous_guardian import AutonomousGuardian
-
 logger = structlog.get_logger(__name__)
+
 
 class AutonomousEngine:
     """
@@ -37,15 +37,14 @@ class AutonomousEngine:
     ):
         setup_logging()
         self.config = config or {}
-        
+
         # 1. Detection Core
         self.detector = detector or AnomalyDetector(
-            engine="transformer", 
-            input_dim=self.config.get("transformer_input_dim", 10)
+            engine="transformer", input_dim=self.config.get("transformer_input_dim", 10)
         )
         self.remediators = remediators or RemediationPlanner().remediators.values()
         self.planner = RemediationPlanner(list(self.remediators))
-        
+
         # 2. Thresholds and State
         self.check_interval = self.config.get("check_interval_seconds", check_interval)
         self.drift_threshold_psi = self.config.get("data_drift_psi_threshold", drift_threshold_psi)
@@ -73,19 +72,23 @@ class AutonomousEngine:
         )
         self.max_history = 1000
         self.last_baseline_update = time.time()
-        
+
         # 4. Guardian Oversight
         self.guardian = AutonomousGuardian(self)
 
         # 5. Health Reporting
-        self.health_reporter = HealthReporter(
-            prometheus_url=self.prometheus_url,
-            api_service_name=self.api_service_name
-        ) if self.prometheus_url else None
+        self.health_reporter = (
+            HealthReporter(
+                prometheus_url=self.prometheus_url, api_service_name=self.api_service_name
+            )
+            if self.prometheus_url
+            else None
+        )
 
     async def _process_redis_anomalies(self):
         """Polls Redis for externally reported anomalies (e.g. from Webhooks)."""
         from src.shared.utils.cache import get_redis
+
         redis = get_redis()
         if not redis:
             return []
@@ -97,6 +100,7 @@ class AutonomousEngine:
                 break
             try:
                 import msgspec
+
                 anomaly = msgspec.json.decode(data)
                 anomalies.append(anomaly)
                 logger.warning("external_anomaly_received", anomaly=anomaly)
@@ -113,25 +117,26 @@ class AutonomousEngine:
         try:
             # 1. Gather all anomaly signals
             tasks = [self._process_redis_anomalies()]
-            
+
             if current_data is not None:
                 tasks.append(asyncio.to_thread(self.detector.detect, current_data))
                 tasks.append(asyncio.to_thread(self._analyze_drift, current_data))
-            
+
             if self.prometheus_client:
                 tasks.append(self._detect_system_anomalies())
-            
+
             if self.health_reporter:
-                tasks.append(self.health_reporter.get_health_report(
-                    planner=self.planner,
-                    guardian=self.guardian
-                ))
+                tasks.append(
+                    self.health_reporter.get_health_report(
+                        planner=self.planner, guardian=self.guardian
+                    )
+                )
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Extract results safely
             external_anomalies = results[0] if not isinstance(results[0], Exception) else []
-            
+
             idx = 1
             ml_anomalies = []
             if current_data is not None:
@@ -146,7 +151,7 @@ class AutonomousEngine:
             if self.prometheus_client:
                 system_anomalies = results[idx] if not isinstance(results[idx], Exception) else []
                 idx += 1
-            
+
             if self.health_reporter:
                 health_report = results[idx] if not isinstance(results[idx], Exception) else None
                 if health_report:
@@ -154,16 +159,19 @@ class AutonomousEngine:
                     # Publish health report to RabbitMQ (Both Audit and Telemetry)
                     try:
                         import msgspec
+
                         payload = {
                             "type": "health_report",
                             "status": health_report.status,
                             "data": msgspec.json.decode(msgspec.json.encode(health_report)),
-                            "timestamp": health_report.timestamp
+                            "timestamp": health_report.timestamp,
                         }
                         # 1. Audit Exchange (for persistence/logging)
                         await self.health_reporter.rmq.publish_audit(payload)
                         # 2. Telemetry Exchange (for real-time monitoring)
-                        await self.health_reporter.rmq.publish_telemetry(payload, routing_key=f"telemetry.health.{health_report.status}")
+                        await self.health_reporter.rmq.publish_telemetry(
+                            payload, routing_key=f"telemetry.health.{health_report.status}"
+                        )
                     except Exception as e:
                         logger.error("health_report_publish_failed", error=str(e))
 
@@ -178,15 +186,17 @@ class AutonomousEngine:
                 actions = self.planner.plan(anomaly)
                 for action in actions:
                     if action.can_run():
-                        logger.warning("executing_remediation", action=action.name, type=anomaly.get("type"))
+                        logger.warning(
+                            "executing_remediation", action=action.name, type=anomaly.get("type")
+                        )
                         success = await action.remediate(anomaly)
                         await action.update_last_run()
                         self._record_history(action.name, anomaly, success)
-                        
+
                         if success:
                             post_grafana_annotation(
                                 f"Remediated {anomaly.get('type')} via {action.name}",
-                                ["aiops", "remediation"]
+                                ["aiops", "remediation"],
                             )
 
         except Exception as e:
@@ -287,138 +297,168 @@ class AutonomousEngine:
             # 4. Critical Database Pool Check
             if self.health_reporter:
                 report = await self.health_reporter.get_health_report(self.planner, self.guardian)
-                
+
                 if report.postgres.active_connections > 50:
-                    system_anomalies.append({
-                        "type": "db_pool_exhaustion",
-                        "metrics": {"total_connections": report.postgres.active_connections},
-                        "score": 0.8,
-                        "timestamp": time.time(),
-                    })
-                
+                    system_anomalies.append(
+                        {
+                            "type": "db_pool_exhaustion",
+                            "metrics": {"total_connections": report.postgres.active_connections},
+                            "score": 0.8,
+                            "timestamp": time.time(),
+                        }
+                    )
+
                 # 5. API-Specific Anomalies (from Health Report)
                 if not report.api.reachable:
-                    system_anomalies.append({
-                        "type": "api_unreachable",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "api_unreachable",
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
                 if report.api.error_rate_5xx > 0.15:
-                    system_anomalies.append({
-                        "type": "api_error_spike",
-                        "metric": report.api.error_rate_5xx,
-                        "severity": "high",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "api_error_spike",
+                            "metric": report.api.error_rate_5xx,
+                            "severity": "high",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 6. Auth-Specific Anomalies (from Health Report)
                 if not report.auth.reachable:
-                    system_anomalies.append({
-                        "type": "auth_unreachable",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "auth_unreachable",
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
                 if report.auth.auth_success_rate < 0.9:
-                    system_anomalies.append({
-                        "type": "auth_failure_spike",
-                        "metric": report.auth.auth_success_rate,
-                        "severity": "high",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "auth_failure_spike",
+                            "metric": report.auth.auth_success_rate,
+                            "severity": "high",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 7. Ingestion-Specific Anomalies
                 if not report.ingestion.reachable or report.ingestion.heartbeat_age > 120:
-                    system_anomalies.append({
-                        "type": "ingestion_stall",
-                        "heartbeat_age": report.ingestion.heartbeat_age,
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "ingestion_stall",
+                            "heartbeat_age": report.ingestion.heartbeat_age,
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
                 if report.ingestion.rejection_rate > 0.2:
-                    system_anomalies.append({
-                        "type": "high_data_rejection",
-                        "metric": report.ingestion.rejection_rate,
-                        "severity": "high",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "high_data_rejection",
+                            "metric": report.ingestion.rejection_rate,
+                            "severity": "high",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 8. Portfolio-Specific Anomalies (Exposure Check)
-                if abs(report.portfolio.net_delta) > 1000: # Example threshold
-                    system_anomalies.append({
-                        "type": "high_risk_exposure",
-                        "metric": "net_delta",
-                        "value": report.portfolio.net_delta,
-                        "severity": "high",
-                        "timestamp": time.time()
-                    })
+                if abs(report.portfolio.net_delta) > 1000:  # Example threshold
+                    system_anomalies.append(
+                        {
+                            "type": "high_risk_exposure",
+                            "metric": "net_delta",
+                            "value": report.portfolio.net_delta,
+                            "severity": "high",
+                            "timestamp": time.time(),
+                        }
+                    )
                 if not report.portfolio.reachable:
-                    system_anomalies.append({
-                        "type": "portfolio_unreachable",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "portfolio_unreachable",
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 9. Math Kernel Latency Anomaly
                 if report.quant.avg_latency_ms > 500:
-                    system_anomalies.append({
-                        "type": "high_pricing_latency",
-                        "metric": report.quant.avg_latency_ms,
-                        "severity": "medium",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "high_pricing_latency",
+                            "metric": report.quant.avg_latency_ms,
+                            "severity": "medium",
+                            "timestamp": time.time(),
+                        }
+                    )
                 if report.quant.error_rate > 0.05:
-                    system_anomalies.append({
-                        "type": "kernel_error_spike",
-                        "metric": report.quant.error_rate,
-                        "severity": "high",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "kernel_error_spike",
+                            "metric": report.quant.error_rate,
+                            "severity": "high",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 10. Neural Pricing Anomaly (Inference Lag)
                 if report.inference.reachable and report.inference.avg_latency_ms > 200:
-                    system_anomalies.append({
-                        "type": "high_inference_latency",
-                        "metric": report.inference.avg_latency_ms,
-                        "severity": "medium",
-                        "timestamp": time.time()
-                    })
-                    system_anomalies.append({
-                        "type": "ml_inference_model_unloaded",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "high_inference_latency",
+                            "metric": report.inference.avg_latency_ms,
+                            "severity": "medium",
+                            "timestamp": time.time(),
+                        }
+                    )
+                    system_anomalies.append(
+                        {
+                            "type": "ml_inference_model_unloaded",
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
 
                 # 11. Worker & Queue Anomalies
                 if report.workers.avg_task_latency_ms > 2000:
-                    system_anomalies.append({
-                        "type": "high_worker_latency",
-                        "metric": report.workers.avg_task_latency_ms,
-                        "severity": "medium",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "high_worker_latency",
+                            "metric": report.workers.avg_task_latency_ms,
+                            "severity": "medium",
+                            "timestamp": time.time(),
+                        }
+                    )
                 for q_name, depth in report.workers.queue_backlog.items():
                     if depth > 1000:
-                        system_anomalies.append({
-                            "type": "high_queue_backlog",
-                            "queue": q_name,
-                            "depth": depth,
-                            "severity": "high",
-                            "timestamp": time.time()
-                        })
+                        system_anomalies.append(
+                            {
+                                "type": "high_queue_backlog",
+                                "queue": q_name,
+                                "depth": depth,
+                                "severity": "high",
+                                "timestamp": time.time(),
+                            }
+                        )
                 if report.workers.reachable and report.workers.active_workers == 0:
-                    system_anomalies.append({
-                        "type": "worker_death",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {"type": "worker_death", "severity": "critical", "timestamp": time.time()}
+                    )
 
                 # 12. Ray Cluster Anomalies
                 if report.ray.reachable and report.ray.nodes_alive < 1:
-                    system_anomalies.append({
-                        "type": "ray_cluster_failure",
-                        "severity": "critical",
-                        "timestamp": time.time()
-                    })
+                    system_anomalies.append(
+                        {
+                            "type": "ray_cluster_failure",
+                            "severity": "critical",
+                            "timestamp": time.time(),
+                        }
+                    )
 
         except Exception as e:
             logger.error("system_anomaly_detection_failed", error=str(e))
@@ -427,23 +467,24 @@ class AutonomousEngine:
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
         """Blocks until RabbitMQ, Redis, and Postgres/TimescaleDB are reachable."""
-        from src.shared.utils.cache import get_redis_client
-        from src.database import get_async_engine
         from sqlalchemy import text
-        
+
+        from src.database import get_async_engine
+        from src.shared.utils.cache import get_redis_client
+
         logger.info("waiting_for_infrastructure_readiness", timeout=timeout)
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             try:
                 # 1. Check RabbitMQ
                 if self.health_reporter and self.health_reporter.rmq:
                     await self.health_reporter.rmq.connect()
-                
+
                 # 2. Check Redis
                 redis = await get_redis_client()
                 await redis.ping()
-                
+
                 # 3. Check TimescaleDB
                 engine = get_async_engine()
                 async with engine.connect() as conn:
@@ -473,19 +514,21 @@ class AutonomousEngine:
                 logger.info("infrastructure_ready")
                 return
             except Exception:
-                logger.warning("infrastructure_not_ready_retrying", 
-                               elapsed=int(time.time() - start_time))
+                logger.warning(
+                    "infrastructure_not_ready_retrying", elapsed=int(time.time() - start_time)
+                )
                 await asyncio.sleep(interval)
-        
+
         logger.error("infrastructure_readiness_timeout_proceeding_degraded")
 
     async def _check_api_ready(self) -> bool:
         """Polls the API health endpoint until it's ready."""
         import httpx
+
         # We assume the service name is resolvable in the internal network
         url = f"http://{self.api_service_name}:8000/health"
         logger.info("polling_api_readiness", url=url)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(url, timeout=2.0)
@@ -494,15 +537,16 @@ class AutonomousEngine:
                     return True
             except Exception as e:
                 logger.debug("api_ping_failed", error=str(e))
-        
+
         raise RuntimeError(f"API at {url} is not yet reachable")
 
     async def _check_auth_ready(self) -> bool:
         """Polls the Auth health endpoint until it's ready."""
         import httpx
-        url = "http://auth:3001/health" # Primary auth gateway
+
+        url = "http://auth:3001/health"  # Primary auth gateway
         logger.info("polling_auth_readiness", url=url)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(url, timeout=2.0)
@@ -511,38 +555,41 @@ class AutonomousEngine:
                     return True
             except Exception as e:
                 logger.debug("auth_ping_failed", error=str(e))
-        
+
         raise RuntimeError(f"Auth Service at {url} is not yet reachable")
 
     async def _check_ingestion_ready(self) -> bool:
         """Polls the Ingestion heartbeat until it's ready."""
         import os
+
         heartbeat_file = "/tmp/ingestion_heartbeat"
         logger.info("polling_ingestion_readiness", file=heartbeat_file)
-        
+
         if os.path.exists(heartbeat_file):
             age = time.time() - os.path.getmtime(heartbeat_file)
             if age < 60:
                 logger.info("ingestion_ready")
                 return True
-        
+
         # If file missing or too old, check gRPC port as fallback
         import socket
+
         try:
             with socket.create_connection(("localhost", 50053), timeout=2.0):
                 logger.info("ingestion_grpc_ready")
                 return True
         except Exception:
             pass
-            
+
         raise RuntimeError(f"Ingestion Service is not reporting heartbeats at {heartbeat_file}")
 
     async def _check_portfolio_ready(self) -> bool:
         """Polls the Portfolio health endpoint until it's ready."""
         import httpx
-        url = "http://portfolio:8080/health" # Port 8080 for portfolio internal gateway
+
+        url = "http://portfolio:8080/health"  # Port 8080 for portfolio internal gateway
         logger.info("polling_portfolio_readiness", url=url)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(url, timeout=2.0)
@@ -551,15 +598,16 @@ class AutonomousEngine:
                     return True
             except Exception as e:
                 logger.debug("portfolio_ping_failed", error=str(e))
-        
+
         raise RuntimeError(f"Portfolio Service at {url} is not yet reachable")
 
     async def _check_math_kernel_ready(self) -> bool:
         """Polls the Math Kernel health endpoint until it's ready."""
         import httpx
-        url = "http://math-kernel:8080/health" # Port 8080 for pricing internal gateway
+
+        url = "http://math-kernel:8080/health"  # Port 8080 for pricing internal gateway
         logger.info("polling_math_kernel_readiness", url=url)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(url, timeout=2.0)
@@ -568,15 +616,16 @@ class AutonomousEngine:
                     return True
             except Exception as e:
                 logger.debug("math_kernel_ping_failed", error=str(e))
-        
+
         raise RuntimeError(f"Math Kernel at {url} is not yet reachable")
 
     async def _check_ml_inference_ready(self) -> bool:
         """Polls the ML Inference health endpoint until it's ready."""
         import httpx
+
         url = "http://localhost:5002/health"  # Changed to localhost:5002 for local development / testing
         logger.info("polling_ml_inference_readiness", url=url)
-        
+
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(url, timeout=2.0)
@@ -588,28 +637,32 @@ class AutonomousEngine:
                         return True
             except Exception as e:
                 logger.debug("ml_inference_ping_failed", error=str(e))
-        
-        raise RuntimeError(f"ML Inference Service at {url} is not yet reachable or model not loaded")
+
+        raise RuntimeError(
+            f"ML Inference Service at {url} is not yet reachable or model not loaded"
+        )
 
     async def _check_worker_ready(self) -> bool:
         """Checks if Celery workers and Ray cluster are reachable."""
         try:
             from src.workers.tasks.celery_app import celery_app
+
             with celery_app.connection() as conn:
                 conn.ensure_connection(max_retries=1)
-            
+
             inspector = celery_app.control.inspect(timeout=1.0)
             pings = inspector.ping()
             if not pings:
                 raise RuntimeError("No active Celery workers found")
-            
+
             # Optional: Check Ray if enabled
             import ray
+
             if ray.is_initialized():
                 nodes = ray.nodes()
                 if not any(n["Alive"] for n in nodes):
                     raise RuntimeError("No alive Ray nodes found")
-            
+
             logger.info("worker_cluster_ready")
             return True
         except Exception as e:

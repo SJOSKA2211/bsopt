@@ -11,6 +11,7 @@ from src.shared.protos import market_data_pb2, market_data_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
+
 class YFinanceScraper:
     """
     High-performance yfinance scraper for the Production universe.
@@ -42,14 +43,12 @@ class YFinanceScraper:
 
                 # Robust Healthcheck Heartbeat (AIOps Compliant)
                 import json
+
                 try:
                     with open("/tmp/scraper_heartbeat", "w") as f:
                         heartbeat_data = {
                             "time": time.time(),
-                            "metrics": {
-                                "processed": len(self.symbols),
-                                "health": "ACTIVE"
-                            }
+                            "metrics": {"processed": len(self.symbols), "health": "ACTIVE"},
                         }
                         f.write(json.dumps(heartbeat_data))
                 except Exception:
@@ -125,10 +124,12 @@ class YFinanceScraper:
         except Exception as e:
             logger.error("yfinance_batch_failed", batch=batch, error=str(e))
 
+
 async def main():
     # Example usage: Scrape S&P 500
     scraper = YFinanceScraper()
     await scraper.run_forever()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

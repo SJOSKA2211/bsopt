@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 logger = structlog.get_logger()
 
+
 def apply_database_optimizations() -> None:
     """
     High-Performance Optimization Wrapper:
@@ -71,6 +72,7 @@ def apply_database_optimizations() -> None:
                 logger.error("optimization_phase_failed", script=script, error=e.stderr)
 
     logger.info("all_optimizations_pressurized", status="_tight")
+
 
 if __name__ == "__main__":
     apply_database_optimizations()

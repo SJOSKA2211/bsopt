@@ -13,6 +13,7 @@ from src.shared.config import settings
 
 # --- DATABASE & AUTH TESTS ---
 
+
 @pytest.fixture
 def db_session():
     engine = create_engine("sqlite:///:memory:")
@@ -21,6 +22,7 @@ def db_session():
     session = Session()
     yield session
     session.close()
+
 
 def test_auth_service_flow(db_session):
     service = AuthService(db_session)
@@ -49,7 +51,9 @@ def test_auth_service_flow(db_session):
     assert payload["sub"] == "test-id"
     assert "read" in payload["roles"]
 
+
 # --- ML POLICY TESTS ---
+
 
 def test_transformer_extractor_forward():
     # Obs space: [window=10, features=5]
@@ -63,6 +67,7 @@ def test_transformer_extractor_forward():
     assert features.shape == (4, 128)
     assert not torch.isnan(features).any()
 
+
 def test_transformer_extractor_unbatched():
     obs_space = spaces.Box(low=-1, high=1, shape=(5,))
     extractor = TransformerOptimizedExtractor(obs_space, features_dim=64)
@@ -72,7 +77,9 @@ def test_transformer_extractor_unbatched():
 
     assert features.shape == (4, 64)
 
+
 # --- CONFIG TESTS ---
+
 
 def test_settings_env_override():
     assert settings.PROJECT_NAME == "BSOpt Optimized"

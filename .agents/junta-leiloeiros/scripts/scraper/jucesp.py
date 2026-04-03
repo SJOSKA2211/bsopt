@@ -43,11 +43,11 @@ MECANISMO REAL (descoberto em 2025-02-25):
 
 Método: httpx com sessão (GET para CSRF, POST para dados)
 """
+
 from __future__ import annotations
 
 import re
 from html import unescape
-from typing import List, Optional
 
 import httpx
 from bs4 import BeautifulSoup
@@ -70,7 +70,7 @@ class JucespScraper(AbstractJuntaScraper):
     # Busca todos os status (-1).  Para coletar apenas ativos use "14" (Atuante Regular).
     _AGE_SITUACAO = "-1"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         """
         Fluxo:
         1. GET /relatorio/ConsultasLeiloeiroTradutor  -> extrai token CSRF
@@ -83,6 +83,7 @@ class JucespScraper(AbstractJuntaScraper):
         """
         import asyncio as _aio
         import logging as _log
+
         logger = _log.getLogger(__name__)
 
         for attempt in range(1, self.max_retries + 1):
@@ -93,31 +94,34 @@ class JucespScraper(AbstractJuntaScraper):
             except Exception as exc:
                 # Mask any CSRF tokens that might appear in error messages
                 safe_exc = str(exc)
-                if hasattr(self, '_last_csrf') and self._last_csrf and self._last_csrf in safe_exc:
+                if hasattr(self, "_last_csrf") and self._last_csrf and self._last_csrf in safe_exc:
                     safe_exc = safe_exc.replace(self._last_csrf, "***csrf-masked***")
-                logger.warning("[SP] Tentativa %d/%d falhou: %s", attempt, self.max_retries, safe_exc)
+                logger.warning(
+                    "[SP] Tentativa %d/%d falhou: %s", attempt, self.max_retries, safe_exc
+                )
                 if attempt < self.max_retries:
-                    await _aio.sleep(2 ** attempt)
+                    await _aio.sleep(2**attempt)
 
         return []
 
     # ── helpers privados ─────────────────────────────────────────────────────
 
-    async def _fetch_with_session(self) -> Optional[BeautifulSoup]:
+    async def _fetch_with_session(self) -> BeautifulSoup | None:
         """
         GET + POST dentro do mesmo AsyncClient.
         O servidor ASP.NET emite um cookie de sessão no GET que deve ser
         reenviado no POST — sem ele o servidor retorna HTTP 500.
         """
         import logging
+
         logger = logging.getLogger(__name__)
 
         async with httpx.AsyncClient(
             headers=self.HEADERS,
             verify=False,
-            http2=False,          # servidor rejeita HTTP/2
+            http2=False,  # servidor rejeita HTTP/2
             follow_redirects=True,
-            timeout=120.0,        # resposta do POST é ~2.3 MB
+            timeout=120.0,  # resposta do POST é ~2.3 MB
         ) as client:
             # 1. GET — obtém CSRF token e cookie de sessão
             r_get = await client.get(self._FORM_URL)
@@ -138,7 +142,7 @@ class JucespScraper(AbstractJuntaScraper):
                 self._POST_URL,
                 data={
                     "__RequestVerificationToken": csrf,
-                    "AgeTipo": "1",                 # Leiloeiro
+                    "AgeTipo": "1",  # Leiloeiro
                     "AgeMatricula": "",
                     "AgeNome": "",
                     "AgeSituacao": self._AGE_SITUACAO,
@@ -159,7 +163,7 @@ class JucespScraper(AbstractJuntaScraper):
             r_post.raise_for_status()
             return BeautifulSoup(r_post.text, "lxml")
 
-    def _parse_table(self, soup: BeautifulSoup) -> List[Leiloeiro]:
+    def _parse_table(self, soup: BeautifulSoup) -> list[Leiloeiro]:
         """
         Parseia a tabela id="example" retornada pelo POST.
 
@@ -183,7 +187,7 @@ class JucespScraper(AbstractJuntaScraper):
          16  Data do Cancelamento
          17  PDF
         """
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         table = soup.find("table", {"id": "example"})
         if not table:
@@ -197,12 +201,12 @@ class JucespScraper(AbstractJuntaScraper):
         if not rows:
             return []
 
-        for row in rows[1:]:   # pula o cabeçalho
+        for row in rows[1:]:  # pula o cabeçalho
             cells = row.find_all("td")
             if len(cells) < 12:
                 continue
 
-            def cell(idx: int) -> Optional[str]:
+            def cell(idx: int) -> str | None:
                 if idx < len(cells):
                     return self.clean(unescape(cells[idx].get_text()))
                 return None
@@ -219,15 +223,17 @@ class JucespScraper(AbstractJuntaScraper):
             partes = [p for p in [logradouro, bairro, cidade, cep] if p]
             endereco = ", ".join(partes) if partes else None
 
-            results.append(self.make_leiloeiro(
-                nome=nome,
-                matricula=cell(1),
-                data_registro=cell(3),   # data de posse
-                endereco=endereco,
-                municipio=cidade,
-                telefone=cell(8),
-                email=cell(9),
-                situacao=cell(11),
-            ))
+            results.append(
+                self.make_leiloeiro(
+                    nome=nome,
+                    matricula=cell(1),
+                    data_registro=cell(3),  # data de posse
+                    endereco=endereco,
+                    municipio=cidade,
+                    telefone=cell(8),
+                    email=cell(9),
+                    situacao=cell(11),
+                )
+            )
 
         return results

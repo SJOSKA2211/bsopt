@@ -4,12 +4,14 @@ import pytest
 
 from src.ingestion.engine import NSEScraper, ProxyRotator
 
+
 @pytest.fixture
 def mock_redis():
     mock = MagicMock()
     mock.get = AsyncMock(return_value=None)
     mock.setex = AsyncMock(return_value=True)
     return mock
+
 
 @pytest.mark.asyncio
 async def test_proxy_rotator(mock_redis):
@@ -36,6 +38,7 @@ async def test_proxy_rotator(mock_redis):
         p = await rotator.get_proxy()
         assert p == "http://p2"
 
+
 def test_map_name_to_symbol():
     with patch("src.ingestion.engine.settings") as mock_settings:
         mock_settings.NSE_NAME_SYMBOL_MAP = {"Safaricom": "SCOM", "KCB": "KCB"}
@@ -44,6 +47,7 @@ def test_map_name_to_symbol():
         assert scraper._map_name_to_symbol("Safaricom PLC") == "SCOM"
         assert scraper._map_name_to_symbol("KCB Group") == "KCB"
         assert scraper._map_name_to_symbol("UNKNOWN STOCK") == "UNKNOWN"
+
 
 @pytest.mark.asyncio
 async def test_refresh_cache_success():
@@ -109,6 +113,7 @@ async def test_refresh_cache_success():
                     data = await scraper.get_ticker_data("TST")
                     assert data["price"] == 10.0
                     assert data["volume"] == 100
+
 
 def test_batch_clean():
     scraper = NSEScraper()

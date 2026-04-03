@@ -14,12 +14,12 @@ Notion Diary Sync Script
 """
 
 import os
-import sys
 import re
-import json
-import requests
+import sys
 from datetime import datetime
 from pathlib import Path
+
+import requests
 
 # ── Configuration ──────────────────────────────────────────────
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN", "")
@@ -40,6 +40,7 @@ HEADERS = {
 
 # ── Notion API Helpers ─────────────────────────────────────────
 
+
 def notion_request(method: str, endpoint: str, data: dict = None) -> dict:
     """Execute a Notion API request with error handling."""
     url = f"{NOTION_API}/{endpoint}"
@@ -52,12 +53,7 @@ def notion_request(method: str, endpoint: str, data: dict = None) -> dict:
 
 def search_diary_by_date(date_str: str) -> str | None:
     """Search for an existing diary page by date property."""
-    data = {
-        "filter": {
-            "property": "日期",
-            "date": {"equals": date_str}
-        }
-    }
+    data = {"filter": {"property": "日期", "date": {"equals": date_str}}}
     result = notion_request("post", f"databases/{NOTION_DIARY_DB}/query", data)
     pages = result.get("results", [])
     return pages[0]["id"] if pages else None
@@ -65,10 +61,11 @@ def search_diary_by_date(date_str: str) -> str | None:
 
 # ── Rich Text & Block Helpers ──────────────────────────────────
 
+
 def parse_rich_text(text: str) -> list:
     """Parse markdown inline formatting to Notion rich_text array."""
     segments = []
-    pattern = r'(\*\*(.+?)\*\*|`(.+?)`|\[(.+?)\]\((.+?)\))'
+    pattern = r"(\*\*(.+?)\*\*|`(.+?)`|\[(.+?)\]\((.+?)\))"
     last_end = 0
 
     for match in re.finditer(pattern, text):
@@ -79,11 +76,20 @@ def parse_rich_text(text: str) -> list:
                 segments.append({"type": "text", "text": {"content": plain}})
         full = match.group(0)
         if full.startswith("**"):
-            segments.append({"type": "text", "text": {"content": match.group(2)}, "annotations": {"bold": True}})
+            segments.append(
+                {"type": "text", "text": {"content": match.group(2)}, "annotations": {"bold": True}}
+            )
         elif full.startswith("`"):
-            segments.append({"type": "text", "text": {"content": match.group(3)}, "annotations": {"code": True}})
+            segments.append(
+                {"type": "text", "text": {"content": match.group(3)}, "annotations": {"code": True}}
+            )
         elif full.startswith("["):
-            segments.append({"type": "text", "text": {"content": match.group(4), "link": {"url": match.group(5)}}})
+            segments.append(
+                {
+                    "type": "text",
+                    "text": {"content": match.group(4), "link": {"url": match.group(5)}},
+                }
+            )
         last_end = end
 
     if last_end < len(text):
@@ -96,15 +102,27 @@ def parse_rich_text(text: str) -> list:
 
 
 def make_heading2(text: str) -> dict:
-    return {"object": "block", "type": "heading_2", "heading_2": {"rich_text": parse_rich_text(text)}}
+    return {
+        "object": "block",
+        "type": "heading_2",
+        "heading_2": {"rich_text": parse_rich_text(text)},
+    }
 
 
 def make_heading3(text: str) -> dict:
-    return {"object": "block", "type": "heading_3", "heading_3": {"rich_text": parse_rich_text(text)}}
+    return {
+        "object": "block",
+        "type": "heading_3",
+        "heading_3": {"rich_text": parse_rich_text(text)},
+    }
 
 
 def make_bullet(text: str) -> dict:
-    return {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": parse_rich_text(text)}}
+    return {
+        "object": "block",
+        "type": "bulleted_list_item",
+        "bulleted_list_item": {"rich_text": parse_rich_text(text)},
+    }
 
 
 def make_divider() -> dict:
@@ -112,22 +130,39 @@ def make_divider() -> dict:
 
 
 def make_quote(text: str = " ") -> dict:
-    return {"object": "block", "type": "quote", "quote": {"rich_text": [{"type": "text", "text": {"content": text}}]}}
+    return {
+        "object": "block",
+        "type": "quote",
+        "quote": {"rich_text": [{"type": "text", "text": {"content": text}}]},
+    }
 
 
 def make_paragraph(text: str) -> dict:
-    return {"object": "block", "type": "paragraph", "paragraph": {"rich_text": parse_rich_text(text)}}
+    return {
+        "object": "block",
+        "type": "paragraph",
+        "paragraph": {"rich_text": parse_rich_text(text)},
+    }
 
 
 def make_todo(text: str, checked: bool = False) -> dict:
-    return {"object": "block", "type": "to_do", "to_do": {"rich_text": parse_rich_text(text), "checked": checked}}
+    return {
+        "object": "block",
+        "type": "to_do",
+        "to_do": {"rich_text": parse_rich_text(text), "checked": checked},
+    }
 
 
 def make_callout(text: str, emoji: str = "💡") -> dict:
-    return {"object": "block", "type": "callout", "callout": {"rich_text": parse_rich_text(text), "icon": {"emoji": emoji}}}
+    return {
+        "object": "block",
+        "type": "callout",
+        "callout": {"rich_text": parse_rich_text(text), "icon": {"emoji": emoji}},
+    }
 
 
 # ── Markdown to Business Blocks ────────────────────────────────
+
 
 def diary_to_business_blocks(md_content: str) -> list:
     """Convert diary markdown into bullet-point blocks for the Business section.
@@ -150,7 +185,7 @@ def diary_to_business_blocks(md_content: str) -> list:
         if line.startswith("### "):
             heading_text = line[4:].strip()
             # Remove leading numbers (e.g. "1. " or "📁 ")
-            heading_text = re.sub(r'^\d+\.\s*', '', heading_text)
+            heading_text = re.sub(r"^\d+\.\s*", "", heading_text)
             blocks.append(make_heading3(heading_text))
             continue
 
@@ -166,7 +201,7 @@ def diary_to_business_blocks(md_content: str) -> list:
         # Dividers
         if line.strip() == "---":
             continue
-            
+
         # Callouts (e.g. > 🌟 **今日亮點 (Daily Highlight)**)
         if line.startswith("> "):
             text = line[2:].strip()
@@ -176,7 +211,8 @@ def diary_to_business_blocks(md_content: str) -> list:
                 first_char = text[0]
                 # A simple heuristic to check if the first character is an emoji
                 import unicodedata
-                if ord(first_char) > 0xFFFF or unicodedata.category(first_char) == 'So':
+
+                if ord(first_char) > 0xFFFF or unicodedata.category(first_char) == "So":
                     emoji = first_char
                     text = text[1:].strip()
             blocks.append(make_callout(text, emoji))
@@ -185,20 +221,20 @@ def diary_to_business_blocks(md_content: str) -> list:
         # TODO items
         if "- [ ]" in line or "- [x]" in line:
             checked = "- [x]" in line
-            text = re.sub(r'^[\s]*-\s\[[ x]\]\s', '', line)
+            text = re.sub(r"^[\s]*-\s\[[ x]\]\s", "", line)
             blocks.append(make_todo(text, checked))
             continue
- 
+
         # Numbered items
-        if re.match(r'^[\s]*\d+\.\s', line):
-            text = re.sub(r'^[\s]*\d+\.\s', '', line)
+        if re.match(r"^[\s]*\d+\.\s", line):
+            text = re.sub(r"^[\s]*\d+\.\s", "", line)
             if text:
                 blocks.append(make_bullet(text))
             continue
- 
+
         # Bullet points
-        if re.match(r'^[\s]*[\-\*]\s', line):
-            text = re.sub(r'^[\s]*[\-\*]\s', '', line)
+        if re.match(r"^[\s]*[\-\*]\s", line):
+            text = re.sub(r"^[\s]*[\-\*]\s", "", line)
             if text:
                 blocks.append(make_bullet(text))
             continue
@@ -212,6 +248,7 @@ def diary_to_business_blocks(md_content: str) -> list:
 
 # ── Page Creation ──────────────────────────────────────────────
 
+
 def build_business_only_blocks(business_blocks: list) -> list:
     """Build page blocks with only Business section (GAS Agent handles the rest)."""
     blocks = []
@@ -223,7 +260,7 @@ def build_business_only_blocks(business_blocks: list) -> list:
 
 def extract_metadata(md_content: str, filename: str) -> dict:
     """Extract metadata from diary markdown content."""
-    date_match = re.search(r'(\d{4}-\d{2}-\d{2})', filename)
+    date_match = re.search(r"(\d{4}-\d{2}-\d{2})", filename)
     date_str = date_match.group(1) if date_match else datetime.now().strftime("%Y-%m-%d")
 
     # Build title
@@ -231,9 +268,9 @@ def extract_metadata(md_content: str, filename: str) -> dict:
 
     # Extract project names
     # Matches old format `### 📁 ` and new format e.g., `### 🔵 ` or `### 🟢 `
-    projects = re.findall(r'###\s+[\U00010000-\U0010ffff📁]\s+(\S+)', md_content)
+    projects = re.findall(r"###\s+[\U00010000-\U0010ffff📁]\s+(\S+)", md_content)
     if not projects:
-        projects = re.findall(r'###\s+\d+\.\s+(.+?)[\s🚀🛠️🧪☁️🔧🧩]*(?:\n|$)', md_content)
+        projects = re.findall(r"###\s+\d+\.\s+(.+?)[\s🚀🛠️🧪☁️🔧🧩]*(?:\n|$)", md_content)
         projects = [p.strip()[:20] for p in projects]
 
     # Auto-tag
@@ -270,7 +307,7 @@ def create_diary_page(metadata: dict, blocks: list) -> str:
             "專案": {"multi_select": [{"name": p} for p in metadata["projects"][:10]]},
             "標籤": {"multi_select": [{"name": t} for t in metadata["tags"][:10]]},
         },
-        "children": children
+        "children": children,
     }
     result = notion_request("post", "pages", data)
     page_id = result["id"]
@@ -279,7 +316,7 @@ def create_diary_page(metadata: dict, blocks: list) -> str:
     if len(blocks) > 100:
         remaining = blocks[100:]
         for i in range(0, len(remaining), 100):
-            chunk = remaining[i:i+100]
+            chunk = remaining[i : i + 100]
             notion_request("patch", f"blocks/{page_id}/children", {"children": chunk})
 
     return page_id
@@ -288,13 +325,17 @@ def create_diary_page(metadata: dict, blocks: list) -> str:
 def update_business_section(page_id: str, metadata: dict, business_blocks: list):
     """Update ONLY the Business section of an existing page, preserving all other content."""
     # Update properties
-    notion_request("patch", f"pages/{page_id}", {
-        "properties": {
-            "標題": {"title": [{"text": {"content": metadata["title"]}}]},
-            "專案": {"multi_select": [{"name": p} for p in metadata["projects"][:10]]},
-            "標籤": {"multi_select": [{"name": t} for t in metadata["tags"][:10]]},
-        }
-    })
+    notion_request(
+        "patch",
+        f"pages/{page_id}",
+        {
+            "properties": {
+                "標題": {"title": [{"text": {"content": metadata["title"]}}]},
+                "專案": {"multi_select": [{"name": p} for p in metadata["projects"][:10]]},
+                "標籤": {"multi_select": [{"name": t} for t in metadata["tags"][:10]]},
+            }
+        },
+    )
 
     # Read all existing blocks
     all_blocks = []
@@ -340,8 +381,8 @@ def update_business_section(page_id: str, metadata: dict, business_blocks: list)
                 business_end = len(all_blocks)
 
         # Delete old Business content (between heading and next section)
-        blocks_to_delete = all_blocks[business_start + 1:business_end]
-        
+        blocks_to_delete = all_blocks[business_start + 1 : business_end]
+
         # Find the block AFTER which to insert (the Business heading itself)
         after_block_id = all_blocks[business_start]["id"]
 
@@ -353,27 +394,26 @@ def update_business_section(page_id: str, metadata: dict, business_blocks: list)
 
     # Insert new Business blocks after the heading, or at the end of the page
     for i in range(0, len(business_blocks), 100):
-        chunk = business_blocks[i:i+100]
+        chunk = business_blocks[i : i + 100]
         payload = {"children": chunk}
         if after_block_id:
             payload["after"] = after_block_id
-            
+
         result = notion_request("patch", f"blocks/{page_id}/children", payload)
-        
+
         # Update after_block_id to the last inserted block for ordering
         if chunk and result.get("results"):
             after_block_id = result["results"][-1]["id"]
 
     # Re-add divider after business content
     if after_block_id:
-        notion_request("patch", f"blocks/{page_id}/children", {
-            "children": [make_divider()],
-            "after": after_block_id
-        }) 
+        notion_request(
+            "patch",
+            f"blocks/{page_id}/children",
+            {"children": [make_divider()], "after": after_block_id},
+        )
     else:
-        notion_request("patch", f"blocks/{page_id}/children", {
-            "children": [make_divider()]
-        })
+        notion_request("patch", f"blocks/{page_id}/children", {"children": [make_divider()]})
 
     print("✅ Business 區塊已更新（其他區塊未受影響）")
 
@@ -390,22 +430,23 @@ def create_database(parent_page_id: str) -> str:
             "日期": {"date": {}},
             "專案": {"multi_select": {"options": []}},
             "標籤": {"multi_select": {"options": []}},
-        }
+        },
     }
     result = notion_request("post", "databases", data)
     db_id = result["id"]
     print(f"✅ Created Notion Diary Database: {db_id}")
-    print(f"   請將此 ID 設為環境變數：")
+    print("   請將此 ID 設為環境變數：")
     print(f'   $env:NOTION_DIARY_DB = "{db_id}"')
     return db_id
 
 
 # ── Main ───────────────────────────────────────────────────────
 
+
 def main():
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-        
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     if not NOTION_TOKEN:
         print("❌ 請設定環境變數 NOTION_TOKEN")
         print('   $env:NOTION_TOKEN = "ntn_xxx"')
@@ -422,7 +463,7 @@ def main():
         print('   $env:NOTION_DIARY_DB = "abc123..."')
         print("")
         print("如需建立新 Database：")
-        print('   python sync_to_notion.py --create-db <parent_page_id>')
+        print("   python sync_to_notion.py --create-db <parent_page_id>")
         sys.exit(1)
 
     if len(sys.argv) < 2:
@@ -459,7 +500,7 @@ def main():
         print(f"🔄 更新已有頁面的 Business 區塊 (page: {existing_page})")
         update_business_section(existing_page, metadata, business_blocks)
     else:
-        print(f"📝 建立新頁面（僅 Business 區塊）...")
+        print("📝 建立新頁面（僅 Business 區塊）...")
         biz_blocks = build_business_only_blocks(business_blocks)
         page_id = create_diary_page(metadata, biz_blocks)
         print(f"✅ 已同步到 Notion！(page: {page_id})")

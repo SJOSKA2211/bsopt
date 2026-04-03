@@ -1,10 +1,11 @@
 import msgspec
-from typing import Optional, List
+
 
 class MLflowStatus(msgspec.Struct):
     stage: str
     drift_detected: bool
-    last_run_id: Optional[str] = None
+    last_run_id: str | None = None
+
 
 class PrometheusMetrics(msgspec.Struct):
     error_rate_5xx: float
@@ -13,20 +14,24 @@ class PrometheusMetrics(msgspec.Struct):
     memory_usage: float
     request_count: int
 
+
 class RedisAnomaly(msgspec.Struct):
     timestamp: str
     description: str
     severity: str
+
 
 class RabbitMQStatus(msgspec.Struct):
     connected: bool
     queue_depths: dict[str, int]
     consumer_counts: dict[str, int]
 
+
 class RedisStatus(msgspec.Struct):
     connected: bool
     memory_usage_bytes: int
     total_keys: int
+
 
 class PostgresStatus(msgspec.Struct):
     connected: bool
@@ -36,17 +41,20 @@ class PostgresStatus(msgspec.Struct):
     compression_ratio: float
     job_count: int
 
+
 class MLInferenceStatus(msgspec.Struct):
     reachable: bool
     model_loaded: bool
     avg_latency_ms: float
     requests_per_sec: float
 
+
 class MathKernelStatus(msgspec.Struct):
     reachable: bool
     avg_latency_ms: float
     requests_per_sec: float
     error_rate: float
+
 
 class PortfolioStatus(msgspec.Struct):
     reachable: bool
@@ -55,11 +63,13 @@ class PortfolioStatus(msgspec.Struct):
     total_vega: float
     total_gamma: float
 
+
 class IngestionStatus(msgspec.Struct):
     reachable: bool
     heartbeat_age: float
     ticks_per_second: float
     rejection_rate: float
+
 
 class AuthStatus(msgspec.Struct):
     reachable: bool
@@ -67,21 +77,25 @@ class AuthStatus(msgspec.Struct):
     auth_success_rate: float
     active_tokens: int
 
+
 class APIStatus(msgspec.Struct):
     reachable: bool
     p95_latency: float
     error_rate_5xx: float
     request_count: int
 
+
 class RemediationStatus(msgspec.Struct):
     name: str
     status: str  # idle, cooldown, active
     last_run: str
 
+
 class RayStatus(msgspec.Struct):
     reachable: bool
     nodes_alive: int
     worker_count: int
+
 
 class WorkerStatus(msgspec.Struct):
     reachable: bool
@@ -90,16 +104,18 @@ class WorkerStatus(msgspec.Struct):
     queue_backlog: dict[str, int]
     avg_task_latency_ms: float
 
+
 class GuardianStatus(msgspec.Struct):
     active: bool
     safe_mode: bool
-    paused_features: List[str]
+    paused_features: list[str]
+
 
 class MLHealthReport(msgspec.Struct):
     status: str
     mlflow: MLflowStatus
     prometheus: PrometheusMetrics
-    redis_anomalies: List[RedisAnomaly]
+    redis_anomalies: list[RedisAnomaly]
     rabbitmq: RabbitMQStatus
     redis: RedisStatus
     postgres: PostgresStatus
@@ -111,6 +127,6 @@ class MLHealthReport(msgspec.Struct):
     inference: MLInferenceStatus
     workers: WorkerStatus
     ray: RayStatus
-    remediations: List[RemediationStatus]
+    remediations: list[RemediationStatus]
     guardian: GuardianStatus
     timestamp: str

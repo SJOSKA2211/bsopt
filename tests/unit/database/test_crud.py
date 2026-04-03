@@ -13,10 +13,12 @@ from src.database.crud import (
 )
 from src.database.models import Base
 
+
 # Patch JSONB for SQLite
 @compiles(postgresql.JSONB, "sqlite")
 def compile_jsonb_sqlite(type_, compiler, **kw):
     return "JSON"
+
 
 @pytest_asyncio.fixture
 async def db_session():
@@ -33,6 +35,7 @@ async def db_session():
 
     await engine.dispose()
 
+
 @pytest.mark.asyncio
 async def test_user_crud(db_session):
     # Create
@@ -43,6 +46,7 @@ async def test_user_crud(db_session):
     # Get
     fetched = await get_user_by_email(db_session, "test@example.com")
     assert fetched.id == user.id
+
 
 @pytest.mark.asyncio
 async def test_portfolio_crud(db_session):

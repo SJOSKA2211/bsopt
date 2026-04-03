@@ -6,6 +6,7 @@ import httpx
 API_URL = "http://192.168.23.33:8008"
 API_V1_URL = f"{API_URL}/api/v1"
 
+
 async def check_health():
     print("Checking API health...")
     async with httpx.AsyncClient() as client:
@@ -20,6 +21,7 @@ async def check_health():
         except Exception as e:
             print(f"❌ API connection failed: {e}")
             return False
+
 
 async def test_pricing():
     print("Testing single option pricing...")
@@ -45,6 +47,7 @@ async def test_pricing():
         except Exception as e:
             print(f"❌ Pricing request failed: {e}")
             return False
+
 
 async def test_batch_pricing():
     print("Testing batch option pricing...")
@@ -86,6 +89,7 @@ async def test_batch_pricing():
             print(f"❌ Batch pricing request failed: {e}")
             return False
 
+
 async def main():
     print("--- BSOPT Verification Script ---")
 
@@ -111,6 +115,7 @@ async def main():
     else:
         print("\n❌ Some tests failed.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

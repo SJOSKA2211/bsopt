@@ -7,6 +7,7 @@ from src.auth.auth import get_api_key
 from src.database import get_db
 from src.database.models import User
 
+
 def test_api_key_authentication(
     api_client: TestClient, mock_db_session: Session, mock_redis_and_celery
 ):

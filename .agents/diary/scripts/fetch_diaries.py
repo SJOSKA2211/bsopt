@@ -17,14 +17,18 @@ from datetime import datetime
 from pathlib import Path
 
 # --- Configuration ---
-GLOBAL_DIARY_ROOT = Path(os.environ.get("GLOBAL_DIARY_ROOT", str(Path(__file__).resolve().parent.parent / "diary")))
+GLOBAL_DIARY_ROOT = Path(
+    os.environ.get("GLOBAL_DIARY_ROOT", str(Path(__file__).resolve().parent.parent / "diary"))
+)
+
 
 def get_today():
     return datetime.now().strftime("%Y-%m-%d")
 
+
 def main():
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
 
     if len(sys.argv) < 2:
         print("❌ 用法錯誤。請提供當前專案的日記絕對路徑。")
@@ -41,14 +45,16 @@ def main():
     global_diary_path = GLOBAL_DIARY_ROOT / y / m / f"{date_str}.md"
 
     print(f"=== FETCH MODE: {date_str} ===")
-    
+
     # --- 1. 讀取全域日記 ---
     print("\n" + "=" * 60)
     print(f"🌐 [現有全域日記] ({global_diary_path})")
-    
+
     if global_diary_path.exists():
         print("⚠️ 警告：此全域日記已存在，代表今天可能有其他專案寫過進度了！")
-        print("⚠️ 鐵律：請務必保留下方既有的內容，只能「追加或融合」新的專案進度，絕對不可粗暴覆寫抹除前人的紀錄！")
+        print(
+            "⚠️ 鐵律：請務必保留下方既有的內容，只能「追加或融合」新的專案進度，絕對不可粗暴覆寫抹除前人的紀錄！"
+        )
         print("-" * 60)
         try:
             global_content = global_diary_path.read_text(encoding="utf-8").strip()
@@ -67,11 +73,13 @@ def main():
     try:
         content = proj_diary_path.read_text(encoding="utf-8")
         # 過濾掉雜訊標題與 footer
-        lines = content.split('\n')
+        lines = content.split("\n")
         meaningful = []
         for line in lines:
-            if line.startswith("# "): continue
-            if line.startswith("*Allen") or line.startswith("*Generated"): continue
+            if line.startswith("# "):
+                continue
+            if line.startswith("*Allen") or line.startswith("*Generated"):
+                continue
             meaningful.append(line)
         print("\n".join(meaningful).strip())
     except Exception as e:
@@ -79,6 +87,7 @@ def main():
 
     print("\n" + "=" * 60)
     print("✅ 素材提供完畢。請 IDE Agent 執行融合，並寫入/更新至全域日記檔案。")
+
 
 if __name__ == "__main__":
     main()

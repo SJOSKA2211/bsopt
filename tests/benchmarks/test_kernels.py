@@ -3,6 +3,7 @@ import pytest
 
 from src.quant.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
 
+
 @pytest.fixture
 def benchmark_data():
     """Generate standardized data for pricing benchmarks."""
@@ -15,6 +16,7 @@ def benchmark_data():
     q = np.full(n, 0.02, dtype=np.float32)
     is_call = np.random.choice([True, False], n)
     return S, K, T, sigma, r, q, is_call
+
 
 def test_benchmark_bs_price_jit(benchmark, benchmark_data):
     """
@@ -29,6 +31,7 @@ def test_benchmark_bs_price_jit(benchmark, benchmark_data):
 
     assert len(result) == len(S)
     assert result.dtype == np.float32
+
 
 def test_benchmark_greeks_jit(benchmark, benchmark_data):
     """Benchmarks the Numba JIT Greeks kernel."""

@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def odd_count(lst):
     """Given a list of strings, where each string consists of only digits, return a list.
     Each element i of the output should be "the number of odd elements in the
@@ -20,6 +21,6 @@ def odd_count(lst):
         odd_digit_count = sum(1 for d in s if int(d) % 2 == 1)
         count_str = str(odd_digit_count)
         template = "the number of odd elements in the string i of the input."
-        formatted = template.replace('i', count_str)
+        formatted = template.replace("i", count_str)
         result.append(formatted)
     return result

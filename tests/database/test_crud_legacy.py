@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import crud
 from src.database.models import Position, User
 
+
 @pytest.fixture
 def mock_db():
     session = AsyncMock(spec=AsyncSession)
@@ -37,6 +38,7 @@ def mock_db():
     session.mock_result_cls = MockResult
     return session
 
+
 @pytest.mark.asyncio
 async def test_get_user_by_id(mock_db):
     user_id = uuid4()
@@ -47,6 +49,7 @@ async def test_get_user_by_id(mock_db):
     result = await crud.get_user_by_id(mock_db, user_id)
     assert result == mock_user
     mock_db.execute.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_create_user(mock_db):
@@ -67,6 +70,7 @@ async def test_create_user(mock_db):
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_update_portfolio_cash(mock_db):
     pid = uuid4()
@@ -77,6 +81,7 @@ async def test_update_portfolio_cash(mock_db):
 
     success_sub = await crud.update_portfolio_cash(mock_db, pid, Decimal("50.00"), "subtract")
     assert success_sub is True
+
 
 @pytest.mark.asyncio
 async def test_bulk_create_positions_fallback(mock_db):
@@ -94,6 +99,7 @@ async def test_bulk_create_positions_fallback(mock_db):
     # Verify execute was called with insert statement
     assert mock_db.execute.call_count == 1
 
+
 @pytest.mark.asyncio
 async def test_bulk_create_positions_fast_path(mock_db):
     # Test fast path (asyncpg copy)
@@ -109,6 +115,7 @@ async def test_bulk_create_positions_fast_path(mock_db):
     assert count == 1
     driver_conn.copy_records_to_table.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_get_portfolio_summary_mv(mock_db):
     # Test materialized view query
@@ -119,6 +126,7 @@ async def test_get_portfolio_summary_mv(mock_db):
     summary = await crud.get_portfolio_summary(mock_db, uuid4())
     assert len(summary) == 1
     assert summary[0]["total_value"] == 1000
+
 
 @pytest.mark.asyncio
 async def test_get_user_trading_stats(mock_db):
@@ -140,6 +148,7 @@ async def test_get_user_trading_stats(mock_db):
     assert stats["fill_rate"] == 50.0
     assert stats["avg_fill_price"] == 100.5
 
+
 @pytest.mark.asyncio
 async def test_get_iv_surface(mock_db):
     mock_row = MagicMock()
@@ -149,6 +158,7 @@ async def test_get_iv_surface(mock_db):
     surface = await crud.get_iv_surface(mock_db, "AAPL")
     assert len(surface) == 1
     assert surface[0]["avg_iv"] == 0.2
+
 
 @pytest.mark.asyncio
 async def test_user_updates(mock_db):
@@ -160,6 +170,7 @@ async def test_user_updates(mock_db):
 
     await crud.update_user_tier(mock_db, uid, "pro")
     assert mock_db.execute.call_count == 2  # +1
+
 
 @pytest.mark.asyncio
 async def test_get_positions(mock_db):
@@ -175,6 +186,7 @@ async def test_get_positions(mock_db):
     expiring = await crud.get_expiring_positions(mock_db)
     assert len(expiring) == 1
 
+
 @pytest.mark.asyncio
 async def test_create_order(mock_db):
     mock_db.execute.return_value = mock_db.mock_result_cls()
@@ -183,6 +195,7 @@ async def test_create_order(mock_db):
     assert order.symbol == "AAPL"
     assert order.status == "pending"
     mock_db.add.assert_called()
+
 
 @pytest.mark.asyncio
 async def test_ml_model_ops(mock_db):

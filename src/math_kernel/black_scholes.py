@@ -16,6 +16,7 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
+
 class BlackScholesEngine(PricingStrategy):
     """
     Black-Scholes option pricing engine.
@@ -324,6 +325,7 @@ class BlackScholesEngine(PricingStrategy):
     ) -> float:
         """Implementation of PricingStrategy interface."""
         return float(self.price_options(params=params, option_type=option_type, **kwargs))
+
 
 def black_scholes(*args: Any, **kwargs: Any) -> Any:
     result = BlackScholesEngine.price_options(*args, **kwargs)

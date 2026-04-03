@@ -22,6 +22,7 @@ from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
+
 class PricingService:
     """
     Unified entry point for all option pricing operations.
@@ -497,5 +498,6 @@ class PricingService:
             ),
         )
         return [float(v) for v in vols_arr]
+
 
 pricing_service = PricingService()

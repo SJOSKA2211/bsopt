@@ -3,6 +3,7 @@ from strawberry.types import ExecutionResult
 
 from api.graphql.options import schema
 
+
 @pytest.mark.asyncio
 async def test_options_subgraph_schema_valid():
     """Verify that the schema is valid and can execute a simple query."""
@@ -21,6 +22,7 @@ async def test_options_subgraph_schema_valid():
     assert result.data is not None
     assert "_service" in result.data
     assert "sdl" in result.data["_service"]
+
 
 @pytest.mark.asyncio
 async def test_resolve_option():
@@ -45,6 +47,7 @@ async def test_resolve_option():
     assert result.data is not None
     assert result.data["option"]["contractSymbol"] == "AAPL_20260115_C_150"
     assert result.data["option"]["underlyingSymbol"] == "AAPL"
+
 
 def test_graphql_endpoint():
     """Verify that the /graphql endpoint is mounted and working in the FastAPI app."""

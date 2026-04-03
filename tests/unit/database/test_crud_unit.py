@@ -13,10 +13,12 @@ from src.database.crud import (
 )
 from src.database.models import Base
 
+
 @pytest.fixture(autouse=True)
 def patch_jsonb(monkeypatch):
     # This is a bit hacky, but common for SQLite testing of PG models
     pass
+
 
 @pytest.fixture
 def db_session():
@@ -38,6 +40,7 @@ def db_session():
     finally:
         session.close()
 
+
 def test_user_crud(db_session):
     # Create
     user = create_user(db_session, "test@example.com", "Password123!", "Test User")
@@ -47,6 +50,7 @@ def test_user_crud(db_session):
     # Get
     fetched = get_user_by_email(db_session, "test@example.com")
     assert fetched.id == user.id
+
 
 def test_portfolio_crud(db_session):
     user = create_user(db_session, "test@example.com", "Password123!", "Test User")

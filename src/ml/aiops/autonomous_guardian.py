@@ -7,6 +7,7 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
+
 class AutonomousGuardian:
     """
     High-level supervisor for the BS-OPT autonomous manifold.
@@ -24,7 +25,7 @@ class AutonomousGuardian:
     async def monitor_integrity(self):
         """Continuous oversight of system integrity and risk levels."""
         logger.info("autonomous_guardian_activated")
-        
+
         while self.is_active:
             try:
                 # 1. Check for Cascading Service Failures
@@ -32,16 +33,21 @@ class AutonomousGuardian:
 
                 # 2. Check Drift Levels in History
                 for event in self.orchestrator.history:
-                    if event.get("anomaly") == "distribution_drift" and event.get("score", 0) > self.drift_critical_threshold:
-                        logger.critical("guardian_critical_drift_detected", score=event.get("score"))
+                    if (
+                        event.get("anomaly") == "distribution_drift"
+                        and event.get("score", 0) > self.drift_critical_threshold
+                    ):
+                        logger.critical(
+                            "guardian_critical_drift_detected", score=event.get("score")
+                        )
                         await self.halt_non_critical_operations("critical_drift")
-                
+
                 # 3. Check Risk Exposure (Live check would go here)
                 pass
 
             except Exception as e:
                 logger.error("guardian_oversight_error", error=str(e))
-            
+
             await asyncio.sleep(60)
 
     async def _check_cascading_failures(self):
@@ -103,6 +109,7 @@ class AutonomousGuardian:
         self.is_safe_mode = False
         self.paused_features = []
         from src.shared.utils.cache import get_redis
+
         redis = get_redis()
         if redis:
             await redis.delete("bsopt:trading:paused")
@@ -112,6 +119,7 @@ class AutonomousGuardian:
         if "trading" not in self.paused_features:
             logger.warning("guardian_initiating_protective_cutoff", reason=reason)
             from src.shared.utils.cache import get_redis
+
             redis = get_redis()
             if redis:
                 await redis.set("bsopt:trading:paused", "true", ex=3600)

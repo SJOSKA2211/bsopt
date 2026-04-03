@@ -9,7 +9,6 @@ from typing import Any
 
 from flask import Response, abort, request
 
-
 _SAFE_CHALLENGE_RE = re.compile(r"^[A-Za-z0-9._-]{1,200}$")
 
 
@@ -31,9 +30,7 @@ def validate_hmac_signature(app_secret: str | None = None):
                 abort(401, "Missing signature header")
 
             raw_body = request.get_data()
-            expected = "sha256=" + hmac.new(
-                secret.encode(), raw_body, hashlib.sha256
-            ).hexdigest()
+            expected = "sha256=" + hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
 
             if not hmac.compare_digest(signature, expected):
                 abort(401, "Invalid signature")

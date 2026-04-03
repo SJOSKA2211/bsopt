@@ -13,6 +13,7 @@ from src.ml.architectures.neural_network import OptionPricingNN
 
 logger = structlog.get_logger(__name__)
 
+
 class NeuralPricingEngine(BasePricingEngine):  # type: ignore
     """
     Pricing Engine powered by a Neural Network (MLP).
@@ -75,7 +76,7 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         log_moneyness = np.log(moneyness)
         sqrt_t = np.sqrt(params.maturity)
         days_to_t = params.maturity * 365.0
-        
+
         data = [
             params.spot,
             params.strike,
@@ -97,10 +98,10 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         """
         is_call = option_type.lower() == "call"
         input_tensor = self._params_to_tensor(params, is_call)
-        
+
         with torch.no_grad():
             price = self.model(input_tensor).item()
-            
+
         return float(price)
 
     def optimize_for_inference(
@@ -137,25 +138,28 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         """
         n = len(spots)
         is_call = (option_types == "call") | (option_types == "CALL")
-        
+
         # Construct 9 features
         moneyness = spots / strikes
         log_moneyness = np.log(moneyness)
         sqrt_t = np.sqrt(maturities)
         days_to_t = maturities * 365.0
-        
-        data = np.stack([
-            spots, 
-            strikes, 
-            maturities, 
-            is_call.astype(np.float32),
-            moneyness,
-            log_moneyness,
-            sqrt_t,
-            days_to_t,
-            vols
-        ], axis=1)
-        
+
+        data = np.stack(
+            [
+                spots,
+                strikes,
+                maturities,
+                is_call.astype(np.float32),
+                moneyness,
+                log_moneyness,
+                sqrt_t,
+                days_to_t,
+                vols,
+            ],
+            axis=1,
+        )
+
         input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
 
         with torch.no_grad():
@@ -184,24 +188,27 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         """
         n = len(spots)
         is_call = (option_types == "call") | (option_types == "CALL")
-        
+
         moneyness = spots / strikes
         log_moneyness = np.log(moneyness)
         sqrt_t = np.sqrt(maturities)
         days_to_t = maturities * 365.0
-        
-        data = np.stack([
-            spots, 
-            strikes, 
-            maturities, 
-            is_call.astype(np.float32),
-            moneyness,
-            log_moneyness,
-            sqrt_t,
-            days_to_t,
-            vols
-        ], axis=1)
-        
+
+        data = np.stack(
+            [
+                spots,
+                strikes,
+                maturities,
+                is_call.astype(np.float32),
+                moneyness,
+                log_moneyness,
+                sqrt_t,
+                days_to_t,
+                vols,
+            ],
+            axis=1,
+        )
+
         input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
         input_tensor.requires_grad_(True)
 
@@ -215,17 +222,17 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         delta = grads[:, 0].detach().cpu().numpy()
         theta = -grads[:, 2].detach().cpu().numpy()
         vega = grads[:, 8].detach().cpu().numpy()
-        
+
         # Second order (Gamma)
         gamma_grads = torch.autograd.grad(
             grads[:, 0], input_tensor, grad_outputs=torch.ones_like(grads[:, 0]), retain_graph=False
         )[0]
         gamma = gamma_grads[:, 0].detach().cpu().numpy()
-        
+
         # Rho (Approximate or use parity if rates were in features)
         # In this 9-feature set, rates/dividends are not features (standard for this specific engine)
         # If needed, parity can be applied if we assume Black-Scholes dynamics.
-        rho = np.zeros_like(delta) 
+        rho = np.zeros_like(delta)
 
         return (
             cast(np.ndarray[Any, np.dtype[np.float64]], delta),

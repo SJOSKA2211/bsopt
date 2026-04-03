@@ -74,11 +74,9 @@ _USER_INPUT_MARKERS = re.compile(
 # Comment / docstring detection
 # ---------------------------------------------------------------------------
 
-_COMMENT_LINE_RE = re.compile(
-    r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE
-)
+_COMMENT_LINE_RE = re.compile(r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE)
 
-_TRIPLE_QUOTE_RE = re.compile(r'''^\s*(?:\"{3}|'{3})''')
+_TRIPLE_QUOTE_RE = re.compile(r"""^\s*(?:\"{3}|'{3})""")
 
 _MARKDOWN_CODE_FENCE = re.compile(r"""^\s*```""")
 
@@ -101,14 +99,13 @@ _TEST_FILE_RE = re.compile(
 
 def _is_test_file(filepath: Path) -> bool:
     """Return True if *filepath* looks like a test or fixture file."""
-    return bool(_TEST_FILE_RE.search(filepath.name)) or bool(
-        _TEST_FILE_RE.search(str(filepath))
-    )
+    return bool(_TEST_FILE_RE.search(filepath.name)) or bool(_TEST_FILE_RE.search(str(filepath)))
 
 
 # ---------------------------------------------------------------------------
 # Severity helpers
 # ---------------------------------------------------------------------------
+
 
 def _lower_severity(severity: str) -> str:
     """Return the next-lower severity level."""
@@ -167,7 +164,6 @@ def _only_hardcoded_string(line: str) -> bool:
 # The scanner applies context analysis on top of base_severity.
 
 _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
-
     # -----------------------------------------------------------------
     # 1. CODE INJECTION (Python)
     # -----------------------------------------------------------------
@@ -252,7 +248,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "code_injection",
         ".format() in template rendering context (template injection)",
     ),
-
     # -----------------------------------------------------------------
     # 2. COMMAND INJECTION
     # -----------------------------------------------------------------
@@ -292,7 +287,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "command_injection",
         "Backtick execution with variable interpolation",
     ),
-
     # -----------------------------------------------------------------
     # 3. SQL INJECTION
     # -----------------------------------------------------------------
@@ -334,7 +328,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "sql_injection",
         "f-string in execute() call (SQL injection)",
     ),
-
     # -----------------------------------------------------------------
     # 4. PROMPT INJECTION
     # -----------------------------------------------------------------
@@ -378,7 +371,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "prompt_injection",
         "User input passed directly to LLM messages without sanitization",
     ),
-
     # -----------------------------------------------------------------
     # 5. XSS (Cross-Site Scripting)
     # -----------------------------------------------------------------
@@ -424,7 +416,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "xss",
         "jQuery .html() with variable content",
     ),
-
     # -----------------------------------------------------------------
     # 6. SSRF (Server-Side Request Forgery)
     # -----------------------------------------------------------------
@@ -469,7 +460,6 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "ssrf",
         "HTTP request without visible URL allowlist/blocklist validation",
     ),
-
     # -----------------------------------------------------------------
     # 7. PATH TRAVERSAL
     # -----------------------------------------------------------------
@@ -527,6 +517,7 @@ for _name, _pat, _sev, _itype, _desc in _INJECTION_DEFS:
 # File collection
 # =========================================================================
 
+
 def _should_scan_file(filepath: Path) -> bool:
     """Decide if a file should be included for injection scanning."""
     name = filepath.name.lower()
@@ -551,9 +542,7 @@ def collect_files(target: Path) -> list[Path]:
 
         for fname in filenames:
             if len(files) >= max_files:
-                logger.warning(
-                    "Reached max_files_per_scan limit (%d). Stopping.", max_files
-                )
+                logger.warning("Reached max_files_per_scan limit (%d). Stopping.", max_files)
                 return files
 
             fpath = Path(root) / fname
@@ -566,6 +555,7 @@ def collect_files(target: Path) -> list[Path]:
 # =========================================================================
 # Core scanning logic
 # =========================================================================
+
 
 def _snippet(line: str, match_start: int, context: int = 80) -> str:
     """Extract a short snippet around the match position."""
@@ -587,7 +577,7 @@ def _is_in_docstring(lines: list[str], line_idx: int) -> bool:
     for i in range(line_idx):
         # Count triple quotes in each preceding line
         content = lines[i]
-        count += len(re.findall(r'''(?:\"{3}|'{3})''', content))
+        count += len(re.findall(r"""(?:\"{3}|'{3})""", content))
     return count % 2 == 1
 
 
@@ -683,7 +673,11 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
 
             # More specific: if a *_user_input variant matched, mark its group
             if "user_input" in pat_name or "var" in pat_name:
-                generic_group = injection_type + ":" + pat_name.replace("_user_input", "").replace("_var", "").rsplit("_", 1)[0]
+                generic_group = (
+                    injection_type
+                    + ":"
+                    + pat_name.replace("_user_input", "").replace("_var", "").rsplit("_", 1)[0]
+                )
                 line_patterns[line_num].add(generic_group)
 
             line_patterns[line_num].add(group_key)
@@ -708,17 +702,19 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
             if is_test:
                 adjusted_severity = _lower_severity(adjusted_severity)
 
-            findings.append({
-                "type": "injection",
-                "injection_type": injection_type,
-                "pattern": pat_name,
-                "severity": adjusted_severity,
-                "file": file_str,
-                "line": line_num,
-                "snippet": _snippet(line, m.start()),
-                "description": description,
-                "has_user_input_nearby": line_has_user_input[line_idx],
-            })
+            findings.append(
+                {
+                    "type": "injection",
+                    "injection_type": injection_type,
+                    "pattern": pat_name,
+                    "severity": adjusted_severity,
+                    "file": file_str,
+                    "line": line_num,
+                    "snippet": _snippet(line, m.start()),
+                    "description": description,
+                    "has_user_input_nearby": line_has_user_input[line_idx],
+                }
+            )
 
     return findings
 
@@ -729,10 +725,10 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
 
 SCORE_DEDUCTIONS = {
     "CRITICAL": 12,
-    "HIGH":      6,
-    "MEDIUM":    3,
-    "LOW":       1,
-    "INFO":      0,
+    "HIGH": 6,
+    "MEDIUM": 3,
+    "LOW": 1,
+    "INFO": 0,
 }
 
 
@@ -778,13 +774,13 @@ def compute_score(findings: list[dict]) -> int:
 # =========================================================================
 
 _INJECTION_TYPE_LABELS = {
-    "code_injection":    "Code Injection",
+    "code_injection": "Code Injection",
     "command_injection": "Command Injection",
-    "sql_injection":     "SQL Injection",
-    "prompt_injection":  "Prompt Injection",
-    "xss":               "Cross-Site Scripting (XSS)",
-    "ssrf":              "Server-Side Request Forgery (SSRF)",
-    "path_traversal":    "Path Traversal",
+    "sql_injection": "SQL Injection",
+    "prompt_injection": "Prompt Injection",
+    "xss": "Cross-Site Scripting (XSS)",
+    "ssrf": "Server-Side Request Forgery (SSRF)",
+    "path_traversal": "Path Traversal",
 }
 
 
@@ -841,8 +837,7 @@ def format_text_report(
     min_severity = config.SEVERITY["LOW"] if include_low else config.SEVERITY["MEDIUM"]
 
     displayed = [
-        f for f in findings
-        if config.SEVERITY.get(f.get("severity", "INFO"), 0) >= min_severity
+        f for f in findings if config.SEVERITY.get(f.get("severity", "INFO"), 0) >= min_severity
     ]
 
     if displayed:
@@ -855,8 +850,13 @@ def format_text_report(
         # Order: code_injection, command_injection, sql_injection, prompt_injection,
         #         xss, ssrf, path_traversal, then anything else
         type_order = [
-            "code_injection", "command_injection", "sql_injection",
-            "prompt_injection", "xss", "ssrf", "path_traversal",
+            "code_injection",
+            "command_injection",
+            "sql_injection",
+            "prompt_injection",
+            "xss",
+            "ssrf",
+            "path_traversal",
         ]
         # Add any types not in the predefined order
         for t in by_type:
@@ -881,9 +881,7 @@ def format_text_report(
 
                 for f in sorted(sev_group, key=lambda x: (x["file"], x.get("line", 0))):
                     taint_marker = " [TAINTED]" if f.get("has_user_input_nearby") else ""
-                    lines.append(
-                        f"    [{sev}] {f['file']}:L{f.get('line', 0)}{taint_marker}"
-                    )
+                    lines.append(f"    [{sev}] {f['file']}:L{f.get('line', 0)}{taint_marker}")
                     lines.append(f"           {f['description']}")
                     if f.get("snippet"):
                         lines.append(f"           > {f['snippet']}")
@@ -939,6 +937,7 @@ def build_json_report(
 # Main entry point
 # =========================================================================
 
+
 def run_scan(
     target_path: str,
     output_format: str = "text",
@@ -983,9 +982,7 @@ def run_scan(
 
     for fpath in files:
         if len(all_findings) >= max_report:
-            logger.warning(
-                "Reached max_report_findings limit (%d). Truncating.", max_report
-            )
+            logger.warning("Reached max_report_findings limit (%d). Truncating.", max_report)
             break
 
         file_findings = scan_file(fpath, verbose=verbose)
@@ -995,7 +992,9 @@ def run_scan(
     elapsed = time.time() - start_time
     logger.info(
         "Injection scan complete: %d files, %d findings in %.2fs",
-        total_files, len(all_findings), elapsed,
+        total_files,
+        len(all_findings),
+        elapsed,
     )
 
     # Aggregation
@@ -1036,18 +1035,20 @@ def run_scan(
     if output_format == "json":
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print(format_text_report(
-            target=str(target),
-            total_files=total_files,
-            findings=all_findings,
-            severity_counts=severity_counts,
-            type_counts=type_counts,
-            pattern_counts=pattern_counts,
-            score=score,
-            verdict=verdict,
-            elapsed=elapsed,
-            include_low=include_low,
-        ))
+        print(
+            format_text_report(
+                target=str(target),
+                total_files=total_files,
+                findings=all_findings,
+                severity_counts=severity_counts,
+                type_counts=type_counts,
+                pattern_counts=pattern_counts,
+                score=score,
+                verdict=verdict,
+                elapsed=elapsed,
+                include_low=include_low,
+            )
+        )
 
     return report
 

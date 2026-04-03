@@ -13,6 +13,7 @@ import pandas as pd
 from src.ingestion.engine import NSEScraper
 from src.shared.observability import logger
 
+
 async def get_sp500_symbols() -> list[str]:
     """Fetches S&P 500 symbols from Wikipedia."""
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
@@ -28,6 +29,7 @@ async def get_sp500_symbols() -> list[str]:
         logger.error("failed_to_fetch_sp500", error=str(e))
         return ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA"]  # Fallback
 
+
 async def get_nse_symbols() -> list[str]:
     """Discovers all active symbols from the NSE scraper."""
     scraper = NSEScraper()
@@ -40,6 +42,7 @@ async def get_nse_symbols() -> list[str]:
     finally:
         await scraper.shutdown()
 
+
 async def discover_full_universe() -> set[str]:
     """Discovers all symbols for both markets."""
     sp500_task = asyncio.create_task(get_sp500_symbols())
@@ -49,6 +52,7 @@ async def discover_full_universe() -> set[str]:
     full_universe = set(sp500 + nse)
     logger.info("universe_discovery_complete", total_count=len(full_universe))
     return full_universe
+
 
 if __name__ == "__main__":
     import json

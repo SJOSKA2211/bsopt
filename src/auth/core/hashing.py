@@ -3,16 +3,20 @@ Secure Hashing Substrate (Argon2id).
 """
 
 import logging
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class PasswordHasherService:
     """
     Argon2id password hashing and verification.
     """
+
     def __init__(self):
         self.ph = PasswordHasher(
             time_cost=settings.ARGON2_TIME_COST,
@@ -43,6 +47,7 @@ class PasswordHasherService:
             return self.ph.check_needs_rehash(hashed_password)
         except Exception:
             return True
+
 
 # Global instance for easy access
 hasher = PasswordHasherService()

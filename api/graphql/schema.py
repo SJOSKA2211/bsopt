@@ -5,6 +5,7 @@ from strawberry.federation import Schema
 
 from api.graphql.types import OHLCV, MarketData, Option
 
+
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
@@ -13,20 +14,24 @@ class Portfolio:
     cash_balance: float = strawberry.federation.field(name="cash_balance", shareable=True)
     created_at: datetime
 
+
 @strawberry.federation.type(shareable=True)
 class OptionEdge:
     cursor: str
     node: Option
+
 
 @strawberry.federation.type(shareable=True)
 class PageInfo:
     has_next_page: bool
     end_cursor: str | None
 
+
 @strawberry.federation.type(shareable=True)
 class OptionConnection:
     edges: list[OptionEdge]
     page_info: PageInfo
+
 
 # QUERIES
 @strawberry.federation.type(shareable=True)
@@ -41,6 +46,7 @@ class MLPrediction:
     model_name: str = strawberry.field(name="model_name")
     timestamp: datetime
     last_updated: datetime = strawberry.field(name="last_updated")
+
 
 @strawberry.federation.type(shareable=True)
 class Query:
@@ -151,6 +157,7 @@ class Query:
             edges=edges,
             page_info=PageInfo(has_next_page=has_next, end_cursor=next_cursor),
         )
+
 
 # APOLLO FEDERATION - Subgraph Schema
 schema: Schema = Schema(query=Query, types=[Option, Portfolio])

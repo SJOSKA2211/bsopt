@@ -9,20 +9,10 @@ def int_to_mini_roman(number):
     >>> int_to_mini_roman(152) == 'clii'
     >>> int_to_mini_roman(426) == 'cdxxvi'
     """
-    val = [
-        1000, 900, 500, 400,
-        100, 90, 50, 40,
-        10, 9, 5, 4,
-        1
-    ]
-    syms = [
-        'm', 'cm', 'd', 'cd',
-        'c', 'xc', 'l', 'xl',
-        'x', 'ix', 'v', 'iv',
-        'i'
-    ]
-    
-    roman_num = ''
+    val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    syms = ["m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"]
+
+    roman_num = ""
     i = 0
     while number > 0:
         for _ in range(number // val[i]):

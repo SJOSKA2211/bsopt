@@ -14,7 +14,7 @@ ALLOWED_SERVICES = {
     "redis",
     "postgres",
     "rabbitmq",
-    "ml-inference", # Updated from neural-pricing
+    "ml-inference",  # Updated from neural-pricing
     "portfolio",
     "scraper",
     "envoy",
@@ -22,6 +22,7 @@ ALLOWED_SERVICES = {
 }
 
 SERVICE_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
+
 
 class DockerRemediator:
     """

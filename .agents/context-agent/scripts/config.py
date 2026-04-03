@@ -25,33 +25,57 @@ MEMORY_DIR = CLAUDE_SESSION_DIR / "memory"
 MEMORY_MD_PATH = MEMORY_DIR / "MEMORY.md"
 
 # ── Limites ─────────────────────────────────────────────────────────
-MAX_ACTIVE_CONTEXT_LINES = 150      # MEMORY.md é truncado em 200 linhas
-MAX_RECENT_SESSIONS = 5             # Sessões recentes carregadas no briefing
-ARCHIVE_AFTER_SESSIONS = 20         # Arquivar sessões mais antigas que N
-MAX_DECISIONS_AGE_DAYS = 30         # Decisões mais velhas são podadas
-MAX_SEARCH_RESULTS = 10             # Resultados padrão de busca
+MAX_ACTIVE_CONTEXT_LINES = 150  # MEMORY.md é truncado em 200 linhas
+MAX_RECENT_SESSIONS = 5  # Sessões recentes carregadas no briefing
+ARCHIVE_AFTER_SESSIONS = 20  # Arquivar sessões mais antigas que N
+MAX_DECISIONS_AGE_DAYS = 30  # Decisões mais velhas são podadas
+MAX_SEARCH_RESULTS = 10  # Resultados padrão de busca
 
 # ── Padrões de detecção ────────────────────────────────────────────
 # Palavras que indicam decisões no texto
 DECISION_MARKERS_PT = [
-    "decidimos", "vamos usar", "optamos por", "escolhemos",
-    "a decisão foi", "ficou decidido", "definimos que",
-    "a abordagem será", "seguiremos com",
+    "decidimos",
+    "vamos usar",
+    "optamos por",
+    "escolhemos",
+    "a decisão foi",
+    "ficou decidido",
+    "definimos que",
+    "a abordagem será",
+    "seguiremos com",
 ]
 DECISION_MARKERS_EN = [
-    "we decided", "let's use", "we'll go with", "the decision is",
-    "we chose", "going with", "the approach will be", "decided to",
+    "we decided",
+    "let's use",
+    "we'll go with",
+    "the decision is",
+    "we chose",
+    "going with",
+    "the approach will be",
+    "decided to",
 ]
 DECISION_MARKERS = DECISION_MARKERS_PT + DECISION_MARKERS_EN
 
 # Palavras que indicam tarefas pendentes
 PENDING_MARKERS_PT = [
-    "falta", "ainda precisa", "pendente", "todo:", "TODO:",
-    "depois vamos", "próximo passo", "faltando",
+    "falta",
+    "ainda precisa",
+    "pendente",
+    "todo:",
+    "TODO:",
+    "depois vamos",
+    "próximo passo",
+    "faltando",
 ]
 PENDING_MARKERS_EN = [
-    "todo:", "TODO:", "still need", "pending", "next step",
-    "remaining", "left to do", "needs to be done",
+    "todo:",
+    "TODO:",
+    "still need",
+    "pending",
+    "next step",
+    "remaining",
+    "left to do",
+    "needs to be done",
 ]
 PENDING_MARKERS = PENDING_MARKERS_PT + PENDING_MARKERS_EN
 

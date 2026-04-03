@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import msgspec
-from datetime import datetime, UTC
 from pydantic import BaseModel, ConfigDict, Field
+
 
 class InferenceRequest(BaseModel):
     """ML inference request (Pydantic for Request Validation)."""
@@ -31,10 +33,12 @@ class InferenceRequest(BaseModel):
         }
     )
 
+
 class BatchInferenceRequest(BaseModel):
     """Batch ML inference request."""
 
     requests: list[InferenceRequest]
+
 
 class InferenceResponse(msgspec.Struct, frozen=True):
     """ML inference response (OPTIMIZED: msgspec)."""
@@ -44,20 +48,24 @@ class InferenceResponse(msgspec.Struct, frozen=True):
     latency_ms: float
     timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
 
+
 class BatchInferenceResponse(msgspec.Struct, frozen=True):
     """Batch ML inference response (OPTIMIZED: msgspec)."""
 
     predictions: list[InferenceResponse]
     total_latency_ms: float
 
+
 class ComparisonMetrics(msgspec.Struct, frozen=True):
     """Real-time performance metrics (AI vs Human)."""
+
     userPnl: float
     aiPnl: float
     userSharpe: float
     aiSharpe: float
     userWinRate: float
     aiWinRate: float
+
 
 class DriftMetrics(msgspec.Struct, frozen=True):
     """Hourly drift metrics (msgspec)."""
@@ -67,6 +75,7 @@ class DriftMetrics(msgspec.Struct, frozen=True):
     mae: float
     rmse: float
     prediction_count: int
+
 
 class DriftMetricsResponse(msgspec.Struct, frozen=True):
     """Response containing a list of drift metrics."""

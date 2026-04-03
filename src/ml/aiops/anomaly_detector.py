@@ -12,6 +12,7 @@ logger = structlog.get_logger()
 
 # ─── Neural Network Components ──────────────────────────────────────────────
 
+
 class VAE(nn.Module):
     """Variational Autoencoder for robust anomaly detection."""
 
@@ -46,6 +47,7 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decoder(z), mu, logvar
 
+
 class TimeSeriesTransformerEncoder(nn.Module):
     """Transformer-based encoder for sequential metric analysis."""
 
@@ -71,7 +73,9 @@ class TimeSeriesTransformerEncoder(nn.Module):
         x = self.transformer_encoder(x)
         return self.decoder(x)
 
+
 # ─── Unified Anomaly Detector ───────────────────────────────────────────────
+
 
 class AnomalyDetector:
     """
@@ -98,7 +102,7 @@ class AnomalyDetector:
             self.latent_dim = kwargs.get("latent_dim", 16)
             self.threshold = None
             raw_model = VAE(self.input_dim, self.latent_dim).to(self.device)
-            
+
             try:
                 self.model = torch.compile(raw_model)
             except (AttributeError, Exception):
@@ -194,7 +198,7 @@ class AnomalyDetector:
                     loss.backward()
                     self.optimizer.step()
                     mlflow.log_metric("transformer_loss", loss.item(), step=epoch)
-                
+
                 # Calculate threshold (95th percentile)
                 self.model.eval()
                 with torch.no_grad():
@@ -264,12 +268,12 @@ class AnomalyDetector:
             tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
             if tensor_data.dim() == 2:
                 tensor_data = tensor_data.unsqueeze(0)
-            
+
             with torch.inference_mode():
                 recon = self.model(tensor_data)
                 # errors: (Batch,)
                 errors = torch.mean((recon - tensor_data) ** 2, dim=(1, 2)).cpu().numpy()
-                
+
                 for i, error in enumerate(errors):
                     if self.threshold is not None and error > self.threshold:
                         # Find culprit feature for this specific sample
@@ -277,7 +281,7 @@ class AnomalyDetector:
                         sample_data = tensor_data[i]
                         per_feature_error = torch.mean((sample_recon - sample_data) ** 2, dim=0)
                         culprit_idx = int(torch.argmax(per_feature_error).item())
-                        
+
                         anomalies.append(
                             {
                                 "index": i,

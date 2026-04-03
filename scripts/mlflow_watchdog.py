@@ -1,18 +1,17 @@
-import os
-import time
-import threading
 import json
-import urllib.request
-import urllib.error
 import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Any, Optional
+import os
+import threading
+import time
+import urllib.error
+import urllib.request
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Institutional-grade minimal logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("mlflow_watchdog")
 
@@ -25,17 +24,18 @@ HEALTH_PORT = 8080
 IS_HEALTHY = False
 HEALTH_DETAILS = "Initializing..."
 
+
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             if IS_HEALTHY:
                 self.send_response(200)
-                self.send_header('Content-type', 'text/plain')
+                self.send_header("Content-type", "text/plain")
                 self.end_headers()
                 self.wfile.write(b"OK")
             else:
                 self.send_response(503)
-                self.send_header('Content-type', 'text/plain')
+                self.send_header("Content-type", "text/plain")
                 self.end_headers()
                 self.wfile.write(f"Service Degraded: {HEALTH_DETAILS}".encode())
         else:
@@ -45,15 +45,17 @@ class HealthHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
-def fetch_json(url: str, timeout: int = 10) -> Optional[dict]:
+
+def fetch_json(url: str, timeout: int = 10) -> dict | None:
     """Robust JSON fetcher using standard library only."""
     try:
         with urllib.request.urlopen(url, timeout=timeout) as resp:
             if resp.getcode() == 200:
-                return json.loads(resp.read().decode('utf-8'))
+                return json.loads(resp.read().decode("utf-8"))
     except Exception as e:
         logger.warning(f"Fetch failed: {url} | Error: {e}")
     return None
+
 
 class MLflowWatchdog:
     """
@@ -73,7 +75,7 @@ class MLflowWatchdog:
         if data:
             self.consecutive_ray_failures = 0
             return True
-        
+
         self.consecutive_ray_failures += 1
         return False
 
@@ -104,24 +106,29 @@ class MLflowWatchdog:
     def handle_job_failure(self, job: dict):
         """Self-healing: trigger job respawn or resource adjustment."""
         entrypoint = job.get("entrypoint", "N/A")
-        logger.info(f"Initiating self-healing for job {job.get('job_id')} | Entrypoint: {entrypoint}")
-        # In this revamped version, we log the intent. 
+        logger.info(
+            f"Initiating self-healing for job {job.get('job_id')} | Entrypoint: {entrypoint}"
+        )
+        # In this revamped version, we log the intent.
         # Actual respawn would happen via 'ray job submit'.
 
     def start_health_server(self):
         """Run the internal health probe server."""
+
         def serve():
             server = HTTPServer(("0.0.0.0", HEALTH_PORT), HealthHandler)
             logger.info(f"Watchdog health server listening on port {HEALTH_PORT}")
             server.serve_forever()
-            
+
         thread = threading.Thread(target=serve, daemon=True)
         thread.start()
 
     def monitor_and_heal(self):
         """Main loop for infrastructure monitoring."""
         global IS_HEALTHY, HEALTH_DETAILS
-        logger.info(f"MLOps Watchdog started | MLFlow: {MLFLOW_TRACKING_URI} | Ray: {RAY_DASHBOARD_URL}")
+        logger.info(
+            f"MLOps Watchdog started | MLFlow: {MLFLOW_TRACKING_URI} | Ray: {RAY_DASHBOARD_URL}"
+        )
 
         self.start_health_server()
 
@@ -136,12 +143,15 @@ class MLflowWatchdog:
             else:
                 IS_HEALTHY = False
                 reasons = []
-                if not ray_up: reasons.append("Ray Dashboard Unreachable")
-                if not mlflow_up: reasons.append("MLFlow Tracking Unreachable")
+                if not ray_up:
+                    reasons.append("Ray Dashboard Unreachable")
+                if not mlflow_up:
+                    reasons.append("MLFlow Tracking Unreachable")
                 HEALTH_DETAILS = " | ".join(reasons)
                 logger.error(f"System Degraded: {HEALTH_DETAILS}")
 
             time.sleep(CHECK_INTERVAL)
+
 
 if __name__ == "__main__":
     watchdog = MLflowWatchdog()

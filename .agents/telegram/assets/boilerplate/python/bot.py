@@ -6,24 +6,29 @@ Usage:
     python bot.py
 """
 
-import os
 import logging
+import os
+
 from dotenv import load_dotenv
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler,
-    CallbackQueryHandler, filters, ContextTypes
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
 )
 
 load_dotenv()
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
 
 # --- Command Handlers ---
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
@@ -61,16 +66,21 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /menu command with inline keyboard."""
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Opcao 1", callback_data="opt1"),
-         InlineKeyboardButton("Opcao 2", callback_data="opt2")],
-        [InlineKeyboardButton("Opcao 3", callback_data="opt3")],
-        [InlineKeyboardButton("Visitar site", url="https://core.telegram.org/bots")]
-    ])
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("Opcao 1", callback_data="opt1"),
+                InlineKeyboardButton("Opcao 2", callback_data="opt2"),
+            ],
+            [InlineKeyboardButton("Opcao 3", callback_data="opt3")],
+            [InlineKeyboardButton("Visitar site", url="https://core.telegram.org/bots")],
+        ]
+    )
     await update.message.reply_text("Escolha uma opcao:", reply_markup=keyboard)
 
 
 # --- Callback Handler ---
+
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle inline keyboard callbacks."""
@@ -81,6 +91,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- Message Handler ---
 
+
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Echo non-command messages."""
     if update.message and update.message.text:
@@ -89,12 +100,14 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- Error Handler ---
 
+
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     """Log errors."""
     logger.error("Exception while handling update:", exc_info=context.error)
 
 
 # --- Main ---
+
 
 def main():
     token = os.getenv("TELEGRAM_BOT_TOKEN")

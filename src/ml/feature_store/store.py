@@ -7,6 +7,7 @@ from .features import EMAFeature, LogReturnFeature, MACDFeature, RSIPeature
 
 logger = structlog.get_logger()
 
+
 class InMemoryFeatureStore(FeatureStore):
     def __init__(self) -> None:
         self.features: dict[str, Feature] = {}
@@ -73,6 +74,7 @@ class InMemoryFeatureStore(FeatureStore):
         if redis and cache_key:
             try:
                 import asyncio
+
                 asyncio.create_task(self._background_cache_fill(df, cache_key))
             except Exception:
                 pass
@@ -90,6 +92,7 @@ class InMemoryFeatureStore(FeatureStore):
                 logger.info("feature_cache_populated", key=key, rows=len(df))
         except Exception as e:
             logger.error("feature_cache_failed", key=key, error=str(e))
+
 
 # Global instance
 feature_store = InMemoryFeatureStore()

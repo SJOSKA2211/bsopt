@@ -9,6 +9,7 @@ from src.quant.pricing.quant_utils import (
     scalar_greeks_jit_v2,
 )
 
+
 def test_fast_normal_kernels():
     # Test CDF
     assert pytest.approx(fast_normal_cdf_v2(0.0), 1e-5) == 0.5
@@ -18,6 +19,7 @@ def test_fast_normal_kernels():
     # Test PDF
     assert pytest.approx(fast_normal_pdf_v2(0.0), 1e-5) == 0.39894228
     assert fast_normal_pdf_v2(10.0) < 1e-10
+
 
 def test_scalar_bs_price_jit():
     S, K, T, sigma, r, q = 100.0, 100.0, 1.0, 0.2, 0.05, 0.0
@@ -29,6 +31,7 @@ def test_scalar_bs_price_jit():
     assert price_put > 0
     assert price_call > price_put  # Call-Put parity: C - P = S - K*exp(-rT) = 100 - 100*0.95 = 4.87
     assert pytest.approx(price_call - price_put, 1e-5) == S - K * np.exp(-r * T)
+
 
 def test_batch_bs_price_jit():
     S = np.array([100.0, 100.0], dtype=np.float64)
@@ -42,6 +45,7 @@ def test_batch_bs_price_jit():
     prices = batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call)
     assert len(prices) == 2
     assert prices[0] > prices[1]  # ATM call > OTM call
+
 
 def test_scalar_greeks_jit():
     S, K, T, sigma, r, q = 100.0, 100.0, 1.0, 0.2, 0.05, 0.0

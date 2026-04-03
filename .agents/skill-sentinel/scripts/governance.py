@@ -4,11 +4,8 @@ Auto-governanca do Sentinel.
 Registra todas as acoes do sentinel em audit log proprio.
 Padrao leve — sem rate limiting (operacoes locais apenas).
 """
-from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from __future__ import annotations
 
 from db import Database
 
@@ -16,11 +13,13 @@ from db import Database
 class SentinelGovernance:
     """Registra acoes do sentinel para auditabilidade."""
 
-    def __init__(self, db: Optional[Database] = None):
+    def __init__(self, db: Database | None = None):
         self.db = db or Database()
         self.db.init()
 
-    def log_action(self, action: str, params: Optional[Dict] = None, result: Optional[Dict] = None) -> None:
+    def log_action(
+        self, action: str, params: dict | None = None, result: dict | None = None
+    ) -> None:
         """Registra uma acao no audit log."""
         self.db.log_action(action, params, result)
 
@@ -28,17 +27,23 @@ class SentinelGovernance:
         self.log_action("audit_start", {"skills": skills})
 
     def log_audit_complete(self, run_id: int, score: float, findings_count: int) -> None:
-        self.log_action("audit_complete", {
-            "run_id": run_id,
-            "overall_score": score,
-            "findings_count": findings_count,
-        })
+        self.log_action(
+            "audit_complete",
+            {
+                "run_id": run_id,
+                "overall_score": score,
+                "findings_count": findings_count,
+            },
+        )
 
     def log_recommendation(self, suggested_name: str, priority: str) -> None:
-        self.log_action("recommendation", {
-            "suggested_name": suggested_name,
-            "priority": priority,
-        })
+        self.log_action(
+            "recommendation",
+            {
+                "suggested_name": suggested_name,
+                "priority": priority,
+            },
+        )
 
     def get_recent_actions(self, limit: int = 20) -> list:
         return self.db.get_recent_actions(limit)

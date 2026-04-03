@@ -6,9 +6,8 @@ Nota: URL /leiloeiros retornava 404 — URL correta é /servicos/leiloeiros.
       Lista 28 leiloeiros com matrícula, data de posse, situação, contatos e redes sociais.
       Registros atualizados até 2025.
 """
-from __future__ import annotations
 
-from typing import List
+from __future__ import annotations
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -18,7 +17,7 @@ class JucealScraper(AbstractJuntaScraper):
     junta = "JUCEAL"
     url = "http://www.juceal.al.gov.br/servicos/leiloeiros"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
             # Tenta HTTPS também
@@ -28,7 +27,7 @@ class JucealScraper(AbstractJuntaScraper):
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         for table in soup.find_all("table"):
             rows = table.find_all("tr")
@@ -50,16 +49,18 @@ class JucealScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro", "nº"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or "Maceió",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                    endereco=gcol(cells, ["ender", "logr"]),
-                    data_registro=gcol(cells, ["data", "posse"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro", "nº"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or "Maceió",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                        endereco=gcol(cells, ["ender", "logr"]),
+                        data_registro=gcol(cells, ["data", "posse"]),
+                    )
+                )
             if results:
                 break
 

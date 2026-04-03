@@ -3,11 +3,9 @@
 # Attempts: 1
 # Passed: True
 
-from typing import List
 
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+def intersperse(numbers: list[int], delimeter: int) -> list[int]:
+    """Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
     >>> intersperse([], 4)
     []
     >>> intersperse([1, 2, 3], 4)
@@ -15,11 +13,11 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     """
     if not numbers:
         return []
-    
+
     result = []
     for i, num in enumerate(numbers):
         result.append(num)
         if i < len(numbers) - 1:
             result.append(delimeter)
-    
+
     return result

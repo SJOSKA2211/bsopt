@@ -2,14 +2,13 @@ import base64
 import time
 from typing import Any
 
-import msgspec
 import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.shared.config import settings
-from src.shared.utils.crypto import AES256GCM
 from src.shared.rabbitmq import get_rabbitmq
+from src.shared.utils.crypto import AES256GCM
 
 logger = structlog.get_logger(__name__)
 
@@ -18,6 +17,7 @@ _vault_key = settings.AUDIT_VAULT_KEY
 _vault = (
     AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) if _vault_key else None
 )
+
 
 async def _produce_audit_log(payload: dict[str, Any]):
     """Background task to produce audit logs to RabbitMQ with delivery assurance."""
@@ -38,11 +38,13 @@ async def _produce_audit_log(payload: dict[str, Any]):
     except Exception as e:
         logger.warning("audit_log_production_failed", error=str(e))
 
+
 class AuditMiddleware(BaseHTTPMiddleware):
     """
     Production Audit Middleware.
     Pushes audit logs to RabbitMQ asynchronously.
     """
+
     def __init__(self, app):
         super().__init__(app)
 
@@ -72,8 +74,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
         if "background_tasks" not in request.scope:
             request.scope["background_tasks"] = BackgroundTasks()
 
-        request.scope["background_tasks"].add_task(
-            _produce_audit_log, audit_payload
-        )
+        request.scope["background_tasks"].add_task(_produce_audit_log, audit_payload)
 
         return response

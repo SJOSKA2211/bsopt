@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def is_simple_power(x, n):
     """Your task is to write a function that returns true if a number x is a simple
     power of n and false in other cases.

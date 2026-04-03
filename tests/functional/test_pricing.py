@@ -4,6 +4,7 @@ Pricing Engine Functional Tests (Refined Plan)
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_pricing_valid_request(client):
     """5. Pricing Endpoint: Valid payload."""
@@ -20,6 +21,7 @@ async def test_pricing_valid_request(client):
     response = await client.post("/api/v1/pricing/price", json=payload)
     assert response.status_code == 200
     assert "price" in response.json()["data"]
+
 
 @pytest.mark.asyncio
 async def test_pricing_invalid_payload(client):

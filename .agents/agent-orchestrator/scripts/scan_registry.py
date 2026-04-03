@@ -17,13 +17,13 @@ Usage:
     python scan_registry.py --force      # Full re-scan ignoring hashes
 """
 
-import os
-import sys
-import json
 import hashlib
+import json
+import os
 import re
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # ── Configuration ──────────────────────────────────────────────────────────
 
@@ -37,100 +37,284 @@ HASHES_PATH = DATA_DIR / "registry_hashes.json"
 
 # Where to search for SKILL.md files
 SEARCH_PATHS = [
-    SKILLS_ROOT / ".claude" / "skills",   # registered skills
-    SKILLS_ROOT,                           # top-level standalone
+    SKILLS_ROOT / ".claude" / "skills",  # registered skills
+    SKILLS_ROOT,  # top-level standalone
 ]
 MAX_DEPTH = 3  # max directory depth for SKILL.md search
 
 # Capability keyword mapping (PT + EN)
 CAPABILITY_MAP = {
     "data-extraction": [
-        "scrape", "extract", "crawl", "parse", "harvest", "collect",
-        "raspar", "extrair", "coletar", "dados",
+        "scrape",
+        "extract",
+        "crawl",
+        "parse",
+        "harvest",
+        "collect",
+        "raspar",
+        "extrair",
+        "coletar",
+        "dados",
     ],
     "messaging": [
-        "whatsapp", "message", "send", "chat", "notification", "sms",
-        "mensagem", "enviar", "notificacao", "atendimento",
+        "whatsapp",
+        "message",
+        "send",
+        "chat",
+        "notification",
+        "sms",
+        "mensagem",
+        "enviar",
+        "notificacao",
+        "atendimento",
     ],
     "social-media": [
-        "instagram", "facebook", "twitter", "post", "stories", "reels",
-        "social", "engagement", "feed", "follower",
+        "instagram",
+        "facebook",
+        "twitter",
+        "post",
+        "stories",
+        "reels",
+        "social",
+        "engagement",
+        "feed",
+        "follower",
     ],
     "government-data": [
-        "junta", "leiloeiro", "cadastro", "governo", "comercial",
-        "tribunal", "diario oficial", "certidao", "registro",
+        "junta",
+        "leiloeiro",
+        "cadastro",
+        "governo",
+        "comercial",
+        "tribunal",
+        "diario oficial",
+        "certidao",
+        "registro",
     ],
     "web-automation": [
-        "browser", "selenium", "playwright", "automate", "click",
-        "navegador", "automatizar", "automacao",
+        "browser",
+        "selenium",
+        "playwright",
+        "automate",
+        "click",
+        "navegador",
+        "automatizar",
+        "automacao",
     ],
     "api-integration": [
-        "api", "endpoint", "webhook", "rest", "graph", "oauth",
-        "integracao", "integrar",
+        "api",
+        "endpoint",
+        "webhook",
+        "rest",
+        "graph",
+        "oauth",
+        "integracao",
+        "integrar",
     ],
     "analytics": [
-        "insight", "analytics", "metrics", "dashboard", "report",
-        "relatorio", "metricas", "analise",
+        "insight",
+        "analytics",
+        "metrics",
+        "dashboard",
+        "report",
+        "relatorio",
+        "metricas",
+        "analise",
     ],
     "content-management": [
-        "publish", "schedule", "template", "content", "media",
-        "publicar", "agendar", "conteudo", "midia",
+        "publish",
+        "schedule",
+        "template",
+        "content",
+        "media",
+        "publicar",
+        "agendar",
+        "conteudo",
+        "midia",
     ],
     "legal": [
-        "advogado", "direito", "juridico", "lei", "processo",
-        "acao", "peticao", "recurso", "sentenca", "juiz",
-        "divorcio", "guarda", "alimentos", "pensao", "alimenticia", "inventario", "heranca", "partilha",
-        "acidente de trabalho", "acidente",
-        "familia", "criminal", "penal", "crime", "feminicidio", "maria da penha",
-        "violencia domestica", "medida protetiva", "stalking",
-        "danos morais", "responsabilidade civil", "indenizacao", "dano",
-        "consumidor", "cdc", "plano de saude",
-        "trabalhista", "clt", "rescisao", "fgts", "horas extras",
-        "previdenciario", "aposentadoria", "aposentar", "inss",
-        "imobiliario", "usucapiao", "despejo", "inquilinato",
-        "alienacao fiduciaria", "bem de familia",
-        "tributario", "imposto", "icms", "execucao fiscal",
-        "administrativo", "licitacao", "improbidade", "mandado de seguranca",
-        "empresarial", "societario", "falencia", "recuperacao judicial",
-        "empresa", "ltda", "cnpj", "mei", "eireli", "contrato social",
-        "contrato", "clausula", "contestacao", "apelacao", "agravo",
-        "habeas corpus", "mandado", "liminar", "tutela",
-        "cpc", "stj", "stf", "sumula", "jurisprudencia",
-        "oab", "honorarios", "custas",
+        "advogado",
+        "direito",
+        "juridico",
+        "lei",
+        "processo",
+        "acao",
+        "peticao",
+        "recurso",
+        "sentenca",
+        "juiz",
+        "divorcio",
+        "guarda",
+        "alimentos",
+        "pensao",
+        "alimenticia",
+        "inventario",
+        "heranca",
+        "partilha",
+        "acidente de trabalho",
+        "acidente",
+        "familia",
+        "criminal",
+        "penal",
+        "crime",
+        "feminicidio",
+        "maria da penha",
+        "violencia domestica",
+        "medida protetiva",
+        "stalking",
+        "danos morais",
+        "responsabilidade civil",
+        "indenizacao",
+        "dano",
+        "consumidor",
+        "cdc",
+        "plano de saude",
+        "trabalhista",
+        "clt",
+        "rescisao",
+        "fgts",
+        "horas extras",
+        "previdenciario",
+        "aposentadoria",
+        "aposentar",
+        "inss",
+        "imobiliario",
+        "usucapiao",
+        "despejo",
+        "inquilinato",
+        "alienacao fiduciaria",
+        "bem de familia",
+        "tributario",
+        "imposto",
+        "icms",
+        "execucao fiscal",
+        "administrativo",
+        "licitacao",
+        "improbidade",
+        "mandado de seguranca",
+        "empresarial",
+        "societario",
+        "falencia",
+        "recuperacao judicial",
+        "empresa",
+        "ltda",
+        "cnpj",
+        "mei",
+        "eireli",
+        "contrato social",
+        "contrato",
+        "clausula",
+        "contestacao",
+        "apelacao",
+        "agravo",
+        "habeas corpus",
+        "mandado",
+        "liminar",
+        "tutela",
+        "cpc",
+        "stj",
+        "stf",
+        "sumula",
+        "jurisprudencia",
+        "oab",
+        "honorarios",
+        "custas",
     ],
     "auction": [
-        "leilao", "leilao judicial", "leilao extrajudicial", "hasta publica",
-        "arrematacao", "arrematar", "arrematante", "lance", "desagio",
-        "edital leilao", "penhora", "adjudicacao", "praca",
-        "imissao na posse", "carta arrematacao", "vil preco",
-        "avaliacao imovel", "laudo", "perito", "matricula",
-        "leiloeiro", "comissao leiloeiro",
+        "leilao",
+        "leilao judicial",
+        "leilao extrajudicial",
+        "hasta publica",
+        "arrematacao",
+        "arrematar",
+        "arrematante",
+        "lance",
+        "desagio",
+        "edital leilao",
+        "penhora",
+        "adjudicacao",
+        "praca",
+        "imissao na posse",
+        "carta arrematacao",
+        "vil preco",
+        "avaliacao imovel",
+        "laudo",
+        "perito",
+        "matricula",
+        "leiloeiro",
+        "comissao leiloeiro",
     ],
     "security": [
-        "seguranca", "security", "owasp", "vulnerability", "incident",
-        "pentest", "firewall", "malware", "phishing", "cve",
-        "autenticacao", "criptografia", "encryption",
+        "seguranca",
+        "security",
+        "owasp",
+        "vulnerability",
+        "incident",
+        "pentest",
+        "firewall",
+        "malware",
+        "phishing",
+        "cve",
+        "autenticacao",
+        "criptografia",
+        "encryption",
     ],
     "image-generation": [
-        "imagem", "image", "gerar imagem", "generate image",
-        "stable diffusion", "comfyui", "midjourney", "dall-e",
-        "foto", "ilustracao", "arte", "design",
+        "imagem",
+        "image",
+        "gerar imagem",
+        "generate image",
+        "stable diffusion",
+        "comfyui",
+        "midjourney",
+        "dall-e",
+        "foto",
+        "ilustracao",
+        "arte",
+        "design",
     ],
     "monitoring": [
-        "monitor", "monitorar", "health", "status",
-        "audit", "auditoria", "sentinel", "check",
+        "monitor",
+        "monitorar",
+        "health",
+        "status",
+        "audit",
+        "auditoria",
+        "sentinel",
+        "check",
     ],
     "context-management": [
-        "contexto", "context", "sessao", "session", "compactacao", "compaction",
-        "comprimir", "compress", "snapshot", "checkpoint", "briefing",
-        "continuidade", "continuity", "preservar", "preserve",
-        "memoria", "memory", "resumo", "summary",
-        "salvar estado", "save state", "context window", "janela de contexto",
-        "perda de dados", "data loss", "backup",
+        "contexto",
+        "context",
+        "sessao",
+        "session",
+        "compactacao",
+        "compaction",
+        "comprimir",
+        "compress",
+        "snapshot",
+        "checkpoint",
+        "briefing",
+        "continuidade",
+        "continuity",
+        "preservar",
+        "preserve",
+        "memoria",
+        "memory",
+        "resumo",
+        "summary",
+        "salvar estado",
+        "save state",
+        "context window",
+        "janela de contexto",
+        "perda de dados",
+        "data loss",
+        "backup",
     ],
 }
 
 # ── Utility Functions ──────────────────────────────────────────────────────
+
 
 def md5_file(path: Path) -> str:
     """Compute MD5 hash of a file."""
@@ -154,6 +338,7 @@ def parse_yaml_frontmatter(path: Path) -> dict:
 
     try:
         import yaml
+
         return yaml.safe_load(match.group(1)) or {}
     except Exception:
         # Fallback: manual parsing for name/description
@@ -165,7 +350,7 @@ def parse_yaml_frontmatter(path: Path) -> dict:
                 result[key] = m.group(1).strip()
             else:
                 # Handle multi-line description with >- or >
-                m2 = re.search(rf'^{key}:\s*>-?\s*\n((?:\s+.+\n?)+)', block, re.MULTILINE)
+                m2 = re.search(rf"^{key}:\s*>-?\s*\n((?:\s+.+\n?)+)", block, re.MULTILINE)
                 if m2:
                     lines = m2.group(1).strip().split("\n")
                     result[key] = " ".join(line.strip() for line in lines)
@@ -221,7 +406,7 @@ def extract_capabilities(description: str) -> list[str]:
         return []
 
     desc_lower = description.lower()
-    desc_words = set(re.findall(r'[a-zA-ZÀ-ÿ]+', desc_lower))
+    desc_words = set(re.findall(r"[a-zA-ZÀ-ÿ]+", desc_lower))
     caps = []
     for cap, keywords in CAPABILITY_MAP.items():
         for kw in keywords:
@@ -247,7 +432,7 @@ def extract_triggers(description: str) -> list[str]:
         all_keywords.update(keywords)
 
     desc_lower = description.lower()
-    desc_words = set(re.findall(r'[a-zA-ZÀ-ÿ]+', desc_lower))
+    desc_words = set(re.findall(r"[a-zA-ZÀ-ÿ]+", desc_lower))
     found = []
     for kw in sorted(all_keywords):
         if " " in kw:
@@ -288,6 +473,7 @@ def is_registered(skill_dir: Path) -> bool:
 
 
 # ── Main Logic ─────────────────────────────────────────────────────────────
+
 
 def load_hashes() -> dict:
     """Load stored hashes from registry_hashes.json."""
@@ -350,9 +536,7 @@ def build_skill_entry(skill_md_path: Path) -> dict:
         "triggers": extract_triggers(description),
         "language": detect_language(skill_dir),
         "status": assess_status(skill_dir),
-        "last_modified": datetime.fromtimestamp(
-            skill_md_path.stat().st_mtime
-        ).isoformat(),
+        "last_modified": datetime.fromtimestamp(skill_md_path.stat().st_mtime).isoformat(),
     }
 
 
@@ -438,15 +622,15 @@ def print_status(registry: dict):
         print("No skills found in the ecosystem.")
         return
 
-    print(f"\n{'='*80}")
-    print(f"  Agent Orchestrator - Skill Registry Status")
+    print(f"\n{'=' * 80}")
+    print("  Agent Orchestrator - Skill Registry Status")
     print(f"  Scanned at: {registry.get('generated_at', 'N/A')}")
     print(f"  Root: {registry.get('skills_root', 'N/A')}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     # Header
     print(f"  {'Name':<22} {'Status':<12} {'Lang':<10} {'Registered':<12} {'Capabilities'}")
-    print(f"  {'-'*22} {'-'*12} {'-'*10} {'-'*12} {'-'*30}")
+    print(f"  {'-' * 22} {'-' * 12} {'-' * 10} {'-' * 12} {'-' * 30}")
 
     for s in sorted(skills, key=lambda x: x.get("name", "")):
         name = s.get("name", "?")[:20]
@@ -476,6 +660,7 @@ def print_status(registry: dict):
 
 
 # ── CLI Entry Point ────────────────────────────────────────────────────────
+
 
 def main():
     force = "--force" in sys.argv

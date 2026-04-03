@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def fibfib(n: int):
     """The FibFib number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
     fibfib(0) == 0
@@ -23,7 +24,7 @@ def fibfib(n: int):
         return 0
     if n == 2:
         return 1
-    
+
     a, b, c = 0, 0, 1
     for _ in range(3, n + 1):
         a, b, c = b, c, a + b + c

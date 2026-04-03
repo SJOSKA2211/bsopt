@@ -9,6 +9,7 @@ from typing import Any
 
 import orjson
 
+
 class ConfigManager:
     """Manages CLI configuration stored in the user's home directory."""
 
@@ -38,7 +39,6 @@ class ConfigManager:
                 config: dict[str, Any] = self.defaults.copy()
                 for key, value in user_config.items():
                     if isinstance(value, dict) and key in config:
-                        
                         target = config[key]
                         if isinstance(target, dict):
                             target.update(value)
@@ -84,6 +84,7 @@ class ConfigManager:
         if scope == "user":
             self.config = self.defaults.copy()
             self.save()
+
 
 def get_config() -> ConfigManager:
     """Singleton-like helper to get ConfigManager instance."""

@@ -9,6 +9,7 @@ from api.middleware.idempotency import IdempotencyMiddleware
 
 # Note: We create fresh app per test to avoid middleware stacking issues
 
+
 @pytest.fixture
 def mock_redis():
     redis = AsyncMock()
@@ -19,6 +20,7 @@ def mock_redis():
     redis.delete = AsyncMock()
     redis.expire = AsyncMock()
     return redis
+
 
 @pytest.mark.asyncio
 async def test_idempotency_new_request(mock_redis):
@@ -45,6 +47,7 @@ async def test_idempotency_new_request(mock_redis):
         # A more robust test would mock the call_next response more deeply.
         # mock_redis.set.assert_called() # Result cached
 
+
 @pytest.mark.asyncio
 async def test_idempotency_duplicate_cached(mock_redis):
     cached_data = {
@@ -70,6 +73,7 @@ async def test_idempotency_duplicate_cached(mock_redis):
         assert response.json() == {"message": "cached"}
         assert response.headers.get("X-Idempotency-Cache") == "HIT"
 
+
 @pytest.mark.asyncio
 async def test_idempotency_conflict_in_progress(mock_redis):
     # Lock exists (setnx returns False) and no result in cache
@@ -91,6 +95,7 @@ async def test_idempotency_conflict_in_progress(mock_redis):
         assert response.status_code == 409
         assert "Request already in progress" in response.text
 
+
 @pytest.mark.asyncio
 async def test_idempotency_skip_get(mock_redis):
     app = FastAPI()
@@ -106,6 +111,7 @@ async def test_idempotency_skip_get(mock_redis):
         assert response.status_code == 200
         assert not mock_fp.called
         assert not mock_redis.get.called
+
 
 @pytest.mark.asyncio
 async def test_idempotency_error_re_raises(mock_redis):
@@ -126,6 +132,7 @@ async def test_idempotency_error_re_raises(mock_redis):
         # Lock should still be deleted in finally block
         mock_redis.delete.assert_called_with("idempotency:lock:err-fp")
 
+
 @pytest.mark.asyncio
 async def test_idempotency_not_cached_on_500(mock_redis):
     from fastapi.responses import JSONResponse
@@ -145,6 +152,7 @@ async def test_idempotency_not_cached_on_500(mock_redis):
         assert response.status_code == 500
         # Should NOT call redis.set for caching
         assert not mock_redis.set.called
+
 
 @pytest.mark.asyncio
 async def test_idempotency_streaming_not_cached(mock_redis):

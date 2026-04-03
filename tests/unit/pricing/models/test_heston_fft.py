@@ -3,6 +3,7 @@ import pytest
 
 from src.math_kernel.models.heston_fft import HestonModelFFT, HestonParams
 
+
 class TestHestonParams:
     def test_valid_params(self):
         params = HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
@@ -21,6 +22,7 @@ class TestHestonParams:
     def test_non_positive_params(self):
         with pytest.raises(ValueError, match="All parameters except rho must be positive"):
             HestonParams(v0=-0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
+
 
 class TestHestonModelFFT:
     @pytest.fixture

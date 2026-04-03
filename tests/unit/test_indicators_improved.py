@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 
-import numpy as np
-
 from src.ml.indicators import get_adx, get_atr, get_bbands, get_ema, get_macd, get_rsi
+
 
 class TestIndicators:
     def setUp(self):
@@ -42,4 +42,3 @@ class TestIndicators:
     def test_get_adx(self):
         adx = get_adx(self.high, self.low, self.close, length=5)
         assert len(adx) == len(self.prices)
-

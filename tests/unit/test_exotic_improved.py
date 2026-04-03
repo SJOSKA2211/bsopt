@@ -12,6 +12,7 @@ from src.math_kernel.exotic import (
     StrikeType,
 )
 
+
 class TestExotic:
     def setUp(self):
         self.base_params = BSParameters(
@@ -82,4 +83,3 @@ class TestExotic:
         p2, _ = price_exotic_option(
             "barrier", self.exotic_params, "call", barrier_type=BarrierType.UP_AND_OUT
         )
-

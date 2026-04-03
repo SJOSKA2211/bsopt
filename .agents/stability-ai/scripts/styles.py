@@ -4,6 +4,7 @@ Presets de estilo para Stability AI.
 Cada estilo adiciona qualificadores ao prompt do usuario para direcionar
 o modelo na direcao visual desejada. Use --style <nome> no CLI.
 """
+
 from __future__ import annotations
 
 STYLES = {

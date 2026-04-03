@@ -17,11 +17,13 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class PricingStrategy(Enum):
     BASE = "base"
     AGGRESSIVE = "aggressive"
     PENETRATION = "penetration"
     PREMIUM = "premium"
+
 
 class DynamicPricingService:
     """
@@ -42,7 +44,7 @@ class DynamicPricingService:
         Square-root market impact model.
         Impact = Y * Volatility * sqrt(Volume / ADV)
         """
-        Y = 1.0  
+        Y = 1.0
         if avg_daily_volume == 0:
             return 0.0
         return Y * volatility * np.sqrt(volume / avg_daily_volume)
@@ -110,6 +112,7 @@ class DynamicPricingService:
             return PricingStrategy.AGGRESSIVE
 
         return PricingStrategy.BASE
+
 
 # Global instance
 dynamic_pricing = DynamicPricingService()

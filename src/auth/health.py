@@ -1,13 +1,16 @@
 import asyncio
 import os
+
 import structlog
 from sqlalchemy import text
-from src.database import db_manager
+
 from src.auth.vault_service import vault_service
-from src.shared.utils.cache import get_redis_client
+from src.database import db_manager
 from src.shared.rabbitmq import get_rabbitmq
+from src.shared.utils.cache import get_redis_client
 
 logger = structlog.get_logger(__name__)
+
 
 async def check_database() -> bool:
     """Verifies connection to the Postgres backend."""
@@ -19,6 +22,7 @@ async def check_database() -> bool:
         logger.error("health_db_check_failed", error=str(e))
         return False
 
+
 def check_vault() -> bool:
     """Verifies connectivity and authentication with HashiCorp Vault."""
     try:
@@ -26,6 +30,7 @@ def check_vault() -> bool:
     except Exception as e:
         logger.error("health_vault_check_failed", error=str(e))
         return False
+
 
 async def check_redis() -> bool:
     """Verifies connection to the Redis cluster."""
@@ -35,6 +40,7 @@ async def check_redis() -> bool:
     except Exception as e:
         logger.error("health_redis_check_failed", error=str(e))
         return False
+
 
 async def check_rabbitmq() -> bool:
     """Verifies connectivity with RabbitMQ."""
@@ -47,9 +53,10 @@ async def check_rabbitmq() -> bool:
         logger.error("health_rabbitmq_check_failed", error=str(e))
         return False
 
+
 async def get_overall_health() -> dict:
     """Aggregates sub-service health into a single status report."""
-    
+
     if os.environ.get("BYPASS_HEALTH_CHECK", "false").lower() == "true":
         return {
             "status": "healthy",
@@ -58,22 +65,22 @@ async def get_overall_health() -> dict:
             "redis": "simulated",
             "rabbitmq": "simulated",
             "service": "auth-service",
-            "note": "Simulation mode active"
+            "note": "Simulation mode active",
         }
 
     # Parallel Health Checks
     db_task = asyncio.create_task(check_database())
     redis_task = asyncio.create_task(check_redis())
     rmq_task = asyncio.create_task(check_rabbitmq())
-    
+
     vault_ok = check_vault()
     db_ok = await db_task
     redis_ok = await redis_task
     rmq_ok = await rmq_task
-    
+
     all_ok = all([db_ok, vault_ok, redis_ok, rmq_ok])
     status = "healthy" if all_ok else "degraded"
-    
+
     return {
         "status": status,
         "database": "connected" if db_ok else "disconnected",
@@ -81,5 +88,5 @@ async def get_overall_health() -> dict:
         "redis": "connected" if redis_ok else "disconnected",
         "rabbitmq": "connected" if rmq_ok else "disconnected",
         "service": "auth-service",
-        "timestamp": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip()
+        "timestamp": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip(),
     }

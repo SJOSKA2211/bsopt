@@ -2,6 +2,7 @@ import pytest
 
 from src.math_kernel.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
 
+
 class TestLattice:
     def setUp(self):
         self.params = BSParameters(
@@ -38,4 +39,3 @@ class TestLattice:
         pricer = BinomialTreePricer(n_steps=10)
         tree = pricer.build_tree(self.params)
         assert tree.shape == (11, 11)
-

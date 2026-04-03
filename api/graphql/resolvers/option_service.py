@@ -15,6 +15,7 @@ router = MarketDataRouter()
 _shm_reader = SharedMemoryRingBuffer(create=False)
 _greeks_mesh = GreeksMesh(create=False)
 
+
 async def _load_options_vectorized(keys: list[str]) -> list[Option]:
     """Vectorized batch fetcher for DataLoaders using Speculative Concurrency."""
     # 1. Dispatch all fetches concurrently
@@ -31,7 +32,9 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
         is_error = isinstance(res, Exception) or (isinstance(res, dict) and "error" in res)
 
         if is_error:
-            results.append(Exception(f"Failed to load vector graph node for contract symbol: {symbol}"))
+            results.append(
+                Exception(f"Failed to load vector graph node for contract symbol: {symbol}")
+            )
         else:
             # At this point, res is guaranteed to be a successful dict
             res_dict = cast(dict[str, Any], res)
@@ -76,8 +79,10 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
             results.append(opt)
     return results
 
+
 # Persistent DataLoader for the request context
 option_loader = DataLoader(load_fn=_load_options_vectorized)
+
 
 async def get_option(
     symbol: str, expiry: date | datetime, strike: float, option_type: str
@@ -88,6 +93,7 @@ async def get_option(
     )
     contract_symbol = f"{symbol}_{expiry_str}_{option_type[0].upper()}_{int(strike)}"
     return await get_option_by_id(contract_symbol)
+
 
 async def get_option_by_id(id: str) -> Option | None:
     """Fetch option by its unique manifold ID."""
@@ -137,9 +143,11 @@ async def get_option_by_id(id: str) -> Option | None:
         return opt
     except Exception as e:
         import structlog
+
         logger = structlog.get_logger()
         logger.warning("graphql_option_resolve_failure", id=id, error=str(e))
         return None
+
 
 async def search_options_paginated(
     underlying: str,
@@ -209,10 +217,10 @@ async def search_options_paginated(
 
     results = []
     now = datetime.now()
-    
+
     # Hoisted exactly O(1) SHM lookup tracking the paginated parent underlying mappings
     shm_greeks = _greeks_mesh.read(underlying)
-    
+
     for contract in paged:
         symbol = cast(str, contract["symbol"])
         exp_val = contract["expiry"]

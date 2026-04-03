@@ -4,12 +4,13 @@ Distributed Computing Orchestration Layer.
 
 from src.shared.utils.ray_cluster_manager import RayClusterManager
 
+
 class RayOrchestrator:
     """
     Convenience wrapper for Ray Cluster Management.
     Provides the standard init() interface used across the codebase.
     """
-    
+
     @staticmethod
     def init(address: str | None = None, namespace: str = "bsopt") -> bool:
         """Initializes the Ray cluster connection."""

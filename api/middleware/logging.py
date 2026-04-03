@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Dedicated logger for request logs (can be configured separately)
 request_logger = logging.getLogger("requests")
 
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Log all HTTP requests and responses.
@@ -201,7 +202,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
                 session = SessionLocal()
                 try:
-                    
                     query_params_str = None
                     if log_entry.get("query_params"):
                         query_params_str = msgspec.json.encode(log_entry["query_params"]).decode(
@@ -231,6 +231,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 logger.error(f"Database persistence failed: {e}")
 
         await run_sync(_save)
+
 
 class StructuredLogger:
     """

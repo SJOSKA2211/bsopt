@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def sort_array(arr):
     """
     In this Kata, you have to sort an array of non-negative integers according to
@@ -14,4 +15,4 @@ def sort_array(arr):
     >>> sort_array([-2, -3, -4, -5, -6]) == [-6, -5, -4, -3, -2]
     >>> sort_array([1, 0, 2, 3, 4]) [0, 1, 2, 3, 4]
     """
-    return sorted(arr, key=lambda x: (bin(x).count('1'), x))
+    return sorted(arr, key=lambda x: (bin(x).count("1"), x))

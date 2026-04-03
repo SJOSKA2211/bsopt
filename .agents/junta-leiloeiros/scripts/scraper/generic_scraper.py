@@ -2,9 +2,8 @@
 Scraper genérico para juntas que usam formato padrão de tabela HTML.
 Estados sem scraper customizado herdam deste.
 """
-from __future__ import annotations
 
-from typing import List, Optional
+from __future__ import annotations
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -18,14 +17,14 @@ class GenericJuntaScraper(AbstractJuntaScraper):
     estado: str
     junta: str
     url: str
-    municipio_default: Optional[str] = None  # para estados com capital única dominante
+    municipio_default: str | None = None  # para estados com capital única dominante
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         # Tentativa 1: tabela HTML
         tables = soup.find_all("table")
@@ -42,8 +41,7 @@ class GenericJuntaScraper(AbstractJuntaScraper):
 
             # Verificar se parece uma tabela de leiloeiros
             has_name_col = any(
-                "nome" in k or "leiloeiro" in k or "auxiliar" in k
-                for k in col.keys()
+                "nome" in k or "leiloeiro" in k or "auxiliar" in k for k in col.keys()
             )
             if not has_name_col and len(headers) < 2:
                 continue
@@ -62,17 +60,19 @@ class GenericJuntaScraper(AbstractJuntaScraper):
                 if not nome or len(nome) < 3:
                     continue
 
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro", "núm", "numero", "nº"]),
-                    cpf_cnpj=gcol(cells, ["cpf", "cnpj", "documento"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or self.municipio_default,
-                    telefone=gcol(cells, ["tel", "fone", "contato"]),
-                    email=gcol(cells, ["email", "e-mail"]),
-                    endereco=gcol(cells, ["ender", "logr", "rua"]),
-                    data_registro=gcol(cells, ["data", "cadastr"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro", "núm", "numero", "nº"]),
+                        cpf_cnpj=gcol(cells, ["cpf", "cnpj", "documento"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or self.municipio_default,
+                        telefone=gcol(cells, ["tel", "fone", "contato"]),
+                        email=gcol(cells, ["email", "e-mail"]),
+                        endereco=gcol(cells, ["ender", "logr", "rua"]),
+                        data_registro=gcol(cells, ["data", "cadastr"]),
+                    )
+                )
 
             if results:
                 break  # Parar na primeira tabela com resultados
@@ -96,15 +96,18 @@ class GenericJuntaScraper(AbstractJuntaScraper):
             )
             if content:
                 import re
+
                 for p in content.find_all(["p", "div", "li"]):
                     text = self.clean(p.get_text())
                     if not text or len(text) < 5:
                         continue
                     # Filtrar parágrafos que parecem ser registros de pessoas
                     if re.search(r"\b[A-ZÁÉÍÓÚÀÃÕÇ][a-záéíóúàãõç]{2,}", text):
-                        results.append(self.make_leiloeiro(
-                            nome=text,
-                            municipio=self.municipio_default,
-                        ))
+                        results.append(
+                            self.make_leiloeiro(
+                                nome=text,
+                                municipio=self.municipio_default,
+                            )
+                        )
 
         return results

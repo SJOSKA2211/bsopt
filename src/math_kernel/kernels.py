@@ -3,6 +3,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 def black_scholes_cupy(
     S: cp.ndarray,
     K: cp.ndarray,
@@ -28,6 +29,7 @@ def black_scholes_cupy(
         return S * ndtr(d1) - K * cp.exp(-r * T) * ndtr(d2)
     else:
         return K * cp.exp(-r * T) * ndtr(-d2) - S * ndtr(-d1)
+
 
 def runge_kutta_4_gbm(
     S: cp.ndarray, mu: cp.ndarray, sigma: cp.ndarray, dt: float, dW: cp.ndarray

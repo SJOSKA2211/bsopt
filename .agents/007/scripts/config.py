@@ -20,16 +20,15 @@ Usage:
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 # ---------------------------------------------------------------------------
 # Directory Layout
 # ---------------------------------------------------------------------------
 # All paths use pathlib for Windows / Linux portability.
 
-BASE_DIR = Path(__file__).resolve().parent.parent          # 007/
+BASE_DIR = Path(__file__).resolve().parent.parent  # 007/
 SCRIPTS_DIR = BASE_DIR / "scripts"
 SCANNERS_DIR = SCRIPTS_DIR / "scanners"
 ANALYZERS_DIR = SCRIPTS_DIR / "analyzers"
@@ -50,6 +49,7 @@ SCORE_HISTORY_PATH = DATA_DIR / "score_history.json"
 # Ensure required directories exist (safe to call repeatedly)
 # ---------------------------------------------------------------------------
 
+
 def ensure_directories() -> None:
     """Create data directories if they do not already exist."""
     for directory in (DATA_DIR, REPORTS_DIR, PLAYBOOKS_DIR):
@@ -64,10 +64,10 @@ def ensure_directories() -> None:
 
 SEVERITY = {
     "CRITICAL": 5,
-    "HIGH":     4,
-    "MEDIUM":   3,
-    "LOW":      2,
-    "INFO":     1,
+    "HIGH": 4,
+    "MEDIUM": 3,
+    "LOW": 2,
+    "INFO": 1,
 }
 
 # Reverse lookup: weight -> label
@@ -80,26 +80,26 @@ SEVERITY_LABEL = {v: k for k, v in SEVERITY.items()}
 # Weights mirror the SKILL.md Phase 6 scoring table exactly.
 
 SCORING_WEIGHTS = {
-    "secrets":         0.20,   # Secrets & Credentials  (20%)
+    "secrets": 0.20,  # Secrets & Credentials  (20%)
     "input_validation": 0.15,  # Input Validation       (15%)
-    "authn_authz":     0.15,   # Authentication & AuthZ (15%)
-    "data_protection":  0.15,  # Data Protection        (15%)
-    "resilience":      0.10,   # Resilience             (10%)
-    "monitoring":      0.10,   # Monitoring             (10%)
-    "supply_chain":    0.10,   # Supply Chain           (10%)
-    "compliance":      0.05,   # Compliance             ( 5%)
+    "authn_authz": 0.15,  # Authentication & AuthZ (15%)
+    "data_protection": 0.15,  # Data Protection        (15%)
+    "resilience": 0.10,  # Resilience             (10%)
+    "monitoring": 0.10,  # Monitoring             (10%)
+    "supply_chain": 0.10,  # Supply Chain           (10%)
+    "compliance": 0.05,  # Compliance             ( 5%)
 }
 
 # Human-readable labels for reports
 SCORING_LABELS = {
-    "secrets":          "Segredos & Credenciais",
+    "secrets": "Segredos & Credenciais",
     "input_validation": "Input Validation",
-    "authn_authz":      "Autenticacao & Autorizacao",
-    "data_protection":  "Protecao de Dados",
-    "resilience":       "Resiliencia",
-    "monitoring":       "Monitoramento",
-    "supply_chain":     "Supply Chain",
-    "compliance":       "Compliance",
+    "authn_authz": "Autenticacao & Autorizacao",
+    "data_protection": "Protecao de Dados",
+    "resilience": "Resiliencia",
+    "monitoring": "Monitoramento",
+    "supply_chain": "Supply Chain",
+    "compliance": "Compliance",
 }
 
 
@@ -233,8 +233,7 @@ _SECRET_PATTERN_DEFS = [
 ]
 
 SECRET_PATTERNS = [
-    (name, re.compile(pattern), severity)
-    for name, pattern, severity in _SECRET_PATTERN_DEFS
+    (name, re.compile(pattern), severity) for name, pattern, severity in _SECRET_PATTERN_DEFS
 ]
 """List of (name: str, regex: re.Pattern, severity: str) tuples for secret detection."""
 
@@ -247,47 +246,39 @@ SECRET_PATTERNS = [
 
 _DANGEROUS_PATTERN_DEFS = [
     # Python dangerous functions
-    ("eval_usage",              r"""\beval\s*\(""",                                    "CRITICAL"),
-    ("exec_usage",              r"""\bexec\s*\(""",                                    "CRITICAL"),
-    ("subprocess_shell_true",   r"""subprocess\.\w+\(.*shell\s*=\s*True""",            "CRITICAL"),
-    ("os_system",              r"""\bos\.system\s*\(""",                               "HIGH"),
-    ("os_popen",               r"""\bos\.popen\s*\(""",                                "HIGH"),
-    ("pickle_loads",           r"""\bpickle\.loads?\s*\(""",                            "HIGH"),
-    ("yaml_unsafe_load",       r"""\byaml\.load\s*\((?!.*Loader\s*=)""",               "HIGH"),
-    ("marshal_loads",          r"""\bmarshal\.loads?\s*\(""",                           "MEDIUM"),
-    ("shelve_open",            r"""\bshelve\.open\s*\(""",                              "MEDIUM"),
-    ("compile_usage",          r"""\bcompile\s*\([^)]*\bexec\b""",                      "HIGH"),
-
+    ("eval_usage", r"""\beval\s*\(""", "CRITICAL"),
+    ("exec_usage", r"""\bexec\s*\(""", "CRITICAL"),
+    ("subprocess_shell_true", r"""subprocess\.\w+\(.*shell\s*=\s*True""", "CRITICAL"),
+    ("os_system", r"""\bos\.system\s*\(""", "HIGH"),
+    ("os_popen", r"""\bos\.popen\s*\(""", "HIGH"),
+    ("pickle_loads", r"""\bpickle\.loads?\s*\(""", "HIGH"),
+    ("yaml_unsafe_load", r"""\byaml\.load\s*\((?!.*Loader\s*=)""", "HIGH"),
+    ("marshal_loads", r"""\bmarshal\.loads?\s*\(""", "MEDIUM"),
+    ("shelve_open", r"""\bshelve\.open\s*\(""", "MEDIUM"),
+    ("compile_usage", r"""\bcompile\s*\([^)]*\bexec\b""", "HIGH"),
     # Dynamic imports
-    ("importlib_import",       r"""\b__import__\s*\(""",                                "MEDIUM"),
-    ("importlib_module",       r"""\bimportlib\.import_module\s*\(""",                  "MEDIUM"),
-
+    ("importlib_import", r"""\b__import__\s*\(""", "MEDIUM"),
+    ("importlib_module", r"""\bimportlib\.import_module\s*\(""", "MEDIUM"),
     # Shell/command injection vectors
-    ("shell_injection",        r"""\bos\.(?:system|popen|exec\w*)\s*\(""",              "CRITICAL"),
-
+    ("shell_injection", r"""\bos\.(?:system|popen|exec\w*)\s*\(""", "CRITICAL"),
     # File operations with external input (heuristic)
-    ("open_write",             r"""\bopen\s*\([^)]*['\"]\s*w""",                        "LOW"),
-
+    ("open_write", r"""\bopen\s*\([^)]*['\"]\s*w""", "LOW"),
     # Network without TLS verification
-    ("requests_no_verify",     r"""verify\s*=\s*False""",                               "HIGH"),
-    ("ssl_no_verify",          r"""(?i)ssl[_.]?verify\s*=\s*(?:False|0|None)""",        "HIGH"),
-
+    ("requests_no_verify", r"""verify\s*=\s*False""", "HIGH"),
+    ("ssl_no_verify", r"""(?i)ssl[_.]?verify\s*=\s*(?:False|0|None)""", "HIGH"),
     # SQL injection indicators
-    ("sql_string_format",      r"""(?i)(?:execute|cursor\.execute)\s*\(\s*[f'\"]+.*\{""", "CRITICAL"),
-    ("sql_percent_format",     r"""(?i)(?:execute|cursor\.execute)\s*\(\s*['\"].*%s.*%""","MEDIUM"),
-
+    ("sql_string_format", r"""(?i)(?:execute|cursor\.execute)\s*\(\s*[f'\"]+.*\{""", "CRITICAL"),
+    ("sql_percent_format", r"""(?i)(?:execute|cursor\.execute)\s*\(\s*['\"].*%s.*%""", "MEDIUM"),
     # JavaScript / Node.js dangerous patterns
-    ("js_eval",                r"""\beval\s*\(""",                                      "CRITICAL"),
-    ("child_process_exec",     r"""\bchild_process\.\s*exec\s*\(""",                    "CRITICAL"),
-    ("innerHTML_assignment",   r"""\.innerHTML\s*=""",                                   "HIGH"),
-
+    ("js_eval", r"""\beval\s*\(""", "CRITICAL"),
+    ("child_process_exec", r"""\bchild_process\.\s*exec\s*\(""", "CRITICAL"),
+    ("innerHTML_assignment", r"""\.innerHTML\s*=""", "HIGH"),
     # Dangerous deserialization (general)
-    ("deserialize_untrusted",  r"""(?i)\b(?:unserialize|deserialize|fromjson)\s*\(""",  "MEDIUM"),
+    ("deserialize_untrusted", r"""(?i)\b(?:unserialize|deserialize|fromjson)\s*\(""", "MEDIUM"),
 ]
 
 DANGEROUS_PATTERNS = [
-    (name, re.compile(pattern), severity)
-    for name, pattern, severity in _DANGEROUS_PATTERN_DEFS
+    (name, re.compile(pattern), severity) for name, pattern, severity in _DANGEROUS_PATTERN_DEFS
 ]
 """List of (name: str, regex: re.Pattern, severity: str) tuples for dangerous code detection."""
 
@@ -298,31 +289,68 @@ DANGEROUS_PATTERNS = [
 # Which files to scan by default. Others are ignored unless explicitly included.
 
 SCANNABLE_EXTENSIONS = {
-    ".py", ".js", ".ts", ".jsx", ".tsx",
-    ".mjs", ".cjs",
-    ".java", ".kt", ".scala",
-    ".go", ".rs", ".rb", ".php",
-    ".sh", ".bash", ".zsh", ".ps1",
-    ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf",
-    ".json", ".env", ".env.example",
+    ".py",
+    ".js",
+    ".ts",
+    ".jsx",
+    ".tsx",
+    ".mjs",
+    ".cjs",
+    ".java",
+    ".kt",
+    ".scala",
+    ".go",
+    ".rs",
+    ".rb",
+    ".php",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".ps1",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".ini",
+    ".cfg",
+    ".conf",
+    ".json",
+    ".env",
+    ".env.example",
     ".sql",
-    ".html", ".htm", ".xml",
-    ".md",       # may contain inline code or secrets
-    ".txt",      # may contain secrets
-    ".dockerfile", ".docker-compose.yml",
+    ".html",
+    ".htm",
+    ".xml",
+    ".md",  # may contain inline code or secrets
+    ".txt",  # may contain secrets
+    ".dockerfile",
+    ".docker-compose.yml",
 }
 
 # Directories to always skip during recursive scans
 SKIP_DIRECTORIES = {
-    ".git", ".hg", ".svn",
-    "__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache",
-    "node_modules", "bower_components",
-    "venv", ".venv", "env", ".env",
-    ".tox", ".nox",
-    "dist", "build", "egg-info",
-    ".next", ".nuxt",
+    ".git",
+    ".hg",
+    ".svn",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "node_modules",
+    "bower_components",
+    "venv",
+    ".venv",
+    "env",
+    ".env",
+    ".tox",
+    ".nox",
+    "dist",
+    "build",
+    "egg-info",
+    ".next",
+    ".nuxt",
     "vendor",
-    "coverage", ".coverage",
+    "coverage",
+    ".coverage",
     ".terraform",
 }
 
@@ -332,16 +360,16 @@ SKIP_DIRECTORIES = {
 # ---------------------------------------------------------------------------
 
 TIMEOUTS = {
-    "file_read_seconds":   10,    # Max time to read a single file
-    "scan_total_seconds":  300,   # Max time for a full scan operation
-    "network_seconds":     30,    # Max time for any network call
+    "file_read_seconds": 10,  # Max time to read a single file
+    "scan_total_seconds": 300,  # Max time for a full scan operation
+    "network_seconds": 30,  # Max time for any network call
 }
 
 LIMITS = {
-    "max_file_size_bytes": 5 * 1024 * 1024,   # 5 MB -- skip larger files
-    "max_files_per_scan":  10_000,              # Safety cap
-    "max_findings_per_file": 200,               # Truncate findings beyond this
-    "max_report_findings":  1_000,              # Total findings cap per report
+    "max_file_size_bytes": 5 * 1024 * 1024,  # 5 MB -- skip larger files
+    "max_files_per_scan": 10_000,  # Safety cap
+    "max_findings_per_file": 200,  # Truncate findings beyond this
+    "max_report_findings": 1_000,  # Total findings cap per report
 }
 
 
@@ -351,6 +379,7 @@ LIMITS = {
 
 LOG_FORMAT = "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
 
 def setup_logging(name: str = "007", level: int = logging.INFO) -> logging.Logger:
     """Configure and return a logger for 007 scripts.
@@ -378,13 +407,14 @@ def setup_logging(name: str = "007", level: int = logging.INFO) -> logging.Logge
 # Audit Log Utilities
 # ---------------------------------------------------------------------------
 
+
 def get_timestamp() -> str:
     """Return current UTC timestamp in ISO 8601 format.
 
     Example:
         '2026-02-26T14:30:00Z'
     """
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def log_audit_event(
@@ -421,6 +451,7 @@ def log_audit_event(
 # ---------------------------------------------------------------------------
 # Score Calculation Helpers
 # ---------------------------------------------------------------------------
+
 
 def calculate_weighted_score(domain_scores: dict[str, float]) -> float:
     """Compute the weighted final security score.

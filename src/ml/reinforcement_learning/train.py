@@ -26,6 +26,7 @@ logger = structlog.get_logger()
 # Global lock for SHM writes
 shm_lock = multiprocessing.Lock()
 
+
 class SHMWeightSyncCallback(BaseCallback):
     """
     Synchronizes model weights to shared memory.
@@ -41,7 +42,6 @@ class SHMWeightSyncCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.num_timesteps % self.sync_freq == 0:
-            
             with torch.no_grad():
                 state = {
                     k: v.detach().cpu().numpy() for k, v in self.model.policy.state_dict().items()
@@ -50,6 +50,7 @@ class SHMWeightSyncCallback(BaseCallback):
                 self.shm.write(state)
             logger.info("weights_synced_to_shm", step=self.num_timesteps)
         return True
+
 
 class RLTrainer(BaseTrainer):
     """
@@ -168,12 +169,15 @@ class RLTrainer(BaseTrainer):
 
             return {"run_id": run.info.run_id, "model_path": model_path}
 
+
 def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3"):
     trainer = RLTrainer("rl_trading_core", tracking_uri=settings.tracking_uri)
     return trainer.train_and_evaluate(total_timesteps=total_timesteps, model_path=model_path)
 
+
 def train_distributed(*args, **kwargs):
     return train_td3(*args, **kwargs)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Policy")
@@ -193,6 +197,7 @@ def main():
         warm_start_path=args.warm_start,
         sync_freq=args.sync_freq,
     )
+
 
 if __name__ == "__main__":
     main()

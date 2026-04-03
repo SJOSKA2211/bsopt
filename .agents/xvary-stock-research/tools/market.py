@@ -18,9 +18,9 @@ import csv
 import io
 import json
 import re
-from datetime import datetime, timezone
 import time
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import requests
 
@@ -41,10 +41,10 @@ _SUFFIX_MULTIPLIERS = {
 
 
 def _iso_now() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.now(UTC).replace(microsecond=0).isoformat()
 
 
-def _to_float(value: Any) -> Optional[float]:
+def _to_float(value: Any) -> float | None:
     try:
         if value is None:
             return None
@@ -53,7 +53,7 @@ def _to_float(value: Any) -> Optional[float]:
         return None
 
 
-def _parse_compact(raw: str) -> Optional[float]:
+def _parse_compact(raw: str) -> float | None:
     value = raw.strip().replace(",", "").replace("$", "").replace("~", "")
     if not value or value.upper() == "N/A":
         return None
@@ -67,7 +67,7 @@ def _parse_compact(raw: str) -> Optional[float]:
         return None
 
 
-def _parse_percent(raw: str) -> Optional[float]:
+def _parse_percent(raw: str) -> float | None:
     val = raw.strip().replace("%", "")
     try:
         if not val or val.upper() == "N/A":
@@ -78,7 +78,7 @@ def _parse_percent(raw: str) -> Optional[float]:
 
 
 def _http_get_json(url: str) -> dict[str, Any]:
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
             response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
@@ -100,7 +100,7 @@ def _http_get_json(url: str) -> dict[str, Any]:
 
 
 def _http_get_text(url: str) -> str:
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
             response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
@@ -121,7 +121,7 @@ def _http_get_text(url: str) -> str:
     raise last_error
 
 
-def _fetch_yahoo(ticker: str) -> Optional[dict[str, Any]]:
+def _fetch_yahoo(ticker: str) -> dict[str, Any] | None:
     url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={ticker}"
     payload = _http_get_json(url)
     rows = payload.get("quoteResponse", {}).get("result", [])
@@ -159,7 +159,7 @@ def _extract_finviz_map(html: str) -> dict[str, str]:
     return out
 
 
-def _fetch_finviz(ticker: str) -> Optional[dict[str, Any]]:
+def _fetch_finviz(ticker: str) -> dict[str, Any] | None:
     url = f"https://finviz.com/quote.ashx?t={ticker.upper()}"
     html = _http_get_text(url)
     data = _extract_finviz_map(html)
@@ -190,7 +190,7 @@ def _fetch_finviz(ticker: str) -> Optional[dict[str, Any]]:
     }
 
 
-def _fetch_stooq(ticker: str) -> Optional[dict[str, Any]]:
+def _fetch_stooq(ticker: str) -> dict[str, Any] | None:
     if "." in ticker:
         return None
     symbol = f"{ticker.lower()}.us"
@@ -220,7 +220,7 @@ def _fetch_stooq(ticker: str) -> Optional[dict[str, Any]]:
     }
 
 
-def _collect_market_data(ticker: str) -> Optional[dict[str, Any]]:
+def _collect_market_data(ticker: str) -> dict[str, Any] | None:
     for fetcher in (_fetch_yahoo, _fetch_finviz, _fetch_stooq):
         try:
             result = fetcher(ticker)
@@ -256,7 +256,7 @@ def get_ratios(ticker: str) -> dict[str, Any]:
     normalized = ticker.strip().upper()
 
     # Prefer Yahoo for ratios; short-circuit once we get usable ratio data.
-    fallback: Optional[dict[str, Any]] = None
+    fallback: dict[str, Any] | None = None
     for fetcher in (_fetch_yahoo, _fetch_finviz, _fetch_stooq):
         try:
             result = fetcher(normalized)

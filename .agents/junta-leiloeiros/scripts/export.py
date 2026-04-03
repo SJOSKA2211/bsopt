@@ -10,15 +10,15 @@ Uso:
     python scripts/export.py --format csv --estado SP
     python scripts/export.py --output /caminho/personalizado/
 """
+
 from __future__ import annotations
 
 import argparse
 import csv
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -29,11 +29,11 @@ OUTPUT_DIR = Path(__file__).parent.parent / "data" / "exports"
 
 def export_json(records: list, output_dir: Path, suffix: str = "") -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"leiloeiros{suffix}_{ts}.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(
-            {"exported_at": datetime.now(timezone.utc).isoformat(), "total": len(records), "data": records},
+            {"exported_at": datetime.now(UTC).isoformat(), "total": len(records), "data": records},
             f,
             ensure_ascii=False,
             indent=2,
@@ -44,7 +44,7 @@ def export_json(records: list, output_dir: Path, suffix: str = "") -> Path:
 
 def export_jsonl(records: list, output_dir: Path, suffix: str = "") -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"leiloeiros{suffix}_{ts}.jsonl"
     with open(path, "w", encoding="utf-8") as f:
         for rec in records:
@@ -59,7 +59,7 @@ def export_csv(records: list, output_dir: Path, suffix: str = "") -> Path:
         return None
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"leiloeiros{suffix}_{ts}.csv"
 
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
@@ -70,7 +70,7 @@ def export_csv(records: list, output_dir: Path, suffix: str = "") -> Path:
     return path
 
 
-def export_parquet(records: list, output_dir: Path, suffix: str = "") -> Optional[Path]:
+def export_parquet(records: list, output_dir: Path, suffix: str = "") -> Path | None:
     try:
         import pandas as pd
     except ImportError:
@@ -78,7 +78,7 @@ def export_parquet(records: list, output_dir: Path, suffix: str = "") -> Optiona
         return None
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = output_dir / f"leiloeiros{suffix}_{ts}.parquet"
 
     df = pd.DataFrame(records)
@@ -90,16 +90,16 @@ def export_parquet(records: list, output_dir: Path, suffix: str = "") -> Optiona
 def main():
     parser = argparse.ArgumentParser(description="Exporta dados de leiloeiros")
     parser.add_argument(
-        "--format", choices=["json", "jsonl", "csv", "parquet", "all"],
-        default="csv", help="Formato de exportação (default: csv)"
+        "--format",
+        choices=["json", "jsonl", "csv", "parquet", "all"],
+        default="csv",
+        help="Formato de exportação (default: csv)",
     )
     parser.add_argument(
-        "--estado", nargs="*", metavar="UF",
-        help="Filtrar por estado(s) (ex: SP RJ)"
+        "--estado", nargs="*", metavar="UF", help="Filtrar por estado(s) (ex: SP RJ)"
     )
     parser.add_argument(
-        "--output", default=str(OUTPUT_DIR),
-        help=f"Diretório de saída (default: {OUTPUT_DIR})"
+        "--output", default=str(OUTPUT_DIR), help=f"Diretório de saída (default: {OUTPUT_DIR})"
     )
     args = parser.parse_args()
 

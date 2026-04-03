@@ -2,6 +2,7 @@ import pytest
 
 from src.ml.aiops.drift_detector import PricingDriftDetector
 
+
 @pytest.mark.asyncio
 async def test_check_drift_theoretical():
     detector = PricingDriftDetector(threshold=0.05)
@@ -17,6 +18,7 @@ async def test_check_drift_theoretical():
     assert result["symbol"] == "BTC/USD"
     assert "drift_detected" in result
     assert isinstance(result["reasons"], list)
+
 
 @pytest.mark.asyncio
 async def test_drift_detector_initialization():

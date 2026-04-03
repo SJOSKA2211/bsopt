@@ -8,12 +8,14 @@ from src.auth.auth import get_current_active_user
 
 client = TestClient(app)
 
+
 @pytest.fixture
 def mock_user_free():
     u = MagicMock()
     u.tier = "free"
     u.is_active = True
     return u
+
 
 @pytest.fixture
 def mock_user_enterprise():
@@ -22,6 +24,7 @@ def mock_user_enterprise():
     u.is_active = True
     return u
 
+
 @pytest.fixture
 def mock_user_admin():
     u = MagicMock()
@@ -29,11 +32,13 @@ def mock_user_admin():
     u.is_active = True
     return u
 
+
 def test_system_health_deep_unauthorized():
     """Verify /system/health/deep requires auth and high tier."""
     # 1. No token
     response = client.get("/api/v1/system/health/deep")
     assert response.status_code == 401
+
 
 def test_system_diagnostics_tier_check(mock_user_free, mock_user_enterprise):
     """Verify tier check bug fix in system.py (list vs string)."""
@@ -52,10 +57,12 @@ def test_system_diagnostics_tier_check(mock_user_free, mock_user_enterprise):
 
     app.dependency_overrides.clear()
 
+
 def test_ml_predict_auth_required():
     """Verify ML routes now require authentication."""
     response = client.post("/api/v1/ml/predict", json={})
     assert response.status_code == 401
+
 
 def test_ml_admin_routes(mock_user_free, mock_user_admin):
     """Verify ML admin routes specifically require admin/enterprise."""
@@ -74,10 +81,12 @@ def test_ml_admin_routes(mock_user_free, mock_user_admin):
 
     app.dependency_overrides.clear()
 
+
 def test_options_chain_auth_required():
     """Verify options chain requires authentication."""
     response = client.get("/api/v1/options/chain")
     assert response.status_code == 401
+
 
 def test_pricing_calculate_auth_required():
     """Verify pricing calculation requires authentication."""

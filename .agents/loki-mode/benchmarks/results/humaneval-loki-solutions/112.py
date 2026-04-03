@@ -3,7 +3,8 @@
 # Attempts: 1
 # Passed: True
 
-def reverse_delete(s,c):
+
+def reverse_delete(s, c):
     """Task
     We are given two strings s and c, you have to deleted all the characters in s that are equal to any character in c
     then check if the result string is palindrome.
@@ -15,6 +16,6 @@ def reverse_delete(s,c):
     For s = "abcdedcba", c = "ab", the result should be ('cdedc',True)
     """
     chars_to_delete = set(c)
-    result = ''.join(char for char in s if char not in chars_to_delete)
+    result = "".join(char for char in s if char not in chars_to_delete)
     is_palindrome = result == result[::-1]
     return (result, is_palindrome)

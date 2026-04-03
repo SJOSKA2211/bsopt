@@ -1,5 +1,6 @@
 import subprocess
 
+
 def run_test_gauntlet():
     """
     Executes make test-all and attempts to heal common Production failures.
@@ -20,6 +21,7 @@ def run_test_gauntlet():
     except Exception as e:
         print(f"🚨 Gauntlet Crash: {str(e)}")
         return False
+
 
 def analyze_failures(output: str):
     """
@@ -46,6 +48,7 @@ def analyze_failures(output: str):
         # This would involve deeper analysis and code generation in a real agent
 
     print("🚀 Self-Healing Attempted. Please re-run 'make test-all'.")
+
 
 if __name__ == "__main__":
     run_test_gauntlet()

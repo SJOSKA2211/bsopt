@@ -53,7 +53,7 @@ def test_tcp_latency(host, port, timeout=5):
         latency = (time.time() - start) * 1000  # ms
         sock.close()
         return {"reachable": True, "latency_ms": round(latency, 1)}
-    except (socket.timeout, socket.error, OSError) as e:
+    except (TimeoutError, OSError) as e:
         return {"reachable": False, "latency_ms": None, "error": str(e)}
 
 
@@ -91,11 +91,13 @@ def check_network_interfaces():
     active = []
     for name, info in stats.items():
         if info.isup and info.speed > 0:
-            active.append({
-                "name": name,
-                "speed_mbps": info.speed,
-                "mtu": info.mtu,
-            })
+            active.append(
+                {
+                    "name": name,
+                    "speed_mbps": info.speed,
+                    "mtu": info.mtu,
+                }
+            )
     return active
 
 
@@ -170,10 +172,7 @@ def run_benchmark(samples=5):
     else:
         results["diagnosis"] = {
             "status": "ok",
-            "message": (
-                f"Conexao excelente ({api_ep['avg_ms']}ms). "
-                f"A rede NAO e o gargalo."
-            ),
+            "message": (f"Conexao excelente ({api_ep['avg_ms']}ms). A rede NAO e o gargalo."),
         }
 
     return results
@@ -216,13 +215,13 @@ def format_results(results):
     for iface in results["network_interfaces"]:
         speed = iface["speed_mbps"]
         if speed >= 1000:
-            speed_str = f"{speed/1000:.0f} Gbps"
+            speed_str = f"{speed / 1000:.0f} Gbps"
         else:
             speed_str = f"{speed} Mbps"
         lines.append(f"- {iface['name']}: {speed_str}")
 
     # Diagnóstico
-    lines.append(f"\n### Diagnostico")
+    lines.append("\n### Diagnostico")
     diag = results["diagnosis"]
     status_map = {"critical": "[!!!]", "warning": "[!]", "ok": "[OK]"}
     lines.append(f"{status_map[diag['status']]} {diag['message']}")

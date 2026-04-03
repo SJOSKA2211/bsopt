@@ -12,17 +12,23 @@ Usage:
 """
 
 import os
-import sys
 import re
 import shutil
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
 # --- Configuration ---
-DESKTOP = Path(os.environ.get("DESKTOP_PATH", str(Path(os.environ.get("USERPROFILE", "")) / "OneDrive" / "Desktop")))
+DESKTOP = Path(
+    os.environ.get(
+        "DESKTOP_PATH", str(Path(os.environ.get("USERPROFILE", "")) / "OneDrive" / "Desktop")
+    )
+)
 DESKTOP_FALLBACK = Path(os.environ.get("USERPROFILE", "")) / "Desktop"
-GLOBAL_DIARY_ROOT = Path(os.environ.get("GLOBAL_DIARY_ROOT", str(Path(__file__).resolve().parent.parent / "diary")))
+GLOBAL_DIARY_ROOT = Path(
+    os.environ.get("GLOBAL_DIARY_ROOT", str(Path(__file__).resolve().parent.parent / "diary"))
+)
 OBSIDIAN_DAILY_NOTES = Path(os.environ.get("OBSIDIAN_DAILY_NOTES", ""))
 NOTION_SYNC_SCRIPT = Path(__file__).resolve().parent / "sync_to_notion.py"
 
@@ -42,6 +48,7 @@ def get_global_path(date_str):
 
 # ── INJECT MODE ───────────────────────────────────────────────
 
+
 def scan_project_diaries(date_str):
     """Find all project diaries for today on the desktop."""
     desktop = get_desktop()
@@ -58,18 +65,22 @@ def scan_project_diaries(date_str):
         naked_diary = diary_dir / f"{date_str}.md"
         if naked_diary.exists():
             print(f"⚠️  WARNING: Found naked diary in project '{project_dir.name}': {naked_diary}")
-            print(f"   Ironclad Rule: Project diaries MUST have a suffix (e.g., {date_str}-{project_dir.name}.md)")
+            print(
+                f"   Ironclad Rule: Project diaries MUST have a suffix (e.g., {date_str}-{project_dir.name}.md)"
+            )
 
         # Support both flat and YYYY/MM hierarchical structures
         for md_file in diary_dir.rglob(f"{date_str}*.md"):
             # Skip the naked one if it exists to prevent accidental injection
             if md_file.name == f"{date_str}.md":
                 continue
-            results.append({
-                "path": md_file,
-                "project": project_dir.name,
-                "content": md_file.read_text(encoding="utf-8"),
-            })
+            results.append(
+                {
+                    "path": md_file,
+                    "project": project_dir.name,
+                    "content": md_file.read_text(encoding="utf-8"),
+                }
+            )
 
     return results
 
@@ -114,8 +125,7 @@ def inject_into_global(global_path, project_diaries, date_str):
 
             injection = f"\n{marker}\n{clean_content}\n"
             global_content = global_content.replace(
-                insertion_anchor,
-                f"{insertion_anchor}{injection}"
+                insertion_anchor, f"{insertion_anchor}{injection}"
             )
         else:
             global_content += f"\n{marker}\n{proj_content}\n"
@@ -144,7 +154,7 @@ def run_inject(date_str):
             global_path.parent.mkdir(parents=True, exist_ok=True)
             global_path.write_text(
                 f"# 📔 全域日誌：{date_str}\n\n## 今日全域回顧 (Global Summary)\n\n---\n\n## 🚀 專案進度 (Project Accomplishments)\n\n---\n\n## 💡 改善與學習 (Improvements & Learnings)\n\n---\n",
-                encoding="utf-8"
+                encoding="utf-8",
             )
         print(f"📄 Global diary ready at: {global_path}")
         return
@@ -156,6 +166,7 @@ def run_inject(date_str):
 
 
 # ── SYNC MODE ─────────────────────────────────────────────────
+
 
 def sync_to_notion(global_path):
     """Push global diary to Notion."""
@@ -175,7 +186,10 @@ def sync_to_notion(global_path):
     try:
         result = subprocess.run(
             [sys.executable, str(NOTION_SYNC_SCRIPT), str(global_path)],
-            env=env, capture_output=True, text=True, check=True
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         print(result.stdout)
         return True
@@ -187,12 +201,12 @@ def sync_to_notion(global_path):
 def backup_to_obsidian(global_path):
     # Copy global diary to Obsidian vault.
     print("📂 Backing up to Obsidian...")
-    
+
     # Safety Check: If path is empty, it shouldn't backup
     if not str(OBSIDIAN_DAILY_NOTES).strip():
         print("ℹ️  Obsidian path is not set (empty). Skipping backup.")
         return False
-        
+
     if not OBSIDIAN_DAILY_NOTES.exists():
         print(f"⚠️  Obsidian path not found: {OBSIDIAN_DAILY_NOTES}. Skipping backup.")
         return False
@@ -246,6 +260,7 @@ def run_sync(date_str):
 
 # ── MAIN ──────────────────────────────────────────────────────
 
+
 def main():
     date_str = get_today()
 
@@ -261,7 +276,9 @@ def main():
             sys.exit(1)
     else:
         # Legacy: run both (no AI rewrite in between)
-        print("⚠️  Running full pipeline (legacy mode). Consider using --inject-only and --sync-only separately.")
+        print(
+            "⚠️  Running full pipeline (legacy mode). Consider using --inject-only and --sync-only separately."
+        )
         run_inject(date_str)
         run_sync(date_str)
 

@@ -13,10 +13,12 @@ from src.shared.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 
+
 class RateLimitTier(StrEnum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"
+
 
 # Default configurations: (capacity, refill_rate_per_sec)
 TIER_CONFIGS = {
@@ -58,6 +60,7 @@ else
 end
 """
 
+
 class RedisTokenBucketLimiter:
     def __init__(self):
         self._lua_script = None
@@ -85,5 +88,6 @@ class RedisTokenBucketLimiter:
         except Exception as e:
             logger.error("rate_limit_check_failed", error=str(e), user_id=user_id)
             return True  # Fail open
+
 
 limiter = RedisTokenBucketLimiter()

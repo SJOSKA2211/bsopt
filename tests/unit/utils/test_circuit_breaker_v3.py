@@ -4,6 +4,7 @@ import pytest
 
 from src.shared.utils.circuit_breaker import CircuitState, InMemoryCircuitBreaker
 
+
 @pytest.mark.asyncio
 async def test_in_memory_circuit_breaker_success():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)
@@ -15,6 +16,7 @@ async def test_in_memory_circuit_breaker_success():
     res = await success()
     assert res == "ok"
     assert cb.state == CircuitState.CLOSED
+
 
 @pytest.mark.asyncio
 async def test_in_memory_circuit_breaker_failure_and_open():
@@ -39,6 +41,7 @@ async def test_in_memory_circuit_breaker_failure_and_open():
     with pytest.raises(Exception) as excinfo:
         await fail()
     assert "is OPEN" in str(excinfo.value)
+
 
 @pytest.mark.asyncio
 async def test_in_memory_circuit_breaker_half_open():

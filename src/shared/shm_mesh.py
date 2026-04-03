@@ -24,12 +24,14 @@ TICK_SIZE = TICK_DTYPE.itemsize
 BUFFER_CAPACITY = 100000  # 100k ticks
 SHM_NAME = "market_mesh_ring_buffer"
 
+
 class MarketTick(msgspec.Struct):
     symbol: str
     price: float
     volume: int
     timestamp: float
     receive_ts_ns: int
+
 
 # Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), d (Delta), d (Gamma), d (Vega), q (submit_ts_ns) = 60 bytes
 ORDER_DTYPE = np.dtype(
@@ -95,6 +97,7 @@ SHM_GREEKS_NAME = "greeks_mesh_buffer"
 # Map-based Greeks Snapshot: [Symbol(8s), Delta(d), Gamma(d), Theta(d), Vega(d), Rho(d), CalcTs(q)] * 2000 symbols
 GREEKS_MAP_CAPACITY = 2000
 GREEKS_MAP_SIZE = GREEKS_SIZE * GREEKS_MAP_CAPACITY
+
 
 class GreeksMesh:
     """O(1) Map-based Greeks Mesh for instant lookup."""
@@ -191,6 +194,7 @@ class GreeksMesh:
             }
         return None
 
+
 class GreeksBuffer:
     """High-Performance Greeks Mesh for real-time risk observability."""
 
@@ -253,6 +257,7 @@ class GreeksBuffer:
             time.time_ns(),
         )
         struct.pack_into("q", self.buf, 0, head + 1)
+
 
 class RiskStateBuffer:
     """Zero-Latency Risk State Buffer for Engine-Worker Synchronization."""
@@ -318,6 +323,7 @@ class RiskStateBuffer:
             )
         return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)
 
+
 class OrderBuffer:
     """Lock-Free Order Command Buffer (Agent -> Engine)."""
 
@@ -376,6 +382,7 @@ class OrderBuffer:
         )
         struct.pack_into("q", self.buf, 0, head + 1)
 
+
 class ExecutionBuffer:
     """Lock-Free Execution Status Buffer (Engine -> Agent)."""
 
@@ -415,6 +422,7 @@ class ExecutionBuffer:
         ts_ns = time.time_ns()
         self.view[head % EXEC_BUFFER_CAPACITY] = (order_id, price, qty, status, ts_ns)
         struct.pack_into("q", self.buf, 0, head + 1)
+
 
 class SharedMemoryRingBuffer:
     """
@@ -472,7 +480,7 @@ class SharedMemoryRingBuffer:
 
     def write_tick(self, symbol: str, price: float, volume: int, timestamp: float):
         """Writer: Direct write into numpy view with atomic index update."""
-        
+
         sym_bytes = symbol.encode("ascii")[:8]
         self.write_tick_raw(sym_bytes, price, volume, timestamp)
 

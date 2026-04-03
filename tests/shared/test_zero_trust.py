@@ -7,6 +7,7 @@ from src.shared.security import opa_authorize, verify_mtls
 
 app = FastAPI()
 
+
 @app.get(
     "/secure-data",
     dependencies=[
@@ -17,7 +18,9 @@ app = FastAPI()
 async def secure_data():
     return {"data": "secret"}
 
+
 client = TestClient(app)
+
 
 def test_mtls_and_opa_success():
     """Test successful mTLS and OPA authorization."""
@@ -32,6 +35,7 @@ def test_mtls_and_opa_success():
         assert response.status_code == 200
         assert response.json() == {"data": "secret"}
 
+
 def test_mtls_failure():
     """Test mTLS verification failure."""
     headers = {
@@ -42,6 +46,7 @@ def test_mtls_failure():
     response = client.get("/secure-data", headers=headers)
     assert response.status_code == 403
     assert response.json()["detail"] == "mTLS verification failed"
+
 
 def test_opa_failure():
     """Test OPA authorization failure."""
@@ -55,6 +60,7 @@ def test_opa_failure():
         response = client.get("/secure-data", headers=headers)
         assert response.status_code == 403
         assert "OPA Authorization failed" in response.json()["detail"]
+
 
 def test_missing_headers():
     """Test failure when headers are missing."""

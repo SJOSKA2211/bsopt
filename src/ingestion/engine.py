@@ -19,28 +19,29 @@ from src.ingestion.rust_parser import RustTickParser
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
-    ROUTING_COUNT,
-    ROUTING_LATENCY,
     setup_logging,
     start_system_metrics_loop,
 )
 from src.shared.protos import market_data_pb2, market_data_pb2_grpc
+from src.shared.schemas.market import MarketQuote
 from src.shared.utils.binary_format import EquaRecord
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
-from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger()
+
 
 class MarketSource(Protocol):
     async def get_ticker_data(self, symbol: str) -> MarketQuote:
         """Fetch real-time data for a given symbol."""
         ...
 
+
 # Pre-compiled regex for fast numeric extraction
 _CHANGE_RE = re.compile(r"([-+]?\d*\.?\d+)")
+
 
 class ProxyRotator:
     """
@@ -124,6 +125,7 @@ class ProxyRotator:
                 )
             except Exception:
                 pass
+
 
 class NSEScraper:
     """
@@ -379,7 +381,7 @@ class NSEScraper:
                 change=float(data.get("change", 0.0)),
                 volume=data.get("volume"),
                 market="NSE",
-                provider="NSE"
+                provider="NSE",
             )
 
         logger.warning("nse_ticker_not_in_cache", symbol=symbol)
@@ -444,6 +446,7 @@ class NSEScraper:
                 cleaned.append(self._clean_data(item))
             return cleaned
 
+
 class HighThroughputIngestor:
     """
     High-throughput ingestion engine using Rust-accelerated zero-copy parsing.
@@ -485,6 +488,7 @@ class HighThroughputIngestor:
         """
         return self.parser.to_pydantic(offset, count)
 
+
 async def main():
     """Scraper service entry point with Graceful Shutdown."""
     import signal
@@ -514,15 +518,13 @@ async def main():
 
                 # Best Practice: Robust Healthcheck Heartbeat (AIOps Compliant)
                 import json
+
                 def _write_heartbeat():
                     with open("/tmp/scraper_heartbeat", "w") as f:
                         processed_count = len(scraper._data_cache)
                         heartbeat_data = {
                             "time": time.time(),
-                            "metrics": {
-                                "processed": processed_count,
-                                "health": "ACTIVE"
-                            }
+                            "metrics": {"processed": processed_count, "health": "ACTIVE"},
                         }
                         f.write(json.dumps(heartbeat_data))
 
@@ -538,6 +540,7 @@ async def main():
     finally:
         logger.info("scraper_service_stopping_cleaning_up")
         await scraper.shutdown()
+
 
 if __name__ == "__main__":
     try:

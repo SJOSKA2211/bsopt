@@ -1,5 +1,4 @@
 import os
-from typing import Any
 
 import lightning.pytorch as pl
 import mlflow
@@ -15,6 +14,7 @@ from pytorch_forecasting.metrics import QuantileLoss
 from src.shared.config import settings
 
 logger = structlog.get_logger()
+
 
 class PriceTFTModel:
     """
@@ -36,7 +36,7 @@ class PriceTFTModel:
         """
         Prepares data for TFT training/validation with OOM protection.
         """
-        
+
         MAX_SAMPLES = 500000
         if len(data) > MAX_SAMPLES:
             logger.warning("data_truncated_for_memory_safety", original=len(data), max=MAX_SAMPLES)
@@ -264,6 +264,7 @@ class PriceTFTModel:
                 "status": "error",
                 "message": "Interpretation requires model evaluation on dataset",
             }
+
 
 if __name__ == "__main__":
     import argparse

@@ -2,7 +2,6 @@
 Pricing Routes (Optimized)
 """
 
-import asyncio
 import datetime
 
 import msgspec
@@ -29,6 +28,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=MsgspecJSONResponse)
 pricing_service = PricingService()
 
+
 @router.post("/price", response_model=None)
 @pricing_circuit
 @multi_layer_cache(prefix="price", ttl=300)
@@ -47,6 +47,7 @@ async def calculate_price(
         symbol=body.symbol,
     )
 
+
 @router.post("/batch", response_model=None)
 @pricing_circuit
 @multi_layer_cache(prefix="batch_price", ttl=60)
@@ -59,6 +60,7 @@ async def calculate_batch_prices(
     """
     return await pricing_service.price_batch(request.options)
 
+
 @router.post("/greeks/batch", response_model=None)
 @pricing_circuit
 async def calculate_batch_greeks(
@@ -68,6 +70,7 @@ async def calculate_batch_greeks(
     Vectorized batch Greek calculation.
     """
     return await pricing_service.calculate_greeks_batch(request.options)
+
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)
 @pricing_circuit
@@ -82,6 +85,7 @@ async def calculate_greeks(
     result = await pricing_service.calculate_greeks(params, body.option_type)
     return result
 
+
 class CalculateResponseStruct(msgspec.Struct):
     price: float
     greeks: dict[str, float]
@@ -95,6 +99,7 @@ class CalculateResponseStruct(msgspec.Struct):
     computation_time_ms: float
     cached: bool
     timestamp: datetime.datetime
+
 
 @router.post("/calculate")
 @pricing_circuit

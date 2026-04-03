@@ -11,6 +11,7 @@ from typing import Any
 import numpy as np
 import orjson
 
+
 @dataclass
 class Position:
     """Represents an option position in the portfolio."""
@@ -27,6 +28,7 @@ class Position:
     entry_price: float
     entry_date: str
     spot: float
+
 
 class PortfolioManager:
     """Manages a collection of option positions."""

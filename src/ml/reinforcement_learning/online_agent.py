@@ -18,6 +18,7 @@ from src.shared.shm_mesh import (
 
 logger = structlog.get_logger()
 
+
 class OnlineRLAgent:
     """
     Advanced Online RL Agent with Neural Plasticity.
@@ -34,7 +35,7 @@ class OnlineRLAgent:
         self.window_size = window_size
 
         #  SILICON BUFFERS
-        
+
         self._window_buffer = np.zeros((window_size, 128), dtype=np.float32)
         self._window_idx = 0
         self._prev_portfolio_value = initial_balance
@@ -209,6 +210,7 @@ class OnlineRLAgent:
                 )
                 self.positions[i] = target_units[i]
                 self.balance -= float(trades[i] * prices[i])
+
 
 if __name__ == "__main__":
     agent = OnlineRLAgent("models/latest_td3.zip")

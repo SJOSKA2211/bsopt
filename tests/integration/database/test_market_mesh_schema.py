@@ -3,6 +3,7 @@ import os
 import psycopg2
 import pytest
 
+
 @pytest.fixture
 def db_connection():
     # Use 127.0.0.1 to avoid IPv6 issues on localhost, match password from docker-compose
@@ -10,6 +11,7 @@ def db_connection():
     conn = psycopg2.connect(db_url)
     yield conn
     conn.close()
+
 
 def test_market_data_mesh_table_exists(db_connection):
     cur = db_connection.cursor()
@@ -22,6 +24,7 @@ def test_market_data_mesh_table_exists(db_connection):
     """
     )
     assert cur.fetchone()[0] is True
+
 
 def test_market_data_mesh_columns(db_connection):
     cur = db_connection.cursor()

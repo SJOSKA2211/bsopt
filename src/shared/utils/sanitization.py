@@ -3,6 +3,7 @@ import re
 
 _ALPHANUM_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
+
 def sanitize_alphanumeric(text: str) -> str:
     """
     Remove any characters that are not alphanumeric, underscores, or hyphens.
@@ -10,6 +11,7 @@ def sanitize_alphanumeric(text: str) -> str:
     if not text:
         return text
     return _ALPHANUM_RE.sub("", text)
+
 
 def sanitize_string(text: str) -> str:
     """
@@ -26,6 +28,7 @@ def sanitize_string(text: str) -> str:
 
     return clean_text
 
+
 def sanitize_email(email: str) -> str:
     """
     Normalize email address.
@@ -33,6 +36,7 @@ def sanitize_email(email: str) -> str:
     if not email:
         return email
     return email.lower().strip()
+
 
 def mask_email(email: str) -> str:
     """

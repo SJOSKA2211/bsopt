@@ -1,6 +1,7 @@
 from src.auth.password import PasswordService, PasswordValidator
 from tests.test_utils import assert_equal
 
+
 def test_password_validator():
     validator = PasswordValidator(min_length=8, require_uppercase=True, require_digit=True)
 
@@ -18,6 +19,7 @@ def test_password_validator():
     assert not result.is_valid
     assert any("uppercase letter" in e for e in result.errors)
 
+
 def test_password_service_hashing():
     service = PasswordService(rounds=4)  # Use few rounds for speed in tests
     password = "MySecurePassword123!"
@@ -27,6 +29,7 @@ def test_password_service_hashing():
     assert service.verify_password(password, hashed)
     assert not service.verify_password("wrong password", hashed)
 
+
 def test_password_generation():
     password = PasswordService.generate_password(length=20)
     assert_equal(len(password), 20)
@@ -34,6 +37,7 @@ def test_password_generation():
     assert any(c.isupper() for c in password)
     assert any(c.islower() for c in password)
     assert any(c.isdigit() for c in password)
+
 
 def test_password_history():
     service = PasswordService(rounds=4)
@@ -48,6 +52,7 @@ def test_password_history():
     is_allowed, msg = service.check_password_history("NewPass123!", old_passwords)
     assert is_allowed
     assert_equal(msg, "")
+
 
 def test_password_long_password():
     """Test handling of passwords longer than bcrypt's 72-byte limit."""

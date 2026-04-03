@@ -6,18 +6,18 @@ Usage:
     python webhook_server.py
 """
 
-import os
-import logging
 import asyncio
+import logging
+import os
+
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
+from flask import Flask, jsonify, request
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 load_dotenv()
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
@@ -34,14 +34,17 @@ application = Application.builder().token(TOKEN).build()
 
 # --- Handlers (same as bot.py) ---
 
+
 async def start(update: Update, context):
     await update.message.reply_html(
         f"Ola, <b>{update.effective_user.first_name}</b>! Bot ativo via webhook."
     )
 
+
 async def echo(update: Update, context):
     if update.message and update.message.text:
         await update.message.reply_text(f"Voce disse: {update.message.text}")
+
 
 # Register handlers
 application.add_handler(CommandHandler("start", start))
@@ -49,6 +52,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 
 # --- Flask Routes ---
+
 
 @flask_app.route(f"/webhook/{TOKEN}", methods=["POST"])
 def webhook():
@@ -80,16 +84,21 @@ def health():
 
 # --- Setup ---
 
+
 def register_webhook():
     """Register webhook with Telegram."""
     import requests as req
+
     url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
-    resp = req.post(url, json={
-        "url": f"{WEBHOOK_URL}/webhook/{TOKEN}",
-        "allowed_updates": ["message", "callback_query", "inline_query"],
-        "secret_token": WEBHOOK_SECRET,
-        "max_connections": 40
-    })
+    resp = req.post(
+        url,
+        json={
+            "url": f"{WEBHOOK_URL}/webhook/{TOKEN}",
+            "allowed_updates": ["message", "callback_query", "inline_query"],
+            "secret_token": WEBHOOK_SECRET,
+            "max_connections": 40,
+        },
+    )
     data = resp.json()
     if data.get("ok"):
         logger.info(f"Webhook registered: {WEBHOOK_URL}/webhook/***")

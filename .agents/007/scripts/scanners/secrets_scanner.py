@@ -101,8 +101,7 @@ _EXTRA_PATTERN_DEFS = [
 ]
 
 EXTRA_PATTERNS = [
-    (name, re.compile(pattern), severity)
-    for name, pattern, severity in _EXTRA_PATTERN_DEFS
+    (name, re.compile(pattern), severity) for name, pattern, severity in _EXTRA_PATTERN_DEFS
 ]
 
 # Combined pattern set: config patterns first, then extras
@@ -115,9 +114,16 @@ ALL_SECRET_PATTERNS = list(config.SECRET_PATTERNS) + EXTRA_PATTERNS
 
 # .env variants -- always scanned regardless of SCANNABLE_EXTENSIONS
 ENV_FILE_PATTERNS = {
-    ".env", ".env.local", ".env.production", ".env.staging",
-    ".env.development", ".env.test", ".env.example", ".env.sample",
-    ".env.defaults", ".env.template",
+    ".env",
+    ".env.local",
+    ".env.production",
+    ".env.staging",
+    ".env.development",
+    ".env.test",
+    ".env.example",
+    ".env.sample",
+    ".env.defaults",
+    ".env.template",
 }
 
 CONFIG_EXTENSIONS = {".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf"}
@@ -155,6 +161,7 @@ _PLACEHOLDER_PATTERN = re.compile(
 # Entropy calculation
 # ---------------------------------------------------------------------------
 
+
 def shannon_entropy(s: str) -> float:
     """Calculate Shannon entropy of a string.
 
@@ -188,13 +195,9 @@ def shannon_entropy(s: str) -> float:
 # Base64 detection
 # ---------------------------------------------------------------------------
 
-_BASE64_RE = re.compile(
-    r"""[A-Za-z0-9+/]{20,}={0,2}"""
-)
+_BASE64_RE = re.compile(r"""[A-Za-z0-9+/]{20,}={0,2}""")
 
-_BASE64_URL_RE = re.compile(
-    r"""[A-Za-z0-9_-]{20,}"""
-)
+_BASE64_URL_RE = re.compile(r"""[A-Za-z0-9_-]{20,}""")
 
 
 def _check_base64_secret(token: str) -> bool:
@@ -221,17 +224,15 @@ def _check_base64_secret(token: str) -> bool:
 # Hardcoded IP detection
 # ---------------------------------------------------------------------------
 
-_IP_RE = re.compile(
-    r"""\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"""
-)
+_IP_RE = re.compile(r"""\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b""")
 
 _SAFE_IP_PREFIXES = (
-    "127.",       # localhost
-    "0.",         # unspecified
-    "10.",        # private class A
-    "192.168.",   # private class C
-    "169.254.",   # link-local
-    "255.",       # broadcast
+    "127.",  # localhost
+    "0.",  # unspecified
+    "10.",  # private class A
+    "192.168.",  # private class C
+    "169.254.",  # link-local
+    "255.",  # broadcast
 )
 
 
@@ -253,9 +254,7 @@ def _is_private_or_localhost(ip: str) -> bool:
 # Context-aware false positive reduction
 # ---------------------------------------------------------------------------
 
-_COMMENT_LINE_RE = re.compile(
-    r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE
-)
+_COMMENT_LINE_RE = re.compile(r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE)
 
 _MARKDOWN_CODE_FENCE = re.compile(r"""^\s*```""")
 
@@ -329,6 +328,7 @@ def _classify_file(filepath: Path) -> str:
 # File collection (deeper than quick_scan)
 # ---------------------------------------------------------------------------
 
+
 def _should_scan_file(filepath: Path) -> bool:
     """Determine if a file should be included in the deep scan.
 
@@ -380,9 +380,7 @@ def collect_files(target: Path) -> list[Path]:
 
         for fname in filenames:
             if len(files) >= max_files:
-                logger.warning(
-                    "Reached max_files_per_scan limit (%d). Stopping.", max_files
-                )
+                logger.warning("Reached max_files_per_scan limit (%d). Stopping.", max_files)
                 return files
 
             fpath = Path(root) / fname
@@ -395,6 +393,7 @@ def collect_files(target: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 # Core scanning logic
 # ---------------------------------------------------------------------------
+
 
 def _redact(text: str, keep: int = 6) -> str:
     """Return a redacted version of *text*, keeping only the first few chars."""
@@ -430,15 +429,17 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
     # --- Private key file detection (by extension, not content) ---
     if filepath.suffix.lower() in PRIVATE_KEY_EXTENSIONS:
         sev = "MEDIUM" if is_test else "CRITICAL"
-        findings.append({
-            "type": "secret",
-            "pattern": "private_key_file",
-            "severity": sev,
-            "file": file_str,
-            "line": 0,
-            "snippet": f"Private key file detected: {filepath.name}",
-            "category": file_category,
-        })
+        findings.append(
+            {
+                "type": "secret",
+                "pattern": "private_key_file",
+                "severity": sev,
+                "file": file_str,
+                "line": 0,
+                "snippet": f"Private key file detected: {filepath.name}",
+                "category": file_category,
+            }
+        )
         # Still scan content if readable
         # (fall through)
 
@@ -521,15 +522,17 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
             if skip:
                 continue
 
-            findings.append({
-                "type": "secret",
-                "pattern": pattern_name,
-                "severity": adjusted_severity,
-                "file": file_str,
-                "line": line_num,
-                "snippet": _snippet(line, m.start()),
-                "category": file_category,
-            })
+            findings.append(
+                {
+                    "type": "secret",
+                    "pattern": pattern_name,
+                    "severity": adjusted_severity,
+                    "file": file_str,
+                    "line": line_num,
+                    "snippet": _snippet(line, m.start()),
+                    "category": file_category,
+                }
+            )
 
         # --- High entropy string detection ---
         # Look for quoted strings or assignment values 16+ chars
@@ -544,8 +547,7 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
                 # Skip if already caught by pattern matching
                 # (crude check: see if any finding on this line already)
                 already_found = any(
-                    f["file"] == file_str and f["line"] == line_num
-                    for f in findings
+                    f["file"] == file_str and f["line"] == line_num for f in findings
                 )
                 if already_found:
                     continue
@@ -559,16 +561,18 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
                 if is_test:
                     sev = "LOW"
 
-                findings.append({
-                    "type": "secret",
-                    "pattern": "high_entropy_string",
-                    "severity": sev,
-                    "file": file_str,
-                    "line": line_num,
-                    "snippet": _redact(token),
-                    "category": file_category,
-                    "entropy": round(ent, 2),
-                })
+                findings.append(
+                    {
+                        "type": "secret",
+                        "pattern": "high_entropy_string",
+                        "severity": sev,
+                        "file": file_str,
+                        "line": line_num,
+                        "snippet": _redact(token),
+                        "category": file_category,
+                        "entropy": round(ent, 2),
+                    }
+                )
 
         # --- Base64-encoded secret detection ---
         for b64_match in _BASE64_RE.finditer(line):
@@ -580,10 +584,7 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
                 continue
 
             # Skip if already caught
-            already_found = any(
-                f["file"] == file_str and f["line"] == line_num
-                for f in findings
-            )
+            already_found = any(f["file"] == file_str and f["line"] == line_num for f in findings)
             if already_found:
                 continue
 
@@ -592,15 +593,17 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
 
             if _check_base64_secret(token):
                 sev = "MEDIUM" if is_test else "HIGH"
-                findings.append({
-                    "type": "secret",
-                    "pattern": "base64_encoded_secret",
-                    "severity": sev,
-                    "file": file_str,
-                    "line": line_num,
-                    "snippet": _redact(token),
-                    "category": file_category,
-                })
+                findings.append(
+                    {
+                        "type": "secret",
+                        "pattern": "base64_encoded_secret",
+                        "severity": sev,
+                        "file": file_str,
+                        "line": line_num,
+                        "snippet": _redact(token),
+                        "category": file_category,
+                    }
+                )
 
         # --- URL with embedded credentials ---
         # Already handled by pattern, but double-check for non-standard schemes
@@ -630,15 +633,17 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
             if is_test:
                 continue  # Skip IPs in test files entirely
 
-            findings.append({
-                "type": "hardcoded_ip",
-                "pattern": "hardcoded_public_ip",
-                "severity": sev,
-                "file": file_str,
-                "line": line_num,
-                "snippet": ip,
-                "category": file_category,
-            })
+            findings.append(
+                {
+                    "type": "hardcoded_ip",
+                    "pattern": "hardcoded_public_ip",
+                    "severity": sev,
+                    "file": file_str,
+                    "line": line_num,
+                    "snippet": ip,
+                    "category": file_category,
+                }
+            )
 
     return findings
 
@@ -696,6 +701,7 @@ def compute_score(findings: list[dict]) -> int:
 # ---------------------------------------------------------------------------
 # Report formatters
 # ---------------------------------------------------------------------------
+
 
 def format_text_report(
     target: str,
@@ -759,8 +765,7 @@ def format_text_report(
     min_severity = config.SEVERITY["LOW"] if include_low else config.SEVERITY["MEDIUM"]
 
     displayed = [
-        f for f in findings
-        if config.SEVERITY.get(f.get("severity", "INFO"), 0) >= min_severity
+        f for f in findings if config.SEVERITY.get(f.get("severity", "INFO"), 0) >= min_severity
     ]
 
     if displayed:
@@ -790,9 +795,7 @@ def format_text_report(
                     loc = f"L{f['line']}" if f.get("line") else ""
                     snippet_part = f"  [{f['snippet']}]" if f.get("snippet") else ""
                     entropy_part = f"  (entropy={f['entropy']})" if f.get("entropy") else ""
-                    lines.append(
-                        f"    {loc:>6}  {f['pattern']}{snippet_part}{entropy_part}"
-                    )
+                    lines.append(f"    {loc:>6}  {f['pattern']}{snippet_part}{entropy_part}")
                 lines.append("")
     else:
         lines.append("  No findings above the display threshold.")
@@ -845,6 +848,7 @@ def build_json_report(
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 def run_scan(
     target_path: str,
     output_format: str = "text",
@@ -891,9 +895,7 @@ def run_scan(
 
     for fpath in files:
         if len(all_findings) >= max_report:
-            logger.warning(
-                "Reached max_report_findings limit (%d). Truncating.", max_report
-            )
+            logger.warning("Reached max_report_findings limit (%d). Truncating.", max_report)
             break
 
         file_findings = scan_file(fpath, verbose=verbose)
@@ -903,7 +905,9 @@ def run_scan(
     elapsed = time.time() - start_time
     logger.info(
         "Deep scan complete: %d files, %d findings in %.2fs",
-        total_files, len(all_findings), elapsed,
+        total_files,
+        len(all_findings),
+        elapsed,
     )
 
     # Aggregation
@@ -944,18 +948,20 @@ def run_scan(
     if output_format == "json":
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print(format_text_report(
-            target=str(target),
-            total_files=total_files,
-            findings=all_findings,
-            severity_counts=severity_counts,
-            pattern_counts=pattern_counts,
-            category_counts=category_counts,
-            score=score,
-            verdict=verdict,
-            elapsed=elapsed,
-            include_low=include_low,
-        ))
+        print(
+            format_text_report(
+                target=str(target),
+                total_files=total_files,
+                findings=all_findings,
+                severity_counts=severity_counts,
+                pattern_counts=pattern_counts,
+                category_counts=category_counts,
+                score=score,
+                verdict=verdict,
+                elapsed=elapsed,
+                include_low=include_low,
+            )
+        )
 
     return report
 

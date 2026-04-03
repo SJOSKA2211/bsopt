@@ -17,6 +17,7 @@ try:
 except ImportError:
     Manifold_core = None
 
+
 def gpu_black_scholes(
     S: float | np.ndarray,
     K: float | np.ndarray,
@@ -58,6 +59,7 @@ def gpu_black_scholes(
         price = K_gpu * cp.exp(-R_gpu * T_gpu) * norm_cdf(-d2) - S_gpu * norm_cdf(-d1)
 
     return cast(np.ndarray, cp.asnumpy(price))
+
 
 def runge_kutta_4(
     S0: float | np.ndarray,
@@ -106,6 +108,7 @@ def runge_kutta_4(
 
     return cast(np.ndarray, cp.asnumpy(S))
 
+
 def hybrid_compute_bs(
     S: float | np.ndarray,
     K: float | np.ndarray,
@@ -121,6 +124,7 @@ def hybrid_compute_bs(
         return cast(np.ndarray, Manifold_core.black_scholes_vectorized(S, K, T, R, V))
     else:
         return gpu_black_scholes(S, K, T, R, V)
+
 
 def mmap_accelerated_runge_kutta_4(
     mmap_file_path: str,

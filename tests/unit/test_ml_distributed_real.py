@@ -3,6 +3,7 @@ import ray
 
 from src.ml.distributed_training import HAS_RAY_TRAIN, BSOptDistributedTrainer
 
+
 @pytest.fixture(scope="module")
 def ray_init():
     """Initialize Ray for testing."""
@@ -12,6 +13,7 @@ def ray_init():
         ray.shutdown()
     else:
         pytest.skip("Ray Train not available")
+
 
 def test_distributed_trainer_execution(ray_init):
     """Verify that BSOptDistributedTrainer executes without error."""

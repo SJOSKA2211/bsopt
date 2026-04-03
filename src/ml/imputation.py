@@ -15,6 +15,7 @@ from sklearn.impute import KNNImputer, SimpleImputer
 
 logger = structlog.get_logger(__name__)
 
+
 class DataImputationService(BaseEstimator, TransformerMixin):
     """
     Production-grade imputation service for financial time-series.
@@ -63,6 +64,7 @@ class DataImputationService(BaseEstimator, TransformerMixin):
 
     def fit_transform(self, X: pd.DataFrame, y: Any = None) -> pd.DataFrame:
         return self.fit(X).transform(X)
+
 
 if __name__ == "__main__":
     # Test block

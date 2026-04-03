@@ -7,6 +7,7 @@ from strawberry.federation import Schema
 
 from api.graphql.types import Option
 
+
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
@@ -15,20 +16,24 @@ class Portfolio:
     cash_balance: float = strawberry.federation.field(name="cash_balance", shareable=True)
     created_at: datetime
 
+
 @strawberry.federation.type(shareable=True)
 class OptionEdge:
     cursor: str
     node: Option
+
 
 @strawberry.federation.type(shareable=True)
 class PageInfo:
     has_next_page: bool
     end_cursor: str | None
 
+
 @strawberry.federation.type(shareable=True)
 class OptionConnection:
     edges: list[OptionEdge]
     page_info: PageInfo
+
 
 # QUERIES
 @strawberry.federation.type(shareable=True)
@@ -44,6 +49,7 @@ class MLPrediction:
     timestamp: datetime
     last_updated: datetime = strawberry.field(name="last_updated")
 
+
 @strawberry.federation.type(shareable=True)
 class MarketData:
     symbol: str
@@ -53,6 +59,7 @@ class MarketData:
     volume: int | None
     timestamp: datetime
 
+
 @strawberry.federation.type(shareable=True)
 class OHLCV:
     time: str
@@ -61,6 +68,7 @@ class OHLCV:
     low: float
     close: float
     volume: int
+
 
 @strawberry.federation.type(shareable=True)
 class Query:
@@ -111,11 +119,10 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
+        from api.graphql.resolvers.option_service import router
         from api.schemas.ml import InferenceRequest
         from src.ml.service import get_ml_service
 
-        from api.graphql.resolvers.option_service import router
-        
         ml_service = get_ml_service()
 
         try:
@@ -197,8 +204,10 @@ class Query:
             page_info=PageInfo(has_next_page=has_next, end_cursor=next_cursor),
         )
 
+
 # APOLLO FEDERATION - Subgraph Schema
 schema: Schema = Schema(query=Query, types=[Option])
+
 
 async def get_context(request: Request) -> dict[str, Any]:
     """GraphQL context helper."""

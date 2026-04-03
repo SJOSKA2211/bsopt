@@ -6,6 +6,7 @@ from qiskit import QuantumCircuit
 
 from src.quant.pricing.quantum_pricing import QuantumOptionPricer
 
+
 class TestQuantumPricing:
     def test_create_stock_price_distribution_structure(self):
         """Verify the output is a QuantumCircuit with correct dimensions."""
@@ -86,6 +87,7 @@ class TestQuantumPricing:
         assert np.isclose(result["price"], bs_price, rtol=0.1)
         assert result["speedup_factor"] > 0
 
+
 class TestQuantumOptimizer:
     def test_optimizer_reduces_gate_count(self):
         """Verify that the optimizer actually reduces the number of gates in a redundant circuit."""
@@ -105,6 +107,7 @@ class TestQuantumOptimizer:
 
         assert optimized_qc.size() < initial_size
         assert optimized_qc.size() == 0
+
 
 class TestHybridPricer:
     def test_hybrid_pricer_routing_classical(self, mocker):
@@ -166,6 +169,7 @@ class TestHybridPricer:
 
         assert mock_quantum.called
         assert not mock_classical.called
+
 
 class TestQuantumHardware:
     def test_quantum_pricer_hardware_init_mock(self, mocker):

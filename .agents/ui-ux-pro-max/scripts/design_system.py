@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Design System Generator - Aggregates search results and applies reasoning
 to generate comprehensive design system recommendations.
@@ -11,9 +10,8 @@ Usage:
 
 import csv
 import json
-from pathlib import Path
-from core import search, DATA_DIR
 
+from core import DATA_DIR, search
 
 # ============ CONFIGURATION ============
 REASONING_FILE = "ui-reasoning.csv"
@@ -23,7 +21,7 @@ SEARCH_CONFIG = {
     "style": {"max_results": 3},
     "color": {"max_results": 2},
     "landing": {"max_results": 2},
-    "typography": {"max_results": 2}
+    "typography": {"max_results": 2},
 }
 
 
@@ -39,7 +37,7 @@ class DesignSystemGenerator:
         filepath = DATA_DIR / REASONING_FILE
         if not filepath.exists():
             return []
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             return list(csv.DictReader(f))
 
     def _multi_domain_search(self, query: str, style_priority: list = None) -> dict:
@@ -92,7 +90,7 @@ class DesignSystemGenerator:
                 "key_effects": "Subtle hover transitions",
                 "anti_patterns": "",
                 "decision_rules": {},
-                "severity": "MEDIUM"
+                "severity": "MEDIUM",
             }
 
         # Parse decision rules JSON
@@ -110,7 +108,7 @@ class DesignSystemGenerator:
             "key_effects": rule.get("Key_Effects", ""),
             "anti_patterns": rule.get("Anti_Patterns", ""),
             "decision_rules": decision_rules,
-            "severity": rule.get("Severity", "MEDIUM")
+            "severity": rule.get("Severity", "MEDIUM"),
         }
 
     def _select_best_match(self, results: list, priority_keywords: list) -> dict:
@@ -192,11 +190,13 @@ class DesignSystemGenerator:
             "project_name": project_name or query.upper(),
             "category": category,
             "pattern": {
-                "name": best_landing.get("Pattern Name", reasoning.get("pattern", "Hero + Features + CTA")),
+                "name": best_landing.get(
+                    "Pattern Name", reasoning.get("pattern", "Hero + Features + CTA")
+                ),
                 "sections": best_landing.get("Section Order", "Hero > Features > CTA"),
                 "cta_placement": best_landing.get("Primary CTA Placement", "Above fold"),
                 "color_strategy": best_landing.get("Color Strategy", ""),
-                "conversion": best_landing.get("Conversion Optimization", "")
+                "conversion": best_landing.get("Conversion Optimization", ""),
             },
             "style": {
                 "name": best_style.get("Style Category", "Minimalism"),
@@ -205,7 +205,7 @@ class DesignSystemGenerator:
                 "keywords": best_style.get("Keywords", ""),
                 "best_for": best_style.get("Best For", ""),
                 "performance": best_style.get("Performance", ""),
-                "accessibility": best_style.get("Accessibility", "")
+                "accessibility": best_style.get("Accessibility", ""),
             },
             "colors": {
                 "primary": best_color.get("Primary (Hex)", "#2563EB"),
@@ -213,25 +213,28 @@ class DesignSystemGenerator:
                 "cta": best_color.get("CTA (Hex)", "#F97316"),
                 "background": best_color.get("Background (Hex)", "#F8FAFC"),
                 "text": best_color.get("Text (Hex)", "#1E293B"),
-                "notes": best_color.get("Notes", "")
+                "notes": best_color.get("Notes", ""),
             },
             "typography": {
                 "heading": best_typography.get("Heading Font", "Inter"),
                 "body": best_typography.get("Body Font", "Inter"),
-                "mood": best_typography.get("Mood/Style Keywords", reasoning.get("typography_mood", "")),
+                "mood": best_typography.get(
+                    "Mood/Style Keywords", reasoning.get("typography_mood", "")
+                ),
                 "best_for": best_typography.get("Best For", ""),
                 "google_fonts_url": best_typography.get("Google Fonts URL", ""),
-                "css_import": best_typography.get("CSS Import", "")
+                "css_import": best_typography.get("CSS Import", ""),
             },
             "key_effects": combined_effects,
             "anti_patterns": reasoning.get("anti_patterns", ""),
             "decision_rules": reasoning.get("decision_rules", {}),
-            "severity": reasoning.get("severity", "MEDIUM")
+            "severity": reasoning.get("severity", "MEDIUM"),
         }
 
 
 # ============ OUTPUT FORMATTERS ============
 BOX_WIDTH = 90  # Wider box for more content
+
 
 def format_ascii_box(design_system: dict) -> str:
     """Format design system as ASCII box with emojis (MCP-style)."""
@@ -276,9 +279,9 @@ def format_ascii_box(design_system: dict) -> str:
 
     # Pattern section
     lines.append(f"|  PATTERN: {pattern.get('name', '')}".ljust(BOX_WIDTH) + "|")
-    if pattern.get('conversion'):
+    if pattern.get("conversion"):
         lines.append(f"|     Conversion: {pattern.get('conversion', '')}".ljust(BOX_WIDTH) + "|")
-    if pattern.get('cta_placement'):
+    if pattern.get("cta_placement"):
         lines.append(f"|     CTA: {pattern.get('cta_placement', '')}".ljust(BOX_WIDTH) + "|")
     lines.append("|     Sections:".ljust(BOX_WIDTH) + "|")
     for i, section in enumerate(sections, 1):
@@ -311,7 +314,12 @@ def format_ascii_box(design_system: dict) -> str:
     lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Typography section
-    lines.append(f"|  TYPOGRAPHY: {typography.get('heading', '')} / {typography.get('body', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append(
+        f"|  TYPOGRAPHY: {typography.get('heading', '')} / {typography.get('body', '')}".ljust(
+            BOX_WIDTH
+        )
+        + "|"
+    )
     if typography.get("mood"):
         for line in wrap_text(f"Mood: {typography.get('mood', '')}", "|     ", BOX_WIDTH):
             lines.append(line.ljust(BOX_WIDTH) + "|")
@@ -319,9 +327,13 @@ def format_ascii_box(design_system: dict) -> str:
         for line in wrap_text(f"Best For: {typography.get('best_for', '')}", "|     ", BOX_WIDTH):
             lines.append(line.ljust(BOX_WIDTH) + "|")
     if typography.get("google_fonts_url"):
-        lines.append(f"|     Google Fonts: {typography.get('google_fonts_url', '')}".ljust(BOX_WIDTH) + "|")
+        lines.append(
+            f"|     Google Fonts: {typography.get('google_fonts_url', '')}".ljust(BOX_WIDTH) + "|"
+        )
     if typography.get("css_import"):
-        lines.append(f"|     CSS Import: {typography.get('css_import', '')[:70]}...".ljust(BOX_WIDTH) + "|")
+        lines.append(
+            f"|     CSS Import: {typography.get('css_import', '')[:70]}...".ljust(BOX_WIDTH) + "|"
+        )
     lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Key Effects section
@@ -347,7 +359,7 @@ def format_ascii_box(design_system: dict) -> str:
         "[ ] Light mode: text contrast 4.5:1 minimum",
         "[ ] Focus states visible for keyboard nav",
         "[ ] prefers-reduced-motion respected",
-        "[ ] Responsive: 375px, 768px, 1024px, 1440px"
+        "[ ] Responsive: 375px, 768px, 1024px, 1440px",
     ]
     for item in checklist_items:
         lines.append(f"|     {item}".ljust(BOX_WIDTH) + "|")
@@ -375,11 +387,11 @@ def format_markdown(design_system: dict) -> str:
     # Pattern section
     lines.append("### Pattern")
     lines.append(f"- **Name:** {pattern.get('name', '')}")
-    if pattern.get('conversion'):
+    if pattern.get("conversion"):
         lines.append(f"- **Conversion Focus:** {pattern.get('conversion', '')}")
-    if pattern.get('cta_placement'):
+    if pattern.get("cta_placement"):
         lines.append(f"- **CTA Placement:** {pattern.get('cta_placement', '')}")
-    if pattern.get('color_strategy'):
+    if pattern.get("color_strategy"):
         lines.append(f"- **Color Strategy:** {pattern.get('color_strategy', '')}")
     lines.append(f"- **Sections:** {pattern.get('sections', '')}")
     lines.append("")
@@ -387,18 +399,20 @@ def format_markdown(design_system: dict) -> str:
     # Style section
     lines.append("### Style")
     lines.append(f"- **Name:** {style.get('name', '')}")
-    if style.get('keywords'):
+    if style.get("keywords"):
         lines.append(f"- **Keywords:** {style.get('keywords', '')}")
-    if style.get('best_for'):
+    if style.get("best_for"):
         lines.append(f"- **Best For:** {style.get('best_for', '')}")
-    if style.get('performance') or style.get('accessibility'):
-        lines.append(f"- **Performance:** {style.get('performance', '')} | **Accessibility:** {style.get('accessibility', '')}")
+    if style.get("performance") or style.get("accessibility"):
+        lines.append(
+            f"- **Performance:** {style.get('performance', '')} | **Accessibility:** {style.get('accessibility', '')}"
+        )
     lines.append("")
 
     # Colors section
     lines.append("### Colors")
-    lines.append(f"| Role | Hex |")
-    lines.append(f"|------|-----|")
+    lines.append("| Role | Hex |")
+    lines.append("|------|-----|")
     lines.append(f"| Primary | {colors.get('primary', '')} |")
     lines.append(f"| Secondary | {colors.get('secondary', '')} |")
     lines.append(f"| CTA | {colors.get('cta', '')} |")
@@ -419,10 +433,10 @@ def format_markdown(design_system: dict) -> str:
     if typography.get("google_fonts_url"):
         lines.append(f"- **Google Fonts:** {typography.get('google_fonts_url', '')}")
     if typography.get("css_import"):
-        lines.append(f"- **CSS Import:**")
-        lines.append(f"```css")
+        lines.append("- **CSS Import:**")
+        lines.append("```css")
         lines.append(f"{typography.get('css_import', '')}")
-        lines.append(f"```")
+        lines.append("```")
     lines.append("")
 
     # Key Effects section
@@ -452,7 +466,9 @@ def format_markdown(design_system: dict) -> str:
 
 
 # ============ MAIN ENTRY POINT ============
-def generate_design_system(query: str, project_name: str = None, output_format: str = "ascii") -> str:
+def generate_design_system(
+    query: str, project_name: str = None, output_format: str = "ascii"
+) -> str:
     """
     Main entry point for design system generation.
 
@@ -479,7 +495,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Design System")
     parser.add_argument("query", help="Search query (e.g., 'SaaS dashboard')")
     parser.add_argument("--project-name", "-p", type=str, default=None, help="Project name")
-    parser.add_argument("--format", "-f", choices=["ascii", "markdown"], default="ascii", help="Output format")
+    parser.add_argument(
+        "--format", "-f", choices=["ascii", "markdown"], default="ascii", help="Output format"
+    )
 
     args = parser.parse_args()
 

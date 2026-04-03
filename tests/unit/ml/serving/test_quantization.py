@@ -6,6 +6,7 @@ import torch.nn as nn
 
 from src.ml.serving.quantization import ModelQuantizer
 
+
 class SimpleNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -14,12 +15,14 @@ class SimpleNet(nn.Module):
     def forward(self, x):
         return self.fc(x)
 
+
 def test_dynamic_quantization():
     model = SimpleNet()
     quantizer = ModelQuantizer()
     quantized_model = quantizer.quantize_dynamic(model)
     assert hasattr(quantized_model.fc, "weight")
     assert quantized_model.fc.weight().dtype == torch.qint8
+
 
 def test_quantization_failure():
     model = SimpleNet()
@@ -28,6 +31,7 @@ def test_quantization_failure():
         # Should return original model on failure
         res = quantizer.quantize_dynamic(model)
         assert res == model
+
 
 def test_quantization_save_load(tmp_path):
     model = SimpleNet()

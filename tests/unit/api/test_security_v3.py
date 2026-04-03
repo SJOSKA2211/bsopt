@@ -11,9 +11,11 @@ from api.middleware.security import (
     SecurityHeadersMiddleware,
 )
 
+
 @pytest.fixture
 def mock_call_next():
     return AsyncMock(return_value=Response())
+
 
 @pytest.mark.asyncio
 async def test_security_headers(mock_call_next):
@@ -22,6 +24,7 @@ async def test_security_headers(mock_call_next):
     result = await middleware.dispatch(request, mock_call_next)
     assert "X-Content-Type-Options" in result.headers
 
+
 @pytest.mark.asyncio
 async def test_csrf_protection_safe_methods(mock_call_next):
     middleware = CSRFMiddleware(MagicMock())
@@ -29,12 +32,14 @@ async def test_csrf_protection_safe_methods(mock_call_next):
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 200
 
+
 @pytest.mark.asyncio
 async def test_csrf_protection_unsafe_method_missing_token(mock_call_next):
     middleware = CSRFMiddleware(MagicMock())
     request = Request(scope={"type": "http", "method": "POST", "path": "/", "headers": []})
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 403
+
 
 @pytest.mark.asyncio
 async def test_ip_block_middleware_blocked(mock_call_next):
@@ -46,6 +51,7 @@ async def test_ip_block_middleware_blocked(mock_call_next):
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 403
 
+
 @pytest.mark.asyncio
 async def test_jwt_auth_legacy_bypass(mock_call_next):
     middleware = JWTAuthenticationMiddleware(MagicMock())
@@ -53,6 +59,7 @@ async def test_jwt_auth_legacy_bypass(mock_call_next):
     request = Request(scope={"type": "http", "path": "/", "headers": headers})
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 200
+
 
 @pytest.mark.asyncio
 async def test_input_sanitization(mock_call_next):

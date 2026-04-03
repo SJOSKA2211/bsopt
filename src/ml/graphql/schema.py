@@ -5,6 +5,7 @@ import strawberry
 from strawberry.dataloader import DataLoader
 from strawberry.federation import Schema
 
+
 async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     """
     High-Performance: Real batch loader using high-performance gRPC.
@@ -17,24 +18,32 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     try:
         async with grpc.aio.insecure_channel(settings.ML_SERVICE_GRPC_URL) as channel:
             stub = inference_pb2_grpc.MLInferenceStub(channel)
+            from datetime import UTC, datetime
+
             from api.graphql.resolvers.option_service import get_option_by_id
-            from datetime import datetime, UTC
+
             results = []
             for key in keys:
                 opt = await get_option_by_id(str(key))
-                
+
                 if opt:
                     expiry_val = opt.expiry
                     # Calculate DTE safely
                     dte = 30.0 / 365.0
-                    if hasattr(expiry_val, "year") and hasattr(expiry_val, "month") and hasattr(expiry_val, "day"):
+                    if (
+                        hasattr(expiry_val, "year")
+                        and hasattr(expiry_val, "month")
+                        and hasattr(expiry_val, "day")
+                    ):
                         try:
                             # convert date to datetime to do subtraction
-                            exp_dt = datetime(expiry_val.year, expiry_val.month, expiry_val.day, tzinfo=UTC)
+                            exp_dt = datetime(
+                                expiry_val.year, expiry_val.month, expiry_val.day, tzinfo=UTC
+                            )
                             dte = max(0.001, (exp_dt - datetime.now(UTC)).days / 365.0)
                         except Exception:
                             pass
-                    
+
                     request = inference_pb2.InferenceRequest(
                         underlying_price=float(opt.last or 150.0),
                         strike=float(opt.strike),
@@ -57,6 +66,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
         # Fallback to random if gRPC unavailable
         return [15.5 + random.uniform(-0.5, 0.5) for _ in keys]
 
+
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
@@ -74,11 +84,13 @@ class Option:
     def resolve_reference(cls, id: strawberry.ID) -> "Option":
         return cls(id=id)
 
+
 @strawberry.type
 class DriftStatus:
     is_drifted: bool
     psi_score: float
     mmd_score: float
+
 
 @strawberry.type
 class Query:
@@ -97,9 +109,11 @@ class Query:
             mmd_score=float(MMD_DRIFT_SCORE.get()),
         )
 
+
 async def get_context() -> dict[str, Any]:
     return {
         "fair_value_loader": DataLoader(load_fn=load_fair_values),
     }
+
 
 schema = Schema(query=Query, types=[Option])

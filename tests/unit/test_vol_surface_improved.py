@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from src.math_kernel.vol_surface import (
     CalibrationEngine,
@@ -11,6 +10,7 @@ from src.math_kernel.vol_surface import (
     SVIParameters,
     VolatilitySurface,
 )
+
 
 class TestVolSurface:
     def setUp(self):
@@ -53,4 +53,3 @@ class TestVolSurface:
         params, diag = engine.calibrate_svi(quotes)
         assert isinstance(params, SVIParameters)
         assert "rmse" in diag
-

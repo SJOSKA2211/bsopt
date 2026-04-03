@@ -6,6 +6,7 @@ from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
+
 class AuthGrpcClient:
     def __init__(self):
         self.channel = None
@@ -31,5 +32,6 @@ class AuthGrpcClient:
     async def close(self):
         if self.channel:
             await self.channel.close()
+
 
 auth_grpc_client = AuthGrpcClient()

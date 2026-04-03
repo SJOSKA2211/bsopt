@@ -2,8 +2,8 @@
 Comprehensive Test Suite for Optimized Quantitative Engines (Pytest Modernized)
 """
 
-import pytest
 import numpy as np
+import pytest
 
 from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.quant.pricing.implied_vol import (
@@ -11,6 +11,7 @@ from src.quant.pricing.implied_vol import (
     vectorized_implied_volatility,
 )
 from src.quant.pricing.models import BSParameters
+
 
 @pytest.fixture
 def test_data():
@@ -24,16 +25,16 @@ def test_data():
         "types": np.array(["call", "call", "call"]),
         "put_spots": np.array([100.0, 100.0]),
         "put_strikes": np.array([100.0, 110.0]),
-        "put_types": np.array(["put", "put"])
+        "put_types": np.array(["put", "put"]),
     }
+
 
 def test_vectorized_bs_accuracy():
     """Verify JIT BS engine against known values."""
-    price = VectorizedBlackScholesEngine.price_options(
-        100.0, 100.0, 1.0, 0.2, 0.05, 0.0, "call"
-    )
+    price = VectorizedBlackScholesEngine.price_options(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, "call")
     # Standard BS price for S=100, K=100, T=1, sigma=0.2, r=0.05 is ~10.4506
     assert float(price) == pytest.approx(10.450583572185565, abs=1e-8)
+
 
 def test_greeks_consistency(test_data):
     """Verify delta is within [0, 1] for calls and [-1, 0] for puts."""
@@ -64,6 +65,7 @@ def test_greeks_consistency(test_data):
     # Theta for Puts should be negative (time decay) for most vanilla options
     assert np.all(put_greeks["theta"] < 0)
 
+
 def test_iv_convergence():
     """Verify IV calculation recovers the input volatility."""
     target_vol = 0.25
@@ -73,6 +75,7 @@ def test_iv_convergence():
 
     iv = implied_volatility(float(price), 100.0, 100.0, 1.0, 0.05, 0.0, "call")
     assert iv == pytest.approx(target_vol, abs=1e-4)
+
 
 def test_batch_iv(test_data):
     """Verify batch IV calculation speed and accuracy."""
@@ -99,6 +102,7 @@ def test_batch_iv(test_data):
 
     np.testing.assert_array_almost_equal(calc_vols, vols, decimal=4)
 
+
 def test_wasm_simd_speedup():
     """OPTIMIZED: Verify WASM SIMD pricing if available."""
     try:
@@ -118,6 +122,7 @@ def test_wasm_simd_speedup():
         assert greeks.theta < 0
     except ImportError:
         pytest.skip("WASM Engine not installed")
+
 
 def test_lsm_american_accuracy():
     """OPTIMIZED: Verify Optimized LSM American Pricing."""

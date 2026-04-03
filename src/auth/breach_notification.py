@@ -13,6 +13,7 @@ from src.shared.src.email_service import TransactionalEmailService
 
 logger = logging.getLogger(__name__)
 
+
 class BreachNotificationService:
     """
     Service for handling data breach notifications.
@@ -107,5 +108,6 @@ class BreachNotificationService:
             return len(users)
         logger.error(f"Failed to send batch security notifications for incident {incident.id}")
         return 0
+
 
 breach_notification_service = BreachNotificationService()

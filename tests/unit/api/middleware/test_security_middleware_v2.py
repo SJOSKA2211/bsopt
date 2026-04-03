@@ -5,6 +5,7 @@ from fastapi import Request, Response
 
 from api.middleware.security import SecurityHeadersMiddleware
 
+
 @pytest.mark.asyncio
 async def test_security_headers_middleware():
     app = AsyncMock()
@@ -28,6 +29,7 @@ async def test_security_headers_middleware():
     assert "content-security-policy" in headers
     assert headers["referrer-policy"] == "strict-origin-when-cross-origin"
 
+
 @pytest.mark.asyncio
 async def test_security_no_cache_headers():
     app = AsyncMock()
@@ -44,6 +46,7 @@ async def test_security_no_cache_headers():
     response = await middleware.dispatch(request, call_next)
     headers = {k.lower(): v for k, v in response.headers.items()}
     assert "no-store" in headers["cache-control"]
+
 
 @pytest.mark.asyncio
 async def test_security_middleware_custom_csp():

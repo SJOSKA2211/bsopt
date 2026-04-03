@@ -5,11 +5,13 @@ Optimized for high-performance serialization via msgspec.
 
 import msgspec
 
+
 class MarketQuote(msgspec.Struct):
     """
     Unified Market Quote object.
     Used for Ticker Tape, Portfolio valuation, and ML feature extraction.
     """
+
     symbol: str
     last_price: float
     prev_close: float
@@ -22,13 +24,13 @@ class MarketQuote(msgspec.Struct):
 
     @classmethod
     def from_price_change(
-        cls, 
-        symbol: str, 
-        price: float, 
-        change: float, 
-        volume: int | None = None, 
+        cls,
+        symbol: str,
+        price: float,
+        change: float,
+        volume: int | None = None,
         market: str = "US",
-        provider: str | None = None
+        provider: str | None = None,
     ) -> "MarketQuote":
         """Factory for normalizing price/change into a full quote."""
         prev_close = price - change
@@ -41,7 +43,7 @@ class MarketQuote(msgspec.Struct):
             pct_change=pct_change,
             volume=volume,
             provider=provider,
-            market=market
+            market=market,
         )
 
     def to_ticker(self) -> "TickerSchema":
@@ -51,13 +53,15 @@ class MarketQuote(msgspec.Struct):
             price=f"{self.last_price:.2f}",
             change=f"{self.change:+.2f}",
             percentChange=f"{self.pct_change:+.2f}%",
-            up=self.change >= 0
+            up=self.change >= 0,
         )
+
 
 class TickerSchema(msgspec.Struct):
     """
     Optimized schema for the Ticker Tape API.
     """
+
     symbol: str
     price: str
     change: str

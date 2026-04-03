@@ -5,11 +5,13 @@ import ray
 
 from src.ml.reinforcement_learning.train import train_distributed
 
+
 @pytest.fixture(scope="module")
 def ray_cluster():
     ray.init(num_cpus=2, ignore_reinit_error=True)
     yield
     ray.shutdown()
+
 
 def test_train_distributed_success(ray_cluster):
     """Verify that train_distributed launches multiple instances and returns results."""
@@ -34,6 +36,7 @@ def test_train_distributed_success(ray_cluster):
         assert "run_id" in res
         assert "model_path" in res
         assert os.path.exists(res["model_path"])
+
 
 def test_distributed_trainer_selects_best(ray_cluster):
     """Verify that the distributed trainer correctly identifies the best model."""

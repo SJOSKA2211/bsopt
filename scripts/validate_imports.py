@@ -2,6 +2,7 @@ import importlib.util
 import os
 import sys
 
+
 def _find_lazy_loaded_modules(base_path: str) -> dict[str, dict[str, str]]:
     lazy_modules = {}
     # base_path is the package directory (e.g., .../src)
@@ -39,6 +40,7 @@ def _find_lazy_loaded_modules(base_path: str) -> dict[str, dict[str, str]]:
             except Exception:
                 pass
     return lazy_modules
+
 
 def validate_lazy_imports(base_path: str):
     broken_imports = {}
@@ -103,6 +105,7 @@ def validate_lazy_imports(base_path: str):
             print("\nValidation successful: All lazy imports confirmed valid.")
     finally:
         sys.path = original_sys_path
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

@@ -6,6 +6,7 @@ import torch.nn as nn
 
 logger = structlog.get_logger()
 
+
 class ModelQuantizer:
     """
     OPTIMIZED Model Quantization Strategy.

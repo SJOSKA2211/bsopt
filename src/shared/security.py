@@ -16,6 +16,7 @@ logger = structlog.get_logger()
 # Uses DistributedCircuitBreaker to sync state across nodes
 _security_circuit = None
 
+
 class SecurityContext(Struct):
     """
     Consolidated security context for the request.
@@ -28,6 +29,7 @@ class SecurityContext(Struct):
     service_id: str | None = None
     is_internal: bool = False
     auth_type: str | None = None
+
 
 def is_trusted_proxy(ip: str, trusted_proxies: set[str]) -> bool:
     """
@@ -45,6 +47,7 @@ def is_trusted_proxy(ip: str, trusted_proxies: set[str]) -> bool:
     except ValueError:
         return False
     return False
+
 
 def get_security_circuit():
     global _security_circuit
@@ -64,6 +67,7 @@ def get_security_circuit():
                 recovery_timeout=30,
             )
     return _security_circuit
+
 
 class WASMOPAEnforcer:
     """
@@ -112,6 +116,7 @@ class WASMOPAEnforcer:
         # Default to True/Fallback to remote OPA (handled by caller if needed)
         return True
 
+
 class OPAEnforcer:
     """
     Enforcer for Open Policy Agent (OPA) policies.
@@ -147,6 +152,7 @@ class OPAEnforcer:
         except Exception as e:
             logger.error("opa_connection_failed", error=str(e))
             return False
+
 
 class MTLSVerifier:
     """
@@ -190,7 +196,9 @@ class MTLSVerifier:
         logger.info("mtls_verified", client_dn=client_dn)
         return True
 
+
 # FastAPI Dependencies
+
 
 async def verify_mtls(request: Request):
     """Dependency to enforce mTLS."""
@@ -200,11 +208,11 @@ async def verify_mtls(request: Request):
             status_code=status.HTTP_403_FORBIDDEN, detail="mTLS verification failed"
         )
 
+
 def opa_authorize(action: str, resource: str):
     """Dependency to enforce OPA authorization."""
 
     async def _authorize(request: Request):
-        import os
 
         from src.shared.config import settings
 
@@ -243,6 +251,7 @@ def opa_authorize(action: str, resource: str):
 
     return _authorize
 
+
 def get_zero_trust_deps(action: str, resource: str) -> list[Any]:
     """
     Returns a list of dependencies for Zero Trust security.
@@ -258,6 +267,7 @@ def get_zero_trust_deps(action: str, resource: str) -> list[Any]:
         Depends(verify_mtls),
         Depends(opa_authorize(action, resource)),
     ]
+
 
 if __name__ == "__main__":
     enforcer = OPAEnforcer()

@@ -23,15 +23,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (
-    SCANNABLE_EXTENSIONS,
-    SKIP_DIRECTORIES,
-    SECRET_PATTERNS,
     DANGEROUS_PATTERNS,
     LIMITS,
+    SCANNABLE_EXTENSIONS,
+    SECRET_PATTERNS,
     SEVERITY,
+    SKIP_DIRECTORIES,
     ensure_directories,
-    get_verdict,
     get_timestamp,
+    get_verdict,
     log_audit_event,
     setup_logging,
 )
@@ -54,6 +54,7 @@ REDACT_KEEP_CHARS = 6  # Number of leading chars to keep in redacted snippets
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _redact(text: str) -> str:
     """Return a redacted version of *text*, keeping only the first few chars."""
@@ -125,6 +126,7 @@ def _check_permissions(filepath: Path) -> dict | None:
 # Core scanning logic
 # ---------------------------------------------------------------------------
 
+
 def collect_files(target: Path, logger) -> list[Path]:
     """Walk *target* recursively and return scannable file paths.
 
@@ -167,14 +169,16 @@ def scan_file(filepath: Path, verbose: bool = False, logger=None) -> list[dict]:
 
     # Large file check
     if size > LIMITS["max_file_size_bytes"]:
-        findings.append({
-            "type": "large_file",
-            "pattern": "exceeds_max_size",
-            "severity": "INFO",
-            "file": str(filepath),
-            "line": 0,
-            "snippet": f"size={size} bytes (limit={LIMITS['max_file_size_bytes']})",
-        })
+        findings.append(
+            {
+                "type": "large_file",
+                "pattern": "exceeds_max_size",
+                "severity": "INFO",
+                "file": str(filepath),
+                "line": 0,
+                "snippet": f"size={size} bytes (limit={LIMITS['max_file_size_bytes']})",
+            }
+        )
         return findings
 
     # Permission check
@@ -200,27 +204,31 @@ def scan_file(filepath: Path, verbose: bool = False, logger=None) -> list[dict]:
         for pattern_name, regex, severity in SECRET_PATTERNS:
             m = regex.search(line)
             if m:
-                findings.append({
-                    "type": "secret",
-                    "pattern": pattern_name,
-                    "severity": severity,
-                    "file": str(filepath),
-                    "line": line_num,
-                    "snippet": _snippet(line, m.start()),
-                })
+                findings.append(
+                    {
+                        "type": "secret",
+                        "pattern": pattern_name,
+                        "severity": severity,
+                        "file": str(filepath),
+                        "line": line_num,
+                        "snippet": _snippet(line, m.start()),
+                    }
+                )
 
         # -- Dangerous code patterns --
         for pattern_name, regex, severity in DANGEROUS_PATTERNS:
             m = regex.search(line)
             if m:
-                findings.append({
-                    "type": "dangerous_code",
-                    "pattern": pattern_name,
-                    "severity": severity,
-                    "file": str(filepath),
-                    "line": line_num,
-                    "snippet": "",
-                })
+                findings.append(
+                    {
+                        "type": "dangerous_code",
+                        "pattern": pattern_name,
+                        "severity": severity,
+                        "file": str(filepath),
+                        "line": line_num,
+                        "snippet": "",
+                    }
+                )
 
     return findings
 
@@ -240,6 +248,7 @@ def compute_score(findings: list[dict]) -> int:
 # ---------------------------------------------------------------------------
 # Aggregation
 # ---------------------------------------------------------------------------
+
 
 def aggregate_by_severity(findings: list[dict]) -> dict[str, int]:
     """Count findings per severity level."""
@@ -264,6 +273,7 @@ def top_critical_findings(findings: list[dict], n: int = 10) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Report formatters
 # ---------------------------------------------------------------------------
+
 
 def format_text_report(
     target: str,
@@ -309,12 +319,8 @@ def format_text_report(
         for i, f in enumerate(top, start=1):
             loc = f"{f['file']}:{f['line']}"
             snippet_part = f"  [{_redact(f['snippet'])}]" if f.get("snippet") else ""
-            lines.append(
-                f"    {i:>2}. [{f['severity']:<8}] {f['type']}/{f['pattern']}"
-            )
-            lines.append(
-                f"        {loc}{snippet_part}"
-            )
+            lines.append(f"    {i:>2}. [{f['severity']:<8}] {f['type']}/{f['pattern']}")
+            lines.append(f"        {loc}{snippet_part}")
         lines.append("")
 
     # Score and verdict
@@ -360,6 +366,7 @@ def build_json_report(
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 def run_scan(target_path: str, output_format: str = "text", verbose: bool = False) -> dict:
     """Execute the quick scan and return the JSON-style report dict.
 
@@ -402,7 +409,9 @@ def run_scan(target_path: str, output_format: str = "text", verbose: bool = Fals
     elapsed = time.time() - start_time
     logger.info(
         "Scan complete: %d files, %d findings in %.2fs",
-        total_files, len(all_findings), elapsed,
+        total_files,
+        len(all_findings),
+        elapsed,
     )
 
     # Aggregation
@@ -437,15 +446,17 @@ def run_scan(target_path: str, output_format: str = "text", verbose: bool = Fals
     if output_format == "json":
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print(format_text_report(
-            target=str(target),
-            total_files=total_files,
-            findings=all_findings,
-            severity_counts=severity_counts,
-            score=score,
-            verdict=verdict,
-            elapsed=elapsed,
-        ))
+        print(
+            format_text_report(
+                target=str(target),
+                total_files=total_files,
+                findings=all_findings,
+                severity_counts=severity_counts,
+                score=score,
+                verdict=verdict,
+                elapsed=elapsed,
+            )
+        )
 
     return report
 

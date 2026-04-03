@@ -8,19 +8,22 @@ import onnxruntime as ort
 import structlog
 from fastapi import FastAPI, HTTPException, Request, Response
 from prometheus_fastapi_instrumentator import Instrumentator
-from src.ml.serving.health import get_serving_health
 
+from src.ml.serving.health import get_serving_health
 from src.shared.observability import ONNX_INFERENCE_LATENCY
 
 logger = structlog.get_logger(__name__)
+
 
 # Use msgspec for high-performance validation and serialization
 class PredictionRequest(msgspec.Struct):
     features: list[list[float]]
 
+
 class PredictionResponse(msgspec.Struct):
     predictions: list[float]
     latency_ms: float
+
 
 class ONNXModelServer:
     """
@@ -35,7 +38,7 @@ class ONNXModelServer:
         sess_options.intra_op_num_threads = os.cpu_count() or 4
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        
+
         sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
 
         # Prioritize GPU if available
@@ -63,6 +66,7 @@ class ONNXModelServer:
             features = features.astype(np.float32)
         return self.session.run([self.output_name], {self.input_name: features})[0]
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -81,6 +85,7 @@ async def lifespan(app: FastAPI):
     # Cleanup logic if needed
     model_server = None
 
+
 # Module-level state
 model_server: ONNXModelServer | None = None
 decoder = msgspec.json.Decoder(PredictionRequest)
@@ -90,6 +95,7 @@ app = FastAPI(title="BS-Opt ONNX Serving", lifespan=lifespan)
 
 # Instrument for Prometheus
 Instrumentator().instrument(app).expose(app)
+
 
 @app.post("/predict")
 async def predict(raw_request: Request):
@@ -115,10 +121,12 @@ async def predict(raw_request: Request):
         logger.error("inference_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @app.get("/health/liveness")
 async def liveness():
     """Basic process check."""
     return {"status": "alive"}
+
 
 @app.get("/health/readiness")
 async def readiness():
@@ -126,8 +134,10 @@ async def readiness():
     health_data = get_serving_health()
     if health_data["status"] != "healthy":
         from fastapi import Response
+
         return Response(content=str(health_data), status_code=503)
     return health_data
+
 
 @app.get("/health")
 async def legacy_health():

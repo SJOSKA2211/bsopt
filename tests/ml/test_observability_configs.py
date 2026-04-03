@@ -4,6 +4,7 @@ import os
 import pytest
 import yaml
 
+
 def test_prometheus_rules_valid_yaml():
     """Verify that Prometheus rules file is valid YAML."""
     path = "src/shared/observability_configs/prometheus_rules.yml"
@@ -16,6 +17,7 @@ def test_prometheus_rules_valid_yaml():
             assert data["groups"][0]["name"] == "ml_pipeline_alerts"
         except yaml.YAMLError:
             pytest.fail("Prometheus rules file is not valid YAML")
+
 
 def test_grafana_dashboard_valid_json():
     """Verify that Grafana dashboard file is valid JSON."""

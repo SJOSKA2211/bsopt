@@ -5,6 +5,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 def generate_html_dashboard(summary_path: str, output_path: str) -> None:
     with open(summary_path, "rb") as f:
         summary = orjson.loads(f.read())
@@ -107,6 +108,7 @@ def generate_html_dashboard(summary_path: str, output_path: str) -> None:
     with open(output_path, "w") as f:
         f.write(html_content)
     logger.info("dashboard_generated", path=output_path)
+
 
 if __name__ == "__main__":
     summary_file = "results/comprehensive_run/run_summary.json"

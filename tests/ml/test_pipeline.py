@@ -6,6 +6,7 @@ import pytest
 
 from src.ml.pipeline import MLPipeline
 
+
 @pytest.fixture
 def mock_config():
     return {
@@ -17,6 +18,7 @@ def mock_config():
         "n_trials": 1,
         "framework": "xgboost",
     }
+
 
 @pytest.fixture
 def mock_df():
@@ -31,6 +33,7 @@ def mock_df():
             "volume": np.random.randint(1000, 10000, 100),
         }
     )
+
 
 @pytest.mark.asyncio
 async def test_pipeline_run(mock_config, mock_df):
@@ -81,6 +84,7 @@ async def test_pipeline_run(mock_config, mock_df):
                                     mock_trainer_instance.optimize.assert_called_once()
                                     mock_task.assert_called()
 
+
 def test_feature_generation(mock_config, mock_df):
     with patch("src.ml.pipeline.create_engine"):
         pipeline = MLPipeline(mock_config)
@@ -92,6 +96,7 @@ def test_feature_generation(mock_config, mock_df):
         assert "ATR_14" in df_featured.columns
         assert "ADX_14" in df_featured.columns
         assert not df_featured.isnull().values.any()
+
 
 @pytest.mark.asyncio
 async def test_get_current_model_performance(mock_config):

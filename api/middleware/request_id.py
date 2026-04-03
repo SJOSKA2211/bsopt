@@ -18,6 +18,7 @@ from starlette.types import ASGIApp
 
 # ... (imports stay same)
 
+
 class RequestIDMiddleware(BaseHTTPMiddleware):
     """
     Add unique request ID to each request.
@@ -38,7 +39,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
         self.header_name = header_name
-        
+
         # machine_id = os.getenv("HOSTNAME", "node")[:4]
         self.generator = generator or (
             lambda: f"{int(time.time() * 1000):x}-{secrets.token_hex(4)}"
@@ -61,6 +62,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         response.headers[self.header_name] = request_id
 
         return response
+
 
 def get_request_id(request: Request) -> str | None:
     """Get request ID from request state."""

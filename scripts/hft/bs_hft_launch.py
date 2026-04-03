@@ -10,6 +10,7 @@ from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
+
 class HFTManifoldLauncher:
     """
     Production HFT Manifold Launcher.
@@ -80,9 +81,11 @@ class HFTManifoldLauncher:
             self.shm.close()
         os.kill(os.getpid(), signal.SIGTERM)
 
+
 def handle_signal(signum, frame):
     logger.info("received_signal_shutting_down", signal=signum)
     exit(0)
+
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, handle_signal)

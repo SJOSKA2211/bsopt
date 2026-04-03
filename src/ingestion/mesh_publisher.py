@@ -5,12 +5,13 @@ Publishes real-time scraped market data to RabbitMQ for decoupled processing.
 """
 
 import time
-import asyncio
+
 import structlog
 
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
+
 
 class MarketMeshPublisher:
     """
@@ -31,7 +32,7 @@ class MarketMeshPublisher:
                     "price": float(tick.get("price", 0.0)),
                     "volume": int(tick.get("volume", 0)),
                     "time": tick.get("time", time.time()),
-                    "side": tick.get("side", 0) # 0: Unknown, 1: Buy, 2: Sell
+                    "side": tick.get("side", 0),  # 0: Unknown, 1: Buy, 2: Sell
                 }
                 await self.rmq.publish_tick(payload)
                 count += 1
@@ -39,7 +40,9 @@ class MarketMeshPublisher:
         except Exception as e:
             logger.error("market_publish_failed", error=str(e))
 
+
 _publisher = None
+
 
 def get_market_publisher():
     global _publisher

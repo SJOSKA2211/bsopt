@@ -5,18 +5,21 @@ Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
 """
 
-import structlog
 import os
-import time
-from typing import Dict, Any, Type, Optional
+
+import structlog
 
 from src.math_kernel.base import BasePricingEngine
 
+
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
+
     pass
 
+
 logger = structlog.get_logger(__name__)
+
 
 class PricingEngineFactory:
     """
@@ -27,14 +30,14 @@ class PricingEngineFactory:
     3. Engine Health & Latency Metrics
     """
 
-    _engines: Dict[str, Type[BasePricingEngine]] = {}
-    _instances: Dict[str, BasePricingEngine] = {}
-    _default_engine_override: Optional[str] = None
-    
+    _engines: dict[str, type[BasePricingEngine]] = {}
+    _instances: dict[str, BasePricingEngine] = {}
+    _default_engine_override: str | None = None
+
     # Engine Health Registry
-    _engine_failures: Dict[str, int] = {}
+    _engine_failures: dict[str, int] = {}
     _circuit_breaker_threshold = 3
-    _recovery_timeout = 60 # seconds
+    _recovery_timeout = 60  # seconds
 
     @classmethod
     def set_default_engine(cls, name: str | None):
@@ -43,13 +46,15 @@ class PricingEngineFactory:
         logger.warning("pricing_factory_override_set", engine=name)
 
     @classmethod
-    def register(cls, name: str, engine_cls: Type[BasePricingEngine]):
+    def register(cls, name: str, engine_cls: type[BasePricingEngine]):
         """Registers a pricing engine class."""
         cls._engines[name.lower()] = engine_cls
         logger.info("pricing_engine_registered", engine=name)
 
     @classmethod
-    def get_engine(cls, name: str, execution_strategy: str | None = None, batch_size: int = 1) -> BasePricingEngine:
+    def get_engine(
+        cls, name: str, execution_strategy: str | None = None, batch_size: int = 1
+    ) -> BasePricingEngine:
         """
         Get an engine instance with intelligent strategy selection.
         """
@@ -58,10 +63,10 @@ class PricingEngineFactory:
             name = cls._default_engine_override
 
         name = name.lower()
-        
+
         # 2. Hardware-Aware Strategy Selection
         from src.math_kernel.wasm_engine import WASM_AVAILABLE
-        
+
         # AUTO-OPTIMIZE: Favor Neural or WASM for high-frequency or large batches
         if execution_strategy is None:
             if batch_size >= 1000 and WASM_AVAILABLE:
@@ -72,9 +77,12 @@ class PricingEngineFactory:
                 pass
 
         # 3. Circuit Breaker Logic
-        if name in cls._engine_failures and cls._engine_failures[name] >= cls._circuit_breaker_threshold:
+        if (
+            name in cls._engine_failures
+            and cls._engine_failures[name] >= cls._circuit_breaker_threshold
+        ):
             logger.warning("engine_circuit_breaker_active", engine=name, fallback="black_scholes")
-            name = "black_scholes" # Safe fallback
+            name = "black_scholes"  # Safe fallback
 
         # 4. Strategy Force
         if execution_strategy == "wasm" and WASM_AVAILABLE:
@@ -99,7 +107,7 @@ class PricingEngineFactory:
         except Exception as e:
             cls._engine_failures[name] = cls._engine_failures.get(name, 0) + 1
             logger.error("engine_initialization_failed", engine=name, error=str(e))
-            return cls.get_engine("black_scholes") # Recursively get fallback
+            return cls.get_engine("black_scholes")  # Recursively get fallback
 
     @classmethod
     def fully_optimize(cls):
@@ -108,25 +116,26 @@ class PricingEngineFactory:
         and detecting hardware capabilities.
         """
         logger.info("global_engine_optimization_started")
-        
+
         # 1. Hardware Autodiscovery (Mocked for prototype)
         has_cuda = os.environ.get("USE_GPU") == "1"
-        has_avx512 = True # Assume modern server
-        
+        has_avx512 = True  # Assume modern server
+
         # 2. Pre-warm engines
         engines_to_warm = ["black_scholes", "wasm"]
         if has_cuda:
             engines_to_warm.append("gpu")
-            
+
         for engine in engines_to_warm:
             try:
                 cls.get_engine(engine)
                 logger.info("engine_prewarmed", engine=engine)
             except Exception:
                 logger.warning("engine_warmup_failed", engine=engine)
-                
-        logger.info("global_engine_optimization_complete", 
-                    strategies_available=list(cls._engines.keys()))
+
+        logger.info(
+            "global_engine_optimization_complete", strategies_available=list(cls._engines.keys())
+        )
 
     @classmethod
     def _lazy_load(cls, name: str):
@@ -134,24 +143,31 @@ class PricingEngineFactory:
         try:
             if name == "black_scholes":
                 from src.math_kernel.black_scholes import BlackScholesEngine
+
                 cls.register("black_scholes", BlackScholesEngine)
             elif name == "monte_carlo":
                 from src.math_kernel.monte_carlo import MonteCarloEngine
+
                 cls.register("monte_carlo", MonteCarloEngine)
             elif name == "wasm":
                 from src.math_kernel.wasm_engine import WASMPricingEngine
+
                 cls.register("wasm", WASMPricingEngine)
             elif name == "neural":
                 from src.ml.models.neural_engine import NeuralPricingEngine
+
                 cls.register("neural", NeuralPricingEngine)
             elif name == "heston":
                 from src.math_kernel.models.heston_strategy import HestonPricingStrategy
+
                 cls.register("heston", HestonPricingStrategy)
             elif name == "rust":
                 from src.math_kernel.rust_engine import RustPricingEngine
+
                 cls.register("rust", RustPricingEngine)
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))
+
 
 # Initial baseline
 PricingEngineFactory._lazy_load("black_scholes")

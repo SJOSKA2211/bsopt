@@ -7,6 +7,7 @@ from src.auth.security import verify_token
 
 client = TestClient(app)
 
+
 # Mocking the security dependencies to test the endpoint logic and RBAC integration
 def test_admin_only_success():
     # Mock verify_token to return a valid admin payload
@@ -26,6 +27,7 @@ def test_admin_only_success():
         # Clean up overrides
         app.dependency_overrides = {}
 
+
 def test_admin_only_forbidden():
     payload = {"sub": "regular_user", "realm_access": {"roles": ["user"]}}
 
@@ -37,6 +39,7 @@ def test_admin_only_forbidden():
         assert response.status_code == 403
 
         app.dependency_overrides = {}
+
 
 def test_admin_only_unauthorized():
     # No token provided

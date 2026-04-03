@@ -6,9 +6,9 @@ from sqlalchemy import text
 from api.exceptions import (
     InternalServerException,  # Imported directly as it's a specific exception
 )
+from api.middleware.jwt_validator import require_tier
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import DataResponse, ErrorResponse
-from api.middleware.jwt_validator import require_tier
 from src.database import get_async_db, health_check
 
 router = APIRouter(
@@ -17,6 +17,7 @@ router = APIRouter(
     dependencies=[Depends(require_tier(["admin"]))],
     default_response_class=MsgspecJSONResponse,
 )
+
 
 @router.get(
     "/tracemalloc_snapshot",
@@ -53,10 +54,12 @@ async def get_tracemalloc_snapshot():
         message="Tracemalloc snapshot taken successfully.",
     )
 
+
 @router.get("/database/health", response_model=DataResponse[dict])
 async def get_db_health():
     """Detailed database health audit."""
     return DataResponse(data=health_check(), message="Database health audit complete.")
+
 
 @router.get("/database/sluggish_queries", response_model=DataResponse[list[dict]])
 async def get_sluggish_queries(db=Depends(get_async_db)):

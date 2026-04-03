@@ -11,6 +11,7 @@ Uso direto:
 O web-scraper é mais robusto para sites com layouts não convencionais,
 paginação, e estruturas não previstas pelo scraper nativo.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +37,16 @@ SKILL_WEB_SCRAPER = Path(r"C:\Users\renat\skills\web-scraper")
 
 # Mapeamento de estado para informações de extração
 EXTRACTION_SCHEMA = {
-    "fields": ["nome", "matricula", "situacao", "municipio", "telefone", "email", "endereco", "data_registro"],
+    "fields": [
+        "nome",
+        "matricula",
+        "situacao",
+        "municipio",
+        "telefone",
+        "email",
+        "endereco",
+        "data_registro",
+    ],
     "instructions": (
         "Extraia a lista completa de leiloeiros oficiais cadastrados nesta junta comercial. "
         "Para cada leiloeiro, capture: nome completo, número de matrícula/registro, "
@@ -76,7 +86,7 @@ async def run_web_scraper_for_state(estado: str, url: str) -> list[dict]:
         f'{{"leiloeiros": [{{"nome": "...", "matricula": "...", "situacao": "...", '
         f'"municipio": "...", "telefone": "...", "email": "...", "endereco": "...", '
         f'"data_registro": "..."}}]}}\n\n'
-        f"Se não encontrar dados, retorne: {{\"leiloeiros\": []}}"
+        f'Se não encontrar dados, retorne: {{"leiloeiros": []}}'
     )
 
     # Tenta usar web-scraper como módulo Python se disponível
@@ -85,7 +95,9 @@ async def run_web_scraper_for_state(estado: str, url: str) -> list[dict]:
         try:
             result = subprocess.run(
                 [sys.executable, str(web_scraper_script), "--url", url, "--json"],
-                capture_output=True, text=True, timeout=120,
+                capture_output=True,
+                text=True,
+                timeout=120,
                 cwd=str(SKILL_WEB_SCRAPER / "scripts"),
             )
             if result.returncode == 0 and result.stdout:
@@ -180,6 +192,7 @@ async def run_fallback(estados: list[str]) -> dict[str, int]:
 
         # Converte para objetos Leiloeiro e salva
         from scraper.base_scraper import Leiloeiro
+
         leiloeiros = []
         for item in raw_results:
             if isinstance(item, dict) and item.get("nome"):
@@ -208,8 +221,14 @@ async def run_fallback(estados: list[str]) -> dict[str, int]:
 def main():
     parser = argparse.ArgumentParser(description="Fallback web-scraper para estados sem dados")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--estado", nargs="+", metavar="UF", help="Estados específicos (ex: MA RN AP)")
-    group.add_argument("--todos-vazios", action="store_true", help="Reexecutar todos os estados com 0 registros no último log")
+    group.add_argument(
+        "--estado", nargs="+", metavar="UF", help="Estados específicos (ex: MA RN AP)"
+    )
+    group.add_argument(
+        "--todos-vazios",
+        action="store_true",
+        help="Reexecutar todos os estados com 0 registros no último log",
+    )
     args = parser.parse_args()
 
     if args.todos_vazios:

@@ -25,6 +25,7 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
+
 @dataclass(slots=True)
 class SVIParameters:
     """Raw SVI parameters (a, b, rho, m, sigma)."""
@@ -47,6 +48,7 @@ class SVIParameters:
         if self.a + self.b * self.sigma * np.sqrt(1 - self.rho**2) < 0:
             warnings.warn("non-negative variance violation", UserWarning)
 
+
 @dataclass(slots=True)
 class SVINaturalParameters:
     """Natural SVI parameters (delta, mu, rho, omega, zeta)."""
@@ -67,6 +69,7 @@ class SVINaturalParameters:
         sigma_param = self.zeta * denominator
         return SVIParameters(a_param, b_param, rho_param, m_param, sigma_param)
 
+
 @dataclass(slots=True)
 class SABRParameters:
     """SABR model parameters (alpha, beta, rho, nu)."""
@@ -86,6 +89,7 @@ class SABRParameters:
         if self.nu < 0:
             raise ValueError("nu must be non-negative")
 
+
 @dataclass(slots=True)
 class MarketQuote:
     """Market option quote for calibration."""
@@ -97,6 +101,7 @@ class MarketQuote:
     option_type: str = "call"
     vega: float | Decimal | None = None
 
+
 @njit(fastmath=True)  # type: ignore
 def _svi_total_variance_jit(
     k: float | np.ndarray[Any, np.dtype[np.float64]],
@@ -107,6 +112,7 @@ def _svi_total_variance_jit(
     sigma: float,
 ) -> float | np.ndarray[Any, np.dtype[np.float64]]:
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
+
 
 @njit(fastmath=True)  # type: ignore
 def _sabr_implied_vol_jit(
@@ -148,6 +154,7 @@ def _sabr_implied_vol_jit(
 
     return float(term1 * term2 * term3)
 
+
 @njit(parallel=True)  # type: ignore
 def _sabr_implied_vol_batch_jit(
     strikes: np.ndarray[Any, np.dtype[np.float64]],
@@ -163,6 +170,7 @@ def _sabr_implied_vol_batch_jit(
     for i in prange(n):
         res[i] = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta, rho, nu)
     return res
+
 
 @njit(fastmath=True, parallel=True)  # type: ignore
 def _sabr_objective_jit(
@@ -193,6 +201,7 @@ def _sabr_objective_jit(
         model_vol = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta_val, rho, nu)
         residuals[i] = (model_vol - market_vols[i]) * weights[i]
     return residuals
+
 
 class SVIModel:
     """Stochastic Volatility Inspired (SVI) model."""
@@ -275,6 +284,7 @@ class SVIModel:
 
         return g_k >= 0
 
+
 class SABRModel:
     """SABR model implementation using Hagan's expansion."""
 
@@ -309,9 +319,11 @@ class SABRModel:
             return float(vols[0])
         return cast(np.ndarray[Any, np.dtype[np.float64]], vols)
 
+
 class OptimizationMethod:
     LBFGSB: str = "L-BFGS-B"
     LEAST_SQUARES: str = "least_squares"
+
 
 @dataclass
 class CalibrationConfig:
@@ -319,6 +331,7 @@ class CalibrationConfig:
     max_iterations: int = 500
     multi_start: int = 1
     weighted_by_vega: bool = False
+
 
 class CalibrationEngine:
     def __init__(self, config: CalibrationConfig | None = None) -> None:
@@ -513,6 +526,7 @@ class CalibrationEngine:
         }
         return calibrated, diag
 
+
 class ArbitrageDetector:
     def check_butterfly_arbitrage(
         self,
@@ -544,8 +558,10 @@ class ArbitrageDetector:
             "violations": [] if is_free else ["negative variance"],
         }
 
+
 class InterpolationMethod:
     LINEAR: str = "linear"
+
 
 class VolatilitySurface:
     def __init__(self, method: str = InterpolationMethod.LINEAR) -> None:

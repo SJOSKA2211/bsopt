@@ -28,27 +28,44 @@ if sys.stderr.encoding != "utf-8":
 # Adicionar diretório dos scripts ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import (
-    DATA_DIR, SESSIONS_DIR, ARCHIVE_DIR, LOGS_DIR,
-    ACTIVE_CONTEXT_PATH, PROJECT_REGISTRY_PATH,
-)
-from session_parser import (
-    parse_session_file, get_latest_session_file, get_session_metadata,
-    extract_files_modified, extract_tool_calls,
-)
-from session_summary import (
-    generate_summary, save_session_summary, get_next_session_number,
-)
 from active_context import (
-    load_active_context, update_active_context,
-    save_active_context, sync_to_memory, check_drift,
-)
-from project_registry import (
-    load_registry, save_registry, detect_projects_from_session, update_project,
+    check_drift,
+    load_active_context,
+    save_active_context,
+    sync_to_memory,
+    update_active_context,
 )
 from compressor import auto_maintain as compress_maintain
 from context_loader import generate_briefing, get_quick_status
-from search import init_search_db, index_session, search as fts_search, reindex_all
+from project_registry import (
+    detect_projects_from_session,
+    load_registry,
+    save_registry,
+    update_project,
+)
+from search import index_session, init_search_db, reindex_all
+from search import search as fts_search
+from session_parser import (
+    extract_files_modified,
+    extract_tool_calls,
+    get_latest_session_file,
+    get_session_metadata,
+    parse_session_file,
+)
+from session_summary import (
+    generate_summary,
+    get_next_session_number,
+    save_session_summary,
+)
+
+from config import (
+    ACTIVE_CONTEXT_PATH,
+    ARCHIVE_DIR,
+    DATA_DIR,
+    LOGS_DIR,
+    PROJECT_REGISTRY_PATH,
+    SESSIONS_DIR,
+)
 
 
 def cmd_init(args):
@@ -106,7 +123,9 @@ def cmd_save(args):
     session_number = get_next_session_number()
 
     print(f"  Sessão #{session_number:03d} — {metadata.get('slug', '?')}")
-    print(f"  {metadata.get('message_count', 0)} mensagens, {metadata.get('tool_call_count', 0)} tool calls")
+    print(
+        f"  {metadata.get('message_count', 0)} mensagens, {metadata.get('tool_call_count', 0)} tool calls"
+    )
 
     # 2. Gerar resumo
     summary = generate_summary(entries, session_number, metadata)
@@ -125,7 +144,8 @@ def cmd_save(args):
     projects = load_registry()
     for pname in projects_touched:
         projects = update_project(
-            projects, pname,
+            projects,
+            pname,
             last_touched=summary.date,
             last_session=session_number,
             status="active",
@@ -148,8 +168,7 @@ def cmd_save(args):
         "decisions": "\n".join(summary.decisions),
         "tasks_completed": "\n".join(summary.tasks_completed),
         "tasks_pending": "\n".join(
-            t.description if hasattr(t, 'description') else str(t)
-            for t in summary.tasks_pending
+            t.description if hasattr(t, "description") else str(t) for t in summary.tasks_pending
         ),
         "files_modified": "\n".join(f["path"] for f in summary.files_modified),
         "key_findings": "\n".join(summary.key_findings),
@@ -214,6 +233,7 @@ def cmd_briefing(args):
 def cmd_archive(args):
     """Arquivar sessões antigas."""
     from session_summary import get_next_session_number
+
     current = get_next_session_number() - 1
     if current <= 0:
         print("Nenhuma sessão para arquivar.")
@@ -226,6 +246,7 @@ def cmd_archive(args):
 def cmd_maintain(args):
     """Auto-manutenção: arquivar, comprimir, sincronizar."""
     from session_summary import get_next_session_number
+
     current = get_next_session_number() - 1
 
     # 1. Arquivar sessões antigas

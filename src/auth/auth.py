@@ -8,27 +8,17 @@ zero-trust compliant service.
 import hashlib
 import logging
 import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
-import jwt
-import msgspec
-import pyotp
-import secrets
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
 from cachetools import TTLCache
-from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
-from jwt.exceptions import ExpiredSignatureError, PyJWTError
-from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 from src.database import get_async_db
 from src.database.models import APIKey, OAuth2Client, User
-from src.shared.config import settings
 from src.shared.utils.cache import get_redis_client
 
 logger = logging.getLogger(__name__)
@@ -38,15 +28,15 @@ security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 from src.auth.core.hashing import hasher
-from src.auth.core.tokens import token_service, TokenData, TokenPair
 from src.auth.core.mfa import mfa_service
 from src.auth.core.sessions import session_service
+from src.auth.core.tokens import TokenData, TokenPair, token_service
 from src.auth.core.webauthn import webauthn_service
-from src.auth.core.social import social_service
 
 # High-performance local caches for FastAPI dependencies
 user_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for users
-api_key_local_cache = TTLCache(maxsize=10000, ttl=60) # 1 minute local TTL for API keys
+api_key_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for API keys
+
 
 class AuthService:
     """
@@ -74,18 +64,18 @@ class AuthService:
 
     # --- Token Logic (Delegated) ---
 
-    def create_token_pair(self, user_id: str, email: str, tier: str, scopes: list[str] = []) -> TokenPair:
+    def create_token_pair(
+        self, user_id: str, email: str, tier: str, scopes: list[str] = []
+    ) -> TokenPair:
         return self.tokens.create_token_pair(user_id, email, tier, scopes)
 
     def decode_token(self, token: str) -> TokenData:
         return self.tokens.decode_token(token)
 
     def generate_reset_token(self) -> str:
-        import secrets
         return secrets.token_urlsafe(32)
 
     def generate_verification_token(self) -> str:
-        import secrets
         return secrets.token_urlsafe(32)
 
     # --- MFA Logic (Delegated) ---
@@ -195,7 +185,9 @@ class AuthService:
 
     # --- WebAuthn / Passkey (Delegated) ---
 
-    def get_webauthn_registration_options(self, user_id: str, email: str, existing_credentials: list[bytes] = []):
+    def get_webauthn_registration_options(
+        self, user_id: str, email: str, existing_credentials: list[bytes] = []
+    ):
         return webauthn_service.get_registration_options(user_id, email, existing_credentials)
 
     def verify_webauthn_registration(self, registration_response: dict, expected_challenge: str):
@@ -231,18 +223,35 @@ class AuthService:
 
         return True
 
+
 # Global instance
 auth_service = AuthService()
 
+
 class TokenBlacklistShim:
     """Legacy shim for token blacklist operations."""
+
     async def initialize(self, redis_client=None):
         pass
+
     async def add(self, jti: str, exp: datetime):
         from src.auth.core.tokens import TokenData
-        await session_service.revoke_token(TokenData(jti=jti, exp=exp, user_id="", email="", tier="", token_type="access", iat=datetime.now()))
+
+        await session_service.revoke_token(
+            TokenData(
+                jti=jti,
+                exp=exp,
+                user_id="",
+                email="",
+                tier="",
+                token_type="access",
+                iat=datetime.now(),
+            )
+        )
+
     async def contains(self, jti: str) -> bool:
         return await session_service.is_token_revoked(jti)
+
 
 token_blacklist = TokenBlacklistShim()
 auth_service.token_blacklist = token_blacklist
@@ -251,7 +260,9 @@ auth_service.token_blacklist = token_blacklist
 def get_auth_service() -> AuthService:
     return auth_service
 
+
 # --- FastAPI Dependencies ---
+
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
@@ -259,6 +270,7 @@ async def get_token_from_header(
     if credentials:
         return credentials.credentials
     return None
+
 
 async def get_current_user(
     request: Request,
@@ -306,7 +318,7 @@ async def get_current_user(
         "tier": user.tier,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
-        "mfa_enabled": user.mfa_enabled
+        "mfa_enabled": user.mfa_enabled,
     }
     user_local_cache[user_id] = user_dict
     await db_cache.set_user(user_id, user_dict)
@@ -314,12 +326,14 @@ async def get_current_user(
     request.state.user = user
     return user
 
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
     return user
+
 
 class RoleChecker:
     def __init__(self, allowed_roles: list[str]):
@@ -334,6 +348,7 @@ class RoleChecker:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
 
+
 async def get_api_key(
     request: Request,
     api_key: str | None = Depends(api_key_header),
@@ -343,14 +358,14 @@ async def get_api_key(
         return None
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    
+
     # 1. Fast path: Local Cache
     if key_hash in api_key_local_cache:
         user_dict = api_key_local_cache[key_hash]
         return User(**user_dict)
 
     from src.shared.utils.cache import db_cache
-    
+
     # 2. Medium path: Redis Cache
     cached_data = await db_cache.get_api_key(key_hash)
     if cached_data:
@@ -365,8 +380,11 @@ async def get_api_key(
 
     # 3. Slow path: DB
     from sqlalchemy.orm import joinedload
+
     result = await db.execute(
-        select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
+        select(APIKey)
+        .options(joinedload(APIKey.user))
+        .where(APIKey.key_hash == key_hash, APIKey.is_active)
     )
     key_record = result.scalar_one_or_none()
 
@@ -380,23 +398,27 @@ async def get_api_key(
         "tier": user.tier,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
-        "mfa_enabled": user.mfa_enabled
+        "mfa_enabled": user.mfa_enabled,
     }
-    
+
     # Update caches
     api_key_local_cache[key_hash] = user_dict
-    await db_cache.set_api_key(key_hash, {
-        "user_id": str(user.id),
-        "email": user.email,
-        "tier": user.tier,
-        "key_name": key_record.name
-    })
-    
+    await db_cache.set_api_key(
+        key_hash,
+        {
+            "user_id": str(user.id),
+            "email": user.email,
+            "tier": user.tier,
+            "key_name": key_record.name,
+        },
+    )
+
     # Async update for last_used_at
     key_record.last_used_at = datetime.now(UTC)
     await db.commit()
 
     return User(**user_dict)
+
 
 async def get_current_user_flexible(
     request: Request,

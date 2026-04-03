@@ -71,8 +71,12 @@ class TestFindDuplicates(unittest.TestCase):
 
     def test_finds_duplicates(self):
         items = [
-            schema.RedditItem(id="R1", title="Best practices for Claude Code skills", url="", subreddit=""),
-            schema.RedditItem(id="R2", title="Best practices for Claude Code skills guide", url="", subreddit=""),
+            schema.RedditItem(
+                id="R1", title="Best practices for Claude Code skills", url="", subreddit=""
+            ),
+            schema.RedditItem(
+                id="R2", title="Best practices for Claude Code skills guide", url="", subreddit=""
+            ),
         ]
         result = dedupe.find_duplicates(items, threshold=0.7)
         self.assertEqual(len(result), 1)
@@ -82,8 +86,12 @@ class TestFindDuplicates(unittest.TestCase):
 class TestDedupeItems(unittest.TestCase):
     def test_keeps_higher_scored(self):
         items = [
-            schema.RedditItem(id="R1", title="Best practices for skills", url="", subreddit="", score=90),
-            schema.RedditItem(id="R2", title="Best practices for skills guide", url="", subreddit="", score=50),
+            schema.RedditItem(
+                id="R1", title="Best practices for skills", url="", subreddit="", score=90
+            ),
+            schema.RedditItem(
+                id="R2", title="Best practices for skills guide", url="", subreddit="", score=50
+            ),
         ]
         result = dedupe.dedupe_items(items, threshold=0.6)
         self.assertEqual(len(result), 1)
@@ -92,7 +100,9 @@ class TestDedupeItems(unittest.TestCase):
     def test_keeps_all_unique(self):
         items = [
             schema.RedditItem(id="R1", title="Topic about apples", url="", subreddit="", score=90),
-            schema.RedditItem(id="R2", title="Discussion of oranges", url="", subreddit="", score=50),
+            schema.RedditItem(
+                id="R2", title="Discussion of oranges", url="", subreddit="", score=50
+            ),
         ]
         result = dedupe.dedupe_items(items)
         self.assertEqual(len(result), 2)

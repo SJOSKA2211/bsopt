@@ -13,9 +13,9 @@ import structlog
 from mlflow.entities import RunStatus
 
 from src.ml.distributed_training import BSOptDistributedTrainer
-from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
+
 
 class MLflowRayWatchdog:
     """
@@ -116,6 +116,7 @@ class MLflowRayWatchdog:
         if val.lower() == "false":
             return False
         return val
+
 
 if __name__ == "__main__":
     watchdog = MLflowRayWatchdog("distributed_dt_v1")

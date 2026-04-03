@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def max_element(l: list):
     """Return maximum element in the list.
     >>> max_element([1, 2, 3])

@@ -9,13 +9,16 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import msgspec
 from jwt.exceptions import ExpiredSignatureError, PyJWTError
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class TokenData(msgspec.Struct, frozen=True):
     """Standardized Token Data (msgspec)."""
+
     user_id: str
     email: str
     tier: str
@@ -25,18 +28,22 @@ class TokenData(msgspec.Struct, frozen=True):
     jti: str | None = None
     scopes: list[str] = []
 
+
 class TokenPair(BaseModel):
     """Standardized Token Pair (Pydantic V2)."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     requires_mfa: bool = False
 
+
 class TokenService:
     """
     JWT asymmetric token management.
     """
+
     def _get_key_for_algorithm(self, algorithm: str, is_private: bool = True) -> str:
         """Selects the correct key (RSA or ECC) based on the algorithm."""
         if algorithm.startswith("RS"):
@@ -70,7 +77,7 @@ class TokenService:
         """Internal helper to create a JWT token with asymmetric support and strict msgspec validation."""
         now = datetime.now(UTC)
         expire = now + expires_delta
-        
+
         to_encode = {
             **data,
             "exp": expire,
@@ -78,10 +85,10 @@ class TokenService:
             "jti": secrets.token_hex(24),
             "iss": "manifold-auth-v2",
         }
-        
+
         # Use msgspec for fast serialization check (ensures no non-JSON serializable objects)
         msgspec.json.encode(to_encode)
-        
+
         algorithm = settings.JWT_ALGORITHM
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -106,10 +113,13 @@ class TokenService:
             )
         except ExpiredSignatureError:
             from fastapi import HTTPException
+
             raise HTTPException(status_code=401, detail="Token has expired")
         except PyJWTError:
             from fastapi import HTTPException
+
             raise HTTPException(status_code=401, detail="Invalid token")
+
 
 # Global instance for easy access
 token_service = TokenService()

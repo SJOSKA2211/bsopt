@@ -4,6 +4,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class ProductionGovernance:
     """
     Manifold Production Governance Layer.
@@ -29,5 +30,6 @@ class ProductionGovernance:
 
         logger.info("governance_action_approved", actor=actor_id, action=action_type)
         return True
+
 
 governance = ProductionGovernance()

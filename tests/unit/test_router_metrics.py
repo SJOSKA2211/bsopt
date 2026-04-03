@@ -4,6 +4,7 @@ import pytest
 
 from src.ingestion.router import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS, MarketDataRouter
 
+
 @pytest.mark.asyncio
 async def test_router_metrics_increment():
     with patch("src.ingestion.router.NSEScraper") as mock_nse:

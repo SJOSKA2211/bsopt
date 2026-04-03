@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 logger = structlog.get_logger()
 
+
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
@@ -25,37 +26,41 @@ async def check_database():
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
+
 async def check_pgbouncer():
     print("Checking PgBouncer Pool Engine...", end=" ", flush=True)
     import os
+
     from sqlalchemy import create_engine, text
+
     from src.shared.config import settings
-    
+
     # Allow host/port/sslmode overrides for local testing outside docker
     host = os.environ.get("PGBOUNCER_HOST", settings.PGBOUNCER_HOST)
     port = os.environ.get("PGBOUNCER_PORT", settings.PGBOUNCER_PORT)
     sslmode = os.environ.get("PGBOUNCER_SSLMODE", "verify-full")
-    
+
     # Use 'postgresql+psycopg' to force v3 driver
     admin_url = f"postgresql+psycopg://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer?sslmode={sslmode}"
-    
+
     try:
         engine = create_engine(admin_url)
         with engine.connect() as conn:
             pools = conn.execute(text("SHOW POOLS")).fetchall()
-            
+
             total_active = 0
             total_waiting = 0
             for pool in pools:
                 total_active += pool.cl_active
                 total_waiting += pool.cl_waiting
-            
+
             if total_waiting > 0:
                 print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
             else:
                 print(f" [HEALTHY: {total_active} active connections]")
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
+
 
 async def check_redis():
     print("Checking Redis Cluster...", end=" ", flush=True)
@@ -87,6 +92,7 @@ async def check_redis():
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
+
 async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
@@ -112,6 +118,7 @@ async def check_shm():
     except Exception as e:
         print(f"❌ [ERROR: {e}]")
 
+
 async def main():
     print("\n" + "=" * 50)
     print("   BS-OPT HIGH-PERFORMANCE SYSTEM SENTINEL")
@@ -121,6 +128,7 @@ async def main():
     await check_redis()
     await check_shm()
     print("=" * 50 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

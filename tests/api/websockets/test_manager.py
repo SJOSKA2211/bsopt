@@ -9,6 +9,7 @@ from api.websockets.manager import (
 )
 from src.shared.protos.market_data_pb2 import TickerUpdate
 
+
 @pytest.fixture
 def manager():
     mgr = ConnectionManager()
@@ -18,6 +19,7 @@ def manager():
     mgr.pubsub.subscribe = AsyncMock()
     mgr.pubsub.unsubscribe = AsyncMock()
     return mgr
+
 
 @pytest.mark.asyncio
 async def test_connect_disconnect(manager):
@@ -32,6 +34,7 @@ async def test_connect_disconnect(manager):
 
     manager.disconnect(ws, "AAPL")
     assert "AAPL" not in manager.active_connections
+
 
 @pytest.mark.asyncio
 async def test_broadcast_mixed_protocols(manager):
@@ -59,6 +62,7 @@ async def test_broadcast_mixed_protocols(manager):
     assert ws_proto.send_bytes.called
     ws_proto.send_bytes.assert_called_with(data.SerializeToString())
 
+
 @pytest.mark.asyncio
 async def test_broadcast_dict_input(manager):
     # Test backward compatibility if input is dict
@@ -72,6 +76,7 @@ async def test_broadcast_dict_input(manager):
     assert ws_json.send_text.called
     sent_json = ws_json.send_text.call_args[0][0]
     assert '"symbol":"AAPL"' in sent_json
+
 
 @pytest.mark.asyncio
 async def test_broadcast_encode_error(manager):
@@ -87,6 +92,7 @@ async def test_broadcast_encode_error(manager):
 
     assert not ws_proto.send_bytes.called
 
+
 @pytest.mark.asyncio
 async def test_init_redis_connection():
     from unittest.mock import patch
@@ -96,10 +102,12 @@ async def test_init_redis_connection():
         mock_redis.assert_called_once()
         assert mgr.redis == mock_redis.return_value
 
+
 @pytest.mark.asyncio
 async def test_broadcast_unknown_symbol(manager):
     # Should not raise error
     await manager.broadcast_to_symbol("UNKNOWN", {})
+
 
 @pytest.mark.asyncio
 async def test_disconnect_unknown(manager):

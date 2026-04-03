@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 
-import numpy as np
-
 from src.ml.aiops.data_drift_detector import DataDriftDetector
+
 
 class TestDataDriftDetector:
     def test_detect_drift_univariate(self):
@@ -28,4 +28,3 @@ class TestDataDriftDetector:
         detector = DataDriftDetector()
         with pytest.raises(ValueError):
             detector.detect_drift(np.random.randn(10, 2), np.random.randn(10, 3))
-

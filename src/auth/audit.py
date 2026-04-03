@@ -17,6 +17,7 @@ from src.shared.utils.sanitization import mask_email
 # Use a dedicated logger for audit trails
 audit_logger = logging.getLogger("audit")
 
+
 class AuditEvent(StrEnum):
     """All auditable security events."""
 
@@ -52,6 +53,7 @@ class AuditEvent(StrEnum):
     # Security events
     SUSPICIOUS_ACTIVITY = "SUSPICIOUS_ACTIVITY"
     IP_BLOCKED = "IP_BLOCKED"
+
 
 def log_audit(
     event: AuditEvent,

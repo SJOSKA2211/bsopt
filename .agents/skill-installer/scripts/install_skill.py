@@ -23,22 +23,22 @@ Usage:
 
 from __future__ import annotations
 
-import os
-import sys
-import json
-import shutil
 import hashlib
-import subprocess
+import json
+import os
 import re
-from pathlib import Path
+import shutil
+import subprocess
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # Add scripts directory to path for imports
 SCRIPT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from validate_skill import validate, parse_yaml_frontmatter
 from detect_skills import detect
+from validate_skill import parse_yaml_frontmatter, validate
 
 # ── Configuration ──────────────────────────────────────────────────────────
 
@@ -59,13 +59,18 @@ VERSION = "3.0.0"
 
 # ── Console Colors ─────────────────────────────────────────────────────────
 
+
 class _C:
     """ANSI color codes for terminal output. Degrades gracefully on Windows."""
+
     _enabled = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
     # Check if stdout can handle UTF-8 symbols
     _utf8 = False
     try:
-        _utf8 = sys.stdout.encoding and sys.stdout.encoding.lower().replace("-", "") in ("utf8", "utf16")
+        _utf8 = sys.stdout.encoding and sys.stdout.encoding.lower().replace("-", "") in (
+            "utf8",
+            "utf16",
+        )
     except Exception:
         pass
 
@@ -76,17 +81,28 @@ class _C:
         return text
 
     @staticmethod
-    def green(t: str) -> str: return _C._wrap("32", t)
+    def green(t: str) -> str:
+        return _C._wrap("32", t)
+
     @staticmethod
-    def red(t: str) -> str: return _C._wrap("31", t)
+    def red(t: str) -> str:
+        return _C._wrap("31", t)
+
     @staticmethod
-    def yellow(t: str) -> str: return _C._wrap("33", t)
+    def yellow(t: str) -> str:
+        return _C._wrap("33", t)
+
     @staticmethod
-    def cyan(t: str) -> str: return _C._wrap("36", t)
+    def cyan(t: str) -> str:
+        return _C._wrap("36", t)
+
     @staticmethod
-    def bold(t: str) -> str: return _C._wrap("1", t)
+    def bold(t: str) -> str:
+        return _C._wrap("1", t)
+
     @staticmethod
-    def dim(t: str) -> str: return _C._wrap("2", t)
+    def dim(t: str) -> str:
+        return _C._wrap("2", t)
 
     # ASCII-safe symbols for Windows cp1252 compatibility
     OK = "[OK]"
@@ -112,6 +128,7 @@ def _fail(msg: str):
 
 
 # ── Utility Functions ──────────────────────────────────────────────────────
+
 
 def sanitize_name(name: str) -> str:
     """Sanitize skill name: lowercase, hyphens, no spaces."""
@@ -160,7 +177,7 @@ def parse_version(ver: str) -> tuple:
     """
     if not ver:
         return (0, 0, 0)
-    parts = re.findall(r'\d+', str(ver))
+    parts = re.findall(r"\d+", str(ver))
     while len(parts) < 3:
         parts.append("0")
     try:
@@ -258,6 +275,7 @@ def get_all_skill_dirs() -> list:
 
 
 # ── Installation Steps ─────────────────────────────────────────────────────
+
 
 def step1_resolve_source(source: str = None, do_detect: bool = False, auto: bool = False) -> dict:
     """STEP 1: Resolve source directory."""
@@ -476,9 +494,7 @@ def step7_register_claude(skill_name: str) -> dict:
     return {
         "success": True,
         "registered_at": str(claude_dest_dir),
-        "files_registered": ["SKILL.md"] + (
-            ["references/"] if refs_dir.exists() else []
-        ),
+        "files_registered": ["SKILL.md"] + (["references/"] if refs_dir.exists() else []),
     }
 
 
@@ -521,11 +537,13 @@ def step9_verify(skill_name: str) -> dict:
 
     # Check 1: Skill directory exists
     dest = SKILLS_ROOT / skill_name
-    checks.append({
-        "check": "skill_dir_exists",
-        "pass": dest.exists(),
-        "path": str(dest),
-    })
+    checks.append(
+        {
+            "check": "skill_dir_exists",
+            "pass": dest.exists(),
+            "path": str(dest),
+        }
+    )
 
     # Check 2: SKILL.md exists and is readable
     skill_md = dest / "SKILL.md"
@@ -536,27 +554,33 @@ def step9_verify(skill_name: str) -> dict:
             skill_md_ok = len(text) > 10
         except Exception:
             pass
-    checks.append({
-        "check": "skill_md_readable",
-        "pass": skill_md_ok,
-        "path": str(skill_md),
-    })
+    checks.append(
+        {
+            "check": "skill_md_readable",
+            "pass": skill_md_ok,
+            "path": str(skill_md),
+        }
+    )
 
     # Check 3: Frontmatter parseable
     meta = parse_yaml_frontmatter(skill_md) if skill_md.exists() else {}
-    checks.append({
-        "check": "frontmatter_parseable",
-        "pass": bool(meta.get("name")),
-        "name": meta.get("name", ""),
-    })
+    checks.append(
+        {
+            "check": "frontmatter_parseable",
+            "pass": bool(meta.get("name")),
+            "name": meta.get("name", ""),
+        }
+    )
 
     # Check 4: Claude Code registration
     claude_skill_md = CLAUDE_SKILLS / skill_name / "SKILL.md"
-    checks.append({
-        "check": "claude_registered",
-        "pass": claude_skill_md.exists(),
-        "path": str(claude_skill_md),
-    })
+    checks.append(
+        {
+            "check": "claude_registered",
+            "pass": claude_skill_md.exists(),
+            "path": str(claude_skill_md),
+        }
+    )
 
     # Check 5: Appears in registry
     in_registry = False
@@ -567,10 +591,12 @@ def step9_verify(skill_name: str) -> dict:
             in_registry = skill_name.lower() in skill_names
         except Exception:
             pass
-    checks.append({
-        "check": "in_registry",
-        "pass": in_registry,
-    })
+    checks.append(
+        {
+            "check": "in_registry",
+            "pass": in_registry,
+        }
+    )
 
     all_passed = all(c["pass"] for c in checks)
 
@@ -608,6 +634,7 @@ def step10_log(skill_name: str, source: str, result: dict):
 
 
 # ── Main Install Workflow ──────────────────────────────────────────────────
+
 
 def install_single(
     source_path: str,
@@ -726,11 +753,11 @@ def install_single(
             f"Use --force to overwrite."
         )
         if verbose:
-            _fail(f"Conflict: skill already exists. Use --force to overwrite.")
+            _fail("Conflict: skill already exists. Use --force to overwrite.")
         return result
     if verbose:
         if conflicts["has_conflicts"]:
-            _warn(f"Conflict detected -- will overwrite (--force)")
+            _warn("Conflict detected -- will overwrite (--force)")
         else:
             _ok("No conflicts")
 
@@ -879,12 +906,15 @@ def install_single(
         zip_result = {"success": False, "skipped": True}
         try:
             from package_skill import package_skill as pkg_skill
+
             zip_result = pkg_skill(SKILLS_ROOT / skill_name)
             result["steps"]["10_package"] = zip_result
             result["zip_path"] = zip_result.get("zip_path") if zip_result["success"] else None
             if verbose:
                 if zip_result["success"]:
-                    _ok(f"ZIP: {zip_result.get('zip_path')} ({zip_result.get('zip_size_kb', '?')} KB)")
+                    _ok(
+                        f"ZIP: {zip_result.get('zip_path')} ({zip_result.get('zip_size_kb', '?')} KB)"
+                    )
                 else:
                     _warn(f"ZIP: {zip_result.get('error', 'failed')}")
         except Exception as e:
@@ -906,7 +936,9 @@ def install_single(
     else:
         result["success"] = result.get("verification", {}).get("success", False)
         if not result.get("verification", {}).get("success", True):
-            failed_checks = [c for c in result.get("verification", {}).get("checks", []) if not c.get("pass")]
+            failed_checks = [
+                c for c in result.get("verification", {}).get("checks", []) if not c.get("pass")
+            ]
             result["warnings"].append(
                 f"Verification: {result['verification'].get('failed', 0)} check(s) failed: "
                 + ", ".join(c["check"] for c in failed_checks)
@@ -925,6 +957,7 @@ def install_single(
 
 
 # ── Uninstall ─────────────────────────────────────────────────────────────
+
 
 def uninstall_skill(skill_name: str, keep_backup: bool = True) -> dict:
     """Uninstall a skill: remove from skills root, .claude/skills/, and registry."""
@@ -1004,6 +1037,7 @@ def uninstall_skill(skill_name: str, keep_backup: bool = True) -> dict:
 
 
 # ── Health Check ──────────────────────────────────────────────────────────
+
 
 def health_check() -> dict:
     """Run a global health check on all installed skills."""
@@ -1099,6 +1133,7 @@ def health_check() -> dict:
 
     # Check for registry duplicates
     from collections import Counter
+
     reg_name_counts = Counter(s.get("name", "").lower() for s in registry_skills)
     duplicates = {name: count for name, count in reg_name_counts.items() if count > 1}
 
@@ -1112,6 +1147,7 @@ def health_check() -> dict:
 
 
 # ── Auto-Repair ──────────────────────────────────────────────────────────
+
 
 def repair_health(verbose: bool = True) -> dict:
     """Run health check and automatically fix all issues found.
@@ -1203,7 +1239,9 @@ def repair_health(verbose: bool = True) -> dict:
 
     if verbose:
         fixed = health["unhealthy"] - health_after["unhealthy"]
-        print(f"\n{_C.bold('Result:')} Fixed {_C.green(str(fixed))} of {health['unhealthy']} issues.")
+        print(
+            f"\n{_C.bold('Result:')} Fixed {_C.green(str(fixed))} of {health['unhealthy']} issues."
+        )
         if health_after["unhealthy"] > 0:
             _warn(f"{health_after['unhealthy']} issues remaining")
         else:
@@ -1214,6 +1252,7 @@ def repair_health(verbose: bool = True) -> dict:
 
 
 # ── Rollback ─────────────────────────────────────────────────────────────
+
 
 def rollback_skill(skill_name: str, verbose: bool = True) -> dict:
     """Restore a skill from its latest backup.
@@ -1249,7 +1288,9 @@ def rollback_skill(skill_name: str, verbose: bool = True) -> dict:
             # Show available backups
             all_backups = [d.name for d in BACKUPS_DIR.iterdir() if d.is_dir()]
             if all_backups:
-                print(f"  Available backups: {', '.join(sorted(set(b.rsplit('_', 2)[0] for b in all_backups)))}")
+                print(
+                    f"  Available backups: {', '.join(sorted(set(b.rsplit('_', 2)[0] for b in all_backups)))}"
+                )
         return result
 
     latest_backup = backups[0]
@@ -1302,13 +1343,15 @@ def rollback_skill(skill_name: str, verbose: bool = True) -> dict:
         _ok("Registry updated")
 
     # Log operation
-    append_log({
-        "timestamp": datetime.now().isoformat(),
-        "action": "rollback",
-        "skill_name": skill_name,
-        "backup_used": str(latest_backup),
-        "success": True,
-    })
+    append_log(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "action": "rollback",
+            "skill_name": skill_name,
+            "backup_used": str(latest_backup),
+            "success": True,
+        }
+    )
 
     result["success"] = True
     if verbose:
@@ -1317,6 +1360,7 @@ def rollback_skill(skill_name: str, verbose: bool = True) -> dict:
 
 
 # ── Reinstall All ────────────────────────────────────────────────────────
+
 
 def reinstall_all(force: bool = True, verbose: bool = True) -> dict:
     """Re-register every installed skill in one pass.
@@ -1345,6 +1389,7 @@ def reinstall_all(force: bool = True, verbose: bool = True) -> dict:
         zip_result = {"success": False}
         try:
             from package_skill import package_skill as pkg_skill
+
             zip_result = pkg_skill(skill_dir)
         except Exception:
             pass
@@ -1363,7 +1408,7 @@ def reinstall_all(force: bool = True, verbose: bool = True) -> dict:
 
     # Final registry update
     if verbose:
-        print(f"\n  Updating registry...")
+        print("\n  Updating registry...")
     step8_update_registry()
 
     registered_ok = sum(1 for r in results_list if r["registered"])
@@ -1377,23 +1422,28 @@ def reinstall_all(force: bool = True, verbose: bool = True) -> dict:
     }
 
     if verbose:
-        print(f"\n{_C.bold('Result:')} {registered_ok}/{len(results_list)} registered, {zipped_ok}/{len(results_list)} zipped.")
+        print(
+            f"\n{_C.bold('Result:')} {registered_ok}/{len(results_list)} registered, {zipped_ok}/{len(results_list)} zipped."
+        )
         print()
 
     # Log
-    append_log({
-        "timestamp": datetime.now().isoformat(),
-        "action": "reinstall_all",
-        "total": len(results_list),
-        "registered": registered_ok,
-        "zipped": zipped_ok,
-        "success": True,
-    })
+    append_log(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "action": "reinstall_all",
+            "total": len(results_list),
+            "registered": registered_ok,
+            "zipped": zipped_ok,
+            "success": True,
+        }
+    )
 
     return result
 
 
 # ── Status Dashboard ─────────────────────────────────────────────────────
+
 
 def show_status(verbose: bool = True) -> dict:
     """Rich status dashboard showing all skills, versions, and health."""
@@ -1429,13 +1479,15 @@ def show_status(verbose: bool = True) -> dict:
     rollback_count = sum(1 for o in log_ops if o.get("action") == "rollback")
 
     if verbose:
-        print(f"\n{_C.bold('+' + '='*62 + '+')}")
-        print(f"{_C.bold('|')}  {_C.bold(_C.cyan('Skill Installer v' + VERSION + ' -- Status Dashboard'))}              {_C.bold('|')}")
-        print(f"{_C.bold('+' + '='*62 + '+')}\n")
+        print(f"\n{_C.bold('+' + '=' * 62 + '+')}")
+        print(
+            f"{_C.bold('|')}  {_C.bold(_C.cyan('Skill Installer v' + VERSION + ' -- Status Dashboard'))}              {_C.bold('|')}"
+        )
+        print(f"{_C.bold('+' + '=' * 62 + '+')}\n")
 
         # Skills table header
         print(f"  {'Name':<24} {'Version':<10} {'Health':<10} {'Registered':<12} {'Backups':<8}")
-        print(f"  {'-'*24} {'-'*10} {'-'*10} {'-'*12} {'-'*8}")
+        print(f"  {'-' * 24} {'-' * 10} {'-' * 10} {'-' * 12} {'-' * 8}")
 
         for skill in health["skills"]:
             name = skill["name"][:22]
@@ -1451,14 +1503,18 @@ def show_status(verbose: bool = True) -> dict:
                     print(f"    {_C.dim(f'  -> {issue}')}")
 
         print(f"\n  {_C.bold('Summary:')}")
-        print(f"    Skills: {_C.bold(str(health['total_skills']))} total, "
-              f"{_C.green(str(health['healthy']))} healthy, "
-              f"{_C.red(str(health['unhealthy'])) if health['unhealthy'] else '0'} unhealthy")
+        print(
+            f"    Skills: {_C.bold(str(health['total_skills']))} total, "
+            f"{_C.green(str(health['healthy']))} healthy, "
+            f"{_C.red(str(health['unhealthy'])) if health['unhealthy'] else '0'} unhealthy"
+        )
         if health["registry_duplicates"]:
             print(f"    {_C.yellow('Duplicates:')} {health['registry_duplicates']}")
 
         print(f"\n  {_C.bold('Operations Log:')}")
-        print(f"    Installs: {install_count} | Uninstalls: {uninstall_count} | Rollbacks: {rollback_count}")
+        print(
+            f"    Installs: {install_count} | Uninstalls: {uninstall_count} | Rollbacks: {rollback_count}"
+        )
         print(f"    Total logged: {len(log_ops)}")
         print()
 
@@ -1475,6 +1531,7 @@ def show_status(verbose: bool = True) -> dict:
 
 
 # ── Log Viewer ───────────────────────────────────────────────────────────
+
 
 def show_log(n: int = 20, verbose: bool = True) -> list:
     """Show the last N log entries."""
@@ -1510,6 +1567,7 @@ def show_log(n: int = 20, verbose: bool = True) -> list:
 
 
 # ── CLI Entry Point ───────────────────────────────────────────────────────
+
 
 def main():
     args = sys.argv[1:]
@@ -1622,34 +1680,36 @@ def main():
     if not source and not do_detect:
         print(f"\n{_C.bold(_C.cyan('Skill Installer v' + VERSION))}\n")
         print(f"  {_C.bold('Install:')}")
-        print(f"    --source <path>                  Install skill from path")
-        print(f"    --source <path> --force           Overwrite if exists")
-        print(f"    --source <path> --name <name>     Custom name override")
-        print(f"    --source <path> --dry-run         Simulate without changes")
-        print(f"    --detect                          Auto-detect uninstalled skills")
-        print(f"    --detect --auto                   Detect and install all")
-        print(f"")
+        print("    --source <path>                  Install skill from path")
+        print("    --source <path> --force           Overwrite if exists")
+        print("    --source <path> --name <name>     Custom name override")
+        print("    --source <path> --dry-run         Simulate without changes")
+        print("    --detect                          Auto-detect uninstalled skills")
+        print("    --detect --auto                   Detect and install all")
+        print("")
         print(f"  {_C.bold('Manage:')}")
-        print(f"    --uninstall <name>               Uninstall (with backup)")
-        print(f"    --rollback <name>                Restore from latest backup")
-        print(f"    --reinstall-all                  Re-register + re-package all skills")
-        print(f"")
+        print("    --uninstall <name>               Uninstall (with backup)")
+        print("    --rollback <name>                Restore from latest backup")
+        print("    --reinstall-all                  Re-register + re-package all skills")
+        print("")
         print(f"  {_C.bold('Monitor:')}")
-        print(f"    --health                         Health check all skills")
-        print(f"    --health --repair                Health check + auto-fix issues")
-        print(f"    --status                         Rich status dashboard")
-        print(f"    --log [N]                        Show last N operations (default: 20)")
-        print(f"")
+        print("    --health                         Health check all skills")
+        print("    --health --repair                Health check + auto-fix issues")
+        print("    --status                         Rich status dashboard")
+        print("    --log [N]                        Show last N operations (default: 20)")
+        print("")
         print(f"  {_C.bold('Flags:')}")
-        print(f"    --json                           Output JSON instead of pretty text")
-        print(f"    --force                          Force overwrite")
-        print(f"    --dry-run                        Simulate without changes")
+        print("    --json                           Output JSON instead of pretty text")
+        print("    --force                          Force overwrite")
+        print("    --dry-run                        Simulate without changes")
         print()
         sys.exit(1)
 
     # ── Install from source ──
     if source:
-        result = install_single(source, name_override, force, dry_run=dry_run, verbose=not json_output)
+        result = install_single(
+            source, name_override, force, dry_run=dry_run, verbose=not json_output
+        )
         if json_output:
             print(json.dumps(result, indent=2, ensure_ascii=False))
         sys.exit(0 if result["success"] else 1)
@@ -1664,11 +1724,17 @@ def main():
 
         if resolve.get("interactive") and not auto:
             if json_output:
-                print(json.dumps({
-                    "mode": "interactive",
-                    "message": "Skills detected but not installed.",
-                    "candidates": resolve["candidates"],
-                }, indent=2, ensure_ascii=False))
+                print(
+                    json.dumps(
+                        {
+                            "mode": "interactive",
+                            "message": "Skills detected but not installed.",
+                            "candidates": resolve["candidates"],
+                        },
+                        indent=2,
+                        ensure_ascii=False,
+                    )
+                )
             else:
                 print(f"\n{_C.bold('=== Detected Uninstalled Skills ===')}\n")
                 for i, c in enumerate(resolve["candidates"], 1):
@@ -1678,7 +1744,7 @@ def main():
                     valid = _C.green(_C.OK) if c.get("valid_frontmatter") else _C.red(_C.FAIL)
                     print(f"  {i}. {_C.bold(name)} {valid}")
                     print(f"     {_C.dim(src)} ({loc})")
-                print(f"\n  Run with --auto to install all, or --source <path> to install one.\n")
+                print("\n  Run with --auto to install all, or --source <path> to install one.\n")
             sys.exit(0)
 
         # Auto mode: install all candidates

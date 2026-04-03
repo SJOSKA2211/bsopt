@@ -8,6 +8,7 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 from torch_geometric.nn import GATConv
 
+
 class GATFeaturesExtractor(BaseFeaturesExtractor):  # type: ignore
     """
     Advanced Graph Attention Network (GAT) Extractor for stable-baselines3.
@@ -51,6 +52,7 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):  # type: ignore
             edges.append([i + 1, i])
         return torch.tensor(edges, dtype=torch.long).t().contiguous().to(device)
 
+
 class GATTD3Policy(TD3Policy):  # type: ignore
     """TD3 Policy with GAT topological extractor."""
 
@@ -61,6 +63,7 @@ class GATTD3Policy(TD3Policy):  # type: ignore
             features_extractor_class=GATFeaturesExtractor,
             features_extractor_kwargs={"features_dim": 64},
         )
+
 
 GNNFeatureExtractor = GATFeaturesExtractor
 SACGNNPolicy = GATTD3Policy

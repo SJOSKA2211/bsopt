@@ -7,6 +7,7 @@ Uso:
     python scripts/analyze.py --growth --period 30   # Tendência de crescimento
     python scripts/analyze.py --summary              # Resumo geral
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,8 +18,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import DB_PATH
 from db import Database
+
+from config import DB_PATH
 
 db = Database()
 db.init()
@@ -56,29 +58,43 @@ def best_times() -> None:
 
     if not rows:
         # Tentar com dados de user_insights se não houver dados granulares
-        print(json.dumps({
-            "message": "Dados insuficientes para análise. Publique mais posts e busque insights primeiro.",
-            "tip": "Execute: python scripts/insights.py --fetch-all --limit 50",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "message": "Dados insuficientes para análise. Publique mais posts e busque insights primeiro.",
+                    "tip": "Execute: python scripts/insights.py --fetch-all --limit 50",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return
 
     weekday_names = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
     results = []
     for r in rows:
-        results.append({
-            "hour": f"{r['hour']}:00",
-            "weekday": weekday_names[int(r["weekday"])] if r["weekday"] else "?",
-            "posts_analyzed": r["post_count"],
-            "avg_engagement": round(r["avg_engagement"], 1),
-            "max_engagement": round(r["max_engagement"], 1),
-        })
+        results.append(
+            {
+                "hour": f"{r['hour']}:00",
+                "weekday": weekday_names[int(r["weekday"])] if r["weekday"] else "?",
+                "posts_analyzed": r["post_count"],
+                "avg_engagement": round(r["avg_engagement"], 1),
+                "max_engagement": round(r["max_engagement"], 1),
+            }
+        )
 
     # Top 5 melhores combinações hora/dia
-    print(json.dumps({
-        "analysis": "best_times",
-        "top_5": results[:5],
-        "all_data": results,
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "analysis": "best_times",
+                "top_5": results[:5],
+                "all_data": results,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 def top_posts(limit: int = 10) -> None:
@@ -103,7 +119,13 @@ def top_posts(limit: int = 10) -> None:
     conn.close()
 
     results = [dict(r) for r in rows]
-    print(json.dumps({"analysis": "top_posts", "total": len(results), "posts": results}, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {"analysis": "top_posts", "total": len(results), "posts": results},
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 def growth_trend(period_days: int = 30) -> None:
@@ -123,10 +145,16 @@ def growth_trend(period_days: int = 30) -> None:
     conn.close()
 
     if not rows:
-        print(json.dumps({
-            "message": "Sem dados de crescimento. Busque insights da conta primeiro.",
-            "tip": "Execute: python scripts/insights.py --user --period day --since 30",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "message": "Sem dados de crescimento. Busque insights da conta primeiro.",
+                    "tip": "Execute: python scripts/insights.py --user --period day --since 30",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return
 
     # Agrupar por métrica
@@ -153,12 +181,18 @@ def growth_trend(period_days: int = 30) -> None:
                 "data_points": len(data),
             }
 
-    print(json.dumps({
-        "analysis": "growth",
-        "period_days": period_days,
-        "summary": summary,
-        "details": metrics,
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "analysis": "growth",
+                "period_days": period_days,
+                "summary": summary,
+                "details": metrics,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 def overall_summary() -> None:
@@ -189,7 +223,9 @@ def overall_summary() -> None:
 
     result = {
         "database_stats": stats,
-        "avg_engagement": round(avg_engagement["avg_val"], 1) if avg_engagement and avg_engagement["avg_val"] else 0,
+        "avg_engagement": round(avg_engagement["avg_val"], 1)
+        if avg_engagement and avg_engagement["avg_val"]
+        else 0,
         "posts_this_week": posts_this_week,
         "last_post": dict(last_post) if last_post else None,
     }

@@ -76,12 +76,14 @@ def search(query: str, limit: int = MAX_SEARCH_RESULTS) -> list[SearchResult]:
 
     results = []
     for row in rows:
-        results.append(SearchResult(
-            session_number=int(row[0]),
-            date=row[1],
-            section=row[2],
-            snippet=row[3],
-        ))
+        results.append(
+            SearchResult(
+                session_number=int(row[0]),
+                date=row[1],
+                section=row[2],
+                snippet=row[3],
+            )
+        )
     return results
 
 

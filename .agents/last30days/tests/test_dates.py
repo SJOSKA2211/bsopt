@@ -2,7 +2,7 @@
 
 import sys
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # Add lib to path
@@ -20,8 +20,8 @@ class TestGetDateRange(unittest.TestCase):
     def test_date_format(self):
         from_date, to_date = dates.get_date_range(30)
         # Should be YYYY-MM-DD format
-        self.assertRegex(from_date, r'^\d{4}-\d{2}-\d{2}$')
-        self.assertRegex(to_date, r'^\d{4}-\d{2}-\d{2}$')
+        self.assertRegex(from_date, r"^\d{4}-\d{2}-\d{2}$")
+        self.assertRegex(to_date, r"^\d{4}-\d{2}-\d{2}$")
 
     def test_range_is_correct_days(self):
         from_date, to_date = dates.get_date_range(30)
@@ -80,7 +80,7 @@ class TestGetDateConfidence(unittest.TestCase):
 
 class TestDaysAgo(unittest.TestCase):
     def test_today(self):
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         result = dates.days_ago(today)
         self.assertEqual(result, 0)
 
@@ -91,17 +91,17 @@ class TestDaysAgo(unittest.TestCase):
 
 class TestRecencyScore(unittest.TestCase):
     def test_today_is_100(self):
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         result = dates.recency_score(today)
         self.assertEqual(result, 100)
 
     def test_30_days_ago_is_0(self):
-        old_date = (datetime.now(timezone.utc).date() - timedelta(days=30)).isoformat()
+        old_date = (datetime.now(UTC).date() - timedelta(days=30)).isoformat()
         result = dates.recency_score(old_date)
         self.assertEqual(result, 0)
 
     def test_15_days_ago_is_50(self):
-        mid_date = (datetime.now(timezone.utc).date() - timedelta(days=15)).isoformat()
+        mid_date = (datetime.now(UTC).date() - timedelta(days=15)).isoformat()
         result = dates.recency_score(mid_date)
         self.assertEqual(result, 50)
 

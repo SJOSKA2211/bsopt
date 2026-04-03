@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from src.ml.trainer import ModelTrainer as Trainer
 
+
 class SyntheticOptionsDataset(Dataset):
     """
     Structured synthetic dataset for RL feature pre-training.
@@ -24,17 +25,18 @@ class SyntheticOptionsDataset(Dataset):
         self.d = torch.full((self.n, 1), 0.01)
 
         self.features = torch.cat([self.s, self.k, self.t, self.sigma, self.r, self.d], dim=1)
-        
+
         # Mathematical Truth: Labels are derived from the BS pricing kernel
         # instead of a simplistic mean() fallback.
-        from src.math_kernel.quant_utils import fast_normal_cdf_v2
-        
+
         def calculate_bs_price(s, k, t, v):
-            r = 0.05 # Baseline risk-free rate
+            r = 0.05  # Baseline risk-free rate
             d1 = (torch.log(s / k) + (r + 0.5 * v**2) * t) / (v * torch.sqrt(t))
             d2 = d1 - v * torch.sqrt(t)
             # Use torch-native approx for CDF matching the quant_utils speed
-            price = s * 0.5 * (1 + torch.erf(d1 / 2**0.5)) - k * torch.exp(-r * t) * 0.5 * (1 + torch.erf(d2 / 2**0.5))
+            price = s * 0.5 * (1 + torch.erf(d1 / 2**0.5)) - k * torch.exp(-r * t) * 0.5 * (
+                1 + torch.erf(d2 / 2**0.5)
+            )
             return price
 
         self.labels = calculate_bs_price(self.s, self.k, self.t, self.sigma)
@@ -44,6 +46,7 @@ class SyntheticOptionsDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.features[idx], self.labels[idx]
+
 
 def get_dataloaders(n_samples: int = 100) -> tuple[DataLoader, DataLoader]:
     """
@@ -57,6 +60,7 @@ def get_dataloaders(n_samples: int = 100) -> tuple[DataLoader, DataLoader]:
 
     return train_loader, val_loader
 
+
 def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
     """
     Main entry point for training the neural network,
@@ -65,6 +69,7 @@ def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
     train_loader, val_loader = get_dataloaders(n_samples)
 
     from src.ml.architectures.neural_network import OptionPricingNN
+
     model = OptionPricingNN(input_dim=6, hidden_dims=[128, 64], num_classes=1)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = torch.nn.MSELoss()
@@ -78,6 +83,7 @@ def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
 
     trainer.train(train_loader, val_loader, epochs=epochs)
     return Path("./outputs/model.pt")
+
 
 if __name__ == "__main__":
     train_neural_network(n_samples=50, epochs=2)

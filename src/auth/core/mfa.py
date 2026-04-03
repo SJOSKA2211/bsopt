@@ -3,16 +3,20 @@ Multi-Factor Authentication Substrate (TOTP).
 """
 
 import logging
+
 import pyotp
 from cryptography.fernet import Fernet
+
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class MFAService:
     """
     TOTP-based MFA management with Fernet encryption for secrets.
     """
+
     def __init__(self):
         self._fernet = None
 
@@ -48,6 +52,7 @@ class MFAService:
             return False
         totp = pyotp.TOTP(secret)
         return totp.verify(code, valid_window=1)
+
 
 # Global instance for easy access
 mfa_service = MFAService()

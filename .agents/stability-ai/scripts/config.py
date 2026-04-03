@@ -3,6 +3,7 @@ Configuracao central da skill Stability AI.
 
 Gerencia: API keys, modelos, formatos, aspect ratios, limites de seguranca.
 """
+
 from __future__ import annotations
 
 import json
@@ -94,17 +95,40 @@ ASPECT_RATIOS = {
 
 ASPECT_ALIASES = {
     # Valores diretos
-    "1:1": "1:1", "2:3": "2:3", "3:2": "3:2", "16:9": "16:9",
-    "21:9": "21:9", "9:16": "9:16", "9:21": "9:21", "4:5": "4:5", "5:4": "5:4",
+    "1:1": "1:1",
+    "2:3": "2:3",
+    "3:2": "3:2",
+    "16:9": "16:9",
+    "21:9": "21:9",
+    "9:16": "9:16",
+    "9:21": "9:21",
+    "4:5": "4:5",
+    "5:4": "5:4",
     # Portugues
-    "quadrado": "1:1", "retrato": "2:3", "paisagem": "3:2",
-    "widescreen": "16:9", "vertical": "9:16", "horizontal": "3:2",
+    "quadrado": "1:1",
+    "retrato": "2:3",
+    "paisagem": "3:2",
+    "widescreen": "16:9",
+    "vertical": "9:16",
+    "horizontal": "3:2",
     # Plataformas
-    "ig": "1:1", "instagram": "1:1", "ig-feed": "4:5", "ig-stories": "9:16",
-    "youtube": "16:9", "yt": "16:9", "tiktok": "9:16", "reels": "9:16",
-    "twitter": "16:9", "x": "16:9", "facebook": "16:9", "fb": "16:9",
-    "pinterest": "2:3", "linkedin": "16:9",
-    "wallpaper": "16:9", "desktop": "16:9", "mobile": "9:16",
+    "ig": "1:1",
+    "instagram": "1:1",
+    "ig-feed": "4:5",
+    "ig-stories": "9:16",
+    "youtube": "16:9",
+    "yt": "16:9",
+    "tiktok": "9:16",
+    "reels": "9:16",
+    "twitter": "16:9",
+    "x": "16:9",
+    "facebook": "16:9",
+    "fb": "16:9",
+    "pinterest": "2:3",
+    "linkedin": "16:9",
+    "wallpaper": "16:9",
+    "desktop": "16:9",
+    "mobile": "9:16",
 }
 
 DEFAULT_ASPECT_RATIO = "1:1"
@@ -262,5 +286,7 @@ def validate_image_file(filepath: str | Path) -> Path:
     if path.stat().st_size == 0:
         raise ValueError(f"Arquivo vazio: {path}")
     if path.stat().st_size > 50 * 1024 * 1024:  # 50MB
-        raise ValueError(f"Arquivo muito grande ({path.stat().st_size / 1024 / 1024:.1f}MB). Max: 50MB")
+        raise ValueError(
+            f"Arquivo muito grande ({path.stat().st_size / 1024 / 1024:.1f}MB). Max: 50MB"
+        )
     return path

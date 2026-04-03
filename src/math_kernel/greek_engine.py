@@ -12,6 +12,7 @@ from src.shared.shm_mesh import GreeksBuffer, GreeksMesh
 
 logger = structlog.get_logger(__name__)
 
+
 class GreekEngine:
     """
     High-performance engine for Greek aggregation and SHM synchronization.

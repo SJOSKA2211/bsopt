@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 
 logger = structlog.get_logger(__name__)
 
+
 class AsyncStorageManager:
     """
     High-performance asynchronous S3/MinIO storage manager.
@@ -60,7 +61,9 @@ class AsyncStorageManager:
         # Optional: Track tasks if needed for coordination
         return task
 
+
 _manager: AsyncStorageManager | None = None
+
 
 def get_storage_manager() -> AsyncStorageManager:
     """Singleton factory for the storage manager."""

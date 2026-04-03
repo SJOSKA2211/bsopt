@@ -7,6 +7,7 @@ import onnxruntime as ort
 
 logger = logging.getLogger(__name__)
 
+
 class ONNXInferenceEngine:
     """
     High-performance inference engine using ONNX Runtime.
@@ -56,6 +57,7 @@ class ONNXInferenceEngine:
         logger.debug(f"ONNX inference latency: {latency:.2f}ms")
 
         return cast(np.ndarray, outputs[0])
+
 
 def optimize_onnx_model(input_path: str, output_path: str):
     """

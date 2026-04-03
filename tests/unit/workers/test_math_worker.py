@@ -21,6 +21,7 @@ import pytest  # noqa: E402
 
 from src.math_kernel.models.heston_fft import HestonParams  # noqa: E402
 
+
 @pytest.fixture
 def mock_market_data():
     return [
@@ -37,6 +38,7 @@ def mock_market_data():
         }
         for i in range(10)
     ]
+
 
 @patch("src.workers.math_worker.MarketDataRouter")
 @patch("src.workers.math_worker.get_pool")
@@ -67,6 +69,7 @@ def test_recalibrate_symbol_success(mock_run_async, mock_get_pool, mock_router, 
     assert result["status"] == "success"
     assert result["symbol"] == "SPY"
     assert "params" in result
+
 
 def test_health_check_success():
     assert health_check() is True

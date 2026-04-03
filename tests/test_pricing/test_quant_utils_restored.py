@@ -2,6 +2,7 @@ import numpy as np
 
 from src.quant.pricing import quant_utils
 
+
 def test_corrado_miller():
     S = np.array([100.0])
     K = np.array([100.0])
@@ -13,6 +14,7 @@ def test_corrado_miller():
 
     iv = quant_utils.corrado_miller_initial_guess(price, S, K, T, r, q, option_type)
     assert 0.15 < iv[0] < 0.25
+
 
 def test_vectorized_bs():
     S = np.array([100.0, 110.0])

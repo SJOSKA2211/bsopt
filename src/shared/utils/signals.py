@@ -8,6 +8,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class GracefulShutdown:
     """
     Utility to handle SIGTERM and SIGINT for graceful service shutdown.
@@ -60,5 +61,6 @@ class GracefulShutdown:
         if self._shutdown_event is not None:
             await self._shutdown_event.wait()
         logger.info("initiating_final_shutdown")
+
 
 shutdown_handler = GracefulShutdown()

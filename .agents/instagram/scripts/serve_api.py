@@ -18,24 +18,31 @@ Endpoints:
     GET /dashboard                  → dashboard HTML
     GET /webhook                    → stub para v2
 """
+
 from __future__ import annotations
 
 import argparse
 import csv
 import io
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import STATIC_DIR
 from db import Database
 
+from config import STATIC_DIR
+
 try:
-    from fastapi import FastAPI, Query
-    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, StreamingResponse
     import uvicorn
+    from fastapi import FastAPI, Query
+    from fastapi.responses import (
+        FileResponse,
+        HTMLResponse,
+        JSONResponse,
+        PlainTextResponse,
+        StreamingResponse,
+    )
 except ImportError:
     print("FastAPI não instalado. Execute: pip install fastapi uvicorn")
     sys.exit(1)
@@ -138,12 +145,14 @@ def best_times():
     weekday_names = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
     data = []
     for r in rows:
-        data.append({
-            "hour": f"{r['hour']}:00" if r["hour"] else "?",
-            "weekday": weekday_names[int(r["weekday"])] if r["weekday"] else "?",
-            "posts": r["post_count"],
-            "avg_engagement": round(r["avg_engagement"], 1) if r["avg_engagement"] else 0,
-        })
+        data.append(
+            {
+                "hour": f"{r['hour']}:00" if r["hour"] else "?",
+                "weekday": weekday_names[int(r["weekday"])] if r["weekday"] else "?",
+                "posts": r["post_count"],
+                "avg_engagement": round(r["avg_engagement"], 1) if r["avg_engagement"] else 0,
+            }
+        )
     return {"data": data}
 
 

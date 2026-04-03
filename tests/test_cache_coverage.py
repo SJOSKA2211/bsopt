@@ -20,6 +20,7 @@ from src.shared.utils.cache import (
     warm_cache,
 )
 
+
 @pytest.mark.asyncio
 async def test_generate_cache_key():
     key = generate_cache_key("test", a=1, b=2.5, c=[1, 2])
@@ -28,6 +29,7 @@ async def test_generate_cache_key():
 
     with pytest.raises(TypeError):
         generate_cache_key("test", d=object())
+
 
 @pytest.mark.asyncio
 async def test_pricing_cache_ops(monkeypatch):
@@ -58,6 +60,7 @@ async def test_pricing_cache_ops(monkeypatch):
     await pc.set_greeks(params, "call", greeks)
     mock_redis.setex.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_rate_limiter(monkeypatch):
     mock_redis = AsyncMock()
@@ -69,6 +72,7 @@ async def test_rate_limiter(monkeypatch):
     rl = RateLimiter()
     allowed = await rl.check_rate_limit("user1", "price", RateLimitTier.FREE)
     assert allowed is True
+
 
 @pytest.mark.asyncio
 async def test_init_close_redis(monkeypatch):
@@ -84,12 +88,14 @@ async def test_init_close_redis(monkeypatch):
     await close_redis_cache()
     assert src.shared.utils.cache._redis is None
 
+
 @pytest.mark.asyncio
 async def test_warm_cache(monkeypatch):
     mock_redis = AsyncMock()
     monkeypatch.setattr("src.shared.utils.cache.get_redis", lambda: mock_redis)
     await warm_cache()
     assert mock_redis.setex.called
+
 
 @pytest.mark.asyncio
 async def test_idempotency(monkeypatch):
@@ -99,6 +105,7 @@ async def test_idempotency(monkeypatch):
 
     res = await idempotency_manager.check_and_set("key1")
     assert res is True
+
 
 @pytest.mark.asyncio
 async def test_db_cache(monkeypatch):
@@ -112,12 +119,14 @@ async def test_db_cache(monkeypatch):
     await db_cache.set_user("123", {"name": "user"})
     assert mock_redis.setex.called
 
+
 @pytest.mark.asyncio
 async def test_publish_to_redis(monkeypatch):
     mock_redis = AsyncMock()
     monkeypatch.setattr("src.shared.utils.cache.get_redis", lambda: mock_redis)
     await publish_to_redis("chan", {"msg": "hi"})
     assert mock_redis.publish.called
+
 
 @pytest.mark.asyncio
 async def test_get_redis_client(mocker):
@@ -135,6 +144,7 @@ async def test_get_redis_client(mocker):
 
     with pytest.raises(HTTPException):
         await get_redis_client()
+
 
 @pytest.mark.asyncio
 async def test_cache_no_redis(mocker):
@@ -157,14 +167,22 @@ async def test_cache_no_redis(mocker):
     assert await db_cache.get_user("u") is None
     assert await db_cache.set_user("u", {}) is False
 
+
 def test_redis_error_is_class():
     from src.shared.utils.cache import RedisError
 
     assert issubclass(RedisError, Exception)
 
+
 @pytest.mark.asyncio
 async def test_cache_errors(mocker):
-    from src.shared.utils.cache import PricingCache, RateLimiter, RedisError, db_cache, publish_to_redis
+    from src.shared.utils.cache import (
+        PricingCache,
+        RateLimiter,
+        RedisError,
+        db_cache,
+        publish_to_redis,
+    )
 
     mock_redis = AsyncMock()
     mock_redis.get.side_effect = RedisError("Redis error")
@@ -192,6 +210,7 @@ async def test_cache_errors(mocker):
     # test publish_to_redis error
     await publish_to_redis("chan", {"msg": "hi"})  # should log error but not raise
 
+
 @pytest.mark.asyncio
 async def test_get_redis_direct(monkeypatch):
     import src.shared.utils.cache
@@ -199,6 +218,7 @@ async def test_get_redis_direct(monkeypatch):
     # We just want to call the code once
     src.shared.utils.cache.get_redis()
     assert True
+
 
 @pytest.mark.asyncio
 async def test_init_redis_exception(monkeypatch):
@@ -210,6 +230,7 @@ async def test_init_redis_exception(monkeypatch):
     # It should catch and log
     assert True
 
+
 @pytest.mark.asyncio
 async def test_generate_cache_key_numpy():
 
@@ -219,6 +240,7 @@ async def test_generate_cache_key_numpy():
     # Actually, asdict(params) converts everything to standard types usually.
     # Let's just check the functionality.
     pass
+
 
 @pytest.mark.asyncio
 async def test_pricing_cache_miss(monkeypatch):
@@ -232,9 +254,11 @@ async def test_pricing_cache_miss(monkeypatch):
     assert await pc.get_option_price(params, "call", "bs") is None
     assert await pc.get_greeks(params, "call") is None
 
+
 @pytest.mark.asyncio
 async def test_redis_error_type_hit(monkeypatch):
     pass
+
 
 @pytest.mark.asyncio
 async def test_init_redis_no_aioredis_direct(monkeypatch):

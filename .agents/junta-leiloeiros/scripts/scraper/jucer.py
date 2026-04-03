@@ -16,11 +16,11 @@ Estrutura descoberta em 2026-02-25:
 Total: ~47 leiloeiros separados por <hr>
 Situacoes: Regular, Irregular, Afastado judicial
 """
+
 from __future__ import annotations
 
 import logging
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -40,7 +40,7 @@ class JucerScraper(AbstractJuntaScraper):
     junta = "JUCER"
     url = "https://rondonia.ro.gov.br/jucer/lista-de-leiloeiros-oficiais/"
 
-    def _parse_dl_structure(self, soup) -> List[dict]:
+    def _parse_dl_structure(self, soup) -> list[dict]:
         """
         Parseia estrutura DL/DT/DD do WordPress com anotacao malformada.
         Estrategia: encontrar todos <dt><strong>NOME</strong></dt>
@@ -104,11 +104,15 @@ class JucerScraper(AbstractJuntaScraper):
             nome = None
             remaining = []
             for i, line in enumerate(lines):
-                if (len(line) > 3 and
-                        re.search(r"[A-ZÁÉÍÓÚÀÃÕÇ]", line) and
-                        not re.match(r"[Mm]atr|[Dd]ata|[Cc]idad|[Ee]ndere|[Tt]ele|[Ee]-?mail|[Ss]itua", line)):
+                if (
+                    len(line) > 3
+                    and re.search(r"[A-ZÁÉÍÓÚÀÃÕÇ]", line)
+                    and not re.match(
+                        r"[Mm]atr|[Dd]ata|[Cc]idad|[Ee]ndere|[Tt]ele|[Ee]-?mail|[Ss]itua", line
+                    )
+                ):
                     nome = line
-                    remaining = lines[i+1:]
+                    remaining = lines[i + 1 :]
                     break
 
             if not nome:
@@ -152,7 +156,7 @@ class JucerScraper(AbstractJuntaScraper):
             record["situacao"] = self.clean(m.group(1))
             return
 
-    def _parse_hr_blocks(self, soup) -> List[dict]:
+    def _parse_hr_blocks(self, soup) -> list[dict]:
         """
         Estrategia alternativa: coleta conteudo entre tags <hr>.
         Cada bloco entre <hr> e uma entrada de leiloeiro.
@@ -192,7 +196,9 @@ class JucerScraper(AbstractJuntaScraper):
                 if not nome_found and tag in ("dt", "strong"):
                     if len(text) > 3 and re.search(r"[A-ZÁÉÍÓÚÀÃÕÇ]", text):
                         # Verificar se nao e um campo de dado
-                        if not re.match(r"[Mm]atr|[Dd]ata|[Cc]idad|[Ee]ndere|[Tt]ele|[Ee]-?mail|[Ss]itua", text):
+                        if not re.match(
+                            r"[Mm]atr|[Dd]ata|[Cc]idad|[Ee]ndere|[Tt]ele|[Ee]-?mail|[Ss]itua", text
+                        ):
                             record["nome"] = text
                             nome_found = True
                             continue
@@ -203,7 +209,7 @@ class JucerScraper(AbstractJuntaScraper):
 
         return records
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
             soup = await self.fetch_page_js(wait_ms=3000)
@@ -239,16 +245,18 @@ class JucerScraper(AbstractJuntaScraper):
                     nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                     if not nome or len(nome) < 3:
                         continue
-                    records.append({
-                        "nome": nome,
-                        "matricula": gcol(cells, ["matr", "registro"]),
-                        "situacao": gcol(cells, ["situ", "status"]),
-                        "municipio": gcol(cells, ["munic", "cidade"]) or "Porto Velho",
-                        "telefone": gcol(cells, ["tel", "fone"]),
-                        "email": gcol(cells, ["email"]),
-                        "endereco": gcol(cells, ["ender", "logr"]),
-                        "data_registro": gcol(cells, ["data", "posse"]),
-                    })
+                    records.append(
+                        {
+                            "nome": nome,
+                            "matricula": gcol(cells, ["matr", "registro"]),
+                            "situacao": gcol(cells, ["situ", "status"]),
+                            "municipio": gcol(cells, ["munic", "cidade"]) or "Porto Velho",
+                            "telefone": gcol(cells, ["tel", "fone"]),
+                            "email": gcol(cells, ["email"]),
+                            "endereco": gcol(cells, ["ender", "logr"]),
+                            "data_registro": gcol(cells, ["data", "posse"]),
+                        }
+                    )
                 if records:
                     break
 

@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def compare_one(a, b):
     """
     Create a function that takes integers, floats, or strings representing
@@ -15,14 +16,15 @@ def compare_one(a, b):
     compare_one("5,1", "6") ➞ "6"
     compare_one("1", 1) ➞ None
     """
+
     def to_float(x):
         if isinstance(x, str):
             return float(x.replace(",", "."))
         return float(x)
-    
+
     val_a = to_float(a)
     val_b = to_float(b)
-    
+
     if val_a == val_b:
         return None
     elif val_a > val_b:

@@ -14,6 +14,7 @@ from src.ml.utils.distributed import train_xgboost_distributed
 
 logger = structlog.get_logger()
 
+
 def init_collective_backend() -> None:
     """Initialize NCCL backend for multi-GPU training if available."""
     if not torch.cuda.is_available():
@@ -29,6 +30,7 @@ def init_collective_backend() -> None:
             )
     except Exception as e:
         logger.warning("dist_init_failed", error=str(e))
+
 
 class TrainingStrategy:
     """Base interface for training strategies."""
@@ -56,6 +58,7 @@ class TrainingStrategy:
         """Standardized ONNX export interface."""
         pass
 
+
 class ONNXOptimizationMixin:
     """
     High-Performance: Reusable ONNX optimization logic for strategies.
@@ -78,6 +81,7 @@ class ONNXOptimizationMixin:
             quantize_onnx_model(path, quantized_path)
         except Exception as e:
             logger.warning("quantization_skipped_in_mixin", error=str(e))
+
 
 class XGBoostStrategy(TrainingStrategy):
     def train(
@@ -121,6 +125,7 @@ class XGBoostStrategy(TrainingStrategy):
             if key in importance:
                 result[name] = float(importance[key])
         return result
+
 
 class DaskXGBoostStrategy(TrainingStrategy):
     def train(
@@ -169,6 +174,7 @@ class DaskXGBoostStrategy(TrainingStrategy):
         except Exception as e:
             logger.error("xgboost_onnx_export_failed", error=str(e))
 
+
 class SklearnStrategy(TrainingStrategy):
     def train(
         self,
@@ -209,6 +215,7 @@ class SklearnStrategy(TrainingStrategy):
             logger.info("sklearn_onnx_export_success", path=path)
         except Exception as e:
             logger.error("sklearn_onnx_export_failed", error=str(e))
+
 
 class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
     class SimpleNet(nn.Module):  # type: ignore
@@ -297,12 +304,14 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
             outputs = model(X_t)
             return outputs.cpu().numpy().flatten()
 
+
 STRATEGY_MAP = {
     "xgboost": XGBoostStrategy,
     "sklearn": SklearnStrategy,
     "pytorch": PyTorchStrategy,
     "dask_xgboost": DaskXGBoostStrategy,
 }
+
 
 def get_strategy(framework: str) -> TrainingStrategy:
     return STRATEGY_MAP.get(framework, XGBoostStrategy)()

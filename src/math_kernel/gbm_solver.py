@@ -20,6 +20,7 @@ from numba import njit, prange
 
 logger = structlog.get_logger(__name__)
 
+
 @njit(cache=True, fastmath=True, parallel=True)
 def _euler_maruyama_step(
     s: np.ndarray,
@@ -61,6 +62,7 @@ def _euler_maruyama_step(
             result[i] = 1e-10
 
     return result
+
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _milstein_step(
@@ -104,6 +106,7 @@ def _milstein_step(
             result[i] = 1e-10
 
     return result
+
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _rk4_milstein_step(
@@ -156,6 +159,7 @@ def _rk4_milstein_step(
 
     return result
 
+
 def simulate_gbm_euler(
     s0: np.ndarray,
     mu: np.ndarray,
@@ -199,6 +203,7 @@ def simulate_gbm_euler(
         paths[step + 1] = current
 
     return paths
+
 
 def simulate_gbm_milstein(
     s0: np.ndarray,
@@ -245,6 +250,7 @@ def simulate_gbm_milstein(
         paths[step + 1] = current
 
     return paths
+
 
 def simulate_gbm_rk4(
     s0: np.ndarray,
@@ -293,6 +299,65 @@ def simulate_gbm_rk4(
 
     return paths
 
+
+@njit(cache=True, fastmath=True, parallel=True)
+def _exact_gbm_step(
+    s: np.ndarray,
+    mu: np.ndarray,
+    sigma: np.ndarray,
+    dt: float,
+) -> np.ndarray:
+    """
+    Single step using the exact analytical solution of GBM.
+    S_{t+dt} = S_t * exp((μ - 0.5*σ²)*dt + σ*√dt*Z)
+    """
+    n = len(s)
+    result = np.empty(n, dtype=np.float64)
+    sqrt_dt = np.sqrt(dt)
+
+    for i in prange(n):
+        z = np.random.normal()
+        drift = (mu[i] - 0.5 * sigma[i] * sigma[i]) * dt
+        diffusion = sigma[i] * sqrt_dt * z
+        result[i] = s[i] * np.exp(drift + diffusion)
+
+        if result[i] < 0.0:
+            result[i] = 1e-10
+
+    return result
+
+def simulate_gbm_exact(
+    s0: np.ndarray,
+    mu: np.ndarray,
+    sigma: np.ndarray,
+    t: float,
+    dt: float,
+    seed: int | None = None,
+) -> np.ndarray:
+    """
+    Simulate Geometric Brownian Motion using the exact analytical solution.
+    Faster and more accurate than numerical approximations.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+
+    s0 = np.atleast_1d(s0).astype(np.float64)
+    mu = np.atleast_1d(mu).astype(np.float64)
+    sigma = np.atleast_1d(sigma).astype(np.float64)
+
+    n_steps = int(t / dt)
+    n_paths = len(s0)
+
+    paths = np.zeros((n_steps + 1, n_paths), dtype=np.float64)
+    paths[0] = s0
+
+    current = s0.copy()
+    for step in range(n_steps):
+        current = _exact_gbm_step(current, mu, sigma, dt)
+        paths[step + 1] = current
+
+    return paths
+
 def simulate_gbm(
     s0: np.ndarray,
     mu: np.ndarray,
@@ -300,18 +365,28 @@ def simulate_gbm(
     t: float,
     dt: float,
     seed: int | None = None,
-    method: str = "rk4",
+    method: str = "exact",
+    prefer_rust: bool = True,
 ) -> np.ndarray:
     """
     Unified high-performance GBM simulation.
-    Defaults to RK4-Milstein for Production-grade precision.
+    Automatically offloads to Rust core if available and prefer_rust is True.
     """
-    if method == "rk4":
+    if prefer_rust:
+        from src.math_kernel.rust_engine import is_rust_available, simulate_gbm_rk4 as rust_gbm
+        if is_rust_available():
+            # Rust simulate_gbm_rk4 now uses the exact solution internally
+            return rust_gbm(s0, mu, sigma, t, dt, seed=seed)
+
+    if method == "exact":
+        return simulate_gbm_exact(s0, mu, sigma, t, dt, seed=seed)
+    elif method == "rk4":
         return simulate_gbm_rk4(s0, mu, sigma, t, dt, seed=seed)
     elif method == "milstein":
         return simulate_gbm_milstein(s0, mu, sigma, t, dt, seed=seed)
     else:
         return simulate_gbm_euler(s0, mu, sigma, t, dt, seed=seed)
+
 
 def simulate_gbm_antithetic(
     s0: np.ndarray,
@@ -359,6 +434,7 @@ def simulate_gbm_antithetic(
     full_paths_2 = np.concatenate([paths_negative, paths_positive], axis=1)
 
     return full_paths_1, full_paths_2
+
 
 def monte_carlo_price(
     s0: float,
@@ -426,6 +502,7 @@ def monte_carlo_price(
         "n_steps": int(t / dt),
     }
 
+
 def gbm_parameters_from_historical(
     prices: np.ndarray,
     dt: float = 1 / 252,
@@ -449,6 +526,7 @@ def gbm_parameters_from_historical(
     sigma = np.std(returns) / np.sqrt(dt)
 
     return float(mu), float(sigma)
+
 
 if __name__ == "__main__":
     import time

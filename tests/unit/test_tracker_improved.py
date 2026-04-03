@@ -1,6 +1,7 @@
 import sys
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock dependencies
 sys.modules["mlflow"] = MagicMock()
@@ -11,6 +12,7 @@ sys.modules["matplotlib"] = MagicMock()
 sys.modules["matplotlib.pyplot"] = MagicMock()
 
 from src.ml.tracker import ExperimentTracker
+
 
 class TestTracker:
     def setUp(self):
@@ -42,4 +44,3 @@ class TestTracker:
         importance = {"f1": 0.5, "f2": 0.3}
         self.tracker.log_feature_importance(importance, "xgboost")
         assert mock_artifact.called
-

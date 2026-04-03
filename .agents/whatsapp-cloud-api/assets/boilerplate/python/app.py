@@ -5,15 +5,14 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-
-from whatsapp_client import WhatsAppClient
+from flask import Flask, jsonify, request
 from webhook_handler import (
+    extract_message_content,
+    parse_webhook_payload,
     validate_hmac_signature,
     verify_webhook,
-    parse_webhook_payload,
-    extract_message_content,
 )
+from whatsapp_client import WhatsAppClient
 
 load_dotenv()
 

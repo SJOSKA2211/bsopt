@@ -7,6 +7,7 @@ from src.quant.pricing.lattice import BinomialTreePricer
 from src.quant.pricing.monte_carlo import MonteCarloEngine
 from src.quant.pricing.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
 
+
 def test_factory_get_strategy():
     assert isinstance(PricingEngineFactory.get_strategy("black_scholes"), BlackScholesEngine)
 
@@ -28,6 +29,7 @@ def test_factory_get_strategy():
 
     # Case insensitivity
     assert isinstance(PricingEngineFactory.get_strategy("BLACK_SCHOLES"), BlackScholesEngine)
+
 
 def test_factory_invalid_model():
     with pytest.raises(ValueError, match="Unknown pricing model"):

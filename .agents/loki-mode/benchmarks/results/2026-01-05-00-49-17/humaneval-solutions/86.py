@@ -11,6 +11,6 @@ def anti_shuffle(s):
     anti_shuffle('hello') returns 'ehllo'
     anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
     """
-    words = s.split(' ')
-    sorted_words = [''.join(sorted(word)) for word in words]
-    return ' '.join(sorted_words)
+    words = s.split(" ")
+    sorted_words = ["".join(sorted(word)) for word in words]
+    return " ".join(sorted_words)

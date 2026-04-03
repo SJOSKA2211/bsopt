@@ -8,11 +8,13 @@ from sqlalchemy import text
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @pytest.fixture(scope="module")
 def db_engine():
     if not DATABASE_URL:
         pytest.skip("DATABASE_URL not set")
     return sqlalchemy.create_engine(DATABASE_URL)
+
 
 def test_market_ticks_table_exists(db_engine):
     """Test that market_ticks table exists."""
@@ -20,6 +22,7 @@ def test_market_ticks_table_exists(db_engine):
         # Check if table exists
         result = conn.execute(text("SELECT to_regclass('market_ticks');"))
         assert result.scalar() is not None, "market_ticks table does not exist"
+
 
 def test_market_ticks_is_hypertable(db_engine):
     """Test that market_ticks is a hypertable."""
@@ -30,6 +33,7 @@ def test_market_ticks_is_hypertable(db_engine):
             )
         )
         assert result.fetchone() is not None, "market_ticks is not a hypertable"
+
 
 def test_insert_and_query_tick(db_engine):
     """Test inserting and retrieving a tick."""

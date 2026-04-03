@@ -10,6 +10,7 @@ from src.shared.utils.cache import get_redis_client
 
 logger = structlog.get_logger(__name__)
 
+
 async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
     """
     Advanced Token Bucket Rate Limiting using Redis LUA.

@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def make_a_pile(n):
     """
     Given a positive integer n, you have to make a pile of n levels of stones.

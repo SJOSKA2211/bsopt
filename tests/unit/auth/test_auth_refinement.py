@@ -5,9 +5,11 @@ import pytest
 from src.auth.auth import AuthService
 from src.database.models import User
 
+
 @pytest.fixture
 def auth_service():
     return AuthService()
+
 
 @pytest.mark.asyncio
 async def test_argon2id_hashing_verification(auth_service):
@@ -19,6 +21,7 @@ async def test_argon2id_hashing_verification(auth_service):
     assert hashed.startswith("$argon2id$")
     assert auth_service.verify_password(password, hashed) is True
     assert auth_service.verify_password("wrong_password", hashed) is False
+
 
 @pytest.mark.asyncio
 async def test_jwt_signing_validation(auth_service):
@@ -39,6 +42,7 @@ async def test_jwt_signing_validation(auth_service):
     assert token_data.tier == tier
     assert token_data.token_type == "access"
 
+
 @pytest.mark.asyncio
 async def test_redis_token_revocation(auth_service):
     """Mock Redis test for token revocation."""
@@ -58,6 +62,7 @@ async def test_redis_token_revocation(auth_service):
         is_revoked = await auth_service.is_token_revoked(jti)
         assert is_revoked is True
         mock_redis.exists.assert_called_once_with(f"blacklist:{jti}")
+
 
 @pytest.mark.asyncio
 async def test_authenticate_user_flow(auth_service):

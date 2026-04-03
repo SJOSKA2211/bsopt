@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from src.workers.tasks.ml_tasks import hyperparameter_search_task, train_model_task
 
+
 @patch("src.workers.tasks.ml_tasks.train")
 def test_train_model_task_success(mock_train):
     mock_train.return_value = {
@@ -16,6 +17,7 @@ def test_train_model_task_success(mock_train):
     assert result["status"] == "completed"
     assert result["run_id"] == "mlflow-run-123"
 
+
 @patch("src.workers.tasks.ml_tasks.train")
 def test_train_model_task_failure(mock_train):
     mock_train.side_effect = Exception("Training failed")
@@ -24,6 +26,7 @@ def test_train_model_task_failure(mock_train):
 
     assert result["status"] == "failed"
     assert "Training failed" in result["error"]
+
 
 @patch("src.workers.tasks.ml_tasks.run_hyperparameter_optimization")
 def test_hyperparameter_search_task_success(mock_opt):

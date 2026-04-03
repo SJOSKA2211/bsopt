@@ -4,7 +4,6 @@ Optimized for high-performance database retrieval.
 """
 
 from datetime import date, timedelta
-from typing import Any
 
 import msgspec
 from fastapi import APIRouter, Depends, Query
@@ -23,6 +22,7 @@ router = APIRouter(prefix="/options", tags=["Options"], default_response_class=M
 
 # Initialize Greeks Mesh reader (Lock-Free)
 _greeks_mesh = GreeksMesh(create=False)
+
 
 class OptionChainItem(msgspec.Struct):
     id: str
@@ -43,6 +43,7 @@ class OptionChainItem(msgspec.Struct):
     rho: float | None = None
     time: str | None = None
 
+
 @router.get("/greeks/{symbol}", response_model=DataResponse[dict[str, float]])
 @db_circuit
 async def get_realtime_greeks(
@@ -53,6 +54,7 @@ async def get_realtime_greeks(
     if not data:
         return DataResponse(data={}, message="No live data in manifold", success=False)
     return DataResponse(data=data)
+
 
 @router.post("/greeks/batch", response_model=DataResponse[dict[str, dict[str, float]]])
 @db_circuit
@@ -67,6 +69,7 @@ async def get_batch_greeks(
             results[sym] = data
     return DataResponse(data=results)
 
+
 @router.get("/chain", response_model=DataResponse[list[OptionChainItem]])
 @db_circuit
 async def get_options_chain(
@@ -76,8 +79,7 @@ async def get_options_chain(
     db: AsyncSession = Depends(get_async_db),
 ) -> DataResponse[list[OptionChainItem]]:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
-    from src.shared.config import settings
-    
+
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
         return DataResponse(data=[], message="Invalid symbol format")
@@ -101,12 +103,11 @@ async def get_options_chain(
         prices = result.scalars().all()
 
         if prices:
-            
             enriched_data = []
-            
+
             # Hoisted exactly O(1) SHM lookup per chain instead of loop bound N calls
             shm_greeks = _greeks_mesh.read(symbol)
-            
+
             for p in prices:
                 item = OptionChainItem(
                     id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
@@ -143,6 +144,7 @@ async def get_options_chain(
             )
     except Exception as e:
         import structlog
+
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
 

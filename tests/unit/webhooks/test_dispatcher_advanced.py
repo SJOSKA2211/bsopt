@@ -12,6 +12,7 @@ from api.webhooks.dispatcher import (
     _verify_signature,
 )
 
+
 @pytest.mark.asyncio
 async def test_signature_generation_and_verification():
     secret = "super_secret"
@@ -37,6 +38,7 @@ async def test_signature_generation_and_verification():
     # Verify invalid payload
     assert not await _verify_signature(secret, "wrong_payload", timestamp, signature)
 
+
 @pytest.mark.asyncio
 async def test_signature_timestamp_tolerance():
     secret = "secret"
@@ -52,6 +54,7 @@ async def test_signature_timestamp_tolerance():
     sig_old = hmac.new(secret.encode(), f"{old_ts}.{payload}".encode(), hashlib.sha256).hexdigest()
     assert not await _verify_signature(secret, payload, old_ts, sig_old)
 
+
 @pytest.mark.asyncio
 async def test_dispatch_webhook_success():
     mock_cb = MagicMock(side_effect=lambda f: f)  # Bypass decorator
@@ -65,6 +68,7 @@ async def test_dispatch_webhook_success():
         mock_client.post.assert_called_once()
         args, kwargs = mock_client.post.call_args
         assert kwargs["headers"]["X-Webhook-Signature"].startswith("t=")
+
 
 @pytest.mark.asyncio
 async def test_dispatch_webhook_circuit_breaker_open():
@@ -81,6 +85,7 @@ async def test_dispatch_webhook_circuit_breaker_open():
         await dispatcher.dispatch_webhook("http://example.com", {}, {}, "secret")
 
     assert "OPEN" in str(exc.value)
+
 
 @pytest.mark.asyncio
 async def test_dispatch_webhook_general_failure():

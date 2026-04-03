@@ -7,13 +7,16 @@ from src.math_kernel.quantum_pricing import (
     QuantumOptionPricer,
 )
 
+
 @pytest.fixture
 def quantum_pricer():
     return QuantumOptionPricer(use_real_quantum=False)
 
+
 def test_quantum_option_pricer_initialization(quantum_pricer):
     assert quantum_pricer.backend is not None
     assert quantum_pricer.optimizer is not None
+
 
 def test_create_stock_price_distribution(quantum_pricer):
     S0, mu, sigma, T = 100.0, 0.05, 0.2, 1.0
@@ -24,6 +27,7 @@ def test_create_stock_price_distribution(quantum_pricer):
     # Check if price distribution is centered roughly around S0
     assert prices[0] < S0 < prices[-1]
 
+
 def test_math_fallback_logic(quantum_pricer):
     S0, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.2
     result = quantum_pricer._math_fallback(S0, K, T, r, sigma)
@@ -31,6 +35,7 @@ def test_math_fallback_logic(quantum_pricer):
     assert "price" in result
     assert result["price"] > 0
     assert result["backend"] == "analytical_fallback"
+
 
 @patch("src.math_kernel.quantum_pricing.QISKIT_AVAILABLE", True)
 @patch("src.math_kernel.quantum_pricing.IterativeAmplitudeEstimation")
@@ -53,6 +58,7 @@ def test_price_european_call_quantum_success(mock_sampler, mock_iae_class, quant
     assert result["price"] > 0
     assert "confidence_interval" in result
     assert result["num_queries"] == 100
+
 
 def test_hybrid_pricer_selection():
     hybrid = HybridQuantumClassicalPricer()

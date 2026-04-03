@@ -6,12 +6,12 @@ import aio_pika
 import httpx
 import structlog
 
-from src.shared.config import settings
-from src.shared.utils.cache import get_redis
+from src.database import db_manager
+from src.math_kernel.factory import PricingEngineFactory
 from src.ml.aiops.docker_remediator import DockerRemediator
 from src.ml.pipelines.retraining import NeuralGreeksRetrainer
-from src.math_kernel.factory import PricingEngineFactory
-from src.database import db_manager
+from src.shared.config import settings
+from src.shared.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 
@@ -55,6 +55,7 @@ class BaseRemediator(ABC):
     async def update_last_run(self):
         self.last_run = asyncio.get_event_loop().time()
 
+
 class ClearRedisCacheRemediator(BaseRemediator):
     """
     Clears the Redis cache if high latency or stale data is detected.
@@ -68,7 +69,6 @@ class ClearRedisCacheRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_clear_cache_initiated")
 
-
         logger.warning("remediator_clear_cache_initiated")
         try:
             client = get_redis()
@@ -81,6 +81,7 @@ class ClearRedisCacheRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_clear_cache_failed", error=str(e), exc_info=True)
             return False
+
 
 class RestartServiceRemediator(BaseRemediator):
     """
@@ -101,7 +102,6 @@ class RestartServiceRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
 
-
         service = anomaly.get("metrics", {}).get("service", "bsopt-api")
         logger.warning("remediator_restart_initiated", service=service)
 
@@ -111,6 +111,7 @@ class RestartServiceRemediator(BaseRemediator):
         if success:
             logger.info("remediator_restart_completed", service=service)
         return success
+
 
 class RetrainModelRemediator(BaseRemediator):
     """
@@ -126,11 +127,11 @@ class RetrainModelRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         ticker = anomaly.get("metrics", {}).get("ticker", settings.DEFAULT_TICKER)
         logger.warning("remediator_retrain_initiated", ticker=ticker, score=anomaly.get("score"))
-        
+
         # Purged: No longer uses stub task. Uses deterministic retrainer.
         retrainer = NeuralGreeksRetrainer(ticker=ticker)
         await retrainer.retrain_now()
-        
+
         logger.info("remediator_retrain_task_completed", ticker=ticker)
         return True
 
@@ -146,7 +147,6 @@ class ArgoCDRollbackRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-
 
         service = anomaly.get("service", "unknown")
         logger.warning("remediator_argocd_rollback_initiated", app=service)
@@ -171,6 +171,7 @@ class ArgoCDRollbackRemediator(BaseRemediator):
                 logger.error("remediator_argocd_rollback_failed", app=service, error=str(e))
                 return False
 
+
 class AutonomousScalerRemediator(BaseRemediator):
     """
     Scales service replicas based on load.
@@ -183,7 +184,6 @@ class AutonomousScalerRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
 
-
         service = anomaly.get("service", "bsopt-api")
         current_replicas = anomaly.get("metrics", {}).get("replicas", 1)
         target_replicas = current_replicas + 1
@@ -192,6 +192,7 @@ class AutonomousScalerRemediator(BaseRemediator):
         docker = DockerRemediator()
         success = await docker.scale_service(service, target_replicas)
         return success
+
 
 class ModelSwitchRemediator(BaseRemediator):
     """
@@ -203,13 +204,13 @@ class ModelSwitchRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
 
-
         fallback = anomaly.get("fallback_model", "black_scholes")
         current = anomaly.get("model", "unknown")
 
         logger.warning("remediator_model_switch_initiated", from_model=current, to_model=fallback)
         PricingEngineFactory.set_default_engine(fallback)
         return True
+
 
 class SiliconResetRemediator(BaseRemediator):
     """
@@ -223,11 +224,11 @@ class SiliconResetRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
 
-
         logger.warning("remediator_silicon_reset_initiated")
         docker = DockerRemediator()
         success = await docker.restart_service("worker")
         return success
+
 
 class KernelTuningRemediator(BaseRemediator):
     """
@@ -263,6 +264,7 @@ class KernelTuningRemediator(BaseRemediator):
             logger.error("remediator_kernel_tuning_error", error=str(e))
             return False
 
+
 class DatabasePoolRemediator(BaseRemediator):
     """
     Handles database connection pool exhaustion.
@@ -279,8 +281,6 @@ class DatabasePoolRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_db_pool_recovery_initiated")
         try:
-
-
             # Dispose all connections in the pool, forcing new ones to be created
             await db_manager.dispose()
             logger.info("remediator_db_pool_recycled", action="dispose")
@@ -302,8 +302,6 @@ class DatabasePoolRemediator(BaseRemediator):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """Verify that the pool is accepting new connections."""
         try:
-
-
             engine = db_manager.engine
             with engine.connect() as conn:
                 from sqlalchemy import text
@@ -312,6 +310,7 @@ class DatabasePoolRemediator(BaseRemediator):
             return True
         except Exception:
             return False
+
 
 class RabbitMQCongestionRemediator(BaseRemediator):
     """
@@ -369,6 +368,7 @@ class RabbitMQCongestionRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_rabbitmq_congestion_failed", error=str(e), exc_info=True)
             return False
+
 
 class RemediationPlanner:
     """

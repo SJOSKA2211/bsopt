@@ -10,6 +10,7 @@ logger = structlog.get_logger(__name__)
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 _DEFAULT_MFA_KEY_SEED = "placeholder-mfa-key-seed-base-v1"
 
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -47,7 +48,10 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        if not any(v.startswith(prefix) for prefix in ["postgresql://", "postgresql+asyncpg://", "postgresql+psycopg://"]):
+        if not any(
+            v.startswith(prefix)
+            for prefix in ["postgresql://", "postgresql+asyncpg://", "postgresql+psycopg://"]
+        ):
             if "sqlite" not in v:
                 raise ValueError("DATABASE_URL must be a valid PostgreSQL connection string.")
         return v
@@ -56,10 +60,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = Field(default="redis", validation_alias="REDIS_HOST")
     REDIS_PORT: int = Field(default=6379, validation_alias="REDIS_PORT")
     REDIS_DB: int = Field(default=0, validation_alias="REDIS_DB")
-    REDIS_PASSWORD: str = Field(
-        ..., 
-        validation_alias="REDIS_PASSWORD"
-    )
+    REDIS_PASSWORD: str = Field(..., validation_alias="REDIS_PASSWORD")
 
     @property
     def REDIS_URL(self) -> str:
@@ -93,16 +94,17 @@ class Settings(BaseSettings):
     AUDIT_VAULT_KEY: str = Field(
         default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
     )
-    
+
     @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD")
     @classmethod
     def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
         if v is None:
             return v
         if len(v) < 32 and not os.environ.get("BSOPT_ALLOW_WEAK_SECRETS"):
-            raise ValueError(f"{info.field_name} must be at least 32 characters for production security.")
+            raise ValueError(
+                f"{info.field_name} must be at least 32 characters for production security."
+            )
         return v
-
 
     # IBM Quantum Configuration
     IBM_QUANTUM_TOKEN: str | None = Field(default=None, validation_alias="IBM_QUANTUM_TOKEN")
@@ -116,16 +118,22 @@ class Settings(BaseSettings):
 
     # Market Data Providers
     POLYGON_API_KEY: str | None = Field(default=None, validation_alias="POLYGON_API_KEY")
-    ALPHA_VANTAGE_API_KEY: str | None = Field(default=None, validation_alias="ALPHA_VANTAGE_API_KEY")
+    ALPHA_VANTAGE_API_KEY: str | None = Field(
+        default=None, validation_alias="ALPHA_VANTAGE_API_KEY"
+    )
 
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
     ML_TRAINING_OPTUNA_TRIALS: int = 50
     ML_TRAINING_RANDOM_STATE: int = 42
-    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = Field(default=0.95, validation_alias="ML_TRAINING_PROMOTE_THRESHOLD_R2")
+    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = Field(
+        default=0.95, validation_alias="ML_TRAINING_PROMOTE_THRESHOLD_R2"
+    )
 
     # Email Configuration
-    EMAIL_SERVICE_API_KEY: str | None = Field(default=None, validation_alias="EMAIL_SERVICE_API_KEY")
+    EMAIL_SERVICE_API_KEY: str | None = Field(
+        default=None, validation_alias="EMAIL_SERVICE_API_KEY"
+    )
     SENDGRID_API_KEY: str | None = Field(default=None, validation_alias="SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL: str = "noreply@bsopt.ai"
     DPA_EMAIL: str = "dpa@bsopt.ai"
@@ -135,7 +143,7 @@ class Settings(BaseSettings):
     RAY_NAMESPACE: str = "bsopt"
     RAY_SHUTDOWN_AFTER_RUN: bool = Field(default=False)
     MLFLOW_TRACKING_URI: str | None = Field(default=None, validation_alias="MLFLOW_TRACKING_URI")
-    
+
     @property
     def tracking_uri(self) -> str | None:
         return self.MLFLOW_TRACKING_URI
@@ -173,7 +181,6 @@ class Settings(BaseSettings):
     )
 
     @property
-
     def rate_limit_tiers(self) -> dict[str, int]:
         """Maps user tiers to their rate limits."""
         return {
@@ -244,7 +251,7 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
-    
+
     # E2E & Testing
     ALLOW_E2E_EMAIL_BYPASS: bool = Field(default=False, validation_alias="ALLOW_E2E_EMAIL_BYPASS")
 
@@ -257,7 +264,9 @@ class Settings(BaseSettings):
     # WebAuthn Configuration
     WEBAUTHN_RP_ID: str = Field(default="localhost", validation_alias="WEBAUTHN_RP_ID")
     WEBAUTHN_RP_NAME: str = Field(default="Manifold Auth", validation_alias="WEBAUTHN_RP_NAME")
-    WEBAUTHN_ORIGIN: str = Field(default="http://localhost:3000", validation_alias="WEBAUTHN_ORIGIN")
+    WEBAUTHN_ORIGIN: str = Field(
+        default="http://localhost:3000", validation_alias="WEBAUTHN_ORIGIN"
+    )
 
     # Social OAuth2 Configuration
     GOOGLE_CLIENT_ID: str | None = Field(default=None, validation_alias="GOOGLE_CLIENT_ID")
@@ -466,7 +475,9 @@ class Settings(BaseSettings):
             if not self.BETTER_AUTH_SECRET:
                 raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
             if len(self.BETTER_AUTH_SECRET) < 32:
-                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters for robust key derivation.")
+                raise ValueError(
+                    "CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters for robust key derivation."
+                )
 
         # Derivation logic (Shared between dev and prod if master secret exists)
         if self.BETTER_AUTH_SECRET:
@@ -542,7 +553,9 @@ class Settings(BaseSettings):
 
         return self
 
+
 settings = Settings()
+
 
 def get_settings() -> Settings:
     """Returns the singleton settings instance."""

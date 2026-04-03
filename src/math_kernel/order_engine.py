@@ -8,6 +8,7 @@ from src.shared.shm_mesh import ExecutionBuffer, OrderBuffer
 
 logger = structlog.get_logger(__name__)
 
+
 class OrderEngine:
     """
     Divine-level Order Execution Engine.
@@ -56,7 +57,6 @@ class OrderEngine:
         )
 
         if ok:
-            
             # Simulate micro-slippage (0.1 bps) and market impact
             slippage = 0.0001 * price * (1 if side == 1 else -1)
             fill_price = price + slippage

@@ -44,11 +44,7 @@ class TestIsMainlineOpenAIModel(unittest.TestCase):
 
 class TestSelectOpenAIModel(unittest.TestCase):
     def test_pinned_policy(self):
-        result = models.select_openai_model(
-            "fake-key",
-            policy="pinned",
-            pin="gpt-5.1"
-        )
+        result = models.select_openai_model("fake-key", policy="pinned", pin="gpt-5.1")
         self.assertEqual(result, "gpt-5.1")
 
     def test_auto_with_mock_models(self):
@@ -57,11 +53,7 @@ class TestSelectOpenAIModel(unittest.TestCase):
             {"id": "gpt-5.1", "created": 1701388800},
             {"id": "gpt-5", "created": 1698710400},
         ]
-        result = models.select_openai_model(
-            "fake-key",
-            policy="auto",
-            mock_models=mock_models
-        )
+        result = models.select_openai_model("fake-key", policy="auto", mock_models=mock_models)
         self.assertEqual(result, "gpt-5.2")
 
     def test_auto_filters_variants(self):
@@ -70,38 +62,25 @@ class TestSelectOpenAIModel(unittest.TestCase):
             {"id": "gpt-5-mini", "created": 1704067200},
             {"id": "gpt-5.1", "created": 1701388800},
         ]
-        result = models.select_openai_model(
-            "fake-key",
-            policy="auto",
-            mock_models=mock_models
-        )
+        result = models.select_openai_model("fake-key", policy="auto", mock_models=mock_models)
         self.assertEqual(result, "gpt-5.2")
 
 
 class TestSelectXAIModel(unittest.TestCase):
     def test_latest_policy(self):
-        result = models.select_xai_model(
-            "fake-key",
-            policy="latest"
-        )
+        result = models.select_xai_model("fake-key", policy="latest")
         self.assertEqual(result, "grok-4-latest")
 
     def test_stable_policy(self):
         # Clear cache first to avoid interference
         from lib import cache
+
         cache.MODEL_CACHE_FILE.unlink(missing_ok=True)
-        result = models.select_xai_model(
-            "fake-key",
-            policy="stable"
-        )
+        result = models.select_xai_model("fake-key", policy="stable")
         self.assertEqual(result, "grok-4")
 
     def test_pinned_policy(self):
-        result = models.select_xai_model(
-            "fake-key",
-            policy="pinned",
-            pin="grok-3"
-        )
+        result = models.select_xai_model("fake-key", policy="pinned", pin="grok-3")
         self.assertEqual(result, "grok-3")
 
 

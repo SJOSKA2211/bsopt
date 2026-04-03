@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.middleware.jwt_validator import require_tier
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import (
     DataResponse,
@@ -18,12 +19,12 @@ from api.schemas.common import (
     SuccessResponse,
 )
 from api.schemas.user import UserResponse, UserUpdateRequest
-from api.middleware.jwt_validator import require_tier
 from src.auth.auth import get_current_user
 from src.database import get_async_db, set_user_context
 from src.database.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"], default_response_class=MsgspecJSONResponse)
+
 
 @router.get("/me", response_model=DataResponse[UserResponse])
 async def get_current_user_profile(user: User = Depends(get_current_user)):
@@ -31,6 +32,7 @@ async def get_current_user_profile(user: User = Depends(get_current_user)):
     Fetch the authenticated user's profile.
     """
     return DataResponseStruct(data=UserResponse.from_orm(user))
+
 
 @router.patch("/me")
 async def update_current_user_profile(
@@ -56,6 +58,7 @@ async def update_current_user_profile(
         raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
     return SuccessResponse(message="Profile updated in High-Performance")
+
 
 @router.get(
     "",

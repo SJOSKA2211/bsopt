@@ -5,22 +5,22 @@ Rate limits são rastreados via SQLite (action_log table).
 Confirmações usam padrão 2-step: retorna JSON com requires_confirmation,
 Claude apresenta ao usuário, e na segunda chamada com --confirm executa.
 """
+
 from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any
+
+from db import Database
 
 from config import (
     ACTION_CATEGORIES,
-    RATE_LIMIT_DMS_PER_HOUR,
     RATE_LIMIT_HASHTAGS_PER_WEEK,
     RATE_LIMIT_PUBLISHES_PER_DAY,
     RATE_LIMIT_REQUESTS_PER_HOUR,
     RATE_LIMIT_WARNING_THRESHOLD,
 )
-from db import Database
 
 
 class RateLimitExceeded(Exception):
@@ -36,7 +36,7 @@ class RateLimitExceeded(Exception):
             f"Tente novamente em {retry_after_seconds}s."
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "error": "rate_limit_exceeded",
             "limit_type": self.limit_type,
@@ -49,13 +49,13 @@ class RateLimitExceeded(Exception):
 class GovernanceManager:
     """Gerencia rate limits, logging e confirmações."""
 
-    def __init__(self, db: Optional[Database] = None):
+    def __init__(self, db: Database | None = None):
         self.db = db or Database()
         self.db.init()
 
     # ── Rate Limiting ─────────────────────────────────────────────────────────
 
-    def check_rate_limit(self, action: str, account_id: Optional[int] = None) -> Dict[str, Any]:
+    def check_rate_limit(self, action: str, account_id: int | None = None) -> dict[str, Any]:
         """
         Verifica rate limits antes de uma ação.
         Retorna dict com remaining e warnings.
@@ -81,15 +81,19 @@ class GovernanceManager:
         # Verificar limite de requests
         if requests_used >= RATE_LIMIT_REQUESTS_PER_HOUR:
             raise RateLimitExceeded(
-                "requests_per_hour", requests_used,
-                RATE_LIMIT_REQUESTS_PER_HOUR, 3600,
+                "requests_per_hour",
+                requests_used,
+                RATE_LIMIT_REQUESTS_PER_HOUR,
+                3600,
             )
 
         # Verificar limite de publicações
         if action.startswith("publish_") and publishes_used >= RATE_LIMIT_PUBLISHES_PER_DAY:
             raise RateLimitExceeded(
-                "publishes_per_day", publishes_used,
-                RATE_LIMIT_PUBLISHES_PER_DAY, 86400,
+                "publishes_per_day",
+                publishes_used,
+                RATE_LIMIT_PUBLISHES_PER_DAY,
+                86400,
             )
 
         # Verificar limite de hashtags
@@ -102,8 +106,10 @@ class GovernanceManager:
             }
             if hashtag_count >= RATE_LIMIT_HASHTAGS_PER_WEEK:
                 raise RateLimitExceeded(
-                    "hashtags_per_week", hashtag_count,
-                    RATE_LIMIT_HASHTAGS_PER_WEEK, 604800,
+                    "hashtags_per_week",
+                    hashtag_count,
+                    RATE_LIMIT_HASHTAGS_PER_WEEK,
+                    604800,
                 )
 
         # Warnings em 90% do limite
@@ -118,7 +124,7 @@ class GovernanceManager:
 
         return result
 
-    def get_rate_status(self) -> Dict[str, Any]:
+    def get_rate_status(self) -> dict[str, Any]:
         """Retorna status atual de todos os rate limits."""
         return {
             "requests_per_hour": {
@@ -136,21 +142,23 @@ class GovernanceManager:
     def log_action(
         self,
         action: str,
-        params: Optional[Dict] = None,
-        result: Optional[Dict] = None,
+        params: dict | None = None,
+        result: dict | None = None,
         confirmed: bool = True,
-        account_id: Optional[int] = None,
+        account_id: int | None = None,
     ) -> None:
         """Registra uma ação no audit log."""
         rate_status = self.get_rate_status()
-        self.db.log_action({
-            "account_id": account_id,
-            "action": action,
-            "params": json.dumps(params, ensure_ascii=False) if params else None,
-            "result": json.dumps(result, ensure_ascii=False) if result else None,
-            "confirmed": 1 if confirmed else 0,
-            "rate_remaining": json.dumps(rate_status),
-        })
+        self.db.log_action(
+            {
+                "account_id": account_id,
+                "action": action,
+                "params": json.dumps(params, ensure_ascii=False) if params else None,
+                "result": json.dumps(result, ensure_ascii=False) if result else None,
+                "confirmed": 1 if confirmed else 0,
+                "rate_remaining": json.dumps(rate_status),
+            }
+        )
 
     # ── Confirmation ──────────────────────────────────────────────────────────
 
@@ -171,9 +179,9 @@ class GovernanceManager:
     def create_confirmation_request(
         self,
         action: str,
-        details: Dict[str, Any],
-        account_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        details: dict[str, Any],
+        account_id: int | None = None,
+    ) -> dict[str, Any]:
         """
         Cria um pedido de confirmação para o Claude apresentar ao usuário.
         Retorna JSON estruturado com action_id para confirmar depois.
@@ -192,7 +200,10 @@ class GovernanceManager:
         }
 
     def _format_confirmation_message(
-        self, action: str, details: Dict[str, Any], rate_status: Dict[str, Any],
+        self,
+        action: str,
+        details: dict[str, Any],
+        rate_status: dict[str, Any],
     ) -> str:
         """Formata mensagem de confirmação legível."""
         category = self.get_confirmation_category(action)
@@ -217,8 +228,10 @@ class GovernanceManager:
 
         req = rate_status["requests_per_hour"]
         pub = rate_status["publishes_per_day"]
-        lines.append(f"\n  Rate limits: {req['used']}/{req['limit']} requests/hr, "
-                      f"{pub['used']}/{pub['limit']} publicações/dia")
+        lines.append(
+            f"\n  Rate limits: {req['used']}/{req['limit']} requests/hr, "
+            f"{pub['used']}/{pub['limit']} publicações/dia"
+        )
 
         return "\n".join(lines)
 

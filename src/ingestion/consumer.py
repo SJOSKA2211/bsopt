@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import signal
 from datetime import datetime
@@ -11,6 +10,7 @@ from src.database.crud import bulk_insert_market_ticks
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
+
 
 class MarketDataConsumer:
     """
@@ -32,11 +32,13 @@ class MarketDataConsumer:
             # Ensure time is a datetime object
             if "time" in data and isinstance(data["time"], str):
                 data["time"] = datetime.fromisoformat(data["time"].replace("Z", "+00:00"))
-            
+
             self.batch.append(data)
 
-            if len(self.batch) >= self.batch_size or \
-               (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval:
+            if (
+                len(self.batch) >= self.batch_size
+                or (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval
+            ):
                 await self.flush_batch()
 
     async def flush_batch(self) -> None:
@@ -64,9 +66,10 @@ class MarketDataConsumer:
         await self.rmq.connect()
         await self.rmq.consume_ticks(self.handle_tick)
 
+
 async def main():
     consumer = MarketDataConsumer()
-    
+
     def shutdown(sig, frame):
         logger.info("shutdown_signal_received")
         loop = asyncio.get_event_loop()
@@ -81,6 +84,7 @@ async def main():
         logger.error("consumer_runtime_error", error=str(e))
     finally:
         await consumer.flush_batch()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

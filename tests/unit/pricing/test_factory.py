@@ -6,6 +6,7 @@ from src.math_kernel.black_scholes import BlackScholesEngine
 from src.math_kernel.factory import PricingEngineFactory, PricingEngineNotFound
 from src.math_kernel.monte_carlo import MonteCarloEngine
 
+
 def test_get_engine_lazy_load():
     # BS and MC should be pre-loaded or lazy-loaded
     bs = PricingEngineFactory.get_engine("black_scholes")
@@ -13,6 +14,7 @@ def test_get_engine_lazy_load():
 
     mc = PricingEngineFactory.get_engine("monte_carlo")
     assert isinstance(mc, MonteCarloEngine)
+
 
 def test_register_engine():
     class MockEngine:
@@ -22,9 +24,11 @@ def test_register_engine():
     engine = PricingEngineFactory.get_engine("mock")
     assert isinstance(engine, MockEngine)
 
+
 def test_engine_not_found():
     with pytest.raises(PricingEngineNotFound, match="Unknown pricing engine"):
         PricingEngineFactory.get_engine("non_existent_engine")
+
 
 def test_wasm_override():
     # If we force wasm, it should try to load wasm even if name is different

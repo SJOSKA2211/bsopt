@@ -9,10 +9,12 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class CircuitState(Enum):
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
+
 
 class InMemoryCircuitBreaker:
     """
@@ -86,8 +88,10 @@ class InMemoryCircuitBreaker:
 
         return wrapper
 
+
 # Alias for backward compatibility
 CircuitBreaker = InMemoryCircuitBreaker
+
 
 class DistributedCircuitBreaker:
     """
@@ -152,7 +156,6 @@ class DistributedCircuitBreaker:
                 if asyncio.iscoroutinefunction(func):
                     result = await func(*args, **kwargs)
                 else:
-                    
                     result = await run_sync(func, *args, **kwargs)
 
                 if current_state == "HALF_OPEN":
@@ -185,6 +188,7 @@ class DistributedCircuitBreaker:
     @property
     def failure_count(self):
         return self._failure_count_cache
+
 
 class CircuitBreakerProxy:
     """
@@ -227,12 +231,14 @@ class CircuitBreakerProxy:
             return self._cb.failure_count
         return -1
 
+
 # Global instances initialized as Proxies
 pricing_circuit = CircuitBreakerProxy("pricing", failure_threshold=10, recovery_timeout=60)
 db_circuit = CircuitBreakerProxy("database", failure_threshold=5, recovery_timeout=30)
 ml_client_circuit = CircuitBreakerProxy("ml_client", failure_threshold=5, recovery_timeout=30)
 nse_circuit = CircuitBreakerProxy("nse", failure_threshold=3, recovery_timeout=120)
 webhook_circuit = CircuitBreakerProxy("webhook", failure_threshold=5, recovery_timeout=30)
+
 
 async def initialize_circuits(redis_client: redis.Redis | None = None):
     """

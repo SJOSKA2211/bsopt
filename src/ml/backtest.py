@@ -10,6 +10,7 @@ from src.ml.tracker import ExperimentTracker
 
 logger = structlog.get_logger(__name__)
 
+
 @ray.remote
 def ray_backtest_task(
     ticker: str, prices: np.ndarray, positions: np.ndarray, initial_capital: float
@@ -29,6 +30,7 @@ def ray_backtest_task(
         "max_drawdown": max_dd,
         "final_equity": equity_curve[-1],
     }
+
 
 class BacktestEngine:
     """
@@ -54,11 +56,10 @@ class BacktestEngine:
 
         futures = []
         for ticker, df in batch_data.items():
-            
             if "target_pos" not in df.columns:
                 logger.error("backtest_failed_missing_target_pos", ticker=ticker)
                 continue
-                
+
             prices = df["close"].values.astype(np.float64)
             positions = df["target_pos"].values.astype(np.float64)
 

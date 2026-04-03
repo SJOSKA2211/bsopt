@@ -5,10 +5,10 @@ PDF: https://portal.jucepe.pe.gov.br/storage/content/leiloeiros.pdf
 Método: Playwright (SPA) com fallback para PDF via httpx
 Nota: Migrou de www.jucepe.pe.gov.br para portal.jucepe.pe.gov.br
 """
+
 from __future__ import annotations
 
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -19,7 +19,7 @@ class JucepeScraper(AbstractJuntaScraper):
     url = "https://portal.jucepe.pe.gov.br/leiloeiros"
     url_pdf = "https://portal.jucepe.pe.gov.br/storage/content/leiloeiros.pdf"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         # Tenta SPA via Playwright primeiro
         soup = await self.fetch_page_js(
             wait_selector="table, tr td, .leiloeiro",
@@ -31,7 +31,7 @@ class JucepeScraper(AbstractJuntaScraper):
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         for table in soup.find_all("table"):
             rows = table.find_all("tr")
@@ -53,17 +53,19 @@ class JucepeScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro", "nº"]),
-                    cpf_cnpj=gcol(cells, ["cpf", "cnpj"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or "Recife",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                    endereco=gcol(cells, ["ender", "logr"]),
-                    data_registro=gcol(cells, ["data", "posse"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro", "nº"]),
+                        cpf_cnpj=gcol(cells, ["cpf", "cnpj"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or "Recife",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                        endereco=gcol(cells, ["ender", "logr"]),
+                        data_registro=gcol(cells, ["data", "posse"]),
+                    )
+                )
             if results:
                 break
 

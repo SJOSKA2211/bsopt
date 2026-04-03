@@ -3,6 +3,7 @@ from strawberry.types import ExecutionResult
 
 from src.workers.streaming.graphql.schema import schema
 
+
 @pytest.mark.asyncio
 async def test_marketdata_subgraph_schema_valid():
     """Verify that the schema is valid and has federation support."""
@@ -20,6 +21,7 @@ async def test_marketdata_subgraph_schema_valid():
     assert result.errors is None
     assert result.data is not None
     assert "_service" in result.data
+
 
 @pytest.mark.asyncio
 async def test_market_data_fields():

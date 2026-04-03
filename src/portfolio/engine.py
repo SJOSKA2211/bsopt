@@ -1,4 +1,3 @@
-import asyncio
 import numpy as np
 import pandas as pd
 import ray
@@ -6,20 +5,21 @@ import structlog
 from scipy.cluster.hierarchy import linkage
 from scipy.optimize import minimize
 
-from src.shared.distributed import RayOrchestrator
 from src.math_kernel.backtesting.kernel import (
     calculate_metrics_kernel,
     run_simulation_kernel,
 )
-from src.ml.models.neural_engine import NeuralPricingEngine
+from src.shared.distributed import RayOrchestrator
 from src.shared.utils.cache import get_redis
 
 logger = structlog.get_logger()
+
 
 @ray.remote
 def _run_backtest_task(engine_instance, df, strategy_fn, params):
     """Ray task for parallel backtest execution."""
     return engine_instance.run_vectorized(df, strategy_fn, params)
+
 
 def _get_quasi_diag(link):
     """Quasi-Diagonalization utility for HRP."""
@@ -37,12 +37,14 @@ def _get_quasi_diag(link):
         num_items = link[-1, 3]
     return sort_ix.tolist()
 
+
 def _get_cluster_var(cov, cluster_items):
     """Cluster variance utility for HRP."""
     cov_c = cov[np.ix_(cluster_items, cluster_items)]
     w = 1.0 / np.diag(cov_c)
     w /= w.sum()
     return np.dot(w.T, np.dot(cov_c, w))
+
 
 def _get_rec_bisec(cov, sort_ix):
     """Recursive bisection utility for HRP."""
@@ -64,6 +66,7 @@ def _get_rec_bisec(cov, sort_ix):
             w[c_left] *= alpha
             w[c_right] *= 1 - alpha
     return w
+
 
 class PortfolioOptimizer:
     """
@@ -102,6 +105,7 @@ class PortfolioOptimizer:
         weights = _get_rec_bisec(self.cov_matrix, sort_ix)
         return weights.sort_index().values
 
+
 class BacktestEngine:
     # ... (init stays same)
 
@@ -131,8 +135,6 @@ class BacktestEngine:
 
         if "target_position" not in df.columns:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
-
-
 
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)
@@ -192,7 +194,6 @@ class BacktestEngine:
     def optimize_mvo(self) -> np.ndarray:
         """Markowitz Mean-Variance Optimization (MVO)."""
 
-
         n = len(self.symbols)
 
         def objective(w):
@@ -212,7 +213,6 @@ class BacktestEngine:
         Black-Litterman model for Production view incorporation.
         Combines market prior (equilibrium) with investor views.
         """
-
 
         n = len(self.symbols)
 
@@ -254,7 +254,6 @@ class BacktestEngine:
         """
         # Check for autonomous circuit breaker
 
-        
         async def check_paused():
             redis = get_redis()
             if redis:
@@ -262,17 +261,18 @@ class BacktestEngine:
             return False
 
         # In a real backtest, we might skip this or simulate it
-        
+
         window = params.get("window", 20) if params else 20
         df["ema"] = df["underlying_price"].ewm(span=window).mean()
 
         # Autonomous signal generation
         df["target_position"] = np.where(df["underlying_price"] > df["ema"], 1, 0)
-        
+
         # Apply scaling based on Neural Confidence (Simplified)
         df["target_position"] *= 10
-        
+
         return df
+
 
 class RebalancingEngine:
     """

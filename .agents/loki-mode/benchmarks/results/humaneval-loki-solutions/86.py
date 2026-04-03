@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def anti_shuffle(s):
     """
     Write a function that takes a string and returns an ordered version of it.
@@ -16,6 +17,6 @@ def anti_shuffle(s):
     anti_shuffle('hello') returns 'ehllo'
     anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'
     """
-    words = s.split(' ')
-    sorted_words = [''.join(sorted(word)) for word in words]
-    return ' '.join(sorted_words)
+    words = s.split(" ")
+    sorted_words = ["".join(sorted(word)) for word in words]
+    return " ".join(sorted_words)

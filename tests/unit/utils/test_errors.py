@@ -1,5 +1,6 @@
 from src.shared.utils.errors import ServiceUnavailableException, robust_pricing_task
 
+
 def test_robust_pricing_task_decorator():
     @robust_pricing_task(error_return_value={"error": True})
     def failing_task():
@@ -11,6 +12,7 @@ def test_robust_pricing_task_decorator():
 
     assert failing_task() == {"error": True}
     assert success_task() == 42
+
 
 def test_service_unavailable_exception():
     exc = ServiceUnavailableException("Redis")

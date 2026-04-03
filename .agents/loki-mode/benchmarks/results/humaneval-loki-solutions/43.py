@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def pairs_sum_to_zero(l):
     """
     pairs_sum_to_zero takes a list of integers as an input.

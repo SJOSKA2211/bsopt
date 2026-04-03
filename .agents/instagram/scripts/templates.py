@@ -8,6 +8,7 @@ Uso:
     python scripts/templates.py --delete --name promo
     python scripts/templates.py --preview --name promo --vars produto=Tênis desconto=30
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,25 +24,35 @@ db = Database()
 db.init()
 
 
-def create_template(name: str, caption: str, hashtags: str = None, schedule_time: str = None) -> None:
+def create_template(
+    name: str, caption: str, hashtags: str = None, schedule_time: str = None
+) -> None:
     """Cria ou atualiza um template."""
     hashtag_list = None
     if hashtags:
         hashtag_list = json.dumps([h.strip() for h in hashtags.split(",")])
 
-    template_id = db.upsert_template({
-        "name": name,
-        "caption_template": caption,
-        "hashtag_set": hashtag_list,
-        "default_schedule_time": schedule_time,
-    })
-    print(json.dumps({
-        "status": "created",
-        "id": template_id,
-        "name": name,
-        "caption_template": caption,
-        "hashtags": json.loads(hashtag_list) if hashtag_list else [],
-    }, indent=2, ensure_ascii=False))
+    template_id = db.upsert_template(
+        {
+            "name": name,
+            "caption_template": caption,
+            "hashtag_set": hashtag_list,
+            "default_schedule_time": schedule_time,
+        }
+    )
+    print(
+        json.dumps(
+            {
+                "status": "created",
+                "id": template_id,
+                "name": name,
+                "caption_template": caption,
+                "hashtags": json.loads(hashtag_list) if hashtag_list else [],
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 def list_templates() -> None:
@@ -53,7 +64,9 @@ def list_templates() -> None:
                 t["hashtag_set"] = json.loads(t["hashtag_set"])
             except json.JSONDecodeError:
                 pass
-    print(json.dumps({"total": len(templates), "templates": templates}, indent=2, ensure_ascii=False))
+    print(
+        json.dumps({"total": len(templates), "templates": templates}, indent=2, ensure_ascii=False)
+    )
 
 
 def show_template(name: str) -> None:
@@ -101,7 +114,11 @@ def preview_template(name: str, variables: list) -> None:
     hashtags = []
     if t.get("hashtag_set"):
         try:
-            hashtags = json.loads(t["hashtag_set"]) if isinstance(t["hashtag_set"], str) else t["hashtag_set"]
+            hashtags = (
+                json.loads(t["hashtag_set"])
+                if isinstance(t["hashtag_set"], str)
+                else t["hashtag_set"]
+            )
         except json.JSONDecodeError:
             pass
 
@@ -109,11 +126,17 @@ def preview_template(name: str, variables: list) -> None:
     if hashtags:
         full_caption = f"{rendered}\n\n{' '.join(hashtags)}"
 
-    print(json.dumps({
-        "template": name,
-        "variables": var_dict,
-        "rendered_caption": full_caption,
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "template": name,
+                "variables": var_dict,
+                "rendered_caption": full_caption,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 def main():

@@ -27,13 +27,16 @@ mock_totp.provisioning_uri.return_value = "otpauth://totp/BSOPT:engineer?secret=
 mock_pyotp.TOTP.return_value = mock_totp
 sys.modules["pyotp"] = mock_pyotp
 
+
 @pytest.fixture
 def mock_db():
     return MagicMock()
 
+
 @pytest.fixture
 def mock_bg():
     return MagicMock(spec=BackgroundTasks)
+
 
 @pytest.fixture
 def mock_request():
@@ -43,12 +46,14 @@ def mock_request():
     req.headers = {}
     return req
 
+
 @pytest.mark.asyncio
 async def test_mfa_setup_success(mock_db):
     mock_user = User(id=uuid4(), email="engineer@bsopt.com", is_active=True)
     res = await mfa_setup(mock_user, mock_db)
     assert res.data.secret == "secret"
     assert "otpauth" in res.data.provisioning_uri
+
 
 @pytest.mark.asyncio
 async def test_mfa_verify_success(mock_db):
@@ -57,6 +62,7 @@ async def test_mfa_verify_success(mock_db):
     with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
         res = await mfa_verify(data, mock_user, mock_db)
         assert "Successfully" in res["message"] or "MFA" in res["message"]
+
 
 @pytest.mark.asyncio
 async def test_change_password_success(mock_db):
@@ -73,6 +79,7 @@ async def test_change_password_success(mock_db):
         mock_pw.hash_password.return_value = "new_hashed"
         res = await change_password(data, mock_user, mock_db)
         assert "success" in res["message"].lower()
+
 
 @pytest.mark.asyncio
 async def test_password_reset_flow(mock_db, mock_bg):

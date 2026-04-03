@@ -26,6 +26,7 @@ def test_initialization_{MOD_UNDERSCORE}():
         pytest.skip('Could not import src.{MOD_PATH}')
 """
 
+
 def generate_tests():
     src_dir = "src"
     test_dir = "tests/generated"
@@ -52,6 +53,7 @@ def generate_tests():
                     f.write(content)
 
     print("🏁 Bulk Test Generation Complete.")
+
 
 if __name__ == "__main__":
     generate_tests()

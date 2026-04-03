@@ -3,8 +3,9 @@
 # Attempts: 1
 # Passed: True
 
+
 def multiply(a, b):
-    """Complete the function that takes two integers and returns 
+    """Complete the function that takes two integers and returns
     the product of their unit digits.
     Assume the input is always valid.
     Examples:

@@ -9,10 +9,15 @@ import structlog
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.middleware.jwt_validator import require_tier
 from api.responses import MsgspecJSONResponse
 from api.schemas.common import DataResponse
-from api.schemas.ml import ComparisonMetrics, DriftMetricsResponse, InferenceRequest, InferenceResponse
-from api.middleware.jwt_validator import require_tier
+from api.schemas.ml import (
+    ComparisonMetrics,
+    DriftMetricsResponse,
+    InferenceRequest,
+    InferenceResponse,
+)
 from src.auth.auth import get_current_active_user
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
@@ -24,6 +29,7 @@ router = APIRouter(
     prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse
 )
 logger = structlog.get_logger(__name__)
+
 
 @router.get("/comparison", response_model=DataResponse[ComparisonMetrics])
 async def get_ml_comparison(
@@ -39,6 +45,7 @@ async def get_ml_comparison(
     stats = await get_ml_comparison_stats(db, current_user.id)
     return DataResponse(data=ComparisonMetrics(**stats))
 
+
 @router.post("/predict", response_model=None)
 @ml_client_circuit
 async def predict(
@@ -50,6 +57,7 @@ async def predict(
 ) -> DataResponse[InferenceResponse]:
     """Predict option price using ML models."""
     return DataResponse(data=await ml_service.predict(request, model_type, symbol))
+
 
 @router.get("/predictions", response_model=DataResponse[InferenceResponse])
 @ml_client_circuit
@@ -86,6 +94,7 @@ async def get_predictions(
     )
     return DataResponse(data=await ml_service.predict(req, model_type, symbol))
 
+
 @router.get(
     "/drift-metrics",
     response_model=DataResponse[DriftMetricsResponse],
@@ -98,6 +107,7 @@ async def get_drift_metrics(
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
     return DataResponse(data=DriftMetricsResponse(metrics=metrics))
+
 
 @router.post(
     "/retrain",
@@ -129,6 +139,7 @@ async def trigger_retraining(
         message=f"Retraining task ({mode}) dispatched to background worker",
     )
 
+
 @router.get("/health")
 async def ml_health() -> dict[str, Any]:
     """
@@ -136,8 +147,8 @@ async def ml_health() -> dict[str, Any]:
     Consolidates MLflow, Prometheus, and Redis Anomaly metrics.
     """
     import os
-    from datetime import datetime, UTC
-    
+    from datetime import UTC, datetime
+
     # Mock data if allowed
     if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
         return {
@@ -146,20 +157,20 @@ async def ml_health() -> dict[str, Any]:
             "mlflow": {
                 "stage": "Production",
                 "drift_detected": False,
-                "last_run_id": "simulated_run_001"
+                "last_run_id": "simulated_run_001",
             },
             "prometheus": {
                 "error_rate_5xx": 0.0,
                 "p95_latency": 12.5,
                 "cpu_usage": 0.45,
-                "memory_usage": 512 * 1024 * 1024
+                "memory_usage": 512 * 1024 * 1024,
             },
-            "redis_anomalies": []
+            "redis_anomalies": [],
         }
 
     # Real implementation placeholder (logic to be fleshed out in Phase 3)
     return {
         "status": "unhealthy",
         "timestamp": datetime.now(UTC).isoformat(),
-        "error": "Real ML metrics extraction not yet implemented"
+        "error": "Real ML metrics extraction not yet implemented",
     }

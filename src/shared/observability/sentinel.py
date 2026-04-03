@@ -12,6 +12,7 @@ SERVICES = {
     "Pricing": "http://neural-pricing:8000/health",
 }
 
+
 class SystemSentinel:
     """
     Production System Sentinel.
@@ -41,6 +42,7 @@ class SystemSentinel:
             if any(status != "HEALTHY" for status in health.values()):
                 logger.warning("system_degradation_detected", status=health)
                 import os
+
                 slack_url = os.getenv("SLACK_WEBHOOK_URL")
                 if slack_url:
                     try:
@@ -50,6 +52,7 @@ class SystemSentinel:
                         logger.error("failed_to_send_slack_alert", error=str(e))
 
             await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     sentinel = SystemSentinel()

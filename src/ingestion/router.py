@@ -2,7 +2,6 @@ import asyncio
 import time
 
 import structlog
-from prometheus_client import Counter, Histogram
 
 from api.providers import PolygonProvider, YahooProvider
 from src.ingestion.engine import NSEScraper
@@ -14,8 +13,8 @@ logger = structlog.get_logger()
 from src.shared.observability import (
     ROUTING_COUNT,
     ROUTING_LATENCY,
-    SCRAPER_PARSE_SUCCESS,
 )
+
 
 class MarketDataRouter:
     """
@@ -102,15 +101,15 @@ class MarketDataRouter:
                 # Update EWMA
                 p_latency = time.time() - start_time
                 await self._update_latency(provider_name, p_latency)
-                
+
                 # Cache successful result for high-availability fallback
                 if self.redis:
                     await self.redis.setex(
                         f"market_cache:{symbol}",
-                        3600, # 1 hour cache
-                        msgspec.json.encode(res)
+                        3600,  # 1 hour cache
+                        msgspec.json.encode(res),
                     )
-                
+
                 return res, provider_name
             except Exception as e:
                 # Penalty for failure
@@ -185,7 +184,6 @@ class MarketDataRouter:
         """Global symbol search (Tickers + Metadata) - PARALLELISED."""
         results = []
         try:
-            
             poly_task = self.polygon.search(query)
             yahoo_task = (
                 self.yahoo.yahoo_search(query)
@@ -209,7 +207,6 @@ class MarketDataRouter:
     async def get_option_chain_snapshot(self, symbol: str) -> list:
         """Fetch a full option chain snapshot - RACING PATTERN."""
         try:
-            
             poly_task = asyncio.create_task(self.polygon.get_option_chain(symbol))
             yahoo_task = asyncio.create_task(self.yahoo.get_option_chain(symbol))
 

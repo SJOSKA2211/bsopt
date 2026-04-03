@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-import numpy as np
-from pathlib import Path
+
 
 class OptionPricingNN(nn.Module):
     def __init__(self, input_dim=9, hidden_dims=[128, 64], output_dim=1):
@@ -18,6 +19,7 @@ class OptionPricingNN(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+
 def create_and_export_model():
     # Matches the 9 features expected by serve.py
     input_dim = 9
@@ -30,7 +32,7 @@ def create_and_export_model():
     # Export to ONNX
     output_path = "models/latest_pricing.onnx"
     Path("models").mkdir(exist_ok=True)
-    
+
     print(f"[*] Exporting model to {output_path}...")
     torch.onnx.export(
         model,
@@ -44,6 +46,7 @@ def create_and_export_model():
         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
     )
     print(f"[+] Model exported successfully. Size: {Path(output_path).stat().st_size} bytes")
+
 
 if __name__ == "__main__":
     create_and_export_model()

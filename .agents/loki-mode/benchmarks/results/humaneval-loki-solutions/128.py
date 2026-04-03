@@ -3,6 +3,7 @@
 # Attempts: 1
 # Passed: True
 
+
 def prod_signs(arr):
     """
     You are given an array arr of integers and you need to return
@@ -17,15 +18,15 @@ def prod_signs(arr):
     """
     if not arr:
         return None
-    
+
     sign_product = 1
     magnitude_sum = 0
-    
+
     for num in arr:
         if num == 0:
             sign_product = 0
         elif num < 0:
             sign_product *= -1
         magnitude_sum += abs(num)
-    
+
     return sign_product * magnitude_sum

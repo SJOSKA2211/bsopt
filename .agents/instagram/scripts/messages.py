@@ -6,6 +6,7 @@ Uso:
     python scripts/messages.py --conversations
     python scripts/messages.py --thread --conversation-id 12345
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,9 +18,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from api_client import InstagramAPI
-from auth import auto_refresh_if_needed
 from db import Database
 from governance import GovernanceManager
+
+from auth import auto_refresh_if_needed
 
 db = Database()
 db.init()

@@ -9,6 +9,7 @@ from src.quant.pricing.implied_vol import (
     vectorized_implied_volatility,
 )
 
+
 def test_iv_method_newton_fail():
     # Test method='newton' failing to converge to hit the raise line
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):
@@ -22,6 +23,7 @@ def test_iv_method_newton_fail():
             max_iterations=1,
             initial_guess=0.01,
         )
+
 
 def test_iv_method_auto_fallback():
     # Test method='auto' falling back to Brent when Newton fails
@@ -39,6 +41,7 @@ def test_iv_method_auto_fallback():
     )
     assert iv > 0
 
+
 def test_brent_iv_fail():
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):
         _brent_iv(
@@ -50,6 +53,7 @@ def test_brent_iv_fail():
             dividend=0.0,
             option_type="call",
         )
+
 
 def test_newton_iv_low_vega_break():
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):
@@ -63,6 +67,7 @@ def test_newton_iv_low_vega_break():
             option_type="call",
             initial_guess=0.00001,
         )
+
 
 def test_vectorized_iv_basic():
     market_prices = np.array([10.45, 5.50])
@@ -80,11 +85,13 @@ def test_vectorized_iv_basic():
     assert ivs[0] > 0
     assert ivs[1] > 0
 
+
 def test_vectorized_iv_empty():
     # Test with empty arrays to hit the break at top of loop (line 230)
     empty = np.array([])
     ivs = vectorized_implied_volatility(empty, empty, empty, empty, empty, empty, empty)
     assert len(ivs) == 0
+
 
 def test_vectorized_iv_low_vega():
     market_prices = np.array([0.0001])

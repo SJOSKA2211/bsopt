@@ -18,6 +18,7 @@ from src.database.models import User
 
 fake = Faker()
 
+
 # 9. Test Data Management & 28. Data Generation
 @pytest.fixture
 def user_payload():
@@ -31,6 +32,7 @@ def user_payload():
         "full_name": fake.name(),
         "accept_terms": True,
     }
+
 
 # 10. Database State & 42. Test Isolation
 @pytest.fixture
@@ -94,6 +96,7 @@ def mock_db():
     session.users = users
     return session
 
+
 # 11. API Client (httpx.AsyncClient)
 @pytest_asyncio.fixture
 async def client(mock_db):
@@ -136,6 +139,7 @@ async def client(mock_db):
         ) as ac:
             yield ac
     app.dependency_overrides.clear()
+
 
 def validate_response(response, model):
     """OPTIMIZED: Strict Pydantic contract validation for functional tests."""

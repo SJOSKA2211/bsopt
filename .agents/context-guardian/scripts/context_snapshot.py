@@ -16,7 +16,6 @@ Uso:
 
 import json
 import sys
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -26,6 +25,7 @@ SKILL_DIR = SCRIPT_DIR.parent
 DATA_DIR = SKILL_DIR / "data"
 
 # ── Functions ──────────────────────────────────────────────────────────────
+
 
 def ensure_data_dir():
     """Create data directory if it doesn't exist."""
@@ -46,10 +46,10 @@ def save_snapshot(project: str = "", phase: str = "", summary: str = "") -> str:
     filename = f"snapshot-{timestamp}.md"
     filepath = DATA_DIR / filename
 
-    header = f"""# Context Guardian Snapshot — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-**Projeto**: {project or 'nao especificado'}
-**Fase**: {phase or 'nao especificada'}
-**Resumo**: {summary or 'snapshot pre-compactacao'}
+    header = f"""# Context Guardian Snapshot — {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Projeto**: {project or "nao especificado"}
+**Fase**: {phase or "nao especificada"}
+**Resumo**: {summary or "snapshot pre-compactacao"}
 **Modelo**: claude-opus-4-6
 
 ---
@@ -101,12 +101,14 @@ def list_snapshots() -> list[dict]:
 
     for f in sorted(DATA_DIR.glob("snapshot-*.md"), reverse=True):
         stat = f.stat()
-        snapshots.append({
-            "file": f.name,
-            "path": str(f),
-            "size_kb": round(stat.st_size / 1024, 1),
-            "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
-        })
+        snapshots.append(
+            {
+                "file": f.name,
+                "path": str(f),
+                "size_kb": round(stat.st_size / 1024, 1),
+                "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     return snapshots
 
@@ -158,14 +160,21 @@ def prune_snapshots(keep: int = 10) -> dict:
 
 # ── CLI ────────────────────────────────────────────────────────────────────
 
+
 def main():
     args = sys.argv[1:]
 
     if not args:
-        print(json.dumps({
-            "error": "Comando necessario: save, list, latest, read, prune",
-            "usage": "python context_snapshot.py <command> [options]",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "error": "Comando necessario: save, list, latest, read, prune",
+                    "usage": "python context_snapshot.py <command> [options]",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         sys.exit(1)
 
     cmd = args[0]
@@ -189,19 +198,31 @@ def main():
                 i += 1
 
         path = save_snapshot(project, phase, summary)
-        print(json.dumps({
-            "status": "ok",
-            "action": "snapshot_created",
-            "path": path,
-            "next_step": "Preencher o snapshot com dados extraidos da conversa",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "status": "ok",
+                    "action": "snapshot_created",
+                    "path": path,
+                    "next_step": "Preencher o snapshot com dados extraidos da conversa",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
 
     elif cmd == "list":
         snapshots = list_snapshots()
-        print(json.dumps({
-            "total": len(snapshots),
-            "snapshots": snapshots,
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "total": len(snapshots),
+                    "snapshots": snapshots,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
 
     elif cmd == "latest":
         result = read_latest()

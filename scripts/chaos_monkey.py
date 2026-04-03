@@ -7,6 +7,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 # List of critical containers to target for chaos engineering
 # We exclude the 'postgres' and 'redis' to maintain state, or include them for full resilience tests.
 def get_dynamic_targets():
@@ -22,6 +23,7 @@ def get_dynamic_targets():
     except Exception:
         return []
 
+
 def log_chaos_event(target, event_type):
     """Push chaos event to Prometheus Pushgateway."""
     try:
@@ -34,6 +36,7 @@ def log_chaos_event(target, event_type):
     except Exception as e:
         logger.warning("pushgateway_not_reachable", error=str(e))
 
+
 def kill_container(container_name):
     """Randomly kill a container and log the event."""
     try:
@@ -43,6 +46,7 @@ def kill_container(container_name):
         logger.info("chaos_monkey_attack_success", target=container_name)
     except Exception as e:
         logger.error("chaos_monkey_attack_failed", target=container_name, error=str(e))
+
 
 def monitor_recovery(container_name, timeout=60):
     """Wait for a container to return to 'running' state."""
@@ -66,6 +70,7 @@ def monitor_recovery(container_name, timeout=60):
     logger.error("recovery_timeout", target=container_name)
     return False
 
+
 def chaos_loop(interval=300):
     """Continuous Chaos Engineering Loop with dynamic discovery."""
     logger.info("chaos_monkey_started", interval=interval)
@@ -88,6 +93,7 @@ def chaos_loop(interval=300):
         wait_time = random.randint(interval // 2, interval * 2)
         logger.info("chaos_monkey_sleeping", next_attack_in=wait_time)
         time.sleep(wait_time)
+
 
 if __name__ == "__main__":
     # Ensure we don't run chaos in production by accident without a flag

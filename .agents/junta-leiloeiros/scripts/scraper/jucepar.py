@@ -4,10 +4,10 @@ URL: https://www.juntacomercial.pr.gov.br/Pagina/LEILOEIROS-OFICIAIS
 Método: httpx + BeautifulSoup (tabela HTML ou PDF link)
 Nota: Site migrou de jucepar.pr.gov.br para juntacomercial.pr.gov.br
 """
+
 from __future__ import annotations
 
 import re
-from typing import List
 
 from .base_scraper import AbstractJuntaScraper, Leiloeiro
 
@@ -17,7 +17,7 @@ class JuceparScraper(AbstractJuntaScraper):
     junta = "JUCEPAR"
     url = "https://www.juntacomercial.pr.gov.br/Pagina/LEILOEIROS-OFICIAIS"
 
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         soup = await self.fetch_page()
         if not soup:
             # Tenta Playwright se httpx falhar
@@ -25,7 +25,7 @@ class JuceparScraper(AbstractJuntaScraper):
         if not soup:
             return []
 
-        results: List[Leiloeiro] = []
+        results: list[Leiloeiro] = []
 
         # Tentativa 1: tabela HTML
         for table in soup.find_all("table"):
@@ -36,8 +36,7 @@ class JuceparScraper(AbstractJuntaScraper):
             col = {(h or "").lower(): i for i, h in enumerate(headers)}
 
             has_relevant = any(
-                any(f in (h or "").lower() for f in ["nome", "leiloeiro", "matr"])
-                for h in headers
+                any(f in (h or "").lower() for f in ["nome", "leiloeiro", "matr"]) for h in headers
             )
             if not has_relevant:
                 continue
@@ -55,16 +54,18 @@ class JuceparScraper(AbstractJuntaScraper):
                 nome = gcol(cells, ["nome", "leiloeiro"]) or self.clean(cells[0].get_text())
                 if not nome or len(nome) < 3:
                     continue
-                results.append(self.make_leiloeiro(
-                    nome=nome,
-                    matricula=gcol(cells, ["matr", "registro", "nº"]),
-                    situacao=gcol(cells, ["situ", "status"]),
-                    municipio=gcol(cells, ["munic", "cidade"]) or "Curitiba",
-                    telefone=gcol(cells, ["tel", "fone"]),
-                    email=gcol(cells, ["email"]),
-                    endereco=gcol(cells, ["ender", "logr"]),
-                    data_registro=gcol(cells, ["data", "posse", "portaria"]),
-                ))
+                results.append(
+                    self.make_leiloeiro(
+                        nome=nome,
+                        matricula=gcol(cells, ["matr", "registro", "nº"]),
+                        situacao=gcol(cells, ["situ", "status"]),
+                        municipio=gcol(cells, ["munic", "cidade"]) or "Curitiba",
+                        telefone=gcol(cells, ["tel", "fone"]),
+                        email=gcol(cells, ["email"]),
+                        endereco=gcol(cells, ["ender", "logr"]),
+                        data_registro=gcol(cells, ["data", "posse", "portaria"]),
+                    )
+                )
             if results:
                 break
 

@@ -1,16 +1,15 @@
+import mlflow
 import numpy as np
 import structlog
-import mlflow
 import torch
 import xgboost as xgb
-from pathlib import Path
-from typing import Dict, Tuple
 from sklearn.model_selection import train_test_split
-from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
+
 from src.ml.models.neural_engine import NeuralPricingEngine
-from src.math_kernel.models import BSParameters
+from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
+
 
 class ModelTrainer(BaseTrainer):
     """
@@ -28,7 +27,7 @@ class ModelTrainer(BaseTrainer):
         X: np.ndarray,
         y: np.ndarray,
         config: TrainingConfig,
-        metadata: dict[str, str] | None = None
+        metadata: dict[str, str] | None = None,
     ) -> TrainingResult:
         """
         Execute training and evaluation using specified framework.
@@ -54,13 +53,19 @@ class ModelTrainer(BaseTrainer):
             self.best_score = score
             self.log_metrics({"r2_score": score})
             logger.info("ml_training_complete", score=score)
-            
+
             return TrainingResult(
-                score=score,
-                metadata={"framework": framework, "samples": str(len(X))}
+                score=score, metadata={"framework": framework, "samples": str(len(X))}
             )
 
-    def _train_xgboost(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray, config: TrainingConfig) -> float:
+    def _train_xgboost(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        config: TrainingConfig,
+    ) -> float:
         """Train XGBoost model."""
         from sklearn.metrics import r2_score
 
@@ -71,37 +76,44 @@ class ModelTrainer(BaseTrainer):
             "subsample": 0.8,
             "colsample_bytree": 0.8,
             "n_jobs": -1,
-            "random_state": 42
+            "random_state": 42,
         }
-        
+
         self.model = xgb.XGBRegressor(**model_params)
         self.model.fit(X_train, y_train)
-        
+
         preds = self.model.predict(X_test)
         score = r2_score(y_test, preds)
-        
+
         mlflow.xgboost.log_model(self.model, "model")
         return float(score)
 
-    def _train_torch(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray, config: TrainingConfig) -> float:
+    def _train_torch(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        config: TrainingConfig,
+    ) -> float:
         """Train PyTorch Neural Pricing Engine."""
         from sklearn.metrics import r2_score
-        
+
         engine = NeuralPricingEngine()
         engine.train_model(
             inputs=X_train,
             targets=y_train.reshape(-1, 1),
             epochs=config.epochs,
             batch_size=config.batch_size,
-            lr=config.lr
+            lr=config.lr,
         )
-        
+
         self.model = engine.model
         # Evaluation
         # Simple R2 on raw outputs for now
         with torch.no_grad():
             preds = self.model(torch.tensor(X_test, dtype=torch.float32)).cpu().numpy().flatten()
-        
+
         score = r2_score(y_test, preds)
         mlflow.pytorch.log_model(self.model, "model")
         return float(score)

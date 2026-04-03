@@ -16,24 +16,24 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from prompt_engine import analyze_prompt, humanize_prompt, resolve_format
+
 from config import (
-    MODELS,
-    DEFAULT_MODEL,
     DEFAULT_FORMAT,
     DEFAULT_HUMANIZATION,
     DEFAULT_MODE,
-    DEFAULT_RESOLUTION,
+    DEFAULT_MODEL,
     DEFAULT_PERSON_GENERATION,
-    IMAGE_FORMATS,
+    DEFAULT_RESOLUTION,
     FORMAT_ALIASES,
-    OUTPUTS_DIR,
+    IMAGE_FORMATS,
+    MODELS,
     OUTPUT_SETTINGS,
-    get_api_key,
+    OUTPUTS_DIR,
     get_all_api_keys,
-    safety_check_model,
     safety_check_daily_limit,
+    safety_check_model,
 )
-from prompt_engine import humanize_prompt, analyze_prompt, resolve_format
 
 
 def _check_dependencies():
@@ -58,12 +58,14 @@ def _check_dependencies():
 def _get_client(api_key: str):
     """Cria cliente Google GenAI."""
     from google import genai
+
     return genai.Client(api_key=api_key)
 
 
 # =============================================================================
 # GERACAO VIA IMAGEN (imagen-4, imagen-4-ultra, imagen-4-fast)
 # =============================================================================
+
 
 def generate_with_imagen(
     prompt: str,
@@ -104,10 +106,12 @@ def generate_with_imagen(
             img_bytes = img.image.image_bytes
             if isinstance(img_bytes, str):
                 img_bytes = base64.b64decode(img_bytes)
-            results.append({
-                "image_bytes": img_bytes,
-                "mime_type": OUTPUT_SETTINGS["default_mime_type"],
-            })
+            results.append(
+                {
+                    "image_bytes": img_bytes,
+                    "mime_type": OUTPUT_SETTINGS["default_mime_type"],
+                }
+            )
 
     return results
 
@@ -115,6 +119,7 @@ def generate_with_imagen(
 # =============================================================================
 # GERACAO VIA GEMINI (gemini-flash-image, gemini-pro-image)
 # =============================================================================
+
 
 def generate_with_gemini(
     prompt: str,
@@ -180,14 +185,16 @@ def generate_with_gemini(
         for candidate in response.candidates:
             if candidate.content and candidate.content.parts:
                 for part in candidate.content.parts:
-                    if hasattr(part, 'inline_data') and part.inline_data:
+                    if hasattr(part, "inline_data") and part.inline_data:
                         img_bytes = part.inline_data.data
                         if isinstance(img_bytes, str):
                             img_bytes = base64.b64decode(img_bytes)
-                        results.append({
-                            "image_bytes": img_bytes,
-                            "mime_type": part.inline_data.mime_type or "image/png",
-                        })
+                        results.append(
+                            {
+                                "image_bytes": img_bytes,
+                                "mime_type": part.inline_data.mime_type or "image/png",
+                            }
+                        )
 
     return results
 
@@ -195,6 +202,7 @@ def generate_with_gemini(
 # =============================================================================
 # SALVAR IMAGEM + METADADOS
 # =============================================================================
+
 
 def save_image(
     image_data: dict,
@@ -231,6 +239,7 @@ def save_image(
 # =============================================================================
 # FUNCAO PRINCIPAL — COM FALLBACK DE API KEYS
 # =============================================================================
+
 
 def generate(
     prompt: str,
@@ -374,18 +383,20 @@ def generate(
                 is_last_key = i >= len(api_keys) - 1
 
                 if not is_last_key:
-                    print(f"  Key {i+1} falhou ({error_msg[:60]}...), tentando backup...")
+                    print(f"  Key {i + 1} falhou ({error_msg[:60]}...), tentando backup...")
                     continue
                 elif is_rate_limit and attempt < max_retries - 1:
                     # Extrair delay sugerido da resposta se possivel
-                    delay_match = re.search(r'retryDelay.*?(\d+)', error_msg)
+                    delay_match = re.search(r"retryDelay.*?(\d+)", error_msg)
                     wait_time = int(delay_match.group(1)) if delay_match else retry_delay
                     wait_time = min(wait_time + 5, 60)  # cap at 60s
-                    print(f"  Rate limit atingido. Aguardando {wait_time}s (tentativa {attempt+1}/{max_retries})...")
+                    print(
+                        f"  Rate limit atingido. Aguardando {wait_time}s (tentativa {attempt + 1}/{max_retries})..."
+                    )
                     time.sleep(wait_time)
                     break  # Break inner loop to retry all keys
                 else:
-                    print(f"\n  ERRO: Todas as tentativas falharam.")
+                    print("\n  ERRO: Todas as tentativas falharam.")
                     print(f"  Ultimo erro: {error_msg[:200]}")
                     print()
                     if is_rate_limit:
@@ -462,6 +473,7 @@ def generate(
 # CLI
 # =============================================================================
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Gerar imagens humanizadas via Google AI Studio",
@@ -482,48 +494,77 @@ Exemplos:
     parser.add_argument("--custom", help="Personalizacao sobre o template")
 
     # Configuracoes principais
-    parser.add_argument("--mode", default=DEFAULT_MODE,
-                       choices=["influencer", "educacional"])
-    parser.add_argument("--format", default=DEFAULT_FORMAT,
-                       help="Formato (square, portrait, landscape, stories, widescreen, ultrawide, "
-                            "ou aspect ratio como 4:5, 16:9, etc)")
-    parser.add_argument("--humanization", default=DEFAULT_HUMANIZATION,
-                       choices=["ultra", "natural", "polished", "editorial"])
-    parser.add_argument("--lighting",
-                       choices=["morning", "golden-hour", "midday", "overcast",
-                               "night", "indoor", "blue-hour", "shade"])
-    parser.add_argument("--shot-type",
-                       help="Tipo de enquadramento (close-up, medium, wide, etc)")
+    parser.add_argument("--mode", default=DEFAULT_MODE, choices=["influencer", "educacional"])
+    parser.add_argument(
+        "--format",
+        default=DEFAULT_FORMAT,
+        help="Formato (square, portrait, landscape, stories, widescreen, ultrawide, "
+        "ou aspect ratio como 4:5, 16:9, etc)",
+    )
+    parser.add_argument(
+        "--humanization",
+        default=DEFAULT_HUMANIZATION,
+        choices=["ultra", "natural", "polished", "editorial"],
+    )
+    parser.add_argument(
+        "--lighting",
+        choices=[
+            "morning",
+            "golden-hour",
+            "midday",
+            "overcast",
+            "night",
+            "indoor",
+            "blue-hour",
+            "shade",
+        ],
+    )
+    parser.add_argument("--shot-type", help="Tipo de enquadramento (close-up, medium, wide, etc)")
 
     # Modelo e qualidade
-    parser.add_argument("--model", default=DEFAULT_MODEL,
-                       choices=list(MODELS.keys()),
-                       help=f"Modelo (default: {DEFAULT_MODEL})")
-    parser.add_argument("--resolution", default=DEFAULT_RESOLUTION,
-                       choices=["1K", "2K", "4K"])
-    parser.add_argument("--variations", type=int, default=1,
-                       help="Numero de variacoes (1-4)")
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        choices=list(MODELS.keys()),
+        help=f"Modelo (default: {DEFAULT_MODEL})",
+    )
+    parser.add_argument("--resolution", default=DEFAULT_RESOLUTION, choices=["1K", "2K", "4K"])
+    parser.add_argument("--variations", type=int, default=1, help="Numero de variacoes (1-4)")
 
     # Avancado
-    parser.add_argument("--reference-images", nargs="+", type=Path,
-                       help="Imagens de referencia (apenas Gemini Pro Image)")
-    parser.add_argument("--person-generation", default=DEFAULT_PERSON_GENERATION,
-                       choices=["dont_allow", "allow_adult", "allow_all"])
-    parser.add_argument("--skip-humanization", action="store_true",
-                       help="Enviar prompt diretamente sem humanizacao")
-    parser.add_argument("--force-paid", action="store_true",
-                       help="Permite usar modelos com custo (imagen-4, etc). USE COM CUIDADO.")
+    parser.add_argument(
+        "--reference-images",
+        nargs="+",
+        type=Path,
+        help="Imagens de referencia (apenas Gemini Pro Image)",
+    )
+    parser.add_argument(
+        "--person-generation",
+        default=DEFAULT_PERSON_GENERATION,
+        choices=["dont_allow", "allow_adult", "allow_all"],
+    )
+    parser.add_argument(
+        "--skip-humanization", action="store_true", help="Enviar prompt diretamente sem humanizacao"
+    )
+    parser.add_argument(
+        "--force-paid",
+        action="store_true",
+        help="Permite usar modelos com custo (imagen-4, etc). USE COM CUIDADO.",
+    )
 
     # Output
     parser.add_argument("--output", type=Path, help="Diretorio de saida customizado")
 
     # Utilidades
-    parser.add_argument("--analyze", action="store_true",
-                       help="Apenas analisa o prompt e sugere configuracoes")
-    parser.add_argument("--list-models", action="store_true",
-                       help="Lista todos os modelos disponiveis")
-    parser.add_argument("--list-formats", action="store_true",
-                       help="Lista todos os formatos disponiveis")
+    parser.add_argument(
+        "--analyze", action="store_true", help="Apenas analisa o prompt e sugere configuracoes"
+    )
+    parser.add_argument(
+        "--list-models", action="store_true", help="Lista todos os modelos disponiveis"
+    )
+    parser.add_argument(
+        "--list-formats", action="store_true", help="Lista todos os formatos disponiveis"
+    )
     parser.add_argument("--json", action="store_true")
 
     args = parser.parse_args()
@@ -534,8 +575,10 @@ Exemplos:
         for name, cfg in MODELS.items():
             print(f"  {name:25s} {cfg['description']}")
             print(f"  {'':25s} ID: {cfg['id']}")
-            print(f"  {'':25s} Max imagens: {cfg['max_images']} | "
-                  f"Max res: {cfg.get('max_resolution', 'N/A')}")
+            print(
+                f"  {'':25s} Max imagens: {cfg['max_images']} | "
+                f"Max res: {cfg.get('max_resolution', 'N/A')}"
+            )
             print()
         return
 
@@ -569,6 +612,7 @@ Exemplos:
     template_context = None
     if args.template:
         from templates import get_template
+
         tmpl = get_template(args.template)
         if not tmpl:
             print(f"ERRO: Template '{args.template}' nao encontrado")

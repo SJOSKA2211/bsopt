@@ -3,11 +3,10 @@ Compressão inteligente e arquivamento de sessões antigas.
 Mantém o histórico enxuto sem perder informação crítica.
 """
 
-import shutil
 from datetime import datetime
 from pathlib import Path
 
-from config import SESSIONS_DIR, ARCHIVE_DIR, ARCHIVE_AFTER_SESSIONS
+from config import ARCHIVE_AFTER_SESSIONS, ARCHIVE_DIR, SESSIONS_DIR
 
 
 def should_archive(session_number: int, current_session: int) -> bool:
@@ -33,11 +32,17 @@ def _compress_session(text: str) -> str:
     lines = text.splitlines()
     compressed = []
     keep_sections = {
-        "tópicos", "decisões", "tarefas pendentes",
-        "descobertas", "erros resolvidos", "convenções",
+        "tópicos",
+        "decisões",
+        "tarefas pendentes",
+        "descobertas",
+        "erros resolvidos",
+        "convenções",
     }
     skip_sections = {
-        "métricas", "arquivos modificados", "dívida técnica",
+        "métricas",
+        "arquivos modificados",
+        "dívida técnica",
     }
 
     current_section = ""

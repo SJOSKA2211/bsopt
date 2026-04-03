@@ -6,6 +6,7 @@ import pytest
 from src.database import crud
 from src.database.models import User
 
+
 @pytest.mark.asyncio
 async def test_user_crud(mock_db_session):
     # Setup mock_db_session for async operations
@@ -35,6 +36,7 @@ async def test_user_crud(mock_db_session):
     # Update
     await crud.update_user_tier(mock_db_session, db_user.id, "pro")
     assert mock_db_session.execute.called
+
 
 @pytest.mark.asyncio
 async def test_portfolio_crud(mock_db_session):

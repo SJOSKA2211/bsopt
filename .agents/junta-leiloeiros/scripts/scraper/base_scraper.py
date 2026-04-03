@@ -3,6 +3,7 @@ Base abstrata para scrapers de leiloeiros das Juntas Comerciais do Brasil.
 Cada estado herda desta classe e implementa parse_leiloeiros().
 Suporta httpx (sites estáticos) e Playwright (sites com JavaScript).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -10,8 +11,8 @@ import logging
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +26,17 @@ class Leiloeiro:
     estado: str
     junta: str
     nome: str
-    matricula: Optional[str] = None
-    cpf_cnpj: Optional[str] = None
-    situacao: Optional[str] = None
-    endereco: Optional[str] = None
-    municipio: Optional[str] = None
-    telefone: Optional[str] = None
-    email: Optional[str] = None
-    data_registro: Optional[str] = None
-    data_atualizacao: Optional[str] = None
-    url_fonte: Optional[str] = None
-    scraped_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    matricula: str | None = None
+    cpf_cnpj: str | None = None
+    situacao: str | None = None
+    endereco: str | None = None
+    municipio: str | None = None
+    telefone: str | None = None
+    email: str | None = None
+    data_registro: str | None = None
+    data_atualizacao: str | None = None
+    url_fonte: str | None = None
+    scraped_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict:
         return {
@@ -59,10 +60,10 @@ class Leiloeiro:
 class AbstractJuntaScraper(ABC):
     """Classe base para todos os scrapers de Juntas Comerciais."""
 
-    estado: str        # UF ex: "SP"
-    junta: str         # nome da junta ex: "JUCESP"
-    url: str           # URL da página de leiloeiros
-    rate_limit: float = 2.0   # segundos entre requests
+    estado: str  # UF ex: "SP"
+    junta: str  # nome da junta ex: "JUCESP"
+    url: str  # URL da página de leiloeiros
+    rate_limit: float = 2.0  # segundos entre requests
     max_retries: int = 3
     timeout: float = 30.0
 
@@ -78,11 +79,11 @@ class AbstractJuntaScraper(ABC):
 
     async def fetch_page(
         self,
-        url: Optional[str] = None,
-        params: Optional[dict] = None,
-        data: Optional[dict] = None,
+        url: str | None = None,
+        params: dict | None = None,
+        data: dict | None = None,
         method: str = "GET",
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Faz o request HTTP com retry e retorna BeautifulSoup ou None."""
         import httpx
         from bs4 import BeautifulSoup
@@ -108,26 +109,34 @@ class AbstractJuntaScraper(ABC):
             except httpx.HTTPStatusError as exc:
                 logger.warning(
                     "[%s] HTTP %s em %s (tentativa %d/%d)",
-                    self.estado, exc.response.status_code, target, attempt, self.max_retries,
+                    self.estado,
+                    exc.response.status_code,
+                    target,
+                    attempt,
+                    self.max_retries,
                 )
             except (httpx.RequestError, httpx.TimeoutException) as exc:
                 logger.warning(
                     "[%s] Erro de request em %s: %s (tentativa %d/%d)",
-                    self.estado, target, exc, attempt, self.max_retries,
+                    self.estado,
+                    target,
+                    exc,
+                    attempt,
+                    self.max_retries,
                 )
 
             if attempt < self.max_retries:
-                await asyncio.sleep(2 ** attempt)  # exponential backoff
+                await asyncio.sleep(2**attempt)  # exponential backoff
 
         logger.error("[%s] Falha após %d tentativas em %s", self.estado, self.max_retries, target)
         return None
 
     @abstractmethod
-    async def parse_leiloeiros(self) -> List[Leiloeiro]:
+    async def parse_leiloeiros(self) -> list[Leiloeiro]:
         """Coleta e retorna a lista de leiloeiros do estado."""
         ...
 
-    async def scrape(self) -> List[Leiloeiro]:
+    async def scrape(self) -> list[Leiloeiro]:
         """Ponto de entrada principal — respeita rate limit e loga resultado."""
         logger.info("[%s] Iniciando scraping de %s", self.estado, self.url)
         await asyncio.sleep(self.rate_limit)
@@ -142,7 +151,7 @@ class AbstractJuntaScraper(ABC):
     # ── helpers comuns ──────────────────────────────────────────────────────
 
     @staticmethod
-    def clean(text: Optional[str]) -> Optional[str]:
+    def clean(text: str | None) -> str | None:
         """Remove espaços extras e retorna None se vazio."""
         if text is None:
             return None
@@ -150,7 +159,7 @@ class AbstractJuntaScraper(ABC):
         return s if s else None
 
     @staticmethod
-    def normalize_situacao(raw: Optional[str]) -> Optional[str]:
+    def normalize_situacao(raw: str | None) -> str | None:
         """Normaliza status para ATIVO / CANCELADO / SUSPENSO / IRREGULAR."""
         if raw is None:
             return None
@@ -176,10 +185,10 @@ class AbstractJuntaScraper(ABC):
 
     async def fetch_page_js(
         self,
-        url: Optional[str] = None,
-        wait_selector: Optional[str] = None,
+        url: str | None = None,
+        wait_selector: str | None = None,
         wait_ms: int = 3000,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Renderiza página com JavaScript usando Playwright. Retorna BeautifulSoup ou None."""
         from bs4 import BeautifulSoup
 
@@ -188,7 +197,9 @@ class AbstractJuntaScraper(ABC):
         try:
             from playwright.async_api import async_playwright
         except ImportError:
-            logger.error("[%s] Playwright não instalado. Execute: playwright install chromium", self.estado)
+            logger.error(
+                "[%s] Playwright não instalado. Execute: playwright install chromium", self.estado
+            )
             return None
 
         try:

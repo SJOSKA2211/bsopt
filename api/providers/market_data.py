@@ -2,11 +2,12 @@ import structlog
 
 from src.config import settings
 from src.ingestion.stealth import default_stealth_client
+from src.shared.schemas.market import MarketQuote
 from src.shared.utils.http_client import HttpClientManager
 from src.shared.utils.resilience import retry_with_backoff
-from src.shared.schemas.market import MarketQuote
 
 logger = structlog.get_logger(__name__)
+
 
 class PolygonProvider:
     """
@@ -34,14 +35,14 @@ class PolygonProvider:
         response = await self.client.get(url)
         response.raise_for_status()
         res = response.json().get("results", {})
-        
+
         last_price = float(res.get("p", 0.0))
 
         prev_url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={self.api_key}"
         prev_resp = await self.client.get(prev_url)
         prev_data = prev_resp.json().get("results", [{}])[0]
         prev_close = float(prev_data.get("c", last_price))
-        
+
         change = last_price - prev_close
         pct_change = (change / prev_close * 100) if prev_close else 0.0
 
@@ -49,15 +50,21 @@ class PolygonProvider:
             symbol=symbol,
             price=last_price,
             change=change,
-            volume=None, # Polygon last trade doesn't always have daily volume
-            provider="Polygon"
+            volume=None,  # Polygon last trade doesn't always have daily volume
+            provider="Polygon",
         )
 
     async def search(self, query: str) -> list[dict]:
         """Search for symbols via Polygon Tickers API."""
         if self.api_key == "DEMO_KEY":
-             return [{"symbol": query, "name": f"{query} (Search requires API Key)", "provider": "Polygon"}]
-             
+            return [
+                {
+                    "symbol": query,
+                    "name": f"{query} (Search requires API Key)",
+                    "provider": "Polygon",
+                }
+            ]
+
         url = f"https://api.polygon.io/v3/reference/tickers?search={query}&active=true&apiKey={self.api_key}"
         try:
             resp = await self.client.get(url)
@@ -68,12 +75,14 @@ class PolygonProvider:
                     "symbol": item.get("ticker"),
                     "name": item.get("name"),
                     "market": item.get("market"),
-                    "provider": "Polygon"
-                } for item in data[:10]
+                    "provider": "Polygon",
+                }
+                for item in data[:10]
             ]
         except Exception as e:
             logger.error("polygon_search_failed", query=query, error=str(e))
             return []
+
 
 class YahooProvider:
     """
@@ -100,19 +109,15 @@ class YahooProvider:
 
             last_price = float(meta.get("regularMarketPrice", 0.0))
             prev_close = float(meta.get("chartPreviousClose", last_price))
-            
+
             if last_price == 0.0:
-                 last_price = prev_close
+                last_price = prev_close
 
             change = last_price - prev_close
             pct_change = (change / prev_close * 100) if prev_close else 0.0
 
             return MarketQuote.from_price_change(
-                symbol=symbol,
-                price=last_price,
-                change=change,
-                market="US",
-                provider="Yahoo"
+                symbol=symbol, price=last_price, change=change, market="US", provider="Yahoo"
             )
         except Exception as e:
             logger.error("yahoo_provider_error", error=str(e), symbol=symbol)
@@ -130,8 +135,9 @@ class YahooProvider:
                     "symbol": item.get("symbol"),
                     "name": item.get("shortname") or item.get("longname"),
                     "market": item.get("exchange"),
-                    "provider": "Yahoo"
-                } for item in data[:10]
+                    "provider": "Yahoo",
+                }
+                for item in data[:10]
             ]
         except Exception as e:
             logger.error("yahoo_search_failed", query=query, error=str(e))

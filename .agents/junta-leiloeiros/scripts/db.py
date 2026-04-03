@@ -10,12 +10,13 @@ Uso:
     rows = db.get_by_estado("SP")
     stats = db.get_stats()
 """
+
 from __future__ import annotations
 
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Caminho padrão do banco — relativo ao diretório pai de scripts/
 _DEFAULT_DB = Path(__file__).parent.parent / "data" / "leiloeiros.db"
@@ -100,7 +101,7 @@ class Database:
         with self._connect() as conn:
             conn.executescript(DDL)
 
-    def upsert_many(self, records: List[Dict[str, Any]]) -> int:
+    def upsert_many(self, records: list[dict[str, Any]]) -> int:
         """
         Insere ou atualiza registros.
         Registros sem matrícula são inseridos sempre (para não perder dados).
@@ -122,15 +123,15 @@ class Database:
 
     def get_all(
         self,
-        estado: Optional[str] = None,
-        situacao: Optional[str] = None,
-        nome_like: Optional[str] = None,
+        estado: str | None = None,
+        situacao: str | None = None,
+        nome_like: str | None = None,
         limit: int = 0,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retorna registros com filtros opcionais."""
         conditions = []
-        params: List[Any] = []
+        params: list[Any] = []
 
         if estado:
             conditions.append("estado = ?")
@@ -154,10 +155,10 @@ class Database:
             rows = conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
-    def get_by_estado(self, estado: str) -> List[Dict[str, Any]]:
+    def get_by_estado(self, estado: str) -> list[dict[str, Any]]:
         return self.get_all(estado=estado)
 
-    def get_stats(self) -> List[Dict[str, Any]]:
+    def get_stats(self) -> list[dict[str, Any]]:
         """Retorna contagem de leiloeiros por estado."""
         sql = """
             SELECT
@@ -178,7 +179,7 @@ class Database:
         with self._connect() as conn:
             return conn.execute("SELECT COUNT(*) FROM leiloeiros").fetchone()[0]
 
-    def search(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def search(self, query: str, limit: int = 50) -> list[dict[str, Any]]:
         """Busca full-text por nome, matrícula ou município."""
         sql = """
             SELECT * FROM leiloeiros
@@ -199,6 +200,7 @@ class Database:
 # ── CLI rápido para verificação ──────────────────────────────────────────────
 if __name__ == "__main__":
     import sys
+
     db = Database()
     db.init()
     stats = db.get_stats()

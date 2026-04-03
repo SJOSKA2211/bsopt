@@ -26,8 +26,10 @@ from sqlalchemy.dialects.postgresql import ENUM, INET, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
+
 class Base(DeclarativeBase):
     pass
+
 
 # CUSTOM TYPES (Synced with DB ENUMs)
 
@@ -58,6 +60,7 @@ MLAlgorithm = ENUM(
 
 # CORE MODELS
 
+
 class Symbol(Base):
     __tablename__ = "symbols"
 
@@ -72,7 +75,9 @@ class Symbol(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+
 # USER MODEL
+
 
 class User(Base):
     __tablename__ = "users"
@@ -122,6 +127,7 @@ class User(Base):
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
 
+
 class OAuthAccount(Base):
     __tablename__ = "oauth_accounts"
 
@@ -145,6 +151,7 @@ class OAuthAccount(Base):
 
     __table_args__ = (UniqueConstraint("provider", "provider_id"),)
 
+
 class EmailVerificationToken(Base):
     __tablename__ = "email_verification_tokens"
 
@@ -154,7 +161,9 @@ class EmailVerificationToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+
 # OAUTH & SECURITY MODES
+
 
 class UserCredential(Base):
     """
@@ -164,18 +173,24 @@ class UserCredential(Base):
     __tablename__ = "user_credentials"
 
     id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
-    user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[UUID_TYPE] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
     credential_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     public_key: Mapped[str] = mapped_column(Text, nullable=False)
     sign_count: Mapped[int] = mapped_column(Integer, default=0)
-    transports: Mapped[list[str] | None] = mapped_column(JSONB)  # e.g., ["usb", "ble", "nfc", "internal"]
+    transports: Mapped[list[str] | None] = mapped_column(
+        JSONB
+    )  # e.g., ["usb", "ble", "nfc", "internal"]
     name: Mapped[str | None] = mapped_column(String(255))  # e.g., "YubiKey", "MacBook Pro TouchID"
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="webauthn_credentials")
 
+
 # LOGGING & AUDIT (Hypertables)
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -208,6 +223,7 @@ class AuditLog(Base):
         Index("idx_audit_user_time", "user_id", time.desc()),
     )
 
+
 class DataAuditLog(Base):
     __tablename__ = "data_audit_logs"
 
@@ -220,6 +236,7 @@ class DataAuditLog(Base):
     changed_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     full_row: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     query: Mapped[str | None] = mapped_column(Text)
+
 
 class RequestLog(Base):
     __tablename__ = "request_logs"
@@ -242,6 +259,7 @@ class RequestLog(Base):
         ),
     )
 
+
 class EmailLog(Base):
     __tablename__ = "email_logs"
 
@@ -249,18 +267,20 @@ class EmailLog(Base):
     recipient: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     template_name: Mapped[str | None] = mapped_column(String(100))
-    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, sent, failed, rejected
+    status: Mapped[str] = mapped_column(
+        String(20), default="pending"
+    )  # pending, sent, failed, rejected
     error_message: Mapped[str | None] = mapped_column(Text)
     provider_message_id: Mapped[str | None] = mapped_column(String(255), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     duration_ms: Mapped[float | None] = mapped_column(Double)
 
-    __table_args__ = (
-        Index("idx_email_logs_status_time", "status", created_at.desc()),
-    )
+    __table_args__ = (Index("idx_email_logs_status_time", "status", created_at.desc()),)
+
 
 # PORTFOLIO & TRADING
+
 
 class Portfolio(Base):
     __tablename__ = "portfolios"
@@ -281,9 +301,8 @@ class Portfolio(Base):
         back_populates="portfolio", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "name"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "name"),)
+
 
 class Position(Base):
     __tablename__ = "positions"
@@ -314,6 +333,7 @@ class Position(Base):
             "idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == "open")
         ),
     )
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -356,7 +376,9 @@ class Order(Base):
         ),
     )
 
+
 # MARKET DATA (Hypertables)
+
 
 class OptionPrice(Base):
     __tablename__ = "options_prices"
@@ -419,6 +441,7 @@ class OptionPrice(Base):
         Index("idx_options_prices_expiry_only", expiry.desc()),
     )
 
+
 class MarketTick(Base):
     __tablename__ = "market_ticks"
 
@@ -456,7 +479,9 @@ class MarketTick(Base):
         Index("idx_market_ticks_symbol_time", "symbol", time.desc()),
     )
 
+
 # ML & PREDICTIONS
+
 
 class MLModel(Base):
     __tablename__ = "ml_models"
@@ -490,6 +515,7 @@ class MLModel(Base):
         ),
     )
 
+
 class ModelPrediction(Base):
     __tablename__ = "model_predictions"
 
@@ -518,6 +544,7 @@ class ModelPrediction(Base):
         Index("idx_model_predictions_model_time", "model_id", timestamp.desc()),
     )
 
+
 class ModelDriftBaseline(Base):
     __tablename__ = "model_drift_baselines"
 
@@ -527,7 +554,9 @@ class ModelDriftBaseline(Base):
     baseline_accuracy: Mapped[float | None] = mapped_column(Double)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+
 # OAUTH & SECURITY
+
 
 class OAuth2Client(Base):
     __tablename__ = "oauth2_clients"
@@ -542,6 +571,7 @@ class OAuth2Client(Base):
     user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
     user: Mapped["User"] = relationship(back_populates="oauth_clients")
+
 
 class APIKey(Base):
     __tablename__ = "api_keys"
@@ -562,6 +592,7 @@ class APIKey(Base):
 
     __table_args__ = (Index("idx_api_keys_key_hash", "key_hash"),)
 
+
 class BetterAuthSession(Base):
     __tablename__ = "better_auth_sessions"
 
@@ -578,6 +609,7 @@ class BetterAuthSession(Base):
 
     user: Mapped["User"] = relationship(back_populates="better_auth_sessions")
 
+
 class BetterAuthAccount(Base):
     __tablename__ = "better_auth_accounts"
 
@@ -593,6 +625,7 @@ class BetterAuthAccount(Base):
     password: Mapped[str | None] = mapped_column(Text)
 
     user: Mapped["User"] = relationship(back_populates="better_auth_accounts")
+
 
 class SecurityIncident(Base):
     __tablename__ = "security_incidents"
@@ -612,6 +645,7 @@ class SecurityIncident(Base):
     reported_to_dpa: Mapped[bool] = mapped_column(Boolean, default=False)
     reported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+
 class OptionContract(Base):
     __tablename__ = "option_contracts"
 
@@ -624,6 +658,7 @@ class OptionContract(Base):
 
     __table_args__ = (UniqueConstraint("underlying", "expiry", "strike", "option_type"),)
 
+
 class RLEpisode(Base):
     __tablename__ = "rl_episodes"
 
@@ -634,6 +669,7 @@ class RLEpisode(Base):
     hyperparameters: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+
 class RateLimit(Base):
     __tablename__ = "rate_limits"
 
@@ -642,9 +678,8 @@ class RateLimit(Base):
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     request_count: Mapped[int] = mapped_column(Integer, default=1)
 
-    __table_args__ = (
-        Index("idx_rate_limits_lookup", "user_id", "endpoint", "window_start"),
-    )
+    __table_args__ = (Index("idx_rate_limits_lookup", "user_id", "endpoint", "window_start"),)
+
 
 class OutboxEvent(Base):
     __tablename__ = "outbox"
@@ -656,6 +691,7 @@ class OutboxEvent(Base):
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(20), default="pending")
 
+
 class ModelEmbedding(Base):
     __tablename__ = "model_embeddings"
 
@@ -665,9 +701,8 @@ class ModelEmbedding(Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     embedding: Mapped[dict[str, Any]] = mapped_column(JSONB)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
 
 class CalibrationResult(Base):
     __tablename__ = "calibration_results"
@@ -685,6 +720,4 @@ class CalibrationResult(Base):
     svi_params: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (
-        Index("idx_calibration_symbol_time", symbol, created_at.desc()),
-    )
+    __table_args__ = (Index("idx_calibration_symbol_time", symbol, created_at.desc()),)

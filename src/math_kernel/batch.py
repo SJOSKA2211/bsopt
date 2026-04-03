@@ -12,6 +12,7 @@ from src.shared.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
+
 class BatchPricingService:
     async def process_batch(
         self,

@@ -7,6 +7,7 @@ from prometheus_api_client import PrometheusConnect
 
 logger = structlog.get_logger()
 
+
 class PrometheusClient:
     """
     Advanced client for Prometheus that fetches multivariate system metrics
@@ -121,9 +122,12 @@ class PrometheusClient:
 
             # Properly align timestamps with bounds mapping to gracefully handle scrape skews
             import pandas as pd
-            merged_df = pd.merge(cpu_df, mem_df, on="timestamp", how="outer", suffixes=('_cpu', '_mem'))
+
+            merged_df = pd.merge(
+                cpu_df, mem_df, on="timestamp", how="outer", suffixes=("_cpu", "_mem")
+            )
             merged_df = merged_df.sort_values("timestamp").ffill().bfill()
-            
+
             return np.column_stack([merged_df["price_cpu"].values, merged_df["price_mem"].values])
         except Exception as e:
             logger.error("multivariate_data_fetch_failed", error=str(e))

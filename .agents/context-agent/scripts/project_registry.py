@@ -5,12 +5,11 @@ Mantém PROJECT_REGISTRY.md atualizado.
 
 import re
 from datetime import datetime
-from pathlib import Path
 
 from config import (
+    KNOWN_PROJECTS,
     PROJECT_REGISTRY_PATH,
     SKILLS_ROOT,
-    KNOWN_PROJECTS,
 )
 from models import ProjectInfo
 
@@ -33,14 +32,20 @@ def load_registry() -> list[ProjectInfo]:
         if in_table and line.startswith("|"):
             cells = [c.strip() for c in line.split("|")[1:-1]]
             if len(cells) >= 4:
-                projects.append(ProjectInfo(
-                    name=cells[0],
-                    path=cells[1] if len(cells) > 4 else "",
-                    status=cells[2] if len(cells) > 4 else cells[1],
-                    last_touched=cells[3] if len(cells) > 4 else cells[2],
-                    last_session=_extract_session_number(cells[-1]) if cells[-1] else 0,
-                    next_actions=[a.strip() for a in (cells[4] if len(cells) > 4 else cells[3]).split(";") if a.strip()],
-                ))
+                projects.append(
+                    ProjectInfo(
+                        name=cells[0],
+                        path=cells[1] if len(cells) > 4 else "",
+                        status=cells[2] if len(cells) > 4 else cells[1],
+                        last_touched=cells[3] if len(cells) > 4 else cells[2],
+                        last_session=_extract_session_number(cells[-1]) if cells[-1] else 0,
+                        next_actions=[
+                            a.strip()
+                            for a in (cells[4] if len(cells) > 4 else cells[3]).split(";")
+                            if a.strip()
+                        ],
+                    )
+                )
         elif in_table and not line.strip():
             in_table = False
 
@@ -59,12 +64,14 @@ def _discover_projects() -> list[ProjectInfo]:
     for name, display_name in KNOWN_PROJECTS.items():
         project_path = SKILLS_ROOT / name
         if project_path.exists() and project_path.is_dir():
-            projects.append(ProjectInfo(
-                name=display_name,
-                path=str(project_path),
-                status="active",
-                last_touched=datetime.now().strftime("%Y-%m-%d"),
-            ))
+            projects.append(
+                ProjectInfo(
+                    name=display_name,
+                    path=str(project_path),
+                    status="active",
+                    last_touched=datetime.now().strftime("%Y-%m-%d"),
+                )
+            )
     return projects
 
 
@@ -124,9 +131,7 @@ def save_registry(projects: list[ProjectInfo]):
     for p in projects:
         actions = "; ".join(p.next_actions) if p.next_actions else "—"
         session_ref = f"session-{p.last_session:03d}" if p.last_session else "—"
-        lines.append(
-            f"| {p.name} | {p.status} | {p.last_touched} ({session_ref}) | {actions} |"
-        )
+        lines.append(f"| {p.name} | {p.status} | {p.last_touched} ({session_ref}) | {actions} |")
 
     lines.append("")
     PROJECT_REGISTRY_PATH.write_text("\n".join(lines), encoding="utf-8")

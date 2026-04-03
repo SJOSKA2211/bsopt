@@ -1,11 +1,12 @@
-import asyncio
 import os
-import structlog
+
 import ray
+import structlog
+
 from src.workers.tasks.celery_app import celery_app
-from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
+
 
 async def check_celery_broker() -> bool:
     """Verifies connectivity to the Celery message broker (RabbitMQ)."""
@@ -18,6 +19,7 @@ async def check_celery_broker() -> bool:
         logger.error("celery_broker_check_failed", error=str(e))
         return False
 
+
 async def check_celery_workers() -> bool:
     """Verifies that at least one worker is alive and responding."""
     try:
@@ -29,6 +31,7 @@ async def check_celery_workers() -> bool:
         logger.error("celery_worker_ping_failed", error=str(e))
         return False
 
+
 async def check_ray_health() -> bool:
     """Verifies that Ray is initialized and the head node is reachable."""
     try:
@@ -36,7 +39,7 @@ async def check_ray_health() -> bool:
             # In a container environment, we'd typically connect to an existing cluster
             ray_address = os.getenv("RAY_ADDRESS", "auto")
             ray.init(address=ray_address, ignore_reinit_error=True)
-        
+
         # Check node status
         nodes = ray.nodes()
         alive_nodes = [n for n in nodes if n["Alive"]]
@@ -45,18 +48,19 @@ async def check_ray_health() -> bool:
         logger.error("ray_health_check_failed", error=str(e))
         return False
 
+
 async def get_worker_health() -> dict:
     """Aggregates all worker-related health components."""
     celery_ok = await check_celery_broker()
     workers_ok = await check_celery_workers()
     ray_ok = await check_ray_health()
-    
+
     status = "healthy" if celery_ok and workers_ok and ray_ok else "degraded"
-    
+
     return {
         "status": status,
         "celery_broker": "connected" if celery_ok else "disconnected",
         "workers_alive": workers_ok,
         "ray_cluster": "connected" if ray_ok else "disconnected",
-        "service": "worker-development-cluster"
+        "service": "worker-development-cluster",
     }

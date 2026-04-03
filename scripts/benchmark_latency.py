@@ -7,6 +7,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 async def benchmark_rust_kernel():
     """Benchmark the Rust-accelerated math kernel."""
     print("🔹 Benchmarking Rust Math Kernel (CPU Parallel)...")
@@ -33,6 +34,7 @@ async def benchmark_rust_kernel():
     except ImportError:
         print("   ⚠️  Manifold_core not installed. Skipping.")
         return None
+
 
 async def benchmark_cupy_kernel():
     """Benchmark the GPU-accelerated math kernel."""
@@ -66,6 +68,7 @@ async def benchmark_cupy_kernel():
         print(f"   ⚠️  GPU/CuPy not available: {str(e)[:50]}. Skipping.")
         return None
 
+
 async def benchmark_mmap_parser():
     """Benchmark binary tick parsing throughput."""
     print("🔹 Benchmarking Zero-Copy MMap Tick Parsing...")
@@ -92,6 +95,7 @@ async def benchmark_mmap_parser():
         print(f"   ⚠️  MMap benchmark failed: {str(e)}. Skipping.")
         return None
 
+
 async def run_suite():
     print("=" * 60)
     print("Manifold Production Performance Report")
@@ -102,6 +106,7 @@ async def run_suite():
     print("-" * 40)
     await benchmark_mmap_parser()
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(run_suite())

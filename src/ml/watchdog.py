@@ -7,6 +7,7 @@ from mlflow.tracking import MlflowClient
 
 logger = structlog.get_logger(__name__)
 
+
 class MLflowWatchdog:
     """
     Production-grade MLOps Watchdog.
@@ -46,7 +47,6 @@ class MLflowWatchdog:
 
                     async def check_drift():
                         async with db_manager.async_engine.connect() as conn:
-                            
                             result = await conn.execute(
                                 text(
                                     "SELECT MAX(delta_stddev) FROM greeks_drift_cagg WHERE bucket > NOW() - INTERVAL '1 hour'"
@@ -143,6 +143,7 @@ class MLflowWatchdog:
         )
         # ray.job_submit(...)
         pass
+
 
 if __name__ == "__main__":
     watchdog = MLflowWatchdog()

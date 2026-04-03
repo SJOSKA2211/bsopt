@@ -6,11 +6,11 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
+from api.responses import MsgspecJSONResponse
+from src.ml.aiops.health_reporter import HealthReporter
 from src.ml.graphql.schema import get_context, schema
 from src.shared.observability import logging_middleware, setup_logging
-from src.ml.aiops.health_reporter import HealthReporter
-from src.shared.security import verify_mtls, opa_authorize
-from api.responses import MsgspecJSONResponse
+from src.shared.security import opa_authorize, verify_mtls
 
 # Optimized event loop
 try:
@@ -35,9 +35,11 @@ security_deps = [Depends(verify_mtls), Depends(opa_authorize("execute", "ml_infe
 graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "healthy"}
+
 
 @app.get("/ml/health", response_class=MsgspecJSONResponse)
 async def ml_health():
@@ -47,6 +49,7 @@ async def ml_health():
     """
     report = await health_reporter.get_health_report()
     return report
+
 
 @app.post("/ml/reload")
 async def reload_models() -> dict[str, str]:

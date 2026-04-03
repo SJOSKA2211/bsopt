@@ -27,6 +27,7 @@ from src.math_kernel.quantum_backend import QuantumBackendManager
 
 logger = structlog.get_logger(__name__)
 
+
 class QuantumCircuitOptimizer:
     """HARDENED: High-performance quantum circuit transpilation & optimization."""
 
@@ -41,6 +42,7 @@ class QuantumCircuitOptimizer:
     def optimize_circuit(self, qc: QuantumCircuit) -> QuantumCircuit:
         """Legacy compatibility method."""
         return self.optimize(qc)
+
 
 class PayoffApproximator:
     """
@@ -66,6 +68,7 @@ class PayoffApproximator:
         k = 10.0  # Steepness
         smoothed_payoffs = (1.0 / k) * np.log(1 + np.exp(k * (normalized_payoffs - 0.05)))
         return 0.5 * (smoothed_payoffs + (smoothed_payoffs**2))
+
 
 class QuantumOptionPricer:
     """
@@ -215,7 +218,7 @@ class QuantumOptionPricer:
         obj_qubit = num_qubits
 
         # 1. Amplitude Encoding of Payoff
-        
+
         # This replaces the simplistic linear encoding with a 2nd-order mapping
         # that is smoother around the strike, reducing estimation error in QAE.
 
@@ -290,7 +293,9 @@ class QuantumOptionPricer:
                 "confidence": self.confidence,
                 "epsilon": self.precision,
                 "circuit_depth": full_circuit.depth(),
-                "fidelty_estimate": float((1 - 0.0001) ** full_circuit.depth()),  # Error-rate propagation model
+                "fidelty_estimate": float(
+                    (1 - 0.0001) ** full_circuit.depth()
+                ),  # Error-rate propagation model
             }
         except Exception as e:
             logger.error("quantum_pricing_failed", error=str(e))
@@ -408,6 +413,7 @@ class QuantumOptionPricer:
                 dividend=0.0,
             )
             return self.price_european(params)
+
 
 #  Backward Compatibility Alias
 HybridQuantumClassicalPricer = QuantumOptionPricer

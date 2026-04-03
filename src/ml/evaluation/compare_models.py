@@ -11,6 +11,7 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 def compare_models(
     model_name: str, challenger_run_id: str, champion_stage: str = "Production"
 ) -> bool:
@@ -65,6 +66,7 @@ def compare_models(
         reason = "Challenger performance worse than champion"
     logger.info("promotion_rejected", reason=reason)
     return False
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

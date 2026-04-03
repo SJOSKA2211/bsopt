@@ -1,12 +1,13 @@
 import asyncio
-from typing import Any
 
 import msgspec
 import structlog
+
 from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
 from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
+
 
 class SentimentIngestor:
     """
@@ -52,7 +53,7 @@ class SentimentIngestor:
         Main high-performance async consumption loop from RabbitMQ.
         """
         logger.info("sentiment_ingestor_loop_start", batch_size=batch_size)
-        
+
         async def callback(data: dict):
             # For RabbitMQ, we handle messages via callback or iterator
             # Here we'll wrap it to accumulate batches if needed, or just process immediately
@@ -62,10 +63,10 @@ class SentimentIngestor:
         # Note: We need a specialized consumer for news if it's not the default tick stream
         # RabbitMQManager.consume_ticks uses 'market_ticks' queue.
         # We'll use a local consumer here for the news topic.
-        
+
         if not self.rmq.channel:
             await self.rmq.connect()
-            
+
         queue = await self.rmq.channel.get_queue(self.topic)
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
@@ -75,6 +76,7 @@ class SentimentIngestor:
                         await self.process_batch([data])
                     except Exception as e:
                         logger.error("news_consume_failed", error=str(e))
+
 
 class SentimentPipeline:
     """
@@ -92,6 +94,7 @@ class SentimentPipeline:
         logger.info("sentiment_pipeline_starting_consumer")
         ingestor = SentimentIngestor()
         await ingestor.run()
+
 
 if __name__ == "__main__":
     import argparse

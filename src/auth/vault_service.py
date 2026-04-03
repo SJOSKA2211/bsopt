@@ -16,6 +16,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class VaultService:
     """
     Secure client for HashiCorp Vault.
@@ -27,13 +28,13 @@ class VaultService:
         self.token = os.getenv("VAULT_TOKEN")
         self.role_id = os.getenv("VAULT_ROLE_ID")
         self.secret_id = os.getenv("VAULT_SECRET_ID")
-        
+
         self.client = hvac.Client(url=self.url, token=self.token)
-        
+
         # 1. Prefer AppRole for production identity
         if self.role_id and self.secret_id:
             self._authenticate_approle()
-        
+
         # 2. Start token renewal background loop if authenticated
         self._stop_event = threading.Event()
         if self.is_authenticated():
@@ -48,7 +49,7 @@ class VaultService:
                 role_id=self.role_id,
                 secret_id=self.secret_id,
             )
-            self.client.token = response['auth']['client_token']
+            self.client.token = response["auth"]["client_token"]
             logger.info("vault_approle_auth_success")
         except Exception as e:
             logger.error("vault_approle_auth_failed", error=str(e))
@@ -59,7 +60,7 @@ class VaultService:
             try:
                 # Only renew if we have a token and it's actually renewable
                 auth_info = self.client.lookup_token()
-                if auth_info['data']['renewable']:
+                if auth_info["data"]["renewable"]:
                     self.client.auth.token.renew_self()
                     logger.debug("vault_token_renewed")
             except Exception as e:
@@ -69,7 +70,7 @@ class VaultService:
                     self._authenticate_approle()
                 else:
                     logger.warning("vault_token_renewal_failed", error=str(e))
-            
+
             # Check every 5 minutes
             time.sleep(300)
 
@@ -110,5 +111,6 @@ class VaultService:
     def close(self):
         """Stop background tasks."""
         self._stop_event.set()
+
 
 vault_service = VaultService()

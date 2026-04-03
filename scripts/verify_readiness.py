@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import ssl
 
 import aio_pika
 import asyncpg
@@ -20,6 +19,7 @@ SERVICES = {
     "MLflow": "http://localhost:5000/api/2.0/mlflow/experiments/list",
 }
 
+
 async def check_http_service(name: str, url: str) -> bool:
     """Check a microservice's health endpoint."""
     async with httpx.AsyncClient(timeout=5.0) as client:
@@ -35,6 +35,7 @@ async def check_http_service(name: str, url: str) -> bool:
             print(f"🚨 {name:15} | DOWN ({str(e)})")
             return False
 
+
 async def check_postgres() -> bool:
     db_url = os.getenv("DATABASE_URL_LOCAL", "postgresql://admin:password@localhost:6434/bsopt")
     try:
@@ -43,7 +44,7 @@ async def check_postgres() -> bool:
             db_url += "&sslmode=require"
         else:
             db_url += "?sslmode=require"
-            
+
         conn = await asyncpg.connect(db_url)
         await conn.execute("SELECT 1")
         await conn.close()
@@ -53,12 +54,13 @@ async def check_postgres() -> bool:
         print(f"🚨 {'TimescaleDB':15} | CONNECTION FAILED ({str(e)})")
         return False
 
+
 async def check_redis() -> bool:
     try:
         password = os.getenv("REDIS_PASSWORD")
-        r = redis.from_url(f"redis://:password@localhost:6380/0")
+        r = redis.from_url("redis://:password@localhost:6380/0")
         if password:
-             r = redis.from_url(f"redis://:{password}@localhost:6380/0")
+            r = redis.from_url(f"redis://:{password}@localhost:6380/0")
         await r.ping()
         await r.aclose()
         print(f"✅ {'Redis':15} | CONNECTED")
@@ -66,6 +68,7 @@ async def check_redis() -> bool:
     except Exception as e:
         print(f"🚨 {'Redis':15} | CONNECTION FAILED ({str(e)})")
         return False
+
 
 async def check_rabbitmq() -> bool:
     try:
@@ -75,11 +78,11 @@ async def check_rabbitmq() -> bool:
         if "@rabbitmq:" in rabbitmq_url:
             rabbitmq_url = rabbitmq_url.replace("@rabbitmq:", "@localhost:5673")
         elif "@localhost:" in rabbitmq_url:
-             # handle existing localhost
-             pass
+            # handle existing localhost
+            pass
         else:
-             # try to force localhost port
-             rabbitmq_url = rabbitmq_url.replace(":5672", ":5673")
+            # try to force localhost port
+            rabbitmq_url = rabbitmq_url.replace(":5672", ":5673")
 
         connection = await aio_pika.connect_robust(rabbitmq_url)
         await connection.close()
@@ -88,6 +91,7 @@ async def check_rabbitmq() -> bool:
     except Exception as e:
         print(f"🚨 {'RabbitMQ':15} | CONNECTION FAILED ({str(e)})")
         return False
+
 
 async def verify_security() -> bool:
     """Check for presence of Production key pairs."""
@@ -102,6 +106,7 @@ async def verify_security() -> bool:
     if all_present:
         print(f"✅ {'PKI Assets':15} | VALIDATED (RSA 4096 / ECC P-256)")
     return all_present
+
 
 async def verify_readiness():
     """Run full Production readiness check."""
@@ -129,6 +134,7 @@ async def verify_readiness():
         print("⚠️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
         sys.exit(1)
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(verify_readiness())

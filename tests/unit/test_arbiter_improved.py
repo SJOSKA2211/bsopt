@@ -1,7 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
 # Pre-emptive mock for wasmer before any imports
 mock_wasmer = MagicMock()
@@ -16,6 +16,7 @@ from src.math_kernel.arbiter import (
     PricingModel,
     PricingRequest,
 )
+
 
 class TestArbiter:
     def setUp(self):
@@ -61,4 +62,3 @@ class TestArbiter:
         is_call = np.array([True, True])
         prices = self.arbiter.route_batch(S, K, T, sigma, r, is_call)
         assert len(prices) == 2
-

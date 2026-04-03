@@ -2,7 +2,6 @@ import os
 import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any
 
 import matplotlib.pyplot as plt
 import mlflow
@@ -20,6 +19,7 @@ from src.shared.observability import (
 )
 
 logger = structlog.get_logger()
+
 
 class ExperimentTracker:
     """
@@ -47,7 +47,6 @@ class ExperimentTracker:
             if active or in_mlflow_run:
                 if nested:
                     try:
-                        
                         with mlflow.start_run(nested=True) as nested_run:
                             yield nested_run
                             return
@@ -89,7 +88,7 @@ class ExperimentTracker:
         mlflow.log_dict(dictionary, artifact_file)
 
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str) -> None:
-        
+
         mlflow.log_metrics({"accuracy": accuracy, "rmse": rmse, "duration": duration})
 
         observe_latency(TRAINING_DURATION, duration, {"framework": framework})
@@ -166,7 +165,9 @@ class ExperimentTracker:
                 elif framework in ["pytorch", "torch"]:
                     import torch
 
-                    input_dim = next(model.parameters()).shape[1] if hasattr(model, "parameters") else 10
+                    input_dim = (
+                        next(model.parameters()).shape[1] if hasattr(model, "parameters") else 10
+                    )
                     dummy_input = torch.randn(1, input_dim)
                     torch.onnx.export(model, dummy_input, onx_path)
                 elif framework == "sklearn":

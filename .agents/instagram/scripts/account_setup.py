@@ -6,6 +6,7 @@ Uso:
     python scripts/account_setup.py --guide     # Guia de setup/migração
     python scripts/account_setup.py --verify    # Verifica pré-requisitos
 """
+
 from __future__ import annotations
 
 import argparse
@@ -27,11 +28,17 @@ async def check_account() -> None:
     """Detecta tipo de conta e status."""
     account = db.get_active_account()
     if not account:
-        print(json.dumps({
-            "status": "not_configured",
-            "message": "Nenhuma conta configurada.",
-            "next_step": "Execute: python scripts/auth.py --setup",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "status": "not_configured",
+                    "message": "Nenhuma conta configurada.",
+                    "next_step": "Execute: python scripts/auth.py --setup",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return
 
     try:
@@ -53,17 +60,29 @@ async def check_account() -> None:
         print(json.dumps(result, indent=2, ensure_ascii=False))
 
     except InstagramAPIError as e:
-        print(json.dumps({
-            "status": "error",
-            "error": str(e),
-            "code": e.code,
-            "suggestion": "Token pode estar expirado. Execute: python scripts/auth.py --refresh",
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "status": "error",
+                    "error": str(e),
+                    "code": e.code,
+                    "suggestion": "Token pode estar expirado. Execute: python scripts/auth.py --refresh",
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
     except ValueError as e:
-        print(json.dumps({
-            "status": "not_configured",
-            "error": str(e),
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "status": "not_configured",
+                    "error": str(e),
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
 
 
 def show_guide() -> None:
@@ -71,26 +90,40 @@ def show_guide() -> None:
     account = db.get_active_account()
 
     checklist = []
-    checklist.append(("Facebook account", "OK" if True else "PENDENTE",
-                      "Crie em: https://www.facebook.com"))
-    checklist.append(("Instagram account", "OK" if account else "PENDENTE",
-                      "Crie em: https://www.instagram.com"))
+    checklist.append(
+        ("Facebook account", "OK" if True else "PENDENTE", "Crie em: https://www.facebook.com")
+    )
+    checklist.append(
+        ("Instagram account", "OK" if account else "PENDENTE", "Crie em: https://www.instagram.com")
+    )
 
     account_type = account.get("account_type") if account else None
     is_business = account_type in ("BUSINESS", "CREATOR") if account_type else False
-    checklist.append((
-        f"Conta Business/Creator (atual: {account_type or '?'})",
-        "OK" if is_business else "PENDENTE",
-        "Precisa ser Business ou Creator para usar a API",
-    ))
+    checklist.append(
+        (
+            f"Conta Business/Creator (atual: {account_type or '?'})",
+            "OK" if is_business else "PENDENTE",
+            "Precisa ser Business ou Creator para usar a API",
+        )
+    )
 
     has_page = bool(account.get("facebook_page_id")) if account else False
-    checklist.append(("Facebook Page vinculada", "OK" if has_page else "PENDENTE",
-                      "Vincule uma Page à sua conta Instagram"))
+    checklist.append(
+        (
+            "Facebook Page vinculada",
+            "OK" if has_page else "PENDENTE",
+            "Vincule uma Page à sua conta Instagram",
+        )
+    )
 
     has_token = bool(account.get("access_token")) if account else False
-    checklist.append(("Token OAuth", "OK" if has_token else "PENDENTE",
-                      "Execute: python scripts/auth.py --setup"))
+    checklist.append(
+        (
+            "Token OAuth",
+            "OK" if has_token else "PENDENTE",
+            "Execute: python scripts/auth.py --setup",
+        )
+    )
 
     print()
     print("=" * 65)
@@ -149,11 +182,13 @@ async def verify_setup() -> None:
 
     # 1. Conta no banco
     account = db.get_active_account()
-    checks.append({
-        "check": "Conta configurada",
-        "passed": account is not None,
-        "detail": f"@{account['username']}" if account else "Nenhuma conta",
-    })
+    checks.append(
+        {
+            "check": "Conta configurada",
+            "passed": account is not None,
+            "detail": f"@{account['username']}" if account else "Nenhuma conta",
+        }
+    )
 
     if not account:
         print(json.dumps({"checks": checks, "all_passed": False}, indent=2))
@@ -163,49 +198,61 @@ async def verify_setup() -> None:
     try:
         api = InstagramAPI()
         profile = await api.get_user_profile()
-        checks.append({
-            "check": "Token válido",
-            "passed": True,
-            "detail": f"Conta @{profile.get('username')} acessível",
-        })
+        checks.append(
+            {
+                "check": "Token válido",
+                "passed": True,
+                "detail": f"Conta @{profile.get('username')} acessível",
+            }
+        )
     except Exception as e:
-        checks.append({
-            "check": "Token válido",
-            "passed": False,
-            "detail": str(e),
-        })
+        checks.append(
+            {
+                "check": "Token válido",
+                "passed": False,
+                "detail": str(e),
+            }
+        )
         print(json.dumps({"checks": checks, "all_passed": False}, indent=2))
         return
 
     # 3. Tipo de conta
     acct_type = profile.get("account_type", "UNKNOWN")
-    checks.append({
-        "check": "Conta Business/Creator",
-        "passed": acct_type in ("BUSINESS", "CREATOR"),
-        "detail": f"Tipo: {acct_type}",
-    })
+    checks.append(
+        {
+            "check": "Conta Business/Creator",
+            "passed": acct_type in ("BUSINESS", "CREATOR"),
+            "detail": f"Tipo: {acct_type}",
+        }
+    )
 
     # 4. Facebook Page vinculada
-    checks.append({
-        "check": "Facebook Page vinculada",
-        "passed": bool(account.get("facebook_page_id")),
-        "detail": f"Page ID: {account.get('facebook_page_id', 'N/A')}",
-    })
+    checks.append(
+        {
+            "check": "Facebook Page vinculada",
+            "passed": bool(account.get("facebook_page_id")),
+            "detail": f"Page ID: {account.get('facebook_page_id', 'N/A')}",
+        }
+    )
 
     # 5. Permissões básicas (tenta buscar mídia)
     try:
         media = await api.get_user_media(limit=1)
-        checks.append({
-            "check": "Permissão instagram_basic",
-            "passed": True,
-            "detail": "OK - pode ler mídia",
-        })
+        checks.append(
+            {
+                "check": "Permissão instagram_basic",
+                "passed": True,
+                "detail": "OK - pode ler mídia",
+            }
+        )
     except Exception:
-        checks.append({
-            "check": "Permissão instagram_basic",
-            "passed": False,
-            "detail": "Sem permissão para ler mídia",
-        })
+        checks.append(
+            {
+                "check": "Permissão instagram_basic",
+                "passed": False,
+                "detail": "Sem permissão para ler mídia",
+            }
+        )
 
     await api.close()
 

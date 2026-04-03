@@ -1,6 +1,8 @@
-import pytest
 import httpx
+import pytest
+
 from src.shared.config import settings
+
 
 @pytest.mark.asyncio
 async def test_ml_comparison_endpoint():
@@ -9,12 +11,13 @@ async def test_ml_comparison_endpoint():
         # 1. Fetch comparison metrics
         response = await client.get("/ml/comparison")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "userPnl" in data
         assert "aiPnl" in data
         assert "winRate" in data
         assert isinstance(data["userPnl"], (int, float))
+
 
 @pytest.mark.asyncio
 async def test_ml_predictions_endpoint():
@@ -22,7 +25,7 @@ async def test_ml_predictions_endpoint():
     async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
         response = await client.get("/ml/predictions")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert isinstance(data, list)
         if len(data) > 0:

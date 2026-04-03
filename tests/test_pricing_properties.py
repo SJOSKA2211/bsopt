@@ -18,6 +18,7 @@ bs_params = st.builds(
     dividend=st.floats(min_value=0.0, max_value=0.1),  # 0% to 10%
 )
 
+
 class TestPricingProperties:
     @given(bs_params)
     @settings(max_examples=100, deadline=None)

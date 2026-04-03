@@ -25,6 +25,7 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
+
 @dataclass
 class PerformanceMetrics:
     """Model performance metrics."""
@@ -40,6 +41,7 @@ class PerformanceMetrics:
     mean_return: float
     volatility: float
 
+
 @dataclass
 class RollbackConfig:
     """Configuration for rollback decisions."""
@@ -49,6 +51,7 @@ class RollbackConfig:
     accuracy_degradation_threshold: float = 0.05
     rollback_cooldown_seconds: int = 3600
     min_sample_size: int = 100
+
 
 class ModelComparator:
     """
@@ -195,6 +198,7 @@ class ModelComparator:
 
         return should_deploy, comparison
 
+
 class ModelPromoter:
     """
     Handles model promotion and rollback operations.
@@ -333,6 +337,7 @@ class ModelPromoter:
             except Exception as e:
                 logger.warning("backup_failed", error=str(e))
 
+
 def automate_deployment(
     model_name: str,
     challenger_run_id: str,
@@ -353,6 +358,7 @@ def automate_deployment(
 
     promoter = ModelPromoter(model_name)
     return promoter.promote_candidate(challenger_run_id, config)
+
 
 if __name__ == "__main__":
     import argparse

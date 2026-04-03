@@ -15,6 +15,7 @@ from src.math_kernel.base import PricingStrategy
 from src.math_kernel.black_scholes import BlackScholesEngine
 from src.math_kernel.models import BSParameters, OptionGreeks
 
+
 @dataclass
 class LatticeGreeks:
     delta: float
@@ -23,9 +24,11 @@ class LatticeGreeks:
     theta: float
     rho: float
 
+
 @dataclass
 class LatticeParameters(BSParameters):
     n_steps: int = 100
+
 
 @njit(fastmath=True)
 def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
@@ -67,6 +70,7 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
 
     return V[0]
 
+
 @njit(fastmath=True)
 def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     if T <= 0:
@@ -105,6 +109,7 @@ def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
 
     return V[0]
 
+
 def validate_convergence(
     spot, strike, maturity, volatility, rate, dividend, option_type, step_sizes
 ):
@@ -127,6 +132,7 @@ def validate_convergence(
         tri_errors.append(abs(tri_pricer.price_european(bs_params, option_type) - bs_price))
 
     return {"binomial_errors": bin_errors, "trinomial_errors": tri_errors}
+
 
 class LatticePricer(PricingStrategy):
     """Base class for lattice models providing common Greeks implementation."""
@@ -190,6 +196,7 @@ class LatticePricer(PricingStrategy):
             rho=float(rho),
         )
 
+
 class BinomialTreePricer(LatticePricer):
     """Cox-Ross-Rubinstein (CRR) JIT Pricer."""
 
@@ -227,6 +234,7 @@ class BinomialTreePricer(LatticePricer):
             for j in range(i + 1):
                 tree[i, j] = params.spot * (u ** (i - j)) * (d**j)
         return tree
+
 
 class TrinomialTreePricer(LatticePricer):
     """Standard Trinomial Tree JIT Pricer."""

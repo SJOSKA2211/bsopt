@@ -69,17 +69,13 @@ def setup_python(project_path: str, with_webhook: bool = False, with_ai: bool = 
 
 def main():
     parser = argparse.ArgumentParser(description="Setup Telegram Bot project")
-    parser.add_argument("--language", type=str, required=True,
-                        choices=["nodejs", "python"],
-                        help="Project language")
-    parser.add_argument("--path", type=str, required=True,
-                        help="Project directory path")
-    parser.add_argument("--with-webhook", action="store_true",
-                        help="Include webhook server setup")
-    parser.add_argument("--with-ai", action="store_true",
-                        help="Include AI integration boilerplate")
-    parser.add_argument("--force", action="store_true",
-                        help="Overwrite existing directory")
+    parser.add_argument(
+        "--language", type=str, required=True, choices=["nodejs", "python"], help="Project language"
+    )
+    parser.add_argument("--path", type=str, required=True, help="Project directory path")
+    parser.add_argument("--with-webhook", action="store_true", help="Include webhook server setup")
+    parser.add_argument("--with-ai", action="store_true", help="Include AI integration boilerplate")
+    parser.add_argument("--force", action="store_true", help="Overwrite existing directory")
     args = parser.parse_args()
 
     project_path = os.path.abspath(args.path)

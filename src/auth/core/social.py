@@ -4,7 +4,9 @@ Supports Google/GitHub with Account Merging logic.
 """
 
 import logging
+
 from authlib.integrations.starlette_client import OAuth
+
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -34,10 +36,12 @@ if settings.GITHUB_CLIENT_ID:
         client_kwargs={"scope": "user:email"},
     )
 
+
 class SocialAuthService:
     """
     Social OAuth2 orchestration and Account Merging.
     """
+
     async def get_user_info(self, client_name: str, token: dict):
         """Fetch user info from the OAuth provider."""
         client = oauth.create_client(client_name)
@@ -63,6 +67,7 @@ class SocialAuthService:
         if existing_user.email == social_email and existing_user.is_verified:
             return True
         return False
+
 
 # Global instance for easy access
 social_service = SocialAuthService()

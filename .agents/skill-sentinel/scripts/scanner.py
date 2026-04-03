@@ -11,12 +11,13 @@ Uso:
     for s in skills:
         print(s["name"], s["path"], s["file_count"])
 """
+
 from __future__ import annotations
 
 import ast
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from config import (
     IGNORE_DIRS,
@@ -26,7 +27,7 @@ from config import (
 )
 
 
-def _parse_yaml_frontmatter(content: str) -> Dict[str, str]:
+def _parse_yaml_frontmatter(content: str) -> dict[str, str]:
     """Extrai frontmatter YAML simples de um arquivo SKILL.md."""
     if not content.startswith("---"):
         return {}
@@ -70,7 +71,7 @@ def _count_lines(filepath: Path) -> int:
 _PY_IGNORE_DIRS = IGNORE_DIRS - {".claude"}
 
 
-def _list_python_files(directory: Path) -> List[Path]:
+def _list_python_files(directory: Path) -> list[Path]:
     """Lista todos os .py dentro de um diretorio (recursivo)."""
     result = []
     if not directory.exists():
@@ -81,7 +82,7 @@ def _list_python_files(directory: Path) -> List[Path]:
     return sorted(result)
 
 
-def _extract_functions(filepath: Path) -> List[Dict[str, Any]]:
+def _extract_functions(filepath: Path) -> list[dict[str, Any]]:
     """Extrai informacoes de funcoes/classes via AST."""
     try:
         source = filepath.read_text(encoding="utf-8", errors="replace")
@@ -92,35 +93,43 @@ def _extract_functions(filepath: Path) -> List[Dict[str, Any]]:
     functions = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            functions.append({
-                "name": node.name,
-                "type": "async_function" if isinstance(node, ast.AsyncFunctionDef) else "function",
-                "line": node.lineno,
-                "end_line": getattr(node, "end_lineno", node.lineno),
-                "has_docstring": (
-                    isinstance(node.body[0], ast.Expr)
-                    and isinstance(node.body[0].value, (ast.Constant, ast.Str))
-                    if node.body else False
-                ),
-                "args_count": len(node.args.args),
-            })
+            functions.append(
+                {
+                    "name": node.name,
+                    "type": "async_function"
+                    if isinstance(node, ast.AsyncFunctionDef)
+                    else "function",
+                    "line": node.lineno,
+                    "end_line": getattr(node, "end_lineno", node.lineno),
+                    "has_docstring": (
+                        isinstance(node.body[0], ast.Expr)
+                        and isinstance(node.body[0].value, (ast.Constant, ast.Str))
+                        if node.body
+                        else False
+                    ),
+                    "args_count": len(node.args.args),
+                }
+            )
         elif isinstance(node, ast.ClassDef):
-            functions.append({
-                "name": node.name,
-                "type": "class",
-                "line": node.lineno,
-                "end_line": getattr(node, "end_lineno", node.lineno),
-                "has_docstring": (
-                    isinstance(node.body[0], ast.Expr)
-                    and isinstance(node.body[0].value, (ast.Constant, ast.Str))
-                    if node.body else False
-                ),
-                "args_count": 0,
-            })
+            functions.append(
+                {
+                    "name": node.name,
+                    "type": "class",
+                    "line": node.lineno,
+                    "end_line": getattr(node, "end_lineno", node.lineno),
+                    "has_docstring": (
+                        isinstance(node.body[0], ast.Expr)
+                        and isinstance(node.body[0].value, (ast.Constant, ast.Str))
+                        if node.body
+                        else False
+                    ),
+                    "args_count": 0,
+                }
+            )
     return functions
 
 
-def _parse_requirements(skill_dir: Path) -> List[Dict[str, str]]:
+def _parse_requirements(skill_dir: Path) -> list[dict[str, str]]:
     """Parse requirements.txt se existir."""
     reqs_path = skill_dir / "scripts" / "requirements.txt"
     if not reqs_path.exists():
@@ -132,13 +141,15 @@ def _parse_requirements(skill_dir: Path) -> List[Dict[str, str]]:
             if not line or line.startswith("#") or line.startswith("-"):
                 continue
             # Parse "package==1.0" ou "package>=1.0" ou "package"
-            match = re.match(r'^([a-zA-Z0-9_-]+)\s*([><=!~]+)?\s*([\d.]*)', line)
+            match = re.match(r"^([a-zA-Z0-9_-]+)\s*([><=!~]+)?\s*([\d.]*)", line)
             if match:
-                deps.append({
-                    "name": match.group(1),
-                    "version_spec": (match.group(2) or "") + (match.group(3) or ""),
-                    "pinned": "==" in (match.group(2) or ""),
-                })
+                deps.append(
+                    {
+                        "name": match.group(1),
+                        "version_spec": (match.group(2) or "") + (match.group(3) or ""),
+                        "pinned": "==" in (match.group(2) or ""),
+                    }
+                )
     except OSError:
         pass
     return deps
@@ -150,7 +161,7 @@ class SkillScanner:
     def __init__(self, skills_root: Path = SKILLS_ROOT):
         self.skills_root = skills_root
 
-    def discover_all(self) -> List[Dict[str, Any]]:
+    def discover_all(self) -> list[dict[str, Any]]:
         """Descobre todas as skills, retornando metadados enriquecidos."""
         skill_dirs = self._find_skill_dirs()
         skills = []
@@ -160,14 +171,14 @@ class SkillScanner:
                 skills.append(info)
         return sorted(skills, key=lambda s: s["name"])
 
-    def discover_skill(self, name: str) -> Optional[Dict[str, Any]]:
+    def discover_skill(self, name: str) -> dict[str, Any] | None:
         """Descobre uma skill especifica pelo nome."""
         for skill in self.discover_all():
             if skill["name"] == name:
                 return skill
         return None
 
-    def _find_skill_dirs(self) -> List[Path]:
+    def _find_skill_dirs(self) -> list[Path]:
         """Encontra diretorios que contem SKILL.md."""
         found = []
         for search_path in SKILL_SEARCH_PATHS:
@@ -184,7 +195,7 @@ class SkillScanner:
                 unique.append(p)
         return unique
 
-    def _search_recursive(self, directory: Path, found: List[Path], depth: int) -> None:
+    def _search_recursive(self, directory: Path, found: list[Path], depth: int) -> None:
         """Busca recursiva por SKILL.md com limite de profundidade."""
         if depth > SKILL_MAX_DEPTH:
             return
@@ -202,7 +213,7 @@ class SkillScanner:
         except PermissionError:
             pass
 
-    def _analyze_skill(self, skill_dir: Path) -> Optional[Dict[str, Any]]:
+    def _analyze_skill(self, skill_dir: Path) -> dict[str, Any] | None:
         """Analisa uma skill e retorna metadados completos."""
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.exists():
@@ -256,7 +267,6 @@ class SkillScanner:
 
 # -- CLI -----------------------------------------------------------------------
 if __name__ == "__main__":
-    import json
     scanner = SkillScanner()
     skills = scanner.discover_all()
     print(f"Skills encontradas: {len(skills)}\n")
@@ -265,7 +275,9 @@ if __name__ == "__main__":
         print(f"    Path: {s['path']}")
         print(f"    Files: {s['file_count']} Python ({s['line_count']} lines)")
         print(f"    Refs: {len(s['reference_files'])} docs")
-        print(f"    Gov: {'sim' if s['has_governance'] else 'nao'} | "
-              f"DB: {'sim' if s['has_db'] else 'nao'} | "
-              f"Config: {'sim' if s['has_config'] else 'nao'}")
+        print(
+            f"    Gov: {'sim' if s['has_governance'] else 'nao'} | "
+            f"DB: {'sim' if s['has_db'] else 'nao'} | "
+            f"Config: {'sim' if s['has_config'] else 'nao'}"
+        )
         print()

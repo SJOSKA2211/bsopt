@@ -1,26 +1,26 @@
 import asyncio
-import os
-from typing import cast
 
+import msgspec
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 import structlog
-import msgspec
-from numba import njit, prange
+from numba import njit
 
 from src.config import settings
 from src.ml.training.base import TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)
 
+
 class PipelineConfig(msgspec.Struct):
     """Configuration for the data pipeline."""
+
     symbols: list[str] = [settings.DEFAULT_TICKER]
     min_samples: int = 1000
     max_samples: int = 10000
     validate_data: bool = True
     output_dir: str = "data/training"
+
 
 class DataPipeline:
     """
@@ -86,7 +86,9 @@ class DataPipeline:
 
         if not records:
             logger.error("data_pipeline_no_real_data_found", symbols=self.config.symbols)
-            raise ValueError(f"No real market data found in Postgres for symbols: {self.config.symbols}")
+            raise ValueError(
+                f"No real market data found in Postgres for symbols: {self.config.symbols}"
+            )
 
         # Load into Pandas for vectorized cleaning and robust cross-sectional manipulation
         df = pd.DataFrame(records)
@@ -157,18 +159,24 @@ class DataPipeline:
 
         return X, y, feature_names, metadata
 
+
 class MLPipeline:
     """
     Unified Autonomous ML Pipeline.
     Wires together Data Collection, Training, and Evaluation.
     """
 
-    def __init__(self, training_config: TrainingConfig, pipeline_config: PipelineConfig | None = None):
+    def __init__(
+        self, training_config: TrainingConfig, pipeline_config: PipelineConfig | None = None
+    ):
         self.training_config = training_config
-        self.pipeline_config = pipeline_config or PipelineConfig(symbols=training_config.metadata.get("ticker", [settings.DEFAULT_TICKER]).split(","))
+        self.pipeline_config = pipeline_config or PipelineConfig(
+            symbols=training_config.metadata.get("ticker", [settings.DEFAULT_TICKER]).split(",")
+        )
         self.data_pipeline = DataPipeline(self.pipeline_config)
-        
+
         from src.ml.trainer import ModelTrainer
+
         self.trainer = ModelTrainer(
             study_name=training_config.metadata.get("study_name", "autonomous_pipeline")
         )
@@ -194,12 +202,14 @@ class MLPipeline:
         # 3. Model Registration and Promotion
         if self.trainer.model:
             from src.ml.registry.promote import promote_model
-            
+
             # Use active run from MLflow
             run = mlflow.active_run()
             if run:
                 run_id = run.info.run_id
-                model_name = f"{self.training_config.framework}_pricer_{self.pipeline_config.symbols[0]}"
+                model_name = (
+                    f"{self.training_config.framework}_pricer_{self.pipeline_config.symbols[0]}"
+                )
                 logger.info("promoting_new_champion", model=model_name, run_id=run_id)
                 promote_model(model_name, run_id, stage="Production")
 
@@ -211,6 +221,7 @@ class MLPipeline:
         await self.data_pipeline.run_shutdown()
         if mlflow.active_run():
             mlflow.end_run()
+
 
 if __name__ == "__main__":
     import argparse
@@ -247,6 +258,7 @@ if __name__ == "__main__":
 # Helper Functions (Numba JIT)
 # =============================================================================
 
+
 @njit(fastmath=True, parallel=True)
 def _calculate_maturity_jit(
     expiry_timestamps: np.ndarray, current_timestamps: np.ndarray
@@ -254,9 +266,11 @@ def _calculate_maturity_jit(
     """Vectorized maturity calculation."""
     return (expiry_timestamps - current_timestamps) / (365.0 * 24 * 3600)
 
+
 # =============================================================================
 # Data Pipeline Implementation
 # =============================================================================
+
 
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
     """Real feature computation using the centralized Feature Store (Optimized)."""

@@ -16,10 +16,10 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections import Counter, defaultdict
-from datetime import datetime, timezone
 import time
-from typing import Any, Optional
+from collections import Counter, defaultdict
+from datetime import UTC, datetime
+from typing import Any
 
 import requests
 
@@ -144,9 +144,7 @@ def _field_concept_priority() -> dict[tuple[str, str], dict[str, int]]:
     priorities: dict[tuple[str, str], dict[str, int]] = {}
     for statement, fields in _FIELD_CONCEPTS.items():
         for field, concepts in fields.items():
-            priorities[(statement, field)] = {
-                concept: idx for idx, concept in enumerate(concepts)
-            }
+            priorities[(statement, field)] = {concept: idx for idx, concept in enumerate(concepts)}
     return priorities
 
 
@@ -160,7 +158,7 @@ def _session() -> requests.Session:
 
 
 def _request_json(url: str, session: requests.Session) -> dict[str, Any]:
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
             response = session.get(url, timeout=_TIMEOUT)
@@ -198,7 +196,7 @@ def _variants(ticker: str) -> list[str]:
     return out
 
 
-def _parse_period_months(start: Optional[str], end: Optional[str]) -> Optional[int]:
+def _parse_period_months(start: str | None, end: str | None) -> int | None:
     if not end:
         return None
     if not start:
@@ -220,13 +218,13 @@ def _parse_period_months(start: Optional[str], end: Optional[str]) -> Optional[i
     return 12
 
 
-def _is_quarterly(form: str, period_months: Optional[int]) -> bool:
+def _is_quarterly(form: str, period_months: int | None) -> bool:
     if form in _QUARTERLY_FORMS:
         return True
     return period_months is not None and 1 <= period_months <= 4
 
 
-def _to_float(value: Any) -> Optional[float]:
+def _to_float(value: Any) -> float | None:
     try:
         if value is None:
             return None
@@ -235,7 +233,7 @@ def _to_float(value: Any) -> Optional[float]:
         return None
 
 
-def get_cik(ticker: str) -> Optional[str]:
+def get_cik(ticker: str) -> str | None:
     """Resolve ticker to zero-padded SEC CIK."""
     with _session() as s:
         data = _request_json(_SEC_CIK_LOOKUP, s)
@@ -267,7 +265,7 @@ def get_company_facts(ticker: str) -> dict[str, Any]:
         "entity_name": facts.get("entityName", normalized),
         "facts": facts.get("facts", {}),
         "raw": facts,
-        "retrieved_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "retrieved_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
     }
 
 
@@ -306,7 +304,9 @@ def get_filings_metadata(ticker: str, limit: int = 10) -> list[dict[str, Any]]:
     return rows
 
 
-def _extract_line_items(company_facts: dict[str, Any]) -> dict[tuple[str, str], list[dict[str, Any]]]:
+def _extract_line_items(
+    company_facts: dict[str, Any],
+) -> dict[tuple[str, str], list[dict[str, Any]]]:
     root = company_facts.get("facts", {})
     items: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
 
@@ -355,7 +355,7 @@ def _best_entry(
     quarterly: bool,
     statement: str,
     field: str,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     if not records:
         return None
     scoped: list[dict[str, Any]] = []
@@ -389,14 +389,14 @@ def _best_entry(
 def _build_snapshot(
     line_items: dict[tuple[str, str], list[dict[str, Any]]],
     quarterly: bool,
-) -> tuple[dict[str, dict[str, float]], dict[str, dict[str, Any]], Optional[str]]:
+) -> tuple[dict[str, dict[str, float]], dict[str, dict[str, Any]], str | None]:
     snapshot: dict[str, dict[str, float]] = {
         "income_statement": {},
         "balance_sheet": {},
         "cash_flow": {},
     }
     sources: dict[str, dict[str, Any]] = {}
-    period_end: Optional[str] = None
+    period_end: str | None = None
 
     for (statement, field), records in line_items.items():
         best = _best_entry(
@@ -428,9 +428,7 @@ def get_financials(ticker: str) -> dict[str, Any]:
     company = get_company_facts(ticker)
     line_items = _extract_line_items(company)
 
-    annual_snapshot, annual_sources, annual_period = _build_snapshot(
-        line_items, quarterly=False
-    )
+    annual_snapshot, annual_sources, annual_period = _build_snapshot(line_items, quarterly=False)
     quarterly_snapshot, quarterly_sources, quarterly_period = _build_snapshot(
         line_items, quarterly=True
     )
@@ -449,7 +447,7 @@ def get_financials(ticker: str) -> dict[str, Any]:
             "statements": quarterly_snapshot,
             "sources": quarterly_sources,
         },
-        "retrieved_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "retrieved_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
     }
 
 
@@ -485,7 +483,7 @@ def _main() -> None:
         payload = {
             "ticker": args.ticker.strip().upper(),
             "filings": get_filings_metadata(args.ticker),
-            "retrieved_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+            "retrieved_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
         }
 
     print(json.dumps(payload, indent=args.indent, sort_keys=False))

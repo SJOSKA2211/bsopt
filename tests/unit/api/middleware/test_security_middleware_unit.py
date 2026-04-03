@@ -11,6 +11,7 @@ from api.middleware.security import (
     SecurityHeadersMiddleware,
 )
 
+
 def create_app_with_middleware(middleware_class, **kwargs):
     app = FastAPI()
     app.add_middleware(middleware_class, **kwargs)
@@ -29,6 +30,7 @@ def create_app_with_middleware(middleware_class, **kwargs):
 
     return app
 
+
 def test_security_headers_middleware():
     app = create_app_with_middleware(SecurityHeadersMiddleware)
     client = TestClient(app)
@@ -44,6 +46,7 @@ def test_security_headers_middleware():
     response = client.get("/api/v1/auth/test")
     assert response.headers["Cache-Control"] == "no-store, no-cache, must-revalidate, private"
 
+
 def test_csrf_middleware_get_success():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test_secret")
     client = TestClient(app)
@@ -51,6 +54,7 @@ def test_csrf_middleware_get_success():
     response = client.get("/")
     assert response.status_code == 200
     assert "csrf_token" in response.cookies
+
 
 def test_csrf_middleware_post_fail_no_token():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test_secret")
@@ -63,6 +67,7 @@ def test_csrf_middleware_post_fail_no_token():
         pass
     else:
         assert response.status_code == 403
+
 
 @patch("src.api.middleware.security.settings")
 def test_csrf_middleware_full_flow(mock_settings):
@@ -85,6 +90,7 @@ def test_csrf_middleware_full_flow(mock_settings):
     )
     assert response.status_code == 200
 
+
 def test_ip_block_middleware():
     app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"1.2.3.4"})
     client = TestClient(app, raise_server_exceptions=False)
@@ -98,6 +104,7 @@ def test_ip_block_middleware():
     assert response.status_code == 403
     assert response.json() == {"detail": "Access denied"}
 
+
 def test_ip_block_middleware_x_forwarded_for():
     app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"10.0.0.1"})
     client = TestClient(app)
@@ -105,6 +112,7 @@ def test_ip_block_middleware_x_forwarded_for():
     # Test X-Forwarded-For
     response = client.get("/", headers={"X-Forwarded-For": "10.0.0.1, 192.168.1.1"})
     assert response.status_code == 403
+
 
 def test_csrf_middleware_failures():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
@@ -143,6 +151,7 @@ def test_csrf_middleware_failures():
     assert response.status_code == 403
     assert "CSRF token mismatch" in response.json()["detail"]
 
+
 def test_ip_block_temp_block():
     middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=2, block_duration_minutes=1)
     ip = "9.9.9.9"
@@ -156,12 +165,14 @@ def test_ip_block_temp_block():
     middleware.clear_failed_attempts(ip)
     assert middleware._is_blocked(ip)
 
+
 def test_security_headers_custom_policy():
     custom_policy = {"camera": ["https://example.com"]}
     app = create_app_with_middleware(SecurityHeadersMiddleware, permissions_policy=custom_policy)
     client = TestClient(app)
     response = client.get("/")
     assert 'camera=("https://example.com")' in response.headers["Permissions-Policy"]
+
 
 def test_ip_block_temp_block_expiration():
     # Use very short duration for test
@@ -195,6 +206,7 @@ def test_ip_block_temp_block_expiration():
         # Should have cleared the block
         assert ip not in middleware._temporary_blocks
 
+
 def test_ip_block_clean_old_attempts():
     middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=5, block_duration_minutes=10)
     ip = "8.8.8.8"
@@ -217,6 +229,7 @@ def test_ip_block_clean_old_attempts():
     assert len(middleware._failed_attempts[ip]) == 1
     assert middleware._failed_attempts[ip][0] == base_time
 
+
 def test_csrf_wildcard_exempt():
     # Subclass to add wildcard exempt path for testing
     class CustomCSRFMiddleware(CSRFMiddleware):
@@ -231,6 +244,7 @@ def test_csrf_wildcard_exempt():
     # If it was blocked, it would be 403.
     # Since endpoint doesn't exist, 404.
     assert response.status_code == 404
+
 
 def test_csrf_no_origin_referer():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
@@ -249,6 +263,7 @@ def test_csrf_no_origin_referer():
     )
     assert response.status_code == 200
 
+
 def test_csrf_invalid_origin_format():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
     client = TestClient(app)
@@ -257,6 +272,7 @@ def test_csrf_invalid_origin_format():
     response = client.post("/post", headers={"Origin": "not-a-url"})
     assert response.status_code == 403
     assert "Origin validation failed" in response.json()["detail"]
+
 
 def test_input_sanitization_middleware():
     app = create_app_with_middleware(InputSanitizationMiddleware)

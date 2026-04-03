@@ -1,8 +1,11 @@
 import asyncio
+
 import structlog
+
 from src.ml.aiops.autonomous_engine import AutonomousEngine
 
 logger = structlog.get_logger()
+
 
 async def verify():
     engine = AutonomousEngine()
@@ -15,6 +18,7 @@ async def verify():
             print("❌ ML Inference is NOT READY.")
     except Exception as e:
         print(f"❌ Error during health check: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(verify())
