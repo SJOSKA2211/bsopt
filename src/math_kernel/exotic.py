@@ -5,7 +5,7 @@ import numpy as np
 from numba import njit
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -138,7 +138,7 @@ class AsianOptionPricer:
         if CORE_AVAILABLE:
             try:
                 return float(
-                    bsopt_core.geometric_asian_price(
+                    Manifold_core.geometric_asian_price(
                         params.base_params.spot,
                         params.base_params.strike,
                         params.base_params.maturity,
@@ -220,7 +220,7 @@ class BarrierOptionPricer:
         if CORE_AVAILABLE:
             try:
                 return float(
-                    bsopt_core.barrier_option_price(
+                    Manifold_core.barrier_option_price(
                         params.base_params.spot,
                         params.base_params.strike,
                         params.base_params.maturity,
@@ -361,7 +361,7 @@ class DigitalOptionPricer:
         if CORE_AVAILABLE:
             try:
                 return float(
-                    bsopt_core.digital_option_price(
+                    Manifold_core.digital_option_price(
                         params.spot,
                         params.strike,
                         params.maturity,
@@ -394,7 +394,7 @@ class DigitalOptionPricer:
         if CORE_AVAILABLE:
             try:
                 return float(
-                    bsopt_core.digital_option_price(
+                    Manifold_core.digital_option_price(
                         params.spot,
                         params.strike,
                         params.maturity,

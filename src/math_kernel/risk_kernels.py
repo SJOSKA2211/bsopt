@@ -3,7 +3,7 @@ import structlog
 from numba import njit
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -135,7 +135,7 @@ class RiskVectorTracker:
                 # than multi-dimensional array slicing
                 s = self._state
                 limits = self._limits
-                ok, new_d, new_g, new_v = bsopt_core.full_risk_check(
+                ok, new_d, new_g, new_v = Manifold_core.full_risk_check(
                     float(price),
                     int(quantity),
                     int(side),
@@ -184,7 +184,7 @@ class RiskVectorTracker:
 class IncrementalDeltaTracker:
     """
     Stateful tracker for portfolio-wide delta exposure.
-    Maintains O(1) running total. Optimized to use Rust 'bsopt_core' if available.
+    Maintains O(1) running total. Optimized to use Rust 'Manifold_core' if available.
     """
 
     def __init__(self, initial_delta: float = 0.0, max_net_delta: float = 10000.0):
@@ -204,7 +204,7 @@ class IncrementalDeltaTracker:
         if CORE_AVAILABLE:
             try:
                 # Using 0.0 for Gamma/Vega and Price/Qty checks for delta-only tracker
-                ok, new_d, _, _ = bsopt_core.full_risk_check(
+                ok, new_d, _, _ = Manifold_core.full_risk_check(
                     1.0,
                     1,
                     1,
@@ -244,7 +244,7 @@ class IncrementalDeltaTracker:
         """
         if CORE_AVAILABLE:
             try:
-                ok, new_d, _, _ = bsopt_core.full_risk_check(
+                ok, new_d, _, _ = Manifold_core.full_risk_check(
                     float(price),
                     int(quantity),
                     int(side),

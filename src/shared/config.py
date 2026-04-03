@@ -154,6 +154,7 @@ class Settings(BaseSettings):
 
     # Observability & Tracing
     ENABLE_TRACING: bool = False
+    PROMETHEUS_URL: str = Field(default="http://prometheus:9090", validation_alias="PROMETHEUS_URL")
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://tempo:4317"
     PUSHGATEWAY_URL: str | None = Field(default=None)
     GRAFANA_URL: str | None = Field(default=None)

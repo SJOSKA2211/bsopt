@@ -15,4 +15,4 @@ The Trading Engine is a low-latency gateway designed for high-frequency executio
 - **Shared Memory Buffers**: `OrderBuffer` and `ExecutionBuffer` facilitate lock-free, zero-copy communication between strategy and execution threads.
 - **CPU Pinning**: The engine is designed to run on dedicated CPU cores with `os.sched_yield()` optimization to minimize context-switching.
 - **Zero-Allocation Hot Loop**: The `OrderEngine` hot loop is re-engineered to operate without memory allocations, ensuring consistent latency profiles even under extreme load.
-- **Rust Integration**: Leverages `bsopt_core` (Rust) for the fastest possible zero-GIL order loop execution when available.
+- **Rust Integration**: Leverages `Manifold_core` (Rust) for the fastest possible zero-GIL order loop execution when available.

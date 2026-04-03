@@ -14,6 +14,13 @@ BSOPT is a high-performance options pricing and risk management engine. It uses 
 
 ## Key Commands
 
+### AIops & Health
+- **Check System Health**:
+  ```bash
+  bash scripts/aiops_healthy.sh
+  ```
+  *(Note: This initializes SHM, revamps DB views, and runs the sentinel and dashboard)*
+
 ### Development & Build
 - **Build Rust Core**: 
   ```bash

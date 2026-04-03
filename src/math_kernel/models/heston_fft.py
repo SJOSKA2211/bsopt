@@ -97,7 +97,7 @@ def _heston_integrand_vectorized(
     """
     if CORE_AVAILABLE:
         try:
-            cf = bsopt_core.heston_characteristic_function(
+            cf = Manifold_core.heston_characteristic_function(
                 v, k, alpha, T, r, v0, kappa, theta, sigma, rho
             )
             return np.real(cf)

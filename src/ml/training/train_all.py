@@ -41,7 +41,7 @@ async def train_all():
     try:
         model = await pipeline.run()
         if model:
-            logger.info("pipeline_success", model_promoted=True, framework=config["framework"])
+            logger.info("pipeline_success", model_promoted=True, framework=config.framework)
         else:
             logger.info("pipeline_skipped_no_drift")
 

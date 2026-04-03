@@ -12,6 +12,7 @@ use lazy_static::lazy_static;
 use std::path::Path;
 use std::net::SocketAddr;
 use std::sync::atomic::Ordering;
+use std::f64::consts::PI;
 
 mod generated;
 mod ingest;
@@ -636,7 +637,7 @@ fn batch_black_scholes_iv<'py>(
                 ki * (-ri * ti).exp() * fast_cdf(-d2) - si * (-qi * ti).exp() * fast_cdf(-d1)
             };
 
-            let vega = si * (-qi * ti).exp() * ti.sqrt() * (-(d1 * d1) / 2.0).exp() / (2.0 * PI).sqrt();
+            let vega = si * (-qi * ti).exp() * ti.sqrt() * (-(d1 * d1) / 2.0).exp() / f64::sqrt(2.0 * PI);
             let diff = price - mpi;
 
             if diff.abs() < tolerance {
@@ -709,6 +710,41 @@ fn monte_carlo_price(
 }
 
 #[pyfunction]
+fn full_risk_check(
+    price: f64,
+    quantity: i32,
+    side: i32,
+    d_delta: f64,
+    d_gamma: f64,
+    d_vega: f64,
+    current_delta: f64,
+    current_gamma: f64,
+    current_vega: f64,
+    max_qty: i32,
+    min_price: f64,
+    max_price: f64,
+    max_delta: f64,
+    max_gamma: f64,
+    max_vega: f64,
+) -> PyResult<(bool, f64, f64, f64)> {
+    // 1. Base Checks
+    if price < min_price || price > max_price || quantity <= 0 || quantity > max_qty || (side != 1 && side != -1) {
+        return Ok((false, current_delta, current_gamma, current_vega));
+    }
+
+    // 2. Incremental Greek Checks
+    let new_delta = current_delta + d_delta;
+    let new_gamma = current_gamma + d_gamma;
+    let new_vega = current_vega + d_vega;
+
+    if new_delta.abs() > max_delta || new_gamma.abs() > max_gamma || new_vega.abs() > max_vega {
+        return Ok((false, current_delta, current_gamma, current_vega));
+    }
+
+    Ok((true, new_delta, new_gamma, new_vega))
+}
+
+#[pyfunction]
 fn get_manifold_metrics() -> PyResult<String> {
     let encoder = TextEncoder::new();
     let metric_families = REGISTRY.gather();
@@ -728,6 +764,7 @@ fn Manifold_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes_iv, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
     m.add_function(wrap_pyfunction!(monte_carlo_price, m)?)?;
+    m.add_function(wrap_pyfunction!(full_risk_check, m)?)?;
     m.add_function(wrap_pyfunction!(simulate_gbm_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     m.add_function(wrap_pyfunction!(batch_validate_ticks, m)?)?;

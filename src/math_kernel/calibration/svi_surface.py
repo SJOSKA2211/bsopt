@@ -5,7 +5,7 @@ import structlog
 from scipy.optimize import minimize
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     _CORE_AVAILABLE = True
 except ImportError:
@@ -70,7 +70,7 @@ class SVISurface:
                 vols = np.sqrt(np.maximum(total_variances / T, 1e-9))
                 weights = np.ones_like(vols)
 
-                res = bsopt_core.calibrate_svi_rust(
+                res = Manifold_core.calibrate_svi_rust(
                     log_strikes.astype(np.float64),
                     vols.astype(np.float64),
                     weights.astype(np.float64),

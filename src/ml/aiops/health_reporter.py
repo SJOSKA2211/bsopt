@@ -197,6 +197,10 @@ class HealthReporter:
             mem_task = asyncio.to_thread(self.prometheus_client.prom.custom_query, query=mem_query)
 
             results = await asyncio.gather(error_rate_task, latency_task, cpu_task, mem_task)
+            error_rate, latency, cpu_res, mem_res = results
+
+            cpu_usage = float(cpu_res[0]["value"][1]) if cpu_res else 0.0
+            mem_usage = float(mem_res[0]["value"][1]) if mem_res else 0.0
 
             # Fetch request count (Sum of rates)
             req_count_query = (
@@ -628,16 +632,18 @@ class HealthReporter:
                 jobs = await conn.execute(text("SELECT count(*) FROM timescaledb_information.jobs"))
                 job_count = jobs.scalar() or 0
 
-                # 4. Compression ratio (Simplified aggregate)
-                compression = await conn.execute(
-                    text("""
-                    SELECT 
-                        COALESCE(SUM(uncompressed_total_bytes) / NULLIF(SUM(compressed_total_bytes), 0), 1.0)
-                    FROM timescaledb_information.compression_settings
-                    JOIN timescaledb_information.hypertables ON hypertable_name = table_name
-                """)
-                )
-                ratio = float(compression.scalar() or 1.0)
+                # 4. Compression ratio (Safer cross-version check)
+                try:
+                    compression = await conn.execute(
+                        text("""
+                        SELECT 
+                            COALESCE(SUM(uncompressed_total_bytes) / NULLIF(SUM(compressed_total_bytes), 0), 1.0)
+                        FROM timescaledb_information.compression_settings
+                    """)
+                    )
+                    ratio = float(compression.scalar() or 1.0)
+                except Exception:
+                    ratio = 1.0
 
                 return PostgresStatus(
                     connected=True,

@@ -20,7 +20,7 @@ logger = structlog.get_logger(__name__)
 class BlackScholesEngine(PricingStrategy):
     """
     Black-Scholes option pricing engine.
-    Optimized: Uses Rust 'bsopt_core' if available, falls back to Numba JIT.
+    Optimized: Uses Rust 'Manifold_core' if available, falls back to Numba JIT.
     """
 
     @staticmethod

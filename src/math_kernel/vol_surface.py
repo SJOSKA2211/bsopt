@@ -17,7 +17,7 @@ from numba import njit, prange
 from scipy.optimize import least_squares
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -216,10 +216,10 @@ class SVIModel:
         p = self.params
         if CORE_AVAILABLE:
             if isinstance(k, float | np.float64):
-                return float(bsopt_core.svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma))
+                return float(Manifold_core.svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma))
             return cast(
                 np.ndarray[Any, np.dtype[np.float64]],
-                bsopt_core.batch_svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma),
+                Manifold_core.batch_svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma),
             )
         return cast(
             float | np.ndarray[Any, np.dtype[np.float64]],
@@ -307,7 +307,7 @@ class SABRModel:
 
         if CORE_AVAILABLE and np.isscalar(strike):
             return float(
-                bsopt_core.sabr_implied_vol(
+                Manifold_core.sabr_implied_vol(
                     float(cast(float, strike)), f_v, maturity, p.alpha, p.beta, p.rho, p.nu
                 )
             )
@@ -394,7 +394,7 @@ class CalibrationEngine:
 
                 for seed in seeds:
                     try:
-                        p_vec = bsopt_core.calibrate_svi_rust(k, market_vols, weights, t_m, seed)
+                        p_vec = Manifold_core.calibrate_svi_rust(k, market_vols, weights, t_m, seed)
                         # Check RMSE for this fit
                         res = SVIParameters(*p_vec)
                         model = SVIModel(res)

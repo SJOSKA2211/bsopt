@@ -65,8 +65,10 @@ class ModelTrainer(BaseTrainer):
         y_test: np.ndarray,
         config: TrainingConfig,
     ) -> float:
-        """Train XGBoost model."""
+        """Train XGBoost model with ONNX acceleration support."""
         from sklearn.metrics import r2_score
+        import onnxmltools
+        from onnxmltools.convert.common.data_types import FloatTensorType
 
         model_params = {
             "n_estimators": config.n_estimators,
@@ -85,6 +87,16 @@ class ModelTrainer(BaseTrainer):
         score = r2_score(y_test, preds)
 
         mlflow.xgboost.log_model(self.model, "model")
+        
+        # Convert to ONNX for ultra-low-latency serving
+        try:
+            initial_type = [('float_input', FloatTensorType([None, X_train.shape[1]]))]
+            onnx_model = onnxmltools.convert_xgboost(self.model, initial_types=initial_type, target_opset=15)
+            mlflow.onnx.log_model(onnx_model, "onnx_model")
+            logger.info("xgboost_onnx_export_success")
+        except Exception as e:
+            logger.warning("xgboost_onnx_export_failed", error=str(e))
+            
         return float(score)
 
     def _train_torch(
@@ -95,7 +107,7 @@ class ModelTrainer(BaseTrainer):
         y_test: np.ndarray,
         config: TrainingConfig,
     ) -> float:
-        """Train PyTorch Neural Pricing Engine."""
+        """Train PyTorch Neural Pricing Engine with ONNX export."""
         import torch
         from sklearn.metrics import r2_score
 
@@ -112,10 +124,28 @@ class ModelTrainer(BaseTrainer):
 
         self.model = engine.model
         # Evaluation
-        # Simple R2 on raw outputs for now
+        self.model.eval()
         with torch.no_grad():
             preds = self.model(torch.tensor(X_test, dtype=torch.float32)).cpu().numpy().flatten()
 
         score = r2_score(y_test, preds)
         mlflow.pytorch.log_model(self.model, "model")
+        
+        # Export to ONNX
+        try:
+            dummy_input = torch.randn(1, X_train.shape[1])
+            torch.onnx.export(
+                self.model, 
+                dummy_input, 
+                "model.onnx", 
+                opset_version=15,
+                input_names=['input'],
+                output_names=['output'],
+                dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+            )
+            mlflow.log_artifact("model.onnx", "onnx_model")
+            logger.info("torch_onnx_export_success")
+        except Exception as e:
+            logger.warning("torch_onnx_export_failed", error=str(e))
+            
         return float(score)

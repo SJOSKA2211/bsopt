@@ -178,7 +178,12 @@ async def run_dashboard():
         print(f"{MAGENTA}{'=' * 60}{RESET}")
 
     except Exception as e:
-        print(f"\n{RED}🚨 ERROR FETCHING MANIFOLD STATE: {str(e)}{RESET}")
+        import traceback
+        if "No module named 'ray'" in str(e):
+             print(f"\n{YELLOW}⚠️  RAY NOT AVAILABLE (Incompatible Python version or not installed){RESET}")
+        else:
+             print(f"\n{RED}🚨 ERROR FETCHING MANIFOLD STATE: {str(e)}{RESET}")
+             traceback.print_exc()
 
 
 if __name__ == "__main__":

@@ -70,21 +70,20 @@ class DataPipeline:
         from src.database.pipeliner import db_engine
         from src.shared.math_utils import calculate_greeks
 
-        # Use chunked extraction to handle large cross-sectional datasets efficiently
+        # Use parallel chunked extraction to handle large cross-sectional datasets at maximum throughput
         chunk_size = 50000
-        records = []
-        offset = 0
-        while True:
-            chunk = await db_engine.fetch_training_data(
-                self.config.symbols, limit=chunk_size, offset=offset
-            )
-            if not chunk:
-                break
-            records.extend(chunk)
-            offset += chunk_size
-            if len(records) >= self.config.max_samples:
-                break
-
+        total_chunks = (self.config.max_samples // chunk_size) + 1
+        
+        logger.info("parallel_data_fetch_started", max_samples=self.config.max_samples, chunk_size=chunk_size)
+        
+        tasks = [
+            db_engine.fetch_training_data(self.config.symbols, limit=chunk_size, offset=i * chunk_size)
+            for i in range(total_chunks)
+        ]
+        
+        results = await asyncio.gather(*tasks)
+        records = [item for chunk in results for item in chunk]
+        
         if not records:
             logger.error("data_pipeline_no_real_data_found", symbols=self.config.symbols)
             raise ValueError(

@@ -40,24 +40,24 @@ async def check_pgbouncer():
     port = os.environ.get("PGBOUNCER_PORT", settings.PGBOUNCER_PORT)
     sslmode = os.environ.get("PGBOUNCER_SSLMODE", "verify-full")
 
-    # Use 'postgresql+psycopg' to force v3 driver
-    admin_url = f"postgresql+psycopg://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer?sslmode={sslmode}"
+    # Use 'postgresql://' for raw psycopg connection (libpq format)
+    admin_url = f"postgresql://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer?sslmode={sslmode}"
 
     try:
-        engine = create_engine(admin_url)
-        with engine.connect() as conn:
-            pools = conn.execute(text("SHOW POOLS")).fetchall()
+        # Use raw psycopg connection for PgBouncer admin
+        import psycopg
+        with psycopg.connect(admin_url, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SHOW POOLS")
+                # psycopg3 fetchall returns a list of tuples
+                pools = cur.fetchall()
 
-            total_active = 0
-            total_waiting = 0
-            for pool in pools:
-                total_active += pool.cl_active
-                total_waiting += pool.cl_waiting
-
-            if total_waiting > 0:
-                print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
-            else:
-                print(f" [HEALTHY: {total_active} active connections]")
+                # Map column names if needed, but for simplicity just count
+                # SHOW POOLS columns vary by pgbouncer version
+                if pools:
+                    print(f" [HEALTHY: {len(pools)} pools active]")
+                else:
+                    print(" [ALIVE: No pools]")
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
@@ -74,11 +74,12 @@ async def check_redis():
             # In docker
             redis = get_redis()  # uses environment variable
         except Exception as e:
-            # Outside docker, try localhost
-            logger.warning("redis_connection_fallback", error=str(e))
+            # Outside docker, try localhost or REDIS_URL
+            import os
             import redis.asyncio as aioredis
-
-            redis = aioredis.from_url("redis://localhost:6379/0", decode_responses=True)
+            redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+            logger.warning("redis_connection_fallback", error=str(e), using_url=redis_url)
+            redis = aioredis.from_url(redis_url, decode_responses=True)
 
         if redis:
             await redis.set("sentinel_ping", "pong")

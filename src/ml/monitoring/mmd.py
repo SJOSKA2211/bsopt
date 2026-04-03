@@ -5,7 +5,7 @@ import structlog
 from scipy.spatial.distance import cdist
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ def calculate_mmd(
         try:
             # We use Any to avoid mypy complaining about dynamic module
             val = float(
-                cast(Any, bsopt_core).calculate_mmd(
+                cast(Any, Manifold_core).calculate_mmd(
                     x.astype(np.float64), y.astype(np.float64), float(sigma)
                 )
             )
