@@ -33,9 +33,13 @@ def get_redis() -> Redis | None:
     if _redis is None:
         from src.shared.config import settings
 
+        url = settings.REDIS_URL
+        if "localhost" in url:
+            url = url.replace("localhost", "127.0.0.1")
+
         try:
             _redis = Redis.from_url(
-                settings.REDIS_URL,
+                url,
                 decode_responses=False,
                 max_connections=100,
                 socket_connect_timeout=5,
@@ -43,7 +47,7 @@ def get_redis() -> Redis | None:
                 retry_on_timeout=True,
             )
 
-            logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=100)
+            logger.info("redis_client_initialized", url=url, max_connections=100)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
             return None

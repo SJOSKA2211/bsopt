@@ -179,6 +179,9 @@ class Settings(BaseSettings):
         ],
         validation_alias="MARKET_TICKER_SYMBOLS",
     )
+    DEFAULT_VOLATILITY: float = 0.20
+    RISK_FREE_RATE: float = 0.05
+    DIVIDEND_YIELD: float = 0.01
 
     @property
     def rate_limit_tiers(self) -> dict[str, int]:

@@ -583,6 +583,57 @@ fn simulate_gbm_native<'py>(
 }
 
 #[pyfunction]
+#[pyo3(signature = (s0, k, t, v, r, q, is_call, n_paths, seed=None))]
+fn monte_carlo_price(
+    s0: f64,
+    k: f64,
+    t: f64,
+    v: f64,
+    r: f64,
+    q: f64,
+    is_call: bool,
+    n_paths: usize,
+    seed: Option<u64>,
+) -> PyResult<f64> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["monte_carlo_price"]).start_timer();
+    CALL_COUNTER.with_label_values(&["monte_carlo_price"]).inc();
+    
+    use rand::SeedableRng;
+    use rand_distr::{Distribution, Normal};
+
+    if t <= 0.0 {
+        timer.observe_duration();
+        return Ok(if is_call { (s0 - k).max(0.0) } else { (k - s0).max(0.0) });
+    }
+
+    let norm = Normal::new(0.0, 1.0).unwrap();
+    let drift = (r - q - 0.5 * v * v) * t;
+    let vol = v * t.sqrt();
+    let discount = (-r * t).exp();
+
+    let total_payoff: f64 = (0..n_paths).into_par_iter().map(|i| {
+        let mut rng = if let Some(s) = seed {
+            rand::rngs::StdRng::seed_from_u64(s + i as u64)
+        } else {
+            rand::rngs::StdRng::from_entropy()
+        };
+
+        let z = norm.sample(&mut rng);
+        let st = s0 * (drift + vol * z).exp();
+        
+        if is_call {
+            (st - k).max(0.0)
+        } else {
+            (k - st).max(0.0)
+        }
+    }).sum();
+
+    let price = discount * (total_payoff / n_paths as f64);
+    timer.observe_duration();
+    Ok(price)
+}
+
+#[pyfunction]
 fn get_manifold_metrics() -> PyResult<String> {
     let encoder = TextEncoder::new();
     let metric_families = REGISTRY.gather();

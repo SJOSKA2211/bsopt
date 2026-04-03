@@ -88,6 +88,11 @@ def recalibrate_symbol(self, symbol: str) -> dict:
         return asyncio.run(_recalibrate_symbol_async(self, symbol))
 
 
+async def _recalibrate_symbol_impl(symbol: str) -> dict:
+    """Legacy shim for direct async calibration execution."""
+    return await _recalibrate_symbol_async(None, symbol)
+
+
 async def _recalibrate_symbol_async(self, symbol: str) -> dict:
     """
     Persistent async calibration logic utilizing ProcessPoolExecutor for heavy math.
@@ -141,7 +146,7 @@ async def _recalibrate_symbol_async(self, symbol: str) -> dict:
 
     except Exception as exc:
         logger.error("calibration_error", symbol=symbol, error=str(exc))
-        if hasattr(self, "retry"):
+        if self is not None and hasattr(self, "retry"):
             raise self.retry(exc=exc, countdown=60)
         raise exc
 

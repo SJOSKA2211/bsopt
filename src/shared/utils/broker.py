@@ -16,7 +16,9 @@ class MessageBroker:
     """
 
     def __init__(self):
-        self.url = os.getenv("RABBITMQ_URL", "amqp://bsopt_admin:bsopt_rmq_secret@rabbitmq:5672/")
+        # Default to localhost:5673 for local development if not in Docker
+        default_url = "amqp://bsopt_admin:bsopt_rmq_secret@127.0.0.1:5673//"
+        self.url = os.getenv("RABBITMQ_URL", default_url)
         self._connection_pool: aio_pika.pool.Pool | None = None
         self._channel_pool: aio_pika.pool.Pool | None = None
         self._lock = asyncio.Lock()

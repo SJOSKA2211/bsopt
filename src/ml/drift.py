@@ -151,3 +151,40 @@ def calculate_psi(
         (expected_percents - actual_percents) * np.log(expected_percents / actual_percents)
     )
     return float(psi_value)
+
+
+class DriftTrigger:
+    """
+    God-Mode: Automated Retraining Trigger.
+    Combines Statistical Drift (PSI/KS) with Performance Degradation.
+    """
+
+    def __init__(self, config: dict[str, Any]):
+        self.config = config
+        self.psi_threshold = config.get("psi_threshold", 0.2)
+        self.perf_threshold = config.get("perf_threshold", 0.05)
+
+    def should_retrain(
+        self,
+        reference_data: np.ndarray,
+        current_data: np.ndarray,
+        current_performance: float,
+        baseline_performance: float | None = None,
+    ) -> tuple[bool, str]:
+        """
+        Determines if retraining is necessary based on data drift and performance.
+        """
+        if self.config.get("force_train", False):
+            return True, "force_train_enabled"
+
+        # 1. Statistical Data Drift (PSI)
+        psi = calculate_psi(reference_data, current_data)
+        if psi > self.psi_threshold:
+            return True, f"data_drift_detected_psi_{psi:.4f}"
+
+        # 2. Performance Drift
+        if baseline_performance is not None:
+            if current_performance < (baseline_performance - self.perf_threshold):
+                return True, f"perf_drift_detected_{current_performance:.4f}"
+
+        return False, "no_drift_detected"

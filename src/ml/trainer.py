@@ -1,4 +1,5 @@
 import mlflow
+import msgspec
 import numpy as np
 import structlog
 import xgboost as xgb
