@@ -70,7 +70,7 @@ def _heston_cf_kernel(
 
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -124,8 +124,27 @@ def batch_heston_price_jit(
     out: np.ndarray[Any, np.dtype[np.float64]],
 ) -> None:
     """
-    Advanced vectorized batch pricing. ZERO Python loops.
+    Advanced vectorized batch pricing.
+    Delegates to Rust core if available, otherwise uses Numba-accelerated FFT.
     """
+    if CORE_AVAILABLE:
+        try:
+            res = Manifold_core.batch_heston_price(
+                spots.astype(np.float64),
+                strikes.astype(np.float64),
+                maturities.astype(np.float64),
+                rates.astype(np.float64),
+                kappas.astype(np.float64),
+                thetas.astype(np.float64),
+                sigmas.astype(np.float64),
+                rhos.astype(np.float64),
+                v0s.astype(np.float64),
+            )
+            out[:] = res
+            return
+        except Exception as e:
+            logger.warning("rust_heston_batch_failed_falling_back", error=str(e))
+
     k = np.log(strikes / spots)
     # alpha = 1.5 for call, -2.5 for put usually, but let's stick to 1.5 and use parity
     alpha = np.full_like(k, 1.5)

@@ -18,7 +18,7 @@ from src.math_kernel.quant_utils import (
 from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -228,7 +228,7 @@ def vectorized_implied_volatility(
 
     if CORE_AVAILABLE:
         try:
-            return bsopt_core.batch_black_scholes_iv(
+            return Manifold_core.batch_black_scholes_iv(
                 market_prices.astype(np.float64),
                 spots.astype(np.float64),
                 strikes.astype(np.float64),

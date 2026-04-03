@@ -444,7 +444,9 @@ class Settings(BaseSettings):
     # MLflow tracking URI
     @property
     def tracking_uri(self) -> str:
-        """Point MLflow to Postgres always."""
+        """Returns the MLflow tracking URI, defaulting to database backend if not set."""
+        if self.MLFLOW_TRACKING_URI:
+            return self.MLFLOW_TRACKING_URI
         return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
 
     # Dask & Distributed

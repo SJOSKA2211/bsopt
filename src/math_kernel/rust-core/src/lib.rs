@@ -583,6 +583,81 @@ fn simulate_gbm_native<'py>(
 }
 
 #[pyfunction]
+fn batch_black_scholes_iv<'py>(
+    py: Python<'py>,
+    market_prices: PyReadonlyArray1<f64>,
+    spots: PyReadonlyArray1<f64>,
+    strikes: PyReadonlyArray1<f64>,
+    maturities: PyReadonlyArray1<f64>,
+    rates: PyReadonlyArray1<f64>,
+    dividends: PyReadonlyArray1<f64>,
+    is_calls: PyReadonlyArray1<bool>,
+    tolerance: f64,
+    max_iter: i32,
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_black_scholes_iv"]).start_timer();
+    CALL_COUNTER.with_label_values(&["batch_black_scholes_iv"]).inc();
+
+    let mp = market_prices.as_array();
+    let s = spots.as_array();
+    let k = strikes.as_array();
+    let t = maturities.as_array();
+    let r = rates.as_array();
+    let q = dividends.as_array();
+    let ic = is_calls.as_array();
+    let n = mp.len();
+
+    let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let res_slice = unsafe { res.as_slice_mut().unwrap() };
+
+    res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
+        let mpi = mp[i];
+        let si = s[i];
+        let ki = k[i];
+        let ti = t[i];
+        let ri = r[i];
+        let qi = q[i];
+        let ici = ic[i];
+
+        if ti <= 0.0 {
+            *out = 0.0;
+            return;
+        }
+
+        // Newton-Raphson for IV
+        let mut sigma = 0.3; // Initial guess
+        for _ in 0..max_iter {
+            let d1 = ((si / ki).ln() + (ri - qi + 0.5 * sigma * sigma) * ti) / (sigma * ti.sqrt());
+            let d2 = d1 - sigma * ti.sqrt();
+            
+            let price = if ici {
+                si * (-qi * ti).exp() * fast_cdf(d1) - ki * (-ri * ti).exp() * fast_cdf(d2)
+            } else {
+                ki * (-ri * ti).exp() * fast_cdf(-d2) - si * (-qi * ti).exp() * fast_cdf(-d1)
+            };
+
+            let vega = si * (-qi * ti).exp() * ti.sqrt() * (-(d1 * d1) / 2.0).exp() / (2.0 * PI).sqrt();
+            let diff = price - mpi;
+
+            if diff.abs() < tolerance {
+                break;
+            }
+
+            if vega.abs() < 1e-10 {
+                break;
+            }
+
+            sigma -= diff / vega;
+            sigma = sigma.max(1e-6).min(5.0);
+        }
+        *out = sigma;
+    });
+
+    timer.observe_duration();
+    Ok(res)
+}
+
+#[pyfunction]
 #[pyo3(signature = (s0, k, t, v, r, q, is_call, n_paths, seed=None))]
 fn monte_carlo_price(
     s0: f64,
@@ -650,7 +725,9 @@ fn Manifold_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_black_scholes_iv, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
+    m.add_function(wrap_pyfunction!(monte_carlo_price, m)?)?;
     m.add_function(wrap_pyfunction!(simulate_gbm_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     m.add_function(wrap_pyfunction!(batch_validate_ticks, m)?)?;

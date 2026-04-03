@@ -16,7 +16,7 @@ from src.math_kernel.quant_utils import (
 )
 
 try:
-    import bsopt_core
+    import Manifold_core
 
     CORE_AVAILABLE = True
 except ImportError:
@@ -298,7 +298,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         ):
             try:
                 # Optimized Rust path (GIL-free)
-                price = bsopt_core.monte_carlo_price(
+                price = Manifold_core.monte_carlo_price(
                     float(params.spot),
                     float(params.strike),
                     float(params.maturity),
@@ -307,6 +307,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
                     float(params.dividend),
                     bool(option_type == "call"),
                     int(self.config.n_paths),
+                    seed=int(run_seed),
                 )
                 return float(price), 0.0  # std_err omitted in Rust impl for now
             except Exception:
