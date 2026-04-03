@@ -213,6 +213,7 @@ async def health() -> dict[str, Any]:
     from src.database import health_check
     from src.math_kernel.rust_engine import is_rust_available
     from src.shared.utils.cache import get_redis
+    from src.shared.utils.broker import broker
 
     redis_status = "unhealthy"
     try:
@@ -223,11 +224,13 @@ async def health() -> dict[str, Any]:
         pass
 
     db_health = await health_check()
+    rabbitmq_health = await broker.health_check()
 
     return {
-        "status": "healthy",
+        "status": "healthy" if db_health["status"] == "healthy" and redis_status == "healthy" and rabbitmq_health["status"] == "healthy" else "degraded",
         "database": db_health,
         "redis": {"status": redis_status},
+        "rabbitmq": rabbitmq_health,
         "rust_core": {
             "available": is_rust_available(),
             "status": "healthy" if is_rust_available() else "unavailable",

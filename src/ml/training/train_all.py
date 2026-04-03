@@ -22,18 +22,18 @@ async def train_all():
     """
     settings = get_settings()
 
+    from src.ml.training.base import TrainingConfig
+
     # Configuration for the pipeline
-    config = {
-        "api_key": os.getenv("ALPHA_VANTAGE_API_KEY"),
-        "provider": "auto",  # auto-select provider
-        "db_url": settings.DATABASE_URL,
-        "ticker": os.getenv("TICKER", settings.DEFAULT_TICKER),
-        "study_name": os.getenv("STUDY_NAME", "autonomous_opt_v1"),
-        "n_trials": int(os.getenv("N_TRIALS", "20")),
-        "framework": os.getenv("FRAMEWORK", "xgboost"),
-        "promotion_threshold": 0.85,
-        "use_warm_start": True,
-    }
+    config = TrainingConfig(
+        framework=os.getenv("FRAMEWORK", "xgboost"),
+        metadata={
+            "api_key": os.getenv("ALPHA_VANTAGE_API_KEY") or "",
+            "provider": "auto",
+            "ticker": os.getenv("TICKER", settings.DEFAULT_TICKER),
+            "study_name": os.getenv("STUDY_NAME", "autonomous_opt_v1"),
+        }
+    )
 
     logger.info("initializing_autonomous_pipeline", config=config)
     pipeline = MLPipeline(config)

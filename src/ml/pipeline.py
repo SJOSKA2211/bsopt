@@ -15,7 +15,7 @@ logger = structlog.get_logger(__name__)
 class PipelineConfig(msgspec.Struct):
     """Configuration for the data pipeline."""
 
-    symbols: list[str] = [settings.DEFAULT_TICKER]
+    symbols: list[str] = msgspec.field(default_factory=lambda: [settings.DEFAULT_TICKER])
     min_samples: int = 1000
     max_samples: int = 10000
     validate_data: bool = True

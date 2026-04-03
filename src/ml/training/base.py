@@ -24,6 +24,7 @@ class TrainingConfig(msgspec.Struct):
     epochs: int = 10
     batch_size: int = 32
     lr: float = 0.001
+    metadata: dict[str, str] = {}
 
 
 class TrainingResult(msgspec.Struct):
