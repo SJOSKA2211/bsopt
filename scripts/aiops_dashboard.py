@@ -30,7 +30,14 @@ def print_section(title: str, color=CYAN):
 async def run_dashboard():
     # Setup
     os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "True"
-    reporter = HealthReporter(prometheus_url=settings.PROMETHEUS_URL)
+    
+    try:
+        from src.ml.aiops.health_reporter import HealthReporter
+    except ImportError as e:
+        print(f"\n{RED}🚨 ERROR: Could not import HealthReporter (likely missing ML dependencies or CUDA error): {e}{RESET}")
+        return
+
+    reporter = HealthReporter(prometheus_url=os.environ.get("PROMETHEUS_URL", settings.PROMETHEUS_URL))
 
     # In a real environment, we'd poll the running engine.
     # Here we simulate a snapshort of the Manifold state.

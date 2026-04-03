@@ -16,17 +16,25 @@ import numpy as np
 tracemalloc.start()
 logger = logging.getLogger(__name__)
 
+# --- Engines Detect ---
+try:
+    import Manifold_core as rust_core
+    RUST_AVAILABLE = True
+    print("[ENGINE] Rust Math Kernel (Manifold_core) ACTIVE")
+    logger.info("Rust Math Kernel (Manifold_core) Enabled")
+except ImportError:
+    RUST_AVAILABLE = False
+    logger.warning("Manifold_core not found. Falling back to Python/GPU engines")
+
 try:
     import cupy as cp
-
     GPU_AVAILABLE = True
-    # Configure CuPy memory pool to prevent leaks
     mempool = cp.get_default_memory_pool()
     pinned_mempool = cp.get_default_pinned_memory_pool()
     logger.info("CuPy GPU Acceleration Enabled")
 except ImportError:
     GPU_AVAILABLE = False
-    cp = np  # Fallback to NumPy API
+    cp = np
     logger.warning("CuPy not found. Falling back to Numba/NumPy (CPU)")
 
 
@@ -40,13 +48,9 @@ def to_numpy(arr: Any) -> np.ndarray:
 try:
     from numba import njit, prange
 except ImportError:
-
     def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-
+        def decorator(func): return func
         return decorator
-
     prange = range
 
 # Constants
@@ -80,32 +84,8 @@ def profile_memory():
 
 
 # -------------------------------------------------------------------------
-# GPU/NumPy Vectorized Implementations (Array-native without loops)
+# Kernels
 # -------------------------------------------------------------------------
-
-
-def _fast_normal_cdf(x: Any, backend: Any) -> Any:
-    """High-precision rational approximation of normal CDF using vector operations."""
-    abs_x = backend.abs(x)
-    t = 1.0 / (1.0 + 0.2316419 * abs_x)
-    d = INV_SQRT2PI * backend.exp(-x * x / 2.0)
-
-    prob = (
-        d
-        * t
-        * (
-            0.319381530
-            + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))
-        )
-    )
-
-    # Where x > 0, return 1 - prob, else return prob
-    return backend.where(x > 0, 1.0 - prob, prob)
-
-
-def _fast_normal_pdf(x: Any, backend: Any) -> Any:
-    return backend.exp(-0.5 * x * x) * INV_SQRT2PI
-
 
 def calculate_price(
     s: float | np.ndarray,
@@ -116,7 +96,28 @@ def calculate_price(
     q: float | np.ndarray,
     is_call: bool | np.ndarray,
 ) -> float | np.ndarray:
-    """Zero-Loop-Overhead GPU/CPU Vectorized Math Kernel for Black-Scholes Pricing."""
+    """Zero-Loop-Overhead Vectorized Math Kernel for Black-Scholes Pricing."""
+    
+    # 1. Try Rust Core first (Highest Performance on CPU)
+    if RUST_AVAILABLE and not GPU_AVAILABLE:
+        try:
+            # Handle scalar vs array
+            s_a = np.atleast_1d(s).astype(np.float64)
+            k_a = np.atleast_1d(k).astype(np.float64)
+            t_a = np.atleast_1d(t).astype(np.float64)
+            sigma_a = np.atleast_1d(sigma).astype(np.float64)
+            r_a = np.atleast_1d(r).astype(np.float64)
+            q_a = np.atleast_1d(q).astype(np.float64)
+            call_a = np.atleast_1d(is_call).astype(bool)
+            
+            res = rust_core.batch_black_scholes(s_a, k_a, t_a, sigma_a, r_a, q_a, call_a)
+            if np.isscalar(s) and np.isscalar(k):
+                return float(res[0])
+            return res
+        except Exception as e:
+            logger.error(f"Rust price kernel failed: {e}")
+
+    # 2. Fallback to GPU/NumPy
     backend = cp if GPU_AVAILABLE else np
 
     s_a = backend.asarray(s, dtype=backend.float64)
@@ -146,7 +147,6 @@ def calculate_price(
     put_price = k_a * exp_rT * (1.0 - cdf_d2) - s_a * exp_qT * (1.0 - cdf_d1)
 
     out = backend.where(call_flag, call_price, put_price)
-
     out = to_numpy(out)
 
     if np.isscalar(s) and np.isscalar(k):
@@ -163,7 +163,27 @@ def calculate_greeks(
     q: float | np.ndarray,
     is_call: bool | np.ndarray,
 ) -> tuple[float | np.ndarray, ...]:
-    """Vectorized GPU/CPU Math Kernel for Black-Scholes Greeks."""
+    """Vectorized Math Kernel for Black-Scholes Greeks."""
+    
+    # 1. Try Rust Core first
+    if RUST_AVAILABLE and not GPU_AVAILABLE:
+        try:
+            s_a = np.atleast_1d(s).astype(np.float64)
+            k_a = np.atleast_1d(k).astype(np.float64)
+            t_a = np.atleast_1d(t).astype(np.float64)
+            sigma_a = np.atleast_1d(sigma).astype(np.float64)
+            r_a = np.atleast_1d(r).astype(np.float64)
+            q_a = np.atleast_1d(q).astype(np.float64)
+            call_a = np.atleast_1d(is_call).astype(bool)
+            
+            res = rust_core.batch_black_scholes_greeks(s_a, k_a, t_a, sigma_a, r_a, q_a, call_a)
+            if np.isscalar(s) and np.isscalar(k):
+                return tuple(float(arr[0]) for arr in res)
+            return res
+        except Exception as e:
+            logger.error(f"Rust greeks kernel failed: {e}")
+
+    # 2. Fallback to GPU/NumPy
     backend = cp if GPU_AVAILABLE else np
 
     s_a = backend.asarray(s, dtype=backend.float64)
@@ -190,7 +210,6 @@ def calculate_greeks(
     exp_qT = backend.exp(-q_a * safe_t)
     exp_rT = backend.exp(-r_a * safe_t)
 
-    # Gamma and Vega are the same for calls and puts
     gamma = (pdf_d1 * exp_qT) / (s_a * vol_sqrt_t)
     vega = s_a * exp_qT * pdf_d1 * backend.sqrt(safe_t) / 100.0
 
@@ -216,12 +235,25 @@ def calculate_greeks(
     theta = backend.where(call_flag, theta_call, theta_put)
 
     results = (delta, gamma, theta, vega, rho)
-
     results = tuple(to_numpy(arr) for arr in results)
 
     if np.isscalar(s) and np.isscalar(k):
         return tuple(float(arr.item()) for arr in results)
     return results
+
+
+def _fast_normal_cdf(x: Any, backend: Any) -> Any:
+    """High-precision rational approximation of normal CDF."""
+    abs_x = backend.abs(x)
+    t = 1.0 / (1.0 + 0.2316419 * abs_x)
+    d = INV_SQRT2PI * backend.exp(-x * x / 2.0)
+    prob = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
+    return backend.where(x > 0, 1.0 - prob, prob)
+
+
+def _fast_normal_pdf(x: Any, backend: Any) -> Any:
+    return backend.exp(-0.5 * x * x) * INV_SQRT2PI
+
 
 
 @njit(cache=True, fastmath=True)

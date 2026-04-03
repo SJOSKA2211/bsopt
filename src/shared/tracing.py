@@ -20,7 +20,7 @@ from functools import wraps
 from typing import Any
 
 import structlog
-from opentelemetry import trace
+from opentelemetry.trace import Tracer
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 try:

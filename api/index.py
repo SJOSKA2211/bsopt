@@ -225,6 +225,14 @@ async def health() -> dict[str, Any]:
 
     db_health = await health_check()
     rabbitmq_health = await broker.health_check()
+    if rabbitmq_health["status"] == "healthy":
+        try:
+            # Add stats for the default task queue
+            rabbitmq_health["queues"] = {
+                "default": await broker.get_queue_stats("default")
+            }
+        except Exception:
+            pass
 
     return {
         "status": "healthy" if db_health["status"] == "healthy" and redis_status == "healthy" and rabbitmq_health["status"] == "healthy" else "degraded",

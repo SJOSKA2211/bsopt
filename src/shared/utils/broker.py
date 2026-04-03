@@ -39,7 +39,7 @@ class MessageBroker:
             return await connection.channel()
 
     async def connect(self):
-        """Initialize connection and channel pools."""
+        """Initialize connection and channel pools with DLX setup."""
         if self._connection_pool:
             return
 
@@ -47,7 +47,14 @@ class MessageBroker:
             if not self._connection_pool:
                 self._connection_pool = aio_pika.pool.Pool(self._get_connection, max_size=2)
                 self._channel_pool = aio_pika.pool.Pool(self._get_channel, max_size=10)
-                logger.info("rabbitmq_pools_initialized", url=self.url.split("@")[-1])
+                
+                # Setup DLX infrastructure
+                async with self._channel_pool.acquire() as channel:
+                    await channel.declare_exchange("dlx", aio_pika.ExchangeType.DIRECT, durable=True)
+                    await channel.declare_queue("dead_letters", durable=True)
+                    # We would typically bind specific keys here in a real app
+                
+                logger.info("rabbitmq_pools_and_dlx_initialized", url=self.url.split("@")[-1])
 
     async def health_check(self) -> dict[str, Any]:
         """Check RabbitMQ connectivity health via pool acquisition."""
@@ -55,25 +62,40 @@ class MessageBroker:
             await self.connect()
             async with self._channel_pool.acquire() as channel:
                 if not channel.is_closed:
-                    return {"status": "healthy", "url": self.url.split("@")[-1], "type": "pooled"}
+                    return {"status": "healthy", "url": self.url.split("@")[-1], "type": "pooled_confirmed"}
             return {"status": "unhealthy", "reason": "pool_exhausted_or_closed"}
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
 
-    async def publish(self, queue_name: str, message: bytes, priority: int = 0, durable: bool = True):
-        """Publish a message using a pooled channel."""
+    async def get_queue_stats(self, queue_name: str) -> dict[str, Any]:
+        """Retrieve granular queue statistics."""
         await self.connect()
         async with self._channel_pool.acquire() as channel:
-            # Using the default exchange
-            await channel.default_exchange.publish(
-                aio_pika.Message(
-                    body=message,
-                    priority=priority,
-                    delivery_mode=aio_pika.DeliveryMode.PERSISTENT if durable else aio_pika.DeliveryMode.NOT_PERSISTENT
-                ),
-                routing_key=queue_name
+            queue = await channel.declare_queue(queue_name, durable=True, passive=True)
+            return {
+                "message_count": queue.declaration_result.message_count,
+                "consumer_count": queue.declaration_result.consumer_count,
+            }
+
+    async def publish(self, queue_name: str, message: bytes, priority: int = 0, durable: bool = True):
+        """
+        Publish a message using a pooled channel with Publisher Confirms.
+        Ensures the message is safely stored in RabbitMQ before returning.
+        """
+        await self.connect()
+        async with self._channel_pool.acquire() as channel:
+            # Enable publisher confirms for this specific publication
+            # Note: channel.confirm_select() is called automatically by aio-pika robust channels
+            
+            msg = aio_pika.Message(
+                body=message,
+                priority=priority,
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT if durable else aio_pika.DeliveryMode.NOT_PERSISTENT,
+                headers={"x-retry-count": 0}
             )
-            logger.debug("message_published_pooled", queue=queue_name)
+            
+            await channel.default_exchange.publish(msg, routing_key=queue_name)
+            logger.debug("message_published_confirmed", queue=queue_name)
 
     async def consume(self, queue_name: str, callback: Callable[[aio_pika.IncomingMessage], Any], prefetch: int = 10):
         """Subscribe to a queue and process messages with high-throughput prefetching."""

@@ -21,6 +21,12 @@ celery_app = Celery(
         "src.ingestion.tasks",
         "src.ml.pipelines.retraining",
         "src.ml.aiops.remediators",
+        "src.workers.tasks.ml_tasks",
+        "src.workers.tasks.pricing_tasks",
+        "src.workers.tasks.trading_tasks",
+        "src.workers.tasks.security_tasks",
+        "src.workers.tasks.data_tasks",
+        "src.shared.tasks.audit_tasks",
     ],
 )
 

@@ -1,3 +1,4 @@
+source .venv/bin/activate
 #!/bin/bash
 # run_api_local.sh
 
@@ -15,4 +16,4 @@ export INSIDE_DOCKER=0
 export PYTHONPATH=$(pwd)
 
 # Start API
-uvicorn api.index:app --host 0.0.0.0 --port 8000
+granian --interface asgi api.index:app --host 0.0.0.0 --port 8000

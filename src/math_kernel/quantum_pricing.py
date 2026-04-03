@@ -6,14 +6,14 @@ import structlog
 
 #  HARDENED: Qiskit 1.0+ Compliance
 try:
-    from qiskit import QuantumCircuit
+    from qiskit.circuit import QuantumCircuit
     from qiskit.primitives import Sampler, SamplerV2
     from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 
     QISKIT_AVAILABLE = True
 except ImportError:
     try:
-        from qiskit import QuantumCircuit
+        from qiskit.circuit import QuantumCircuit
         from qiskit.primitives import Sampler
         from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 

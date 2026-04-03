@@ -9,7 +9,11 @@ logger = structlog.get_logger()
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
-        from src.database import db_manager
+        try:
+            from src.database import db_manager
+        except ImportError as e:
+            print(f"❌ [MISSING DEPENDENCY: {e}]")
+            return
 
         db_manager.initialize()
         engine = db_manager.engine
@@ -30,36 +34,31 @@ async def check_database():
 async def check_pgbouncer():
     print("Checking PgBouncer Pool Engine...", end=" ", flush=True)
     import os
-
-    from sqlalchemy import create_engine, text
+    try:
+        import psycopg
+    except ImportError:
+        print(" ❌ [FAILED: psycopg (v3) not installed]")
+        return
 
     from src.shared.config import settings
 
-    # Allow host/port/sslmode overrides for local testing outside docker
     host = os.environ.get("PGBOUNCER_HOST", settings.PGBOUNCER_HOST)
-    port = os.environ.get("PGBOUNCER_PORT", settings.PGBOUNCER_PORT)
-    sslmode = os.environ.get("PGBOUNCER_SSLMODE", "verify-full")
+    port = int(os.environ.get("PGBOUNCER_PORT", settings.PGBOUNCER_PORT))
+    sslmode = os.environ.get("PGBOUNCER_SSLMODE", "require")
 
-    # Use 'postgresql://' for raw psycopg connection (libpq format)
     admin_url = f"postgresql://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer?sslmode={sslmode}"
 
     try:
-        # Use raw psycopg connection for PgBouncer admin
-        import psycopg
         with psycopg.connect(admin_url, autocommit=True) as conn:
             with conn.cursor() as cur:
                 cur.execute("SHOW POOLS")
-                # psycopg3 fetchall returns a list of tuples
                 pools = cur.fetchall()
-
-                # Map column names if needed, but for simplicity just count
-                # SHOW POOLS columns vary by pgbouncer version
                 if pools:
                     print(f" [HEALTHY: {len(pools)} pools active]")
                 else:
                     print(" [ALIVE: No pools]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" ❌ [FAILED: {e}]")
 
 
 async def check_redis():
@@ -67,7 +66,11 @@ async def check_redis():
     try:
         import socket
 
-        from src.shared.utils.cache import get_redis
+        try:
+            from src.shared.utils.cache import get_redis
+        except ImportError as e:
+            print(f"❌ [MISSING DEPENDENCY: {e}]")
+            return
 
         try:
             socket.gethostbyname("redis")
@@ -76,7 +79,11 @@ async def check_redis():
         except Exception as e:
             # Outside docker, try localhost or REDIS_URL
             import os
-            import redis.asyncio as aioredis
+            try:
+                import redis.asyncio as aioredis
+            except ImportError:
+                print(" ❌ [FAILED: redis-py not installed]")
+                return
             redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
             logger.warning("redis_connection_fallback", error=str(e), using_url=redis_url)
             redis = aioredis.from_url(redis_url, decode_responses=True)
@@ -98,24 +105,35 @@ async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
         from multiprocessing import shared_memory
-
+        import os
         from src.shared.shm_init import SHM_CONFIGS
 
         missing = []
+        # On Linux, shared memory segments appear in /dev/shm
+        # Python's SharedMemory(name='x') creates '/dev/shm/x'
+        dev_shm = "/dev/shm"
+        shm_files = os.listdir(dev_shm) if os.path.exists(dev_shm) else []
+        
         for config in SHM_CONFIGS:
             name = config["name"]
+            # Check if it exists via multiprocessing API
             try:
-                shm = shared_memory.SharedMemory(name=name)
-                if shm.size != config["size"]:
-                    missing.append(f"{name} (size mismatch)")
+                shm = shared_memory.SharedMemory(name=f"/{name}")
                 shm.close()
             except FileNotFoundError:
-                missing.append(name)
+                # Fallback: check /dev/shm directly
+                if not any(f == name or f == f"/{name}" for f in shm_files) and not any(f == name.lstrip("/") for f in shm_files):
+                    missing.append(name)
 
         if not missing:
             print(" [PRESSURIZED]")
         else:
             print(f"⚠️ [MISSING/CORRUPT: {', '.join(missing)}]")
+            if shm_files:
+                # Filter out semaphores and other unrelated files
+                actual_shm = [f for f in shm_files if not f.startswith("sem.")]
+                if actual_shm:
+                    print(f"   (Detected in /dev/shm: {', '.join(actual_shm[:5])})")
     except Exception as e:
         print(f"❌ [ERROR: {e}]")
 

@@ -59,12 +59,26 @@ class BatchInferenceResponse(msgspec.Struct, frozen=True):
 class ComparisonMetrics(msgspec.Struct, frozen=True):
     """Real-time performance metrics (AI vs Human)."""
 
-    userPnl: float
-    aiPnl: float
-    userSharpe: float
-    aiSharpe: float
-    userWinRate: float
-    aiWinRate: float
+    user_pnl: float
+    ai_pnl: float
+    user_sharpe: float
+    ai_sharpe: float
+    user_win_rate: float
+    ai_win_rate: float
+
+    # Keep camelCase aliases for legacy compatibility if needed
+    @property
+    def userPnl(self) -> float: return self.user_pnl
+    @property
+    def aiPnl(self) -> float: return self.ai_pnl
+    @property
+    def userSharpe(self) -> float: return self.user_sharpe
+    @property
+    def aiSharpe(self) -> float: return self.ai_sharpe
+    @property
+    def userWinRate(self) -> float: return self.user_win_rate
+    @property
+    def aiWinRate(self) -> float: return self.ai_win_rate
 
 
 class DriftMetrics(msgspec.Struct, frozen=True):

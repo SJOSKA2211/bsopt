@@ -69,6 +69,7 @@ observability = [
     "opentelemetry-instrumentation-fastapi>=0.45b0",
     "opentelemetry-instrumentation-celery>=0.45b0",
     "opentelemetry-exporter-otlp>=1.24.0",
+    "brotli-asgi",
 ]
 ml = [
     "torch>=2.2.0",

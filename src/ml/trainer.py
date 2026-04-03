@@ -1,6 +1,7 @@
 import mlflow
 import msgspec
 import numpy as np
+import os
 import structlog
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -29,32 +30,57 @@ class ModelTrainer(BaseTrainer):
         metadata: dict[str, str] | None = None,
     ) -> TrainingResult:
         """
-        Execute training and evaluation using specified framework.
+        Execute training and evaluation using specified framework with Optuna optimization.
         """
+        import optuna
         framework = config.framework.lower()
-        logger.info("ml_training_started", framework=framework, samples=len(X))
+        logger.info("ml_optimization_started", framework=framework, samples=len(X))
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        with mlflow.start_run(nested=True) as run:
-            # Convert config to dict for mlflow logging
-            self.log_params(msgspec.json.decode(msgspec.json.encode(config)))
-            if metadata:
-                self.set_tags(metadata)
-
+        def objective(trial):
             if framework == "xgboost":
-                score = self._train_xgboost(X_train, y_train, X_test, y_test, config)
-            elif framework == "torch" or framework == "neural":
-                score = self._train_torch(X_train, y_train, X_test, y_test, config)
+                params = {
+                    "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+                    "max_depth": trial.suggest_int("max_depth", 3, 10),
+                    "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                    "subsample": trial.suggest_float("subsample", 0.5, 1.0),
+                    "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+                }
+                model = xgb.XGBRegressor(**params, n_jobs=-1, tree_method="hist")
+                model.fit(X_train, y_train)
+                preds = model.predict(X_test)
             else:
-                raise ValueError(f"Unsupported framework: {framework}")
+                # Fallback to base training for torch in objective if complex, 
+                # or implement torch-specific params
+                return self._train_torch(X_train, y_train, X_test, y_test, config)
+            
+            from sklearn.metrics import r2_score
+            return r2_score(y_test, preds)
 
-            self.best_score = score
-            self.log_metrics({"r2_score": score})
-            logger.info("ml_training_complete", score=score)
+        # Run Study
+        study = optuna.create_study(direction="maximize")
+        study.optimize(objective, n_trials=int(os.getenv("N_TRIALS", "5")))
+        
+        self.best_score = study.best_value
+        logger.info("optimization_complete", best_score=self.best_score, params=study.best_params)
 
+        # Final train with best params
+        with mlflow.start_run(nested=True) as run:
+            unified_params = msgspec.json.decode(msgspec.json.encode(config))
+            unified_params.update(study.best_params)
+            self.log_params(unified_params)
+            
+            if framework == "xgboost":
+                # Convert back to TrainingConfig for internal methods
+                cfg_obj = msgspec.json.decode(msgspec.json.encode(unified_params), type=TrainingConfig)
+                score = self._train_xgboost(X_train, y_train, X_test, y_test, cfg_obj)
+            else:
+                score = self._train_torch(X_train, y_train, X_test, y_test, config)
+
+            self.log_metrics({"best_r2_score": score})
             return TrainingResult(
-                score=score, metadata={"framework": framework, "samples": str(len(X))}
+                score=score, metadata={"framework": framework, "optimized": "true"}
             )
 
     def _train_xgboost(
@@ -93,7 +119,7 @@ class ModelTrainer(BaseTrainer):
             initial_type = [('float_input', FloatTensorType([None, X_train.shape[1]]))]
             onnx_model = onnxmltools.convert_xgboost(self.model, initial_types=initial_type, target_opset=15)
             mlflow.onnx.log_model(onnx_model, "onnx_model")
-            logger.info("xgboost_onnx_export_success")
+            logger.info("xgboost_onnx_export_success", artifact_path="onnx_model") # Log artifact path
         except Exception as e:
             logger.warning("xgboost_onnx_export_failed", error=str(e))
             

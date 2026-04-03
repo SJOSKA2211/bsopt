@@ -584,6 +584,7 @@ ml = [
     { name = "xgboost" },
 ]
 observability = [
+    { name = "brotli-asgi" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "opentelemetry-instrumentation-celery" },
@@ -627,6 +628,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "black", marker = "extra == 'dev'", specifier = "==24.3.0" },
     { name = "brotli-asgi", marker = "extra == 'api'", specifier = ">=1.4.0" },
+    { name = "brotli-asgi", marker = "extra == 'observability'" },
     { name = "celery", marker = "extra == 'distributed'", specifier = ">=5.4.0" },
     { name = "cryptography", marker = "extra == 'auth'", specifier = ">=44.0.1" },
     { name = "email-validator", marker = "extra == 'auth'", specifier = "==2.1.1" },

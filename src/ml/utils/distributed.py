@@ -4,7 +4,12 @@ from typing import Any
 import dask
 import structlog
 import xgboost as xgb
-import xgboost.dask
+try:
+    import xgboost.dask as xgb_dask
+except (ImportError, AttributeError):
+    # Handle cases where xgboost is mocked or dask subpackage is missing
+    xgb_dask = None
+
 from dask.distributed import Client, LocalCluster
 
 from src.config import settings
@@ -55,7 +60,10 @@ def train_xgboost_distributed(
         dX = da.from_array(X, chunks=len(X) // chunk_size_fraction)
         dy = da.from_array(y, chunks=len(y) // chunk_size_fraction)
 
-        dask_model = xgb.dask.DaskXGBRegressor(**params)
+        if xgb_dask is None:
+            raise ImportError("xgboost.dask is not available")
+
+        dask_model = xgb_dask.DaskXGBRegressor(**params)
         dask_model.fit(dX, dy, client=client)
 
         logger.info("Distributed training complete.")
