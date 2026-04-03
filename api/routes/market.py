@@ -5,7 +5,8 @@ Market Routes: Real-time Telemetry & Data Mesh
 from typing import List
 
 import structlog
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from api.responses import MsgspecJSONResponse
@@ -40,3 +41,30 @@ async def get_tickers(current_user: User = Depends(get_current_active_user)):
         logger.error("get_tickers_failed", error=str(e))
         # Fallback to an empty list rather than crashing the tape
         return []
+
+@router.get("/sse/market-data")
+async def sse_market_data(request: Request, symbols: str = ""):
+    """
+    Server-Sent Events endpoint for real-time market data.
+    Compatible with Vercel Serverless Functions.
+    """
+    import asyncio
+    import json
+    from src.shared.config import settings
+    
+    syms = symbols.split(",") if symbols else settings.MARKET_TICKER_SYMBOLS
+    
+    async def event_generator():
+        while True:
+            if await request.is_disconnected():
+                break
+            try:
+                quotes = await asyncio.gather(*[market_router_engine.get_live_quote(s) for s in syms])
+                results = [q.to_ticker() for q in quotes]
+                yield f"data: {json.dumps(results)}\n\n"
+            except Exception as e:
+                logger.error("sse_error", error=str(e))
+            await asyncio.sleep(5)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+

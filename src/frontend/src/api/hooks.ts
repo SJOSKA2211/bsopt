@@ -158,60 +158,55 @@ export function useComparisonData() {
 
 export function useLiveTickers(symbols: string[]) {
   const queryClient = useQueryClient();
-  const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    //  This is a placeholder for a real auth token
-    const token = "dummy-jwt-for-ws"; 
+    const symbolQuery = symbols.join(',');
+    const sseUrl = `/api/v1/market/sse/market-data?symbols=${symbolQuery}`;
+    
+    let eventSource: EventSource | null = null;
     
     const connect = () => {
-      const wsUrl = `ws://${window.location.host}/api/v1/market/ws/market-data?token=${token}`;
-      ws.current = new WebSocket(wsUrl);
+      eventSource = new EventSource(sseUrl);
 
-      ws.current.onopen = () => {
-        console.log('Market data WebSocket connected');
-        // Subscribe to initial symbols
-        symbols.forEach(symbol => {
-          ws.current?.send(JSON.stringify({ action: 'subscribe', symbol }));
-        });
-      };
-
-      ws.current.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === 'ticker') {
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
           queryClient.setQueryData<Ticker[]>(['market', 'tickers'], (oldData) => {
             const newData = oldData ? [...oldData] : [];
-            const index = newData.findIndex(t => t.symbol === message.data.symbol);
-            if (index !== -1) {
-              newData[index] = { ...newData[index], ...message.data };
-            } else {
-              newData.push(message.data);
-            }
+            const items = Array.isArray(data) ? data : [data];
+            
+            items.forEach((item: Ticker) => {
+               const index = newData.findIndex(t => t.symbol === item.symbol);
+               if (index !== -1) {
+                 newData[index] = { ...newData[index], ...item };
+               } else {
+                 newData.push(item);
+               }
+            });
             return newData;
           });
+        } catch (e) {
+          console.error("SSE parse error:", e);
         }
       };
 
-      ws.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      ws.current.onclose = () => {
-        console.log('Market data WebSocket disconnected. Reconnecting...');
-        setTimeout(connect, 5000); // Reconnect after 5s
+      eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        eventSource?.close();
+        setTimeout(connect, 5000);
       };
     };
 
     connect();
 
     return () => {
-      ws.current?.close();
+      eventSource?.close();
     };
-  }, [symbols, queryClient]);
+  }, [symbols.join(','), queryClient]);
 
   return useReactQuery<Ticker[]>({
     queryKey: ['market', 'tickers'],
-    queryFn: () => [], // Data is managed by WebSocket
+    queryFn: () => symbols.map(sym => ({ symbol: sym, price: '0.00', percentChange: '0.00%', up: true } as Ticker)), // Initial fallback
     staleTime: Infinity,
   });
 }
