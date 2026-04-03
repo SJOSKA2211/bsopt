@@ -9,6 +9,13 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from src.auth.grpc_server import serve as serve_grpc
 from src.auth.health import get_overall_health
 
+# Attempt to use uvloop for high performance
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -55,7 +62,7 @@ async def run_servers():
     grpc_port = os.getenv("GRPC_PORT", "50051")
     http_port = int(os.getenv("HTTP_PORT", 3001))
     
-    logger.info(f"🚀 Starting Auth Service Mesh...")
+    logger.info(f"🚀 Starting Auth Service Mesh with uvloop...")
     
     # Start background tasks
     from src.auth.tasks import flush_api_key_usage_loop
@@ -71,7 +78,8 @@ async def run_servers():
         host="0.0.0.0", 
         port=http_port, 
         log_level="info",
-        access_log=True  # Enabled for debugging
+        access_log=False,  # Optimization: Disable access logs in production
+        loop="uvloop" if "uvloop" in sys.modules else "auto"
     )
     server = uvicorn.Server(config)
     

@@ -22,15 +22,17 @@ _vault = (
 async def _produce_audit_log(payload: dict[str, Any]):
     """Background task to produce audit logs to RabbitMQ with delivery assurance."""
     try:
-        rmq = get_rabbitmq()
-        
-        #  OPTIMIZATION: Encrypt PII fields at rest
+        # OPTIMIZATION: Move encryption to background task to minimize request latency
         if _vault:
-            if "user_id" in payload:
-                payload["user_id"] = _vault.encrypt(str(payload["user_id"]).encode())
-            if "client_ip" in payload:
+            if "user_email" in payload and payload["user_email"] not in ("anonymous", None):
+                payload["user_email"] = _vault.encrypt(str(payload["user_email"]).encode())
+            if "client_ip" in payload and payload["client_ip"] not in ("unknown", None):
                 payload["client_ip"] = _vault.encrypt(str(payload["client_ip"]).encode())
+            if "user_id" in payload and payload["user_id"] not in ("anonymous", None):
+                # Only encrypt if it's a real user_id
+                payload["user_id"] = _vault.encrypt(str(payload["user_id"]).encode())
 
+        rmq = get_rabbitmq()
         await rmq.publish_audit(payload)
         logger.debug("audit_log_published_to_rabbitmq")
     except Exception as e:
@@ -39,7 +41,7 @@ async def _produce_audit_log(payload: dict[str, Any]):
 class AuditMiddleware(BaseHTTPMiddleware):
     """
     Production Audit Middleware.
-    Pushes encrypted audit logs to RabbitMQ asynchronously.
+    Pushes audit logs to RabbitMQ asynchronously.
     """
     def __init__(self, app):
         super().__init__(app)
@@ -50,7 +52,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         # Process the request
         response = await call_next(request)
 
-        # Capture audit information
+        # Capture audit information (fast path)
         user_id = getattr(request.state, "user_id", "anonymous")
         user_email = getattr(request.state, "user_email", "anonymous")
 
@@ -65,17 +67,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "user_agent": request.headers.get("user-agent", "unknown"),
             "latency_ms": (time.time() - start_time) * 1000,
         }
-
-        if _vault:
-            # Encrypt sensitive fields
-            if "user_email" in audit_payload and audit_payload["user_email"] != "anonymous":
-                audit_payload["user_email"] = _vault.encrypt(
-                    str(audit_payload["user_email"]).encode()
-                )
-            if "client_ip" in audit_payload and audit_payload["client_ip"] != "unknown":
-                audit_payload["client_ip"] = _vault.encrypt(
-                    str(audit_payload["client_ip"]).encode()
-                )
 
         # Use BackgroundTasks to offload the production
         if "background_tasks" not in request.scope:
