@@ -292,6 +292,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
           <Tooltip title="Toggle Production Trendline">
             <IconButton 
               size="small" 
+              aria-label="Toggle Production Trendline"
               onClick={() => setShowSMA(!showSMA)}
               sx={{ 
                 bgcolor: alpha(qfd?.sky ?? '#38bdf8', showSMA ? 0.15 : 0.05),
