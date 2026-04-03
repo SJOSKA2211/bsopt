@@ -320,11 +320,31 @@ class BlackScholesEngine(PricingStrategy):
             ),
         )
 
+    @staticmethod
+    def verify_put_call_parity(params: BSParameters) -> bool:
+        """
+        Verify Put-Call Parity: C - P = S * exp(-q * T) - K * exp(-r * T)
+        """
+        call_price = BlackScholesEngine.price_options(params=params, option_type="call")
+        put_price = BlackScholesEngine.price_options(params=params, option_type="put")
+
+        lhs = float(call_price) - float(put_price)
+        rhs = params.spot * np.exp(-params.dividend * params.maturity) - params.strike * np.exp(
+            -params.rate * params.maturity
+        )
+
+        return bool(np.isclose(lhs, rhs, atol=1e-5))
+
     def price_european(
         self, params: BSParameters, option_type: str = "call", **kwargs: Any
     ) -> float:
         """Implementation of PricingStrategy interface."""
         return float(self.price_options(params=params, option_type=option_type, **kwargs))
+
+
+def verify_put_call_parity(params: BSParameters) -> bool:
+    """Standalone wrapper for parity verification."""
+    return BlackScholesEngine.verify_put_call_parity(params)
 
 
 def black_scholes(*args: Any, **kwargs: Any) -> Any:

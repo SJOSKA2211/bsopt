@@ -22,6 +22,9 @@ from .auth import (
     get_current_user,
 )
 
+# Shims for legacy imports
+from src.auth.core import mfa, hashing as password
+
 __all__ = [
     # Unified Auth
     "AuthService",

@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 
 from src.database.models import SecurityIncident, User
 from src.shared.config import settings
-from src.shared.src.email_service import TransactionalEmailService
+from src.shared.email import TransactionalEmailService
 
 logger = logging.getLogger(__name__)
 

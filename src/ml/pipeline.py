@@ -1,5 +1,6 @@
 import asyncio
 
+import mlflow
 import msgspec
 import numpy as np
 import pandas as pd

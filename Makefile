@@ -79,6 +79,12 @@ health-check:
 	@echo "Checking health..."
 	curl -s http://localhost:8000/health | jq .
 
+rmq-clean:
+	@echo "Cleaning RabbitMQ queues..."
+	docker exec bsopt-rabbitmq-1 rabbitmqctl delete_vhost /
+	docker exec bsopt-rabbitmq-1 rabbitmqctl add_vhost /
+	docker exec bsopt-rabbitmq-1 rabbitmqctl set_permissions -p / bsopt_admin ".*" ".*" ".*"
+
 clean:
 	@echo "Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +

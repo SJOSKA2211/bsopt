@@ -223,7 +223,6 @@ class AuthService:
 
         return True
 
-
 # Global instance
 auth_service = AuthService()
 
@@ -253,7 +252,9 @@ class TokenBlacklistShim:
         return await session_service.is_token_revoked(jti)
 
 
+TokenBlacklist = TokenBlacklistShim
 token_blacklist = TokenBlacklistShim()
+
 auth_service.token_blacklist = token_blacklist
 
 

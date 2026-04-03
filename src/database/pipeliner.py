@@ -24,7 +24,7 @@ class VectorizedDBEngine:
         return await conn.get_raw_connection()
 
     async def fetch_training_data(
-        self, symbols: list[str], limit: int = 10000
+        self, symbols: list[str], limit: int = 10000, offset: int = 0
     ) -> list[dict[str, Any]]:
         """
         High-speed retrieval of training data using binary format.
@@ -37,7 +37,7 @@ class VectorizedDBEngine:
             FROM options_prices 
             WHERE symbol = ANY($1) 
             ORDER BY symbol, time DESC 
-            LIMIT $2
+            LIMIT $2 OFFSET $3
         """
 
         async with db_manager.async_engine.connect() as conn:
@@ -45,7 +45,7 @@ class VectorizedDBEngine:
             try:
                 start_time = asyncio.get_event_loop().time()
                 # Use binary format for faster transfer via raw asyncpg
-                records = await raw_conn.driver_connection.fetch(query, symbols, limit)
+                records = await raw_conn.driver_connection.fetch(query, symbols, limit, offset)
                 duration = (asyncio.get_event_loop().time() - start_time) * 1000
                 logger.info("db_fetch_success", rows=len(records), latency_ms=round(duration, 2))
                 return [dict(r) for r in records]
