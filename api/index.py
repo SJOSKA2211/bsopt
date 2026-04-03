@@ -207,15 +207,12 @@ async def health() -> dict[str, Any]:
     from src.shared.utils.cache import get_redis
     
     redis_status = "unhealthy"
-    if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
-        redis_status = "healthy (simulated)"
-    else:
-        try:
-            redis = get_redis()
-            if redis and await redis.ping():
-                redis_status = "healthy"
-        except Exception:
-            pass
+    try:
+        redis = get_redis()
+        if redis and await redis.ping():
+            redis_status = "healthy"
+    except Exception:
+        pass
 
     db_health = await health_check()
     

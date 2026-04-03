@@ -328,12 +328,6 @@ async def set_user_context(session: AsyncSession, user_id: str) -> None:
 async def health_check() -> dict[str, Any]:
     """Enhanced database connectivity health check with retry (Asynchronous)."""
     status: dict[str, Any] = {"status": "unhealthy", "pgbouncer": settings.PGBOUNCER_ENABLED}
-    # If weak secrets are allowed (test/dev env), return mock healthy if connection fails
-    if os.getenv("BSOPT_ALLOW_WEAK_SECRETS") == "1":
-        status["status"] = "healthy"
-        status["version"] = "16.0 (Simulated)"
-        status["details"] = "Database check bypassed via BSOPT_ALLOW_WEAK_SECRETS"
-        return status
 
     max_retries = 3
     for attempt in range(max_retries):
