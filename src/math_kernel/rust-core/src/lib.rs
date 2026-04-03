@@ -272,10 +272,11 @@ pub fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> bool {
 }
 
 #[pyfunction]
-pub fn batch_validate_ticks(
+pub fn batch_validate_ticks<'py>(
+    py: Python<'py>,
     prices: PyReadonlyArray1<f64>,
     last_prices: PyReadonlyArray1<f64>,
-) -> PyResult<Vec<bool>> {
+) -> PyResult<Bound<'py, PyArray1<bool>>> {
     let p = prices.as_array();
     let lp = last_prices.as_array();
     let n = p.len();
@@ -284,20 +285,20 @@ pub fn batch_validate_ticks(
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Prices and last_prices must have same length"));
     }
 
-    let results: Vec<bool> = (0..n)
-        .into_par_iter()
-        .map(|i| {
-            let price = p[i];
-            let last = lp[i];
-            if last == 0.0 {
-                true
-            } else {
-                (price - last).abs() / last < 0.10
-            }
-        })
-        .collect();
+    let res = unsafe { PyArray1::<bool>::new(py, [n], false) };
+    let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
-    Ok(results)
+    res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
+        let price = p[i];
+        let last = lp[i];
+        if last == 0.0 {
+            *out = true;
+        } else {
+            *out = (price - last).abs() / last < 0.10;
+        }
+    });
+
+    Ok(res)
 }
 
 #[pyfunction]
@@ -629,6 +630,10 @@ impl PyNativeIngest {
             engine: Some(Arc::new(NativeIngestEngine::new(socket_addr, quarantine.clone()))),
             quarantine,
         })
+    }
+
+    pub fn ping(&self) -> bool {
+        true
     }
 
     pub fn start(&mut self) -> PyResult<()> {

@@ -177,6 +177,30 @@ class RustTickBuffer:
         return self._buffer.size()
 
 
+def validate_tick(ticker: str, price: float, last_price: float) -> bool:
+    """Validate a single market tick for outliers."""
+    if not RUST_AVAILABLE:
+        if last_price == 0.0:
+            return True
+        return abs(price - last_price) / last_price < 0.10
+
+    return Manifold_core.validate_tick(ticker, float(price), float(last_price))
+
+
+def batch_validate_ticks(prices: np.ndarray, last_prices: np.ndarray) -> np.ndarray:
+    """Validate a batch of market ticks for outliers using Rust."""
+    if not RUST_AVAILABLE:
+        # Vectorized NumPy fallback
+        mask = last_prices != 0.0
+        res = np.ones(len(prices), dtype=bool)
+        res[mask] = np.abs(prices[mask] - last_prices[mask]) / last_prices[mask] < 0.10
+        return res
+
+    return Manifold_core.batch_validate_ticks(
+        prices.astype(np.float64), last_prices.astype(np.float64)
+    )
+
+
 def simulate_gbm_native(
     s0: np.ndarray, mu: np.ndarray, sigma: np.ndarray, t: float, dt: float, seed: int | None = None
 ) -> np.ndarray:
