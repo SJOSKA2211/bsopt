@@ -85,6 +85,9 @@ rmq-clean:
 	docker exec bsopt-rabbitmq-1 rabbitmqctl add_vhost /
 	docker exec bsopt-rabbitmq-1 rabbitmqctl set_permissions -p / bsopt_admin ".*" ".*" ".*"
 
+docker-clean:
+	docker system prune -a --volumes -f
+
 clean:
 	@echo "Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +

@@ -1,0 +1,11 @@
+Python 3.14.3
+/usr/bin/python3
+Permissions Size User  Date Modified Name
+drwxr-xr-x     - kamau  3 Apr 18:38  .venv
+drwxr-xr-x     - kamau  3 Apr 15:10  .venv_cpu
+drwxr-xr-x     - kamau  3 Apr 17:37  .venv_py314
+Python 3.14.3
+Permissions Size User  Date Modified Name
+lrwxrwxrwx     - kamau  3 Apr 18:02  .venv/bin/python -> python3
+which: no python3.13 in (/home/kamau/.local/bin:/home/kamau/.local/share/mise/installs/node/25.8.0/bin:/home/kamau/.local/share/omarchy/bin:/home/kamau/.local/share/mise/shims:/home/kamau/.local/share/omarchy/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/kamau/.antigravity/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/scripts/noConfigScripts:/home/kamau/.local/bin)
+3.13 not found

@@ -908,6 +908,8 @@ services:
         limits:
           cpus: '2'
           memory: 2gb
+        reservations:
+          memory: 1gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
@@ -957,7 +959,7 @@ services:
         limits:
           memory: 1gb
         reservations:
-          memory: 512mb
+          memory: 768mb
     networks:
       - bsopt-network
     command: ["mlflow", "server", "--workers", "8", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
@@ -974,8 +976,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1gb
-          cpus: '2'
+          memory: 1536mb
+          cpus: '1'
+        reservations:
+          memory: 768mb
     depends_on:
       mlflow:
         condition: service_healthy

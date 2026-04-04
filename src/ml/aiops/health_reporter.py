@@ -468,10 +468,10 @@ class HealthReporter:
     async def _get_worker_status(self) -> WorkerStatus:
         """Checks Celery worker health and queue status."""
         try:
-    from src.workers.tasks.celery_app import celery_app
-except ImportError:
-    celery_app = None # Mock for now
-    print("Celery not available")
+            from src.workers.tasks.celery_app import celery_app
+        except ImportError:
+            celery_app = None  # Mock for now
+            print("Celery not available")
 
         try:
             # 1. Reachability & Broker
