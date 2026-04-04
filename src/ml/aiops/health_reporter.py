@@ -67,47 +67,47 @@ class HealthReporter:
         """
         logger.info("generating_ml_health_report")
 
-        # 1. Fetch MLflow status
-        mlflow_status = self._get_mlflow_status()
+        # Fetch all statuses concurrently
+        tasks = [
+            asyncio.to_thread(self._get_mlflow_status),
+            self._get_prometheus_metrics(),
+            self._get_redis_anomalies(),
+            self._get_rabbitmq_status(),
+            self._get_redis_status(),
+            self._get_postgres_status(),
+            self._get_auth_status(),
+            self._get_ingestion_status(),
+            self._get_portfolio_status(),
+            self._get_math_kernel_status(),
+            self._get_ml_inference_status(),
+            self._get_worker_status(),
+            self._get_ray_status(),
+        ]
 
-        # 2. Fetch Prometheus metrics
-        prometheus_metrics = await self._get_prometheus_metrics()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # 3. Fetch Redis anomalies
-        redis_anomalies = await self._get_redis_anomalies()
+        # Extract results safely
+        (
+            mlflow_status,
+            prometheus_metrics,
+            redis_anomalies,
+            rabbitmq_status,
+            redis_status,
+            postgres_status,
+            auth_status,
+            ingestion_status,
+            portfolio_status,
+            math_kernel_status,
+            ml_inference_status,
+            worker_status,
+            ray_status,
+        ) = [
+            res if not isinstance(res, Exception) else self._get_default_status(i, res)
+            for i, res in enumerate(results)
+        ]
 
-        # 4. Fetch RabbitMQ status
-        rabbitmq_status = await self._get_rabbitmq_status()
-
-        # 5. Fetch Redis connectivity status
-        redis_status = await self._get_redis_status()
-
-        # 6. Fetch Postgres health status
-        postgres_status = await self._get_postgres_status()
-
-        # 7. Fetch API detailed status
+        # 7. Fetch API detailed status (depends on prometheus_metrics)
         api_status = await self._get_api_status(prometheus_metrics)
-
-        # 8. Fetch Auth detailed status
-        auth_status = await self._get_auth_status()
-
-        # 9. Fetch Ingestion detailed status
-        ingestion_status = await self._get_ingestion_status()
-
-        # 10. Fetch Portfolio detailed status
-        portfolio_status = await self._get_portfolio_status()
-
-        # 11. Fetch Math Kernel detailed status
-        math_kernel_status = await self._get_math_kernel_status()
-
-        # 12. Fetch ML Inference detailed status
-        ml_inference_status = await self._get_ml_inference_status()
-
-        # 13. Fetch Worker cluster status
-        worker_status = await self._get_worker_status()
-
-        # 14. Fetch Ray cluster status
-        ray_status = await self._get_ray_status()
 
         # 15. Fetch Remediation and Guardian statuses
         remediations = self._get_remediation_statuses(planner)
@@ -116,7 +116,8 @@ class HealthReporter:
         # 16. Determine overall status
         status = "healthy"
         if (
-            mlflow_status.drift_detected
+            mlflow_status.stage == "error"
+            or mlflow_status.drift_detected
             or api_status.error_rate_5xx > 0.05
             or not rabbitmq_status.connected
             or not redis_status.connected
@@ -154,6 +155,26 @@ class HealthReporter:
             guardian=guardian_status,
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         )
+
+    def _get_default_status(self, index: int, error: Exception) -> Any:
+        """Returns a default/failed status object for a given index when a fetch fails."""
+        logger.error("health_status_fetch_failed", index=index, error=str(error))
+        defaults = [
+            MLflowStatus(stage="error", drift_detected=False),
+            PrometheusMetrics(0.0, 0.0, 0.0, 0.0, 0),
+            [],  # redis_anomalies
+            RabbitMQStatus(connected=False, queue_depths={}, consumer_counts={}),
+            RedisStatus(connected=False, memory_usage_bytes=0, total_keys=0),
+            PostgresStatus(connected=False, version="unknown", active_connections=0, hypertables=0, compression_ratio=1.0, job_count=0),
+            AuthStatus(reachable=False, p95_latency=0.0, auth_success_rate=0.0, active_tokens=0),
+            IngestionStatus(reachable=False, heartbeat_age=9999.0, ticks_per_second=0.0, rejection_rate=0.0),
+            PortfolioStatus(reachable=False, positions_count=0, net_delta=0.0, total_vega=0.0, total_gamma=0.0),
+            MathKernelStatus(reachable=False, avg_latency_ms=0.0, requests_per_sec=0.0, error_rate=0.0),
+            MLInferenceStatus(reachable=False, model_loaded=False, avg_latency_ms=0.0, requests_per_sec=0.0),
+            WorkerStatus(reachable=False, broker_connected=False, active_workers=0, queue_backlog={}, avg_task_latency_ms=0.0),
+            RayStatus(reachable=False, nodes_alive=0, worker_count=0),
+        ]
+        return defaults[index]
 
     def _get_mlflow_status(self) -> MLflowStatus:
         if not self.mlflow_client:

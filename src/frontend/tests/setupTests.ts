@@ -28,35 +28,7 @@ vi.mock('lightweight-charts', () => ({
   ColorType: { Solid: 'solid' },
   CrosshairMode: { Normal: 0 },
   CandlestickSeries: "CandlestickSeries",
-  HistogramSeries: "HistogramSeries",
-  HistogramSeries: "HistogramSeries",
 }));
-
-// Mock EventSource
-Object.defineProperty(globalThis, 'EventSource', {
-  value: class {
-    onmessage: ((ev: MessageEvent) => unknown) | null = null;
-    onerror: ((ev: Event) => unknown) | null = null;
-    close() {}
-    addEventListener() {}
-    removeEventListener() {}
-    dispatchEvent() { return true; }
-  },
-  writable: true
-});
-
-// Mock EventSource
-Object.defineProperty(globalThis, 'EventSource', {
-  value: class {
-    onmessage: ((ev: MessageEvent) => unknown) | null = null;
-    onerror: ((ev: Event) => unknown) | null = null;
-    close() {}
-    addEventListener() {}
-    removeEventListener() {}
-    dispatchEvent() { return true; }
-  },
-  writable: true
-});
 
 // Mock ResizeObserver which is used by lightweight-charts and echarts but not present in jsdom
 Object.defineProperty(globalThis, 'ResizeObserver', {
@@ -127,25 +99,20 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock Apollo Client globally for components that do not have their own provider mock
-vi.mock('@apollo/client', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+vi.mock('@apollo/client/react', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
     useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
     useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
     useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
-    gql: actual.gql || ((strings: any) => strings[0]),
   };
 });
-//
+
 vi.mock('@react-three/drei', () => ({
   Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
   PointMaterial: () => null,
   Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
-  Surface: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-surface' }, children),
-  OrbitControls: () => React.createElement('div', { 'data-testid': 'drei-orbitcontrols' }),
-  PerspectiveCamera: () => React.createElement('div', { 'data-testid': 'drei-camera' }),
-  Text: () => React.createElement('div', { 'data-testid': 'drei-text' }),
 }));
 
 // Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
@@ -173,13 +140,17 @@ vi.mock('three', () => ({
   },
 }));
 
-vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'canvas' }, children),
-  useFrame: vi.fn(),
-  useThree: vi.fn(() => ({
-    viewport: { width: 1000, height: 1000, factor: 1 },
-    size: { width: 1000, height: 1000 },
-    mouse: { x: 0, y: 0 },
-    camera: { position: { x: 0, y: 0, z: 8 } },
-  })),
-}));
+vi.mock('@react-three/fiber', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return {
+    ...actual,
+    Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'canvas' }, children),
+    useFrame: vi.fn(),
+    useThree: vi.fn(() => ({
+      viewport: { width: 1000, height: 1000, factor: 1 },
+      size: { width: 1000, height: 1000 },
+      mouse: { x: 0, y: 0 },
+      camera: { position: { x: 0, y: 0, z: 8 } },
+    })),
+  };
+});

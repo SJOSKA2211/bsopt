@@ -3,7 +3,10 @@ import json
 import os
 
 import grpc
-import Manifold_core
+try:
+    import Manifold_core
+except ImportError:
+    Manifold_core = None
 import structlog
 
 from src.shared.protos import market_data_pb2, market_data_pb2_grpc

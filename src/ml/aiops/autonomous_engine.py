@@ -267,31 +267,49 @@ class AutonomousEngine:
         return drift_anomalies
 
     async def _detect_system_anomalies(self) -> list[dict]:
-        """Scans Prometheus for system-level anomalies."""
+        """Scans Prometheus and health reporter for system-level anomalies using parallel fetches."""
         if not self.prometheus_client:
             return []
 
         system_anomalies = []
         try:
+            # Parallelize primary metric fetches
+            prom_tasks = [
+                self.prometheus_client.get_5xx_error_rate(self.api_service_name),
+                self.prometheus_client.get_p95_latency(self.api_service_name),
+            ]
+
+            if self.forecaster:
+                prom_tasks.append(
+                    self.prometheus_client.get_metric_range(
+                        self.api_service_name, "container_cpu_usage_seconds_total"
+                    )
+                )
+
+            if self.health_reporter:
+                prom_tasks.append(self.health_reporter.get_health_report(self.planner, self.guardian))
+
+            results = await asyncio.gather(*prom_tasks, return_exceptions=True)
+
             # 1. Error Rate
-            error_rate = await self.prometheus_client.get_5xx_error_rate(self.api_service_name)
+            error_rate = results[0] if not isinstance(results[0], Exception) else 0.0
             if error_rate > self.config.get("error_rate_threshold", 0.05):
                 system_anomalies.append(
                     {"type": "high_error_rate", "metric": error_rate, "severity": "high"}
                 )
 
             # 2. Latency
-            p95_latency = await self.prometheus_client.get_p95_latency(self.api_service_name)
+            p95_latency = results[1] if not isinstance(results[1], Exception) else 0.0
             if p95_latency > self.config.get("latency_threshold", 0.5):
                 system_anomalies.append(
                     {"type": "high_latency", "metric": p95_latency, "severity": "medium"}
                 )
 
             # 3. Predictive (Forecasting)
+            idx = 2
             if self.forecaster:
-                recent_df = await self.prometheus_client.get_metric_range(
-                    self.api_service_name, "container_cpu_usage_seconds_total"
-                )
+                recent_df = results[idx] if not isinstance(results[idx], Exception) else pd.DataFrame()
+                idx += 1
                 if not recent_df.empty:
                     forecast = self.forecaster.predict(recent_df)
                     if forecast is not None and forecast.max() > 0.8:
@@ -299,57 +317,54 @@ class AutonomousEngine:
                             {"type": "predicted_load_spike", "forecast_max": float(forecast.max())}
                         )
 
-            # 4. Critical Database Pool Check
+            # 4. Health Report based checks
             if self.health_reporter:
-                report = await self.health_reporter.get_health_report(self.planner, self.guardian)
-
-                if report.postgres.active_connections > 50:
-                    system_anomalies.append(
-                        {
+                report = results[idx] if not isinstance(results[idx], Exception) else None
+                if report:
+                    if report.postgres.active_connections > 50:
+                        system_anomalies.append({
                             "type": "db_pool_exhaustion",
                             "metrics": {"total_connections": report.postgres.active_connections},
                             "score": 0.8,
                             "timestamp": time.time(),
-                        }
-                    )
+                        })
 
-                # 5. API-Specific Anomalies (from Health Report)
-                if not report.api.reachable:
-                    system_anomalies.append(
-                        {
+                    if not report.api.reachable:
+                        system_anomalies.append({
                             "type": "api_unreachable",
                             "severity": "critical",
                             "timestamp": time.time(),
-                        }
-                    )
-                if report.api.error_rate_5xx > 0.15:
-                    system_anomalies.append(
-                        {
+                        })
+                    if report.api.error_rate_5xx > 0.15:
+                        system_anomalies.append({
                             "type": "api_error_spike",
                             "metric": report.api.error_rate_5xx,
                             "severity": "high",
                             "timestamp": time.time(),
-                        }
-                    )
+                        })
 
-                # 6. Auth-Specific Anomalies (from Health Report)
-                if not report.auth.reachable:
-                    system_anomalies.append(
-                        {
+                    # 6. Auth-Specific Anomalies (from Health Report)
+                    if not report.auth.reachable:
+                        system_anomalies.append({
                             "type": "auth_unreachable",
                             "severity": "critical",
                             "timestamp": time.time(),
-                        }
-                    )
-                if report.auth.auth_success_rate < 0.9:
-                    system_anomalies.append(
-                        {
+                        })
+                    if report.auth.auth_success_rate < 0.9:
+                        system_anomalies.append({
                             "type": "auth_failure_spike",
                             "metric": report.auth.auth_success_rate,
                             "severity": "high",
                             "timestamp": time.time(),
-                        }
-                    )
+                        })
+
+                    # Ray specific checks
+                    if report.ray.nodes_alive < 1:
+                        system_anomalies.append({
+                            "type": "ray_cluster_failure",
+                            "severity": "high",
+                            "timestamp": time.time()
+                        })
 
                 # 7. Ingestion-Specific Anomalies
                 if not report.ingestion.reachable or report.ingestion.heartbeat_age > 120:
@@ -471,60 +486,69 @@ class AutonomousEngine:
         return system_anomalies
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
-        """Blocks until RabbitMQ, Redis, and Postgres/TimescaleDB are reachable."""
-        from sqlalchemy import text
-
-        from src.database import get_async_engine
-        from src.shared.utils.cache import get_redis_client
+        """Blocks until all critical infrastructure components are reachable."""
 
         logger.info("waiting_for_infrastructure_readiness", timeout=timeout)
         start_time = time.time()
 
         while time.time() - start_time < timeout:
             try:
-                # 1. Check RabbitMQ
-                if self.health_reporter and self.health_reporter.rmq:
-                    await self.health_reporter.rmq.connect()
-
-                # 2. Check Redis
-                redis = await get_redis_client()
-                await redis.ping()
-
-                # 3. Check TimescaleDB
-                engine = get_async_engine()
-                async with engine.connect() as conn:
-                    await conn.execute(text("SELECT 1"))
-
-                # 4. Check API (Internal REST Gateway)
-                await self._check_api_ready()
-
-                # 5. Check Auth (Internal Security Gateway)
-                await self._check_auth_ready()
-
-                # 6. Check Ingestion (Data Pipeline Gateway)
-                await self._check_ingestion_ready()
-
-                # 7. Check Portfolio (Risk & Exposure Gateway)
-                await self._check_portfolio_ready()
-
-                # 8. Check Math Kernel (Pricing & Computation Gateway)
-                await self._check_math_kernel_ready()
-
-                # 9. Check ML Inference (ML Inference Gateway)
-                await self._check_ml_inference_ready()
-
-                # 10. Check Workers (Celery & Ray)
-                await self._check_worker_ready()
+                # Group checks by type
+                infra_tasks = [
+                    self._check_base_infra(),  # DB, Redis, RMQ
+                    self._check_gateways(),    # API, Auth, Ingestion, Portfolio
+                    self._check_compute(),     # Math Kernel, ML Inference, Workers
+                ]
+                await asyncio.gather(*infra_tasks)
 
                 logger.info("infrastructure_ready")
                 return
-            except Exception:
+            except Exception as e:
                 logger.warning(
-                    "infrastructure_not_ready_retrying", elapsed=int(time.time() - start_time)
+                    "infrastructure_not_ready_retrying",
+                    elapsed=int(time.time() - start_time),
+                    error=str(e)
                 )
                 await asyncio.sleep(interval)
 
         logger.error("infrastructure_readiness_timeout_proceeding_degraded")
+
+    async def _check_base_infra(self):
+        """Checks core data and messaging services."""
+        from sqlalchemy import text
+
+        from src.database import get_async_engine
+        from src.shared.utils.cache import get_redis_client
+
+        # 1. RabbitMQ
+        if self.health_reporter and self.health_reporter.rmq:
+            await self.health_reporter.rmq.connect()
+
+        # 2. Redis
+        redis = await get_redis_client()
+        await redis.ping()
+
+        # 3. TimescaleDB
+        engine = get_async_engine()
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+
+    async def _check_gateways(self):
+        """Checks internal service gateways."""
+        await asyncio.gather(
+            self._check_api_ready(),
+            self._check_auth_ready(),
+            self._check_ingestion_ready(),
+            self._check_portfolio_ready(),
+        )
+
+    async def _check_compute(self):
+        """Checks computation and inference engines."""
+        await asyncio.gather(
+            self._check_math_kernel_ready(),
+            self._check_ml_inference_ready(),
+            self._check_worker_ready(),
+        )
 
     async def _check_api_ready(self) -> bool:
         """Polls the API health endpoint until it's ready."""

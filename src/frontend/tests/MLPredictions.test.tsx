@@ -7,24 +7,15 @@ import '@testing-library/jest-dom';
 import React from 'react';
 
 // Mock Apollo hooks
-vi.mock('@apollo/client', async (importOriginal) => {
+vi.mock('@apollo/client/react', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
-    useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
-    useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
-    useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
-    gql: actual.gql || ((strings: any) => strings[0]),
+    useQuery: vi.fn(),
   };
 });
 
-import { useQuery } from '@apollo/client';
-import { useMLInference } from '../src/api/hooks';
-
-vi.mock('../src/api/hooks', () => ({
-  useMLInference: vi.fn(),
-}));
-
+import { useQuery } from '@apollo/client/react';
 
 const mockPrediction = {
   mlPrediction: {
@@ -38,12 +29,6 @@ const mockPrediction = {
 };
 
 test('MLPredictions renders prediction data correctly', async () => {
-  (useMLInference as any).mockReturnValue({
-    data: mockPrediction,
-    loading: false,
-    error: null,
-  });
-
   (useQuery as any).mockReturnValue({
     data: mockPrediction,
     loading: false,
@@ -56,9 +41,7 @@ test('MLPredictions renders prediction data correctly', async () => {
     </ThemeProvider>
   );
 
-  // Note: Data is dynamically loaded via mocked hook that returns undefined originally in this test suite run.
-  // We check for presence of the component instead.
-  expect(screen.getByText(/Price Oracle/i)).toBeInTheDocument();
-  // removed expected value check
+  expect(await screen.findByText(/\$155\.20/)).toBeInTheDocument();
+  expect(screen.getByText(/XGBoost-V4-Optimized/i)).toBeInTheDocument();
   expect(screen.getByText(/\+2\.00%/)).toBeInTheDocument();
 });

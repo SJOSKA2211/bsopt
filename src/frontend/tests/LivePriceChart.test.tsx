@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import React from 'react';
 
 // Mock Apollo hooks
-vi.mock('@apollo/client', async (importOriginal) => {
+vi.mock('@apollo/client/react', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
@@ -16,7 +16,7 @@ vi.mock('@apollo/client', async (importOriginal) => {
   };
 });
 
-import { useQuery, useSubscription } from '@apollo/client';
+import { useQuery, useSubscription } from '@apollo/client/react';
 import { useMotionValue } from 'framer-motion';
 
 // Mock lightweight-charts

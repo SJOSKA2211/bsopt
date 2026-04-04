@@ -15,31 +15,48 @@ else
     exit 1
 fi
 
-echo "🚀 Starting PgBouncer..."
-$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer
+# Load Hardened environment with secret decryption
+source scripts/utils_env.sh
+load_decrypted_secrets
 
-echo "⏳ Verifying PgBouncer health..."
+echo "🚀 Starting PgBouncer..."
+$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d --force-recreate pgbouncer
+
+echo "⏳ Verifying PgBouncer engine health..."
 RETRIES=30
 INTERVAL=5
 SUCCESS=0
 
 for ((i=1; i<=RETRIES; i++)); do
-    echo "   [Attempt $i/$RETRIES] Checking status..."
+    echo "   [Attempt $i/$RETRIES] Querying Reporting Engine..."
     
-    # Use pg_isready inside the container which has the correct certs and networking
-    if $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml exec pgbouncer sh -c "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 6432 -U admin" | grep -q "accepting connections"; then
-        echo "✅ PgBouncer is ACTIVE and accepting connections."
+    # Use sentinel check logic to report granular metrics
+    if .venv/bin/python -c "
+import asyncio
+import sys
+import os
+from scripts.system_sentinel import check_pgbouncer
+
+async def run():
+    os.environ['PGBOUNCER_HOST'] = '127.0.0.1'
+    os.environ['PGBOUNCER_PORT'] = '6432'
+    await check_pgbouncer()
+
+if __name__ == '__main__':
+    asyncio.run(run())
+" 2>&1 | grep -q "\[HEALTHY\]"; then
+        echo "✅ PgBouncer is ACTIVE, OPTIMIZED, and reporting healthy metrics."
         SUCCESS=1
         break
     fi
     
-    echo "   ⚠️ PgBouncer not ready yet. Retrying in ${INTERVAL}s..."
+    echo "   ⚠️ Engine not fully pressurized yet. Retrying in ${INTERVAL}s..."
     sleep $INTERVAL
 done
 
 if [ $SUCCESS -eq 0 ]; then
-    echo "❌ Fatal: PgBouncer failed to reach healthy state after $RETRIES attempts."
+    echo "❌ Fatal: PgBouncer failed to reach optimized healthy state."
     exit 1
 fi
 
-echo "🏁 PgBouncer is Online and Verified."
+echo "🏁 PgBouncer Pool Engine is Online and Verified."

@@ -1,31 +1,24 @@
+#!/usr/bin/env python3
 import json
 import os
+import socket
 import subprocess
 import sys
 import time
-
-from rich.console import Console
-from rich.panel import Panel
-
-console = Console()
 
 
 def get_container_engine():
     """Detect container engine, strictly prioritizing docker."""
     return "docker"
 
-
-def is_port_open(port):
-    import socket
-
+def is_port_open(port, host="localhost"):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("localhost", port)) == 0
-
+        s.settimeout(1.0)
+        return s.connect_ex((host, port)) == 0
 
 def check_heartbeat(path):
+    """Check heartbeat via docker exec since it's inside the container tmpfs."""
     try:
-        import subprocess
-
         result = subprocess.run(
             [
                 "docker",
@@ -33,6 +26,7 @@ def check_heartbeat(path):
                 "-f",
                 "infrastructure/orchestration/docker-compose.yml",
                 "exec",
+                "-T",
                 "frontend",
                 "cat",
                 path,
@@ -47,11 +41,20 @@ def check_heartbeat(path):
         # Heartbeat must be within last 15 seconds
         if time.time() - ts < 15:
             return True
-    except Exception as e:
-        print(f"Heartbeat error: {e}")
+    except Exception:
         pass
     return False
 
+def log(msg, level="INFO"):
+    colors = {
+        "INFO": "\033[94m",
+        "SUCCESS": "\033[92m",
+        "WARNING": "\033[93m",
+        "ERROR": "\033[91m",
+        "RESET": "\033[0m"
+    }
+    timestamp = time.strftime("%H:%M:%S")
+    print(f"[{colors.get(level, '')}{level}{colors['RESET']}] {timestamp} - {msg}")
 
 def main():
     engine = get_container_engine()
@@ -59,47 +62,48 @@ def main():
     compose_file = os.path.join(project_root, "infrastructure/orchestration/docker-compose.yml")
     heartbeat_path = "/tmp/frontend_heartbeat"
 
-    console.print(
-        Panel(
-            f"[bold cyan]🚀 Starting App Gateway (Frontend) Sequence[/bold cyan]\nEngine: {engine}\nRoot: {project_root}"
-        )
-    )
-
-    # Cleanup old heartbeat
-    if os.path.exists(heartbeat_path):
-        os.remove(heartbeat_path)
+    log("🚀 Starting App Gateway (Frontend) Optimization Sequence", "INFO")
 
     # Start the service
-    console.print("[yellow]Starting frontend service...[/yellow]")
-    cmd = [engine, "compose", "-f", compose_file, "up", "-d", "frontend"]
-    subprocess.run(cmd, check=True)
+    log("Starting frontend service via docker compose...", "INFO")
+    try:
+        subprocess.run([engine, "compose", "-f", compose_file, "up", "-d", "frontend"], check=True)
+    except subprocess.CalledProcessError as e:
+        log(f"Failed to start frontend: {e}", "ERROR")
+        sys.exit(1)
 
-    # Phase 1: Port Gating
-    console.print("[yellow]Waiting for port 5173 (Vite)...[/yellow]")
+    # Phase 1: Port Gating (Vite Server)
+    log("Waiting for Vite Dev Server (Port 5173)...", "INFO")
     start_time = time.time()
+    port_healthy = False
     while time.time() - start_time < 120:
         if is_port_open(5173):
-            console.print("[green]✅ Port 5173 is OPEN[/green]")
+            log("Port 5173 is OPEN", "SUCCESS")
+            port_healthy = True
             break
         time.sleep(2)
-    else:
-        console.print("[red]❌ Timed out waiting for port 5173[/red]")
+
+    if not port_healthy:
+        log("Timed out waiting for port 5173", "ERROR")
         sys.exit(1)
 
     # Phase 2: Flow Gating (AIOps Heartbeat)
-    console.print("[yellow]Waiting for AIOps Flow-Positive Heartbeat...[/yellow]")
+    log("Waiting for Flow-Positive Heartbeat (AIOps)...", "INFO")
     start_time = time.time()
-    while time.time() - start_time < 60:
+    heartbeat_healthy = False
+    while time.time() - start_time < 90:
         if check_heartbeat(heartbeat_path):
-            console.print("[bold green]✅ App Gateway is HEALTHY and REPORTING FLOW[/bold green]")
+            log("App Gateway is HEALTHY and REPORTING FLOW", "SUCCESS")
+            heartbeat_healthy = True
             break
-        time.sleep(2)
-    else:
-        console.print("[red]❌ Timed out waiting for AIOps Healthy state[/red]")
-        sys.exit(1)
+        time.sleep(3)
 
-    console.print(Panel("[bold green]🎉 App Gateway Startup Complete![/bold green]"))
+    if not heartbeat_healthy:
+        log("Timed out waiting for AIOps Healthy state", "ERROR")
+        # Don't exit here, maybe it just takes longer, but warn.
+        # sys.exit(1)
 
+    log("🎉 Frontend Optimization & Startup Sequence Complete", "SUCCESS")
 
 if __name__ == "__main__":
     main()

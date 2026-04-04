@@ -85,7 +85,7 @@ test('Dashboard renders with Layout and trading components', async () => {
     { wrapper: createWrapper() }
   );
 
-  expect(screen.getAllByText(/BS-Opt/i)[0]).toBeInTheDocument();
+  expect(screen.getByText(/BS-Opt/i)).toBeInTheDocument();
   
   // Wait for DashboardPage to render (not just the layout)
   await waitFor(() => {

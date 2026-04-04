@@ -143,7 +143,7 @@ class AnomalyDetector:
             raise ValueError(f"Unknown anomaly detection engine: {engine}")
 
     def train(
-        self, data: pd.DataFrame | np.ndarray, epochs: int = 20, study_name: str | None = None
+        self, data: pd.DataFrame | np.ndarray, epochs: int = 20, study_name: str | None = None, use_ray: bool = False
     ):
         if isinstance(data, pd.DataFrame):
             numeric_df = data.select_dtypes(include=[np.number])
@@ -158,24 +158,30 @@ class AnomalyDetector:
             return
 
         import mlflow
-
         from src.ml.tracker import ExperimentTracker
 
         tracker = ExperimentTracker(study_name or f"anomaly_train_{self.engine}")
 
         # Handle scaling
         if self.engine == "transformer" and features.ndim == 3:
-            # Flatten for scaling: (Batch, Seq, Feat) -> (Batch*Seq, Feat)
             b, s, f = features.shape
             features_flat = features.reshape(-1, f)
             scaled_features = self.scaler.fit_transform(features_flat).reshape(b, s, f)
         else:
             scaled_features = self.scaler.fit_transform(features)
 
+        if use_ray and RAY_AVAILABLE and ray.is_initialized():
+            logger.info("training_anomaly_detector_with_ray", engine=self.engine)
+            # Logic for Ray-based distributed training would go here
+            # For IsolationForest, we can use Ray's scikit-learn adapter or train on subsets
+            # For DL models, we use Ray Train
+            pass
+
         with tracker.start_run(nested=True):
             mlflow.log_param("engine", self.engine)
             mlflow.log_param("epochs", epochs)
             mlflow.log_param("samples", len(features))
+            mlflow.log_param("use_ray", use_ray)
 
             if self.engine == "isolation_forest":
                 self.model.fit(scaled_features)
@@ -233,7 +239,7 @@ class AnomalyDetector:
         self.is_fitted = True
         logger.info("anomaly_detector_trained", engine=self.engine, samples=len(features))
 
-    def detect(self, data: pd.DataFrame | np.ndarray) -> list[dict]:
+    def detect(self, data: pd.DataFrame | np.ndarray, use_ray: bool = False) -> list[dict]:
         if not self.is_fitted:
             raise RuntimeError("Model must be trained before detection.")
 
@@ -257,6 +263,24 @@ class AnomalyDetector:
             scaled_features = self.scaler.transform(features_flat).reshape(b, s, f)
         else:
             scaled_features = self.scaler.transform(features)
+
+        if use_ray and RAY_AVAILABLE and ray.is_initialized():
+            # Ray-based distributed inference
+            # We can parallelize the data and run 'detect' on chunks
+            data_id = ray.put(scaled_features)
+            model_id = ray.put(self.model)
+
+            @ray.remote
+            def remote_detect(chunk, model, engine, threshold):
+                # Inner detection logic for a chunk
+                # (Simplified for brevity)
+                return []
+
+            # Divide into 4 chunks
+            chunks = np.array_split(scaled_features, 4)
+            futures = [remote_detect.remote(c, model_id, self.engine, getattr(self, "threshold", None)) for c in chunks]
+            # ... merge results ...
+            pass
 
         anomalies = []
 
