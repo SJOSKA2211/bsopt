@@ -1,0 +1,7 @@
+Permissions Size User Date Modified Name
+lrwxrwxrwx     - root 13 Feb 18:31  /usr/bin/python -> python3
+lrwxrwxrwx     - root 13 Feb 18:31  /usr/bin/python-config -> python3-config
+lrwxrwxrwx     - root 13 Feb 18:31  /usr/bin/python3 -> python3.14
+lrwxrwxrwx     - root 13 Feb 18:31  /usr/bin/python3-config -> python3.14-config
+.rwxr-xr-x   14k root 13 Feb 18:31  /usr/bin/python3.14
+.rwxr-xr-x  3.4k root 13 Feb 18:31  /usr/bin/python3.14-config

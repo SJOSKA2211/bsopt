@@ -371,8 +371,8 @@ static_resources:
             value: 25
           min_retry_concurrency: 10
     health_checks:
-    - timeout: 1s
-      interval: 2s
+    - timeout: 2s
+      interval: 5s
       unhealthy_threshold: 2
       healthy_threshold: 2
       http_health_check:
@@ -382,6 +382,8 @@ static_resources:
       interval: 10s
       base_ejection_time: 30s
       max_ejection_percent: 50
+      enforcing_consecutive_5xx: 100
+      enforcing_success_rate: 100
   
   # Auth Service Cluster
   - name: auth_service
@@ -409,10 +411,14 @@ static_resources:
                 end: 299
     circuit_breakers:
       thresholds:
-      - max_pending_requests: 100
-        max_requests: 200
-        max_connections: 100
-        max_retries: 3
+      - max_pending_requests: 1000
+        max_requests: 2000
+        max_connections: 1000
+        max_retries: 5
+    outlier_detection:
+      consecutive_5xx: 3
+      interval: 30s
+      base_ejection_time: 60s
   
   # ML Inference Service Cluster (gRPC)
   - name: ml_inference
@@ -435,10 +441,14 @@ static_resources:
                 port_value: 50051
     circuit_breakers:
       thresholds:
-      - max_pending_requests: 100
-        max_requests: 200
-        max_connections: 100
-        max_retries: 3
+      - max_pending_requests: 500
+        max_requests: 1000
+        max_connections: 500
+        max_retries: 5
+    outlier_detection:
+      consecutive_5xx: 5
+      interval: 10s
+      base_ejection_time: 30s
   
   # Health Service Cluster (internal)
   - name: health_service

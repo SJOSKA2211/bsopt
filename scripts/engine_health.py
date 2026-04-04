@@ -23,7 +23,7 @@ logger = logging.getLogger("engine_health")
 SERVICES = {
     "App Gateway": {"url": "http://localhost:5173", "type": "http", "container": "frontend"},
     "Frontend Flow": {"heartbeat": "/tmp/frontend_heartbeat", "type": "dockerexec", "container": "frontend"},
-    "Nginx Proxy": {"url": "http://localhost:8080/health", "type": "http", "container": "nginx"},
+    "Nginx Proxy": {"url": "https://localhost:8443/health", "type": "http", "container": "nginx"},
     "Envoy Gateway": {"url": "http://localhost:8081/health", "type": "http", "container": "envoy"},
     "Envoy Admin": {"url": "http://localhost:9901/ready", "type": "envoy_ready", "container": "envoy"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},

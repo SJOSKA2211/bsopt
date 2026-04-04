@@ -36,33 +36,35 @@ export PROMETHEUS_URL="http://localhost:9090"
 export PYTHONPATH="."
 export BSOPT_ALLOW_WEAK_SECRETS=True
 
-# 2. Start Services if needed
-echo "🚀 Ensuring Database and Pooler are running..."
-docker compose -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer
+# 2. Start Core Infrastructure
+echo "🚀 Ensuring Core Infrastructure is running..."
+docker compose -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis envoy nginx
 
-# 3. Enforce Prerequisites
-echo "🔧 Enforcing AIops Prerequisites..."
+# 3. Parallel Initialization (Revamp & SHM)
+echo "🔧 Parallelizing AIops Revamp..."
 source .venv/bin/activate
+(python3 scripts/initialize_shm.py --force > /dev/null 2>&1 && echo "✅ SHM Initialized") &
+(python3 scripts/revamp_db_views.py > /dev/null 2>&1 && echo "✅ DB Views Revamped") &
+wait
 
-# Warm up PgBouncer pool
-echo "☕ Warming up PgBouncer pool..."
-PGPASSWORD="${POSTGRES_PASSWORD}" psql -h 127.0.0.1 -p 6432 -U admin -d bsopt -c "SELECT 1" > /dev/null 2>&1 || echo "⚠️ Warmup failed (PgBouncer might still be starting)"
+# 4. Autonomous Health Loop (Run until Healthy)
+MAX_RETRIES=12
+RETRY_COUNT=0
+SLEEP_INTERVAL=10
 
-# Initialize Shared Memory
-echo "🚀 Initializing Shared Memory..."
-python3 scripts/initialize_shm.py --force
+echo "🔍 Entering Sentinel Health Loop (Max $((MAX_RETRIES * SLEEP_INTERVAL))s)..."
 
-# Revamp Database Health Views
-echo "🔄 Revamping Database Views..."
-python3 scripts/revamp_db_views.py
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "📊 Health Probe $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+    if python3 scripts/system_sentinel.py; then
+        echo "✅ AIops HEALTHY: All systems pressurized and operational."
+        exit 0
+    fi
+    
+    echo "⚠️ Systems unstable. Retrying in ${SLEEP_INTERVAL}s..."
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    sleep $SLEEP_INTERVAL
+done
 
-# 4. Comprehensive Health Report
-echo "📊 Running High-Performance System Sentinel..."
-python3 scripts/system_sentinel.py
-
-# 5. Detailed AIops Dashboard
-echo "🌐 Launching AIops Terminal Dashboard..."
-# dashboard is usually TUI, so we might want to skip it in non-interactive mode or run it briefly
-# python3 scripts/aiops_dashboard.py --once || echo "⚠️ Dashboard failed"
-
-echo "✅ AIops Health Check Complete."
+echo "❌ AIops TIMEOUT: System failed to stabilize within the allotted window."
+exit 1
