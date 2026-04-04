@@ -20,3 +20,8 @@
 **Vulnerability:** The ML training pipeline (`src/ml/reinforcement_learning/offline_train.py` and `src/ml/distributed_training.py`) was using insecure `pickle.load` for parsing legacy `.pkl` trajectory datasets, bypassing Bandit security scans with `# nosec B301` and `# nosec B403`.
 **Learning:** Legacy datasets in ML pipelines are often overlooked for insecure formats, especially when fallback logic retains the old logic. Bypassing security checks like Bandit instead of properly remediating the data format creates severe code execution risks if an attacker injects malicious `.pkl` files.
 **Prevention:** Strictly prohibit the `pickle` module for any state/data loading unless completely necessary. Enforce the use of secure serialization formats like JSON, Parquet, or MessagePack for trajectory and general application datasets. Ensure legacy serialization APIs are hard-deprecated (e.g. throwing `RuntimeError`).
+
+## 2024-04-04 - GitHub Action `uses` syntax
+**Vulnerability:** N/A (CI fix)
+**Learning:** GitHub Action `uses` must be top-level keys in a step, not inside a `run:` script block.
+**Prevention:** Always validate GitHub Actions syntax, especially when mixing `run` and `uses`.
