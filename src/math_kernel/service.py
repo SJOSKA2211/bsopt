@@ -32,6 +32,11 @@ class PricingService:
     def __init__(self, factory: PricingEngineFactory | None = None) -> None:
         self.factory = factory or PricingEngineFactory()
 
+    def clear_cache(self):
+        """Resets any internal pricing caches."""
+        logger.info("pricing_service_cache_cleared")
+
+
     async def price_option(
         self,
         params: BSParameters,

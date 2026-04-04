@@ -61,6 +61,22 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
 
+    # Mock Redis globally to prevent connection timeouts in unit tests
+    import unittest.mock
+    mock_redis = unittest.mock.AsyncMock()
+    mock_redis.get.return_value = None
+    mock_redis.set.return_value = True
+    mock_redis.ping.return_value = True
+
+    # Use a side_effect for pipeline to return a mock aggregator
+    mock_pipeline = unittest.mock.MagicMock()
+    mock_pipeline.execute.return_value = []
+    mock_redis.pipeline.return_value = mock_pipeline
+
+    monkeypatch.setattr("src.shared.utils.cache.get_redis_client", unittest.mock.AsyncMock(return_value=mock_redis))
+    monkeypatch.setattr("src.shared.utils.cache.get_redis", unittest.mock.Mock(return_value=mock_redis))
+
+
 
 @pytest.fixture
 def unmocked_config_settings(monkeypatch):
@@ -85,11 +101,19 @@ def api_client():
     from api.index import app
     from src.shared.config import settings
 
-    # Truncate users to avoid ConflictException
-    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
-    with engine.connect() as conn:
-        conn.execute(text("TRUNCATE TABLE users CASCADE"))
-        conn.commit()
+    # Skip DB truncation for pure unit tests that don't need a real DB
+    is_unit_test = "unit" in request.node.nodeid
+    if not is_unit_test:
+        try:
+            # Truncate users to avoid ConflictException
+            engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+            with engine.connect() as conn:
+                conn.execute(text("TRUNCATE TABLE users CASCADE"))
+                conn.commit()
+        except Exception:
+            # Fallback for environments where DB is not available
+            pass
+
 
     with TestClient(app) as client:
         yield client

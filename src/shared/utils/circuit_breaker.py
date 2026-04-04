@@ -212,6 +212,11 @@ class CircuitBreakerProxy:
         logger.info("upgrading_circuit_breaker_to_distributed", name=self.name)
         self._cb = DistributedCircuitBreaker(self.name, redis_client, ft, rt)
 
+    def reset(self):
+        """Resets the internal circuit breaker state."""
+        if hasattr(self._cb, "reset"):
+            self._cb.reset()
+
     def __call__(self, func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):

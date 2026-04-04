@@ -92,6 +92,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         self.persist_to_db = persist_to_db
         self.slow_request_threshold_ms = slow_request_threshold_ms
 
+    def _should_skip(self, path: str) -> bool:
+        """Determines if a path should skip logging."""
+        return path in self.SKIP_PATHS
+
+
     def _redact_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Redact sensitive headers."""
         redacted = {}
@@ -138,12 +143,24 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         """Extract user info from consolidated request state."""
         from src.shared.utils.sanitization import mask_email
 
+        # 1. NEW: SecurityContext (ZeroTrustMiddleware)
+        user_id = getattr(request.state, "user_id", None)
         email = getattr(request.state, "user_email", None)
+        tier = getattr(request.state, "user_tier", None)
+
+        # 2. LEGACY: request.state.user
+        if not user_id and hasattr(request.state, "user"):
+            user = request.state.user
+            user_id = getattr(user, "id", None)
+            email = getattr(user, "email", None)
+            tier = getattr(user, "tier", None)
+
         return {
-            "user_id": getattr(request.state, "user_id", None),
+            "user_id": str(user_id) if user_id else None,
             "user_email": mask_email(email) if email else None,
-            "user_tier": getattr(request.state, "user_tier", None),
+            "user_tier": tier,
         }
+
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         path = request.url.path

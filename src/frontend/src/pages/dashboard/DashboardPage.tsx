@@ -2,17 +2,15 @@ import React, { lazy, Suspense } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Stack,
-  alpha,
   CircularProgress,
 } from '@mui/material';
 import { usePricingStore } from '../../store/usePricingStore';
 import type { PricingState } from '../../store/usePricingStore';
-import { stitchTokens } from '../../theme/stitch-tokens';
 import { DeepInferenceEngine } from '../../features/dashboard/components/DeepInferenceEngine';
 import { RiskExposureGrid } from '../../features/dashboard/components/RiskExposureGrid';
 import { motion } from 'framer-motion';
+import { AnimatedCard } from '../../components/common/AnimatedCard';
 
 // Lazy loaded components
 const LivePriceChart = lazy(() =>
@@ -21,7 +19,7 @@ const LivePriceChart = lazy(() =>
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={20} sx={{ color: stitchTokens.colors.primary }} />
+    <CircularProgress size={20} sx={{ color: 'var(--accent-mint)' }} />
   </Box>
 );
 
@@ -35,161 +33,133 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 }
-};
-
-const KpiCard: React.FC<{ label: string; value: string; gradient: string; prefix?: string; index: number }> = ({ label, value, gradient, prefix, index }) => (
-  <motion.div variants={itemVariants}>
-    <Box className="stitch-card" sx={{ p: 2, position: 'relative', overflow: 'hidden' }}>
-       <Box sx={{ 
-         position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', 
-         background: gradient, opacity: 0.15, 
-         clipPath: 'polygon(100% 0, 0 0, 100% 100%)',
-         zIndex: 0
-       }} />
-       <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Typography className="stitch-label" sx={{ fontSize: '9px', mb: 1, color: '#fff', opacity: 0.6 }}>{label}</Typography>
-          <Stack direction="row" alignItems="baseline" spacing={0.5}>
-             <Typography className="stitch-mono" sx={{ fontSize: '22px', fontWeight: 950, letterSpacing: '-1px' }}>
-               {prefix}{value}
-             </Typography>
-          </Stack>
-       </Box>
-       {/* Decorative Shard */}
-       <Box 
-         className="stitch-abstract-shard" 
-         sx={{ bottom: -10, left: '20%', width: 40, height: 4, background: gradient, opacity: 0.8 }} 
-       />
-    </Box>
-  </motion.div>
+const KpiCard: React.FC<{ label: string; value: string; color: string; prefix?: string; index: number }> = ({ label, value, color, prefix, index }) => (
+  <AnimatedCard delay={index * 0.05} sx={{ p: 3 }}>
+     <Stack spacing={1}>
+        <Typography className="label-secondary" sx={{ fontSize: '11px', opacity: 0.6 }}>{label}</Typography>
+        <Stack direction="row" alignItems="baseline" spacing={0.5}>
+           <Typography className="data-mono" sx={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>
+             {prefix}{value}
+           </Typography>
+        </Stack>
+        <Box sx={{ height: 2, width: 40, bgcolor: color, borderRadius: 2 }} />
+     </Stack>
+  </AnimatedCard>
 );
 
 export const DashboardPage: React.FC = () => {
-  const portfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
-  
   return (
-    <Box sx={{ p: 2, height: 'calc(100vh - 64px)', overflow: 'auto', position: 'relative' }}>
+    <Box sx={{ p: '24px', height: 'calc(100vh - 64px)', overflow: 'auto' }}>
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        className="bento-grid"
       >
-        <Grid container spacing={2}>
-          {/* Top KPI Row */}
-          {[
-            { label: 'NET_DELTA_EXPOSURE', value: '+0.428', gradient: stitchTokens.colors.abstract.teal },
-            { label: 'THETA_DECAY_RATE', value: '-1.24k', gradient: stitchTokens.colors.abstract.purple },
-            { label: 'VEGA_SENSITIVITY', value: '4.52k', gradient: stitchTokens.colors.abstract.indigo },
-            { label: 'TOTAL_LIQUIDITY', value: '1.2M', gradient: stitchTokens.colors.abstract.orange, prefix: '$' },
-          ].map((kpi, i) => (
-            <Grid item xs={12} sm={6} md={3} key={kpi.label}>
-               <KpiCard {...kpi} index={i} />
-            </Grid>
-          ))}
+        {/* KPI Row */}
+        {[
+          { label: 'NET_DELTA', value: '+0.428', color: 'var(--accent-mint)' },
+          { label: 'THETA_DECAY', value: '-1.24k', color: 'var(--accent-purple)' },
+          { label: 'VEGA_SENS', value: '4.52k', color: 'var(--accent-teal)' },
+          { label: 'LIQUIDITY', value: '1.2M', color: 'var(--accent-amber)', prefix: '$' },
+        ].map((kpi, i) => (
+          <Box key={kpi.label} sx={{ gridColumn: { xs: 'span 12', sm: 'span 6', lg: 'span 3' } }}>
+             <KpiCard {...kpi} index={i} />
+          </Box>
+        ))}
 
-          {/* Intelligence Row */}
-          <Grid item xs={12} lg={4}>
-             <motion.div variants={itemVariants}>
-                <DeepInferenceEngine />
-             </motion.div>
-          </Grid>
-          <Grid item xs={12} lg={4}>
-             <motion.div variants={itemVariants}>
-                <RiskExposureGrid />
-             </motion.div>
-          </Grid>
-          <Grid item xs={12} lg={4}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
-                   {/* Abstract Geometric Decoration */}
-                   <Box className="stitch-abstract-shard" sx={{ top: 20, right: 20, width: 60, height: 60, bgcolor: 'rgba(255,255,255,0.03)', clipPath: stitchTokens.geometry.shard }} />
-                   
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.purple, border: 'none' }}>STRATEGY_ALLOCATION_MATRIX</Box>
-                   <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {[
-                        { name: 'NEUTRAL_CONDOR_v4', weight: 45, color: '#00FFA3' },
-                        { name: 'BLACK_SWAN_HEDGE', weight: 25, color: '#A855F7' },
-                        { name: 'INCOME_OVERLAY', weight: 30, color: '#3B82F6' },
-                      ].map(strat => (
-                        <Box key={strat.name}>
-                           <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.8 }}>
-                              <Typography sx={{ fontSize: '10px', fontWeight: 900, letterSpacing: '1px' }}>{strat.name}</Typography>
-                              <Typography className="stitch-mono" sx={{ fontSize: '10px', fontWeight: 900, color: strat.color }}>{strat.weight}%</Typography>
-                           </Stack>
-                           <Box sx={{ height: 2, width: '100%', bgcolor: 'rgba(255,255,255,0.05)', position: 'relative' }}>
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${strat.weight}%` }}
-                                transition={{ duration: 1, delay: 0.5 }}
-                                style={{ height: '100%', backgroundColor: strat.color, boxShadow: `0 0 10px ${strat.color}` }} 
-                              />
-                           </Box>
-                        </Box>
-                      ))}
-                   </Box>
-                </Box>
-             </motion.div>
-          </Grid>
+        {/* Intelligence Layer */}
+        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
+           <AnimatedCard delay={0.2} sx={{ height: '100%' }}>
+              <Typography className="label-secondary" sx={{ mb: 3 }}>DEEP_INFERENCE_ENGINE</Typography>
+              <DeepInferenceEngine />
+           </AnimatedCard>
+        </Box>
+        
+        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
+           <AnimatedCard delay={0.25} sx={{ height: '100%' }}>
+              <Typography className="label-secondary" sx={{ mb: 3 }}>RISK_EXPOSURE_GRID</Typography>
+              <RiskExposureGrid />
+           </AnimatedCard>
+        </Box>
 
-          {/* Observation Deck */}
-          <Grid item xs={12}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative' }}>
-                   <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: '#1a1a1a' }}>TEMPORAL_TRAJECTORY // GLOBAL_INDICES</Box>
-                   <Box sx={{ p: 1, height: 'calc(100% - 32px)' }}>
-                      <Suspense fallback={<LoadingFallback />}>
-                         <LivePriceChart symbol="SPX" />
-                      </Suspense>
+        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
+           <AnimatedCard delay={0.3} sx={{ height: '100%' }}>
+              <Typography className="label-secondary" sx={{ mb: 3 }}>STRATEGY_ALLOCATION</Typography>
+              <Stack spacing={3}>
+                 {[
+                   { name: 'NEUTRAL_CONDOR_v4', weight: 45, color: 'var(--accent-mint)' },
+                   { name: 'BLACK_SWAN_HEDGE', weight: 25, color: 'var(--accent-purple)' },
+                   { name: 'INCOME_OVERLAY', weight: 30, color: 'var(--accent-teal)' },
+                 ].map(strat => (
+                   <Box key={strat.name}>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                         <Typography sx={{ fontSize: '11px', fontWeight: 600 }}>{strat.name}</Typography>
+                         <Typography className="data-mono" sx={{ fontSize: '11px', color: strat.color }}>{strat.weight}%</Typography>
+                      </Stack>
+                      <Box sx={{ height: 4, width: '100%', bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                         <motion.div 
+                           initial={{ width: 0 }}
+                           animate={{ width: `${strat.weight}%` }}
+                           transition={{ duration: 1, delay: 0.5 }}
+                           style={{ height: '100%', backgroundColor: strat.color }} 
+                         />
+                      </Box>
                    </Box>
-                </Box>
-             </motion.div>
-          </Grid>
+                 ))}
+              </Stack>
+           </AnimatedCard>
+        </Box>
 
-          {/* Recent Alerts Table */}
-          <Grid item xs={12}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ p: 0 }}>
-                   <Box className="stitch-banner-orange" style={{ fontSize: '10px', width: 'fit-content', transform: 'scale(1.1) translateX(20px)' }}>SYSTEM_LOGS // REAL-TIME_TELEMETRY</Box>
-                   <Box sx={{ p: 1 }}>
-                      {[
-                        { time: '14:22:01', type: 'SIGNAL', msg: 'ML Model detected bearish divergence on AAPL 15m' },
-                        { time: '14:20:45', type: 'EXEC', msg: 'Filled 500 contracts SPY 450P @ 1.45' },
-                        { time: '14:18:12', type: 'RISK', msg: 'Vega threshold exceeded on NVDA portfolio' },
-                      ].map((log, i) => (
-                        <Box key={i} sx={{ 
-                           display: 'flex', 
-                           alignItems: 'center',
-                           p: '10px 16px', 
-                           borderBottom: '1px solid rgba(255,255,255,0.03)',
-                           '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' }
-                        }}>
-                           <Typography className="stitch-mono" sx={{ fontSize: '10px', color: '#a9abb1', width: 80 }}>{log.time}</Typography>
-                           <Box sx={{ 
-                             px: 1, py: 0.2, mr: 2, borderRadius: 0, 
-                             bgcolor: log.type === 'RISK' ? 'rgba(255,46,126,0.1)' : 'rgba(0,255,163,0.1)',
-                             border: `1px solid ${log.type === 'RISK' ? 'rgba(255,46,126,0.2)' : 'rgba(0,255,163,0.2)'}`
-                           }}>
-                              <Typography sx={{ 
-                                 fontSize: '8px', fontWeight: 900,
-                                 color: log.type === 'RISK' ? '#ff2e7e' : stitchTokens.colors.primary 
-                              }}>
-                                 {log.type}
-                              </Typography>
-                           </Box>
-                           <Typography sx={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{log.msg}</Typography>
-                        </Box>
-                      ))}
+        {/* Observation Deck */}
+        <Box sx={{ gridColumn: 'span 12' }}>
+           <AnimatedCard delay={0.4} sx={{ height: 540, p: 0 }}>
+              <Box sx={{ p: 3, borderBottom: '1px solid var(--bento-card-border)' }}>
+                 <Typography className="label-secondary">TEMPORAL_TRAJECTORY // GLOBAL_INDICES</Typography>
+              </Box>
+              <Box sx={{ p: 2, height: 'calc(100% - 65px)' }}>
+                 <Suspense fallback={<LoadingFallback />}>
+                    <LivePriceChart symbol="SPX" />
+                 </Suspense>
+              </Box>
+           </AnimatedCard>
+        </Box>
+
+        {/* Signals Telemetry */}
+        <Box sx={{ gridColumn: 'span 12' }}>
+           <AnimatedCard delay={0.5} sx={{ p: 0 }}>
+              <Box sx={{ p: 3, borderBottom: '1px solid var(--bento-card-border)', display: 'flex', justifyContent: 'space-between' }}>
+                 <Typography className="label-secondary">SIGNAL_TELEMETRY</Typography>
+                 <Box className="status-pill healthy">LIVE_FEED</Box>
+              </Box>
+              <Box sx={{ p: 1 }}>
+                 {[
+                   { time: '14:22:01', type: 'SIGNAL', msg: 'ML Model detected bearish divergence on AAPL 15m' },
+                   { time: '14:20:45', type: 'EXEC', msg: 'Filled 500 contracts SPY 450P @ 1.45' },
+                   { time: '14:18:12', type: 'RISK', msg: 'Vega threshold exceeded on NVDA portfolio' },
+                 ].map((log, i) => (
+                   <Box key={i} sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      p: '16px 24px', 
+                      borderBottom: i === 2 ? 'none' : '1px solid rgba(255,255,255,0.03)',
+                      '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
+                   }}>
+                      <Typography className="data-mono" sx={{ fontSize: '11px', color: 'var(--text-secondary)', width: 100 }}>{log.time}</Typography>
+                      <Box className={`status-pill ${log.type === 'RISK' ? 'critical' : 'healthy'}`} sx={{ mr: 3 }}>
+                         {log.type}
+                      </Box>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{log.msg}</Typography>
                    </Box>
-                </Box>
-             </motion.div>
-          </Grid>
-        </Grid>
+                 ))}
+              </Box>
+           </AnimatedCard>
+        </Box>
       </motion.div>
     </Box>
   );
 };
+
+export default DashboardPage;
 
 export default DashboardPage;

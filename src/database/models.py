@@ -94,7 +94,7 @@ class User(Base):
     verification_token: Mapped[str | None] = mapped_column(String(255))
     reset_token: Mapped[str | None] = mapped_column(String(255))
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
 

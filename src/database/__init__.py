@@ -165,13 +165,25 @@ class DatabaseManager:
                 "pool_recycle": settings.DATABASE_POOL_RECYCLE,
             }
 
+        # connect_args for sync engine
+        sync_connect_args = {}
+        if driver == "psycopg":
+            # Psycopg v3 uses sslmode instead of ssl
+            if settings.is_production and settings.ENVIRONMENT != "test":
+                sync_connect_args["sslmode"] = "require"
+        elif driver == "psycopg2":
+            if settings.is_production and settings.ENVIRONMENT != "test":
+                sync_connect_args["sslmode"] = "require"
+
         self._engine = create_engine(
             sync_url,
             poolclass=sync_pool_class,
             json_serializer=msgspec_dumps,
             json_deserializer=msgspec_loads,
+            connect_args=sync_connect_args,
             **sync_pool_kwargs,
         )
+
         self._setup_events(self._engine)
 
         # 2. Async Engine Initialization (Weaponized)
@@ -193,7 +205,7 @@ class DatabaseManager:
         connect_args: dict[str, Any] = {}
         if "postgresql" in async_url:
             connect_args = {
-                "ssl": (True if settings.is_production else False),
+                "ssl": (True if settings.is_production and settings.ENVIRONMENT != "test" else False),
                 "server_settings": {
                     "application_name": app_name,
                     "tcp_keepalives_idle": "60",

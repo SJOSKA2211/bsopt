@@ -69,7 +69,7 @@ def test_csrf_middleware_post_fail_no_token():
         assert response.status_code == 403
 
 
-@patch("src.api.middleware.security.settings")
+@patch("api.middleware.security.settings")
 def test_csrf_middleware_full_flow(mock_settings):
     mock_settings.JWT_SECRET = "test_secret"
     mock_settings.CORS_ORIGINS = ["http://testserver"]
@@ -189,7 +189,7 @@ def test_ip_block_temp_block_expiration():
 
     # We need to simulate time passing.
     # Let's mock datetime
-    with patch("src.api.middleware.security.datetime") as mock_datetime:
+    with patch("api.middleware.security.datetime") as mock_datetime:
         mock_now = datetime.now(UTC)
         mock_datetime.now.return_value = mock_now
 
@@ -211,7 +211,7 @@ def test_ip_block_clean_old_attempts():
     middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=5, block_duration_minutes=10)
     ip = "8.8.8.8"
 
-    with patch("src.api.middleware.security.datetime") as mock_datetime:
+    with patch("api.middleware.security.datetime") as mock_datetime:
         base_time = datetime.now(UTC)
         mock_datetime.now.return_value = base_time
 
@@ -283,13 +283,13 @@ def test_input_sanitization_middleware():
     assert response.status_code == 200
 
     # Malicious query param
-    with patch("src.api.middleware.security.logger") as mock_logger:
+    with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/?q=<script>alert(1)</script>")
         assert response.status_code == 200
         mock_logger.warning.assert_called()
 
     # Malicious header
-    with patch("src.api.middleware.security.logger") as mock_logger:
+    with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/", headers={"User-Agent": "javascript:eval(1)"})
         assert response.status_code == 200
         mock_logger.warning.assert_called()

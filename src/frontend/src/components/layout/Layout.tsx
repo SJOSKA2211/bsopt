@@ -13,7 +13,6 @@ import {
   alpha, 
   Avatar, 
   IconButton, 
-  Tooltip,
   useMediaQuery,
   useTheme
 } from '@mui/material';
@@ -30,13 +29,12 @@ import {
   Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { stitchTokens } from '../../theme/stitch-tokens';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TickerTape } from '../TickerTape';
 import { useGatewayHealth } from '../../hooks/useGatewayHealth';
+import { AnimatedCard } from '../common/AnimatedCard';
 
-const drawerWidth = 260;
-
+const drawerWidth = 280;
 
 interface NavItemProps {
   item: { text: string; icon: React.ReactNode; path: string; color?: string };
@@ -52,57 +50,52 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick, index }) => 
       animate={{ x: 0, opacity: 1 }}
       transition={{ delay: 0.1 * index }}
     >
-      <ListItem disablePadding sx={{ mb: 0.5, px: 2 }}>
+      <ListItem disablePadding sx={{ mb: 1, px: 2 }}>
         <ListItemButton
           selected={isActive}
           onClick={onClick}
           sx={{
-            borderRadius: 0,
-            py: 1.2,
-            position: 'relative',
+            borderRadius: '12px',
+            py: 1.5,
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: isActive ? alpha(item.color || stitchTokens.colors.primary, 0.1) : 'transparent',
-            borderLeft: isActive ? `3px solid ${item.color || stitchTokens.colors.primary}` : '3px solid transparent',
+            backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
             '&:hover': {
-              backgroundColor: alpha(item.color || '#fff', 0.05),
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
               transform: 'translateX(4px)',
-              borderLeft: isActive ? `3px solid ${item.color || stitchTokens.colors.primary}` : `3px solid ${alpha(item.color || '#fff', 0.2)}`,
-            },
-            '&.Mui-selected': {
-              backgroundColor: alpha(item.color || stitchTokens.colors.primary, 0.1),
             },
           }}
         >
           <ListItemIcon
             sx={{
-              minWidth: 36,
-              color: isActive ? (item.color || stitchTokens.colors.primary) : 'rgba(255,255,255,0.4)',
+              minWidth: 40,
+              color: isActive ? 'var(--accent-mint)' : 'var(--text-secondary)',
             }}
           >
-            <Box sx={{ fontSize: 20, display: 'flex' }}>
+            <Box sx={{ fontSize: 22, display: 'flex' }}>
               {item.icon}
             </Box>
           </ListItemIcon>
           <ListItemText
             primary={item.text}
             primaryTypographyProps={{
-              fontSize: '0.75rem',
-              fontWeight: isActive ? 900 : 700,
-              color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
-              fontFamily: stitchTokens.typography.labels,
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
+              fontSize: '13px',
+              fontWeight: isActive ? 700 : 500,
+              color: isActive ? '#fff' : 'var(--text-secondary)',
+              letterSpacing: '0.02em',
             }}
           />
           {isActive && (
-            <Box 
-              component={motion.div}
-              layoutId="nav-active-glow"
-              sx={{ 
-                position: 'absolute', right: 0, top: '20%', bottom: '20%', width: 2, 
-                bgcolor: item.color || stitchTokens.colors.primary,
-                boxShadow: `0 0 15px ${item.color || stitchTokens.colors.primary}`
-              }} 
+            <motion.div
+              layoutId="nav-glow"
+              style={{
+                position: 'absolute',
+                right: 0,
+                width: 4,
+                height: 20,
+                background: 'var(--accent-mint)',
+                borderRadius: '4px 0 0 4px',
+                boxShadow: '0 0 10px var(--accent-mint)',
+              }}
             />
           )}
         </ListItemButton>
@@ -120,39 +113,25 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const health = useGatewayHealth();
 
   const navItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/', color: stitchTokens.colors.primary },
-    { text: 'Trade', icon: <TradeIcon />, path: '/market', color: stitchTokens.colors.secondary },
-    { text: 'Optimizer', icon: <AnalysisIcon />, path: '/research', color: '#ff9800' },
-    { text: 'Portfolio', icon: <PositionsIcon />, path: '/portfolio', color: stitchTokens.colors.tertiary },
-    { text: 'Risk', icon: <AnalysisIcon />, path: '/risk', color: '#E91E63' },
-    { text: 'History', icon: <HistoryIcon />, path: '/history', color: '#9e9e9e' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Market', icon: <TradeIcon />, path: '/market' },
+    { text: 'Optimizer', icon: <AnalysisIcon />, path: '/research' },
+    { text: 'Portfolio', icon: <PositionsIcon />, path: '/portfolio' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
 
   const SidebarContent = () => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      {/* Sidebar Dots Layer */}
-      <Box className="stitch-dots-container" sx={{ opacity: 0.15 }} />
-      
-      {/* Brand Shard */}
-      <Box sx={{ p: 0, mt: 4, mb: 4, position: 'relative', zIndex: 1 }}>
-        <motion.div
-           initial={{ x: -50, opacity: 0 }}
-           animate={{ x: 0, opacity: 1 }}
-           transition={{ duration: 0.8 }}
-           className="stitch-slanted-header"
-           style={{ width: 'fit-content', padding: '10px 40px 10px 24px' }}
-        >
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <FlashIcon sx={{ color: '#fff', fontSize: 20 }} />
-            <Typography sx={{ fontWeight: 950, fontSize: '1.1rem', letterSpacing: '2px', color: '#fff' }}>
-              BS-OPT <Box component="span" sx={{ opacity: 0.5, fontSize: '0.7rem' }}>V2.4</Box>
-            </Typography>
-          </Stack>
-        </motion.div>
-      </Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: '24px' }}>
+      {/* Brand */}
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 6, px: 1 }}>
+        <FlashIcon sx={{ color: 'var(--accent-mint)', fontSize: 24 }} />
+        <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+          BSOPT_V2
+        </Typography>
+      </Stack>
 
-      {/* Navigation List */}
-      <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
+      {/* Navigation */}
+      <Box sx={{ flexGrow: 1 }}>
         <List disablePadding>
           {navItems.map((item, index) => (
             <NavItem
@@ -169,59 +148,35 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </List>
       </Box>
 
-      {/* Decorative Shards for Sidebar */}
-      <Box className="stitch-abstract-shard float-animation" sx={{ bottom: -30, left: -20, width: 100, height: 100, bgcolor: 'rgba(168, 85, 247, 0.05)', clipPath: stitchTokens.geometry.shard }} />
-
-      {/* System Health / User Block */}
-      <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 1, bgcolor: 'rgba(0,0,0,0.2)' }}>
+      {/* User & Health */}
+      <AnimatedCard sx={{ p: 2, background: 'rgba(255,255,255,0.03)' }}>
         <Stack spacing={2}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1 }}>
-            <div className={`stitch-live-indicator ${health.status}`} />
-            <Typography className="stitch-label" sx={{ fontSize: '8px', opacity: 0.6 }}>
-              GATEWAY_{health.status.toUpperCase()} // LATENCY: {health.latency}ms
-            </Typography>
-          </Box>
-          
-          <Box className="stitch-card" sx={{ p: 1.5, bgcolor: 'rgba(255,255,255,0.02)' }}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Avatar 
-                sx={{ 
-                  width: 32, 
-                  height: 32, 
-                  bgcolor: alpha(stitchTokens.colors.primary, 0.1),
-                  border: `1px solid ${alpha(stitchTokens.colors.primary, 0.3)}`,
-                  fontSize: '0.8rem',
-                  fontWeight: 900,
-                  color: stitchTokens.colors.primary,
-                  borderRadius: 0
-                }}
-              >
-                QT
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
-                  TRADER_ALPHA
-                </Typography>
-                <Typography className="stitch-label" sx={{ fontSize: '7px', mt: 0.5, color: stitchTokens.colors.primary }}>
-                  INSTITUTIONAL_ACCESS
-                </Typography>
-              </Box>
-              <IconButton size="small" sx={{ ml: 'auto', color: 'rgba(255,255,255,0.2)' }}>
-                <SettingsIcon sx={{ fontSize: 14 }} />
-              </IconButton>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#fff', 0.1), fontSize: '12px', fontWeight: 700 }}>QT</Avatar>
+            <Box>
+              <Typography sx={{ fontSize: '12px', fontWeight: 700 }}>Trader_Alpha</Typography>
+              <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>Inst_Access</Typography>
+            </Box>
+          </Stack>
+          <Box sx={{ p: 1.5, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box className="status-pill healthy" sx={{ width: 8, height: 8, p: 0, borderRadius: '50%', background: 'var(--accent-mint)' }} />
+              <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent-mint)' }}>
+                RT_FEED: {health.latency}ms
+              </Typography>
             </Stack>
           </Box>
         </Stack>
-      </Box>
+      </AnimatedCard>
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: stitchTokens.colors.background, overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', background: 'var(--bento-bg)' }}>
       <CssBaseline />
 
       {!isMobile && (
-        <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.05)', bgcolor: 'rgba(11, 14, 18, 0.8)' }}>
+        <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid var(--bento-card-border)' }}>
           <SidebarContent />
         </Box>
       )}
@@ -230,111 +185,60 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         variant="temporary"
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        ModalProps={{ keepMounted: true }}
         sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { 
-            width: drawerWidth, 
-            bgcolor: 'rgba(11, 14, 18, 0.98)',
-            backgroundImage: 'none'
-          },
+          '& .MuiDrawer-paper': { width: drawerWidth, background: 'var(--bento-bg)' },
         }}
       >
         <SidebarContent />
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-        {/* Institutional Grade Noise Overlay */}
-        <Box 
-          sx={{ 
-            position: 'absolute', 
-            inset: 0, 
-            zIndex: 10, 
-            pointerEvents: 'none', 
-            opacity: 0.015,
-            mixBlendMode: 'overlay',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-          }} 
-        />
-        
-        {/* Global Abstract Background Decorations */}
-        <Box className="stitch-abstract-shard float-animation" sx={{ top: '5%', right: '-10%', width: 500, height: 500, background: 'linear-gradient(135deg, rgba(0, 255, 163, 0.05), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(60px)', zIndex: 0 }} />
-        <Box className="stitch-abstract-shard float-animation" sx={{ bottom: '5%', left: '-5%', width: 400, height: 400, background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.04), transparent)', clipPath: stitchTokens.geometry.shard, filter: 'blur(50px)', animationDelay: '-3s', zIndex: 0 }} />
-
-        {/* Top Header */}
+      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {/* Header */}
         <Box sx={{ 
-          height: 64, 
+          height: 72, 
           px: 3, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          bgcolor: 'rgba(11, 14, 18, 0.8)',
+          borderBottom: '1px solid var(--bento-card-border)',
+          background: 'rgba(5, 5, 5, 0.5)',
           backdropFilter: 'blur(10px)',
           zIndex: 10
         }}>
-          <Stack direction="row" spacing={3} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#fff', mr: 1 }}>
+              <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#fff' }}>
                 <MenuIcon />
               </IconButton>
             )}
-            <Box sx={{ px: 1.5, py: 0.5, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 1 }}>
-               <Typography sx={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.4)', fontFamily: stitchTokens.typography.labels }}>
-                 TERMINAL_ID: <Box component="span" sx={{ color: '#fff' }}>QUANT_NODE_042</Box>
+            <Box className="status-pill" sx={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--bento-card-border)' }}>
+               <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                 NODE: <Box component="span" sx={{ color: '#fff' }}>QUANT_042</Box>
                </Typography>
-               <Box sx={{ width: 1, height: 10, bgcolor: health.status === 'healthy' ? stitchTokens.colors.primary : '#ff2e7e', opacity: 0.6 }} />
             </Box>
-            
-            {!isMobile && (
-              <Stack direction="row" spacing={3} sx={{ ml: 4 }}>
-                {[
-                  { label: 'CAL_SPREAD', value: '1.45', change: '+0.02' },
-                  { label: 'GAMMA_EXP', value: '+1.2M', change: '-5%' },
-                ].map(item => (
-                  <Box key={item.label}>
-                    <Typography className="stitch-label" sx={{ fontSize: '7px', opacity: 0.5 }}>{item.label}</Typography>
-                    <Typography className="stitch-mono" sx={{ fontSize: '11px', fontWeight: 800 }}>
-                      {item.value} <Box component="span" sx={{ fontSize: '8px', color: item.change.startsWith('+') ? stitchTokens.colors.primary : '#ff2e7e', ml: 0.5 }}>{item.change}</Box>
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            )}
           </Stack>
 
           <Stack direction="row" spacing={2} alignItems="center">
-             <Box sx={{ textAlign: 'right', mr: 2 }}>
-                <Typography className="stitch-label" sx={{ fontSize: '8px', opacity: 0.5 }}>ACCOUNT_VALUE</Typography>
-                <Typography className="stitch-mono" sx={{ fontSize: '14px', fontWeight: 900, color: stitchTokens.colors.primary }}>
-                  $2,450,192.40
-                </Typography>
-             </Box>
-             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }}>
-                <NotifIcon fontSize="small" />
+             <IconButton sx={{ color: 'var(--text-secondary)' }}>
+                <NotifIcon />
              </IconButton>
-             <IconButton sx={{ color: 'rgba(255,255,255,0.4)' }}>
-                <LogoutIcon fontSize="small" />
+             <IconButton sx={{ color: 'var(--text-secondary)' }}>
+                <LogoutIcon />
              </IconButton>
           </Stack>
         </Box>
 
         <TickerTape />
 
-        {/* Dynamic Viewport */}
-
-        <Box sx={{ flexGrow: 1, p: 0, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+        <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
            <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, x: -10, filter: 'blur(10px) brightness(1.5)' }}
-                animate={{ opacity: 1, x: 0, filter: 'blur(0px) brightness(1)' }}
-                exit={{ opacity: 0, x: 10, filter: 'blur(10px) brightness(0.8)' }}
-                transition={{ 
-                  duration: 0.5, 
-                  ease: [0.16, 1, 0.3, 1], // Custom out-expo
-                }}
-                style={{ height: '100%', width: '100%' }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                style={{ height: '100%' }}
               >
                  {children}
               </motion.div>
