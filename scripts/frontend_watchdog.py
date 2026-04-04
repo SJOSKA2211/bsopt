@@ -2,12 +2,12 @@
 import json
 import logging
 import os
+import socket
 import subprocess
 import threading
 import time
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import socket
 
 # Institutional-grade minimal logging
 logging.basicConfig(

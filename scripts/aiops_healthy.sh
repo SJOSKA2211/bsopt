@@ -24,7 +24,7 @@ export DATABASE_URL="postgresql://admin:${POSTGRES_PASSWORD}@localhost:5435/bsop
 
 export REDIS_HOST=localhost
 export REDIS_PORT=6380
-export REDIS_URL="redis://:${REDIS_PASSWORD}@localhost:6380/0"
+export REDIS_URL="redis://:${REDIS_PASSWORD}@127.0.0.1:6380/0"
 
 export RABBITMQ_HOST=localhost
 export RABBITMQ_PORT=5673

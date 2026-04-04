@@ -5,7 +5,6 @@ import os
 import time
 import urllib.error
 import urllib.request
-from typing import Any
 
 # Institutional-grade minimal logging
 logging.basicConfig(
@@ -87,7 +86,7 @@ class MLflowWatchdog:
 
     def get_resource_pressure(self) -> str:
         try:
-            with open("/proc/meminfo", "r") as f:
+            with open("/proc/meminfo") as f:
                 meminfo = {line.split(":")[0]: line.split(":")[1].strip() for line in f}
             
             total = int(meminfo["MemTotal"].split()[0])

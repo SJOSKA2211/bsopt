@@ -1,6 +1,7 @@
-import asyncio
 from sqlalchemy import text
+
 from src.database import db_manager
+
 
 def revamp_timescale():
     db_manager.initialize()

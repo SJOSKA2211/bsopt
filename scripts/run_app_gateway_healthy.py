@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import json
 import os
+import socket
 import subprocess
 import sys
 import time
-import socket
+
 
 def get_container_engine():
     """Detect container engine, strictly prioritizing docker."""

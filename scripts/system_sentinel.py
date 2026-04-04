@@ -30,6 +30,17 @@ async def check_database():
                     print(f"   TimescaleDB Version: {stats['timescale_version']}")
                     print(f"   DB Size: {stats['db_size']}")
                     print(f"   Connections: {stats['total_backends']} total ({stats['active_backends']} active, {stats['idle_backends']} idle, {stats['waiting_backends']} waiting)")
+                
+                # Report Timescale specific health
+                ts_res = conn.execute(
+                    text("SELECT count(*) FROM pg_views WHERE viewname = 'timescale_health_overview'")
+                ).scalar()
+                if ts_res > 0:
+                    ts_stats = conn.execute(text("SELECT * FROM timescale_health_overview")).mappings().all()
+                    print("   Hypertables Optimized:")
+                    for h in ts_stats:
+                        status = "COMPRESSED" if h['compression_enabled'] else "READY"
+                        print(f"     - {h['hypertable_name']}: {h['num_chunks']} chunks, {status} ({h['compression_ratio_pct']}% saved)")
             else:
                 print("⚠️ [SCHEMA OK, REVAMP DIAGNOSTICS MISSING]")
     except Exception as e:

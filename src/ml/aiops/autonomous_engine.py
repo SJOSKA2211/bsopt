@@ -472,9 +472,6 @@ class AutonomousEngine:
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
         """Blocks until all critical infrastructure components are reachable."""
-        from sqlalchemy import text
-        from src.database import get_async_engine
-        from src.shared.utils.cache import get_redis_client
 
         logger.info("waiting_for_infrastructure_readiness", timeout=timeout)
         start_time = time.time()
@@ -504,6 +501,7 @@ class AutonomousEngine:
     async def _check_base_infra(self):
         """Checks core data and messaging services."""
         from sqlalchemy import text
+
         from src.database import get_async_engine
         from src.shared.utils.cache import get_redis_client
 
