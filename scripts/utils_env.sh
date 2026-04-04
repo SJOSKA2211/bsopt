@@ -31,7 +31,7 @@ load_decrypted_secrets() {
             if [ "$decrypted_val" != "__DECRYPT_FAILED__" ]; then
                 # Clean any trailing nulls or non-printable chars that Bash dislikes
                 local clean_val=$(echo -n "$decrypted_val" | tr -d '\000-\010\013\014\016-\037')
-                export "$var_name"="$clean_val"
+                echo "Setting $var_name to $clean_val"; export "$var_name"="$clean_val"
             else
                 echo "🔴 Failed to decrypt $var_name"
             fi

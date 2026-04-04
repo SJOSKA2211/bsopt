@@ -87,11 +87,12 @@ class DatabaseManager:
         if "sqlite" in db_url:
             async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
-        # Strip sslmode for asyncpg (handled via connect_args)
+        # Strip ssl parameters for asyncpg (handled via connect_args)
         if "postgresql" in async_url and "?" in async_url:
             parts = async_url.split("?")
             base = parts[0]
-            params = [p for p in parts[1].split("&") if not p.startswith("sslmode=")]
+            ssl_params = {"sslmode", "sslrootcert", "sslcert", "sslkey"}
+            params = [p for p in parts[1].split("&") if p.split("=")[0] not in ssl_params]
             async_url = f"{base}?{'&'.join(params)}" if params else base
 
         return sync_url, async_url
