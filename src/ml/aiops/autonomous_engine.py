@@ -471,9 +471,8 @@ class AutonomousEngine:
         return system_anomalies
 
     async def _ensure_infrastructure_ready(self, timeout: int = 60, interval: int = 5):
-        """Blocks until RabbitMQ, Redis, and Postgres/TimescaleDB are reachable."""
+        """Blocks until all critical infrastructure components are reachable."""
         from sqlalchemy import text
-
         from src.database import get_async_engine
         from src.shared.utils.cache import get_redis_client
 
@@ -482,49 +481,61 @@ class AutonomousEngine:
 
         while time.time() - start_time < timeout:
             try:
-                # 1. Check RabbitMQ
-                if self.health_reporter and self.health_reporter.rmq:
-                    await self.health_reporter.rmq.connect()
-
-                # 2. Check Redis
-                redis = await get_redis_client()
-                await redis.ping()
-
-                # 3. Check TimescaleDB
-                engine = get_async_engine()
-                async with engine.connect() as conn:
-                    await conn.execute(text("SELECT 1"))
-
-                # 4. Check API (Internal REST Gateway)
-                await self._check_api_ready()
-
-                # 5. Check Auth (Internal Security Gateway)
-                await self._check_auth_ready()
-
-                # 6. Check Ingestion (Data Pipeline Gateway)
-                await self._check_ingestion_ready()
-
-                # 7. Check Portfolio (Risk & Exposure Gateway)
-                await self._check_portfolio_ready()
-
-                # 8. Check Math Kernel (Pricing & Computation Gateway)
-                await self._check_math_kernel_ready()
-
-                # 9. Check ML Inference (ML Inference Gateway)
-                await self._check_ml_inference_ready()
-
-                # 10. Check Workers (Celery & Ray)
-                await self._check_worker_ready()
-
+                # Group checks by type
+                infra_tasks = [
+                    self._check_base_infra(),  # DB, Redis, RMQ
+                    self._check_gateways(),    # API, Auth, Ingestion, Portfolio
+                    self._check_compute(),     # Math Kernel, ML Inference, Workers
+                ]
+                await asyncio.gather(*infra_tasks)
+                
                 logger.info("infrastructure_ready")
                 return
-            except Exception:
+            except Exception as e:
                 logger.warning(
-                    "infrastructure_not_ready_retrying", elapsed=int(time.time() - start_time)
+                    "infrastructure_not_ready_retrying", 
+                    elapsed=int(time.time() - start_time),
+                    error=str(e)
                 )
                 await asyncio.sleep(interval)
 
         logger.error("infrastructure_readiness_timeout_proceeding_degraded")
+
+    async def _check_base_infra(self):
+        """Checks core data and messaging services."""
+        from sqlalchemy import text
+        from src.database import get_async_engine
+        from src.shared.utils.cache import get_redis_client
+
+        # 1. RabbitMQ
+        if self.health_reporter and self.health_reporter.rmq:
+            await self.health_reporter.rmq.connect()
+
+        # 2. Redis
+        redis = await get_redis_client()
+        await redis.ping()
+
+        # 3. TimescaleDB
+        engine = get_async_engine()
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+
+    async def _check_gateways(self):
+        """Checks internal service gateways."""
+        await asyncio.gather(
+            self._check_api_ready(),
+            self._check_auth_ready(),
+            self._check_ingestion_ready(),
+            self._check_portfolio_ready(),
+        )
+
+    async def _check_compute(self):
+        """Checks computation and inference engines."""
+        await asyncio.gather(
+            self._check_math_kernel_ready(),
+            self._check_ml_inference_ready(),
+            self._check_worker_ready(),
+        )
 
     async def _check_api_ready(self) -> bool:
         """Polls the API health endpoint until it's ready."""

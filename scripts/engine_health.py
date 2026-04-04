@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.error
@@ -9,7 +10,8 @@ from datetime import datetime
 
 # Service configurations
 SERVICES = {
-    "App Gateway": {"heartbeat": "/tmp/frontend_heartbeat", "type": "heartbeat"},
+    "App Gateway": {"url": "http://localhost:5173", "type": "http"},
+    "Frontend Flow": {"heartbeat": "/tmp/frontend_heartbeat", "type": "dockerexec", "container": "frontend"},
     "API Gateway": {"url": "http://localhost:8081/health", "type": "http"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
     "ML Inference": {"url": "http://localhost:5002/health", "type": "http"},
@@ -165,6 +167,30 @@ def check_heartbeat(path):
         return "error", str(e)
 
 
+async def check_dockerexec(container, path):
+    """Check heartbeat for services running inside a container."""
+    try:
+        cmd = ["docker", "exec", "-T", container, "cat", path]
+        result = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            return "missing", "Container access error"
+        
+        content = result.stdout.strip()
+        try:
+            data = json.loads(content)
+            ts = data.get("time", 0.0)
+            metrics = data.get("metrics", {})
+            status = metrics.get("status", "ACTIVE")
+            delta = time.time() - ts
+            if delta < 30:
+                return "healthy", f"Flow Positive | {status}"
+            return "stale", f"Last active {delta:.1f}s ago"
+        except json.JSONDecodeError:
+            return "unhealthy", "Invalid JSON heartbeat"
+    except Exception as e:
+        return "error", str(e)
+
+
 async def check_native_manifold():
     # Since we can't reliably import native code here, we check for the existence of the shared object
     # or a known diagnostic endpoint. For now, we simulate.
@@ -178,6 +204,8 @@ async def get_health_data():
             tasks.append(check_http(config["url"]))
         elif config["type"] == "heartbeat":
             tasks.append(asyncio.to_thread(check_heartbeat, config["heartbeat"]))
+        elif config["type"] == "dockerexec":
+            tasks.append(check_dockerexec(config["container"], config["heartbeat"]))
         elif config["type"] == "native":
             tasks.append(check_native_manifold())
         elif config["type"] == "rpc":

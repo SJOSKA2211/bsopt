@@ -20,14 +20,18 @@ ENV PATH="/uv/bin:$PATH"
 COPY pyproject.toml README.md ./
 COPY infrastructure/requirements/ /app/infrastructure/requirements/
 
-# Optimized Dependency Layer
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-core.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-ml.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-worker.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir --system -r infrastructure/requirements/requirements-observability.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir --system .
+# Optimized Dependency Layer (Split for caching)
+RUN /usr/local/bin/uv pip install --no-cache-dir --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+RUN /usr/local/bin/uv pip install --no-cache-dir --system \
+    -r infrastructure/requirements/requirements-core.txt \
+    -r infrastructure/requirements/requirements-ml.txt
+
+RUN /usr/local/bin/uv pip install --no-cache-dir --system \
+    -r infrastructure/requirements/requirements-worker.txt \
+    -r infrastructure/requirements/requirements-observability.txt
+
+RUN /usr/local/bin/uv pip install --no-cache-dir --system .
 
 # Copy Source
 COPY src ./src
