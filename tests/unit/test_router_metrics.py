@@ -2,7 +2,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.ingestion.router import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS, MarketDataRouter
+from src.ingestion.router import MarketDataRouter
+from src.shared.observability import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS
 
 
 @pytest.mark.asyncio

@@ -50,13 +50,35 @@ async def check_pgbouncer():
 
     try:
         with psycopg.connect(admin_url, autocommit=True) as conn:
-            with conn.cursor() as cur:
+            with conn.cursor(row_factory=psycopg.rows.dict_row) as cur:
                 cur.execute("SHOW POOLS")
                 pools = cur.fetchall()
-                if pools:
-                    print(f" [HEALTHY: {len(pools)} pools active]")
-                else:
+                
+                if not pools:
                     print(" [ALIVE: No pools]")
+                    return
+
+                # Summarize across all pools
+                cl_active = sum(p['cl_active'] for p in pools)
+                cl_waiting = sum(p['cl_waiting'] for p in pools)
+                sv_active = sum(p['sv_active'] for p in pools)
+                sv_idle = sum(p['sv_idle'] for p in pools)
+
+                status = "HEALTHY"
+                if cl_waiting > 0:
+                    status = "⚠️ UNHEALTHY (CLIENTS WAITING)"
+                
+                print(f" [{status}]")
+                print(f"   Clients: {cl_active} active, {cl_waiting} waiting")
+                print(f"   Servers: {sv_active} active, {sv_idle} idle")
+                
+                cur.execute("SHOW STATS")
+                stats = cur.fetchall()
+                if stats:
+                    total_xact = sum(s['total_xact_count'] for s in stats)
+                    total_wait = sum(s['total_wait_time'] for s in stats)
+                    print(f"   Throughput: {total_xact} xacts total, {total_wait}us total wait")
+
     except Exception as e:
         print(f" ❌ [FAILED: {e}]")
 

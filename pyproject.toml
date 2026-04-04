@@ -26,6 +26,7 @@ dependencies = [
     "scipy>=1.14.1",
     "numba>=0.64.0",
     "passlib[argon2]>=1.7.4",
+    "sendgrid>=6.12.5",
 ]
 
 [project.optional-dependencies]
