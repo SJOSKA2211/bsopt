@@ -78,6 +78,7 @@ issue_cert "envoy" "server"
 issue_cert "redis" "server"
 issue_cert "rabbitmq" "server"
 issue_cert "minio" "server"
+issue_cert "nginx" "server"
 
 # Client Services
 CLIENT_SERVICES=("api" "auth-service" "worker" "scraper" "nse-scraper" "yfinance-scraper" "ingestion-service" "neural-pricing" "ray-head" "mlflow" "mlops-worker" "ray-worker-1" "rl-training-worker")

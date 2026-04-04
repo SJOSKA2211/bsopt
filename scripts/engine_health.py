@@ -23,7 +23,9 @@ logger = logging.getLogger("engine_health")
 SERVICES = {
     "App Gateway": {"url": "http://localhost:5173", "type": "http", "container": "frontend"},
     "Frontend Flow": {"heartbeat": "/tmp/frontend_heartbeat", "type": "dockerexec", "container": "frontend"},
-    "API Gateway": {"url": "http://localhost:8081/health", "type": "http"},
+    "Nginx Proxy": {"url": "http://localhost:8080/health", "type": "http", "container": "nginx"},
+    "Envoy Gateway": {"url": "http://localhost:8081/health", "type": "http", "container": "envoy"},
+    "Envoy Admin": {"url": "http://localhost:9901/ready", "type": "envoy_ready", "container": "envoy"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
     "ML Inference": {"url": "http://localhost:5002/health", "type": "http"},
     "Portfolio": {"url": "http://localhost:8003/health", "type": "http"},
@@ -185,6 +187,17 @@ async def check_dockerexec(container, path):
         return "error", str(e)
 
 
+async def check_envoy_ready(url):
+    """Deep probe for Envoy's admin readiness."""
+    try:
+        code, body = await asyncio.to_thread(fetch_url, url)
+        if code == 200 and "LIVE" in body:
+            return "healthy", "LIVE ✓"
+        return "unhealthy", f"Envoy: {body.strip() or 'No Response'}"
+    except Exception as e:
+        return "down", str(e)
+
+
 async def check_native_manifold():
     return "healthy", "SIMD-Optimized Kernel"
 
@@ -206,6 +219,8 @@ async def get_health_data():
             tasks.append(check_minio(config["url"]))
         elif config["type"] == "ray":
             tasks.append(check_ray(config["url"]))
+        elif config["type"] == "envoy_ready":
+            tasks.append(check_envoy_ready(config["url"]))
 
     results = await asyncio.gather(*tasks)
     return dict(zip(SERVICES.keys(), results))

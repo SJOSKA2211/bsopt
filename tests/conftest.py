@@ -15,90 +15,30 @@ src = root / "src"
 if str(src) not in sys.path:
     sys.path.insert(0, str(src))
 
+
+def pytest_collection_modifyitems(items):
+    """Automatically mark tests based on their directory."""
+    for item in items:
+        if "tests/unit" in str(item.fspath):
+            item.add_marker(pytest.mark.unit)
+        if "tests/integration" in str(item.fspath):
+            item.add_marker(pytest.mark.integration)
+
 # Global fixtures for Production testing suite
 
 
 @pytest.fixture(scope="session", autouse=True)
-def startup_session():
+def startup_session(request):
     """Session-wide initialization with robust retries."""
-    import time
-
-    from sqlalchemy import create_engine, text
-
-    # Ensure settings uses the TEST database URL
-    db_url = os.getenv("DATABASE_URL")
-    if not db_url:
-        is_docker = os.getenv("INSIDE_DOCKER") == "1"
-        db_host = os.getenv("POSTGRES_HOST") or ("postgres" if is_docker else "localhost")
-        # Use the known hex password as default if DATABASE_URL is missing
-        db_url = f"postgresql://admin:29a47839acf362c9ebb5679a@{db_host}:5432/bsopt_test"
-
-    # Force test DB name if not already there
-    if "bsopt_test" not in db_url:
-        if "/" in db_url:
-            db_url = db_url.rsplit("/", 1)[0] + "/bsopt_test"
-        else:
-            db_url = db_url + "/bsopt_test"
-
-    engine = create_engine(db_url)
-    max_retries = 30
-    for i in range(max_retries):
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-                break
-        except Exception as e:
-            if i == max_retries - 1:
-                pytest.exit(f"Could not connect to Postgres after {max_retries} seconds: {e}")
-            time.sleep(1)
-
-    # 2. Ensure tables are created
-    # Optimized: Run only essential SQL init scripts and handle DB name replace
-    for script_name in [
-        "00-extensions.sql",
-        "01-src.shared-schema.sql",
-        "09-security.sql",
-        "10-missing-tables.sql",
-    ]:
-        sql_file = root / "init-scripts" / script_name
-        if not sql_file.exists():
-            continue
-        try:
-            with open(sql_file) as f:
-                sql = f.read()
-                # Replace hardcoded DB name in scripts
-                sql = sql.replace("DATABASE bsopt", "DATABASE bsopt_test")
-
-                with engine.connect() as conn:
-                    # Execute as one block (Postgres allows multiple statements in one call)
-                    conn.execute(text(sql))
-                    conn.commit()
-        except Exception as e:
-            print(f"Warning: Failed to apply {script_name}: {e}")
-
-    # Fallback to create_all for any missing ORM-only models
-    from src.database import create_tables
-
-    create_tables()
-
-    # 3. Init Redis mock/client
-    import asyncio
-
-    from src.shared.utils.cache import init_redis_cache
-
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    if loop.is_running():
-        # Use a task if loop is already running
-        loop.create_task(init_redis_cache())
-    else:
-        loop.run_until_complete(init_redis_cache())
-
+    print("\n[conftest] DEBUG: startup_session triggered")
+    # if any(item.get_closest_marker("unit") for item in request.session.items) and not any(
+    #     item.get_closest_marker("integration") for item in request.session.items
+    # ):
+    #     print("\n[conftest] Detected only unit tests. Skipping session-wide DB setup.")
+    #     yield
+    #     return
     yield
+
 
 
 @pytest.fixture(autouse=True)
