@@ -267,31 +267,49 @@ class AutonomousEngine:
         return drift_anomalies
 
     async def _detect_system_anomalies(self) -> list[dict]:
-        """Scans Prometheus for system-level anomalies."""
+        """Scans Prometheus and health reporter for system-level anomalies using parallel fetches."""
         if not self.prometheus_client:
             return []
 
         system_anomalies = []
         try:
+            # Parallelize primary metric fetches
+            prom_tasks = [
+                self.prometheus_client.get_5xx_error_rate(self.api_service_name),
+                self.prometheus_client.get_p95_latency(self.api_service_name),
+            ]
+            
+            if self.forecaster:
+                prom_tasks.append(
+                    self.prometheus_client.get_metric_range(
+                        self.api_service_name, "container_cpu_usage_seconds_total"
+                    )
+                )
+            
+            if self.health_reporter:
+                prom_tasks.append(self.health_reporter.get_health_report(self.planner, self.guardian))
+
+            results = await asyncio.gather(*prom_tasks, return_exceptions=True)
+            
             # 1. Error Rate
-            error_rate = await self.prometheus_client.get_5xx_error_rate(self.api_service_name)
+            error_rate = results[0] if not isinstance(results[0], Exception) else 0.0
             if error_rate > self.config.get("error_rate_threshold", 0.05):
                 system_anomalies.append(
                     {"type": "high_error_rate", "metric": error_rate, "severity": "high"}
                 )
 
             # 2. Latency
-            p95_latency = await self.prometheus_client.get_p95_latency(self.api_service_name)
+            p95_latency = results[1] if not isinstance(results[1], Exception) else 0.0
             if p95_latency > self.config.get("latency_threshold", 0.5):
                 system_anomalies.append(
                     {"type": "high_latency", "metric": p95_latency, "severity": "medium"}
                 )
 
             # 3. Predictive (Forecasting)
+            idx = 2
             if self.forecaster:
-                recent_df = await self.prometheus_client.get_metric_range(
-                    self.api_service_name, "container_cpu_usage_seconds_total"
-                )
+                recent_df = results[idx] if not isinstance(results[idx], Exception) else pd.DataFrame()
+                idx += 1
                 if not recent_df.empty:
                     forecast = self.forecaster.predict(recent_df)
                     if forecast is not None and forecast.max() > 0.8:
@@ -299,57 +317,54 @@ class AutonomousEngine:
                             {"type": "predicted_load_spike", "forecast_max": float(forecast.max())}
                         )
 
-            # 4. Critical Database Pool Check
+            # 4. Health Report based checks
             if self.health_reporter:
-                report = await self.health_reporter.get_health_report(self.planner, self.guardian)
-
-                if report.postgres.active_connections > 50:
-                    system_anomalies.append(
-                        {
+                report = results[idx] if not isinstance(results[idx], Exception) else None
+                if report:
+                    if report.postgres.active_connections > 50:
+                        system_anomalies.append({
                             "type": "db_pool_exhaustion",
                             "metrics": {"total_connections": report.postgres.active_connections},
                             "score": 0.8,
                             "timestamp": time.time(),
-                        }
-                    )
-
-                # 5. API-Specific Anomalies (from Health Report)
-                if not report.api.reachable:
-                    system_anomalies.append(
-                        {
+                        })
+                    
+                    if not report.api.reachable:
+                        system_anomalies.append({
                             "type": "api_unreachable",
                             "severity": "critical",
                             "timestamp": time.time(),
-                        }
-                    )
-                if report.api.error_rate_5xx > 0.15:
-                    system_anomalies.append(
-                        {
+                        })
+                    if report.api.error_rate_5xx > 0.15:
+                        system_anomalies.append({
                             "type": "api_error_spike",
                             "metric": report.api.error_rate_5xx,
                             "severity": "high",
                             "timestamp": time.time(),
-                        }
-                    )
+                        })
 
-                # 6. Auth-Specific Anomalies (from Health Report)
-                if not report.auth.reachable:
-                    system_anomalies.append(
-                        {
+                    # 6. Auth-Specific Anomalies (from Health Report)
+                    if not report.auth.reachable:
+                        system_anomalies.append({
                             "type": "auth_unreachable",
                             "severity": "critical",
                             "timestamp": time.time(),
-                        }
-                    )
-                if report.auth.auth_success_rate < 0.9:
-                    system_anomalies.append(
-                        {
+                        })
+                    if report.auth.auth_success_rate < 0.9:
+                        system_anomalies.append({
                             "type": "auth_failure_spike",
                             "metric": report.auth.auth_success_rate,
                             "severity": "high",
                             "timestamp": time.time(),
-                        }
-                    )
+                        })
+                    
+                    # Ray specific checks
+                    if report.ray.nodes_alive < 1:
+                        system_anomalies.append({
+                            "type": "ray_cluster_failure",
+                            "severity": "high",
+                            "timestamp": time.time()
+                        })
 
                 # 7. Ingestion-Specific Anomalies
                 if not report.ingestion.reachable or report.ingestion.heartbeat_age > 120:
