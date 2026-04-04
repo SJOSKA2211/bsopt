@@ -97,7 +97,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('@mui') || id.includes('@emotion')) return 'vendor-ui';
               if (id.includes('echarts') || id.includes('lightweight-charts')) return 'vendor-viz';
               if (id.includes('three') || id.includes('@react-three')) return 'vendor-3d';
               if (id.includes('@tanstack/react-query') || id.includes('axios')) return 'vendor-data';
