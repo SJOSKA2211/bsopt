@@ -1,11 +1,10 @@
 import React from 'react';
-import { Box, Grid, Stack, Typography, Button, alpha } from '@mui/material';
-import { stitchTokens } from '../../theme/stitch-tokens';
 import { OptimizationControls } from '../../features/research/components/OptimizationControls';
 import { OptimalConfigCard } from '../../features/research/components/OptimalConfigCard';
 import { SweepResultsTable } from '../../features/research/components/SweepResultsTable';
 import VolatilitySurface3D from '../../features/options/components/VolatilitySurface3D';
 import { motion } from 'framer-motion';
+import { AnimatedCard } from '../../components/common/AnimatedCard';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -17,127 +16,98 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 }
-};
-
 const StrategyOptimizerPage: React.FC = () => {
   return (
-    <Box sx={{ p: 2, height: 'calc(100vh - 64px)', overflow: 'auto', position: 'relative' }}>
+    <div className="p-6 h-[calc(100vh-64px)] overflow-auto bg-bento-bg">
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        className="bento-grid"
       >
-        <Grid container spacing={2}>
-          {/* Header Shard */}
-          <Grid item xs={12}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ p: '24px 32px', position: 'relative', overflow: 'hidden' }}>
-                   <Box className="stitch-dots-container" sx={{ opacity: 0.1 }} />
-                   <Box className="stitch-abstract-shard float-animation" sx={{ top: -40, right: -40, width: 250, height: 250, bgcolor: alpha(stitchTokens.colors.primary, 0.05), clipPath: stitchTokens.geometry.shard }} />
-                   
-                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
-                      <Box>
-                         <Typography className="stitch-label" sx={{ color: stitchTokens.colors.primary, mb: 1, letterSpacing: '2px', fontWeight: 900 }}>
-                            STRATEGY_GENESIS // GEOMETRIC_OPTIMIZER_v4.2
-                         </Typography>
-                         <Stack direction="row" alignItems="baseline" spacing={2}>
-                            <Typography className="stitch-mono" sx={{ fontSize: '32px', fontWeight: 950, letterSpacing: '-1px' }}>
-                               AAPL // BULL_CALL_SPREAD
-                            </Typography>
-                            <Box className="stitch-banner-orange" style={{ transform: 'skewX(-15deg)', padding: '2px 12px', fontSize: '10px' }}>RUN_SCAN_SEQUENCE_042</Box>
-                         </Stack>
-                      </Box>
-                      <Button 
-                         variant="contained"
-                         sx={{ 
-                            height: 48,
-                            bgcolor: stitchTokens.colors.primary, 
-                            color: '#000', 
-                            px: 6, 
-                            borderRadius: 0,
-                            fontSize: '11px',
-                            fontWeight: 950,
-                            letterSpacing: '1.5px',
-                            boxShadow: `0 0 25px ${alpha(stitchTokens.colors.primary, 0.4)}`,
-                            '&:hover': { bgcolor: alpha(stitchTokens.colors.primary, 0.9) }
-                         }}
-                      >
-                         EXECUTE_HEURISTIC_OPTIMIZATION
-                      </Button>
-                   </Stack>
-                </Box>
-             </motion.div>
-          </Grid>
+        {/* Header Shard */}
+        <div className="col-span-12">
+           <AnimatedCard className="p-6 overflow-hidden relative border-mint/20 hover:border-mint/40 transition-colors">
+              <div className="absolute top-[-40px] right-[-40px] w-64 h-64 bg-mint/5 rounded-full blur-[100px] pointer-events-none" />
+              
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+                 <div>
+                    <span className="label-secondary text-mint mb-2 block tracking-[0.2em] font-black">
+                       STRATEGY_GENESIS // GEOMETRIC_OPTIMIZER_v4.2
+                    </span>
+                    <div className="flex flex-wrap items-baseline gap-4">
+                       <h1 className="data-mono text-4xl font-black text-white tracking-tighter">
+                          AAPL // BULL_CALL_SPREAD
+                       </h1>
+                       <div className="status-pill bg-amber/10 text-amber border-amber/20 scale-90">RUN_SCAN_SEQUENCE_042</div>
+                    </div>
+                 </div>
+                 <button className="h-12 px-8 bg-mint text-black font-black text-[11px] uppercase tracking-widest rounded-none shadow-[0_0_25px_rgba(0,255,163,0.3)] hover:bg-mint/90 transition-all active:scale-95">
+                    EXECUTE_HEURISTIC_OPTIMIZATION
+                 </button>
+              </div>
+           </AnimatedCard>
+        </div>
 
-          {/* Controls Bar */}
-          <Grid item xs={12}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ p: 0, position: 'relative', overflow: 'hidden' }}>
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      INPUT_PARAMETERS // CONSTRAINTS
-                   </Box>
-                   <Box sx={{ p: 2 }}>
-                      <OptimizationControls />
-                   </Box>
-                </Box>
-             </motion.div>
-          </Grid>
+        {/* Controls Bar */}
+        <div className="col-span-12">
+           <AnimatedCard className="!p-0 border-white/5 hover:border-white/10 transition-colors overflow-hidden">
+              <div className="p-4 border-b border-white/5 bg-white/2">
+                 <span className="label-secondary opacity-40">INPUT_PARAMETERS // CONSTRAINTS</span>
+              </div>
+              <div className="p-6">
+                 <OptimizationControls />
+              </div>
+           </AnimatedCard>
+        </div>
 
-          {/* 3D Manifold */}
-          <Grid item xs={12} lg={8}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative', overflow: 'hidden' }}>
-                   <Box className="stitch-dots-container" sx={{ opacity: 0.03 }} />
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.purple }}>OPTIMIZATION_MANIFOLD // 3D_HYPER_SURFACE_SCAN</Box>
-                   <Box sx={{ p: '8px', height: 'calc(100% - 32px)', position: 'relative' }}>
-                      <VolatilitySurface3D symbol="AAPL" />
-                      <Box sx={{ position: 'absolute', bottom: 12, left: 12, p: '4px 12px', bgcolor: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                         <Typography className="stitch-mono" sx={{ fontSize: '8px', color: stitchTokens.colors.secondary, fontWeight: 900 }}>COORD_SYSTEM: CARTESIAN_v3 // SCALE: 1.2x</Typography>
-                      </Box>
-                   </Box>
-                </Box>
-             </motion.div>
-          </Grid>
+        {/* 3D Manifold */}
+        <div className="col-span-12 lg:col-span-8">
+           <AnimatedCard className="h-[500px] !p-0 border-purple/20 hover:border-purple/40 transition-colors overflow-hidden relative">
+              <div className="p-4 border-b border-white/5 bg-white/2">
+                 <span className="label-secondary opacity-40">OPTIMIZATION_MANIFOLD // 3D_HYPER_SURFACE_SCAN</span>
+              </div>
+              <div className="p-2 h-[calc(100%-56px)] relative">
+                 <VolatilitySurface3D symbol="AAPL" />
+                 <div className="absolute bottom-4 left-4 p-2 bg-black/60 border border-white/10 backdrop-blur-md rounded">
+                    <span className="data-mono text-[9px] text-teal font-black uppercase tracking-widest">COORD_SYSTEM: CARTESIAN_v3 // SCALE: 1.2x</span>
+                 </div>
+              </div>
+           </AnimatedCard>
+        </div>
 
-          {/* Optimal Configs */}
-          <Grid item xs={12} lg={4}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ height: 500, p: 0, position: 'relative', overflow: 'hidden' }}>
-                   <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: '#1a1a1a' }}>TOP_RANKED_CONFIGURATIONS</Box>
-                   <Box sx={{ p: 2, height: 'calc(100% - 32px)', overflow: 'auto', position: 'relative', zIndex: 1 }}>
-                      <Stack spacing={1.5}>
-                         {[
-                           { id: 1, strike1: 190.0, strike2: 195.0, change: '+24.52%', score: '2.42' },
-                           { id: 2, strike1: 187.5, strike2: 192.5, change: '+21.24%', score: '2.18' },
-                           { id: 3, strike1: 192.5, strike2: 197.5, change: '+19.95%', score: '1.95' },
-                           { id: 4, strike1: 190.0, strike2: 200.0, change: '+28.12%', score: '1.82' },
-                         ].map(config => (
-                            <OptimalConfigCard key={config.id} {...config} />
-                         ))}
-                      </Stack>
-                   </Box>
-                </Box>
-             </motion.div>
-          </Grid>
+        {/* Optimal Configs */}
+        <div className="col-span-12 lg:col-span-4">
+           <AnimatedCard className="h-[500px] !p-0 border-white/5 hover:border-white/10 transition-colors overflow-hidden relative">
+              <div className="p-4 border-b border-white/5 bg-white/2">
+                 <span className="label-secondary opacity-40">TOP_RANKED_CONFIGURATIONS</span>
+              </div>
+              <div className="p-6 h-[calc(100%-56px)] overflow-auto space-y-4">
+                 {[
+                   { id: 1, strike1: 190.0, strike2: 195.0, change: '+24.52%', score: '2.42' },
+                   { id: 2, strike1: 187.5, strike2: 192.5, change: '+21.24%', score: '2.18' },
+                   { id: 3, strike1: 192.5, strike2: 197.5, change: '+19.95%', score: '1.95' },
+                   { id: 4, strike1: 190.0, strike2: 200.0, change: '+28.12%', score: '1.82' },
+                 ].map(config => (
+                    <OptimalConfigCard key={config.id} {...config} />
+                 ))}
+              </div>
+           </AnimatedCard>
+        </div>
 
-          {/* Bottom Sweep Results */}
-          <Grid item xs={12}>
-             <motion.div variants={itemVariants}>
-                <Box className="stitch-card" sx={{ p: 0, overflow: 'hidden' }}>
-                   <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.indigo }}>PARAMETER_SWEEP_SEQUENCE // DETAILED_TELEMETRY</Box>
-                   <Box sx={{ p: 0 }}>
-                      <SweepResultsTable />
-                   </Box>
-                </Box>
-             </motion.div>
-          </Grid>
-        </Grid>
+        {/* Bottom Sweep Results */}
+        <div className="col-span-12">
+           <AnimatedCard className="!p-0 border-white/5 hover:border-white/10 transition-colors overflow-hidden">
+              <div className="p-4 border-b border-white/5 bg-white/2">
+                 <span className="label-secondary opacity-40">PARAMETER_SWEEP_SEQUENCE // DETAILED_TELEMETRY</span>
+              </div>
+              <div className="p-0">
+                 <SweepResultsTable />
+              </div>
+           </AnimatedCard>
+        </div>
       </motion.div>
-    </Box>
+    </div>
   );
 };
 
