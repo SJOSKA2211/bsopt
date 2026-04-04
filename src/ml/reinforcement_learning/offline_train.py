@@ -98,10 +98,12 @@ def train_offline(
 
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
-    else:
+    elif dataset_path.endswith(".json"):
         import json
         with open(dataset_path, "r") as f:
             trajectories = cast(list[dict[str, Any]], json.load(f))
+    else:
+        raise RuntimeError("Insecure pickle loading is deprecated. Please migrate legacy .pkl files to .json or .parquet.")
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(

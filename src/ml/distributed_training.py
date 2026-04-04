@@ -94,9 +94,20 @@ def train_func(config: dict[str, Any]):
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
         import json
+        import pandas as pd
+        import os
 
-        with open("data/trajectories.json", "r") as f:
-            trajectories = json.load(f)
+        if os.path.exists("data/trajectories.json"):
+            with open("data/trajectories.json", "r") as f:
+                trajectories = json.load(f)
+        elif os.path.exists("data/trajectories.parquet"):
+            df = pd.read_parquet("data/trajectories.parquet")
+            trajectories = df.to_dict("records")
+        elif os.path.exists("data/trajectories.pkl"):
+            raise RuntimeError("Insecure pickle loading is deprecated. Please migrate legacy .pkl files to .json or .parquet.")
+        else:
+            raise FileNotFoundError("No trajectory data found for fallback loading.")
+
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
