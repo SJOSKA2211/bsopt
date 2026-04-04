@@ -66,7 +66,6 @@ def check_ram():
 def check_browsers(detail=False):
     """Verifica processos de browser e consumo de RAM."""
     browsers = {}
-    all_procs = []
 
     for proc in psutil.process_iter(["pid", "name", "memory_info"]):
         try:

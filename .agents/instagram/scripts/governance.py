@@ -206,7 +206,7 @@ class GovernanceManager:
         rate_status: dict[str, Any],
     ) -> str:
         """Formata mensagem de confirmação legível."""
-        category = self.get_confirmation_category(action)
+        self.get_confirmation_category(action)
         action_names = {
             "publish_photo": "PUBLICAR uma foto",
             "publish_video": "PUBLICAR um vídeo",

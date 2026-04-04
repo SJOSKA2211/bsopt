@@ -202,7 +202,6 @@ def print_table(health_data):
 
     all_healthy = True
     for name, (status, details) in health_data.items():
-        status_color = ""
         if status == "healthy":
             status_str = "HEALTHY"
         elif status in ["stale", "missing"]:

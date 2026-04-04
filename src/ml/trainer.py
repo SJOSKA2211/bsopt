@@ -67,7 +67,7 @@ class ModelTrainer(BaseTrainer):
         logger.info("optimization_complete", best_score=self.best_score, params=study.best_params)
 
         # Final train with best params
-        with mlflow.start_run(nested=True) as run:
+        with mlflow.start_run(nested=True):
             unified_params = msgspec.json.decode(msgspec.json.encode(config))
             unified_params.update(study.best_params)
             self.log_params(unified_params)

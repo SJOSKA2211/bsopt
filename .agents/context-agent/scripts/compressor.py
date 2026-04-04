@@ -45,7 +45,6 @@ def _compress_session(text: str) -> str:
         "dívida técnica",
     }
 
-    current_section = ""
     keeping = True
 
     for line in lines:
@@ -64,7 +63,6 @@ def _compress_session(text: str) -> str:
                 compressed.append(line)
             else:
                 keeping = False
-            current_section = section_name
             continue
 
         if keeping and line.strip():

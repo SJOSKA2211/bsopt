@@ -4,7 +4,7 @@ Includes pagination, filtering, error handling, and best practices.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Path, Query, status
@@ -33,7 +33,7 @@ app.add_middleware(
 
 
 # Models
-class UserStatus(str, Enum):
+class UserStatus(StrEnum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"

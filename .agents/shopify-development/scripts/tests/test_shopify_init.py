@@ -95,7 +95,6 @@ ANOTHER_VALID=test
         """Test configuration loading priority across different AI tool directories."""
         skill_dir = tmp_path / "skill"
         skills_dir = tmp_path
-        agent_dir = tmp_path.parent  # Could be .agent, .claude, .gemini, .cursor
 
         skill_dir.mkdir(parents=True)
 

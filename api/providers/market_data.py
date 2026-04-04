@@ -44,7 +44,7 @@ class PolygonProvider:
         prev_close = float(prev_data.get("c", last_price))
 
         change = last_price - prev_close
-        pct_change = (change / prev_close * 100) if prev_close else 0.0
+        (change / prev_close * 100) if prev_close else 0.0
 
         return MarketQuote.from_price_change(
             symbol=symbol,
@@ -114,7 +114,7 @@ class YahooProvider:
                 last_price = prev_close
 
             change = last_price - prev_close
-            pct_change = (change / prev_close * 100) if prev_close else 0.0
+            (change / prev_close * 100) if prev_close else 0.0
 
             return MarketQuote.from_price_change(
                 symbol=symbol, price=last_price, change=change, market="US", provider="Yahoo"

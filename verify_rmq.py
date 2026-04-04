@@ -1,11 +1,12 @@
 import asyncio
-import sys
 import os
+import sys
 
 # Add src to path
 sys.path.append(os.getcwd())
 
 from src.shared.config import settings
+
 
 async def main():
     print(f"RABBITMQ_USER: {settings.RABBITMQ_USER}")

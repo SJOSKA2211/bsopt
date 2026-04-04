@@ -348,7 +348,7 @@ def generate_css(config: dict[str, Any]) -> str:
     """Generate responsive CSS from config theme."""
     theme = config.get("theme", {})
     primary = theme.get("primary_color", "#2563eb")
-    secondary = theme.get("secondary_color", "#1e40af")
+    theme.get("secondary_color", "#1e40af")
     bg = theme.get("background", "#ffffff")
     text_color = theme.get("text_color", "#1f2937")
     font = theme.get("font", "Inter, system-ui, -apple-system, sans-serif")

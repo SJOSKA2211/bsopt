@@ -100,7 +100,7 @@ class DatabaseManager:
         """Attaches Production-grade performance monitoring events to the engine."""
         from src.shared.tracing import get_tracer
 
-        tracer = get_tracer(__name__)
+        get_tracer(__name__)
 
         def _normalize_statement(statement: str) -> str:
             """Simple normalization to group similar queries."""

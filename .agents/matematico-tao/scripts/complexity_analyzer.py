@@ -187,7 +187,7 @@ class KotlinComplexityAnalyzer:
     def _extract_functions(self, content: str, filepath: str) -> list[FunctionMetrics]:
         """Extrai e analisa todas as funções do arquivo."""
         functions = []
-        lines = content.split("\n")
+        content.split("\n")
 
         # Pattern para declarações de função Kotlin
         fun_pattern = re.compile(

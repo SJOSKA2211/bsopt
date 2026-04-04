@@ -18,7 +18,7 @@ class TestProductionCore:
 
     def test_argon2id_password_hashing(self):
         """Verify Argon2id meets security and timing protection standards."""
-        ph = PasswordHasher()
+        PasswordHasher()
         password = "Production-grade-password-2026"
         hashed = auth_service.hash_password(password)
 
@@ -88,7 +88,7 @@ class TestProductionCore:
         user_id = "test_user"
         token_pair = auth_service.create_token_pair(user_id, "test@test.com", "pro")
 
-        middleware = ZeroTrustAuthMiddleware(app=None)
+        ZeroTrustAuthMiddleware(app=None)
         # We verify token_data can be retrieved from our created token
         token_data = await auth_service.validate_token(token_pair.access_token)
         assert token_data.user_id == user_id

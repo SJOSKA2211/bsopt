@@ -14,12 +14,12 @@ def collect_options_data_task(symbols):
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
-            res = loop.create_task(pipeline.run())
+            loop.create_task(pipeline.run())
         else:
-            res = loop.run_until_complete(pipeline.run())
+            loop.run_until_complete(pipeline.run())
     except Exception:
         # Fallback for sync environments or if patched
-        res = pipeline.run()
+        pipeline.run()
         
     return {
         "status": "completed",

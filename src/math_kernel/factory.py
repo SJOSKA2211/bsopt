@@ -119,7 +119,6 @@ class PricingEngineFactory:
 
         # 1. Hardware Autodiscovery (Mocked for prototype)
         has_cuda = os.environ.get("USE_GPU") == "1"
-        has_avx512 = True  # Assume modern server
 
         # 2. Pre-warm engines
         engines_to_warm = ["black_scholes", "wasm"]

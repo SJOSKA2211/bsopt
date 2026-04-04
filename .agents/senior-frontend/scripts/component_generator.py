@@ -159,7 +159,7 @@ def generate_component(
 ) -> dict:
     """Generate component files."""
     pascal_name = to_pascal_case(name)
-    kebab_name = to_kebab_case(pascal_name)
+    to_kebab_case(pascal_name)
 
     # Determine output path
     if flat:

@@ -384,7 +384,7 @@ def save_outputs(transcript_text, ata_text, audio_file, output_dir="."):
         tuple: (transcript_path, ata_path or None)
     """
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    base_name = Path(audio_file).stem
+    Path(audio_file).stem
 
     # Sempre salva transcript
     transcript_filename = f"transcript-{timestamp}.md"

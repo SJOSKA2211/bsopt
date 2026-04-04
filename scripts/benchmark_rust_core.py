@@ -20,25 +20,25 @@ def benchmark_kernels(n=1_000_000):
 
     # 1. Rust Direct
     start = time.perf_counter()
-    rust_res = rust_core.batch_black_scholes(s, k, t, v, r, q, is_call)
+    rust_core.batch_black_scholes(s, k, t, v, r, q, is_call)
     rust_duration = time.perf_counter() - start
     print(f"[RUST] batch_black_scholes: {rust_duration:.4f}s ({int(n/rust_duration):,} options/sec)")
 
     # 2. Rust Greeks
     start = time.perf_counter()
-    rust_greeks = rust_core.batch_black_scholes_greeks(s, k, t, v, r, q, is_call)
+    rust_core.batch_black_scholes_greeks(s, k, t, v, r, q, is_call)
     rust_greeks_duration = time.perf_counter() - start
     print(f"[RUST] batch_black_scholes_greeks: {rust_greeks_duration:.4f}s ({int(n/rust_greeks_duration):,} options/sec)")
 
     # 3. New Rust Delta Gamma
     start = time.perf_counter()
-    rust_dg = rust_core.batch_delta_gamma(s, k, t, v, r, q, is_call)
+    rust_core.batch_delta_gamma(s, k, t, v, r, q, is_call)
     rust_dg_duration = time.perf_counter() - start
     print(f"[RUST] batch_delta_gamma (NEW): {rust_dg_duration:.4f}s ({int(n/rust_dg_duration):,} options/sec)")
 
     # 4. Compare with math_utils (which should use Rust now)
     start = time.perf_counter()
-    util_res = calculate_price(s, k, t, v, r, q, is_call)
+    calculate_price(s, k, t, v, r, q, is_call)
     util_duration = time.perf_counter() - start
     print(f"[UTIL] calculate_price: {util_duration:.4f}s")
 

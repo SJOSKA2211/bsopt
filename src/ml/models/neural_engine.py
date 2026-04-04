@@ -136,7 +136,7 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         """
         High-Performance Vectorized Batch Pricing using standardized 9-feature vector.
         """
-        n = len(spots)
+        len(spots)
         is_call = (option_types == "call") | (option_types == "CALL")
 
         # Construct 9 features
@@ -186,7 +186,7 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         """
         High-Performance Vectorized Greeks using Autograd Batching.
         """
-        n = len(spots)
+        len(spots)
         is_call = (option_types == "call") | (option_types == "CALL")
 
         moneyness = spots / strikes

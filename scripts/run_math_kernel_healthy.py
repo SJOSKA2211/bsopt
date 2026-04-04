@@ -29,7 +29,7 @@ def check_math_kernel_grpc(address: str, timeout: int = 60, interval: int = 5):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            with grpc.insecure_channel(address) as channel:
+            with grpc.insecure_channel(address):
                 # We can't easily call PriceOption without real data, but we can check connectivity
                 # or use gRPC health if implemented. For now, we'll just check if the port is open and responding.
                 # In a real scenario, we'd implementation grpc_health_v1.

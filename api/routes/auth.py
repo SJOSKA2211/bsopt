@@ -304,7 +304,7 @@ async def verify_webauthn_registration(
 ) -> SuccessResponse:
     """Verify and store a new WebAuthn credential."""
     try:
-        verification = auth_service.verify_webauthn_registration(
+        auth_service.verify_webauthn_registration(
             data.registration_response, data.challenge
         )
 

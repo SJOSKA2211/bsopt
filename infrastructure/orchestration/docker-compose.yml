@@ -62,6 +62,17 @@ services:
   pgbouncer:
     image: docker.io/edoburu/pgbouncer:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:6432:6432"
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+        reservations:
+          memory: 256mb
+    security_opt:
+      - label:disable
+    user: root
     environment:
       LISTEN_PORT: 6432
       AUTH_TYPE: scram-sha-256
@@ -70,12 +81,15 @@ services:
       DB_HOST: postgres
       DB_NAME: ${POSTGRES_DB:-bsopt}
       POOL_MODE: transaction
-      MAX_CLIENT_CONN: 1000
-      DEFAULT_POOL_SIZE: 50
-      RESERVE_POOL_SIZE: 10
-      MAX_PREPARED_STATEMENTS: 100
+      MAX_CLIENT_CONN: 5000
+      DEFAULT_POOL_SIZE: 100
+      MIN_POOL_SIZE: 20
+      RESERVE_POOL_SIZE: 50
+      MAX_PREPARED_STATEMENTS: 200
       ADMIN_USERS: ${POSTGRES_USER:-admin}
-      STATS_PERIOD: 60
+      STATS_PERIOD: 30
+      SERVER_LIFETIME: 3600
+      IDLE_TRANSACTION_TIMEOUT: 60
       SERVER_TLS_SSLMODE: verify-full
       SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       SERVER_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
@@ -84,15 +98,6 @@ services:
       CLIENT_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
       CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
       CLIENT_TLS_KEY_FILE: /tmp/pgbouncer.key
-    ports:
-      - "127.0.0.1:6432:6432"
-    deploy:
-      resources:
-        limits:
-          memory: 512mb
-    security_opt:
-      - label:disable
-    user: root
     entrypoint: >
       sh -c "
       cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
