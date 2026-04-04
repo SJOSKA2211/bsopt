@@ -113,6 +113,7 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: './tests/setupTests.ts',
       testTimeout: 15000,
+      exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**'],
       alias: {
         // Handle CSS imports (modules and regular)
         [/\.(css|less|scss|sass)$/.source]: 'identity-obj-proxy',

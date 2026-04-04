@@ -13,11 +13,16 @@ vi.mock('@react-three/fiber', () => ({
   useThree: vi.fn(() => ({ viewport: { width: 100, height: 100 } })),
 }));
 
-vi.mock('@react-three/drei', () => ({
-  OrbitControls: () => <div data-testid="orbit-controls-mock" />,
-  PerspectiveCamera: () => <div data-testid="camera-mock" />,
-  Text: () => <div data-testid="text-mock" />,
-}));
+vi.mock('@react-three/drei', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return {
+    ...actual,
+    OrbitControls: () => <div data-testid="orbit-controls-mock" />,
+    PerspectiveCamera: () => <div data-testid="camera-mock" />,
+    Text: () => <div data-testid="text-mock" />,
+    Float: ({ children }: any) => <div data-testid="drei-float">{children}</div>,
+  };
+});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

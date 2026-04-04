@@ -7,15 +7,18 @@ import '@testing-library/jest-dom';
 import React from 'react';
 
 // Mock Apollo hooks
-vi.mock('@apollo/client/react', async (importOriginal) => {
+vi.mock('@apollo/client', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
-    useQuery: vi.fn(),
+    useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
+    useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
+    useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+    gql: actual.gql || ((strings: any) => strings[0]),
   };
 });
 
-import { useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client';
 
 const mockPrediction = {
   mlPrediction: {
