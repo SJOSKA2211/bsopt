@@ -113,7 +113,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         };
       }
 
-      const isCall = node.type.toUpperCase() === 'CALL';
+      const isCall = (node.type || '').toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
       const item = groups[key] as unknown as Record<string, number | string>;

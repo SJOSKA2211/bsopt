@@ -28,7 +28,22 @@ vi.mock('lightweight-charts', () => ({
   ColorType: { Solid: 'solid' },
   CrosshairMode: { Normal: 0 },
   CandlestickSeries: "CandlestickSeries",
+  HistogramSeries: "HistogramSeries",
+  HistogramSeries: "HistogramSeries",
 }));
+
+// Mock EventSource
+Object.defineProperty(globalThis, 'EventSource', {
+  value: class {
+    onmessage: ((ev: MessageEvent) => unknown) | null = null;
+    onerror: ((ev: Event) => unknown) | null = null;
+    close() {}
+    addEventListener() {}
+    removeEventListener() {}
+    dispatchEvent() { return true; }
+  },
+  writable: true
+});
 
 // Mock EventSource
 Object.defineProperty(globalThis, 'EventSource', {
