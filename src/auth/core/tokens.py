@@ -96,8 +96,10 @@ class TokenService:
     def decode_token(self, token: str) -> TokenData:
         """Decode and validate a JWT token."""
         try:
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
+            # 🛡️ Sentinel: Fix JWT Algorithm Confusion Vulnerability
+            # Never trust the `alg` header from unverified token payload.
+            # Always enforce the algorithm defined in settings to prevent algorithm confusion attacks.
+            algorithm = settings.JWT_ALGORITHM
             key = self._get_key_for_algorithm(algorithm, is_private=False)
             payload = jwt.decode(token, key, algorithms=[algorithm])
 
