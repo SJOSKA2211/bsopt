@@ -72,31 +72,16 @@ class RabbitMQManager:
                 async with self._channel_pool.acquire() as channel:
                     # 1. Dead Letter Infrastructure
                     logger.info("declaring_dlq")
-                    await channel.declare_queue(
-                        self.dlq_name, 
-                        durable=True,
-                        arguments={"x-queue-mode": "lazy"}
-                    )
+                    await channel.declare_queue(self.dlq_name, durable=True)
 
                     # 2. Market Data Mesh
                     logger.info("declaring_market_ticks")
-                    await channel.declare_queue(
-                        self.queue_name,
-                        durable=True,
-                        arguments={
-                            "x-dead-letter-exchange": "",
-                            "x-dead-letter-routing-key": self.dlq_name,
-                        },
-                    )
+                    await channel.declare_queue(self.queue_name, durable=True)
 
                     # 3. Audit Substrate
                     logger.info("declaring_audit")
-                    audit_queue = await channel.declare_queue(
-                        self.audit_queue, 
-                        durable=True,
-                        arguments={"x-queue-mode": "lazy"}
-                    )
-                    audit_exchange = await channel.declare_exchange(self.audit_exchange, type="direct", durable=True)
+                    audit_queue = await channel.declare_queue(self.audit_queue, durable=True)
+                    audit_exchange = await channel.declare_exchange(self.audit_exchange, type="topic", durable=True)
                     await audit_queue.bind(audit_exchange, routing_key="audit")
 
                     # 4. Telemetry Hub

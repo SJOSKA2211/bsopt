@@ -223,24 +223,62 @@ def print_table(health_data):
     return all_healthy
 
 
+async def send_webhook(message):
+    """Send health alerts to a configured webhook."""
+    webhook_url = os.environ.get("NOTIFY_WEBHOOK") or os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        return
+
+    payload = {
+        "text": f"🚨 *BSOPT Health Alert* 🚨\n{message}",
+        "username": "BSOPT Health Monitor",
+        "icon_emoji": ":warning:"
+    }
+    
+    try:
+        await asyncio.to_thread(fetch_url, webhook_url, method="POST", json_data=payload)
+    except Exception as e:
+        print(f"Failed to send webhook: {e}")
+
 async def main():
     if "--simulate" in sys.argv:
         health_data = {k: ("healthy", "Simulated Component") for k in SERVICES.keys()}
         print_table(health_data)
         return
 
+    # Load .env if it exists
+    if os.path.exists(".env"):
+        with open(".env") as f:
+            for line in f:
+                if "=" in line and not line.startswith("#"):
+                    k, v = line.strip().split("=", 1)
+                    os.environ[k] = v
+
     if "--wait" in sys.argv:
         print("Waiting for all services to reach HEALTHY state...")
+        last_alert_time = 0
         while True:
             health_data = await get_health_data()
             all_healthy = print_table(health_data)
+            
             if all_healthy:
+                if last_alert_time > 0:
+                    await send_webhook("✅ All systems recovered and operational.")
                 break
-            await asyncio.sleep(5)
+            
+            # Rate limit alerts to once every 5 minutes
+            if time.time() - last_alert_time > 300:
+                down_services = [name for name, (status, _) in health_data.items() if status != "healthy"]
+                await send_webhook(f"Systems Warning: The following services are unstable: {', '.join(down_services)}")
+                last_alert_time = time.time()
+                
+            await asyncio.sleep(10)
     else:
         health_data = await get_health_data()
         all_healthy = print_table(health_data)
         if not all_healthy:
+            down_services = [name for name, (status, _) in health_data.items() if status != "healthy"]
+            await send_webhook(f"Immediate Attention Required: {', '.join(down_services)} are DOWN.")
             sys.exit(1)
 
 

@@ -46,7 +46,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4g
+          memory: 1g
     security_opt:
       - label:disable
     healthcheck:
@@ -127,7 +127,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2.5g
+          memory: 256mb
     security_opt:
       - label:disable
     sysctls:
@@ -152,13 +152,19 @@ services:
       - "15673:15672"
     security_opt:
       - label:disable
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro,Z
       - ./definitions.json:/etc/rabbitmq/definitions.json:ro,Z
     deploy:
       resources:
         limits:
-          memory: 1gb
+          memory: 256mb
+        reservations:
+          memory: 128mb
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -194,10 +200,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '1'
+          memory: 1gb
         reservations:
-          memory: 512mb
+          memory: 256mb
     networks:
       - bsopt-network
     healthcheck:
@@ -825,10 +831,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 4gb
+          cpus: '2'
+          memory: 3gb
         reservations:
-          memory: 2gb
+          memory: 1gb
     healthcheck:
       test: ["CMD-SHELL", "ray status || exit 1"]
       interval: 10s
@@ -867,10 +873,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 4gb
+          cpus: '2'
+          memory: 3gb
         reservations:
-          memory: 2gb
+          memory: 1gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
 
@@ -906,10 +912,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '1'
+          memory: 1.5gb
         reservations:
-          memory: 1gb
+          memory: 512mb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
@@ -957,9 +963,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1gb
+          memory: 768mb
         reservations:
-          memory: 512mb
+          memory: 256mb
     networks:
       - bsopt-network
     command: ["mlflow", "server", "--workers", "8", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
@@ -976,10 +982,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1gb
-          cpus: '1'
+          memory: 768mb
+          cpus: '0.5'
         reservations:
-          memory: 512mb
+          memory: 256mb
     depends_on:
       mlflow:
         condition: service_healthy
