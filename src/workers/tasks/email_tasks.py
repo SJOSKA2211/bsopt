@@ -15,7 +15,7 @@ logger = structlog.get_logger(__name__)
 
 # Initialize email service
 email_service = TransactionalEmailService(
-    api_key=settings.SENDGRID_API_KEY, from_email=settings.FROM_EMAIL
+    api_key=settings.SENDGRID_API_KEY, from_email=settings.DEFAULT_FROM_EMAIL
 )
 
 
