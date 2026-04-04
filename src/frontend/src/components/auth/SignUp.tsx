@@ -1,64 +1,52 @@
 import { useState } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  Alert,
-  Stack,
-  Divider,
-  alpha,
-  InputAdornment,
-  IconButton,
-  Link,
-  CircularProgress,
-} from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  TrendingUpOutlined as ChartIcon,
-  GitHub as GitHubIcon,
-  Google as GoogleIcon,
-  LockOutlined as LockIcon,
-  AlternateEmailOutlined as MailIcon,
-  PersonOutline as PersonIcon,
-} from '@mui/icons-material';
-
 import { useNavigate } from 'react-router-dom';
-
+import { AnimatedCard } from '../common/AnimatedCard';
 
 const authClient = { 
-  signIn: { 
-    social: async () => ({}) 
-  }, 
   signUp: {
-    email: async (data: any, options: any) => {
-      // Mock signup logic
+    email: async (_data: any, options: any) => {
       if (options.onRequest) options.onRequest();
       setTimeout(() => {
         if (options.onSuccess) options.onSuccess();
-      }, 1000);
+      }, 1200);
       return {};
     }
-  },
-  useSession: () => ({ 
-    data: { 
-      user: { 
-        id: 'mock-user-123', 
-        email: 'trader@bsopt.io', 
-        name: 'Quant Trader' 
-      } 
-    },
-    isLoading: false
-  }) 
+  }
 } as any;
+
+const InputField: React.FC<{
+  label: string;
+  type: string;
+  value: string;
+  onChange: (val: string) => void;
+  icon?: React.ReactNode;
+  placeholder?: string;
+  required?: boolean;
+}> = ({ label, type, value, onChange, icon, placeholder, required }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-[11px] font-bold text-white/40 uppercase tracking-wider ml-1">{label}</label>
+    <div className="relative group">
+       {icon && (
+         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-mint transition-colors duration-300">
+           {icon}
+         </div>
+       )}
+       <input 
+         type={type}
+         value={value}
+         required={required}
+         onChange={(e) => onChange(e.target.value)}
+         placeholder={placeholder}
+         className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 ${icon ? 'pl-11' : 'px-4'} pr-4 text-white text-sm outline-none transition-all duration-300 focus:border-mint/50 focus:bg-white/10 focus:ring-1 focus:ring-mint/20 placeholder:text-white/10`}
+       />
+    </div>
+  </div>
+);
 
 export function SignUp() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -70,11 +58,7 @@ export function SignUp() {
     setError('');
     setSuccess(false);
 
-    await authClient.signUp.email({ 
-      email, 
-      password, 
-      name 
-    }, {
+    await authClient.signUp.email({ email, password, name }, {
       onRequest: () => setLoading(true),
       onSuccess: () => { 
         setLoading(false); 
@@ -89,195 +73,116 @@ export function SignUp() {
   };
 
   return (
-    <Paper
-      className="fade-in"
-      sx={{
-        position: 'relative',
-        zIndex: 1,
-        width: '100%',
-        maxWidth: 440,
-        mx: 'auto',
-        p: 4,
-        border: `1px solid ${alpha('#94a3b8', 0.1)}`,
-        boxShadow: `0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px ${alpha('#10b981', 0.08)}`,
-      }}
-    >
-      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
-        <Box
-          sx={{
-            width: 44,
-            height: 44,
-            borderRadius: 2.5,
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: `0 8px 20px ${alpha('#10b981', 0.4)}`,
-          }}
-        >
-          <ChartIcon sx={{ color: '#fff', fontSize: 24 }} />
-        </Box>
-        <Box>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #10b981, #38bdf8)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 1.1,
-            }}
+    <AnimatedCard className="w-full max-w-[440px] !p-12 relative z-10 backdrop-blur-2xl border-white/5 shadow-2xl mx-auto">
+      <div className="flex flex-col gap-1 mb-10">
+        <div className="flex items-center gap-3">
+           <div className="w-10 h-10 rounded-xl bg-mint flex items-center justify-center">
+              <svg className="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+           </div>
+           <div>
+              <h1 className="text-2xl font-black tracking-tight text-white m-0 leading-none">
+                BS_OPT
+              </h1>
+              <span className="text-[10px] text-mint font-bold uppercase tracking-[0.2em] opacity-80">v4.2.0_ENGINE</span>
+           </div>
+        </div>
+        <p className="text-xs text-white/40 font-medium mt-3 tracking-wide">
+          Join the professional quantitative network.
+        </p>
+      </div>
+
+      <form onSubmit={signUp} className="space-y-6">
+        {error && (
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="p-4 rounded-xl bg-mint/10 border border-mint/20 text-mint text-xs font-bold">
+            Account created! Redirecting_to_terminal...
+          </div>
+        )}
+
+        <div className="flex flex-col gap-5">
+          <InputField 
+            label="FULL_NAME"
+            type="text"
+            value={name}
+            onChange={setName}
+            required
+            placeholder="Quant Operative Name"
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            }
+          />
+
+          <InputField 
+            label="QUANT_IDENTITY (Email)"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            required
+            placeholder="id@bsopt.pro"
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
+              </svg>
+            }
+          />
+
+          <InputField 
+            label="SECURE_KEY"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            required
+            placeholder="••••••••"
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            }
+          />
+
+          <button
+            type="submit"
+            disabled={loading || !email || !password || !name}
+            className="w-full py-4 rounded-xl bg-mint text-black font-black text-sm tracking-[0.05em] uppercase hover:bg-teal-400 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-3 relative overflow-hidden group shadow-[0_0_20px_-5px_rgba(0,255,163,0.5)]"
           >
-            BS-Opt Pro
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em' }}>
-            QUANTITATIVE OPTIONS TERMINAL
-          </Typography>
-        </Box>
-      </Stack>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            ) : (
+              <>
+                INITIALIZE_ACCOUNT
+                <svg className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
 
-      <Typography
-        variant="body2"
-        sx={{ textAlign: 'center', color: 'text.disabled', mb: 3.5, mt: 0.5, fontSize: '0.82rem' }}
-      >
-        Access Production-grade volatility surfaces &amp; real-time Greeks
-      </Typography>
+      <div className="grid grid-cols-2 gap-4 mt-10">
+         <button className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white/60 text-xs font-bold hover:bg-white/10 transition-colors">
+            SSO_AUTH
+         </button>
+         <button className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white/60 text-xs font-bold hover:bg-white/10 transition-colors">
+            GIT_SYNC
+         </button>
+      </div>
 
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Create an account
-      </Typography>
-      <Typography variant="body2" sx={{ color: 'text.disabled', mb: 2.5, fontSize: '0.82rem' }}>
-        Join the BS-Opt professional network
-      </Typography>
-
-      <Box component="form" onSubmit={signUp}>
-        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>Account created! Redirecting to login...</Alert>}
-
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="name"
-          label="Full Name"
-          name="name"
-          autoComplete="name"
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={loading}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <PersonIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mt: 0 }}
-        />
-
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="email"
-          label="Email Address"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <MailIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="password"
-          label="Password"
-          name="password"
-          type={showPassword ? 'text' : 'password'}
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={loading}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={() => setShowPassword((s) => !s)}
-                  edge="end"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          size="large"
-          disabled={loading}
-          sx={{ py: 1.5, fontSize: '0.95rem', mt: 2, mb: 2 }}
-        >
-          {loading ? (
-            <CircularProgress size={24} color="inherit" aria-label="Creating account..." />
-          ) : (
-            'Sign Up'
-          )}
-        </Button>
-      </Box>
-
-      <Divider sx={{ my: 2.5 }}>
-        <Typography variant="caption" sx={{ color: 'text.disabled', px: 1 }}>
-          or continue with
-        </Typography>
-      </Divider>
-
-      <Stack direction="row" spacing={1.5}>
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<GoogleIcon />}
-          sx={{ py: 1, fontSize: '0.82rem', borderColor: alpha('#94a3b8', 0.15), color: 'text.secondary', '&:hover': { borderColor: alpha('#94a3b8', 0.3) } }}
-        >
-          Google
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          startIcon={<GitHubIcon />}
-          sx={{ py: 1, fontSize: '0.82rem', borderColor: alpha('#94a3b8', 0.15), color: 'text.secondary', '&:hover': { borderColor: alpha('#94a3b8', 0.3) } }}
-        >
-          GitHub
-        </Button>
-      </Stack>
-
-      <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.disabled', mt: 3 }}>
-        Already have an account?{' '}
-        <Link href="/login" sx={{ color: 'primary.main', textDecoration: 'none' }}>
-          Sign In
-        </Link>
-      </Typography>
-    </Paper>
+      <div className="flex items-center justify-center gap-2 mt-8">
+        <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Authorized operative?</span>
+        <a href="/login" className="text-[10px] text-mint font-black uppercase tracking-widest no-underline border-b border-mint/20 hover:border-mint transition-colors">
+          Return_to_Vault
+        </a>
+      </div>
+    </AnimatedCard>
   );
 }
