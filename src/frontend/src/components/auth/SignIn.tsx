@@ -6,7 +6,6 @@ import {
   Typography,
   Alert,
   Stack,
-  alpha,
   InputAdornment,
   IconButton,
   Link,
@@ -24,15 +23,15 @@ import {
 import { AnimatedCard } from '../common/AnimatedCard';
 
 const SystemStatus: React.FC = () => (
-  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-    <Box sx={{ position: 'relative', width: 8, height: 8 }}>
-      <Box className="status-pill healthy" sx={{ width: 8, height: 8, p: 0, borderRadius: '50%', background: 'var(--accent-mint)' }} />
-      <Box sx={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '1px solid var(--accent-mint)', opacity: 0.3 }} className="shimmer-overlay" />
-    </Box>
-    <Typography variant="caption" sx={{ color: 'var(--accent-mint)', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+  <div className="flex items-center gap-3 mb-6">
+    <div className="relative w-2 h-2">
+      <div className="status-pill healthy w-2 h-2 p-0 rounded-full bg-mint" />
+      <div className="absolute -inset-1 rounded-full border border-mint/30 animate-pulse" />
+    </div>
+    <span className="text-[10px] text-mint font-bold tracking-[0.1em] uppercase">
       Manifold_L1_Active
-    </Typography>
-  </Stack>
+    </span>
+  </div>
 );
 
 export default function SignIn() {
@@ -54,39 +53,28 @@ export default function SignIn() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'var(--bento-bg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        p: 2,
-      }}
-    >
+    <div className="min-h-screen bg-bento-bg flex items-center justify-center p-4">
       <AnimatedCard
-        className="glass-panel"
-        sx={{ width: '100%', maxWidth: 420, p: '40px !important' }}
+        className="w-full max-w-[420px] !p-10"
       >
         <SystemStatus />
 
-        <Stack spacing={0.5} sx={{ mb: 4 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <ChartIcon sx={{ color: 'var(--accent-mint)', fontSize: 24 }} />
-            <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+        <div className="flex flex-col gap-1 mb-8">
+          <div className="flex items-center gap-3">
+            <ChartIcon className="text-mint text-2xl" />
+            <h1 className="text-2xl font-extrabold tracking-tight text-white">
               BSOPT_PRO
-            </Typography>
-          </Stack>
-          <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
+            </h1>
+          </div>
+          <p className="text-sm text-white/60 font-medium">
             Institutional Quantitative Analytics
-          </Typography>
-        </Stack>
+          </p>
+        </div>
 
-        <Box component="form" onSubmit={signIn}>
-          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>{error}</Alert>}
+        <form onSubmit={signIn} className="space-y-6">
+          {error && <Alert severity="error" className="rounded-xl">{error}</Alert>}
 
-          <Stack spacing={2}>
+          <div className="flex flex-col gap-4">
             <TextField
               fullWidth
               label="Quant ID (Email)"
@@ -98,17 +86,16 @@ export default function SignIn() {
                 disableUnderline: true,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <MailIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                    <MailIcon className="text-white/40" sx={{ fontSize: 20 }} />
                   </InputAdornment>
                 ),
+                className: "bg-white/5 rounded-xl border border-white/10 focus-within:border-mint transition-colors"
+                ,
                 sx: { 
-                  background: 'rgba(255,255,255,0.03)', 
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  '&:focus-within': { border: '1px solid var(--accent-mint)' }
+                    '& .MuiFilledInput-input': { color: '#fff' }
                 }
               }}
-              InputLabelProps={{ sx: { color: 'var(--text-secondary)' } }}
+              InputLabelProps={{ className: "!text-white/40" }}
             />
 
             <TextField
@@ -122,59 +109,47 @@ export default function SignIn() {
                 disableUnderline: true,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockIcon sx={{ fontSize: 20, color: 'var(--text-secondary)' }} />
+                    <LockIcon className="text-white/40" sx={{ fontSize: 20 }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShowPassword(!showPassword)} sx={{ color: 'var(--text-secondary)' }}>
+                    <IconButton size="small" onClick={() => setShowPassword(!showPassword)} className="text-white/40">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
+                className: "bg-white/5 rounded-xl border border-white/10 focus-within:border-mint transition-colors",
                 sx: { 
-                  background: 'rgba(255,255,255,0.03)', 
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  '&:focus-within': { border: '1px solid var(--accent-mint)' }
+                    '& .MuiFilledInput-input': { color: '#fff' }
                 }
               }}
-              InputLabelProps={{ sx: { color: 'var(--text-secondary)' } }}
+              InputLabelProps={{ className: "!text-white/40" }}
             />
 
             <Button
               type="submit"
               fullWidth
               disabled={loading}
-              sx={{ 
-                py: 1.8, 
-                borderRadius: '12px', 
-                background: 'var(--accent-mint)', 
-                color: '#000',
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                '&:hover': { background: 'var(--accent-teal)' }
-              }}
+              className="!py-4 !rounded-xl !bg-mint !text-black font-bold text-sm tracking-wide hover:!bg-teal transition-all disabled:opacity-50"
             >
-              {loading ? <CircularProgress size={24} sx={{ color: '#000' }} /> : 'Initialize Terminal Access'}
+              {loading ? <CircularProgress size={24} className="text-black" /> : 'Initialize Terminal Access'}
             </Button>
-          </Stack>
-        </Box>
+          </div>
+        </form>
 
-        <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 4 }}>
-          <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
-            New Operative?
-          </Typography>
-          <Link href="/signup" sx={{ color: 'var(--accent-mint)', fontWeight: 600, textDecoration: 'none', fontSize: '0.75rem' }}>
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <span className="text-xs text-white/40">New Operative?</span>
+          <Link href="/signup" className="text-xs text-mint font-bold no-underline hover:text-teal">
             Request Access
           </Link>
-        </Stack>
+        </div>
 
-        <Stack direction="row" spacing={3} justifyContent="center" sx={{ mt: 3, opacity: 0.5 }}>
-          <GoogleIcon sx={{ fontSize: 18, cursor: 'pointer' }} />
-          <GitHubIcon sx={{ fontSize: 18, cursor: 'pointer' }} />
-        </Stack>
+        <div className="flex justify-center gap-6 mt-6 opacity-30">
+          <GoogleIcon className="text-lg cursor-pointer hover:opacity-100 transition-opacity" />
+          <GitHubIcon className="text-lg cursor-pointer hover:opacity-100 transition-opacity" />
+        </div>
       </AnimatedCard>
-    </Box>
+    </div>
   );
 }

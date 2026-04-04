@@ -1,4 +1,4 @@
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import React from 'react';
 
 interface AnimatedCardProps extends HTMLMotionProps<'div'> {
@@ -19,7 +19,8 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
       transition={{ 
         duration: 0.5, 
         delay, 

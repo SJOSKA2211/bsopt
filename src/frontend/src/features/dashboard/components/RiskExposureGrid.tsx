@@ -1,36 +1,46 @@
-import React from 'react';
-import { Box, Typography, alpha } from '@mui/material';
-import { stitchTokens } from '../../../theme/stitch-tokens';
+import React, { useMemo } from 'react';
+import { usePricingStore, type PricingState } from '../../../store/usePricingStore';
 
 export const RiskExposureGrid: React.FC = () => {
-  const data = [
-    [0.1, -0.2, 0.4, 0.1],
-    [0.3, 0.5, -0.1, 0.2],
-    [-0.2, 0.4, 0.8, -0.3],
-    [0.1, 0.1, 0.2, 0.5]
-  ];
+  const prices = usePricingStore((state: PricingState) => state.prices);
+  
+  // Simulated risk matrix based on live prices for high-fidelity UI feedback
+  const data = useMemo(() => {
+    const symbols = Object.keys(prices);
+    if (symbols.length === 0) return Array(16).fill(0.1);
+    
+    // Derived values for the 4x4 matrix
+    return Array.from({ length: 16 }, (_, i) => {
+      const priceVal = prices[symbols[i % symbols.length]]?.price || 100;
+      return (Math.sin(i + priceVal) * 0.8);
+    });
+  }, [prices]);
+
+  const getColorClass = (val: number) => {
+    if (val > 0.4) return 'bg-mint/40 text-black border-mint/20';
+    if (val > 0) return 'bg-mint/10 text-mint border-mint/10';
+    if (val < -0.4) return 'bg-red-500/40 text-black border-red-500/20';
+    return 'bg-red-500/10 text-red-400 border-red-500/10';
+  };
 
   return (
-    <Box className="stitch-card" sx={{ height: '100%', p: 0 }}>
-      <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.secondary }}>RISK EXPOSURE MATRIX</Box>
-      <Box sx={{ p: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.5, height: 'calc(100% - 32px)' }}>
-        {data.flat().map((val, i) => (
-          <Box 
+    <div className="h-full flex flex-col">
+      <div className="grid grid-cols-4 gap-1 auto-rows-fr flex-grow min-h-0">
+        {data.map((val, i) => (
+          <div 
             key={i} 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              bgcolor: val > 0 ? alpha(stitchTokens.colors.primary, val ) : alpha('#ff4d4d', Math.abs(val)),
-              border: '1px solid rgba(255,255,255,0.05)'
-            }}
+            className={`flex items-center justify-center rounded-md border transition-all duration-500 ${getColorClass(val)}`}
           >
-            <Typography className="stitch-mono" sx={{ fontSize: '9px', fontWeight: 900, color: Math.abs(val) > 0.5 ? 'black' : 'white' }}>
+            <span className="data-mono text-[10px] font-black">
               {(val * 10).toFixed(1)}k
-            </Typography>
-          </Box>
+            </span>
+          </div>
         ))}
-      </Box>
-    </Box>
+      </div>
+      <div className="mt-4 flex justify-between items-center opacity-40">
+        <span className="text-[9px] font-bold uppercase tracking-tighter">Delta_Exposure</span>
+        <span className="text-[9px] font-bold uppercase tracking-tighter">Gamma_Sens</span>
+      </div>
+    </div>
   );
 };

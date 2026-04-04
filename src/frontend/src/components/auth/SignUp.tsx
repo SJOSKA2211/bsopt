@@ -32,23 +32,16 @@ const authClient = {
   signIn: { 
     social: async () => ({}) 
   }, 
-  useSession: () => ({ 
-    data: { 
-      user: { 
-        id: 'mock-user-123', 
-        email: 'trader@bsopt.io', 
-        name: 'Quant Trader' 
-      } 
-    },
-    isLoading: false
-  }) 
-} as any;
-
-
-const authClient = { 
-  signIn: { 
-    social: async () => ({}) 
-  }, 
+  signUp: {
+    email: async (data: any, options: any) => {
+      // Mock signup logic
+      if (options.onRequest) options.onRequest();
+      setTimeout(() => {
+        if (options.onSuccess) options.onSuccess();
+      }, 1000);
+      return {};
+    }
+  },
   useSession: () => ({ 
     data: { 
       user: { 

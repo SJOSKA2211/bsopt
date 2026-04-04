@@ -1,16 +1,13 @@
 import React, { lazy, Suspense } from 'react';
 import {
-  Box,
-  Typography,
-  Stack,
   CircularProgress,
 } from '@mui/material';
-import { usePricingStore } from '../../store/usePricingStore';
-import type { PricingState } from '../../store/usePricingStore';
 import { DeepInferenceEngine } from '../../features/dashboard/components/DeepInferenceEngine';
 import { RiskExposureGrid } from '../../features/dashboard/components/RiskExposureGrid';
 import { motion } from 'framer-motion';
 import { AnimatedCard } from '../../components/common/AnimatedCard';
+import { usePricingStore, type PricingState } from '../../store/usePricingStore';
+import { useDataIntegration } from '../../hooks/useDataIntegration';
 
 // Lazy loaded components
 const LivePriceChart = lazy(() =>
@@ -18,9 +15,9 @@ const LivePriceChart = lazy(() =>
 );
 
 const LoadingFallback = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={20} sx={{ color: 'var(--accent-mint)' }} />
-  </Box>
+  <div className="flex justify-center items-center p-8">
+    <CircularProgress size={20} className="text-mint" />
+  </div>
 );
 
 const containerVariants = {
@@ -33,23 +30,33 @@ const containerVariants = {
   }
 };
 
-const KpiCard: React.FC<{ label: string; value: string; color: string; prefix?: string; index: number }> = ({ label, value, color, prefix, index }) => (
-  <AnimatedCard delay={index * 0.05} sx={{ p: 3 }}>
-     <Stack spacing={1}>
-        <Typography className="label-secondary" sx={{ fontSize: '11px', opacity: 0.6 }}>{label}</Typography>
-        <Stack direction="row" alignItems="baseline" spacing={0.5}>
-           <Typography className="data-mono" sx={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>
-             {prefix}{value}
-           </Typography>
-        </Stack>
-        <Box sx={{ height: 2, width: 40, bgcolor: color, borderRadius: 2 }} />
-     </Stack>
+const KpiCard: React.FC<{ label: string; value: string | number; color: string; prefix?: string; index: number }> = ({ label, value, color, prefix, index }) => (
+  <AnimatedCard delay={index * 0.05} className="p-6">
+     <div className="flex flex-col gap-1">
+        <span className="label-secondary text-[11px] opacity-60 uppercase tracking-tighter">{label}</span>
+        <div className="flex items-baseline gap-1">
+           <span className="data-mono text-3xl font-extrabold text-white">
+             {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
+           </span>
+        </div>
+        <div className="h-0.5 w-10 mt-2 rounded-full shadow-[0_0_8px_currentcolor]" style={{ backgroundColor: color, color }} />
+     </div>
   </AnimatedCard>
 );
 
 export const DashboardPage: React.FC = () => {
+  // Bootstrap data integration for institutional symbols
+  const { isConnected } = useDataIntegration({ 
+    symbols: ['SPX', 'NDX', 'AAPL', 'NVDA', 'TSLA', 'BTC/USD'],
+    enabled: true 
+  });
+
+  // Performance-optimized store selectors
+  const systemGamma = usePricingStore((state: PricingState) => state.systemGamma);
+  const portfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
+  
   return (
-    <Box sx={{ p: '24px', height: 'calc(100vh - 64px)', overflow: 'auto' }}>
+    <div className="p-6 h-[calc(100vh-64px)] overflow-auto bg-bento-bg">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -57,109 +64,113 @@ export const DashboardPage: React.FC = () => {
         className="bento-grid"
       >
         {/* KPI Row */}
-        {[
-          { label: 'NET_DELTA', value: '+0.428', color: 'var(--accent-mint)' },
-          { label: 'THETA_DECAY', value: '-1.24k', color: 'var(--accent-purple)' },
-          { label: 'VEGA_SENS', value: '4.52k', color: 'var(--accent-teal)' },
-          { label: 'LIQUIDITY', value: '1.2M', color: 'var(--accent-amber)', prefix: '$' },
-        ].map((kpi, i) => (
-          <Box key={kpi.label} sx={{ gridColumn: { xs: 'span 12', sm: 'span 6', lg: 'span 3' } }}>
-             <KpiCard {...kpi} index={i} />
-          </Box>
-        ))}
+        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+           <KpiCard label="SYSTEM_GAMMA" value={systemGamma.toFixed(3)} color="#00FFA3" index={0} />
+        </div>
+        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+           <KpiCard label="PORTFOLIO_NAV" value={portfolioTotal} color="#F59E0B" prefix="$" index={1} />
+        </div>
+        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+           <KpiCard label="VEGA_SENS" value="4.52k" color="#14B8A6" index={2} />
+        </div>
+        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+           <KpiCard label="WS_STATUS" value={isConnected ? 'CONNECTED' : 'CONNECTING...'} color={isConnected ? '#00FFA3' : '#F59E0B'} index={3} />
+        </div>
 
         {/* Intelligence Layer */}
-        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
-           <AnimatedCard delay={0.2} sx={{ height: '100%' }}>
-              <Typography className="label-secondary" sx={{ mb: 3 }}>DEEP_INFERENCE_ENGINE</Typography>
+        <div className="col-span-12 lg:col-span-4">
+           <AnimatedCard delay={0.2} className="h-full">
+              <h2 className="label-secondary mb-6 opacity-40">DEEP_INFERENCE_ENGINE // v4.2</h2>
               <DeepInferenceEngine />
            </AnimatedCard>
-        </Box>
+        </div>
         
-        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
-           <AnimatedCard delay={0.25} sx={{ height: '100%' }}>
-              <Typography className="label-secondary" sx={{ mb: 3 }}>RISK_EXPOSURE_GRID</Typography>
+        <div className="col-span-12 lg:col-span-4">
+           <AnimatedCard delay={0.25} className="h-full">
+              <h2 className="label-secondary mb-6 opacity-40">RISK_EXPOSURE_GRID</h2>
               <RiskExposureGrid />
            </AnimatedCard>
-        </Box>
+        </div>
 
-        <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
-           <AnimatedCard delay={0.3} sx={{ height: '100%' }}>
-              <Typography className="label-secondary" sx={{ mb: 3 }}>STRATEGY_ALLOCATION</Typography>
-              <Stack spacing={3}>
+        <div className="col-span-12 lg:col-span-4">
+           <AnimatedCard delay={0.3} className="h-full">
+              <h2 className="label-secondary mb-6 opacity-40">STRATEGY_ALLOCATION</h2>
+              <div className="flex flex-col gap-6">
                  {[
-                   { name: 'NEUTRAL_CONDOR_v4', weight: 45, color: 'var(--accent-mint)' },
-                   { name: 'BLACK_SWAN_HEDGE', weight: 25, color: 'var(--accent-purple)' },
-                   { name: 'INCOME_OVERLAY', weight: 30, color: 'var(--accent-teal)' },
+                   { name: 'NEUTRAL_CONDOR_v4', weight: 45, color: '#00FFA3' },
+                   { name: 'BLACK_SWAN_HEDGE', weight: 25, color: '#8B5CF6' },
+                   { name: 'INCOME_OVERLAY', weight: 30, color: '#14B8A6' },
                  ].map(strat => (
-                   <Box key={strat.name}>
-                      <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                         <Typography sx={{ fontSize: '11px', fontWeight: 600 }}>{strat.name}</Typography>
-                         <Typography className="data-mono" sx={{ fontSize: '11px', color: strat.color }}>{strat.weight}%</Typography>
-                      </Stack>
-                      <Box sx={{ height: 4, width: '100%', bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                   <div key={strat.name}>
+                      <div className="flex justify-between mb-2">
+                         <span className="text-[11px] font-bold text-white/80">{strat.name}</span>
+                         <span className="data-mono text-[11px] font-bold" style={{ color: strat.color }}>{strat.weight}%</span>
+                      </div>
+                      <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                          <motion.div 
                            initial={{ width: 0 }}
                            animate={{ width: `${strat.weight}%` }}
                            transition={{ duration: 1, delay: 0.5 }}
-                           style={{ height: '100%', backgroundColor: strat.color }} 
+                           className="h-full"
+                           style={{ backgroundColor: strat.color }} 
                          />
-                      </Box>
-                   </Box>
+                      </div>
+                   </div>
                  ))}
-              </Stack>
+              </div>
            </AnimatedCard>
-        </Box>
+        </div>
 
         {/* Observation Deck */}
-        <Box sx={{ gridColumn: 'span 12' }}>
-           <AnimatedCard delay={0.4} sx={{ height: 540, p: 0 }}>
-              <Box sx={{ p: 3, borderBottom: '1px solid var(--bento-card-border)' }}>
-                 <Typography className="label-secondary">TEMPORAL_TRAJECTORY // GLOBAL_INDICES</Typography>
-              </Box>
-              <Box sx={{ p: 2, height: 'calc(100% - 65px)' }}>
+        <div className="col-span-12">
+           <AnimatedCard delay={0.4} className="h-[540px] !p-0">
+              <div className="p-6 border-b border-bento-border flex justify-between items-center">
+                 <h2 className="label-secondary opacity-40">TEMPORAL_TRAJECTORY // GLOBAL_INDICES</h2>
+                 <div className="flex gap-2">
+                    {['1M', '5M', '15M', '1H', '1D'].map(tf => (
+                      <button key={tf} className={`px-3 py-1 rounded text-[10px] font-bold border transition-colors ${tf === '5M' ? 'bg-mint text-black border-mint' : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10'}`}>
+                        {tf}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+              <div className="p-4 h-[calc(100%-73px)]">
                  <Suspense fallback={<LoadingFallback />}>
                     <LivePriceChart symbol="SPX" />
                  </Suspense>
-              </Box>
+              </div>
            </AnimatedCard>
-        </Box>
+        </div>
 
         {/* Signals Telemetry */}
-        <Box sx={{ gridColumn: 'span 12' }}>
-           <AnimatedCard delay={0.5} sx={{ p: 0 }}>
-              <Box sx={{ p: 3, borderBottom: '1px solid var(--bento-card-border)', display: 'flex', justifyContent: 'space-between' }}>
-                 <Typography className="label-secondary">SIGNAL_TELEMETRY</Typography>
-                 <Box className="status-pill healthy">LIVE_FEED</Box>
-              </Box>
-              <Box sx={{ p: 1 }}>
+        <div className="col-span-12">
+           <AnimatedCard delay={0.5} className="!p-0">
+              <div className="p-6 border-b border-bento-border flex justify-between items-center">
+                 <h2 className="label-secondary opacity-40">SIGNAL_TELEMETRY</h2>
+                 <div className={`status-pill ${isConnected ? 'healthy bg-mint/10 border-mint/20 text-mint' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'}`}>
+                   {isConnected ? 'LIVE_FEED' : 'CONNECT_ERROR'}
+                 </div>
+              </div>
+              <div className="p-2">
                  {[
                    { time: '14:22:01', type: 'SIGNAL', msg: 'ML Model detected bearish divergence on AAPL 15m' },
                    { time: '14:20:45', type: 'EXEC', msg: 'Filled 500 contracts SPY 450P @ 1.45' },
                    { time: '14:18:12', type: 'RISK', msg: 'Vega threshold exceeded on NVDA portfolio' },
                  ].map((log, i) => (
-                   <Box key={i} sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center',
-                      p: '16px 24px', 
-                      borderBottom: i === 2 ? 'none' : '1px solid rgba(255,255,255,0.03)',
-                      '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
-                   }}>
-                      <Typography className="data-mono" sx={{ fontSize: '11px', color: 'var(--text-secondary)', width: 100 }}>{log.time}</Typography>
-                      <Box className={`status-pill ${log.type === 'RISK' ? 'critical' : 'healthy'}`} sx={{ mr: 3 }}>
+                   <div key={i} className={`flex items-center p-4 px-6 ${i === 2 ? '' : 'border-b border-white/5'} hover:bg-white/5 transition-colors group cursor-default text-white/90`}>
+                      <span className="data-mono text-[11px] text-white/40 w-24 group-hover:text-mint transition-colors">{log.time}</span>
+                      <div className={`status-pill mr-6 font-black scale-90 ${log.type === 'RISK' ? 'bg-red-500 text-black' : 'bg-white/10 text-white'}`}>
                          {log.type}
-                      </Box>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>{log.msg}</Typography>
-                   </Box>
+                      </div>
+                      <span className="text-sm font-medium">{log.msg}</span>
+                   </div>
                  ))}
-              </Box>
+              </div>
            </AnimatedCard>
-        </Box>
+        </div>
       </motion.div>
-    </Box>
+    </div>
   );
 };
-
-export default DashboardPage;
 
 export default DashboardPage;

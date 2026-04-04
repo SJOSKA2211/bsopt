@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  Box, 
   CssBaseline, 
-  Typography, 
   Drawer, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Stack, 
-  alpha, 
   Avatar, 
   IconButton, 
   useMediaQuery,
@@ -21,7 +12,6 @@ import {
   BarChartOutlined as TradeIcon,
   AccountBalanceWalletOutlined as PositionsIcon,
   TimelineOutlined as AnalysisIcon,
-  HistoryOutlined as HistoryIcon,
   SettingsOutlined as SettingsIcon,
   NotificationsNoneOutlined as NotifIcon,
   Bolt as FlashIcon,
@@ -49,57 +39,27 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick, index }) => 
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ delay: 0.1 * index }}
+      className="px-4 mb-1"
     >
-      <ListItem disablePadding sx={{ mb: 1, px: 2 }}>
-        <ListItemButton
-          selected={isActive}
-          onClick={onClick}
-          sx={{
-            borderRadius: '12px',
-            py: 1.5,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              transform: 'translateX(4px)',
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 40,
-              color: isActive ? 'var(--accent-mint)' : 'var(--text-secondary)',
-            }}
-          >
-            <Box sx={{ fontSize: 22, display: 'flex' }}>
-              {item.icon}
-            </Box>
-          </ListItemIcon>
-          <ListItemText
-            primary={item.text}
-            primaryTypographyProps={{
-              fontSize: '13px',
-              fontWeight: isActive ? 700 : 500,
-              color: isActive ? '#fff' : 'var(--text-secondary)',
-              letterSpacing: '0.02em',
-            }}
+      <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 relative group
+          ${isActive ? 'bg-white/5 text-white' : 'text-white/40 hover:bg-white/10 hover:text-white/60 hover:translate-x-1'}
+        `}
+      >
+        <div className={`text-[22px] flex items-center ${isActive ? 'text-mint' : 'text-current'}`}>
+          {item.icon}
+        </div>
+        <span className={`text-[13px] tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>
+          {item.text}
+        </span>
+        {isActive && (
+          <motion.div
+            layoutId="nav-glow"
+            className="absolute right-0 w-1 h-5 bg-mint rounded-l-full shadow-[0_0_10px_#00FFA3]"
           />
-          {isActive && (
-            <motion.div
-              layoutId="nav-glow"
-              style={{
-                position: 'absolute',
-                right: 0,
-                width: 4,
-                height: 20,
-                background: 'var(--accent-mint)',
-                borderRadius: '4px 0 0 4px',
-                boxShadow: '0 0 10px var(--accent-mint)',
-              }}
-            />
-          )}
-        </ListItemButton>
-      </ListItem>
+        )}
+      </button>
     </motion.div>
   );
 };
@@ -121,64 +81,60 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   ];
 
   const SidebarContent = () => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: '24px' }}>
+    <div className="h-full flex flex-col p-6 overflow-hidden">
       {/* Brand */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 6, px: 1 }}>
-        <FlashIcon sx={{ color: 'var(--accent-mint)', fontSize: 24 }} />
-        <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+      <div className="flex items-center gap-3 mb-12 px-2">
+        <FlashIcon className="text-mint text-2xl" />
+        <h1 className="text-lg font-black tracking-tight text-white uppercase">
           BSOPT_V2
-        </Typography>
-      </Stack>
+        </h1>
+      </div>
 
       {/* Navigation */}
-      <Box sx={{ flexGrow: 1 }}>
-        <List disablePadding>
-          {navItems.map((item, index) => (
-            <NavItem
-              key={item.text}
-              item={item}
-              isActive={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) setMobileOpen(false);
-              }}
-              index={index}
-            />
-          ))}
-        </List>
-      </Box>
+      <nav className="flex-grow space-y-1">
+        {navItems.map((item, index) => (
+          <NavItem
+            key={item.text}
+            item={item}
+            isActive={location.pathname === item.path}
+            onClick={() => {
+              navigate(item.path);
+              if (isMobile) setMobileOpen(false);
+            }}
+            index={index}
+          />
+        ))}
+      </nav>
 
       {/* User & Health */}
-      <AnimatedCard sx={{ p: 2, background: 'rgba(255,255,255,0.03)' }}>
-        <Stack spacing={2}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#fff', 0.1), fontSize: '12px', fontWeight: 700 }}>QT</Avatar>
-            <Box>
-              <Typography sx={{ fontSize: '12px', fontWeight: 700 }}>Trader_Alpha</Typography>
-              <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>Inst_Access</Typography>
-            </Box>
-          </Stack>
-          <Box sx={{ p: 1.5, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box className="status-pill healthy" sx={{ width: 8, height: 8, p: 0, borderRadius: '50%', background: 'var(--accent-mint)' }} />
-              <Typography sx={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent-mint)' }}>
-                RT_FEED: {health.latency}ms
-              </Typography>
-            </Stack>
-          </Box>
-        </Stack>
+      <AnimatedCard className="mt-auto !p-4 !bg-white/5 border-white/5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="!w-8 !h-8 !bg-white/10 !text-[12px] font-bold">QT</Avatar>
+            <div className="flex flex-col">
+              <span className="text-[12px] font-bold text-white">Trader_Alpha</span>
+              <span className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Inst_Access</span>
+            </div>
+          </div>
+          <div className="p-3 bg-black/40 rounded-xl border border-white/5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-mint animate-pulse shadow-[0_0_8px_#00FFA3]" />
+            <span className="text-[10px] font-black text-mint uppercase tracking-tight">
+              RT_FEED: {health.latency}ms
+            </span>
+          </div>
+        </div>
       </AnimatedCard>
-    </Box>
+    </div>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', background: 'var(--bento-bg)' }}>
+    <div className="flex min-h-screen bg-bento-bg text-white font-sans antialiased">
       <CssBaseline />
 
       {!isMobile && (
-        <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid var(--bento-card-border)' }}>
+        <aside className="w-[280px] shrink-0 border-r border-bento-border bg-bento-bg/50">
           <SidebarContent />
-        </Box>
+        </aside>
       )}
 
       <Drawer
@@ -186,51 +142,41 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         sx={{
-          '& .MuiDrawer-paper': { width: drawerWidth, background: 'var(--bento-bg)' },
+          '& .MuiDrawer-paper': { width: drawerWidth, background: '#050505', backgroundImage: 'none' },
         }}
       >
         <SidebarContent />
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <main className="flex-grow flex flex-col relative min-w-0">
         {/* Header */}
-        <Box sx={{ 
-          height: 72, 
-          px: 3, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          borderBottom: '1px solid var(--bento-card-border)',
-          background: 'rgba(5, 5, 5, 0.5)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 10
-        }}>
-          <Stack direction="row" spacing={2} alignItems="center">
+        <header className="h-[72px] px-6 flex items-center justify-between border-b border-bento-border bg-bento-bg/60 backdrop-blur-xl sticky top-0 z-50">
+          <div className="flex items-center gap-4">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} sx={{ color: '#fff' }}>
+              <IconButton onClick={() => setMobileOpen(true)} className="!text-white">
                 <MenuIcon />
               </IconButton>
             )}
-            <Box className="status-pill" sx={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--bento-card-border)' }}>
-               <Typography sx={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                 NODE: <Box component="span" sx={{ color: '#fff' }}>QUANT_042</Box>
-               </Typography>
-            </Box>
-          </Stack>
+            <div className="status-pill bg-white/5 border border-bento-border px-3 py-1.5">
+               <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
+                 NODE: <span className="text-white">QUANT_042</span>
+               </span>
+            </div>
+          </div>
 
-          <Stack direction="row" spacing={2} alignItems="center">
-             <IconButton sx={{ color: 'var(--text-secondary)' }}>
+          <div className="flex items-center gap-1">
+             <IconButton className="!text-white/40 hover:!text-white transition-colors">
                 <NotifIcon />
              </IconButton>
-             <IconButton sx={{ color: 'var(--text-secondary)' }}>
+             <IconButton className="!text-white/40 hover:!text-white transition-colors">
                 <LogoutIcon />
              </IconButton>
-          </Stack>
-        </Box>
+          </div>
+        </header>
 
         <TickerTape />
 
-        <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+        <div className="flex-grow flex flex-col min-h-0">
            <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -238,13 +184,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                style={{ height: '100%' }}
+                className="flex-grow"
               >
                  {children}
               </motion.div>
            </AnimatePresence>
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </main>
+    </div>
   );
 };
