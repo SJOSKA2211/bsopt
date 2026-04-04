@@ -15,8 +15,12 @@ else
     exit 1
 fi
 
+# Load Hardened environment with secret decryption
+source scripts/utils_env.sh
+load_decrypted_secrets
+
 echo "🚀 Starting PgBouncer..."
-$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer
+$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d --force-recreate pgbouncer
 
 echo "⏳ Verifying PgBouncer engine health..."
 RETRIES=30

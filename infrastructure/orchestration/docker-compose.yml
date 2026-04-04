@@ -846,16 +846,16 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 3gb
+          memory: 4gb
         reservations:
           memory: 1gb
     healthcheck:
       test: ["CMD-SHELL", "ray status || exit 1"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 30s
       retries: 5
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=1073741824 --num-cpus=4 --block
 
   ray-worker-1:
     profiles: [ "ml" ]
@@ -888,11 +888,11 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 3gb
+          memory: 4gb
         reservations:
           memory: 1gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=4 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=1073741824 --num-cpus=4 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -927,11 +927,11 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1.5gb
+          memory: 2gb
         reservations:
           memory: 512mb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=536870912 --block
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:
