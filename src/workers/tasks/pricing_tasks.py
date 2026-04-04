@@ -1,5 +1,7 @@
-from src.workers.tasks.celery_app import celery_app
 import numpy as np
+
+from src.workers.tasks.celery_app import celery_app
+
 
 @celery_app.task
 def price_option_task(spot, strike, maturity, volatility, rate, option_type="call"):

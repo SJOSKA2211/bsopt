@@ -1,8 +1,11 @@
 
 import time
-import numpy as np
+
 import Manifold_core as rust_core
-from src.shared.math_utils import calculate_price, calculate_greeks
+import numpy as np
+
+from src.shared.math_utils import calculate_price
+
 
 def benchmark_kernels(n=1_000_000):
     print(f"Benchmarking Math Kernels with N={n}...")

@@ -68,14 +68,28 @@ async def check_ray(url):
         code, body = await asyncio.to_thread(fetch_url, url)
         if code == 200:
             data = json.loads(body)
-            # api/cluster_status response structure
-            # { "result": { "nodes": [...], "status": "...", "ray_version": "..." } }
-            # Or direct { "nodes": [...] }
-            nodes = data.get("result", data).get("nodes", [])
-            active_nodes = len([n for n in nodes if n.get("state") == "ALIVE"])
-            total_nodes = len(nodes)
-            version = data.get("result", data).get("ray_version", "unknown")
-            return "healthy", f"v{version} | Nodes: {active_nodes}/{total_nodes} Alive"
+            # Support multiple Ray API response formats
+            ray_data = data.get("data", {})
+            cluster_status = ray_data.get("clusterStatus", {})
+            autoscaler_report = cluster_status.get("autoscalerReport", {})
+            active_nodes_dict = autoscaler_report.get("activeNodes", {})
+            
+            if active_nodes_dict:
+                active_nodes = len(active_nodes_dict)
+                total_nodes = active_nodes # In this API format, we mostly see active
+                version = "2.x" # Default for this format
+                return "healthy", f"Ray API | Nodes: {active_nodes} Active"
+            
+            # Fallback to older/alternative format
+            result = data.get("result", {})
+            if isinstance(result, dict):
+                nodes = result.get("nodes", [])
+                active_nodes = len([n for n in nodes if n.get("state") == "ALIVE"])
+                total_nodes = len(nodes)
+                version = result.get("ray_version", "unknown")
+                return "healthy", f"v{version} | Nodes: {active_nodes}/{total_nodes} Alive"
+            
+            return "healthy", "Ray Cluster Online"
         return "unhealthy", f"HTTP {code}"
     except Exception as e:
         return "down", str(e)

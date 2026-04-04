@@ -8,6 +8,10 @@ Comprehensive security implementation for the BSOPT platform:
 - Audit logging
 """
 
+from src.auth.core import hashing as password
+
+# Shims for legacy imports
+from src.auth.core import mfa
 from src.database.models import AuditLog
 
 from .audit import AuditEvent, log_audit
@@ -21,9 +25,6 @@ from .auth import (
     get_current_active_user,
     get_current_user,
 )
-
-# Shims for legacy imports
-from src.auth.core import mfa, hashing as password
 
 __all__ = [
     # Unified Auth

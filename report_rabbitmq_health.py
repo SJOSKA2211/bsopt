@@ -1,9 +1,10 @@
 import asyncio
 import sys
-import os
+
+import structlog
+
 from src.shared.rabbitmq import get_rabbitmq
 from src.shared.utils.broker import broker
-import structlog
 
 # Mocking structlog for basic output if needed
 structlog.configure(

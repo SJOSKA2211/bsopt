@@ -1,4 +1,5 @@
-from .core.hashing import hasher, PasswordHasherService
+from .core.hashing import PasswordHasherService
+
 
 class PasswordService(PasswordHasherService):
     """Shim for PasswordService."""

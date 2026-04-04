@@ -1,7 +1,10 @@
 
 import asyncio
+
 from sqlalchemy import text
+
 from src.database import db_manager
+
 
 async def check():
     db_manager.initialize()

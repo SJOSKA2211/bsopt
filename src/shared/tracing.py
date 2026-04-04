@@ -20,43 +20,47 @@ from functools import wraps
 from typing import Any
 
 import structlog
-# from opentelemetry.trace import Tracer
-
-try:
-    from opentelemetry.instrumentation.celery import CeleryInstrumentor
-
-    CELERY_INSTRUMENTATION_AVAILABLE = True
-except ImportError:
-    CELERY_INSTRUMENTATION_AVAILABLE = False
-    logger = structlog.get_logger(__name__)
-    logger.warning("celery_instrumentation_not_available")
-try:
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-    FASTAPI_INSTRUMENTATION_AVAILABLE = True
-except ImportError:
-    FASTAPI_INSTRUMENTATION_AVAILABLE = False
-
-try:
-    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-
-    HTTPX_INSTRUMENTATION_AVAILABLE = True
-except ImportError:
-    HTTPX_INSTRUMENTATION_AVAILABLE = False
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
 )
+from opentelemetry.sdk.trace.sampling import (
     ALWAYS_OFF,
     ALWAYS_ON,
     ParentBased,
     TraceIdRatioBased,
 )
+from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer
 
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
+_tracer: Tracer | None = None
 
+
+def setup_tracing(
+    service_name: str,
+    service_version: str = "1.0.0",
+    otlp_endpoint: str | None = None,
+    sampling_ratio: float = 1.0,
+    enable_console_export: bool = False,
+) -> None:
+    """
+    Initialize OpenTelemetry tracing.
+
+    Args:
+        service_name: Name of the service
+        service_version: Version of the service
+        otlp_endpoint: OTLP gRPC endpoint
+        sampling_ratio: Fraction of traces to sample (0.0 to 1.0)
+        enable_console_export: Whether to export traces to console
+    """
+    global _tracer
 
     env = settings.ENVIRONMENT
     enable_tracing = settings.ENABLE_TRACING
@@ -87,13 +91,14 @@ logger = structlog.get_logger(__name__)
     provider = TracerProvider(resource=resource, sampler=sampler)
 
     try:
-        otlp_exporter = OTLPSpanExporter(
-            endpoint=otlp_endpoint,
-            insecure=True,
-            timeout=30,
-        )
-        provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-        logger.info("otlp_exporter_configured", endpoint=otlp_endpoint)
+        if otlp_endpoint:
+            otlp_exporter = OTLPSpanExporter(
+                endpoint=otlp_endpoint,
+                insecure=True,
+                timeout=30,
+            )
+            provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+            logger.info("otlp_exporter_configured", endpoint=otlp_endpoint)
     except Exception as e:
         logger.warning("otlp_export_failed", error=str(e))
 
@@ -102,7 +107,7 @@ logger = structlog.get_logger(__name__)
         logger.info("console_exporter_enabled")
 
     trace.set_tracer_provider(provider)
-    _tracer = get_tracer(service_name, service_version)
+    _tracer = trace.get_tracer(service_name, service_version)
 
     logger.info(
         "tracing_initialized",
@@ -135,24 +140,23 @@ def instrument_app(
     ]
 
     try:
-        if FASTAPI_INSTRUMENTATION_AVAILABLE:
-            FastAPIInstrumentor.instrument_app(
-                app,
-                excluded_urls=excluded_urls,
-#                 tracer_provider=trace.get_tracer_provider(),
-            )
-            logger.info("fastapi_instrumented")
-        else:
-            logger.warning("fastapi_instrumentation_not_available")
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        FastAPIInstrumentor.instrument_app(
+            app,
+            excluded_urls=",".join(excluded_urls),
+        )
+        logger.info("fastapi_instrumented")
+    except ImportError:
+        logger.warning("fastapi_instrumentation_not_available")
     except Exception as e:
         logger.warning("fastapi_instrumentation_failed", error=str(e))
 
     try:
-        if HTTPX_INSTRUMENTATION_AVAILABLE:
-            HTTPXClientInstrumentor().instrument()
-            logger.info("httpx_instrumented")
-        else:
-            logger.warning("httpx_instrumentation_not_available")
+        from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+        HTTPXClientInstrumentor().instrument()
+        logger.info("httpx_instrumented")
+    except ImportError:
+        logger.warning("httpx_instrumentation_not_available")
     except Exception as e:
         logger.warning("httpx_instrumentation_failed", error=str(e))
 
@@ -201,15 +205,15 @@ def instrument_redis(client: Any) -> None:
 
 def instrument_celery() -> None:
     """Instrument Celery worker with OpenTelemetry."""
-    if not settings.ENABLE_TRACING or not CELERY_INSTRUMENTATION_AVAILABLE:
+    if not settings.ENABLE_TRACING:
         return
 
     try:
+        from opentelemetry.instrumentation.celery import CeleryInstrumentor
         CeleryInstrumentor().instrument()
         logger.info("celery_instrumented")
-    except Exception as e:
-        logger.warning("celery_instrumentation_failed", error=str(e))
-
+    except ImportError:
+        logger.warning("celery_instrumentation_not_available")
     except Exception as e:
         logger.warning("celery_instrumentation_failed", error=str(e))
 
@@ -230,15 +234,15 @@ def instrument_ray() -> None:
         logger.warning("ray_instrumentation_failed", error=str(e))
 
 
-# def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
+def get_tracer(name: str, version: str | None = None) -> trace.Tracer:
     """Get a tracer instance from the current provider."""
-#     return trace.get_tracer(name, version)
+    return trace.get_tracer(name, version)
 
 
 @contextmanager
 def create_span(
     name: str,
-    # # kind: SpanKind = SpanKind.INTERNAL # Commented out due to import issues,
+    kind: SpanKind = SpanKind.INTERNAL,
     attributes: dict[str, Any] | None = None,
 ):
     """
@@ -254,10 +258,10 @@ def create_span(
             # do work
             span.set_attribute("result", "success")
     """
-#     global _tracer
+    global _tracer
 
     if _tracer is None:
-#         _tracer = trace.get_tracer("Manifold")
+        _tracer = trace.get_tracer("bsopt")
 
     with _tracer.start_as_current_span(name, kind=kind) as span:
         if attributes:
@@ -271,9 +275,9 @@ def create_span(
             raise
 
 
-# def trace_function(
+def trace_function(
     name: str | None = None,
-    # # kind: SpanKind = SpanKind.INTERNAL # Commented out due to import issues,
+    kind: SpanKind = SpanKind.INTERNAL,
     attributes: dict[str, Any] | None = None,
 ) -> Callable:
     """
@@ -316,86 +320,9 @@ def create_span(
     return decorator
 
 
-# def inject_trace_context() -> dict[str, str]:
-    """
-    Inject current trace context into a dictionary for propagation.
-
-    Returns:
-        Dictionary with trace context headers
-    """
-    carrier: dict[str, str] = {}
-    _propagator.inject(carrier)
-    return carrier
-
-
-# def extract_trace_context(carrier: dict[str, str]) -> Any:
-    """
-    Extract trace context from a dictionary.
-
-    Args:
-        carrier: Dictionary with trace context headers
-
-    Returns:
-        Extracted context
-    """
-    return _propagator.extract(carrier)
-
-
-# def get_current_span() -> Span | None:
-    """Get the current active span."""
-    return trace.get_current_span()
-
-
-# def add_span_attributes(attributes: dict[str, Any]) -> None:
-    """Add attributes to the current span."""
-    span = get_current_span()
-    if span and span.is_recording():
-        for key, value in attributes.items():
-            span.set_attribute(key, value)
-
-
-# class TraceContextManager:
-    """
-    Context manager for handling distributed trace context.
-
-    Usage:
-        async with TraceContextManager() as ctx:
-            # trace context is available in ctx.context
-            await some_async_operation()
-    """
-
-    def __init__(self, carrier: dict[str, str] | None = None):
-        self.carrier = carrier or {}
-        self.context = None
-
-    async def __aenter__(self):
-        self.context = extract_trace_context(self.carrier)
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if exc_val:
-            span = get_current_span()
-            if span:
-                span.set_status(Status(StatusCode.ERROR, str(exc_val)))
-                span.record_exception(exc_val)
-        return False
-
-    def __enter__(self):
-        self.context = extract_trace_context(self.carrier)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_val:
-            span = get_current_span()
-            if span:
-                span.set_status(Status(StatusCode.ERROR, str(exc_val)))
-                span.record_exception(exc_val)
-        return False
-
-
-# def shutdown_tracing() -> None:
+def shutdown_tracing() -> None:
     """Shutdown the tracer provider and flush pending spans."""
-#     provider = trace.get_tracer_provider()
+    provider = trace.get_tracer_provider()
     if hasattr(provider, "shutdown"):
         provider.shutdown()
     logger.info("tracing_shutdown")

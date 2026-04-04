@@ -1,4 +1,5 @@
-from .core.mfa import mfa_service, MFAService
+from .core.mfa import MFAService
+
 
 class MfaService(MFAService):
     """Shim for MfaService."""

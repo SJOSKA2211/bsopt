@@ -1,5 +1,6 @@
 from src.workers.tasks.celery_app import celery_app
 
+
 def train(model_type, artifacts_root=None):
     """Core training logic (often patched in tests)."""
     return {

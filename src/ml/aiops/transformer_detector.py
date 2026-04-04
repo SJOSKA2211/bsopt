@@ -1,5 +1,6 @@
 from .anomaly_detector import AnomalyDetector
 
+
 class TransformerAnomalyDetector(AnomalyDetector):
     """Shim for TransformerAnomalyDetector using the unified AnomalyDetector."""
     def __init__(self, **kwargs):

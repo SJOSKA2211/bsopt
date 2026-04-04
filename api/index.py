@@ -212,8 +212,8 @@ app.include_router(graphql_app, prefix="/graphql")
 async def health() -> dict[str, Any]:
     from src.database import health_check
     from src.math_kernel.rust_engine import is_rust_available
-    from src.shared.utils.cache import get_redis
     from src.shared.utils.broker import broker
+    from src.shared.utils.cache import get_redis
 
     redis_status = "unhealthy"
     try:

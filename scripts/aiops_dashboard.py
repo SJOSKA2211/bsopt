@@ -2,7 +2,6 @@ import asyncio
 import os
 from datetime import datetime
 
-from src.ml.aiops.health_reporter import HealthReporter
 from src.shared.config import settings
 
 # ANSI Colors

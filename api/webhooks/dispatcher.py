@@ -1,5 +1,7 @@
 from src.shared.webhooks.dispatcher import (
     WebhookDispatcher as SharedDispatcher,
+)
+from src.shared.webhooks.dispatcher import (
     generate_signature,
     verify_signature,
 )

@@ -1,7 +1,8 @@
+import os
+
 import mlflow
 import msgspec
 import numpy as np
-import os
 import structlog
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -92,9 +93,9 @@ class ModelTrainer(BaseTrainer):
         config: TrainingConfig,
     ) -> float:
         """Train XGBoost model with ONNX acceleration support."""
-        from sklearn.metrics import r2_score
         import onnxmltools
         from onnxmltools.convert.common.data_types import FloatTensorType
+        from sklearn.metrics import r2_score
 
         model_params = {
             "n_estimators": config.n_estimators,

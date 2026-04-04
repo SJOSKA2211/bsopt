@@ -104,8 +104,9 @@ async def check_redis():
 async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
-        from multiprocessing import shared_memory
         import os
+        from multiprocessing import shared_memory
+
         from src.shared.shm_init import SHM_CONFIGS
 
         missing = []

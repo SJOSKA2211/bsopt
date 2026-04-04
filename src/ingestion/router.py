@@ -14,7 +14,6 @@ logger = structlog.get_logger()
 from src.shared.observability import (
     ROUTING_COUNT,
     ROUTING_LATENCY,
-    SCRAPER_PARSE_SUCCESS,
 )
 
 

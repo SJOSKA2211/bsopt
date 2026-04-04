@@ -3,7 +3,7 @@ from typing import Any
 
 import dask
 import structlog
-import xgboost as xgb
+
 try:
     import xgboost.dask as xgb_dask
 except (ImportError, AttributeError):

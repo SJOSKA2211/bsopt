@@ -1,5 +1,6 @@
 from src.workers.tasks.celery_app import celery_app
 
+
 def check_risk_limits(order):
     """Simple risk check."""
     quantity = order.get("quantity", 0)

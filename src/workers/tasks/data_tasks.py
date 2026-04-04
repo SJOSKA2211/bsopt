@@ -1,5 +1,6 @@
 from src.workers.tasks.celery_app import celery_app
 
+
 @celery_app.task
 def collect_options_data_task(symbols):
     """Task to collect options data."""

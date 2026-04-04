@@ -1,9 +1,12 @@
 
 import asyncio
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+
 from sqlalchemy import text
+
 from src.database import db_manager
+
 
 async def seed():
     db_manager.initialize()
