@@ -4,3 +4,7 @@
 ## 2024-05-24 - WasmGreeksCell Unnecessary Renders
 **Learning:** `WasmGreeksCell` is rendered inside a large DataGrid inside `OptionsChain`. Whenever `OptionsChain` state updates (e.g., search or filter changes), all `WasmGreeksCell` instances re-render. Since `WasmGreeksCell` sends messages to the WASM worker, this caused massive overhead.
 **Action:** Wrap row components (like `WasmGreeksCell`) that perform expensive async operations (like worker calls) in `React.memo` so they only re-render when their specific props change.
+
+## 2024-06-18 - [Optimize Live Price Store Subscription]
+**Learning:** High-frequency state updates (like live market prices via WebSocket mapped to Zustand's `usePricingStore`) should never be subscribed to at top-level container components (e.g., `MarketPage`), as this forces continuous React rendering cycles across the entire page hierarchy, leading to severe performance bottlenecks.
+**Action:** When working with high-frequency Zustand stores, always move the `useStore` hook call as deep into the component tree as possible (e.g., inside the specific child component like `DOMLadder` that needs it) to isolate re-renders strictly to the nodes that require the data.
