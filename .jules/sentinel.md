@@ -15,3 +15,8 @@
 **Vulnerability:** The `authenticate_user` function dynamically generated a new Argon2 hash using `password_service.hash_password(secrets.token_urlsafe(32))` and then verified it every time an invalid username was submitted.
 **Learning:** While the intent was to prevent user enumeration via timing attacks (by making the server take a consistent amount of time), dynamically generating the hash *before* verifying it caused the server to execute the CPU-intensive Argon2 algorithm twice. This introduces a severe Denial of Service (DoS) vulnerability where attackers can trivially exhaust server CPU by requesting invalid usernames.
 **Prevention:** To prevent both timing attacks and DoS attacks, the application must use a *pre-computed* static dummy hash generated once at application startup. This ensures the server burns the correct amount of CPU during the verification step, without the penalty of generating a new hash.
+
+## 2026-04-05 - Fix JWT algorithm confusion vulnerability
+**Vulnerability:** The `decode_token` function in `src/auth/core/tokens.py` extracted the `alg` header from incoming, unverified JWT tokens using `jwt.get_unverified_header(token)` and used that algorithm during decoding. This allowed attackers to perform JWT algorithm confusion (e.g., swapping RS256 for HS256 and signing tokens with the public key).
+**Learning:** Never trust the unverified headers from incoming JWTs, especially `alg`. The algorithm MUST be hardcoded to what the system expects (in this case, via `settings.JWT_ALGORITHM`), not derived from the token itself.
+**Prevention:** Strictly enforce `settings.JWT_ALGORITHM` when verifying tokens, completely ignoring the token's `alg` header.
