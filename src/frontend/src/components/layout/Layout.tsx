@@ -3,7 +3,6 @@ import {
   CssBaseline, 
   Drawer, 
   Avatar, 
-  IconButton, 
   useMediaQuery,
   useTheme
 } from '@mui/material';
@@ -153,9 +152,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         <header className="h-[72px] px-6 flex items-center justify-between border-b border-bento-border bg-bento-bg/60 backdrop-blur-xl sticky top-0 z-50">
           <div className="flex items-center gap-4">
             {isMobile && (
-              <IconButton aria-label="Open navigation menu" onClick={() => setMobileOpen(true)} className="!text-white">
+              <button aria-label="Open navigation menu" onClick={() => setMobileOpen(true)} className="p-2 !text-white hover:bg-white/10 rounded-full transition-colors">
                 <MenuIcon />
-              </IconButton>
+              </button>
             )}
             <div className="status-pill bg-white/5 border border-bento-border px-3 py-1.5">
                <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
@@ -165,12 +164,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
 
           <div className="flex items-center gap-1">
-             <IconButton aria-label="View notifications" className="!text-white/40 hover:!text-white transition-colors">
+             <button aria-label="View notifications" className="p-2 !text-white/40 hover:!text-white hover:bg-white/10 rounded-full transition-colors">
                 <NotifIcon />
-             </IconButton>
-             <IconButton aria-label="Logout" className="!text-white/40 hover:!text-white transition-colors">
+             </button>
+             <button aria-label="Logout" className="p-2 !text-white/40 hover:!text-white hover:bg-white/10 rounded-full transition-colors">
                 <LogoutIcon />
-             </IconButton>
+             </button>
           </div>
         </header>
 
