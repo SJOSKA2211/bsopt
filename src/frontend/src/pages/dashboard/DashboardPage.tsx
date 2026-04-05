@@ -1,7 +1,4 @@
 import React, { lazy, Suspense } from 'react';
-import {
-  CircularProgress,
-} from '@mui/material';
 import { DeepInferenceEngine } from '../../features/dashboard/components/DeepInferenceEngine';
 import { RiskExposureGrid } from '../../features/dashboard/components/RiskExposureGrid';
 import { motion } from 'framer-motion';
@@ -16,7 +13,7 @@ const LivePriceChart = lazy(() =>
 
 const LoadingFallback = () => (
   <div className="flex justify-center items-center p-8">
-    <CircularProgress size={20} className="text-mint" />
+    <div className="w-5 h-5 border-2 border-mint/20 border-t-mint rounded-full animate-spin" />
   </div>
 );
 
