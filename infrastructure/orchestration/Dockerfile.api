@@ -2,7 +2,7 @@
 # High-performance ASGI gateway for the BSOPT platform.
 
 # --- BUILDER ---
-FROM manifold-base:latest AS builder
+FROM manifold-base:builder AS builder
 USER root
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY . .
 RUN /usr/local/bin/uv pip install --no-cache-dir .
 
 # --- DEVELOPMENT ---
-FROM manifold-base:latest AS development
+FROM manifold-base:final AS development
 USER root
 WORKDIR /app
 
@@ -40,7 +40,7 @@ RUN  \
     /usr/local/bin/uv pip install --no-cache-dir -e .
 
 # --- FINAL RUNTIME ---
-FROM manifold-base:latest AS production
+FROM manifold-base:final AS production
 USER root
 WORKDIR /app
 
