@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Stack, alpha } from '@mui/material';
 import { stitchTokens } from '../../../theme/stitch-tokens';
+import { usePricingStore } from '../../../store/usePricingStore';
+import type { PricingState } from '../../../store/usePricingStore';
 
 interface DOMRow {
   price: number;
@@ -8,7 +10,10 @@ interface DOMRow {
   type: 'bid' | 'ask';
 }
 
-export const DOMLadder: React.FC<{ symbol: string; currentPrice: number }> = ({ symbol, currentPrice }) => {
+export const DOMLadder: React.FC<{ symbol: string }> = ({ symbol }) => {
+  const priceData = usePricingStore((state: PricingState) => state.prices[symbol]);
+  const currentPrice = priceData?.price ?? 189.45;
+
   // Synthetic data for DOM (would be hooked to WS)
   const rows: DOMRow[] = useMemo(() => {
     const arr: DOMRow[] = [];
