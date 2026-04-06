@@ -130,7 +130,7 @@ class RayRLTrainer:
             # 4. Trigger Production training step
             if self.model.replay_buffer.size() > self.model.learning_starts:
                 self.model.train(
-                    batch_size=self.model.batch_size, gradient_steps=batch_samples // 64
+                    batch_size=self.model.batch_size, gradient_steps=self.model.batch_size // 64
                 )
 
             avg_reward = np.mean([sum(t[2] for t in traj) for traj in results])

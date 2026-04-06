@@ -81,7 +81,7 @@ async def run_servers():
     logger.info(f"🌐 HTTP Server (healthcheck) listening on port {http_port}")
     config = uvicorn.Config(
         app,
-        host="0.0.0.0",
+        host="0.0.0.0",  # nosec B104 - Expected for containerized services
         port=http_port,
         log_level="info",
         access_log=False,  # Optimization: Disable access logs in production

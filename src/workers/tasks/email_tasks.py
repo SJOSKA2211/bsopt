@@ -92,16 +92,16 @@ def send_transactional_email(self, to_email: str, subject: str, template_name: s
     except Exception as e:
         logger.error("email_dispatch_error", error=str(e), to_email=to_email)
 
-        async def _log_error():
+        async def _log_error(exc):
             async with get_async_db_context() as db:
                 await db.execute(
                     update(EmailLog)
                     .where(EmailLog.id == log_id)
-                    .values(status="failed", error_message=str(e))
+                    .values(status="failed", error_message=str(exc))
                 )
                 await db.commit()
 
-        loop.run_until_complete(_log_error())
+        loop.run_until_complete(_log_error(e))
         raise self.retry(exc=e, countdown=120)
 
 

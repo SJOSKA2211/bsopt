@@ -443,12 +443,6 @@ class Settings(BaseSettings):
         return self._transient_keys[key_type]
 
     # MLflow tracking URI
-    @property
-    def tracking_uri(self) -> str:
-        """Returns the MLflow tracking URI, defaulting to database backend if not set."""
-        if self.MLFLOW_TRACKING_URI:
-            return self.MLFLOW_TRACKING_URI
-        return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
 
     # Dask & Distributed
     DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = 4

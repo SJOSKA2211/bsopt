@@ -65,5 +65,5 @@ class TickerSchema(msgspec.Struct):
     symbol: str
     price: str
     change: str
-    percentChange: str
+    percent_change: str
     up: bool

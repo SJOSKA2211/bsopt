@@ -11,8 +11,8 @@ except ImportError:
     logger.warning("rust_core_not_found_falling_back_to_python")
     RUST_AVAILABLE = False
 
-from src.math_kernel.base import PricingStrategy
-from src.math_kernel.models import BSParameters, OptionGreeks
+from src.math_kernel.base import PricingStrategy  # noqa: E402
+from src.math_kernel.models import BSParameters, OptionGreeks  # noqa: E402
 
 
 class RustPricingEngine(PricingStrategy):

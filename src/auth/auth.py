@@ -25,13 +25,11 @@ logger = logging.getLogger(__name__)
 
 # Security schemes for FastAPI docs
 security_scheme = HTTPBearer(auto_error=False)
+from src.auth.core.hashing import hasher
+
+
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-from src.auth.core.hashing import hasher
-from src.auth.core.mfa import mfa_service
-from src.auth.core.sessions import session_service
-from src.auth.core.tokens import TokenData, TokenPair, token_service
-from src.auth.core.webauthn import webauthn_service
 
 # High-performance local caches for FastAPI dependencies
 user_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for users

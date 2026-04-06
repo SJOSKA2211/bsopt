@@ -31,7 +31,8 @@ class ChaosMonkey:
             # REAL: Proactive termination to verify AIOps remediation
             logger.error("chaos_injecting_actor_failure", name=actor_name)
             try:
-                ray.get_actor(actor_name).exit()
+                import ray  # type: ignore
+                ray.get_actor(actor_name).exit() # type: ignore
             except Exception:
                 # Fallback to process-level signaling if actor handle was lost
                 os.environ[f"SIMULATE_FAILURE_{actor_name}"] = "1"

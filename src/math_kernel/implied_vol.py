@@ -7,6 +7,8 @@ Features:
 - Robust error handling with Brent fallback
 """
 
+from typing import cast
+
 import numpy as np
 import structlog
 from scipy.optimize import brentq

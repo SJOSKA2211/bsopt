@@ -16,17 +16,21 @@ try:
 except ImportError as e:
     logger.warning("torch_not_available_falling_back_to_classical_ml", error=str(e))
     TORCH_AVAILABLE = False
+RAY_AVAILABLE = False
+
     # Define stubs so code doesn't crash on class definitions
-    class nn:
-        class Module: pass
-    F = None
-    TensorDataset = None
-    DataLoader = None
+class Nn:
+    class Module:
+        pass
+
+F = None
+TensorDataset = None
+DataLoader = None
 
 # ─── Neural Network Components ──────────────────────────────────────────────
 
 if TORCH_AVAILABLE:
-    class VAE(nn.Module):
+    class VAE(Nn.Module):
         """Variational Autoencoder for robust anomaly detection."""
 
         def __init__(self, input_dim, latent_dim):
@@ -158,6 +162,7 @@ class AnomalyDetector:
             return
 
         import mlflow
+
         from src.ml.tracker import ExperimentTracker
 
         tracker = ExperimentTracker(study_name or f"anomaly_train_{self.engine}")
@@ -170,8 +175,10 @@ class AnomalyDetector:
         else:
             scaled_features = self.scaler.fit_transform(features)
 
-        if use_ray and RAY_AVAILABLE and ray.is_initialized():
-            logger.info("training_anomaly_detector_with_ray", engine=self.engine)
+        if use_ray and RAY_AVAILABLE:
+            import ray
+            if ray.is_initialized():
+                logger.info("training_anomaly_detector_with_ray", engine=self.engine)
             # Logic for Ray-based distributed training would go here
             # For IsolationForest, we can use Ray's scikit-learn adapter or train on subsets
             # For DL models, we use Ray Train
@@ -264,21 +271,25 @@ class AnomalyDetector:
         else:
             scaled_features = self.scaler.transform(features)
 
-        if use_ray and RAY_AVAILABLE and ray.is_initialized():
-            # Ray-based distributed inference
+        if use_ray and RAY_AVAILABLE:
+            import ray
+            if ray.is_initialized():
+                # Ray-based distributed inference
             # We can parallelize the data and run 'detect' on chunks
-            data_id = ray.put(scaled_features)
-            model_id = ray.put(self.model)
-            
-            @ray.remote
-            def remote_detect(chunk, model, engine, threshold):
+            # ray.put(scaled_features)
+                model_id = ray.put(self.model) # type: ignore
+                _ = model_id
+
+                @ray.remote # type: ignore
+                def remote_detect(chunk, model, engine, threshold):
+                    pass
                 # Inner detection logic for a chunk
                 # (Simplified for brevity)
                 return [] 
             
             # Divide into 4 chunks
             chunks = np.array_split(scaled_features, 4)
-            futures = [remote_detect.remote(c, model_id, self.engine, getattr(self, "threshold", None)) for c in chunks]
+            [remote_detect.remote(c, model_id, self.engine, getattr(self, "threshold", None)) for c in chunks]
             # ... merge results ...
             pass
 

@@ -11,7 +11,7 @@ from src.shared.schemas.market import MarketQuote
 logger = structlog.get_logger()
 
 # 📊 METRICS: Track Data Mesh performance
-from src.shared.observability import (
+from src.shared.observability import (  # noqa: E402
     ROUTING_COUNT,
     ROUTING_LATENCY,
 )

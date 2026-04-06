@@ -5,6 +5,8 @@ Fetches models from MLflow 'Staging', evaluates them against Out-Of-Sample (OOS)
 and compares metrics with the current 'Production' model.
 """
 
+from typing import cast
+
 import mlflow
 import structlog
 from mlflow.tracking import MlflowClient

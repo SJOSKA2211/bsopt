@@ -418,7 +418,7 @@ async def post_grafana_annotation(message: str, tags: list[str] | None = None) -
 
 
 # --- Ingestion & Routing Metrics ---
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram  # noqa: E402
 
 
 def get_counter(name, description, labels):

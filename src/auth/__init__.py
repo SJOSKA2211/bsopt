@@ -10,6 +10,8 @@ Comprehensive security implementation for the BSOPT platform:
 
 from src.auth.core import hashing as password
 
+__all__ = ["password", "mfa"]
+
 # Shims for legacy imports
 from src.auth.core import mfa
 from src.database.models import AuditLog

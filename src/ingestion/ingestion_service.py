@@ -3,6 +3,7 @@ import json
 import os
 
 import grpc
+
 try:
     import Manifold_core
 except ImportError:
@@ -103,6 +104,7 @@ class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
         """
         try:
             from src.database.pipeliner import db_engine
+            from src.shared.config import settings
 
             ticker = request.ticker or settings.DEFAULT_TICKER
             # In a real scenario, we would use start_time and end_time from request

@@ -4,7 +4,6 @@ Optimized for PG16 + TimescaleDB 2.17+ with robust pooling and retry logic.
 """
 
 import asyncio
-import os
 import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
@@ -304,7 +303,7 @@ def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
 
 
 # Legacy Lazy Loaders
-from collections.abc import Callable
+from collections.abc import Callable  # noqa: E402
 
 
 class LazySessionFactory:
