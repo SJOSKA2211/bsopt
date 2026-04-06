@@ -1,7 +1,7 @@
-import { useQuery, useSubscription, gql } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import { useQuery as useReactQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { MarketData, MLPrediction, OptionConnection, Ticker, PortfolioSummary } from './types';
 
 // Production GraphQL Fragments
@@ -208,5 +208,15 @@ export function useLiveTickers(symbols: string[]) {
     queryKey: ['market', 'tickers'],
     queryFn: () => symbols.map(sym => ({ symbol: sym, price: '0.00', percentChange: '0.00%', up: true } as Ticker)), // Initial fallback
     staleTime: Infinity,
+  });
+}
+export function useSignals(limit: number = 20) {
+  return useReactQuery({
+    queryKey: ['system', 'signals', limit],
+    queryFn: async () => {
+      const { data } = await api.get(`/system/signals?limit=${limit}`);
+      return data;
+    },
+    refetchInterval: 5000,
   });
 }

@@ -154,3 +154,14 @@ async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
     Requires Enterprise tier.
     """
     return DataResponseStruct(data=await crud.get_io_performance_audit(db))
+@router.get(
+    "/signals",
+    response_model=DataResponse[list[dict[str, Any]]],
+    dependencies=[Depends(require_tier(["free", "pro", "enterprise", "admin"]))],
+)
+async def get_signals(limit: int = 10, db: AsyncSession = Depends(get_async_db)):
+    """
+    Unified signal feed for the dashboard (Telemetry).
+    """
+    signals = await crud.get_recent_signals(db, limit)
+    return DataResponseStruct(data=signals)

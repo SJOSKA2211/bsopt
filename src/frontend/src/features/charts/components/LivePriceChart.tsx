@@ -20,8 +20,7 @@ interface LivePriceChartProps {
 
 export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePriceChartProps) => {
   const theme = useTheme();
-  const financial = (theme.palette as any).financial;
-  const qfd = financial?.qfd;
+  const qfd = theme.palette.financial?.qfd;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -182,7 +181,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [theme, historicalData, smaData]);
+  }, [theme, historicalData, smaData, symbol, qfd, showSMA]);
 
   // Update SMA visibility
   useEffect(() => {
@@ -198,8 +197,8 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       seriesRef.current.update({
         time: timestamp,
         open: priceData.price,
-        high: Math.max(priceData.price, (priceData as any).high || 0),
-        low: Math.min(priceData.price, (priceData as any).low || 1000000),
+        high: Math.max(priceData.price, priceData.high || 0),
+        low: Math.min(priceData.price, priceData.low || 1000000),
         close: priceData.price,
       });
 

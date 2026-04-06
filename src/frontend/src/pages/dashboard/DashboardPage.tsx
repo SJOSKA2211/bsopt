@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { AnimatedCard } from '../../components/common/AnimatedCard';
 import { usePricingStore, type PricingState } from '../../store/usePricingStore';
 import { useDataIntegration } from '../../hooks/useDataIntegration';
+import { useSignals } from '../../api/hooks';
 
 // Lazy loaded components
 const LivePriceChart = lazy(() =>
@@ -52,6 +53,8 @@ export const DashboardPage: React.FC = () => {
   const systemGamma = usePricingStore((state: PricingState) => state.systemGamma);
   const portfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
   
+  const { data: recentSignals, isLoading: isLoadingSignals } = useSignals(5);
+  
   return (
     <div className="p-6 h-[calc(100vh-64px)] overflow-auto bg-bento-bg">
       <motion.div
@@ -78,7 +81,7 @@ export const DashboardPage: React.FC = () => {
         <div className="col-span-12 lg:col-span-4">
            <AnimatedCard delay={0.2} className="h-full">
               <h2 className="label-secondary mb-6 opacity-40">DEEP_INFERENCE_ENGINE // v4.2</h2>
-              <DeepInferenceEngine />
+              <DeepInferenceEngine symbol="SPX" />
            </AnimatedCard>
         </div>
         
@@ -148,20 +151,26 @@ export const DashboardPage: React.FC = () => {
                    {isConnected ? 'LIVE_FEED' : 'CONNECT_ERROR'}
                  </div>
               </div>
-              <div className="p-2">
-                 {[
-                   { time: '14:22:01', type: 'SIGNAL', msg: 'ML Model detected bearish divergence on AAPL 15m' },
-                   { time: '14:20:45', type: 'EXEC', msg: 'Filled 500 contracts SPY 450P @ 1.45' },
-                   { time: '14:18:12', type: 'RISK', msg: 'Vega threshold exceeded on NVDA portfolio' },
-                 ].map((log, i) => (
-                   <div key={i} className={`flex items-center p-4 px-6 ${i === 2 ? '' : 'border-b border-white/5'} hover:bg-white/5 transition-colors group cursor-default text-white/90`}>
-                      <span className="data-mono text-[11px] text-white/40 w-24 group-hover:text-mint transition-colors">{log.time}</span>
-                      <div className={`status-pill mr-6 font-black scale-90 ${log.type === 'RISK' ? 'bg-red-500 text-black' : 'bg-white/10 text-white'}`}>
-                         {log.type}
-                      </div>
-                      <span className="text-sm font-medium">{log.msg}</span>
+              <div className="p-2 min-h-[300px]">
+                 {isLoadingSignals ? (
+                   <div className="flex justify-center p-12">
+                      <div className="w-5 h-5 border-2 border-mint/20 border-t-mint rounded-full animate-spin" />
                    </div>
-                 ))}
+                 ) : recentSignals?.data?.length === 0 ? (
+                    <div className="p-8 text-center text-white/30 text-xs">NO_SIGNALS_DETECTED</div>
+                 ) : (
+                    recentSignals?.data?.map((log: any, i: number) => (
+                      <div key={i} className={`flex items-center p-4 px-6 ${i === recentSignals.data.length - 1 ? '' : 'border-b border-white/5'} hover:bg-white/5 transition-colors group cursor-default text-white/90`}>
+                         <span className="data-mono text-[11px] text-white/40 w-24 group-hover:text-mint transition-colors">
+                           {new Date(log.timestamp).toLocaleTimeString()}
+                         </span>
+                         <div className={`status-pill mr-6 font-black scale-90 ${log.type === 'ML' ? 'bg-purple-500/10 text-purple-400' : 'bg-mint/10 text-mint'}`}>
+                            {log.type}
+                         </div>
+                         <span className="text-sm font-medium">{log.message}</span>
+                      </div>
+                    ))
+                 )}
               </div>
            </AnimatedCard>
         </div>

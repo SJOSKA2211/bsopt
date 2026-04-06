@@ -1264,3 +1264,26 @@ async def get_ml_comparison_stats(db: AsyncSession, user_id: UUID) -> dict[str, 
             "userWinRate": 55.0,
             "aiWinRate": 80.0,
         }
+async def get_recent_signals(db: AsyncSession, limit: int = 20) -> list[dict]:
+    """
+    Fetch recent system signals: Combined Audit Logs and ML Predictions.
+    """
+    try:
+        # Aggregating from both sources for a unified dashboard feed
+        stmt = text("""
+            (SELECT time as timestamp, 'SIGNAL' as type, details->>'message' as message 
+             FROM audit_logs 
+             WHERE details->>'message' IS NOT NULL
+             ORDER BY time DESC LIMIT :limit)
+            UNION ALL
+            (SELECT timestamp, 'ML' as type, 'Model ' || symbol || ' predicted price ' || predicted_price as message
+             FROM model_predictions 
+             ORDER BY timestamp DESC LIMIT :limit)
+            ORDER BY timestamp DESC
+            LIMIT :limit
+        """)
+        result = await db.execute(stmt, {"limit": limit})
+        return [dict(row._mapping) for row in result]
+    except Exception as e:
+        logger.error("get_recent_signals_failed", error=str(e))
+        return []

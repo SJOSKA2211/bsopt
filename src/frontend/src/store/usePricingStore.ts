@@ -14,6 +14,8 @@ interface PriceData {
   put_call_ratio?: number;
   volume?: number;
   open_interest?: number;
+  high?: number;
+  low?: number;
 }
 
 export interface PricingState {

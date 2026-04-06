@@ -1,6 +1,7 @@
-import React from 'react';
 import { usePricingStore, type PricingState } from '../../../store/usePricingStore';
 import { motion } from 'framer-motion';
+import { useMLInference, useComparisonData } from '../../../api/hooks';
+import { CircularProgress, Box } from '@mui/material';
 
 interface MetricProps {
   label: string;
@@ -27,35 +28,54 @@ const ModelMetric: React.FC<MetricProps> = ({ label, value, percent, color }) =>
   </div>
 );
 
-export const DeepInferenceEngine: React.FC = () => {
+interface DeepInferenceEngineProps {
+  symbol: string;
+}
+
+export const DeepInferenceEngine: React.FC<DeepInferenceEngineProps> = ({ symbol }) => {
   const mlAccuracy = usePricingStore((state: PricingState) => state.mlAccuracy);
+  const { data: inferenceData, loading: isInferenceLoading } = useMLInference(symbol);
+  const { data: comparisonData, isLoading: isComparisonLoading } = useComparisonData();
   
+  if (isInferenceLoading || isComparisonLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', h: '100%' }}>
+        <CircularProgress size={20} sx={{ color: '#00FFA3' }} />
+      </Box>
+    );
+  }
+
+  const prediction = inferenceData?.mlPrediction;
+  const confidence = prediction?.confidence_interval ? (prediction.confidence_interval * 100) : 85;
+  const latestAccuracy = comparisonData?.data?.accuracy || mlAccuracy || 0;
+
   return (
     <div className="flex flex-col h-full">
       <div className="space-y-4">
         <ModelMetric 
           label="Directional Prob (Bullish)" 
-          value={`${mlAccuracy.toFixed(1)}%`} 
-          percent={mlAccuracy} 
+          value={`${latestAccuracy.toFixed(1)}%`} 
+          percent={latestAccuracy} 
           color="#00FFA3" 
         />
         <ModelMetric 
-          label="Vol Expansion Confidence" 
-          value="82.1%" 
-          percent={82.1} 
+          label="Model Confidence" 
+          value={`${confidence.toFixed(1)}%`} 
+          percent={confidence} 
           color="#8B5CF6" 
         />
         <ModelMetric 
           label="Signal Strength" 
-          value="High" 
-          percent={90} 
+          value={confidence > 80 ? "High" : "Moderate"} 
+          percent={confidence} 
           color="#14B8A6" 
         />
         
         <div className="mt-6 p-4 bg-mint/5 border-l-2 border-mint rounded-r-lg">
           <span className="label-secondary text-[9px] block mb-2 opacity-60">LATEST_ML_INSIGHT</span>
           <p className="text-[11px] font-medium leading-relaxed text-white/90">
-            Gamma-weighted distribution suggests potential 1.2% mean reversion within 4 hours. Accuracy baseline: <span className="text-mint font-bold">{mlAccuracy.toFixed(1)}%</span>.
+            {prediction?.model_name || 'XGB-Hybrid'} suggests {prediction?.predicted_price ? `target price of $${prediction.predicted_price.toFixed(2)}` : 'potential mean reversion'}. 
+            Accuracy baseline: <span className="text-mint font-bold">{latestAccuracy.toFixed(1)}%</span>.
           </p>
         </div>
       </div>

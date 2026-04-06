@@ -99,19 +99,20 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
     }
   }, [options.url, options.enabled, options.symbols, options.useProtobuf, options.updateFrequency]);
 
-  if (connectRef) connectRef.current = connect;
-
   useEffect(() => {
     isMountedRef.current = true;
     connect();
 
     return () => {
-        isMountedRef.current = false;
-        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
+      isMountedRef.current = false;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [connect]);
 

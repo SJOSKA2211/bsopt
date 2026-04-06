@@ -28,9 +28,7 @@ interface OptionData {
 
 export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }: GreeksHeatmapProps) => {
   const theme = useTheme();
-  // Midnight Emerald Theme Access
-  const financial = (theme.palette as any).financial;
-  const qfd = financial?.qfd;
+  const qfd = theme.palette.financial?.qfd;
 
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
@@ -131,8 +129,9 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
         borderColor: alpha(greekColors, 0.3),
         borderWidth: 1,
         textStyle: { color: theme.palette.text.primary, fontFamily: 'JetBrains Mono', fontSize: 12 },
-        formatter: (params: any) => {
+        formatter: (params: { data: number[] }) => {
           const val = params.data;
+          const greekColors = theme.palette.financial?.greeks?.[greek] || qfd?.emerald || theme.palette.primary.main;
           return `
             <div style="padding: 4px;">
               <div style="color: ${theme.palette.text.secondary}; font-size: 10px; font-weight: 800; margin-bottom: 4px;">RISK MANIFOLD</div>

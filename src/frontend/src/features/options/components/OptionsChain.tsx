@@ -87,10 +87,12 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   
   const currentSpot = priceData?.price || marketData?.marketData?.last_price;
   
-  // Sync lastSpot during render to avoid cascading effect renders
-  if (currentSpot && currentSpot !== lastSpot) {
-    setLastSpot(currentSpot);
-  }
+  // Sync lastSpot using an effect to avoid render-phase state updates
+  useEffect(() => {
+    if (currentSpot && currentSpot !== lastSpot) {
+      setLastSpot(currentSpot);
+    }
+  }, [currentSpot, lastSpot]);
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {
