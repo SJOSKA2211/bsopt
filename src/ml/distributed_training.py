@@ -93,10 +93,8 @@ def train_func(config: dict[str, Any]):
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        trajectories = th.load("data/trajectories.pt", weights_only=True)
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)

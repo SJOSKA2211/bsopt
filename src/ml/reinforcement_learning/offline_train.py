@@ -1,4 +1,3 @@
-import pickle  # nosec B403
 import time
 from typing import Any, cast
 
@@ -42,14 +41,19 @@ def expectile_loss(diff: th.Tensor, tau: float = 0.7) -> th.Tensor:
 
 def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
     """
+    DEPRECATED: Insecure pickle usage.
+    """
+    raise RuntimeError("convert_pkl_to_parquet is deprecated due to insecure pickle deserialization. Use convert_pt_to_parquet instead.")
+
+def convert_pt_to_parquet(pt_path: str, parquet_path: str) -> None:
+    """
      OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
     """
     import pandas as pd
 
     try:
-        with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
+        data = th.load(pt_path, weights_only=True)
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)
@@ -96,8 +100,7 @@ def train_offline(
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        trajectories = cast(list[dict[str, Any]], th.load(dataset_path, weights_only=True))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
