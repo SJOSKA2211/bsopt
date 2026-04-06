@@ -28,7 +28,10 @@ jobs:
         run: bandit -r src/ -c pyproject.toml -ll
 
       - name: Build Docker Image for Scanning
-        run: docker build -t bsopt-api-scan:latest -f docker/Dockerfile.api .
+        run: |
+          docker build -t manifold-base:builder --target builder -f infrastructure/orchestration/Dockerfile.base .
+          docker build -t manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
+          docker build -t bsopt-api-scan:latest -f infrastructure/orchestration/Dockerfile.api .
 
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
