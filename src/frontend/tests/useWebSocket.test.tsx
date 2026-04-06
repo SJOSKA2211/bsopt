@@ -46,7 +46,7 @@ describe('useWebSocket', () => {
       if (connectionCount === 1) {
         // Close first connection to simulate disconnect after a short delay
         // to ensure onopen is triggered on the client
-        setTimeout(() => socket.close(), 100);
+        setTimeout(() => socket.close({ code: 1006, reason: '', wasClean: false }), 100);
       } else {
         socket.send(JSON.stringify(mockData));
       }
