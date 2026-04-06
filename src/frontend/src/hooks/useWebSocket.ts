@@ -36,7 +36,8 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   // const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
   
   const connectRef = useRef<any>(null);
-  const connect = useCallback(() => {
+  const connect = useCallback(function connectFn() {
+    connectRef.current = connectFn;
     if (!isMountedRef.current || !options.enabled) return;
 
     // Clean up existing connection
@@ -77,15 +78,24 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
         ws.onclose = (event) => {
             if (!isMountedRef.current) return;
-            setIsConnected(false);
-            wsRef.current = null;
 
-            if (options.enabled && !event.wasClean) {
-                const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
-                console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
-                reconnectCountRef.current += 1;
-                reconnectTimeoutRef.current = setTimeout(connect, backoff);
-            }
+            // Fix TDZ cascading synchronous state update errors by wrapping in setTimeout 0
+            setTimeout(() => {
+                if (!isMountedRef.current) return;
+                setIsConnected(false);
+                wsRef.current = null;
+
+                if (options.enabled && !event.wasClean) {
+                    const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
+                    console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
+                    reconnectCountRef.current += 1;
+                    if (connectRef.current) {
+                        reconnectTimeoutRef.current = setTimeout(connectRef.current, backoff);
+                    } else {
+                        reconnectTimeoutRef.current = setTimeout(connect, backoff);
+                    }
+                }
+            }, 0);
         };
 
         ws.onerror = (err) => {
