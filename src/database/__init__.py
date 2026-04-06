@@ -149,6 +149,13 @@ class DatabaseManager:
         sync_url, async_url = self.get_urls()
         app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
 
+        # Driver detection for connect_args
+        driver = "psycopg"
+        try:
+            import psycopg  # noqa: F401
+        except ImportError:
+            driver = "psycopg2"
+
         # 1. Sync Engine Initialization
         sync_pool_kwargs: dict[str, Any]
         if settings.PGBOUNCER_ENABLED:
