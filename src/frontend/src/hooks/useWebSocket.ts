@@ -77,14 +77,16 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
         ws.onclose = (event) => {
             if (!isMountedRef.current) return;
-            setIsConnected(false);
+            setTimeout(() => setIsConnected(false), 0);
             wsRef.current = null;
 
             if (options.enabled && !event.wasClean) {
                 const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
                 console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
                 reconnectCountRef.current += 1;
-                reconnectTimeoutRef.current = setTimeout(connect, backoff);
+                reconnectTimeoutRef.current = setTimeout(() => {
+                    if (isMountedRef.current) connectRef.current();
+                }, backoff);
             }
         };
 
@@ -100,8 +102,12 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   }, [options.url, options.enabled, options.symbols, options.useProtobuf, options.updateFrequency]);
 
   useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
+  useEffect(() => {
     isMountedRef.current = true;
-    connect();
+    connectRef.current();
 
     return () => {
       isMountedRef.current = false;

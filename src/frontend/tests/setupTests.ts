@@ -65,6 +65,14 @@ Object.defineProperty(globalThis, 'Worker', {
   writable: true
 });
 
+// Ensure HTMLCanvasElement is present before mocking
+if (typeof globalThis.HTMLCanvasElement === 'undefined') {
+  Object.defineProperty(globalThis, 'HTMLCanvasElement', {
+    value: class HTMLCanvasElement {},
+    writable: true,
+  });
+}
+
 // Mock Canvas getContext
 (HTMLCanvasElement.prototype.getContext as unknown) = vi.fn(() => ({
   fillRect: vi.fn(),
