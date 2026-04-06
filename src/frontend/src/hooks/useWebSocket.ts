@@ -35,7 +35,8 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
   // const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
   
-  const connectRef = useRef<any>(null);
+  const connectRef = useRef<() => void>(() => {});
+
   const connect = useCallback(() => {
     if (!isMountedRef.current || !options.enabled) return;
 
@@ -52,8 +53,12 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
         ws.onopen = () => {
             if (!isMountedRef.current) return;
-            setIsConnected(true);
-            setError(null);
+            // Use setTimeout to avoid synchronous setState inside an effect (when connect is called in useEffect)
+            setTimeout(() => {
+                if (!isMountedRef.current) return;
+                setIsConnected(true);
+                setError(null);
+            }, 0);
             reconnectCountRef.current = 0;
             ws.send(JSON.stringify({ type: 'subscribe', symbols: options.symbols }));
         };
@@ -77,20 +82,35 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
         ws.onclose = (event) => {
             if (!isMountedRef.current) return;
-            setIsConnected(false);
+            // Immediate state update to reflect disconnection
+            setTimeout(() => {
+                if (isMountedRef.current) setIsConnected(false);
+            }, 0);
             wsRef.current = null;
 
             if (options.enabled && !event.wasClean) {
+                // Ensure state update is flushed before reconnect timeout is scheduled.
                 const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
                 console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
                 reconnectCountRef.current += 1;
-                reconnectTimeoutRef.current = setTimeout(connect, backoff);
+
+                // Clear any existing timeout before setting a new one
+                if (reconnectTimeoutRef.current) {
+                    clearTimeout(reconnectTimeoutRef.current);
+                }
+
+                // Use connectRef to avoid TDZ issue
+                reconnectTimeoutRef.current = setTimeout(() => {
+                    if (isMountedRef.current) connectRef.current();
+                }, backoff);
             }
         };
 
         ws.onerror = (err) => {
             if (!isMountedRef.current) return;
-            setError(new Error('WebSocket connection error'));
+            setTimeout(() => {
+                if (isMountedRef.current) setError(new Error('WebSocket connection error'));
+            }, 0);
             console.error('[WebSocket] Error:', err);
         };
     } catch (err) {
@@ -100,11 +120,19 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   }, [options.url, options.enabled, options.symbols, options.useProtobuf, options.updateFrequency]);
 
   useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
+  useEffect(() => {
     isMountedRef.current = true;
-    connect();
+    // Don't call it immediately inside the effect, which can cause cascading sync updates
+    const t = setTimeout(() => {
+      if (isMountedRef.current) connect();
+    }, 0);
 
     return () => {
       isMountedRef.current = false;
+      clearTimeout(t);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;

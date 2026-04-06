@@ -7,8 +7,6 @@ import {
   alpha,
   Grid,
 } from '@mui/material';
-import { usePricingStore } from '../../store/usePricingStore';
-import type { PricingState } from '../../store/usePricingStore';
 import { useDataIntegration } from '../../hooks/useDataIntegration';
 import { stitchTokens } from '../../theme/stitch-tokens';
 import { DOMLadder } from '../../features/market/components/DOMLadder';
@@ -51,10 +49,6 @@ export const MarketPage: React.FC = () => {
   // Establish unified real-time connection
   const { isConnected } = useDataIntegration({ symbols: [currentSymbol] });
   
-  // Get live price from store
-  const priceData = usePricingStore((state: PricingState) => state.prices[currentSymbol]);
-  const livePrice = priceData?.price ?? 189.45;
-
   return (
     <Box sx={{ p: 2, height: 'calc(100vh - 64px)', overflow: 'hidden', position: 'relative' }}>
       <motion.div
@@ -95,7 +89,7 @@ export const MarketPage: React.FC = () => {
           {/* Right Column: Execution & Depth */}
           <Grid item xs={12} lg={3.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <motion.div variants={itemVariants} style={{ flex: 1.5, minHeight: 0 }}>
-               <DOMLadder symbol={currentSymbol} currentPrice={livePrice} />
+               <DOMLadder symbol={currentSymbol} />
             </motion.div>
 
             <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>

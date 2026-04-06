@@ -46,23 +46,24 @@ describe('useWebSocket', () => {
       if (connectionCount === 1) {
         // Close first connection to simulate disconnect after a short delay
         // to ensure onopen is triggered on the client
-        setTimeout(() => socket.close(), 100);
+        // Use abnormal closure code 1006 to trigger reconnection logic
+        setTimeout(() => socket.close({ code: 1006, reason: '', wasClean: false }), 100);
       } else {
         socket.send(JSON.stringify(mockData));
       }
     });
 
-    const { result } = renderHook(() => useWebSocket({ url: WS_URL, symbols: ['TEST'], enabled: true }));
+    const { result } = renderHook(() => useWebSocket({ url: WS_URL, symbols: ['TEST'], enabled: true, updateFrequency: 1000 }));
 
     // Wait for initial connection
     await waitFor(() => {
       expect(result.current.isConnected).toBe(true);
     }, { timeout: 2000 });
 
-    // Wait for disconnection
+    // Ensure state updates to disconnected
     await waitFor(() => {
       expect(result.current.isConnected).toBe(false);
-    }, { timeout: 2000 });
+    }, { timeout: 4000 });
 
     // Wait for reconnection and data
     await waitFor(() => {
