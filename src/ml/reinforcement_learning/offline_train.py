@@ -1,4 +1,3 @@
-import pickle  # nosec B403
 import time
 from typing import Any, cast
 
@@ -45,16 +44,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
      OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
     """
-    import pandas as pd
-
-    try:
-        with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
-        df = pd.DataFrame(data)
-        df.to_parquet(parquet_path, compression="snappy")
-        logger.info("trajectories_converted_to_parquet", path=parquet_path)
-    except Exception as e:
-        logger.error("parquet_conversion_failed", error=str(e))
+    raise RuntimeError("Insecure pickle.load is strictly prohibited. Please provide data in Parquet or SafeTensors format.")
 
 
 def _log_gradient_flow(model: nn.Module, step: int) -> None:
@@ -90,14 +80,18 @@ def train_offline(
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
     # 1. ⚡ DATA LOADING OPTIMIZATION
-    if dataset_path.endswith(".parquet"):
-        import pandas as pd
+    import pandas as pd
 
+    if dataset_path.endswith(".parquet"):
         df = pd.read_parquet(dataset_path)
-        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        # Secure Parquet Fallback
+        fallback_path = dataset_path.replace(".pkl", ".parquet").replace(".pt", ".parquet")
+        if not fallback_path.endswith(".parquet"):
+            fallback_path += ".parquet"
+        df = pd.read_parquet(fallback_path)
+
+    trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(

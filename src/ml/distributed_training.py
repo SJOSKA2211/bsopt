@@ -7,6 +7,7 @@ import torch as th
 import torch.nn as nn
 from ray.train import ScalingConfig
 from torch.utils.data import DataLoader
+from typing import cast
 
 try:
     from ray.train.torch import TorchTrainer
@@ -92,11 +93,16 @@ def train_func(config: dict[str, Any]):
         logger.info("sharded_loader_optimized", path=dataset_path)
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
-        # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
+        # Secure Parquet Fallback if Ray Data fails
+        import pandas as pd
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        fallback_path = dataset_path.replace(".pkl", ".parquet").replace(".json", ".parquet")
+        if not fallback_path.endswith(".parquet"):
+            fallback_path += ".parquet"
+
+        df = pd.read_parquet(fallback_path)
+        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
+
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
