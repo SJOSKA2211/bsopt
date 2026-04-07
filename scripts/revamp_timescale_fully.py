@@ -98,15 +98,15 @@ def revamp_timescale():
                     h.hypertable_name,
                     h.num_chunks,
                     h.compression_enabled,
-                    pg_size_pretty(s.before_compression_total_bytes) as uncompressed_size,
-                    pg_size_pretty(s.after_compression_total_bytes) as compressed_size,
+                    pg_size_pretty(COALESCE(s.before_compression_total_bytes, 0)) as uncompressed_size,
+                    pg_size_pretty(COALESCE(s.after_compression_total_bytes, 0)) as compressed_size,
                     CASE 
                         WHEN s.before_compression_total_bytes > 0 
                         THEN round(100.0 * (s.before_compression_total_bytes - s.after_compression_total_bytes) / s.before_compression_total_bytes, 2)
                         ELSE 0 
                     END as compression_ratio_pct
                 FROM timescaledb_information.hypertables h
-                CROSS JOIN LATERAL hypertable_compression_stats(h.hypertable_name::regclass) s;
+                LEFT JOIN LATERAL hypertable_compression_stats(h.hypertable_name::regclass) s ON TRUE;
             """))
             print("✅ timescale_health_overview view created.")
         except Exception as e:
