@@ -77,31 +77,38 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
         ws.onclose = (event) => {
             if (!isMountedRef.current) return;
-            setIsConnected(false);
-            wsRef.current = null;
+            setTimeout(() => setIsConnected(false), 0);
 
             if (options.enabled && !event.wasClean) {
                 const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
                 console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
                 reconnectCountRef.current += 1;
-                reconnectTimeoutRef.current = setTimeout(connect, backoff);
+                reconnectTimeoutRef.current = setTimeout(() => {
+                    if (connectRef.current) connectRef.current();
+                }, backoff);
+            } else {
+                wsRef.current = null;
             }
         };
 
         ws.onerror = (err) => {
             if (!isMountedRef.current) return;
-            setError(new Error('WebSocket connection error'));
+            setTimeout(() => setError(new Error('WebSocket connection error')), 0);
             console.error('[WebSocket] Error:', err);
         };
     } catch (err) {
         console.error('[WebSocket] Failed to connect:', err);
-        setError(err as Error);
+        setTimeout(() => setError(err as Error), 0);
     }
   }, [options.url, options.enabled, options.symbols, options.useProtobuf, options.updateFrequency]);
 
   useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
+  useEffect(() => {
     isMountedRef.current = true;
-    connect();
+    if (connectRef.current) connectRef.current();
 
     return () => {
       isMountedRef.current = false;
@@ -110,6 +117,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
         reconnectTimeoutRef.current = null;
       }
       if (wsRef.current) {
+        wsRef.current.onclose = null; // Prevent reconnection loops on unmount
         wsRef.current.close();
         wsRef.current = null;
       }
