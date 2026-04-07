@@ -7,7 +7,7 @@ import fs from 'fs'
 // AIOps Heartbeat Plugin: Reports frontend health to the manifold
 const AIOpsHeartbeatPlugin = () => ({
   name: 'aiops-heartbeat',
-  configureServer(server) {
+  configureServer(server: any) {
     const heartbeatPath = '/tmp/frontend_heartbeat';
     const writeHeartbeat = () => {
       const data = {

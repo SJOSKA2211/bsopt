@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, TextField, Stack, alpha } from '@mui/material';
+import { Box, Typography, Button, Stack, alpha } from '@mui/material';
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 export const OrderTicket: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -54,7 +54,7 @@ export const OrderTicket: React.FC<{ symbol: string }> = ({ symbol }) => {
 
           <Box>
             <Typography className="stitch-label" sx={{ mb: 1, fontSize: '8px', opacity: 0.6 }}>DURATION_PARAMS</Typography>
-            <Box className="stitch-banner-orange" style={{ fontSize: '8px', width: 'fit-content', padding: '2px 10px' }}>DAY_ONLY // GTC_DISABLED</Box>
+            <Box className="stitch-banner-orange" sx={{ fontSize: '8px', width: 'fit-content', padding: '2px 10px' }}>DAY_ONLY // GTC_DISABLED</Box>
           </Box>
 
           <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>

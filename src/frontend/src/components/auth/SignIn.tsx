@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { AnimatedCard } from '../common/AnimatedCard';
 
 const SystemStatus: React.FC = () => (

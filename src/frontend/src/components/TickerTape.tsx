@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Box, Typography, alpha, useTheme } from '@mui/material';
 import { useLiveTickers } from '../api/hooks';
 import type { Ticker } from '../api/types';
-import { motion } from 'framer-motion';
 
 // Default symbols for the ticker tape
 const DEFAULT_TICKER_SYMBOLS = ['SPY', 'QQQ', 'AAPL', 'GOOG', 'MSFT', 'AMZN', 'TSLA', 'NVDA', 'META'];

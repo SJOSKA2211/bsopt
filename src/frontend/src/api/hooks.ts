@@ -1,4 +1,5 @@
-import { useQuery, gql } from '@apollo/client';
+import { useQuery as useApolloQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { useQuery as useReactQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect } from 'react';
@@ -102,27 +103,27 @@ export const GET_HISTORICAL_DATA = gql`
 
 // Fused Hooks
 export function useHistoricalData(symbol: string) {
-  return useQuery<{ historicalData: any[] }>(GET_HISTORICAL_DATA, {
+  return useApolloQuery<{ historicalData: any[] }>(GET_HISTORICAL_DATA, {
     variables: { symbol },
   });
 }
 
 export function useOptionsChain(symbol: string) {
-  return useQuery<{ options: OptionConnection }>(GET_OPTIONS, {
+  return useApolloQuery<{ options: OptionConnection }>(GET_OPTIONS, {
     variables: { symbol },
     notifyOnNetworkStatusChange: true,
   });
 }
 
 export function useProductionMarketData(symbol: string) {
-  return useQuery<{ marketData: MarketData }>(GET_MARKET_DATA, {
+  return useApolloQuery<{ marketData: MarketData }>(GET_MARKET_DATA, {
     variables: { symbol },
     pollInterval: 5000, // 5s poll as fallback to WS
   });
 }
 
 export function useMLInference(symbol: string) {
-  return useQuery<{ mlPrediction: MLPrediction }>(GET_ML_PREDICTION, {
+  return useApolloQuery<{ mlPrediction: MLPrediction }>(GET_ML_PREDICTION, {
     variables: { symbol },
   });
 }

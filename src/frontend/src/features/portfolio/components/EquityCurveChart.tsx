@@ -1,10 +1,9 @@
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useTheme, alpha, Box } from '@mui/material';
+import { alpha, Box } from '@mui/material';
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 export const EquityCurveChart: React.FC = () => {
-  const theme = useTheme();
 
   const option = {
     backgroundColor: 'transparent',
