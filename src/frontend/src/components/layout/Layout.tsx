@@ -153,7 +153,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         <header className="h-[72px] px-6 flex items-center justify-between border-b border-bento-border bg-bento-bg/60 backdrop-blur-xl sticky top-0 z-50">
           <div className="flex items-center gap-4">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} className="!text-white">
+              <IconButton onClick={() => setMobileOpen(true)} className="!text-white" aria-label="Open menu">
                 <MenuIcon />
               </IconButton>
             )}
@@ -165,10 +165,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
 
           <div className="flex items-center gap-1">
-             <IconButton className="!text-white/40 hover:!text-white transition-colors">
+             <IconButton className="!text-white/40 hover:!text-white transition-colors" aria-label="View notifications">
                 <NotifIcon />
              </IconButton>
-             <IconButton className="!text-white/40 hover:!text-white transition-colors">
+             <IconButton className="!text-white/40 hover:!text-white transition-colors" aria-label="Log out">
                 <LogoutIcon />
              </IconButton>
           </div>

@@ -153,4 +153,4 @@ vi.mock('@react-three/fiber', async (importOriginal) => {
       camera: { position: { x: 0, y: 0, z: 8 } },
     })),
   };
-});
+});globalThis.IntersectionObserver = class IntersectionObserver { constructor() {} observe() {} unobserve() {} disconnect() {} };
