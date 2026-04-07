@@ -96,7 +96,15 @@ class Settings(BaseSettings):
         default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
     )
 
-    @field_validator("AUDIT_VAULT_KEY", "RABBITMQ_PASSWORD", "REDIS_PASSWORD")
+    @field_validator(
+        "AUDIT_VAULT_KEY",
+        "RABBITMQ_PASSWORD",
+        "REDIS_PASSWORD",
+        "BETTER_AUTH_SECRET",
+        "JWT_SECRET",
+        "PGBOUNCER_ADMIN_PASSWORD",
+        "MINIO_ROOT_PASSWORD",
+    )
     @classmethod
     def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
         if v is None:
@@ -487,7 +495,7 @@ class Settings(BaseSettings):
         if self.is_production:
             if not self.BETTER_AUTH_SECRET:
                 raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
-            if len(self.BETTER_AUTH_SECRET) < 32:
+            if len(self.BETTER_AUTH_SECRET) < 32 and not self.BSOPT_ALLOW_WEAK_SECRETS:
                 raise ValueError(
                     "CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters for robust key derivation."
                 )
@@ -544,7 +552,7 @@ class Settings(BaseSettings):
                 import base64
 
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
-                if len(decoded) < 32:
+                if len(decoded) < 32 and not self.BSOPT_ALLOW_WEAK_SECRETS:
                     raise ValueError(
                         "MFA_ENCRYPTION_KEY is too short. The decoded key must "
                         "be at least 32 bytes (256 bits)."

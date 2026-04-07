@@ -22,15 +22,24 @@ def patch_jsonb(monkeypatch):
 
 @pytest.fixture
 def db_session():
-    # Force SQLite to accept JSONB as JSON
+    # Force SQLite to accept PG-specific types
     engine = create_engine("sqlite:///:memory:")
 
-    # Define a custom compilation for JSONB on SQLite
+    # Define custom compilations for PG types on SQLite
     from sqlalchemy.ext.compiler import compiles
+    from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
 
-    @compiles(postgresql.JSONB, "sqlite")
+    @compiles(JSONB, "sqlite")
     def compile_jsonb_sqlite(type_, compiler, **kw):
         return "JSON"
+
+    @compiles(INET, "sqlite")
+    def compile_inet_sqlite(type_, compiler, **kw):
+        return "TEXT"
+
+    @compiles(UUID, "sqlite")
+    def compile_uuid_sqlite(type_, compiler, **kw):
+        return "CHAR(32)"
 
     Base.metadata.create_all(bind=engine)
     SessionLocal = sessionmaker(bind=engine)

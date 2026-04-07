@@ -8,12 +8,12 @@ def test_mfa_key_security_dev():
     """Test that default key is allowed in dev environment."""
     settings = Settings(
         ENVIRONMENT="dev",
-        MFA_ENCRYPTION_KEY=DEFAULT_DEV_MFA_KEY,
+        MFA_ENCRYPTION_KEY=_DEFAULT_MFA_KEY_SEED,
         DATABASE_URL="postgresql://user:pass@localhost/db",
         REDIS_URL="redis://localhost:6379/0",
         JWT_SECRET="test-secret",
     )
-    assert settings.MFA_ENCRYPTION_KEY == DEFAULT_DEV_MFA_KEY
+    assert settings.MFA_ENCRYPTION_KEY == _DEFAULT_MFA_KEY_SEED
     assert settings.ENVIRONMENT == "dev"
 
 
@@ -22,7 +22,7 @@ def test_mfa_key_security_prod_failure():
     with pytest.raises(ValidationError) as excinfo:
         Settings(
             ENVIRONMENT="prod",
-            MFA_ENCRYPTION_KEY=DEFAULT_DEV_MFA_KEY,
+            MFA_ENCRYPTION_KEY=_DEFAULT_MFA_KEY_SEED,
             DATABASE_URL="postgresql://user:pass@localhost/db",
             REDIS_URL="redis://localhost:6379/0",
             JWT_SECRET="test-secret",

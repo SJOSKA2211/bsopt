@@ -132,7 +132,7 @@ class BlackScholesEngine(PricingStrategy):
                     ).reshape(S.shape)
 
                 # Scalar path
-                return Manifold_core.black_scholes_price(
+                res = Manifold_core.black_scholes_price(
                     float(S[0]),
                     float(K[0]),
                     float(T[0]),
@@ -141,6 +141,7 @@ class BlackScholesEngine(PricingStrategy):
                     float(q[0]),
                     bool(is_call),
                 )
+                return float(res)
             except Exception as e:
                 logger.warning("rust_core_pricing_failed_falling_back", error=str(e))
 
@@ -182,6 +183,8 @@ class BlackScholesEngine(PricingStrategy):
                 out_arr.fill(res)
             return out_arr
 
+        if S.size == 1 and not isinstance(spot, (np.ndarray, list)):
+            return float(res.item()) if isinstance(res, np.ndarray) else float(res)
         return res
 
     @staticmethod
@@ -231,11 +234,11 @@ class BlackScholesEngine(PricingStrategy):
                         bool(is_call),
                     )
                     return OptionGreeks(
-                        delta=res.delta,
-                        gamma=res.gamma,
-                        theta=res.theta,
-                        vega=res.vega,
-                        rho=res.rho,
+                        delta=float(res.delta),
+                        gamma=float(res.gamma),
+                        theta=float(res.theta),
+                        vega=float(res.vega),
+                        rho=float(res.rho),
                     )
                 else:
                     is_call_arr = np.atleast_1d(is_call).astype(bool)
@@ -264,6 +267,11 @@ class BlackScholesEngine(PricingStrategy):
         # Vectorized numpy fallback
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
+        def _to_val(arr: np.ndarray | float) -> float | np.ndarray:
+            if S.size == 1 and not isinstance(spot, (np.ndarray, list)):
+                return float(arr.item()) if isinstance(arr, np.ndarray) else float(arr)
+            return arr
+
         if "out_delta" in kwargs:
 
             def _copy(dst, src):
@@ -286,7 +294,13 @@ class BlackScholesEngine(PricingStrategy):
                 rho=kwargs["out_rho"],
             )
 
-        return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
+        return OptionGreeks(
+            delta=_to_val(delta),
+            gamma=_to_val(gamma),
+            theta=_to_val(theta),
+            vega=_to_val(vega),
+            rho=_to_val(rho),
+        )
 
     @staticmethod
     def price_call(params: BSParameters) -> float:
@@ -321,10 +335,51 @@ class BlackScholesEngine(PricingStrategy):
         )
 
     @staticmethod
-    def verify_put_call_parity(params: BSParameters) -> bool:
+    def calculate_greeks_batch(
+        spot: np.ndarray,
+        strike: np.ndarray,
+        maturity: np.ndarray,
+        volatility: np.ndarray,
+        rate: np.ndarray,
+        dividend: np.ndarray,
+        option_type: str | np.ndarray = "call",
+    ) -> dict[str, np.ndarray]:
+        """Vectorized Greeks returning a dictionary."""
+        greeks = BlackScholesEngine.calculate_greeks(
+            spot=spot,
+            strike=strike,
+            maturity=maturity,
+            volatility=volatility,
+            rate=rate,
+            dividend=dividend,
+            option_type=option_type,
+        )
+        return {
+            "delta": cast(np.ndarray, greeks.delta),
+            "gamma": cast(np.ndarray, greeks.gamma),
+            "theta": cast(np.ndarray, greeks.theta),
+            "vega": cast(np.ndarray, greeks.vega),
+            "rho": cast(np.ndarray, greeks.rho),
+        }
+
+    @staticmethod
+    def verify_put_call_parity(*args: Any, **kwargs: Any) -> bool:
         """
         Verify Put-Call Parity: C - P = S * exp(-q * T) - K * exp(-r * T)
         """
+        # Support positional args (spot, strike, maturity, rate, call, put, dividend)
+        if len(args) >= 6:
+            S, K, T, R, C, P = args[:6]
+            Q = args[6] if len(args) > 6 else kwargs.get("dividend", 0.0)
+            lhs = float(C) - float(P)
+            rhs = float(S) * np.exp(-float(Q) * float(T)) - float(K) * np.exp(-float(R) * float(T))
+            return bool(np.isclose(lhs, rhs, atol=1e-5))
+
+        # Support BSParameters
+        params = args[0] if args else kwargs.get("params")
+        if not params:
+            raise ValueError("Missing parameters for parity verification")
+
         call_price = BlackScholesEngine.price_options(params=params, option_type="call")
         put_price = BlackScholesEngine.price_options(params=params, option_type="put")
 
@@ -335,6 +390,10 @@ class BlackScholesEngine(PricingStrategy):
 
         return bool(np.isclose(lhs, rhs, atol=1e-5))
 
+    def price(self, params: BSParameters, option_type: str = "call", **kwargs: Any) -> float:
+        """Alias for price_european."""
+        return self.price_european(params, option_type=option_type, **kwargs)
+
     def price_european(
         self, params: BSParameters, option_type: str = "call", **kwargs: Any
     ) -> float:
@@ -342,13 +401,16 @@ class BlackScholesEngine(PricingStrategy):
         return float(self.price_options(params=params, option_type=option_type, **kwargs))
 
 
-def verify_put_call_parity(params: BSParameters) -> bool:
+def verify_put_call_parity(*args: Any, **kwargs: Any) -> bool:
     """Standalone wrapper for parity verification."""
-    return BlackScholesEngine.verify_put_call_parity(params)
+    return BlackScholesEngine.verify_put_call_parity(*args, **kwargs)
 
 
 def black_scholes(*args: Any, **kwargs: Any) -> Any:
     result = BlackScholesEngine.price_options(*args, **kwargs)
+    if isinstance(result, np.ndarray) and result.size == 1:
+        result = float(result.item())
+
     if len(args) == 5 or "params" in kwargs:
         return {"price": result}
     return result
