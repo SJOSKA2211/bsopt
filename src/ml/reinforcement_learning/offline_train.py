@@ -54,7 +54,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
                 data = json.load(f)
         else:
             # Note: We keep read_pickle here strictly for one-time legacy data migration
-            data = pd.read_pickle(pkl_path)
+            data = pd.read_pickle(pkl_path)  # nosec B301
 
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
