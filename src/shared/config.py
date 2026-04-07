@@ -90,6 +90,7 @@ class Settings(BaseSettings):
     XGB_INT8_MODEL_PATH: str = "models/latest_xgb_pricing.int8.onnx"
 
     # Security Configuration
+    BSOPT_ALLOW_WEAK_SECRETS: bool = Field(default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS")
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
         default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
@@ -100,7 +101,13 @@ class Settings(BaseSettings):
     def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
         if v is None:
             return v
-        if len(v) < 32 and not os.environ.get("BSOPT_ALLOW_WEAK_SECRETS"):
+        # We need to check if the allow flag is set. 
+        # Since this is a field validator, we can't easily check other fields 
+        # unless they are already validated. 
+        # However, pydantic-settings loads values into os.environ in some cases, 
+        # but let's check the env directly or just check os.environ as a fallback.
+        allow_weak = os.environ.get("BSOPT_ALLOW_WEAK_SECRETS", "").lower() in ("true", "1", "yes")
+        if len(v) < 32 and not allow_weak:
             raise ValueError(
                 f"{info.field_name} must be at least 32 characters for production security."
             )
