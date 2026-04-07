@@ -1,4 +1,3 @@
-import pickle  # nosec B403
 import time
 from typing import Any, cast
 
@@ -40,23 +39,6 @@ def expectile_loss(diff: th.Tensor, tau: float = 0.7) -> th.Tensor:
     return weight * (diff**2)
 
 
-def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
-    """
-     OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
-    Enables zero-copy reading and sharding for Ray Data.
-    """
-    import pandas as pd
-
-    try:
-        with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
-        df = pd.DataFrame(data)
-        df.to_parquet(parquet_path, compression="snappy")
-        logger.info("trajectories_converted_to_parquet", path=parquet_path)
-    except Exception as e:
-        logger.error("parquet_conversion_failed", error=str(e))
-
-
 def _log_gradient_flow(model: nn.Module, step: int) -> None:
     """
     High-Performance: Monitor gradient flow across deep transformer layers.
@@ -90,14 +72,14 @@ def train_offline(
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
     # 1. ⚡ DATA LOADING OPTIMIZATION
-    if dataset_path.endswith(".parquet"):
-        import pandas as pd
+    import pandas as pd
 
-        df = pd.read_parquet(dataset_path)
-        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
-    else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+    if not dataset_path.endswith(".parquet"):
+        dataset_path = dataset_path.replace(".pkl", ".parquet")
+        logger.info("switched_to_parquet", new_path=dataset_path)
+
+    df = pd.read_parquet(dataset_path)
+    trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
