@@ -8,7 +8,7 @@ interface DOMRow {
   type: 'bid' | 'ask';
 }
 
-export const DOMLadder: React.FC<{ symbol: string; currentPrice: number }> = ({ symbol, currentPrice }) => {
+export const DOMLadder: React.FC<{ symbol: string; currentPrice: number }> = React.memo(({ symbol, currentPrice }) => {
   // Synthetic data for DOM (would be hooked to WS)
   const rows: DOMRow[] = useMemo(() => {
     const arr: DOMRow[] = [];
@@ -109,4 +109,6 @@ export const DOMLadder: React.FC<{ symbol: string; currentPrice: number }> = ({ 
       </Box>
     </Box>
   );
-};
+});
+
+DOMLadder.displayName = 'DOMLadder';

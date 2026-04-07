@@ -153,4 +153,14 @@ vi.mock('@react-three/fiber', async (importOriginal) => {
       camera: { position: { x: 0, y: 0, z: 8 } },
     })),
   };
-});
+});if (typeof globalThis.IntersectionObserver === 'undefined') {
+  globalThis.IntersectionObserver = class IntersectionObserver {
+    root: Element | Document | null = null;
+    rootMargin: string = '';
+    thresholds: ReadonlyArray<number> = [];
+    disconnect() {}
+    observe() {}
+    takeRecords() { return []; }
+    unobserve() {}
+  };
+}
