@@ -31,9 +31,9 @@ build:
 	@echo "Building BS-OPT Python..."
 	$(PIP) install -e .
 
-# build:
-# 	@echo "Building Rust Core..."
-# 	cd src/math_kernel/rust-core && PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 $(MATURIN) develop --release
+rust-build:
+	@echo "Building Rust Core..."
+	cd src/math_kernel/rust-core && PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 $(MATURIN) develop --release
 
 setup-pki:
 	@echo "Setting up PKI..."

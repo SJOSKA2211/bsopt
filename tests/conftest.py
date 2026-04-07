@@ -4,6 +4,18 @@ from pathlib import Path
 
 import pytest
 
+# Global Mocks for Heavy ML/Distributed Dependencies (for test collection & unit tests)
+from unittest.mock import MagicMock
+sys.modules['ray'] = MagicMock()
+sys.modules['torch'] = MagicMock()
+sys.modules['lightning'] = MagicMock()
+sys.modules['lightning.pytorch'] = MagicMock()
+sys.modules['gymnasium'] = MagicMock()
+sys.modules['xgboost'] = MagicMock()
+sys.modules['torch_geometric'] = MagicMock()
+sys.modules['pytorch_forecasting'] = MagicMock()
+
+
 # Force the project root into sys.path
 test_dir = Path(__file__).parent.absolute()
 root = test_dir.parent.absolute()
