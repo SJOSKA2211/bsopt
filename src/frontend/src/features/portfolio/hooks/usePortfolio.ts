@@ -56,23 +56,6 @@ const authClient = {
   }) 
 } as any;
 
-
-const authClient = { 
-  signIn: { 
-    social: async () => ({}) 
-  }, 
-  useSession: () => ({ 
-    data: { 
-      user: { 
-        id: 'mock-user-123', 
-        email: 'trader@bsopt.io', 
-        name: 'Quant Trader' 
-      } 
-    },
-    isLoading: false
-  }) 
-} as any;
-
 export const usePortfolio = () => {
   const { data: sessionData } = authClient.useSession();
   const userId = sessionData?.user?.id;

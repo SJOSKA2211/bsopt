@@ -99,7 +99,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock Apollo Client globally for components that do not have their own provider mock
-vi.mock('@apollo/client/react', async (importOriginal) => {
+vi.mock('@apollo/client', async (importOriginal) => {
   const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
@@ -109,11 +109,16 @@ vi.mock('@apollo/client/react', async (importOriginal) => {
   };
 });
 
-vi.mock('@react-three/drei', () => ({
-  Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
-  PointMaterial: () => null,
-  Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
-}));
+vi.mock('@react-three/drei', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return {
+    ...actual,
+    Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
+    PointMaterial: () => null,
+    Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
+    Surface: () => null,
+  };
+});
 
 // Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
 vi.mock('three', () => ({
@@ -153,4 +158,11 @@ vi.mock('@react-three/fiber', async (importOriginal) => {
       camera: { position: { x: 0, y: 0, z: 8 } },
     })),
   };
-});globalThis.IntersectionObserver = class IntersectionObserver { constructor() {} observe() {} unobserve() {} disconnect() {} };
+});
+
+globalThis.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
