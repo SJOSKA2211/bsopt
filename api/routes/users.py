@@ -34,7 +34,7 @@ async def get_current_user_profile(user: User = Depends(get_current_user)):
     return DataResponseStruct(data=UserResponse.from_orm(user))
 
 
-@router.patch("/me")
+@router.patch("/me", response_model=DataResponse[UserResponse])
 async def update_current_user_profile(
     update_data: UserUpdateRequest,
     user: User = Depends(get_current_user),
@@ -59,7 +59,7 @@ async def update_current_user_profile(
         await db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
-    return DataResponseStruct(
+    return DataResponse(
         data=UserResponse.from_orm(user), message="Profile updated successfully"
     )
 

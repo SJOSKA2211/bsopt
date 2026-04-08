@@ -19,7 +19,7 @@ def patch_graphql_router():
     Also mocks OPAEnforcer for authorization checks.
     """
     with (
-        patch("src.api.index.GraphQLRouter") as MockGraphQLRouter,
+        patch("api.index.GraphQLRouter") as MockGraphQLRouter,
         patch("src.shared.security.OPAEnforcer.is_authorized", return_value=True),
     ):
         # Mimic the constructor but without context_getter

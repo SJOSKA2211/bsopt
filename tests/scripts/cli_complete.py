@@ -43,9 +43,9 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 # Import CLI utilities
-from scripts.auth import AuthenticationError, AuthManager
-from scripts.config import get_config
-from scripts.portfolio import PortfolioManager, Position
+from scripts.cli.auth import AuthenticationError, AuthManager
+from scripts.cli.config import get_config
+from scripts.cli.portfolio import PortfolioManager, Position
 
 # Import pricing engines
 from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters

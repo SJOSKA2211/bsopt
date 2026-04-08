@@ -34,7 +34,7 @@ async def test_persist_log_correctly_uses_session_local():
 
     # We patch SessionLocal because the fix changes import from get_session to SessionLocal
     with patch("src.database.SessionLocal", return_value=mock_session) as mock_session_local:
-        with patch("src.api.middleware.logging.logger") as mock_logger:
+        with patch("api.middleware.logging.logger") as mock_logger:
             with patch("src.database.models.RequestLog"):
                 await middleware._persist_log(log_entry, request)
 

@@ -8,7 +8,7 @@ from scripts.cli.auth import AuthManager
 @pytest.fixture
 def auth_manager(tmp_path):
     # Mock home directory for token file
-    with patch("scripts.auth.Path.home", return_value=tmp_path):
+    with patch("scripts.cli.auth.Path.home", return_value=tmp_path):
         manager = AuthManager(api_base_url="http://api")
         yield manager
 

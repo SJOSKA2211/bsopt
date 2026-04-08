@@ -30,7 +30,7 @@ async def test_pricing_rate_limit():
 
         # Mock cache to return None so it proceeds to pricing logic
         with patch(
-            "src.api.routes.pricing.pricing_cache.get_option_price",
+            "api.routes.pricing.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = None

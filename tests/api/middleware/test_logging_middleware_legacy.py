@@ -31,7 +31,7 @@ client = TestClient(app)
 
 
 def test_request_logging_basic():
-    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.log") as mock_log:
         response = client.get("/test")
         assert response.status_code == 200
         mock_log.assert_called()
@@ -43,7 +43,7 @@ def test_request_logging_basic():
 
 
 def test_request_logging_redaction():
-    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.log") as mock_log:
         client.get(
             "/test",
             params={"password": "secret_pass"},
@@ -56,13 +56,13 @@ def test_request_logging_redaction():
 
 
 def test_request_logging_skip():
-    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.log") as mock_log:
         client.get("/health")
         mock_log.assert_not_called()
 
 
 def test_request_logging_error():
-    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.log") as mock_log:
         with pytest.raises(ValueError):
             client.get("/error")
 

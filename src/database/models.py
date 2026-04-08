@@ -94,9 +94,17 @@ class User(Base):
     verification_token: Mapped[str | None] = mapped_column(String(255))
     reset_token: Mapped[str | None] = mapped_column(String(255))
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    is_mfa_enabled: Mapped[bool] = mapped_column("mfa_enabled", Boolean, default=False)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
+
+    @property
+    def is_mfa_enabled(self) -> bool:
+        return self.mfa_enabled
+
+    @is_mfa_enabled.setter
+    def is_mfa_enabled(self, value: bool):
+        self.mfa_enabled = value
 
     portfolios: Mapped[list["Portfolio"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"

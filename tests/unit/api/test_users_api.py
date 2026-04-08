@@ -115,6 +115,7 @@ def test_update_me_success(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.patch("/api/v1/users/me", json={"full_name": "Updated Name"})
@@ -131,6 +132,7 @@ def test_update_me_success_email(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.side_effect = [
         mock_user,
@@ -148,6 +150,7 @@ def test_update_me_no_changes(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     # Send request with current email and full_name, expecting no changes
@@ -158,7 +161,7 @@ def test_update_me_no_changes(mock_user):
     if response.status_code == 500:
         pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 200
-    assert response.json()["message"] == "Profile updated"
+    assert response.json()["message"] == "Profile updated successfully"
     app.dependency_overrides = {}
 
 
@@ -167,6 +170,7 @@ def test_update_me_email_conflict(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     # First call to filter.first returns mock_user (current user), second returns existing user (conflict)
     mock_db.query.return_value.filter.return_value.first.side_effect = [
@@ -185,6 +189,7 @@ def test_update_me_persistence_error(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     mock_db.commit.side_effect = Exception("DB error")
@@ -194,11 +199,12 @@ def test_update_me_persistence_error(mock_user):
 
 
 @pytest.mark.skip(reason="Endpoint/Feature missing in implementation")
-@patch("src.api.routes.users.publish_to_redis", new_callable=AsyncMock)
+@patch("api.routes.users.publish_to_redis", new_callable=AsyncMock)
 def test_delete_me_success(mock_publish_to_redis, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.delete("/api/v1/users/me")
@@ -215,6 +221,7 @@ def test_delete_me_not_found(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None  # User not found
     response = client.delete("/api/v1/users/me")
@@ -228,6 +235,7 @@ def test_delete_me_persistence_error(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     mock_db.commit.side_effect = Exception("DB error")
@@ -250,6 +258,7 @@ def test_get_user_stats(mock_user):
 def test_get_user_by_id_enterprise(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = enterprise_user
     response = client.get(f"/api/v1/users/{enterprise_user.id}")
@@ -261,6 +270,7 @@ def test_get_user_by_id_enterprise(enterprise_user):
 def test_get_user_by_id_not_found(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None
     response = client.get(f"/api/v1/users/{uuid.uuid4()}")
@@ -273,6 +283,7 @@ def test_list_users_admin(admin_user, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: admin_user
     app.dependency_overrides[get_current_user] = lambda: admin_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     
     # Mock count result
@@ -295,10 +306,19 @@ def test_list_users_empty(admin_user):
     app.dependency_overrides[get_current_active_user] = lambda: admin_user
     app.dependency_overrides[get_current_user] = lambda: admin_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock()
     app.dependency_overrides[get_async_db] = lambda: mock_db
-    mock_db.query.return_value.scalar.return_value = 0  # Fix scalar() mock
-    mock_db.query.return_value.count.return_value = 0
-    mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = []
+    
+    # Mock count result
+    mock_count_result = MagicMock()
+    mock_count_result.scalar.return_value = 0
+    
+    # Mock users result
+    mock_users_result = MagicMock()
+    mock_users_result.scalars.return_value.all.return_value = []
+    
+    mock_db.execute.side_effect = [mock_count_result, mock_users_result]
+    
     response = client.get("/api/v1/users")
     assert response.status_code == 200
     assert len(response.json()["items"]) == 0
@@ -309,6 +329,7 @@ def test_list_users_empty(admin_user):
 def test_list_users_with_search(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
     mock_db = AsyncMock()
+    mock_db.add = MagicMock() # SQLAlchemy add is sync
     app.dependency_overrides[get_async_db] = lambda: mock_db
     # Chain .filter().count() and .filter().offset().limit().all()
     mock_query = mock_db.query.return_value

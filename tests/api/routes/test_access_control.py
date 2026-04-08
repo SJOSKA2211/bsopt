@@ -50,7 +50,7 @@ def test_system_diagnostics_tier_check(mock_user_free, mock_user_enterprise):
 
     # 2. Enterprise tier should be 200 (if CRUD is mocked)
     app.dependency_overrides[get_current_active_user] = lambda: mock_user_enterprise
-    with patch("src.api.routes.system.crud.get_system_health_dashboard") as m_crud:
+    with patch("api.routes.system.crud.get_system_health_dashboard") as m_crud:
         m_crud.return_value = {"status": "ok"}
         response = client.get("/api/v1/system/diagnostics/db")
         assert response.status_code == 200
@@ -74,7 +74,7 @@ def test_ml_admin_routes(mock_user_free, mock_user_admin):
 
     # 2. Admin tier
     app.dependency_overrides[get_current_active_user] = lambda: mock_user_admin
-    with patch("src.api.routes.ml.check_threshold_and_retrain_task") as m_task:
+    with patch("api.routes.ml.check_threshold_and_retrain_task") as m_task:
         m_task.delay.return_value = MagicMock(id="task_123")
         response = client.post("/api/v1/ml/retrain")
         assert response.status_code == 201

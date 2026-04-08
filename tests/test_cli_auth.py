@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, mock_open, patch
 
-from scripts.auth import AuthManager
+from scripts.cli.auth import AuthManager
 
 
 def test_cli_login():
