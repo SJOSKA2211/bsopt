@@ -13,7 +13,7 @@ def test_options_subgraph():
 
 
 def test_pricing_subgraph():
-    from src.quant.pricing.graphql.schema import schema
+    from src.math_kernel.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()

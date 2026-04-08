@@ -12,8 +12,8 @@ Tests verify:
 import numpy as np
 import pytest
 
-from src.quant.pricing.black_scholes import BSParameters
-from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, _laguerre_basis
+from src.math_kernel.black_scholes import BSParameters
+from src.math_kernel.monte_carlo import MCConfig, MonteCarloEngine, _laguerre_basis
 from tests.test_utils import assert_equal
 
 
@@ -164,7 +164,7 @@ class TestEuropeanPricing:
 
     def test_atm_call_vs_blackscholes(self, engine):
         """Test ATM call converges to Black-Scholes."""
-        from src.quant.pricing.black_scholes import BlackScholesEngine
+        from src.math_kernel.black_scholes import BlackScholesEngine
 
         params = BSParameters(
             spot=100.0,
@@ -187,7 +187,7 @@ class TestEuropeanPricing:
 
     def test_atm_put_vs_blackscholes(self, engine):
         """Test ATM put converges to Black-Scholes."""
-        from src.quant.pricing.black_scholes import BlackScholesEngine
+        from src.math_kernel.black_scholes import BlackScholesEngine
 
         params = BSParameters(
             spot=100.0,

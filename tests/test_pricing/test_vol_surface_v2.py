@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.quant.pricing.vol_surface import (
+from src.math_kernel.vol_surface import (
     CalibrationEngine,
     MarketQuote,
     SABRModel,

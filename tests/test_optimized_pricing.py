@@ -5,12 +5,12 @@ Comprehensive Test Suite for Optimized Quantitative Engines (Pytest Modernized)
 import numpy as np
 import pytest
 
-from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
-from src.quant.pricing.implied_vol import (
+from src.math_kernel.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from src.math_kernel.implied_vol import (
     implied_volatility,
     vectorized_implied_volatility,
 )
-from src.quant.pricing.models import BSParameters
+from src.math_kernel.models import BSParameters
 
 
 @pytest.fixture

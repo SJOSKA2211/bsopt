@@ -3,13 +3,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.quant.pricing.quantum_backend import QuantumBackendManager
+from src.math_kernel.quantum_backend import QuantumBackendManager
 
 
 class TestQuantumBackendManager:
     @patch.dict(os.environ, {"IBM_QUANTUM_TOKEN": "test_token"})
-    @patch("src.quant.pricing.quantum_backend.IBM_PROVIDER_AVAILABLE", True)
-    @patch("src.quant.pricing.quantum_backend.IBMProvider")
+    @patch("src.math_kernel.quantum_backend.IBM_PROVIDER_AVAILABLE", True)
+    @patch("src.math_kernel.quantum_backend.IBMProvider")
     def test_get_backend_remote(self, mock_ibm_provider):
         """Test getting a remote backend using IBMProvider."""
         # Setup mock
@@ -38,7 +38,7 @@ class TestQuantumBackendManager:
         assert backend.name == "aer_simulator"
 
     @patch.dict(os.environ, {}, clear=True)
-    @patch("src.quant.pricing.quantum_backend.IBM_PROVIDER_AVAILABLE", True)
+    @patch("src.math_kernel.quantum_backend.IBM_PROVIDER_AVAILABLE", True)
     def test_missing_token_error(self):
         """Test error when token is missing for remote backend."""
         manager = QuantumBackendManager()

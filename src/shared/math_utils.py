@@ -107,14 +107,14 @@ def calculate_price(
     # 1. Try Rust Core first (Highest Performance on CPU)
     if RUST_AVAILABLE and not GPU_AVAILABLE:
         try:
-            # Handle scalar vs array
-            s_a = np.atleast_1d(s).astype(np.float64)
-            k_a = np.atleast_1d(k).astype(np.float64)
-            t_a = np.atleast_1d(t).astype(np.float64)
-            sigma_a = np.atleast_1d(sigma).astype(np.float64)
-            r_a = np.atleast_1d(r).astype(np.float64)
-            q_a = np.atleast_1d(q).astype(np.float64)
-            call_a = np.atleast_1d(is_call).astype(bool)
+            # Handle scalar vs array (avoid copies if already float64)
+            s_a = np.asarray(s, dtype=np.float64)
+            k_a = np.asarray(k, dtype=np.float64)
+            t_a = np.asarray(t, dtype=np.float64)
+            sigma_a = np.asarray(sigma, dtype=np.float64)
+            r_a = np.asarray(r, dtype=np.float64)
+            q_a = np.asarray(q, dtype=np.float64)
+            call_a = np.asarray(is_call, dtype=bool)
             
             res = rust_core.batch_black_scholes(s_a, k_a, t_a, sigma_a, r_a, q_a, call_a)
             if np.isscalar(s) and np.isscalar(k):

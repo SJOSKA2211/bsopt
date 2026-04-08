@@ -163,7 +163,7 @@ def test_ip_block_temp_block():
     assert middleware._is_blocked(ip)
 
     middleware.clear_failed_attempts(ip)
-    assert middleware._is_blocked(ip)
+    assert not middleware._is_blocked(ip)
 
 
 def test_security_headers_custom_policy():
@@ -285,11 +285,11 @@ def test_input_sanitization_middleware():
     # Malicious query param
     with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/?q=<script>alert(1)</script>")
-        assert response.status_code == 200
+        assert response.status_code == 400
         mock_logger.warning.assert_called()
 
     # Malicious header
     with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/", headers={"User-Agent": "javascript:eval(1)"})
-        assert response.status_code == 200
+        assert response.status_code == 400
         mock_logger.warning.assert_called()

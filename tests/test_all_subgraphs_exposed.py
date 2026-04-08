@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 
 def test_pricing_subgraph_exposed():
-    from src.quant.pricing.main import app
+    from src.math_kernel.main import app
 
     client = TestClient(app)
     response = client.get("/graphql")

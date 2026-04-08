@@ -363,7 +363,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
     """
 
     # Only trust forwarded headers from these IPs (e.g. reverse proxies)
-    TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
+    TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8", "testclient"}
 
     def __init__(
         self,

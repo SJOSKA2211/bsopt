@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.quant.pricing.models import BSParameters, OptionGreeks
+from src.math_kernel.models import BSParameters, OptionGreeks
 
 
 def test_bs_parameters_validation():

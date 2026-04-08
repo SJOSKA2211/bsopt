@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from src.quant.pricing.base import (
+from src.math_kernel.base import (
     PricingEngine,
     PricingStrategy,
     VectorizedPricingStrategy,
 )
-from src.quant.pricing.models import BSParameters, OptionGreeks
+from src.math_kernel.models import BSParameters, OptionGreeks
 
 
 class MockPricingStrategy(PricingStrategy):

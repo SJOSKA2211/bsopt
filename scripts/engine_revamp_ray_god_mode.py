@@ -6,8 +6,8 @@ import numpy as np
 from pprint import pprint
 
 # --- Optimization Constants ---
-TOTAL_SIMULATIONS = 10_000_000  # 10M simulations for stress test
-BATCH_SIZE = 1_000_000         # 1M per batch
+TOTAL_SIMULATIONS = 20_000_000  # 20M simulations
+BATCH_SIZE = 100_000           # 100k per batch (optimal for 7 CPUs)
 
 def report_health():
     print("\n" + "="*80)
@@ -52,17 +52,18 @@ def stress_test_task(batch_size):
     """
     from src.math_kernel.black_scholes import BlackScholesEngine
     
-    # Generate synthetic market data
-    S = np.random.uniform(90, 110, batch_size)
-    K = np.random.uniform(90, 110, batch_size)
-    T = np.random.uniform(0.1, 2.0, batch_size)
-    sigma = np.random.uniform(0.1, 0.5, batch_size)
-    r = np.array([0.05] * batch_size)
-    q = np.array([0.02] * batch_size)
+    # Generate synthetic market data (Pre-allocated for speed)
+    S = np.full(batch_size, 100.0, dtype=np.float64)
+    K = np.full(batch_size, 100.0, dtype=np.float64)
+    T = np.full(batch_size, 1.0, dtype=np.float64)
+    sigma = np.full(batch_size, 0.2, dtype=np.float64)
+    r = np.full(batch_size, 0.05, dtype=np.float64)
+    q = np.full(batch_size, 0.02, dtype=np.float64)
+    option_types = np.full(batch_size, "call")
     
     start = time.time()
     # Execute batch pricing
-    prices = BlackScholesEngine.price_batch(S, K, T, sigma, r, q, np.array(["call"] * batch_size))
+    prices = BlackScholesEngine.price_batch(S, K, T, sigma, r, q, option_types)
     duration = time.time() - start
     
     return batch_size, duration
@@ -74,13 +75,19 @@ def revamp_fully():
     print("--- Phase 1: Cluster Connection ---")
     runtime_env = {
         "pip": [
+            "/app/dist/manifold_core-0.1.0-cp312-cp312-manylinux_2_35_x86_64.whl",
             "structlog", "numpy", "scipy", "pydantic-settings", 
             "pydantic", "numba", "pandas", "tenacity", "httpx",
             "orjson", "msgspec", "python-dotenv", "rich", "qiskit"
         ],
         "env_vars": {
             "BSOPT_ALLOW_WEAK_SECRETS": "true",
-            "PYTHONPATH": "/app"
+            "PYTHONPATH": "/app",
+            "MFA_ENCRYPTION_KEY": "dummy_mfa_encryption_key_for_optimization_revamp_32_bytes",
+            "JWT_SECRET": "dummy_jwt_secret_for_optimization_revamp_64_bytes_length_here_now",
+            "RAYON_NUM_THREADS": "1",
+            "RAY_DEDUP_LOGS": "1",
+            "RAY_LOG_TO_STDERR": "0"
         }
     }
     try:

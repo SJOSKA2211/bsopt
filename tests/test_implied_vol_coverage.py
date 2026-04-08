@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.quant.pricing.implied_vol import (
+from src.math_kernel.implied_vol import (
     ImpliedVolatilityError,
     _brent_iv,
     _newton_raphson_iv,
