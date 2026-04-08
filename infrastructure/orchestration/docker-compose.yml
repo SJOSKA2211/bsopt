@@ -983,12 +983,12 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768mb
+          memory: 1gb
         reservations:
-          memory: 256mb
+          memory: 512mb
     networks:
       - bsopt-network
-    command: ["mlflow", "server", "--workers", "8", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
+    command: ["mlflow", "server", "--workers", "2", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
