@@ -41,13 +41,14 @@ def get_redis() -> Redis | None:
             _redis = Redis.from_url(
                 url,
                 decode_responses=False,
-                max_connections=100,
-                socket_connect_timeout=5,
+                max_connections=200,  # Increased for higher throughput
+                socket_connect_timeout=2, # Faster timeout
                 socket_keepalive=True,
                 retry_on_timeout=True,
+                health_check_interval=30
             )
 
-            logger.info("redis_client_initialized", url=url, max_connections=100)
+            logger.info("redis_client_initialized", url=url, max_connections=200)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
             return None
@@ -137,8 +138,24 @@ class PricingCache:
             return False
 
 
+async def get_redis_pool_stats() -> dict[str, Any]:
+    """Retrieve internal Redis pool statistics for engine health reporting."""
+    redis = get_redis()
+    if not redis:
+        return {"status": "unavailable"}
+    
+    pool = redis.connection_pool
+    return {
+        "max_connections": pool.max_connections,
+        "in_use": len(pool._in_use_connections),
+        "available": len(pool._available_connections),
+        "hits": getattr(pool, "hits", 0),
+        "misses": getattr(pool, "misses", 0),
+    }
+
+
 def multi_layer_cache(
-    prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None
+    prefix: str, maxsize: int = 2000, ttl: int = 300, validation_model: Any = None
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator for multi-layer caching with OPTIMIZED X-Fetch (Probabilistic Early Recomputation).

@@ -65,7 +65,7 @@ def test_request_logging_middleware_basic():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         client.get("/test")
         assert mock_log.called
 
@@ -79,11 +79,11 @@ def test_request_logging_malformed_json():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         # Use valid UTF-8 but not JSON
         response = client.post("/malformed", content=b"not a json")
         assert response.status_code == 200
-        log_entry = json.loads(mock_log.call_args[0][1])
+        log_entry = json.loads(mock_log.call_args[0][0])
         assert log_entry["body"] == "not a json"
 
 
@@ -109,17 +109,20 @@ def test_request_logging_user_info():
 
     client = TestClient(app)
 
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         client.get("/user-test")
-        log_entry = json.loads(mock_log.call_args[0][1])
-        assert log_entry["user_email"] == "user@test.com"
+        log_entry = json.loads(mock_log.call_args[0][0])
+        # The middleware now masks emails by default
+        assert "***" in log_entry["user_email"]
 
 
-@patch("src.database.get_session")
-def test_persist_log_full(mock_get_session):
+@patch("src.database.SessionLocal")
+def test_persist_log_full(mock_session_local):
+    from src.shared.config import settings
+    print(f"DEBUG TEST: LOG_SAMPLING_RATE={settings.LOG_SAMPLING_RATE}")
     with patch("src.database.models.RequestLog"):
         mock_session = MagicMock()
-        mock_get_session.return_value = mock_session
+        mock_session_local.return_value = mock_session
 
         app = FastAPI()
         app.add_middleware(RequestLoggingMiddleware, persist_to_db=True)
@@ -138,8 +141,13 @@ def test_persist_log_full(mock_get_session):
         client = TestClient(app)
         client.get("/persist")
 
+        # Give background task time to run
+        import time
+        time.sleep(0.2)
+
         mock_session.add.assert_called()
         mock_session.commit.assert_called()
+        mock_session.close.assert_called()
 
 
 def test_request_logging_error_capture():
@@ -152,9 +160,9 @@ def test_request_logging_error_capture():
 
     client = TestClient(app, raise_server_exceptions=False)
 
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         response = client.get("/error")
         assert response.status_code == 500
-        log_entry = json.loads(mock_log.call_args[0][1])
+        log_entry = json.loads(mock_log.call_args[0][0])
         assert log_entry["status_code"] == 500
         assert "error" in log_entry

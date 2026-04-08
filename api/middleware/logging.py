@@ -173,22 +173,49 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # 1. Use existing request ID from my optimized generator
         request_id = getattr(request.state, "request_id", "unknown")
 
-        # ... (process request)
-        response = await call_next(request)
+        # Capture request body if needed
+        request_body = None
+        if self.log_request_body:
+            try:
+                body_bytes = await request.body()
+                request_body = self._truncate_body(body_bytes.decode("utf-8"))
+            except Exception:
+                request_body = "[Unable to read request body]"
+
+        error_info = None
+        try:
+            response = await call_next(request)
+        except Exception as e:
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+            }
+            # Re-raise to let FastAPI handle it or return a 500
+            # But since we are in a middleware, we might need to return a response if we want to log here
+            # Actually, standard practice is to let exception handlers catch it, 
+            # but BaseHTTPMiddleware is special.
+            from fastapi.responses import JSONResponse
+            response = JSONResponse(
+                status_code=500,
+                content={"detail": "Internal Server Error"},
+            )
+
         status_code = response.status_code
 
         # 2. Optimized Logging with Sampling
         duration_ms = int((time.perf_counter() - start_time) * 1000)
         from src.shared.observability import settings
 
+        sampling_rate = getattr(settings, "LOG_SAMPLING_RATE", 0.1)
         # Use sampling for successful logs to reduce I/O
         should_log = True
         if 200 <= status_code < 300:
             import random
-
-            if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
+            rand_val = random.random()
+            if rand_val > sampling_rate:
                 should_log = False
-
+        
         if should_log or status_code >= 400:
             log_entry = {
                 "request_id": request_id,
@@ -199,12 +226,27 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 **self._get_user_info(request),
             }
 
+            if request_body:
+                log_entry["body"] = request_body
+            
+            if error_info:
+                log_entry["error"] = error_info
+
             from src.shared.off_heap_logger import omega_logger
 
             omega_logger.log("api_request", **log_entry)
 
             # Still log to console for visibility
             request_logger.info(msgspec.json.encode(log_entry).decode("utf-8"))
+
+            if self.persist_to_db:
+                # Add extra fields needed for DB but not necessarily for console log
+                log_entry["client_ip"] = self._get_client_ip(request)
+                log_entry["headers"] = self._redact_headers(dict(request.headers))
+                log_entry["query_params"] = self._redact_params(dict(request.query_params))
+                
+                import asyncio
+                asyncio.create_task(self._persist_log(log_entry, request))
 
         return cast(Response, response)
 

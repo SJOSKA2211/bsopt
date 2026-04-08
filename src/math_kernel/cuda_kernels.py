@@ -17,13 +17,24 @@ import numpy as np
 import structlog
 
 try:
-    from numba import cuda, float64
-    from numba.core.extending import vectorize
+    from numba import cuda, float64, vectorize
 
     CUDA_AVAILABLE = cuda.is_available()
 except ImportError:
     CUDA_AVAILABLE = False
     cuda = None
+
+    def vectorize(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+    class MockFloat64:
+        def __call__(self, *args, **kwargs):
+            return self
+
+    float64 = MockFloat64()
 
 try:
     import cupy as cp

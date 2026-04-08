@@ -62,22 +62,28 @@ class DatabaseManager:
             
         app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
 
+        # DEBUG: Log the environment state
+        logger.info("database_get_urls_config", 
+                    env=settings.ENVIRONMENT, 
+                    is_prod=settings.is_production,
+                    original_url=db_url.split('@')[-1] if '@' in db_url else db_url)
+
         if settings.is_production and "sslmode" not in db_url:
             separator = "&" if "?" in db_url else "?"
             db_url = f"{db_url}{separator}sslmode=require"
-
-        #  Favor psycopg (v3) for sync path, fallback to psycopg2
-        separator = "&" if "?" in db_url else "?"
-        driver = "psycopg"
-        try:
-            import psycopg  # noqa: F401
-        except ImportError:
-            driver = "psycopg2"
-
-        if "sqlite" in db_url:
-            sync_url = db_url
-        else:
-            sync_url = f"{db_url}{separator}application_name={app_name}".replace(
+        
+        # If the URL already has an sslmode, use it as is for sync_url
+        sync_url = db_url
+        if "postgresql://" in sync_url:
+            # Driver detection for sync path
+            driver = "psycopg"
+            try:
+                import psycopg  # noqa: F401
+            except ImportError:
+                driver = "psycopg2"
+            
+            separator = "&" if "?" in sync_url else "?"
+            sync_url = f"{sync_url}{separator}application_name={app_name}".replace(
                 "postgresql://", f"postgresql+{driver}://"
             )
 
@@ -88,9 +94,12 @@ class DatabaseManager:
             async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
         # Strip ssl parameters for asyncpg (handled via connect_args)
+        # EXCEPT if we are forcing a specific mode that asyncpg supports via URL or if we want to handle it manually
         if "postgresql" in async_url and "?" in async_url:
             parts = async_url.split("?")
             base = parts[0]
+            # If verify-full is in original URL, we MUST handle it in connect_args or keep it if asyncpg supports it
+            # Standard asyncpg handles some params via connect_args better
             ssl_params = {"sslmode", "sslrootcert", "sslcert", "sslkey"}
             params = [p for p in parts[1].split("&") if p.split("=")[0] not in ssl_params]
             async_url = f"{base}?{'&'.join(params)}" if params else base
@@ -211,15 +220,47 @@ class DatabaseManager:
 
         connect_args: dict[str, Any] = {}
         if "postgresql" in async_url:
+            # Respect sslmode from the original URL or environment
+            force_ssl = settings.is_production and settings.ENVIRONMENT != "test"
+            if "sslmode=disable" in settings.DATABASE_URL:
+                force_ssl = False
+            elif "sslmode=require" in settings.DATABASE_URL or "sslmode=verify-full" in settings.DATABASE_URL:
+                force_ssl = True
+                
+            # For verify-full, we need to provide the actual certificates to asyncpg
+            ssl_context = None
+            if "sslmode=verify-full" in settings.DATABASE_URL or "sslmode=verify-ca" in settings.DATABASE_URL:
+                import ssl
+                
+                def _get_param(pname):
+                    import re
+                    match = re.search(f"{pname}=([^&]+)", settings.DATABASE_URL)
+                    return match.group(1) if match else None
+
+                ca_cert = _get_param("sslrootcert")
+                client_cert = _get_param("sslcert")
+                client_key = _get_param("sslkey")
+                
+                if ca_cert:
+                    ssl_context = ssl.create_default_context(cafile=ca_cert)
+                    if client_cert and client_key:
+                        ssl_context.load_cert_chain(certfile=client_cert, keyfile=client_key)
+                    if "sslmode=verify-full" in settings.DATABASE_URL:
+                        ssl_context.check_hostname = False # PgBouncer host might not match cert CN in dev
+                        ssl_context.verify_mode = ssl.CERT_REQUIRED
+            
+            # If sslmode=require but NO context was built, just use ssl=True
+            # BUT asyncpg might still try to verify. Let's force an insecure context if needed.
+            final_ssl = ssl_context if ssl_context else force_ssl
+            if final_ssl is True and "sslmode=require" in settings.DATABASE_URL:
+                import ssl
+                insecure_context = ssl.create_default_context()
+                insecure_context.check_hostname = False
+                insecure_context.verify_mode = ssl.CERT_NONE
+                final_ssl = insecure_context
+            
             connect_args = {
-                "ssl": (True if settings.is_production and settings.ENVIRONMENT != "test" else False),
-                "server_settings": {
-                    "application_name": app_name,
-                    "tcp_keepalives_idle": "60",
-                    "tcp_keepalives_interval": "10",
-                    "tcp_keepalives_count": "5",
-                    "statement_timeout": "600000",  # 10 minutes
-                },
+                "ssl": final_ssl,
                 "command_timeout": settings.DATABASE_POOL_TIMEOUT,
             }
 

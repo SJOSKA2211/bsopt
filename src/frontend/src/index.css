@@ -1,21 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  /* High-Performance Institutional Palette */
-  --color-bento-bg: #050505;
-  --color-bento-card: rgba(18, 18, 18, 0.6);
-  --color-bento-border: rgba(255, 255, 255, 0.08);
+  /* High-Performance Institutional Palette - Quantum Financial Deity */
+  --color-bento-bg: #020617; /* deep slate 950 */
+  --color-bento-card: rgba(15, 23, 42, 0.45); /* slate 900 semi-transparent */
+  --color-bento-border: rgba(148, 163, 184, 0.08); /* slate 400 subtle */
   
-  --color-mint: #00FFA3;
-  --color-teal: #14B8A6;
-  --color-purple: #8B5CF6;
-  --color-amber: #F59E0B;
+  --color-mint: #10b981; /* emerald 500 */
+  --color-teal: #14b8a6; /* teal 500 */
+  --color-quantum: #06b6d4; /* cyan 500 */
+  --color-nebula: #8b5cf6; /* violet 500 */
+  --color-amber: #f59e0b; /* amber 500 */
+  --color-electrum: #d4af37; /* authentic gold */
   
-  --radius-bento: 24px;
+  --radius-bento: 28px;
 }
 
 :root {
-  --bento-glass: blur(12px) saturate(180%);
+  --bento-glass: blur(16px) saturate(200%);
 }
 
 @layer base {
@@ -29,14 +31,19 @@
 
 @layer components {
   .bento-card {
-    @apply bg-bento-card border border-bento-border rounded-bento p-6 relative overflow-hidden transition-all duration-300;
+    @apply bg-bento-card border border-bento-border p-6 relative overflow-hidden transition-all;
+    border-radius: var(--radius-bento);
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: var(--bento-glass);
     -webkit-backdrop-filter: var(--bento-glass);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .bento-card:hover {
-    @apply -translate-y-1 border-white/15;
-    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+    @apply -translate-y-1;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.05) inset;
   }
 
   .bento-grid {

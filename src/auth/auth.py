@@ -115,6 +115,10 @@ class AuthService:
     async def revoke_token(self, token: str) -> None:
         await self.sessions.revoke_token(token)
 
+    async def invalidate_token(self, token: str) -> None:
+        """Alias for revoke_token for backward compatibility."""
+        await self.revoke_token(token)
+
     async def validate_token(self, token: str) -> TokenData:
         """
         High-performance token validation.

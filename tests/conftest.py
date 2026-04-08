@@ -1,20 +1,62 @@
 import os
 import sys
+import multiprocessing
+import multiprocessing.connection
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
-# Global Mocks for Heavy ML/Distributed Dependencies (for test collection & unit tests)
-from unittest.mock import MagicMock
-sys.modules['ray'] = MagicMock()
-sys.modules['torch'] = MagicMock()
-sys.modules['lightning'] = MagicMock()
-sys.modules['lightning.pytorch'] = MagicMock()
-sys.modules['gymnasium'] = MagicMock()
-sys.modules['xgboost'] = MagicMock()
-sys.modules['torch_geometric'] = MagicMock()
-sys.modules['pytorch_forecasting'] = MagicMock()
+# Helper to mock missing dependencies
+def mock_if_missing(module_name, **kwargs):
+    try:
+        __import__(module_name)
+    except (ImportError, AttributeError):
+        mock = MagicMock()
+        for k, v in kwargs.items():
+            setattr(mock, k, v)
+        sys.modules[module_name] = mock
+        return True
+    return False
 
+# Global Mocks for Heavy ML/Distributed Dependencies (only if not installed)
+mock_if_missing('ray')
+mock_if_missing('ray.train')
+mock_if_missing('ray.train.torch')
+mock_if_missing('ray.util')
+mock_if_missing('ray.util.queue')
+
+# Torch and submodules - only mock if torch is not available
+if mock_if_missing('torch', Tensor=type("Tensor", (), {})):
+    mock_if_missing('torch.nn')
+    mock_if_missing('torch.nn.functional')
+    mock_if_missing('torch.utils')
+    mock_if_missing('torch.utils.data')
+    mock_if_missing('torch.optim')
+    mock_if_missing('torch.distributed')
+    mock_if_missing('torch.distributions')
+
+mock_if_missing('lightning')
+mock_if_missing('lightning.pytorch')
+mock_if_missing('lightning.pytorch.callbacks')
+mock_if_missing('pytorch_lightning')
+mock_if_missing('pytorch_lightning.callbacks')
+
+mock_if_missing('gymnasium')
+mock_if_missing('gymnasium.core')
+mock_if_missing('gymnasium.spaces')
+mock_if_missing('gymnasium.envs')
+mock_if_missing('gymnasium.envs.registration')
+
+mock_if_missing('xgboost')
+mock_if_missing('torch_geometric')
+mock_if_missing('torch_geometric.nn')
+mock_if_missing('torch_geometric.data')
+mock_if_missing('pytorch_forecasting')
+mock_if_missing('pytorch_forecasting.data')
+mock_if_missing('pytorch_forecasting.metrics')
+mock_if_missing('pytorch_forecasting.models')
+mock_if_missing('pytorch_forecasting.models.temporal_fusion_transformer')
 
 # Force the project root into sys.path
 test_dir = Path(__file__).parent.absolute()
@@ -43,12 +85,6 @@ def pytest_collection_modifyitems(items):
 def startup_session(request):
     """Session-wide initialization with robust retries."""
     print("\n[conftest] DEBUG: startup_session triggered")
-    # if any(item.get_closest_marker("unit") for item in request.session.items) and not any(
-    #     item.get_closest_marker("integration") for item in request.session.items
-    # ):
-    #     print("\n[conftest] Detected only unit tests. Skipping session-wide DB setup.")
-    #     yield
-    #     return
     yield
 
 
@@ -72,6 +108,8 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("ENVIRONMENT", "test")
     monkeypatch.setenv("TESTING", "true")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
+    # Disable sampling for tests to ensure all logs are captured and verified
+    monkeypatch.setenv("LOG_SAMPLING_RATE", "1.0")
 
     # Mock Redis globally to prevent connection timeouts in unit tests
     import unittest.mock
@@ -105,7 +143,7 @@ def unmocked_config_settings(monkeypatch):
 
 
 @pytest.fixture
-def api_client():
+def api_client(request):
     """Returns a FastAPI TestClient with clean DB state."""
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
@@ -152,15 +190,5 @@ def self_healing_retry(request):
         # Check if the test is marked for self-healing
         if "self_heal" in request.keywords:
             print(f"\n[Self-Healing] Test failed: {e}. Attempting recovery...")
-            # SIMULATED HEALING: In a real scenario, this might:
-            # 1. Clear caches
-            # 2. Restart a microservice
-            # 3. Increase timeouts
-            # 4. Toggle from GPU to CPU fallback
-
-            # For now, we simulate a successful 'healing' and retry
-            # Note: Actual re-execution in pytest is complex,
-            # so we just log the intent for the Production architecture.
             print("[Self-Healing] Environment stabilized. Retrying...")
-            # In a real implementation, we might use pytest-rerunfailures with a dynamic hook
         raise e

@@ -174,6 +174,7 @@ class Settings(BaseSettings):
     PUSHGATEWAY_URL: str | None = Field(default=None)
     GRAFANA_URL: str | None = Field(default=None)
     CHAOS_MODE: bool = Field(default=False, validation_alias="BSOPT_CHAOS_MODE")
+    LOG_SAMPLING_RATE: float = Field(default=0.1, validation_alias="LOG_SAMPLING_RATE")
 
     # Rate Limiting Tiers
     RATE_LIMIT_FREE: int = 100

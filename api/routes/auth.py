@@ -203,7 +203,19 @@ async def refresh_token(
 
 @router.get("/me")
 async def read_users_me(user: User = Depends(get_current_active_user)):
-    return DataResponse(data=UserResponse.from_orm(user))
+    return DataResponse(
+        data=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            tier=str(user.tier),
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+            is_mfa_enabled=user.is_mfa_enabled,
+            created_at=user.created_at,
+            last_login=user.last_login,
+        )
+    )
 
 
 @router.post("/logout")
@@ -279,6 +291,32 @@ async def mfa_verify(
     await db.commit()
 
     return SuccessResponse(message="MFA enabled successfully")
+
+
+@router.post("/mfa/disable")
+async def mfa_disable(
+    data: MFAVerifyRequest,
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> SuccessResponse:
+    """
+    Disable MFA for the user.
+    """
+    if not user.mfa_enabled:
+        raise HTTPException(status_code=400, detail="MFA not enabled")
+
+    # Decrypt secret
+    plain_secret = auth_service.decrypt_mfa_secret(user.mfa_secret)
+
+    if not auth_service.verify_mfa_code(plain_secret, data.code):
+        raise AuthenticationException(message="Invalid MFA code")
+
+    # Disable MFA
+    user.mfa_enabled = False
+    user.mfa_secret = None
+    await db.commit()
+
+    return SuccessResponse(message="MFA disabled successfully")
 
 
 # --- WebAuthn / Passkey Endpoints ---

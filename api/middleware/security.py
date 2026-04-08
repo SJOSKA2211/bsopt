@@ -287,8 +287,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             return False
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Bypass CSRF in testing
-        if os.getenv("TESTING") == "true":
+        # Bypass CSRF ONLY if explicitly disabled
+        if os.getenv("BSOPT_CSRF_DISABLED") == "true":
             return cast(Response, await call_next(request))
 
         # Get existing CSRF token from cookie
@@ -437,6 +437,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
     def clear_failed_attempts(self, ip: str) -> None:
         """Clear failed attempts for an IP (after successful auth)."""
         self._failed_attempts.pop(ip, None)
+        self._temporary_blocks.pop(ip, None)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         client_ip = self._get_client_ip(request)

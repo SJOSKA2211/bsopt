@@ -1,6 +1,8 @@
+import os
 from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -10,6 +12,13 @@ from api.middleware.security import (
     IPBlockMiddleware,
     SecurityHeadersMiddleware,
 )
+
+
+@pytest.fixture(autouse=True)
+def enable_csrf_testing(monkeypatch):
+    """Ensure CSRF is enabled for these security middleware tests."""
+    monkeypatch.setenv("BSOPT_CSRF_DISABLED", "false")
+    monkeypatch.setenv("TESTING", "false") # Also disable standard TESTING bypass just in case
 
 
 def create_app_with_middleware(middleware_class, **kwargs):
@@ -61,12 +70,7 @@ def test_csrf_middleware_post_fail_no_token():
     client = TestClient(app, raise_server_exceptions=False)
 
     response = client.post("/post")
-    # BaseHTTPMiddleware might cause HTTPException to bubble up or return 403
-    if response.status_code == 500:
-        # In some Starlette versions, unhandled exceptions in middleware return 500 if not caught
-        pass
-    else:
-        assert response.status_code == 403
+    assert response.status_code == 403
 
 
 @patch("api.middleware.security.settings")
@@ -92,7 +96,8 @@ def test_csrf_middleware_full_flow(mock_settings):
 
 
 def test_ip_block_middleware():
-    app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"1.2.3.4"})
+    # Include 'testserver' in trusted proxies so X-Real-IP is respected
+    app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"1.2.3.4"}, trusted_proxies={"testclient", "testserver", "127.0.0.1"})
     client = TestClient(app, raise_server_exceptions=False)
 
     # Allowed IP
@@ -106,7 +111,7 @@ def test_ip_block_middleware():
 
 
 def test_ip_block_middleware_x_forwarded_for():
-    app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"10.0.0.1"})
+    app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"10.0.0.1"}, trusted_proxies={"testclient", "testserver", "127.0.0.1"})
     client = TestClient(app)
 
     # Test X-Forwarded-For
@@ -124,7 +129,6 @@ def test_csrf_middleware_failures():
     assert "Origin validation failed" in response.json()["detail"]
 
     # 2. Missing Token
-    # (Already tested in test_csrf_middleware_post_fail_no_token but checking json response now)
     response = client.post("/post", headers={"Origin": "http://testserver"})
     assert response.status_code == 403
     assert "CSRF token missing" in response.json()["detail"]
@@ -163,7 +167,7 @@ def test_ip_block_temp_block():
     assert middleware._is_blocked(ip)
 
     middleware.clear_failed_attempts(ip)
-    assert middleware._is_blocked(ip)
+    assert not middleware._is_blocked(ip) # Should be false now that it's cleared
 
 
 def test_security_headers_custom_policy():
@@ -175,26 +179,12 @@ def test_security_headers_custom_policy():
 
 
 def test_ip_block_temp_block_expiration():
-    # Use very short duration for test
-    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=1, block_duration_minutes=0)
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=1, block_duration_minutes=10)
     ip = "9.9.9.9"
 
-    # Force a block
-    middleware.record_failed_attempt(ip)
-    # The duration is 0 minutes, so it expires immediately?
-    # Wait, timedelta(minutes=0) is 0.
-    # But code uses datetime.now() < block_until.
-    # block_until = now + 0.
-    # So now < now is False. Block expired immediately.
-
-    # We need to simulate time passing.
-    # Let's mock datetime
     with patch("api.middleware.security.datetime") as mock_datetime:
         mock_now = datetime.now(UTC)
         mock_datetime.now.return_value = mock_now
-
-        # Set block duration to 10 mins
-        middleware.block_duration = timedelta(minutes=10)
 
         # Block
         middleware.record_failed_attempt(ip)
@@ -225,41 +215,29 @@ def test_ip_block_clean_old_attempts():
         assert len(middleware._failed_attempts[ip]) == 1
         assert middleware._failed_attempts[ip][0] == base_time
 
-    # Should only have 1 attempt (the new one)
-    assert len(middleware._failed_attempts[ip]) == 1
-    assert middleware._failed_attempts[ip][0] == base_time
-
 
 def test_csrf_wildcard_exempt():
-    # Subclass to add wildcard exempt path for testing
     class CustomCSRFMiddleware(CSRFMiddleware):
         EXEMPT_PATHS = {"/api/v1/public/*"}
 
     app = create_app_with_middleware(CustomCSRFMiddleware, secret_key="test")
     client = TestClient(app)
 
-    # Should succeed without token
     response = client.post("/api/v1/public/something")
-    # Our create_app doesn't have this route, so it returns 404, but NOT 403 (CSRF blocked)
-    # If it was blocked, it would be 403.
-    # Since endpoint doesn't exist, 404.
-    assert response.status_code == 404
+    assert response.status_code == 404 # Not 403
 
 
 def test_csrf_no_origin_referer():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
     client = TestClient(app)
 
-    # Get token
     resp = client.get("/")
     token = resp.cookies["csrf_token"]
 
-    # Request without Origin/Referer should work (if token valid)
     response = client.post(
         "/post",
         cookies={"csrf_token": token},
         headers={"X-CSRF-Token": token},
-        # No Origin header
     )
     assert response.status_code == 200
 
@@ -268,7 +246,6 @@ def test_csrf_invalid_origin_format():
     app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
     client = TestClient(app)
 
-    # Invalid URL in Origin
     response = client.post("/post", headers={"Origin": "not-a-url"})
     assert response.status_code == 403
     assert "Origin validation failed" in response.json()["detail"]
@@ -285,11 +262,12 @@ def test_input_sanitization_middleware():
     # Malicious query param
     with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/?q=<script>alert(1)</script>")
-        assert response.status_code == 200
+        # The middleware returns 400 Bad Request
+        assert response.status_code == 400
         mock_logger.warning.assert_called()
 
     # Malicious header
     with patch("api.middleware.security.logger") as mock_logger:
         response = client.get("/", headers={"User-Agent": "javascript:eval(1)"})
-        assert response.status_code == 200
+        assert response.status_code == 400
         mock_logger.warning.assert_called()

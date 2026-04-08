@@ -213,13 +213,15 @@ async def health() -> dict[str, Any]:
     from src.database import health_check
     from src.math_kernel.rust_engine import is_rust_available
     from src.shared.utils.broker import broker
-    from src.shared.utils.cache import get_redis
+    from src.shared.utils.cache import get_redis, get_redis_pool_stats
 
     redis_status = "unhealthy"
+    redis_metrics = {}
     try:
         redis = get_redis()
         if redis and await redis.ping():
             redis_status = "healthy"
+            redis_metrics = await get_redis_pool_stats()
     except Exception:
         pass
 
@@ -237,7 +239,7 @@ async def health() -> dict[str, Any]:
     return {
         "status": "healthy" if db_health["status"] == "healthy" and redis_status == "healthy" and rabbitmq_health["status"] == "healthy" else "degraded",
         "database": db_health,
-        "redis": {"status": redis_status},
+        "redis": {"status": redis_status, "metrics": redis_metrics},
         "rabbitmq": rabbitmq_health,
         "rust_core": {
             "available": is_rust_available(),

@@ -17,10 +17,10 @@ else
     exit 1
 fi
 
-echo "🚀 Starting Ray Head Node..."
+echo "🚀 Starting Ray Head and Optimized Workers..."
 
-# 2. Start Ray Head
-$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml up -d ray-head
+# 2. Start Ray Cluster
+$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml up -d ray-head ray-worker-1 rl-training-worker
 
 # 3. Health Check (Polling Dashboard API)
 echo "⏳ Waiting for Ray Dashboard to be ready..."
@@ -40,4 +40,7 @@ if [ $RETRIES -eq 0 ]; then
     exit 1
 fi
 
-echo "✅ Ray Head is Healthy and Dashboard is accessible at $ENDPOINT"
+echo "✅ Ray Cluster is Healthy."
+echo "🏆 Revamping and Optimizing Engine..."
+# Note: We run this in the ray-head container to ensure it has access to the cluster and 'ray' package
+$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml exec -T ray-head python scripts/engine_revamp_ray_god_mode.py

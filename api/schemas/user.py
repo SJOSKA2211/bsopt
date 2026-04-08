@@ -15,8 +15,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from .common import PaginationMeta
 
 
-class UserResponse(msgspec.Struct):
-    """User profile response (OPTIMIZED: msgspec)."""
+class UserResponse(BaseModel):
+    """User profile response (Pydantic)."""
 
     id: UUID
     email: str
@@ -27,6 +27,8 @@ class UserResponse(msgspec.Struct):
     is_mfa_enabled: bool
     created_at: datetime
     last_login: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_proto(cls, proto_msg: Any) -> "UserResponse":
@@ -44,17 +46,6 @@ class UserResponse(msgspec.Struct):
             if proto_msg.HasField("last_login")
             else None,
         )
-
-    def to_proto(self) -> dict[str, Any]:
-        """Bridge to gRPC UserInfo."""
-        return {
-            "user_id": str(self.id),
-            "email": self.email,
-            "full_name": self.full_name or "",
-            "tier": self.tier,
-            "is_verified": self.is_verified,
-            "mfa_enabled": self.is_mfa_enabled,
-        }
 
 
 class UserUpdateRequest(BaseModel):

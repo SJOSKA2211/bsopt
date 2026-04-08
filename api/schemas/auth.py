@@ -33,8 +33,8 @@ class LoginRequest(BaseModel):
     )
 
 
-class TokenResponse(msgspec.Struct):
-    """Successful token response (OPTIMIZED: msgspec)."""
+class TokenResponse(BaseModel):
+    """Successful token response (Pydantic)."""
 
     access_token: str | None = None
     refresh_token: str | None = None
@@ -45,31 +45,24 @@ class TokenResponse(msgspec.Struct):
     tier: str | None = None
     requires_mfa: bool = False
 
+    model_config = ConfigDict(from_attributes=True)
+
     @classmethod
     def from_proto(cls, proto_msg: object) -> "TokenResponse":
         """Bridge from gRPC TokenPairResponse."""
         return cls(
-            access_token=proto_msg.access_token,
-            refresh_token=proto_msg.refresh_token,
-            token_type=proto_msg.token_type,
-            expires_in=proto_msg.expires_in,
+            access_token=getattr(proto_msg, "access_token", None),
+            refresh_token=getattr(proto_msg, "refresh_token", None),
+            token_type=getattr(proto_msg, "token_type", "bearer"),
+            expires_in=getattr(proto_msg, "expires_in", None),
         )
-
-    def to_proto(self) -> dict[str, object]:
-        """Bridge to gRPC TokenPairResponse."""
-        return {
-            "access_token": self.access_token or "",
-            "refresh_token": self.refresh_token or "",
-            "token_type": self.token_type,
-            "expires_in": self.expires_in or 0,
-        }
 
 
 # Alias for backward compatibility or specific use cases
 LoginResponse = TokenResponse
 
 
-class AuthResponse(msgspec.Struct):
+class AuthResponse(BaseModel):
     """Internal authentication state response."""
 
     authenticated: bool
@@ -80,9 +73,9 @@ class AuthResponse(msgspec.Struct):
     def from_proto(cls, proto_msg: object) -> "AuthResponse":
         """Bridge from gRPC AuthResponse."""
         return cls(
-            authenticated=proto_msg.authenticated,
-            user_id=proto_msg.user_id,
-            factors_verified=list(proto_msg.factors_verified),
+            authenticated=getattr(proto_msg, "authenticated", False),
+            user_id=getattr(proto_msg, "user_id", ""),
+            factors_verified=list(getattr(proto_msg, "factors_verified", [])),
         )
 
 
@@ -151,13 +144,15 @@ class RegisterRequest(BaseModel):
     )
 
 
-class RegisterResponse(msgspec.Struct):
+class RegisterResponse(BaseModel):
     """Successful registration response."""
 
     user_id: str
     email: str
     message: str
     verification_required: bool = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RefreshTokenRequest(BaseModel):
@@ -258,13 +253,15 @@ class PasswordChangeRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-class MFASetupResponse(msgspec.Struct):
+class MFASetupResponse(BaseModel):
     """MFA setup response with secret and QR code."""
 
     secret: str
     provisioning_uri: str
     qr_code_uri: str | None = None
     backup_codes: list[str] = []
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MFAVerifyRequest(BaseModel):

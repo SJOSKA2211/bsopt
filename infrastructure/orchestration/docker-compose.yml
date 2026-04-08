@@ -835,6 +835,9 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - RAY_memory_usage_threshold=0.95
+      - RAY_task_rpc_timeout_ms=5000
+      - RAY_worker_register_timeout_seconds=600
     volumes:
       - ../../:/app
       - ../../.pki/ray-head.crt:/etc/postgresql/ray-head.crt:ro
@@ -846,16 +849,16 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 4gb
+          memory: 6gb
         reservations:
-          memory: 1gb
+          memory: 2gb
     healthcheck:
       test: ["CMD-SHELL", "ray status || exit 1"]
       interval: 30s
       timeout: 30s
       retries: 5
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=1073741824 --num-cpus=4 --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=2 --block
 
   ray-worker-1:
     profiles: [ "ml" ]
@@ -875,6 +878,8 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - RAY_memory_usage_threshold=0.95
+      - RAY_task_rpc_timeout_ms=5000
     networks:
       - bsopt-network
     volumes:
@@ -887,12 +892,12 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 4gb
+          cpus: '4'
+          memory: 8gb
         reservations:
-          memory: 1gb
+          memory: 2gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=1073741824 --num-cpus=4 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=3221225472 --num-cpus=4 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -914,6 +919,7 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - RAY_memory_usage_threshold=0.95
     networks:
       - bsopt-network
     volumes:
@@ -927,11 +933,11 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2gb
+          memory: 3gb
         reservations:
-          memory: 512mb
+          memory: 1gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=536870912 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=1073741824 --block
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:
@@ -1391,5 +1397,5 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
-      o: "size=4096m"
+      o: "size=7168m"
   geth_data:
