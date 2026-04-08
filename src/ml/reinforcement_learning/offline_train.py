@@ -90,14 +90,18 @@ def train_offline(
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
     # 1. ⚡ DATA LOADING OPTIMIZATION
-    if dataset_path.endswith(".parquet"):
-        import pandas as pd
+    import os
 
+    import pandas as pd
+
+    if dataset_path.endswith(".parquet"):
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        # Secure fallback: Convert extension to .parquet and load
+        fallback_path = os.path.splitext(dataset_path)[0] + ".parquet"
+        df = pd.read_parquet(fallback_path)
+        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
