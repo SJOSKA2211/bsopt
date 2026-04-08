@@ -65,12 +65,15 @@ jobs:
           pip install .[dev,api,ml]
           pytest tests/unit
 
+      - name: Set up Node for Frontend
+        if: matrix.layer == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Frontend Tests
         if: matrix.layer == 'frontend'
         run: |
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
           cd src/frontend
           npm install
           npm run test
