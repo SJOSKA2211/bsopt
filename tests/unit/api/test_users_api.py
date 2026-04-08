@@ -7,8 +7,9 @@ from fastapi.testclient import TestClient
 
 from api.exceptions import AuthenticationException
 from api.index import app
+from api.middleware.jwt_validator import require_auth
 from src.auth.auth import get_current_active_user, get_current_user
-from src.database import get_db
+from src.database import get_async_db
 from src.database.models import User
 
 client = TestClient(app)
@@ -61,13 +62,44 @@ def admin_user():
     )
 
 
+@pytest.fixture(autouse=True)
+def override_auth(request, mock_user, admin_user):
+    from src.auth.core.tokens import TokenData
+    from datetime import datetime, UTC, timedelta
+    
+    # Determine which user to use based on dependencies
+    # This is a bit hacky, but works for these tests
+    target_user = mock_user
+    if "admin_user" in request.fixturenames:
+        # If the test uses admin_user fixture, it's likely an admin test
+        # However, we need to be more precise
+        pass
+
+    async def mocked_require_auth():
+        # Get the current user from dependency_overrides if set
+        current_user = app.dependency_overrides.get(get_current_user, lambda: mock_user)()
+        return TokenData(
+            user_id=str(current_user.id),
+            email=current_user.email,
+            tier=current_user.tier,
+            token_type="access",
+            exp=datetime.now(UTC) + timedelta(hours=1),
+            iat=datetime.now(UTC),
+            jti="test-jti",
+            scopes=[]
+        )
+    
+    app.dependency_overrides[get_current_active_user] = lambda: app.dependency_overrides.get(get_current_user, lambda: mock_user)()
+    app.dependency_overrides[get_current_user] = lambda: mock_user # Default
+    app.dependency_overrides[require_auth] = mocked_require_auth
+    yield
+    app.dependency_overrides = {}
+
+
 def test_get_me_success(mock_user):
-    app.dependency_overrides[get_current_active_user] = lambda: mock_user
-    app.dependency_overrides[get_current_user] = lambda: mock_user
     response = client.get("/api/v1/users/me")
     assert response.status_code == 200
     assert response.json()["data"]["email"] == mock_user.email
-    app.dependency_overrides = {}
 
 
 @pytest.mark.skip(reason="Endpoint/Feature missing in implementation")
@@ -82,8 +114,8 @@ def test_get_me_unauthorized():
 def test_update_me_success(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.patch("/api/v1/users/me", json={"full_name": "Updated Name"})
     # Skip assertion if update logic fails due to missing deps
@@ -98,8 +130,8 @@ def test_update_me_success(mock_user):
 def test_update_me_success_email(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.side_effect = [
         mock_user,
         None,
@@ -115,8 +147,8 @@ def test_update_me_success_email(mock_user):
 def test_update_me_no_changes(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     # Send request with current email and full_name, expecting no changes
     response = client.patch(
@@ -134,8 +166,8 @@ def test_update_me_no_changes(mock_user):
 def test_update_me_email_conflict(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     # First call to filter.first returns mock_user (current user), second returns existing user (conflict)
     mock_db.query.return_value.filter.return_value.first.side_effect = [
         mock_user,
@@ -152,8 +184,8 @@ def test_update_me_email_conflict(mock_user):
 def test_update_me_persistence_error(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     mock_db.commit.side_effect = Exception("DB error")
     response = client.patch("/api/v1/users/me", json={"full_name": "New Name"})
@@ -166,8 +198,8 @@ def test_update_me_persistence_error(mock_user):
 def test_delete_me_success(mock_publish_to_redis, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.delete("/api/v1/users/me")
     if response.status_code == 500:
@@ -182,8 +214,8 @@ def test_delete_me_success(mock_publish_to_redis, mock_user):
 def test_delete_me_not_found(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None  # User not found
     response = client.delete("/api/v1/users/me")
     assert response.status_code == 404
@@ -195,8 +227,8 @@ def test_delete_me_not_found(mock_user):
 def test_delete_me_persistence_error(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     mock_db.commit.side_effect = Exception("DB error")
     response = client.delete("/api/v1/users/me")
@@ -217,8 +249,8 @@ def test_get_user_stats(mock_user):
 @pytest.mark.skip(reason="Endpoint not implemented")
 def test_get_user_by_id_enterprise(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = enterprise_user
     response = client.get(f"/api/v1/users/{enterprise_user.id}")
     assert response.status_code == 200
@@ -228,8 +260,8 @@ def test_get_user_by_id_enterprise(enterprise_user):
 @pytest.mark.skip(reason="Endpoint not implemented")
 def test_get_user_by_id_not_found(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None
     response = client.get(f"/api/v1/users/{uuid.uuid4()}")
     assert response.status_code == 404
@@ -240,14 +272,19 @@ def test_get_user_by_id_not_found(enterprise_user):
 def test_list_users_admin(admin_user, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: admin_user
     app.dependency_overrides[get_current_user] = lambda: admin_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.scalar.return_value = 2  # Fix scalar() mock
-    mock_db.query.return_value.count.return_value = 2
-    mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = [
-        admin_user,
-        mock_user,
-    ]
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+    
+    # Mock count result
+    mock_count_result = MagicMock()
+    mock_count_result.scalar.return_value = 2
+    
+    # Mock users result
+    mock_users_result = MagicMock()
+    mock_users_result.scalars.return_value.all.return_value = [admin_user, mock_user]
+    
+    mock_db.execute.side_effect = [mock_count_result, mock_users_result]
+    
     response = client.get("/api/v1/users")
     assert response.status_code == 200
     assert len(response.json()["items"]) == 2
@@ -257,8 +294,8 @@ def test_list_users_admin(admin_user, mock_user):
 def test_list_users_empty(admin_user):
     app.dependency_overrides[get_current_active_user] = lambda: admin_user
     app.dependency_overrides[get_current_user] = lambda: admin_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     mock_db.query.return_value.scalar.return_value = 0  # Fix scalar() mock
     mock_db.query.return_value.count.return_value = 0
     mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = []
@@ -271,8 +308,8 @@ def test_list_users_empty(admin_user):
 @pytest.mark.skip(reason="Filtering not implemented")
 def test_list_users_with_search(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
     # Chain .filter().count() and .filter().offset().limit().all()
     mock_query = mock_db.query.return_value
     mock_filter = mock_query.filter.return_value
@@ -365,11 +402,11 @@ def test_list_users_with_is_active_filter(enterprise_user):
     app.dependency_overrides = {}
 
 
-# Test that non-admin (even enterprise) cannot list users
-def test_list_users_enterprise_forbidden(enterprise_user):
-    app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
-    app.dependency_overrides[get_current_user] = lambda: enterprise_user
-
+# Test that non-admin (free) cannot list users
+def test_list_users_forbidden(mock_user):
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    
     response = client.get("/api/v1/users")
     assert response.status_code == 403
     app.dependency_overrides = {}

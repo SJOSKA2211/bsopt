@@ -7,7 +7,7 @@ from scripts.cli.portfolio import PortfolioManager, Position
 
 @pytest.fixture
 def portfolio_manager(tmp_path):
-    with patch("scripts.portfolio.Path.home", return_value=tmp_path):
+    with patch("scripts.cli.portfolio.Path.home", return_value=tmp_path):
         yield PortfolioManager()
 
 

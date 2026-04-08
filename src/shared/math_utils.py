@@ -28,14 +28,20 @@ except ImportError:
 
 try:
     import cupy as cp
-    GPU_AVAILABLE = True
-    mempool = cp.get_default_memory_pool()
-    pinned_mempool = cp.get_default_pinned_memory_pool()
-    logger.info("CuPy GPU Acceleration Enabled")
-except ImportError:
+    # Check if a GPU is actually available and usable
+    if cp.cuda.runtime.getDeviceCount() > 0:
+        GPU_AVAILABLE = True
+        mempool = cp.get_default_memory_pool()
+        pinned_mempool = cp.get_default_pinned_memory_pool()
+        logger.info("CuPy GPU Acceleration Enabled")
+    else:
+        GPU_AVAILABLE = False
+        cp = np
+        logger.info("CuPy found but no GPU devices detected. Using CPU.")
+except (ImportError, Exception):
     GPU_AVAILABLE = False
     cp = np
-    logger.warning("CuPy not found. Falling back to Numba/NumPy (CPU)")
+    logger.warning("CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)")
 
 
 def to_numpy(arr: Any) -> np.ndarray:

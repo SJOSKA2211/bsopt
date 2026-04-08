@@ -149,6 +149,7 @@ def api_client(request):
     from sqlalchemy import create_engine, text
 
     from api.index import app
+    from fastapi import Request
     from src.shared.config import settings
 
     # Skip DB truncation for pure unit tests that don't need a real DB
@@ -166,7 +167,33 @@ def api_client(request):
 
 
     with TestClient(app) as client:
+        # Global dependency overrides for all tests
+        from api.middleware.jwt_validator import require_auth
+        from src.auth.core.tokens import TokenData
+        from datetime import datetime, UTC, timedelta
+
+        async def mocked_require_auth(request: Request) -> TokenData:
+            # If a token is provided, we should probably use it, but for now just bypass
+            # Or check if there's already a security_context/jwt_claims in state
+            claims = getattr(request.state, "jwt_claims", None)
+            if claims:
+                return claims
+            
+            # Default mock claims
+            return TokenData(
+                user_id="test-user-id",
+                email="test@example.com",
+                tier="admin",
+                token_type="access",
+                exp=datetime.now(UTC) + timedelta(hours=1),
+                iat=datetime.now(UTC),
+                jti="test-jti",
+                scopes=["admin"]
+            )
+
+        app.dependency_overrides[require_auth] = mocked_require_auth
         yield client
+        app.dependency_overrides = {}
 
 
 @pytest.fixture

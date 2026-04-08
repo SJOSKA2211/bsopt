@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from redis.asyncio import Redis
 
 import structlog
-from fastapi import HTTPException, Request, Response
+from fastapi import Depends, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -188,9 +188,7 @@ async def require_auth(request: Request) -> JWTClaims:
 def require_tier(allowed_tiers: list[str]):
     """FastAPI dependency factory for tier-based access control."""
 
-    async def _require_tier(request: Request) -> JWTClaims:
-        claims = await require_auth(request)
-
+    async def _require_tier(claims: JWTClaims = Depends(require_auth)) -> JWTClaims:
         if claims.tier not in allowed_tiers:
             raise HTTPException(
                 status_code=403,
@@ -205,9 +203,7 @@ def require_tier(allowed_tiers: list[str]):
 def require_role(required_roles: list[str]):
     """FastAPI dependency factory for role-based access control."""
 
-    async def _require_role(request: Request) -> JWTClaims:
-        claims = await require_auth(request)
-
+    async def _require_role(claims: JWTClaims = Depends(require_auth)) -> JWTClaims:
         if not any(role in claims.roles for role in required_roles):
             raise HTTPException(
                 status_code=403,

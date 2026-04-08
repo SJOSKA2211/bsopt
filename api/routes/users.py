@@ -48,6 +48,8 @@ async def update_current_user_profile(
 
     if update_data.full_name is not None:
         user.full_name = update_data.full_name
+    if update_data.email is not None:
+        user.email = update_data.email
 
     try:
         db.add(user)  # In async, we ensure object is in session
@@ -57,7 +59,9 @@ async def update_current_user_profile(
         await db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
-    return SuccessResponse(message="Profile updated in High-Performance")
+    return DataResponseStruct(
+        data=UserResponse.from_orm(user), message="Profile updated successfully"
+    )
 
 
 @router.get(

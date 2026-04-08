@@ -73,7 +73,11 @@ def revamp_fully():
     # 1. Connect to Ray with optimized runtime environment
     print("--- Phase 1: Cluster Connection ---")
     runtime_env = {
-        "pip": ["structlog", "numpy", "scipy", "pydantic-settings", "pydantic"],
+        "pip": [
+            "structlog", "numpy", "scipy", "pydantic-settings", 
+            "pydantic", "numba", "pandas", "tenacity", "httpx",
+            "orjson", "msgspec", "python-dotenv", "rich", "qiskit"
+        ],
         "env_vars": {
             "BSOPT_ALLOW_WEAK_SECRETS": "true",
             "PYTHONPATH": "/app"
