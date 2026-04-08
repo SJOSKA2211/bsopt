@@ -2,7 +2,7 @@ import asyncio
 import os
 from typing import Any
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 

@@ -1,4 +1,4 @@
-import { configDefaults, defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 // import path from 'path' // Unused
 import compression from 'vite-plugin-compression'
@@ -115,7 +115,6 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: './tests/setupTests.ts',
       testTimeout: 15000,
-      exclude: [...configDefaults.exclude, '**/tests/e2e/**'],
       alias: {
         // Handle CSS imports (modules and regular)
         [/\.(css|less|scss|sass)$/.source]: 'identity-obj-proxy',

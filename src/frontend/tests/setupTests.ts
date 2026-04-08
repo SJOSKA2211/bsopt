@@ -40,20 +40,6 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   writable: true
 });
 
-// Mock IntersectionObserver which is used by framer-motion and others but not present in jsdom
-Object.defineProperty(globalThis, 'IntersectionObserver', {
-  value: class {
-    root = null;
-    rootMargin = '';
-    thresholds = [];
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-    takeRecords() { return []; }
-  },
-  writable: true
-});
-
 // Mock Worker for WASM-based pricing
 Object.defineProperty(globalThis, 'Worker', {
   value: class {
@@ -113,7 +99,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock Apollo Client globally for components that do not have their own provider mock
-vi.mock('@apollo/client', async (importOriginal) => {
+vi.mock('@apollo/client/react', async (importOriginal) => {
   const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
@@ -123,20 +109,11 @@ vi.mock('@apollo/client', async (importOriginal) => {
   };
 });
 
-vi.mock(import('@react-three/drei'), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
-    PointMaterial: () => null,
-    Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
-    OrbitControls: () => null,
-    PerspectiveCamera: () => null,
-    Text: () => null,
-    Html: () => null,
-    Billboard: ({ children }: any) => React.createElement('div', { 'data-testid': 'billboard-mock' }, children),
-  };
-});
+vi.mock('@react-three/drei', () => ({
+  Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
+  PointMaterial: () => null,
+  Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
+}));
 
 // Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
 vi.mock('three', () => ({
@@ -161,10 +138,6 @@ vi.mock('three', () => ({
   MathUtils: {
     lerp: (a: number, b: number, t: number) => a + (b - a) * t,
   },
-  AmbientLight: vi.fn(),
-  SpotLight: vi.fn(),
-  PointLight: vi.fn(),
-  GridHelper: vi.fn(),
 }));
 
 vi.mock('@react-three/fiber', async (importOriginal) => {

@@ -17,9 +17,6 @@ vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls-mock" />,
   PerspectiveCamera: () => <div data-testid="camera-mock" />,
   Text: () => <div data-testid="text-mock" />,
-  Float: ({ children }: any) => <div data-testid="float-mock">{children}</div>,
-  Html: ({ children }: any) => <div data-testid="html-mock">{children}</div>,
-  Billboard: ({ children }: any) => <div data-testid="billboard-mock">{children}</div>,
 }));
 
 const createWrapper = () => {
@@ -38,13 +35,13 @@ const createWrapper = () => {
 };
 
 test('VolatilitySurface3D renders canvas container', () => {
-  const { container } = render(
+  render(
     <ThemeProvider theme={theme}>
       <VolatilitySurface3D symbol="AAPL" />
     </ThemeProvider>,
     { wrapper: createWrapper() }
   );
 
-  expect(container).toBeInTheDocument();
+  expect(screen.getByTestId('volatility-surface-container')).toBeInTheDocument();
   expect(screen.getByTestId('three-canvas-mock')).toBeInTheDocument();
 });
