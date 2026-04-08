@@ -53,12 +53,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python for Backend
+        if: matrix.layer == 'backend'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Backend Tests
         if: matrix.layer == 'backend'
         run: |
-          uses: actions/setup-python@v5
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
           pip install .[dev,api,ml]
           pytest tests/unit
 
