@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import ray
@@ -24,18 +26,22 @@ def _run_backtest_task(engine_instance, df, strategy_fn, params):
 def _get_quasi_diag(link):
     """Quasi-Diagonalization utility for HRP."""
     link = link.astype(int)
-    sort_ix = pd.Series([link[-1, 0], link[-1, 1]])
     num_items = link[-1, 3]
-    while sort_ix.max() >= num_items:
-        sort_ix.index = range(0, sort_ix.shape[0] * 2, 2)
-        df0 = sort_ix[sort_ix >= num_items]
-        i = df0.index
-        j = df0.values - num_items
-        sort_ix[i] = link[j, 0]
-        df0 = pd.Series(link[j, 1], index=i + 1)
-        sort_ix = pd.concat([sort_ix, df0]).sort_index()
-        num_items = link[-1, 3]
-    return sort_ix.tolist()
+    root_node = 2 * num_items - 2
+
+    sort_ix = []
+    stack = [root_node]
+
+    while stack:
+        node = stack.pop()
+        if node < num_items:
+            sort_ix.append(node)
+        else:
+            row = node - num_items
+            stack.append(link[row, 1])
+            stack.append(link[row, 0])
+
+    return sort_ix
 
 
 def _get_cluster_var(cov, cluster_items):
