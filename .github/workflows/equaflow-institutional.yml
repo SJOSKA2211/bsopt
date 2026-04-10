@@ -53,27 +53,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        if: matrix.layer == 'backend'
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Backend Tests
         if: matrix.layer == 'backend'
         run: |
+          uses: actions/setup-python@v5
+          with:
+            python-version: ${{ env.PYTHON_VERSION }}
           pip install .[dev,api,ml]
           pytest tests/unit
-
-      - name: Set up Node
-        if: matrix.layer == 'frontend'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
 
       - name: Frontend Tests
         if: matrix.layer == 'frontend'
         run: |
+          uses: actions/setup-node@v4
+          with:
+            node-version: ${{ env.NODE_VERSION }}
           cd src/frontend
           npm install
           npm run test
@@ -88,14 +82,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Base Images
-        run: |
-          docker build --target builder -t manifold-base:builder -f infrastructure/orchestration/Dockerfile.base .
-          docker build -t manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
-
       - name: Build API Container (Institutional)
         run: |
-          docker build -t equaflow/api:${{ github.sha }} -f infrastructure/orchestration/Dockerfile.api .
+          docker build -t equaflow/api:${{ github.sha }} -f docker/Dockerfile.api .
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@master

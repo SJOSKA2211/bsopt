@@ -31,7 +31,7 @@ def persist_audit_log(
                     path=request_path or "",
                     status_code=200,
                     user_id=user_id,
-                    client_ip=source_ip or "0.0.0.0",  # nosec B104
+                    client_ip=source_ip or "0.0.0.0",
                     user_agent=user_agent or "",
                     latency_ms=0.0,
                     details={
