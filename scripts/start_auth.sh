@@ -25,8 +25,8 @@ export PYTHONPATH="$PROJECT_ROOT"
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
-    exec python3 -m src.auth.auth_server
+    exec .venv/bin/python3 -m src.auth.auth_server
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec python3 -m src.auth.auth_server
+    exec .venv/bin/python3 -m src.auth.auth_server
 fi

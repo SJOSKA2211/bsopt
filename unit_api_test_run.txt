@@ -1,0 +1,984 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /home/kamau/.local/share/mise/installs/python/3.12.13/bin/python3.12
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/kamau/bsopt
+configfile: pytest.ini
+plugins: hypothesis-6.151.12, Faker-40.13.0, anyio-4.13.0, xdist-3.8.0, mock-3.15.1, cov-7.1.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 111 items
+
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_skip_get PASSED [  0%]
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_cache_hit PASSED [  1%]
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_lock_conflict PASSED [  2%]
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_success_caching PASSED [  3%]
+tests/unit/api/middleware/test_logging_middleware.py::test_structured_logger_full PASSED [  4%]
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_internals PASSED [  5%]
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_middleware_basic PASSED [  6%]
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_malformed_json PASSED [  7%]
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_user_info PASSED [  8%]
+tests/unit/api/middleware/test_logging_middleware.py::test_persist_log_full PASSED [  9%]
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_error_capture PASSED [  9%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_structured_logger_full PASSED [ 10%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_internals PASSED [ 11%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_middleware_basic PASSED [ 12%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_malformed_json PASSED [ 13%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_user_info PASSED [ 14%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_persist_log_full PASSED [ 15%]
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_error_capture PASSED [ 16%]
+tests/unit/api/middleware/test_security_middleware.py::test_security_headers_middleware PASSED [ 17%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_get_success PASSED [ 18%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_post_fail_no_token PASSED [ 18%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_full_flow PASSED [ 19%]
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware PASSED [ 20%]
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware_x_forwarded_for PASSED [ 21%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures PASSED [ 22%]
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block PASSED [ 23%]
+tests/unit/api/middleware/test_security_middleware.py::test_security_headers_custom_policy PASSED [ 24%]
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block_expiration PASSED [ 25%]
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_clean_old_attempts PASSED [ 26%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_wildcard_exempt PASSED [ 27%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_no_origin_referer PASSED [ 27%]
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_invalid_origin_format PASSED [ 28%]
+tests/unit/api/middleware/test_security_middleware.py::test_input_sanitization_middleware PASSED [ 29%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_middleware PASSED [ 30%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_get_success PASSED [ 31%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_post_fail_no_token PASSED [ 32%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_full_flow PASSED [ 33%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware PASSED [ 34%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware_x_forwarded_for PASSED [ 35%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures PASSED [ 36%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block PASSED [ 36%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_custom_policy PASSED [ 37%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block_expiration PASSED [ 38%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_clean_old_attempts PASSED [ 39%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_wildcard_exempt PASSED [ 40%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_no_origin_referer PASSED [ 41%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_invalid_origin_format PASSED [ 42%]
+tests/unit/api/middleware/test_security_middleware_unit.py::test_input_sanitization_middleware PASSED [ 43%]
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_headers_middleware PASSED [ 44%]
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_no_cache_headers PASSED [ 45%]
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_middleware_custom_csp PASSED [ 45%]
+tests/unit/api/routes/test_auth_v3.py::test_mfa_setup_success PASSED     [ 46%]
+tests/unit/api/routes/test_auth_v3.py::test_mfa_verify_success PASSED    [ 47%]
+tests/unit/api/routes/test_auth_v3.py::test_change_password_success PASSED [ 48%]
+tests/unit/api/routes/test_auth_v3.py::test_password_reset_flow PASSED   [ 49%]
+tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_not_active PASSED [ 50%]
+tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_success PASSED [ 51%]
+tests/unit/api/test_auth_api.py::test_login_success PASSED               [ 52%]
+tests/unit/api/test_auth_api.py::test_login_invalid_credentials PASSED   [ 53%]
+tests/unit/api/test_auth_api.py::test_register_success PASSED            [ 54%]
+tests/unit/api/test_auth_api.py::test_logout PASSED                      [ 54%]
+tests/unit/api/test_auth_api.py::test_me PASSED                          [ 55%]
+tests/unit/api/test_auth_api.py::test_refresh_token_success PASSED       [ 56%]
+tests/unit/api/test_auth_api.py::test_password_change_success PASSED     [ 57%]
+tests/unit/api/test_auth_api.py::test_mfa_setup_success PASSED           [ 58%]
+tests/unit/api/test_auth_api.py::test_mfa_verify_success PASSED          [ 59%]
+tests/unit/api/test_auth_api.py::test_mfa_disable_success PASSED         [ 60%]
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success FAILED [ 61%]
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs FAILED [ 62%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_success FAILED         [ 63%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable FAILED [ 63%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_error_response FAILED  [ 64%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503 FAILED  [ 65%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error FAILED [ 66%]
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error FAILED [ 67%]
+tests/unit/api/test_pricing_api.py::test_calculate_price_success FAILED  [ 68%]
+tests/unit/api/test_pricing_api.py::test_calculate_price_invalid_params FAILED [ 69%]
+tests/unit/api/test_pricing_api.py::test_calculate_price_validation_error PASSED [ 70%]
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_success PASSED [ 71%]
+tests/unit/api/test_pricing_api.py::test_calculate_greeks_success PASSED [ 72%]
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success FAILED [ 72%]
+tests/unit/api/test_providers.py::test_polygon_provider_stub FAILED      [ 73%]
+tests/unit/api/test_providers.py::test_yahoo_provider_stub FAILED        [ 74%]
+tests/unit/api/test_security_v3.py::test_security_headers PASSED         [ 75%]
+tests/unit/api/test_security_v3.py::test_csrf_protection_safe_methods PASSED [ 76%]
+tests/unit/api/test_security_v3.py::test_csrf_protection_unsafe_method_missing_token PASSED [ 77%]
+tests/unit/api/test_security_v3.py::test_ip_block_middleware_blocked PASSED [ 78%]
+tests/unit/api/test_security_v3.py::test_jwt_auth_legacy_bypass PASSED   [ 79%]
+tests/unit/api/test_security_v3.py::test_input_sanitization FAILED       [ 80%]
+tests/unit/api/test_users_api.py::test_get_me_success PASSED             [ 81%]
+tests/unit/api/test_users_api.py::test_get_me_unauthorized SKIPPED       [ 81%]
+tests/unit/api/test_users_api.py::test_update_me_success PASSED          [ 82%]
+tests/unit/api/test_users_api.py::test_update_me_success_email PASSED    [ 83%]
+tests/unit/api/test_users_api.py::test_update_me_no_changes PASSED       [ 84%]
+tests/unit/api/test_users_api.py::test_update_me_email_conflict SKIPPED  [ 85%]
+tests/unit/api/test_users_api.py::test_update_me_persistence_error SKIPPED [ 86%]
+tests/unit/api/test_users_api.py::test_delete_me_success SKIPPED         [ 87%]
+tests/unit/api/test_users_api.py::test_delete_me_not_found SKIPPED       [ 88%]
+tests/unit/api/test_users_api.py::test_delete_me_persistence_error SKIPPED [ 89%]
+tests/unit/api/test_users_api.py::test_get_user_stats SKIPPED (Endpoint
+not implemented)                                                         [ 90%]
+tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise SKIPPED [ 90%]
+tests/unit/api/test_users_api.py::test_get_user_by_id_not_found SKIPPED  [ 91%]
+tests/unit/api/test_users_api.py::test_list_users_admin PASSED           [ 92%]
+tests/unit/api/test_users_api.py::test_list_users_empty PASSED           [ 93%]
+tests/unit/api/test_users_api.py::test_list_users_with_search SKIPPED    [ 94%]
+tests/unit/api/test_users_api.py::test_get_user_by_id_insufficient_tier SKIPPED [ 95%]
+tests/unit/api/test_users_api.py::test_list_users_with_tier_filter SKIPPED [ 96%]
+tests/unit/api/test_users_api.py::test_list_users_with_is_active_filter SKIPPED [ 97%]
+tests/unit/api/test_users_api.py::test_list_users_forbidden PASSED       [ 98%]
+tests/unit/api/test_users_security_repro.py::test_list_users_vulnerability_repro PASSED [ 99%]
+tests/unit/api/test_users_security_repro.py::test_list_users_admin_access PASSED [100%]
+
+=================================== FAILURES ===================================
+_______________ TestPricingAPIHeston.test_heston_pricing_success _______________
+tests/unit/api/test_heston_api.py:56: in test_heston_pricing_success
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+---------------------------- Captured stdout setup -----------------------------
+2026-04-10 19:22:51 [info     ] tracing_disabled               service=bsopt-api
+2026-04-10 19:22:51 [info     ] redis_cache_initialized
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:51 [info     ] request_processed              client_ip=testclient duration_ms=9.74 method=POST path=/api/v1/pricing/price request_id=d98757e9-ed07-4e98-9c49-b7f64b95677b sampled=False status_code=401
+--------------------------- Captured stdout teardown ---------------------------
+2026-04-10 19:22:53 [info     ] ws_manager_shutting_down
+2026-04-10 19:22:53 [info     ] ws_manager_shutdown_complete
+2026-04-10 19:22:53 [info     ] database_engines_disposed
+2026-04-10 19:22:53 [info     ] redis_cache_closed
+2026-04-10 19:22:53 [info     ] api_shutdown_complete_database_engines_disposed
+_______________ TestPricingAPIHeston.test_heston_fallback_to_bs ________________
+tests/unit/api/test_heston_api.py:95: in test_heston_fallback_to_bs
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+---------------------------- Captured stdout setup -----------------------------
+2026-04-10 19:22:53 [info     ] database_get_urls_config       env=dev is_prod=False original_url=127.0.0.1/testdb
+2026-04-10 19:22:53 [info     ] pgbouncer_detected: enabling NullPool for sync engine
+2026-04-10 19:22:53 [info     ] database_manager_initialized   pgbouncer=True
+2026-04-10 19:22:53 [info     ] tracing_disabled               service=bsopt-api
+2026-04-10 19:22:53 [info     ] redis_cache_initialized
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:53 [info     ] request_processed              client_ip=testclient duration_ms=15.74 method=POST path=/api/v1/pricing/price request_id=b1ff71a8-2795-44ac-a720-30372d5aa0d7 sampled=False status_code=401
+--------------------------- Captured stdout teardown ---------------------------
+2026-04-10 19:22:53 [info     ] ws_manager_shutting_down
+2026-04-10 19:22:53 [info     ] ws_manager_shutdown_complete
+2026-04-10 19:22:53 [info     ] database_engines_disposed
+2026-04-10 19:22:53 [info     ] api_shutdown_complete_database_engines_disposed
+__________________________ test_proxy_predict_success __________________________
+tests/unit/api/test_ml_api.py:61: in test_proxy_predict_success
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:54 [info     ] ml_service_initialized         grpc_url=worker:50051
+2026-04-10 19:22:54 [warning  ] grpc_inference_failed_falling_back_to_bs error=
+2026-04-10 19:22:54 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:22:54 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+____________________ test_proxy_predict_service_unavailable ____________________
+tests/unit/api/test_ml_api.py:68: in test_proxy_predict_service_unavailable
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:55 [warning  ] grpc_inference_failed_falling_back_to_bs error='Event loop is closed'
+2026-04-10 19:22:55 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:22:55 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+______________________ test_proxy_predict_error_response _______________________
+tests/unit/api/test_ml_api.py:79: in test_proxy_predict_error_response
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:57 [warning  ] grpc_inference_failed_falling_back_to_bs error='Event loop is closed'
+2026-04-10 19:22:57 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:22:57 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+______________________ test_proxy_predict_ml_service_503 _______________________
+tests/unit/api/test_ml_api.py:88: in test_proxy_predict_ml_service_503
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:22:58 [warning  ] grpc_inference_failed_falling_back_to_bs error='Event loop is closed'
+2026-04-10 19:22:58 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:22:58 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+_________________ test_proxy_predict_ml_service_generic_error __________________
+tests/unit/api/test_ml_api.py:103: in test_proxy_predict_ml_service_generic_error
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:00 [warning  ] grpc_inference_failed_falling_back_to_bs error='Event loop is closed'
+2026-04-10 19:23:00 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:23:00 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+_____________________ test_proxy_predict_unexpected_error ______________________
+tests/unit/api/test_ml_api.py:110: in test_proxy_predict_unexpected_error
+    response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:546: in post
+    return super().post(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: in request
+    return super().request(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:348: in handle_request
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+api/middleware/fused.py:227: in __call__
+    await self.app(scope, receive, send_wrapper)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py:87: in collapse_excgroups
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/observability.py:165: in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py:88: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:81: in __call__
+    await br_responder(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py:126: in __call__
+    await self.app(scope, receive, self.send_with_brotli)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:680: in app
+    await route.handle(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:695: in app
+    content = await serialize_response(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py:317: in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py:227: in jsonable_encoder
+    obj_dict = obj.model_dump(
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py:464: in model_dump
+    return self.__pydantic_serializer__.to_python(
+E   pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:02 [warning  ] grpc_inference_failed_falling_back_to_bs error='Event loop is closed'
+2026-04-10 19:23:02 [error    ] prediction_persistence_failed  error='Encoding objects of type InferenceRequest is unsupported'
+2026-04-10 19:23:02 [error    ] api_error_detailed             error='Traceback (most recent call last):\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__\n    await self.app(scope, receive, _send)\n  File "/home/kamau/bsopt/api/middleware/fused.py", line 227, in __call__\n    await self.app(scope, receive, send_wrapper)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__\n    with recv_stream, send_stream, collapse_excgroups():\n                                   ^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/contextlib.py", line 158, in __exit__\n    self.gen.throw(value)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__\n    response = await self.dispatch_func(request, call_next)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/bsopt/src/shared/observability.py", line 165, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/cors.py", line 88, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 81, in __call__\n    await br_responder(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/brotli_asgi/__init__.py", line 126, in __call__\n    await self.app(scope, receive, self.send_with_brotli)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 680, in app\n    await route.handle(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle\n    await self.app(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app\n    raise exc\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app\n    content = await serialize_response(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response\n    return jsonable_encoder(response_content)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/fastapi/encoders.py", line 227, in jsonable_encoder\n    obj_dict = obj.model_dump(\n               ^^^^^^^^^^^^^^^\n  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/pydantic/main.py", line 464, in model_dump\n    return self.__pydantic_serializer__.to_python(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class \'api.schemas.ml.InferenceResponse\'>\n' path=/api/v1/ml/predict
+_________________________ test_calculate_price_success _________________________
+tests/unit/api/test_pricing_api.py:110: in test_calculate_price_success
+    assert data["price"] == 10.5
+E   assert 1.0 == 10.5
+---------------------------- Captured stdout setup -----------------------------
+2026-04-10 19:23:03 [info     ] circuit_breaker_reset          mechanism=in_memory name=pricing
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:03 [warning  ] l2_cache_read_failed           error="'coroutine' object has no attribute 'get'"
+2026-04-10 19:23:03 [info     ] option_priced                  duration_ms=1.35 model=black_scholes
+2026-04-10 19:23:03 [info     ] request_processed              client_ip=testclient duration_ms=13.79 method=POST path=/api/v1/pricing/price request_id=6fd2c80e-00fa-4f1e-9d2b-3f59b0b9ff8e sampled=True status_code=200
+_____________________ test_calculate_price_invalid_params ______________________
+tests/unit/api/test_pricing_api.py:131: in test_calculate_price_invalid_params
+    assert response.status_code in (400, 422, 500)
+E   assert 200 in (400, 422, 500)
+E    +  where 200 = <Response [200 OK]>.status_code
+---------------------------- Captured stdout setup -----------------------------
+2026-04-10 19:23:03 [info     ] circuit_breaker_reset          mechanism=in_memory name=pricing
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:03 [info     ] request_processed              client_ip=testclient duration_ms=2.69 method=POST path=/api/v1/pricing/price request_id=c1f73439-85b2-4493-a988-297fc743e06b sampled=True status_code=200
+_____________________ test_calculate_price_heston_success ______________________
+tests/unit/api/test_pricing_api.py:211: in test_calculate_price_heston_success
+    mock_price.return_value = PriceResult(
+E   TypeError: Missing required argument 'time_to_expiry'
+---------------------------- Captured stdout setup -----------------------------
+2026-04-10 19:23:03 [info     ] circuit_breaker_reset          mechanism=in_memory name=pricing
+__________________________ test_polygon_provider_stub __________________________
+tests/unit/api/test_providers.py:9: in test_polygon_provider_stub
+    result = await provider.get_ticker_data("AAPL")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/shared/utils/resilience.py:40: in wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api/providers/market_data.py:36: in get_ticker_data
+    response.raise_for_status()
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/httpx/_models.py:829: in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+E   httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://api.polygon.io/v2/last/trade/AAPL?apiKey=None'
+E   For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:06 [warning  ] retry_attempt_failed           attempt=1 delay=1.08s error="Client error '401 Unauthorized' for url 'https://api.polygon.io/v2/last/trade/AAPL?apiKey=None'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401" func=get_ticker_data retries=3
+2026-04-10 19:23:08 [warning  ] retry_attempt_failed           attempt=2 delay=2.34s error="Client error '401 Unauthorized' for url 'https://api.polygon.io/v2/last/trade/AAPL?apiKey=None'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401" func=get_ticker_data retries=3
+___________________________ test_yahoo_provider_stub ___________________________
+tests/unit/api/test_providers.py:18: in test_yahoo_provider_stub
+    assert result["symbol"] == "AAPL"
+           ^^^^^^^^^^^^^^^^
+E   TypeError: 'MarketQuote' object is not subscriptable
+----------------------------- Captured stdout call -----------------------------
+2026-04-10 19:23:17 [debug    ] stealth_request_complete       target=chrome110 url='https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1m&range=1d'
+___________________________ test_input_sanitization ____________________________
+tests/unit/api/test_security_v3.py:75: in test_input_sanitization
+    result = await middleware.dispatch(request, mock_call_next)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+api/middleware/security.py:656: in dispatch
+    body = await request.body()
+           ^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/requests.py:256: in body
+    async for chunk in self.stream():
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/requests.py:241: in stream
+    message = await self._receive()
+              ^^^^^^^^^^^^^^^^^^^^^
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/requests.py:206: in empty_receive
+    raise RuntimeError("Receive channel has not been made available")
+E   RuntimeError: Receive channel has not been made available
+=============================== warnings summary ===============================
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/torch_geometric/llm/utils/backend_utils.py:26
+  /home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/torch_geometric/llm/utils/backend_utils.py:26: DeprecationWarning: `torch_geometric.distributed` has been deprecated since 2.7.0 and will no longer be maintained. For distributed training, refer to our tutorials on distributed training at https://pytorch-geometric.readthedocs.io/en/latest/tutorial/distributed.html or cuGraph examples at https://github.com/rapidsai/cugraph-gnn/tree/main/python/cugraph-pyg/cugraph_pyg/examples
+    from torch_geometric.distributed import (
+
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/torch/jit/_script.py:1488
+../.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/torch/jit/_script.py:1488
+  /home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+api/exceptions.py:53
+  /home/kamau/bsopt/api/exceptions.py:53: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    class ValidationException(BaseAPIException):
+
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_full_flow
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_no_origin_referer
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_full_flow
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_no_origin_referer
+  /home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/starlette/testclient.py:445: DeprecationWarning: Setting per-request cookies=<...> is being deprecated, because the expected behaviour on cookie persistence is ambiguous. Set cookies directly on the client instance instead.
+    return super().request(
+
+tests/unit/api/routes/test_auth_v3.py: 1 warning
+tests/unit/api/routes/test_debug_unit.py: 1 warning
+tests/unit/api/test_auth_api.py: 5 warnings
+tests/unit/api/test_ml_api.py: 6 warnings
+tests/unit/api/test_users_api.py: 3 warnings
+  /home/kamau/bsopt/api/schemas/common.py:122: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+
+tests/unit/api/test_ml_api.py::test_proxy_predict_success
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable
+tests/unit/api/test_ml_api.py::test_proxy_predict_error_response
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error
+  /home/kamau/bsopt/src/shared/utils/circuit_breaker.py:61: DeprecationWarning: Field bsopt.inference.InferenceRequest.is_call: Expected an int, got a boolean. This will be rejected in 7.34.0, please fix it before that
+    result = await func(*args, **kwargs)
+
+tests/unit/api/test_ml_api.py::test_proxy_predict_success
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable
+tests/unit/api/test_ml_api.py::test_proxy_predict_error_response
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error
+  /home/kamau/bsopt/src/ml/service.py:112: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return InferenceResponse(price=price, model_type=source, latency_ms=duration)
+
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable
+tests/unit/api/test_ml_api.py::test_proxy_predict_error_response
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error
+  /home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/grpc/aio/_call.py:571: RuntimeWarning: coroutine 'UnaryUnaryCall._invoke' was never awaited
+    self._invocation_task = loop.create_task(self._invoke())
+  
+  Object allocated at:
+    File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/grpc/aio/_call.py", line 571
+      self._invocation_task = loop.create_task(self._invoke())
+
+tests/unit/api/test_pricing_api.py::test_calculate_price_success
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_success
+tests/unit/api/test_pricing_api.py::test_calculate_greeks_success
+  /home/kamau/bsopt/src/shared/utils/circuit_breaker.py:61: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    result = await func(*args, **kwargs)
+  
+  Object allocated at:
+    File "/home/kamau/bsopt/src/shared/utils/circuit_breaker.py", line 61
+      result = await func(*args, **kwargs)
+
+tests/unit/api/test_users_api.py::test_get_me_success
+  /home/kamau/bsopt/api/routes/users.py:34: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    return DataResponseStruct(data=UserResponse.from_orm(user))
+
+tests/unit/api/test_users_api.py::test_get_me_success
+  /home/kamau/bsopt/api/schemas/common.py:23: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
+
+tests/unit/api/test_users_api.py::test_update_me_success
+tests/unit/api/test_users_api.py::test_update_me_success_email
+tests/unit/api/test_users_api.py::test_update_me_no_changes
+  /home/kamau/bsopt/api/routes/users.py:63: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    data=UserResponse.from_orm(user), message="Profile updated successfully"
+
+tests/unit/api/test_users_api.py::test_list_users_admin
+tests/unit/api/test_users_api.py::test_list_users_admin
+tests/unit/api/test_users_security_repro.py::test_list_users_admin_access
+  /home/kamau/bsopt/api/routes/users.py:93: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    items=[UserResponse.from_orm(u) for u in users],
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success - assert 401 == 200
+ +  where 401 = <Response [401 Unauthorized]>.status_code
+FAILED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs - assert 401 == 200
+ +  where 401 = <Response [401 Unauthorized]>.status_code
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_success - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_error_response - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503 - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error - pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'api.schemas.ml.InferenceResponse'>
+FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_success - assert 1.0 == 10.5
+FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_invalid_params - assert 200 in (400, 422, 500)
+ +  where 200 = <Response [200 OK]>.status_code
+FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success - TypeError: Missing required argument 'time_to_expiry'
+FAILED tests/unit/api/test_providers.py::test_polygon_provider_stub - httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://api.polygon.io/v2/last/trade/AAPL?apiKey=None'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+FAILED tests/unit/api/test_providers.py::test_yahoo_provider_stub - TypeError: 'MarketQuote' object is not subscriptable
+FAILED tests/unit/api/test_security_v3.py::test_input_sanitization - RuntimeError: Receive channel has not been made available
+=========== 14 failed, 84 passed, 13 skipped, 56 warnings in 39.58s ============
