@@ -28,11 +28,28 @@ def run_health_report():
     Q = np.zeros(1000)
     IsCall = np.ones(1000, dtype=bool)
     
-    from src.math_kernel.rust_engine import price_black_scholes
+    from src.math_kernel.rust_engine import price_black_scholes, RustTickBuffer as TickDataBuffer
+    import os
+    
+    tick_file = "/tmp/report_ticks.bin"
+    with open(tick_file, "wb") as f:
+        f.write(os.urandom(1024 * 32))
+        
+    buffer = TickDataBuffer(tick_file)
+    print(f"[*] Active MMap Buffers (internal check): {buffer.size()} bytes mapped")
+    
     price_black_scholes(S, K, T, V, R, Q, IsCall)
     
     print("\n[+] Health Metrics (Prometheus Format):")
-    print(get_rust_metrics())
+    metrics = get_rust_metrics()
+    print(metrics)
+    
+    if "manifold_thread_pool_size" in metrics:
+        print("[✔] Rayon thread pool metrics detected")
+    if "manifold_mmap_active_buffers" in metrics:
+        print("[✔] MMap buffer metrics detected")
+        
+    os.remove(tick_file)
     print("=" * 60)
 
 if __name__ == "__main__":
