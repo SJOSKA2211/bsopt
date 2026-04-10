@@ -36,7 +36,7 @@ def run_health_report():
         f.write(os.urandom(1024 * 32))
         
     buffer = TickDataBuffer(tick_file)
-    print(f"[*] Active MMap Buffers (internal check): {buffer.size()} bytes mapped")
+    print(f"[*] Active MMap Buffers (internal check): {buffer.size} bytes mapped")
     
     price_black_scholes(S, K, T, V, R, Q, IsCall)
     
