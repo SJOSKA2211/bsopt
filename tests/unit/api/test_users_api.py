@@ -29,7 +29,7 @@ def mock_user():
         tier="free",
         is_active=True,
         is_verified=True,
-        is_mfa_enabled=False,
+        mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
 
@@ -43,7 +43,7 @@ def enterprise_user():
         tier="enterprise",
         is_active=True,
         is_verified=True,
-        is_mfa_enabled=False,
+        mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
 
@@ -57,7 +57,7 @@ def admin_user():
         tier="admin",
         is_active=True,
         is_verified=True,
-        is_mfa_enabled=False,
+        mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
 
@@ -394,7 +394,7 @@ def test_list_users_with_is_active_filter(enterprise_user):
         tier="free",
         is_active=True,
         is_verified=True,
-        is_mfa_enabled=False,
+        mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
 

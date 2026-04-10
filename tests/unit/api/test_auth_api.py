@@ -27,7 +27,7 @@ def mock_user():
         tier="free",
         is_active=True,
         is_verified=True,
-        is_mfa_enabled=False,
+        mfa_enabled=False,
         created_at=datetime.now(UTC),
     )
     return user
