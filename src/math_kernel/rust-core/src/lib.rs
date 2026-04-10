@@ -38,12 +38,29 @@ lazy_static! {
         "manifold_resource_usage",
         "Current resource usage indicator"
     ).unwrap();
+
+    pub static ref THREAD_POOL_SIZE: Gauge = Gauge::new(
+        "manifold_thread_pool_size",
+        "Number of threads in Rayon thread pool"
+    ).unwrap();
+
+    pub static ref MMAP_ACTIVE_BUFFERS: Gauge = Gauge::new(
+        "manifold_mmap_active_buffers",
+        "Number of active memory-mapped buffers"
+    ).unwrap();
+
+    static ref ACTIVE_BUFFER_COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 }
 
 fn register_metrics() {
     REGISTRY.register(Box::new(CALL_COUNTER.clone())).ok();
     REGISTRY.register(Box::new(LATENCY_HISTOGRAM.clone())).ok();
     REGISTRY.register(Box::new(RESOURCE_GAUGE.clone())).ok();
+    REGISTRY.register(Box::new(THREAD_POOL_SIZE.clone())).ok();
+    REGISTRY.register(Box::new(MMAP_ACTIVE_BUFFERS.clone())).ok();
+
+    // Report initial thread pool size
+    THREAD_POOL_SIZE.set(rayon::current_num_threads() as f64);
 }
 
 const INV_365: f64 = 1.0 / 365.0;
@@ -98,16 +115,14 @@ fn batch_delta_gamma<'py>(
 
     d_s.par_iter_mut()
         .zip(g_s.par_iter_mut())
-        .enumerate()
-        .for_each(|(i, (d_out, g_out))| {
-            let ti = t[i];
-            let si = s[i];
-            let ki = k[i];
-            let vi = v[i];
-            let ri = r[i];
-            let qi = q[i];
-            let call = is_call[i];
-
+        .zip(s.par_iter())
+        .zip(k.par_iter())
+        .zip(t.par_iter())
+        .zip(v.par_iter())
+        .zip(r.par_iter())
+        .zip(q.par_iter())
+        .zip(is_call.par_iter())
+        .for_each(|((((((((d_out, g_out), &si), &ki), &ti), &vi), &ri), &qi), &call)| {
             if ti <= 1e-9 {
                 *d_out = if call { if si > ki { 1.0 } else { 0.0 } } else { if si < ki { -1.0 } else { 0.0 } };
                 *g_out = 0.0;
@@ -182,29 +197,29 @@ fn batch_black_scholes<'py>(
     let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
-    res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
-        let si = s[i];
-        let ki = k[i];
-        let ti = t[i];
-        let vi = v[i];
-        let ri = r[i];
-        let qi = q[i];
-        let call = is_call[i];
-
-        if ti <= 0.0 {
-            *out = if call { (si - ki).max(0.0) } else { (ki - si).max(0.0) };
-        } else {
-            let sqrt_t = ti.sqrt();
-            let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
-            let d2 = d1 - vi * sqrt_t;
-
-            *out = if call {
-                si * (-qi * ti).exp() * fast_cdf(d1) - ki * (-ri * ti).exp() * fast_cdf(d2)
+    res_slice.par_iter_mut()
+        .zip(s.par_iter())
+        .zip(k.par_iter())
+        .zip(t.par_iter())
+        .zip(v.par_iter())
+        .zip(r.par_iter())
+        .zip(q.par_iter())
+        .zip(is_call.par_iter())
+        .for_each(|(((((((out, &si), &ki), &ti), &vi), &ri), &qi), &call)| {
+            if ti <= 0.0 {
+                *out = if call { (si - ki).max(0.0) } else { (ki - si).max(0.0) };
             } else {
-                ki * (-ri * ti).exp() * fast_cdf(-d2) - si * (-qi * ti).exp() * fast_cdf(-d1)
-            };
-        }
-    });
+                let sqrt_t = ti.sqrt();
+                let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
+                let d2 = d1 - vi * sqrt_t;
+
+                *out = if call {
+                    si * (-qi * ti).exp() * fast_cdf(d1) - ki * (-ri * ti).exp() * fast_cdf(d2)
+                } else {
+                    ki * (-ri * ti).exp() * fast_cdf(-d2) - si * (-qi * ti).exp() * fast_cdf(-d1)
+                };
+            }
+        });
 
     timer.observe_duration();
     Ok(res)
@@ -286,16 +301,14 @@ fn batch_black_scholes_greeks<'py>(
         .zip(th_s.par_iter_mut())
         .zip(v_s.par_iter_mut())
         .zip(r_s.par_iter_mut())
-        .enumerate()
-        .for_each(|(i, ((((d_out, g_out), th_out), v_out), rh_out))| {
-            let si = s[i];
-            let ki = k[i];
-            let ti = t[i];
-            let vi = v[i];
-            let ri = r[i];
-            let qi = q[i];
-            let call = is_call[i];
-
+        .zip(s.par_iter())
+        .zip(k.par_iter())
+        .zip(t.par_iter())
+        .zip(v.par_iter())
+        .zip(r.par_iter())
+        .zip(q.par_iter())
+        .zip(is_call.par_iter())
+        .for_each(|(((((((((((d_out, g_out), th_out), v_out), rh_out), &si), &ki), &ti), &vi), &ri), &qi), &call)| {
             if ti <= 0.0 {
                 let cd = if si > ki { 1.0 } else { 0.0 };
                 let pd = if si < ki { -1.0 } else { 0.0 };
@@ -308,19 +321,25 @@ fn batch_black_scholes_greeks<'py>(
                 let sqrt_t = ti.sqrt();
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
                 let d2 = d1 - vi * sqrt_t;
+
                 let nd1 = (-0.5 * d1 * d1).exp() * 0.3989422804014327;
                 let cdf_d1 = fast_cdf(d1);
+
                 let exp_qt = (-qi * ti).exp();
                 let exp_rt = (-ri * ti).exp();
 
                 *d_out = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
                 *g_out = exp_qt * nd1 / (si * vi * sqrt_t);
                 *v_out = si * exp_qt * nd1 * sqrt_t * 0.01;
-                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * fast_cdf(d2));
+
+                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1)
+                    - (ri * ki * exp_rt * fast_cdf(d2));
+
                 *th_out = if call { theta_call * INV_365 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) * INV_365 };
                 *rh_out = if call { ki * ti * exp_rt * fast_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * fast_cdf(-d2) * 0.01 };
             }
         });
+
 
     Ok((delta, gamma, theta, vega, rho))
 }
@@ -481,12 +500,23 @@ pub struct TickDataBuffer {
     mmap: Arc<Mmap>,
 }
 
+impl Drop for TickDataBuffer {
+    fn drop(&mut self) {
+        let count = ACTIVE_BUFFER_COUNT.fetch_sub(1, Ordering::Relaxed) - 1;
+        MMAP_ACTIVE_BUFFERS.set(count as f64);
+    }
+}
+
 #[pymethods]
 impl TickDataBuffer {
     #[new]
     pub fn new(path: &str) -> PyResult<Self> {
         let file = File::open(path)?;
         let mmap = unsafe { Mmap::map(&file)? };
+        
+        let count = ACTIVE_BUFFER_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
+        MMAP_ACTIVE_BUFFERS.set(count as f64);
+        
         Ok(Self { mmap: Arc::new(mmap) })
     }
 

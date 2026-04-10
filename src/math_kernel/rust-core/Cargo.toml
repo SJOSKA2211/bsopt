@@ -1,10 +1,10 @@
 [package]
-name = "Manifold-core"
+name = "manifold-core"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "Manifold_core"
+name = "manifold_core"
 crate-type = ["cdylib"]
 
 [dependencies]

@@ -86,7 +86,7 @@ class PortfolioManager:
         Calculate current value and P&L for a position.
         """
         from src.math_kernel.black_scholes import BlackScholesEngine
-from src.math_kernel.models import BSParameters
+        from src.math_kernel.models import BSParameters
 
         params = BSParameters(
             spot=position.spot,
