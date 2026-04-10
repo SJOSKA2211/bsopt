@@ -61,6 +61,16 @@ def setup_api_mocks(mock_user):
 
 client = TestClient(app, raise_server_exceptions=False)
 
+from api.middleware.jwt_validator import require_auth
+@pytest.fixture(autouse=True)
+def override_auth():
+    mock_claims = MagicMock()
+    mock_claims.tier = "pro"
+    app.dependency_overrides[require_auth] = lambda: mock_claims
+    yield
+    app.dependency_overrides.clear()
+
+
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
@@ -80,7 +90,7 @@ def mock_strategy():
 
 
 def test_calculate_price_success(mock_strategy):
-    with patch("src.math_kernel.factory.PricingEngineFactory.get_strategy", return_value=mock_strategy):
+    with patch("src.math_kernel.factory.PricingEngineFactory.get_engine", return_value=mock_strategy):
         payload = {
             "spot": 100.0,
             "strike": 105.0,
@@ -96,13 +106,13 @@ def test_calculate_price_success(mock_strategy):
             headers={"Authorization": "Bearer some_token"}
         )
         assert response.status_code == 200
-        data = response.json()["data"]
+        data = response.json()
         assert data["price"] == 10.5
 
 
 def test_calculate_price_invalid_params(mock_strategy):
     mock_strategy.price.side_effect = ValueError("Invalid spot price")
-    with patch("src.math_kernel.factory.PricingEngineFactory.get_strategy", return_value=mock_strategy):
+    with patch("src.math_kernel.factory.PricingEngineFactory.get_engine", return_value=mock_strategy):
         payload = {
             "spot": -100.0, # Invalid
             "strike": 105.0,
@@ -134,7 +144,8 @@ def test_calculate_price_validation_error():
 def test_calculate_batch_prices_success(mock_strategy):
     from api.routes.pricing import pricing_service
     with patch.object(pricing_service, "price_batch", new_callable=AsyncMock) as mock_batch:
-        mock_batch.return_value = MagicMock(
+        from api.schemas.pricing import BatchPriceResult
+        mock_batch.return_value = BatchPriceResult(
             results=[],
             total_count=2,
             cached_count=0,
@@ -196,12 +207,14 @@ def test_calculate_price_heston_success():
     # Mock PricingService.price_option directly to avoid complex Heston setup
     from api.routes.pricing import pricing_service
     with patch.object(pricing_service, "price_option", new_callable=AsyncMock) as mock_price:
-        mock_price.return_value = MagicMock(
+        from api.schemas.pricing import PriceResult
+        mock_price.return_value = PriceResult(
             price=12.34,
             model="Heston-FFT",
             spot=100.0,
             strike=105.0,
-            cached=False
+            cached=False,
+            greeks={}, computation_time_ms=0.0
         )
         response = client.post(
             "/api/v1/pricing/price", 
@@ -209,4 +222,4 @@ def test_calculate_price_heston_success():
             headers={"Authorization": "Bearer some_token"}
         )
         assert response.status_code == 200
-        assert response.json()["data"]["price"] == 12.34
+        assert response.json()["price"] == 12.34

@@ -14,6 +14,7 @@ async def test_security_headers_middleware():
     # Mock a secure request to trigger HSTS
     request = MagicMock(spec=Request)
     request.url.path = "/api/v1/pricing"
+    request.url.scheme = "https"
     request.scope = {"type": "http", "scheme": "https"}
 
     async def call_next(req):

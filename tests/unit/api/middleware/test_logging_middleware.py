@@ -1,3 +1,4 @@
+import pytest
 import json
 import uuid
 from unittest.mock import MagicMock, patch
@@ -116,13 +117,29 @@ def test_request_logging_user_info():
         assert "***" in log_entry["user_email"]
 
 
+
+@pytest.mark.asyncio
 @patch("src.database.SessionLocal")
-def test_persist_log_full(mock_session_local):
-    from src.shared.config import settings
-    print(f"DEBUG TEST: LOG_SAMPLING_RATE={settings.LOG_SAMPLING_RATE}")
+async def test_persist_log_full(mock_session_local):
     with patch("src.database.models.RequestLog"):
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
+
+        middleware = RequestLoggingMiddleware(MagicMock(), persist_to_db=True)
+        log_entry = {
+            "request_id": "test",
+            "method": "GET",
+            "path": "/test",
+            "status_code": 200,
+            "duration_ms": 10,
+            "client_ip": "127.0.0.1",
+            "user_id": str(uuid.uuid4())
+        }
+        
+        await middleware._persist_log(log_entry, MagicMock())
+        
+        mock_session.add.assert_called()
+        mock_session.commit.assert_called()
 
         app = FastAPI()
         app.add_middleware(RequestLoggingMiddleware, persist_to_db=True)

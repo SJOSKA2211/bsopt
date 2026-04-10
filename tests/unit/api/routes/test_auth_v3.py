@@ -84,7 +84,7 @@ async def test_change_password_success(mock_db, mock_response):
     data = PasswordChangeRequest(
         current_password="old",
         new_password="NewStrongPassword123!",
-        password_confirm="NewStrongPassword123!",
+        new_password_confirm="NewStrongPassword123!",
     )
     mock_user = User(id=uuid4(), email="engineer@bsopt.com", hashed_password="old_hashed")
     with patch("api.routes.auth.auth_service") as mock_auth_svc:

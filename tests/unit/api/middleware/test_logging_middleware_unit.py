@@ -1,3 +1,4 @@
+import pytest
 import json
 import uuid
 from unittest.mock import MagicMock, patch
@@ -65,7 +66,7 @@ def test_request_logging_middleware_basic():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         client.get("/test")
         assert mock_log.called
 
@@ -79,11 +80,11 @@ def test_request_logging_malformed_json():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         # Use valid UTF-8 but not JSON
         response = client.post("/malformed", content=b"not a json")
         assert response.status_code == 200
-        log_entry = json.loads(mock_log.call_args[0][1])
+        log_entry = json.loads(mock_log.call_args[0][0])
         assert log_entry["body"] == "not a json"
 
 
@@ -109,17 +110,35 @@ def test_request_logging_user_info():
 
     client = TestClient(app)
 
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         client.get("/user-test")
-        log_entry = json.loads(mock_log.call_args[0][1])
-        assert log_entry["user_email"] == "user@test.com"
+        log_entry = json.loads(mock_log.call_args[0][0])
+        assert "***" in log_entry["user_email"]
 
 
-@patch("src.database.get_session")
-def test_persist_log_full(mock_get_session):
+
+@pytest.mark.asyncio
+@patch("src.database.SessionLocal")
+async def test_persist_log_full(mock_session_local):
     with patch("src.database.models.RequestLog"):
         mock_session = MagicMock()
-        mock_get_session.return_value = mock_session
+        mock_session_local.return_value = mock_session
+
+        middleware = RequestLoggingMiddleware(MagicMock(), persist_to_db=True)
+        log_entry = {
+            "request_id": "test",
+            "method": "GET",
+            "path": "/test",
+            "status_code": 200,
+            "duration_ms": 10,
+            "client_ip": "127.0.0.1",
+            "user_id": str(uuid.uuid4())
+        }
+        
+        await middleware._persist_log(log_entry, MagicMock())
+        
+        mock_session.add.assert_called()
+        mock_session.commit.assert_called()
 
         app = FastAPI()
         app.add_middleware(RequestLoggingMiddleware, persist_to_db=True)
@@ -152,9 +171,9 @@ def test_request_logging_error_capture():
 
     client = TestClient(app, raise_server_exceptions=False)
 
-    with patch("api.middleware.logging.request_logger.log") as mock_log:
+    with patch("api.middleware.logging.request_logger.info") as mock_log:
         response = client.get("/error")
         assert response.status_code == 500
-        log_entry = json.loads(mock_log.call_args[0][1])
+        log_entry = json.loads(mock_log.call_args[0][0])
         assert log_entry["status_code"] == 500
         assert "error" in log_entry

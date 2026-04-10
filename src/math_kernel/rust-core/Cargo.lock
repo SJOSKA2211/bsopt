@@ -3,30 +3,6 @@
 version = 4
 
 [[package]]
-name = "Manifold-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "flatbuffers",
- "itertools",
- "lazy_static",
- "memmap2",
- "ndarray",
- "num-complex",
- "numpy",
- "prometheus",
- "pyo3",
- "rand",
- "rand_distr",
- "rayon",
- "serde",
- "serde_json",
- "socket2 0.5.10",
- "tokio",
-]
-
-[[package]]
 name = "anyhow"
 version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -194,6 +170,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
 dependencies = [
  "scopeguard",
+]
+
+[[package]]
+name = "manifold-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "flatbuffers",
+ "itertools",
+ "lazy_static",
+ "memmap2",
+ "ndarray",
+ "num-complex",
+ "numpy",
+ "prometheus",
+ "pyo3",
+ "rand",
+ "rand_distr",
+ "rayon",
+ "serde",
+ "serde_json",
+ "socket2 0.5.10",
+ "tokio",
 ]
 
 [[package]]

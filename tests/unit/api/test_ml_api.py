@@ -8,6 +8,31 @@ from api.index import app
 
 client = TestClient(app)
 
+from src.auth.auth import get_current_user, get_current_active_user
+from src.database.models import User
+@pytest.fixture(autouse=True)
+def override_auth_v2():
+    mock_user = MagicMock(spec=User)
+    mock_user.id = "1"
+    mock_user.email = "test@example.com"
+    mock_user.tier = "pro"
+    mock_user.is_active = True
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    yield
+    app.dependency_overrides.clear()
+
+
+from api.middleware.jwt_validator import require_auth
+@pytest.fixture(autouse=True)
+def override_auth():
+    mock_claims = MagicMock()
+    mock_claims.tier = "pro"
+    app.dependency_overrides[require_auth] = lambda: mock_claims
+    yield
+    app.dependency_overrides.clear()
+
+
 
 @pytest.fixture
 def valid_ml_payload():

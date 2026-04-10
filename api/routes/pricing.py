@@ -34,18 +34,19 @@ pricing_service = PricingService()
 @multi_layer_cache(prefix="price", ttl=300)
 async def calculate_price(
     body: PriceRequest, request: Request, current_user: User = Depends(get_current_active_user)
-) -> PriceResult:
+) -> MsgspecJSONResponse:
     """
     Calculate theoretical price for a single option.
     OPTIMIZED: Returns msgspec Struct for ultra-fast serialization.
     """
     params = body.to_bs_params()
-    return await pricing_service.price_option(
+    res = await pricing_service.price_option(
         params=params,
         option_type=body.option_type,
         model=body.model,
         symbol=body.symbol,
     )
+    return MsgspecJSONResponse(content=res)
 
 
 @router.post("/batch", response_model=None)
@@ -53,23 +54,25 @@ async def calculate_price(
 @multi_layer_cache(prefix="batch_price", ttl=60)
 async def calculate_batch_prices(
     request: BatchPriceRequest, current_user: User = Depends(get_current_active_user)
-) -> BatchPriceResult:
+) -> MsgspecJSONResponse:
     """
     Vectorized batch pricing.
     OPTIMIZED: Zero-overhead batch response using msgspec Structs.
     """
-    return await pricing_service.price_batch(request.options)
+    res = await pricing_service.price_batch(request.options)
+    return MsgspecJSONResponse(content=res)
 
 
 @router.post("/greeks/batch", response_model=None)
 @pricing_circuit
 async def calculate_batch_greeks(
     request: BatchGreeksRequest, current_user: User = Depends(get_current_active_user)
-) -> BatchGreeksResult:
+) -> MsgspecJSONResponse:
     """
     Vectorized batch Greek calculation.
     """
-    return await pricing_service.calculate_greeks_batch(request.options)
+    res = await pricing_service.calculate_greeks_batch(request.options)
+    return MsgspecJSONResponse(content=res)
 
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)
@@ -83,7 +86,7 @@ async def calculate_greeks(
     """
     params = body.to_bs_params()
     result = await pricing_service.calculate_greeks(params, body.option_type)
-    return result
+    return MsgspecJSONResponse(content=result)
 
 
 class CalculateResponseStruct(msgspec.Struct):

@@ -55,12 +55,17 @@ def get_redis() -> Redis | None:
     return _redis
 
 
+def _enc_hook(obj: Any) -> Any:
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump()
+    return str(obj)
+
 def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -> str:
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
     """
     # msgspec is the fastest serialization library available for Python
-    param_json = msgspec.json.encode(kwargs)
+    param_json = msgspec.json.encode(kwargs, enc_hook=_enc_hook)
     return f"{prefix}:{hashlib.sha256(param_json).hexdigest()}"
 
 
@@ -174,11 +179,21 @@ def multi_layer_cache(
             import math
             import random
 
+            from fastapi import Request, Response
+            from src.database.models import User
+            from pydantic import BaseModel
+
             key_params = kwargs.copy()
             for i, arg in enumerate(args[1:]):
                 key_params[f"arg_{i}"] = arg
 
-            cache_key = generate_cache_key(prefix, **key_params)
+            clean_params = {}
+            for k, v in key_params.items():
+                if isinstance(v, (Request, Response, User, BaseModel)):
+                    continue
+                clean_params[k] = v
+
+            cache_key = generate_cache_key(prefix, **clean_params)
 
             # 1. L1 Check (with X-Fetch logic for local memory?)
             if cache_key in l1_cache:
@@ -224,7 +239,7 @@ def multi_layer_cache(
             l1_cache[cache_key] = result
             if redis:
                 try:
-                    await redis.setex(cache_key, 3600, msgspec.json.encode(result))
+                    await redis.setex(cache_key, 3600, msgspec.json.encode(result, enc_hook=_enc_hook))
                 except Exception as e:
                     logger.warning("l2_cache_write_failed", error=str(e))
 
