@@ -1,290 +1,1104 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /home/kamau/bsopt/.venv312/bin/python
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /home/kamau/.local/share/mise/installs/python/3.12.13/bin/python3.12
 cachedir: .pytest_cache
 hypothesis profile 'default'
 rootdir: /home/kamau/bsopt
 configfile: pytest.ini
-plugins: hypothesis-6.151.11, Faker-40.13.0, anyio-4.13.0, xdist-3.8.0, mock-3.15.1, cov-7.1.0, asyncio-1.3.0
+testpaths: tests/unit, tests/integration
+plugins: hypothesis-6.151.12, Faker-40.13.0, anyio-4.13.0, xdist-3.8.0, mock-3.15.1, cov-7.1.0, asyncio-1.3.0
 asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 604 items
+created: 4/4 workers
+4 workers [556 items]
 
-tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_skip_get PASSED [  0%]
-tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_cache_hit PASSED [  0%]
-tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_lock_conflict PASSED [  0%]
-tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_success_caching PASSED [  0%]
-tests/unit/api/middleware/test_logging_middleware.py::test_structured_logger_full PASSED [  0%]
-tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_internals PASSED [  0%]
-tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_middleware_basic FAILED [  1%]
-tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_malformed_json FAILED [  1%]
-tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_user_info FAILED [  1%]
-tests/unit/api/middleware/test_logging_middleware.py::test_persist_log_full FAILED [  1%]
-tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_error_capture FAILED [  1%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_structured_logger_full PASSED [  1%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_internals PASSED [  2%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_middleware_basic FAILED [  2%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_malformed_json FAILED [  2%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_user_info FAILED [  2%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_persist_log_full FAILED [  2%]
-tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_error_capture FAILED [  2%]
-tests/unit/api/middleware/test_security_middleware.py::test_security_headers_middleware PASSED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_get_success FAILED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_post_fail_no_token FAILED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_full_flow FAILED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware FAILED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware_x_forwarded_for FAILED [  3%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures FAILED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block PASSED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_security_headers_custom_policy PASSED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block_expiration PASSED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_ip_block_clean_old_attempts PASSED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_wildcard_exempt PASSED [  4%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_no_origin_referer FAILED [  5%]
-tests/unit/api/middleware/test_security_middleware.py::test_csrf_invalid_origin_format FAILED [  5%]
-tests/unit/api/middleware/test_security_middleware.py::test_input_sanitization_middleware FAILED [  5%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_middleware PASSED [  5%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_get_success FAILED [  5%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_post_fail_no_token FAILED [  5%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_full_flow FAILED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware FAILED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware_x_forwarded_for FAILED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures FAILED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block PASSED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_custom_policy PASSED [  6%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block_expiration PASSED [  7%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_clean_old_attempts PASSED [  7%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_wildcard_exempt PASSED [  7%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_no_origin_referer FAILED [  7%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_invalid_origin_format FAILED [  7%]
-tests/unit/api/middleware/test_security_middleware_unit.py::test_input_sanitization_middleware FAILED [  7%]
-tests/unit/api/middleware/test_security_middleware_v2.py::test_security_headers_middleware FAILED [  8%]
-tests/unit/api/middleware/test_security_middleware_v2.py::test_security_no_cache_headers PASSED [  8%]
-tests/unit/api/middleware/test_security_middleware_v2.py::test_security_middleware_custom_csp PASSED [  8%]
-tests/unit/api/routes/test_auth_v3.py::test_mfa_setup_success FAILED     [  8%]
-tests/unit/api/routes/test_auth_v3.py::test_mfa_verify_success FAILED    [  8%]
-tests/unit/api/routes/test_auth_v3.py::test_change_password_success FAILED [  8%]
-tests/unit/api/routes/test_auth_v3.py::test_password_reset_flow FAILED   [  9%]
-tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_not_active FAILED [  9%]
-tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_success FAILED [  9%]
-tests/unit/api/test_auth_api.py::test_login_success FAILED               [  9%]
-tests/unit/api/test_auth_api.py::test_login_db_error_updating_last_login FAILED [  9%]
-tests/unit/api/test_auth_api.py::test_login_invalid_credentials FAILED   [  9%]
-tests/unit/api/test_auth_api.py::test_login_unverified FAILED            [ 10%]
-tests/unit/api/test_auth_api.py::test_login_inactive FAILED              [ 10%]
-tests/unit/api/test_auth_api.py::test_login_mfa_required FAILED          [ 10%]
-tests/unit/api/test_auth_api.py::test_login_mfa_invalid_code FAILED      [ 10%]
-tests/unit/api/test_auth_api.py::test_register_success FAILED            [ 10%]
-tests/unit/api/test_auth_api.py::test_register_idempotency_conflict FAILED [ 10%]
-tests/unit/api/test_auth_api.py::test_register_email_exists FAILED       [ 11%]
-tests/unit/api/test_auth_api.py::test_register_db_error FAILED           [ 11%]
-tests/unit/api/test_auth_api.py::test_verify_email_success FAILED        [ 11%]
-tests/unit/api/test_auth_api.py::test_verify_email_invalid_token FAILED  [ 11%]
-tests/unit/api/test_auth_api.py::test_verify_email_db_error FAILED       [ 11%]
-tests/unit/api/test_auth_api.py::test_logout FAILED                      [ 11%]
-tests/unit/api/test_auth_api.py::test_refresh_token_success FAILED       [ 12%]
-tests/unit/api/test_auth_api.py::test_refresh_token_invalid_type PASSED  [ 12%]
-tests/unit/api/test_auth_api.py::test_refresh_token_user_inactive PASSED [ 12%]
-tests/unit/api/test_auth_api.py::test_refresh_token_generic_exception PASSED [ 12%]
-tests/unit/api/test_auth_api.py::test_request_password_reset_nonexistent_user FAILED [ 12%]
-tests/unit/api/test_auth_api.py::test_request_password_reset_db_error FAILED [ 12%]
-tests/unit/api/test_auth_api.py::test_request_password_reset_background_task_called FAILED [ 13%]
-tests/unit/api/test_auth_api.py::test_confirm_password_reset_success FAILED [ 13%]
-tests/unit/api/test_auth_api.py::test_confirm_password_reset_invalid_password_validation FAILED [ 13%]
-tests/unit/api/test_auth_api.py::test_confirm_password_reset_db_error FAILED [ 13%]
-tests/unit/api/test_auth_api.py::test_change_password_success FAILED     [ 13%]
-tests/unit/api/test_auth_api.py::test_change_password_wrong_current FAILED [ 13%]
-tests/unit/api/test_auth_api.py::test_change_password_weak_password FAILED [ 14%]
-tests/unit/api/test_auth_api.py::test_change_password_db_error FAILED    [ 14%]
-tests/unit/api/test_auth_api.py::test_mfa_setup_success FAILED           [ 14%]
-tests/unit/api/test_auth_api.py::test_setup_mfa_db_error FAILED          [ 14%]
-tests/unit/api/test_auth_api.py::test_mfa_verify_success FAILED          [ 14%]
-tests/unit/api/test_auth_api.py::test_mfa_verify_backup_code_success FAILED [ 14%]
-tests/unit/api/test_auth_api.py::test_mfa_verify_no_setup FAILED         [ 15%]
-tests/unit/api/test_auth_api.py::test_mfa_verify_invalid_code FAILED     [ 15%]
-tests/unit/api/test_auth_api.py::test_mfa_verify_db_error FAILED         [ 15%]
-tests/unit/api/test_auth_api.py::test_mfa_disable_success FAILED         [ 15%]
-tests/unit/api/test_auth_api.py::test_mfa_disable_not_enabled FAILED     [ 15%]
-tests/unit/api/test_auth_api.py::test_disable_mfa_invalid_code FAILED    [ 15%]
-tests/unit/api/test_auth_api.py::test_disable_mfa_db_error FAILED        [ 16%]
-tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success ERROR [ 16%]
-tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs ERROR [ 16%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_success FAILED         [ 16%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable FAILED [ 16%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_error_response FAILED  [ 16%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503 FAILED  [ 17%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error FAILED [ 17%]
-tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error FAILED [ 17%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_success FAILED  [ 17%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_invalid_params FAILED [ 17%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_unexpected_error FAILED [ 17%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_validation_error FAILED [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_success FAILED [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_with_error FAILED [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_circuit_breaker FAILED [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_greeks_success FAILED [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_iv_success FAILED     [ 18%]
-tests/unit/api/test_pricing_api.py::test_calculate_exotic_price_success FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_exotic_price_barrier_missing_type FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_exotic_price_invalid_barrier_type FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_cache_hit FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_cache_hit FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_greeks_cache_hit FAILED [ 19%]
-tests/unit/api/test_pricing_api.py::test_calculate_greeks_error FAILED   [ 20%]
-tests/unit/api/test_pricing_api.py::test_calculate_iv_value_error FAILED [ 20%]
-tests/unit/api/test_pricing_api.py::test_calculate_iv_generic_exception FAILED [ 20%]
-tests/unit/api/test_pricing_api.py::test_calculate_exotic_price_generic_exception FAILED [ 20%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success FAILED [ 20%]
-tests/unit/api/test_pricing_api.py::test_calculate_price_heston_stale_fallback FAILED [ 20%]
-tests/unit/api/test_providers.py::test_polygon_provider_stub FAILED      [ 21%]
-tests/unit/api/test_providers.py::test_yahoo_provider_stub FAILED        [ 21%]
-tests/unit/api/test_security_v3.py::test_security_headers PASSED         [ 21%]
-tests/unit/api/test_security_v3.py::test_csrf_protection_safe_methods PASSED [ 21%]
-tests/unit/api/test_security_v3.py::test_csrf_protection_unsafe_method_missing_token FAILED [ 21%]
-tests/unit/api/test_security_v3.py::test_ip_block_middleware_blocked PASSED [ 21%]
-tests/unit/api/test_security_v3.py::test_jwt_auth_legacy_bypass PASSED   [ 22%]
-tests/unit/api/test_security_v3.py::test_input_sanitization FAILED       [ 22%]
-tests/unit/api/test_users_api.py::test_get_me_success FAILED             [ 22%]
-tests/unit/api/test_users_api.py::test_get_me_unauthorized SKIPPED (...) [ 22%]
-tests/unit/api/test_users_api.py::test_update_me_success FAILED          [ 22%]
-tests/unit/api/test_users_api.py::test_update_me_success_email FAILED    [ 22%]
-tests/unit/api/test_users_api.py::test_update_me_no_changes FAILED       [ 23%]
-tests/unit/api/test_users_api.py::test_update_me_email_conflict SKIPPED  [ 23%]
-tests/unit/api/test_users_api.py::test_update_me_persistence_error SKIPPED [ 23%]
-tests/unit/api/test_users_api.py::test_delete_me_success SKIPPED (En...) [ 23%]
-tests/unit/api/test_users_api.py::test_delete_me_not_found SKIPPED (...) [ 23%]
-tests/unit/api/test_users_api.py::test_delete_me_persistence_error SKIPPED [ 23%]
-tests/unit/api/test_users_api.py::test_get_user_stats SKIPPED (Endpo...) [ 24%]
-tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise SKIPPED [ 24%]
-tests/unit/api/test_users_api.py::test_get_user_by_id_not_found SKIPPED  [ 24%]
-tests/unit/api/test_users_api.py::test_list_users_admin FAILED           [ 24%]
-tests/unit/api/test_users_api.py::test_list_users_empty FAILED           [ 24%]
-tests/unit/api/test_users_api.py::test_list_users_with_search SKIPPED    [ 24%]
-tests/unit/api/test_users_api.py::test_get_user_by_id_insufficient_tier SKIPPED [ 25%]
-tests/unit/api/test_users_api.py::test_list_users_with_tier_filter SKIPPED [ 25%]
-tests/unit/api/test_users_api.py::test_list_users_with_is_active_filter SKIPPED [ 25%]
-tests/unit/api/test_users_api.py::test_list_users_enterprise_forbidden FAILED [ 25%]
-tests/unit/api/test_users_security_repro.py::test_list_users_vulnerability_repro FAILED [ 25%]
-tests/unit/api/test_users_security_repro.py::test_list_users_admin_access FAILED [ 25%]
-tests/unit/auth/test_auth.py::test_health_check ERROR                    [ 25%]
-tests/unit/auth/test_auth.py::test_register ERROR                        [ 26%]
-tests/unit/auth/test_auth.py::test_login ERROR                           [ 26%]
-tests/unit/auth/test_auth.py::test_get_me ERROR                          [ 26%]
-tests/unit/auth/test_auth.py::test_refresh_token ERROR                   [ 26%]
-tests/unit/auth/test_auth.py::test_invalid_token ERROR                   [ 26%]
-tests/unit/auth/test_auth.py::test_logout ERROR                          [ 26%]
-tests/unit/auth/test_auth.py::test_mfa_secret_is_encrypted ERROR         [ 27%]
-tests/unit/auth/test_auth_refinement.py::test_argon2id_hashing_verification PASSED [ 27%]
-tests/unit/auth/test_auth_refinement.py::test_jwt_signing_validation PASSED [ 27%]
-tests/unit/auth/test_auth_refinement.py::test_redis_token_revocation FAILED [ 27%]
-tests/unit/auth/test_auth_refinement.py::test_authenticate_user_flow FAILED [ 27%]
-tests/unit/auth/test_keycloak_security.py::test_get_jwks_success FAILED  [ 27%]
-tests/unit/auth/test_keycloak_security.py::test_verify_token_success FAILED [ 28%]
-tests/unit/auth/test_keycloak_security.py::test_verify_token_invalid_kid FAILED [ 28%]
-tests/unit/auth/test_keycloak_security.py::test_verify_token_jwt_error FAILED [ 28%]
-tests/unit/auth/test_keycloak_security.py::test_role_checker_success FAILED [ 28%]
-tests/unit/auth/test_keycloak_security.py::test_role_checker_failure FAILED [ 28%]
-tests/unit/cli/test_cli_auth.py::test_login_success ERROR                [ 28%]
-tests/unit/cli/test_cli_auth.py::test_logout ERROR                       [ 29%]
-tests/unit/cli/test_cli_auth.py::test_get_current_user_no_token ERROR    [ 29%]
-tests/unit/cli/test_config.py::test_config_defaults ERROR                [ 29%]
-tests/unit/cli/test_config.py::test_config_set_get ERROR                 [ 29%]
-tests/unit/cli/test_config.py::test_config_save_load ERROR               [ 29%]
-tests/unit/cli/test_portfolio.py::test_add_list_remove_position ERROR    [ 29%]
-tests/unit/cli/test_portfolio.py::test_calculate_position_value ERROR    [ 30%]
-tests/unit/cli/test_portfolio.py::test_get_portfolio_summary ERROR       [ 30%]
-tests/unit/config/test_core_config.py::test_settings_initialization FAILED [ 30%]
-tests/unit/config/test_core_config.py::test_settings_validation PASSED   [ 30%]
-tests/unit/config/test_core_config.py::test_password_min_length_validation PASSED [ 30%]
-tests/unit/config/test_core_config.py::test_validators_coverage FAILED   [ 30%]
-tests/unit/config/test_core_config.py::test_fallback_initialization_no_reload FAILED [ 31%]
-tests/unit/config/test_core_config.py::test_configure_logging_execution FAILED [ 31%]
-tests/unit/config/test_security_config.py::test_mfa_key_security_dev FAILED [ 31%]
-tests/unit/config/test_security_config.py::test_mfa_key_security_prod_failure FAILED [ 31%]
-tests/unit/config/test_security_config.py::test_mfa_key_security_prod_success FAILED [ 31%]
-tests/unit/database/test_crud.py::test_user_crud ERROR                   [ 31%]
-tests/unit/database/test_crud.py::test_portfolio_crud ERROR              [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_user_operations ERROR [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_portfolio_operations ERROR [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_position_operations ERROR [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_order_operations ERROR [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_ml_model_operations ERROR [ 32%]
-tests/unit/database/test_crud_comprehensive.py::test_option_price_operations ERROR [ 33%]
-tests/unit/database/test_crud_comprehensive.py::test_aggregation_queries ERROR [ 33%]
-tests/unit/database/test_crud_optimized.py::test_bulk_inserts_optimized_paths FAILED [ 33%]
-tests/unit/database/test_crud_unit.py::test_user_crud FAILED             [ 33%]
-tests/unit/database/test_crud_unit.py::test_portfolio_crud FAILED        [ 33%]
-tests/unit/database/test_crud_v3.py::test_crud_basics PASSED             [ 33%]
-tests/unit/database/test_crud_v3.py::test_bulk_inserts_all PASSED        [ 34%]
-tests/unit/database/test_crud_v3.py::test_model_ops FAILED               [ 34%]
-tests/unit/database/test_crud_v3.py::test_mv_queries PASSED              [ 34%]
-tests/unit/database/test_crud_v3.py::test_closing_and_expiring PASSED    [ 34%]
-tests/unit/database/test_models.py::test_models_creation PASSED          [ 34%]
-tests/unit/database/test_models.py::test_user_instantiation PASSED       [ 34%]
-tests/unit/database/test_verify.py::test_verify_connection_success PASSED [ 35%]
-tests/unit/database/test_verify.py::test_verify_connection_failure PASSED [ 35%]
-tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_success PASSED [ 35%]
-tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_error_handling PASSED [ 35%]
-tests/unit/ml/forecasting/test_tft_model.py::test_tft_data_preparation PASSED [ 35%]
-tests/unit/ml/forecasting/test_tft_model.py::test_tft_prediction_no_model PASSED [ 35%]
-tests/unit/ml/forecasting/test_tft_model.py::test_tft_interpretability_report PASSED [ 36%]
-tests/unit/ml/forecasting/test_tft_model.py::test_tft_training_and_prediction FAILED [ 36%]
-tests/unit/ml/forecasting/test_tft_predict.py::test_tft_prediction_stub PASSED [ 36%]
-tests/unit/ml/pipelines/test_retraining.py::test_retrainer_trigger_success FAILED [ 36%]
-tests/unit/ml/pipelines/test_retraining.py::test_retrainer_with_drift PASSED [ 36%]
-tests/unit/ml/pipelines/test_retraining.py::test_retrainer_failure FAILED [ 36%]
-tests/unit/ml/serving/test_quantization.py::test_dynamic_quantization FAILED [ 37%]
-tests/unit/ml/serving/test_quantization.py::test_quantization_failure FAILED [ 37%]
-tests/unit/ml/serving/test_quantization.py::test_quantization_save_load FAILED [ 37%]
-tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_init ERROR      [ 37%]
-tests/unit/ml/test_autonomous_pipeline.py::test_generate_features ERROR  [ 37%]
-tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_run_success ERROR [ 37%]
-tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_no_retrain ERROR [ 38%]
-tests/unit/ml/test_autonomous_pipeline.py::test_get_current_model_performance_error ERROR [ 38%]
-tests/unit/ml/test_data_loader.py::test_normalize_incomplete_scraper_data PASSED [ 38%]
-tests/unit/ml/test_data_loader.py::test_normalize_complete_data PASSED   [ 38%]
-tests/unit/ml/test_data_loader.py::test_outlier_removal_true PASSED      [ 38%]
-tests/unit/ml/test_data_loader.py::test_outlier_removal_false PASSED     [ 38%]
-tests/unit/ml/test_data_loader.py::test_outlier_removal_edge_cases PASSED [ 39%]
-tests/unit/ml/test_data_loader.py::test_outlier_removal_price_key PASSED [ 39%]
-tests/unit/ml/test_indicators_v3.py::test_numba_ema FAILED               [ 39%]
-tests/unit/ml/test_indicators_v3.py::test_numba_rsi FAILED               [ 39%]
-tests/unit/ml/test_indicators_v3.py::test_numba_bbands FAILED            [ 39%]
-tests/unit/ml/test_indicators_v3.py::test_numba_macd FAILED              [ 39%]
-tests/unit/ml/test_indicators_v3.py::test_numba_atr FAILED               [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_regression_metrics PASSED         [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_pricing_bias PASSED               [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_positive_returns PASSED [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_edge_cases PASSED    [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_positive_returns PASSED [ 40%]
-tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_with_downside PASSED [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_edge_cases PASSED   [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_max_drawdown_calculation PASSED   [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_max_drawdown_no_drawdown PASSED   [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_max_drawdown_edge_cases PASSED    [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_model_scorecard_no_returns PASSED [ 41%]
-tests/unit/ml/test_ml_metrics.py::test_model_scorecard_with_returns PASSED [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_agent_init ERROR                      [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_get_state_vector ERROR                [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_process_market_data ERROR             [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_calculate_reward ERROR                [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_store_transition ERROR                [ 42%]
-tests/unit/ml/test_rl_gnn.py::test_gnn_feature_extractor FAILED          [ 43%]
-tests/unit/ml/test_rl_gnn.py::test_sac_gnn_policy FAILED                 [ 43%]
-tests/unit/ml/test_scraper_extended.py::test_validate_inputs PASSED      [ 43%]
-tests/unit/ml/test_scraper_extended.py::test_redact_message PASSED       [ 43%]
-tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_success ERROR [ 43%]
-tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_polygon_success ERROR [ 43%]
-tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_rate_limit ERROR [ 44%]
-tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_auto_fallback ERROR [ 44%]
-tests/unit/ml/test_serving.py::test_predict_xgb_success FAILED           [ 44%]
-tests/unit/ml/test_serving.py::test_predict_unsupported_model PASSED     [ 44%]
-tests/unit/ml/test_trading_env_v3.py::test_trading_env_reset FAILED      [ 44%]
-tests/unit/ml/test_trading_env_v3.py::test_trading_env_step_basic FAILED [ 44%]
-tests/unit/ml/test_trainer_extended.py::test_xgboost_trainer ERROR       [ 45%]
-tests/unit/ml/test_trainer_extended.py::test_sklearn_trainer ERROR       [ 45%]
-tests/unit/ml/test_trainer_extended.py::test_pytorch_trainer ERROR       [ 45%]
-tests/unit/ml/test_trainer_extended.py::test_optimize ERROR              [ 45%]
-tests/unit/ml/test_trainer_extended.py::test_pytorch_wrapper ERROR       [ 45%]
-tests/unit/ml/test_trainer_extended.py::test_push_metrics_alias ERROR    [ 45%]
-tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_train_and_evaluate_walk_forward FAILED [ 46%]
-tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_holistic_scorecard_integration FAILED [ 46%]
+scheduling tests via LoadScheduling
+
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_skip_get 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_get_success 
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs 
+tests/unit/api/test_users_api.py::test_list_users_admin 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_skip_get 
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_cache_hit 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_cache_hit 
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_lock_conflict 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_lock_conflict 
+tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_success_caching 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_idempotency_v3.py::test_idempotency_success_caching 
+tests/unit/api/middleware/test_logging_middleware.py::test_structured_logger_full 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_structured_logger_full 
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_internals 
+[gw0] [  1%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_get_success 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_post_fail_no_token 
+[gw1] [  1%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_internals 
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_middleware_basic 
+[gw0] [  1%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_post_fail_no_token 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_full_flow 
+[gw1] [  1%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_middleware_basic 
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_malformed_json 
+[gw0] [  1%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_full_flow 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware 
+[gw1] [  1%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_malformed_json 
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_user_info 
+[gw0] [  2%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware 
+[gw1] [  2%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_user_info 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware_x_forwarded_for 
+tests/unit/api/middleware/test_logging_middleware.py::test_persist_log_full 
+[gw0] [  2%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_middleware_x_forwarded_for 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures 
+[gw2] [  2%] PASSED tests/unit/api/test_users_api.py::test_list_users_admin 
+tests/unit/api/test_users_api.py::test_list_users_empty 
+[gw2] [  2%] PASSED tests/unit/api/test_users_api.py::test_list_users_empty 
+[gw0] [  3%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_middleware_failures 
+tests/unit/api/test_users_api.py::test_list_users_with_search 
+[gw2] [  3%] SKIPPED tests/unit/api/test_users_api.py::test_list_users_with_search 
+tests/unit/api/test_users_api.py::test_get_user_by_id_insufficient_tier 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block 
+[gw2] [  3%] SKIPPED tests/unit/api/test_users_api.py::test_get_user_by_id_insufficient_tier 
+tests/unit/api/test_users_api.py::test_list_users_with_tier_filter 
+[gw2] [  3%] SKIPPED tests/unit/api/test_users_api.py::test_list_users_with_tier_filter 
+tests/unit/api/test_users_api.py::test_list_users_with_is_active_filter 
+[gw2] [  3%] SKIPPED tests/unit/api/test_users_api.py::test_list_users_with_is_active_filter 
+[gw0] [  3%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block 
+tests/unit/api/test_users_api.py::test_list_users_forbidden 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_custom_policy 
+[gw2] [  4%] PASSED tests/unit/api/test_users_api.py::test_list_users_forbidden 
+tests/unit/api/test_users_security_repro.py::test_list_users_vulnerability_repro 
+[gw0] [  4%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_custom_policy 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block_expiration 
+[gw0] [  4%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_temp_block_expiration 
+[gw2] [  4%] PASSED tests/unit/api/test_users_security_repro.py::test_list_users_vulnerability_repro 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_clean_old_attempts 
+tests/unit/api/test_users_security_repro.py::test_list_users_admin_access 
+[gw0] [  4%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_ip_block_clean_old_attempts 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_wildcard_exempt 
+[gw2] [  5%] PASSED tests/unit/api/test_users_security_repro.py::test_list_users_admin_access 
+tests/unit/auth/test_auth.py::test_health_check 
+[gw0] [  5%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_wildcard_exempt 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_no_origin_referer 
+[gw0] [  5%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_no_origin_referer 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_invalid_origin_format 
+[gw0] [  5%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_csrf_invalid_origin_format 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_input_sanitization_middleware 
+[gw0] [  5%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_input_sanitization_middleware 
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_headers_middleware 
+[gw0] [  5%] FAILED tests/unit/api/middleware/test_security_middleware_v2.py::test_security_headers_middleware 
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_no_cache_headers 
+[gw0] [  6%] PASSED tests/unit/api/middleware/test_security_middleware_v2.py::test_security_no_cache_headers 
+tests/unit/api/middleware/test_security_middleware_v2.py::test_security_middleware_custom_csp 
+[gw0] [  6%] PASSED tests/unit/api/middleware/test_security_middleware_v2.py::test_security_middleware_custom_csp 
+tests/unit/api/routes/test_auth_v3.py::test_mfa_setup_success 
+[gw0] [  6%] PASSED tests/unit/api/routes/test_auth_v3.py::test_mfa_setup_success 
+tests/unit/api/routes/test_auth_v3.py::test_mfa_verify_success 
+[gw0] [  6%] PASSED tests/unit/api/routes/test_auth_v3.py::test_mfa_verify_success 
+tests/unit/api/routes/test_auth_v3.py::test_change_password_success 
+[gw0] [  6%] FAILED tests/unit/api/routes/test_auth_v3.py::test_change_password_success 
+tests/unit/api/routes/test_auth_v3.py::test_password_reset_flow 
+[gw0] [  7%] PASSED tests/unit/api/routes/test_auth_v3.py::test_password_reset_flow 
+tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_not_active 
+[gw3] [  7%] FAILED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs 
+tests/unit/api/test_ml_api.py::test_proxy_predict_success 
+[gw3] [  7%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_success 
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable 
+[gw1] [  7%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_persist_log_full 
+[gw0] [  7%] FAILED tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_not_active 
+tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_error_capture 
+tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_success 
+[gw3] [  7%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable 
+tests/unit/api/test_ml_api.py::test_proxy_predict_error_response 
+[gw1] [  8%] PASSED tests/unit/api/middleware/test_logging_middleware.py::test_request_logging_error_capture 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_structured_logger_full 
+[gw0] [  8%] FAILED tests/unit/api/routes/test_debug_unit.py::test_get_tracemalloc_snapshot_success 
+tests/unit/api/test_auth_api.py::test_login_success 
+[gw1] [  8%] PASSED tests/unit/api/middleware/test_logging_middleware_unit.py::test_structured_logger_full 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_internals 
+[gw3] [  8%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_error_response 
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503 
+[gw1] [  8%] PASSED tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_internals 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_middleware_basic 
+[gw0] [  8%] PASSED tests/unit/api/test_auth_api.py::test_login_success 
+tests/unit/api/test_auth_api.py::test_login_invalid_credentials 
+[gw1] [  9%] FAILED tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_middleware_basic 
+[gw3] [  9%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_503 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_malformed_json 
+tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error 
+[gw0] [  9%] PASSED tests/unit/api/test_auth_api.py::test_login_invalid_credentials 
+tests/unit/api/test_auth_api.py::test_register_success 
+[gw1] [  9%] FAILED tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_malformed_json 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_user_info 
+[gw3] [  9%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_ml_service_generic_error 
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error 
+[gw0] [ 10%] PASSED tests/unit/api/test_auth_api.py::test_register_success 
+tests/unit/api/test_auth_api.py::test_logout 
+[gw2] [ 10%] FAILED tests/unit/auth/test_auth.py::test_health_check 
+tests/unit/auth/test_auth.py::test_register 
+[gw1] [ 10%] FAILED tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_user_info 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_persist_log_full 
+[gw3] [ 10%] FAILED tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_error 
+tests/unit/api/test_pricing_api.py::test_calculate_price_success 
+[gw0] [ 10%] PASSED tests/unit/api/test_auth_api.py::test_logout 
+tests/unit/api/test_auth_api.py::test_me 
+[gw0] [ 10%] PASSED tests/unit/api/test_auth_api.py::test_me 
+tests/unit/api/test_auth_api.py::test_refresh_token_success 
+[gw2] [ 11%] FAILED tests/unit/auth/test_auth.py::test_register 
+tests/unit/auth/test_auth.py::test_login 
+[gw1] [ 11%] FAILED tests/unit/api/middleware/test_logging_middleware_unit.py::test_persist_log_full 
+tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_error_capture 
+[gw2] [ 11%] FAILED tests/unit/auth/test_auth.py::test_login 
+tests/unit/auth/test_auth.py::test_get_me 
+[gw1] [ 11%] FAILED tests/unit/api/middleware/test_logging_middleware_unit.py::test_request_logging_error_capture 
+tests/unit/api/middleware/test_security_middleware.py::test_security_headers_middleware 
+[gw1] [ 11%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_security_headers_middleware 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_get_success 
+[gw1] [ 12%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_get_success 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_post_fail_no_token 
+[gw2] [ 12%] ERROR tests/unit/auth/test_auth.py::test_get_me 
+tests/unit/auth/test_auth.py::test_refresh_token 
+[gw1] [ 12%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_post_fail_no_token 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_full_flow 
+[gw1] [ 12%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_full_flow 
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware 
+[gw2] [ 12%] FAILED tests/unit/auth/test_auth.py::test_refresh_token 
+[gw1] [ 12%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware 
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware_x_forwarded_for 
+tests/unit/auth/test_auth.py::test_invalid_token 
+[gw2] [ 13%] PASSED tests/unit/auth/test_auth.py::test_invalid_token 
+[gw1] [ 13%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_ip_block_middleware_x_forwarded_for 
+tests/unit/auth/test_auth.py::test_logout 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures 
+[gw1] [ 13%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_middleware_failures 
+[gw3] [ 13%] FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_success 
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block 
+tests/unit/api/test_pricing_api.py::test_calculate_price_invalid_params 
+[gw1] [ 13%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block 
+tests/unit/api/middleware/test_security_middleware.py::test_security_headers_custom_policy 
+[gw1] [ 14%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_security_headers_custom_policy 
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block_expiration 
+[gw1] [ 14%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_ip_block_temp_block_expiration 
+tests/unit/api/middleware/test_security_middleware.py::test_ip_block_clean_old_attempts 
+[gw2] [ 14%] FAILED tests/unit/auth/test_auth.py::test_logout 
+tests/unit/auth/test_auth.py::test_mfa_secret_is_encrypted 
+[gw1] [ 14%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_ip_block_clean_old_attempts 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_wildcard_exempt 
+[gw1] [ 14%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_wildcard_exempt 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_no_origin_referer 
+[gw1] [ 14%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_no_origin_referer 
+tests/unit/api/middleware/test_security_middleware.py::test_csrf_invalid_origin_format 
+[gw2] [ 15%] ERROR tests/unit/auth/test_auth.py::test_mfa_secret_is_encrypted 
+tests/unit/auth/test_auth_refinement.py::test_argon2id_hashing_verification 
+[gw1] [ 15%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_csrf_invalid_origin_format 
+tests/unit/api/middleware/test_security_middleware.py::test_input_sanitization_middleware 
+[gw1] [ 15%] PASSED tests/unit/api/middleware/test_security_middleware.py::test_input_sanitization_middleware 
+tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_middleware 
+[gw1] [ 15%] PASSED tests/unit/api/middleware/test_security_middleware_unit.py::test_security_headers_middleware 
+tests/unit/config/test_core_config.py::test_settings_validation 
+[gw3] [ 15%] FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_invalid_params 
+tests/unit/api/test_pricing_api.py::test_calculate_price_validation_error 
+[gw2] [ 16%] PASSED tests/unit/auth/test_auth_refinement.py::test_argon2id_hashing_verification 
+tests/unit/auth/test_auth_refinement.py::test_jwt_signing_validation 
+[gw3] [ 16%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_validation_error 
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_success 
+[gw0] [ 16%] PASSED tests/unit/api/test_auth_api.py::test_refresh_token_success 
+tests/unit/api/test_auth_api.py::test_password_change_success 
+[gw0] [ 16%] PASSED tests/unit/api/test_auth_api.py::test_password_change_success 
+[gw3] [ 16%] FAILED tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_success 
+tests/unit/api/test_auth_api.py::test_mfa_setup_success 
+tests/unit/api/test_pricing_api.py::test_calculate_greeks_success 
+[gw0] [ 16%] PASSED tests/unit/api/test_auth_api.py::test_mfa_setup_success 
+tests/unit/api/test_auth_api.py::test_mfa_verify_success 
+[gw3] [ 17%] FAILED tests/unit/api/test_pricing_api.py::test_calculate_greeks_success 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success 
+[gw0] [ 17%] PASSED tests/unit/api/test_auth_api.py::test_mfa_verify_success 
+tests/unit/api/test_auth_api.py::test_mfa_disable_success 
+[gw0] [ 17%] PASSED tests/unit/api/test_auth_api.py::test_mfa_disable_success 
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success 
+[gw3] [ 17%] FAILED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success 
+tests/unit/api/test_providers.py::test_polygon_provider_stub 
+[gw0] [ 17%] FAILED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success 
+tests/unit/database/test_verify.py::test_verify_connection_success 
+[gw0] [ 17%] PASSED tests/unit/database/test_verify.py::test_verify_connection_success 
+tests/unit/database/test_verify.py::test_verify_connection_failure 
+[gw0] [ 18%] PASSED tests/unit/database/test_verify.py::test_verify_connection_failure 
+tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_success 
+[gw2] [ 18%] PASSED tests/unit/auth/test_auth_refinement.py::test_jwt_signing_validation 
+tests/unit/auth/test_auth_refinement.py::test_redis_token_revocation 
+[gw0] [ 18%] PASSED tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_success 
+tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_error_handling 
+[gw0] [ 18%] PASSED tests/unit/ingestion/test_mesh_publisher.py::test_mesh_publisher_error_handling 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_data_preparation 
+[gw2] [ 18%] FAILED tests/unit/auth/test_auth_refinement.py::test_redis_token_revocation 
+tests/unit/auth/test_auth_refinement.py::test_authenticate_user_flow 
+[gw1] [ 19%] PASSED tests/unit/config/test_core_config.py::test_settings_validation 
+[gw2] [ 19%] PASSED tests/unit/auth/test_auth_refinement.py::test_authenticate_user_flow 
+tests/unit/auth/test_keycloak_security.py::test_get_jwks_success 
+[gw2] [ 19%] FAILED tests/unit/auth/test_keycloak_security.py::test_get_jwks_success 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_success 
+tests/unit/config/test_core_config.py::test_password_min_length_validation 
+[gw2] [ 19%] FAILED tests/unit/auth/test_keycloak_security.py::test_verify_token_success 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_invalid_kid 
+[gw2] [ 19%] FAILED tests/unit/auth/test_keycloak_security.py::test_verify_token_invalid_kid 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_jwt_error 
+[gw2] [ 19%] FAILED tests/unit/auth/test_keycloak_security.py::test_verify_token_jwt_error 
+tests/unit/auth/test_keycloak_security.py::test_role_checker_success 
+[gw2] [ 20%] FAILED tests/unit/auth/test_keycloak_security.py::test_role_checker_success 
+tests/unit/auth/test_keycloak_security.py::test_role_checker_failure 
+[gw2] [ 20%] FAILED tests/unit/auth/test_keycloak_security.py::test_role_checker_failure 
+tests/unit/cli/test_cli_auth.py::test_login_success 
+[gw2] [ 20%] PASSED tests/unit/cli/test_cli_auth.py::test_login_success 
+tests/unit/cli/test_cli_auth.py::test_logout 
+[gw2] [ 20%] PASSED tests/unit/cli/test_cli_auth.py::test_logout 
+tests/unit/cli/test_cli_auth.py::test_get_current_user_no_token 
+[gw2] [ 20%] PASSED tests/unit/cli/test_cli_auth.py::test_get_current_user_no_token 
+tests/unit/cli/test_config.py::test_config_defaults 
+[gw2] [ 21%] PASSED tests/unit/cli/test_config.py::test_config_defaults 
+tests/unit/cli/test_config.py::test_config_set_get 
+[gw2] [ 21%] PASSED tests/unit/cli/test_config.py::test_config_set_get 
+tests/unit/cli/test_config.py::test_config_save_load 
+[gw2] [ 21%] PASSED tests/unit/cli/test_config.py::test_config_save_load 
+tests/unit/config/test_core_config.py::test_settings_initialization 
+[gw1] [ 21%] PASSED tests/unit/config/test_core_config.py::test_password_min_length_validation 
+[gw3] [ 21%] FAILED tests/unit/api/test_providers.py::test_polygon_provider_stub 
+tests/unit/api/test_providers.py::test_yahoo_provider_stub 
+tests/unit/config/test_core_config.py::test_validators_coverage 
+[gw3] [ 21%] FAILED tests/unit/api/test_providers.py::test_yahoo_provider_stub 
+tests/unit/api/test_security_v3.py::test_security_headers 
+[gw3] [ 22%] PASSED tests/unit/api/test_security_v3.py::test_security_headers 
+tests/unit/api/test_security_v3.py::test_csrf_protection_safe_methods 
+[gw3] [ 22%] PASSED tests/unit/api/test_security_v3.py::test_csrf_protection_safe_methods 
+tests/unit/api/test_security_v3.py::test_csrf_protection_unsafe_method_missing_token 
+[gw3] [ 22%] PASSED tests/unit/api/test_security_v3.py::test_csrf_protection_unsafe_method_missing_token 
+tests/unit/api/test_security_v3.py::test_ip_block_middleware_blocked 
+[gw3] [ 22%] PASSED tests/unit/api/test_security_v3.py::test_ip_block_middleware_blocked 
+tests/unit/api/test_security_v3.py::test_jwt_auth_legacy_bypass 
+[gw3] [ 22%] PASSED tests/unit/api/test_security_v3.py::test_jwt_auth_legacy_bypass 
+tests/unit/api/test_security_v3.py::test_input_sanitization 
+[gw0] [ 23%] FAILED tests/unit/ml/forecasting/test_tft_model.py::test_tft_data_preparation 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_prediction_no_model 
+[gw0] [ 23%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_prediction_no_model 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_interpretability_report 
+[gw0] [ 23%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_interpretability_report 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_training_and_prediction 
+[gw3] [ 23%] FAILED tests/unit/api/test_security_v3.py::test_input_sanitization 
+tests/unit/api/test_users_api.py::test_get_me_success 
+[gw3] [ 23%] PASSED tests/unit/api/test_users_api.py::test_get_me_success 
+tests/unit/api/test_users_api.py::test_get_me_unauthorized 
+[gw3] [ 23%] SKIPPED tests/unit/api/test_users_api.py::test_get_me_unauthorized 
+tests/unit/api/test_users_api.py::test_update_me_success 
+[gw3] [ 24%] PASSED tests/unit/api/test_users_api.py::test_update_me_success 
+tests/unit/api/test_users_api.py::test_update_me_success_email 
+[gw3] [ 24%] PASSED tests/unit/api/test_users_api.py::test_update_me_success_email 
+tests/unit/api/test_users_api.py::test_update_me_no_changes 
+[gw3] [ 24%] PASSED tests/unit/api/test_users_api.py::test_update_me_no_changes 
+tests/unit/api/test_users_api.py::test_update_me_email_conflict 
+[gw3] [ 24%] SKIPPED tests/unit/api/test_users_api.py::test_update_me_email_conflict 
+tests/unit/api/test_users_api.py::test_update_me_persistence_error 
+[gw3] [ 24%] SKIPPED tests/unit/api/test_users_api.py::test_update_me_persistence_error 
+tests/unit/api/test_users_api.py::test_delete_me_success 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_delete_me_success 
+tests/unit/api/test_users_api.py::test_delete_me_not_found 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_delete_me_not_found 
+tests/unit/api/test_users_api.py::test_delete_me_persistence_error 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_delete_me_persistence_error 
+tests/unit/api/test_users_api.py::test_get_user_stats 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_get_user_stats 
+tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise 
+tests/unit/api/test_users_api.py::test_get_user_by_id_not_found 
+[gw3] [ 25%] SKIPPED tests/unit/api/test_users_api.py::test_get_user_by_id_not_found 
+tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_success 
+[gw2] [ 26%] FAILED tests/unit/config/test_core_config.py::test_settings_initialization 
+tests/unit/ml/test_indicators_v3.py::test_numba_ema 
+[gw2] [ 26%] FAILED tests/unit/ml/test_indicators_v3.py::test_numba_ema 
+tests/unit/ml/test_indicators_v3.py::test_numba_rsi 
+[gw3] [ 26%] ERROR tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_success 
+tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_polygon_success 
+[gw2] [ 26%] FAILED tests/unit/ml/test_indicators_v3.py::test_numba_rsi 
+tests/unit/ml/test_indicators_v3.py::test_numba_bbands 
+[gw2] [ 26%] FAILED tests/unit/ml/test_indicators_v3.py::test_numba_bbands 
+tests/unit/ml/test_indicators_v3.py::test_numba_macd 
+[gw2] [ 26%] FAILED tests/unit/ml/test_indicators_v3.py::test_numba_macd 
+tests/unit/ml/test_indicators_v3.py::test_numba_atr 
+[gw2] [ 27%] FAILED tests/unit/ml/test_indicators_v3.py::test_numba_atr 
+tests/unit/ml/test_ml_metrics.py::test_regression_metrics 
+[gw2] [ 27%] PASSED tests/unit/ml/test_ml_metrics.py::test_regression_metrics 
+tests/unit/ml/test_ml_metrics.py::test_pricing_bias 
+[gw2] [ 27%] PASSED tests/unit/ml/test_ml_metrics.py::test_pricing_bias 
+tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_positive_returns 
+[gw2] [ 27%] PASSED tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_positive_returns 
+tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_edge_cases 
+[gw2] [ 27%] PASSED tests/unit/ml/test_ml_metrics.py::test_sharpe_ratio_edge_cases 
+tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_positive_returns 
+[gw2] [ 28%] PASSED tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_positive_returns 
+tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_with_downside 
+[gw3] [ 28%] ERROR tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_polygon_success 
+tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_rate_limit 
+[gw2] [ 28%] PASSED tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_with_downside 
+tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_edge_cases 
+[gw2] [ 28%] PASSED tests/unit/ml/test_ml_metrics.py::test_sortino_ratio_edge_cases 
+tests/unit/ml/test_ml_metrics.py::test_max_drawdown_calculation 
+[gw2] [ 28%] PASSED tests/unit/ml/test_ml_metrics.py::test_max_drawdown_calculation 
+tests/unit/ml/test_ml_metrics.py::test_max_drawdown_no_drawdown 
+[gw2] [ 28%] PASSED tests/unit/ml/test_ml_metrics.py::test_max_drawdown_no_drawdown 
+tests/unit/ml/test_ml_metrics.py::test_max_drawdown_edge_cases 
+[gw2] [ 29%] PASSED tests/unit/ml/test_ml_metrics.py::test_max_drawdown_edge_cases 
+tests/unit/ml/test_ml_metrics.py::test_model_scorecard_no_returns 
+[gw2] [ 29%] PASSED tests/unit/ml/test_ml_metrics.py::test_model_scorecard_no_returns 
+tests/unit/ml/test_ml_metrics.py::test_model_scorecard_with_returns 
+[gw2] [ 29%] PASSED tests/unit/ml/test_ml_metrics.py::test_model_scorecard_with_returns 
+tests/unit/ml/test_rl_gnn.py::test_agent_init 
+[gw3] [ 29%] ERROR tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_alpha_vantage_rate_limit 
+tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_auto_fallback 
+[gw2] [ 29%] ERROR tests/unit/ml/test_rl_gnn.py::test_agent_init 
+tests/unit/ml/test_rl_gnn.py::test_get_state_vector 
+[gw3] [ 30%] ERROR tests/unit/ml/test_scraper_extended.py::test_fetch_historical_data_auto_fallback 
+tests/unit/ml/test_serving.py::test_predict_xgb_success 
+[gw3] [ 30%] FAILED tests/unit/ml/test_serving.py::test_predict_xgb_success 
+tests/unit/ml/test_serving.py::test_predict_unsupported_model 
+[gw3] [ 30%] PASSED tests/unit/ml/test_serving.py::test_predict_unsupported_model 
+tests/unit/ml/test_trading_env_v3.py::test_trading_env_reset 
+[gw3] [ 30%] FAILED tests/unit/ml/test_trading_env_v3.py::test_trading_env_reset 
+tests/unit/ml/test_trading_env_v3.py::test_trading_env_step_basic 
+[gw2] [ 30%] ERROR tests/unit/ml/test_rl_gnn.py::test_get_state_vector 
+tests/unit/ml/test_rl_gnn.py::test_process_market_data 
+[gw3] [ 30%] FAILED tests/unit/ml/test_trading_env_v3.py::test_trading_env_step_basic 
+tests/unit/ml/test_trainer_extended.py::test_xgboost_trainer 
+[gw2] [ 31%] ERROR tests/unit/ml/test_rl_gnn.py::test_process_market_data 
+[gw3] [ 31%] ERROR tests/unit/ml/test_trainer_extended.py::test_xgboost_trainer 
+tests/unit/ml/test_rl_gnn.py::test_calculate_reward 
+[gw0] [ 31%] FAILED tests/unit/ml/forecasting/test_tft_model.py::test_tft_training_and_prediction 
+tests/unit/ml/test_trainer_extended.py::test_sklearn_trainer 
+tests/unit/ml/forecasting/test_tft_predict.py::test_tft_prediction_stub 
+[gw0] [ 31%] PASSED tests/unit/ml/forecasting/test_tft_predict.py::test_tft_prediction_stub 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_trigger_success 
+[gw1] [ 31%] FAILED tests/unit/config/test_core_config.py::test_validators_coverage 
+[gw0] [ 32%] FAILED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_trigger_success 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_with_drift 
+[gw3] [ 32%] ERROR tests/unit/ml/test_trainer_extended.py::test_sklearn_trainer 
+tests/unit/ml/test_trainer_extended.py::test_pytorch_trainer 
+[gw2] [ 32%] ERROR tests/unit/ml/test_rl_gnn.py::test_calculate_reward 
+[gw0] [ 32%] PASSED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_with_drift 
+tests/unit/ml/test_rl_gnn.py::test_store_transition 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_failure 
+[gw2] [ 32%] ERROR tests/unit/ml/test_rl_gnn.py::test_store_transition 
+[gw3] [ 32%] ERROR tests/unit/ml/test_trainer_extended.py::test_pytorch_trainer 
+tests/unit/ml/test_rl_gnn.py::test_gnn_feature_extractor 
+tests/unit/ml/test_trainer_extended.py::test_optimize 
+[gw0] [ 33%] FAILED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_failure 
+tests/unit/ml/serving/test_quantization.py::test_dynamic_quantization 
+[gw0] [ 33%] PASSED tests/unit/ml/serving/test_quantization.py::test_dynamic_quantization 
+tests/unit/ml/serving/test_quantization.py::test_quantization_failure 
+[gw0] [ 33%] PASSED tests/unit/ml/serving/test_quantization.py::test_quantization_failure 
+tests/unit/ml/serving/test_quantization.py::test_quantization_save_load 
+tests/unit/config/test_core_config.py::test_fallback_initialization_no_reload 
+[gw0] [ 33%] PASSED tests/unit/ml/serving/test_quantization.py::test_quantization_save_load 
+tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_init 
+[gw1] [ 33%] FAILED tests/unit/config/test_core_config.py::test_fallback_initialization_no_reload 
+tests/unit/config/test_core_config.py::test_configure_logging_execution 
+[gw3] [ 33%] ERROR tests/unit/ml/test_trainer_extended.py::test_optimize 
+tests/unit/ml/test_trainer_extended.py::test_pytorch_wrapper 
+[gw0] [ 34%] ERROR tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_init 
+tests/unit/ml/test_autonomous_pipeline.py::test_generate_features 
+[gw3] [ 34%] ERROR tests/unit/ml/test_trainer_extended.py::test_pytorch_wrapper 
+tests/unit/ml/test_trainer_extended.py::test_push_metrics_alias 
+[gw1] [ 34%] FAILED tests/unit/config/test_core_config.py::test_configure_logging_execution 
+tests/unit/config/test_security_config.py::test_mfa_key_security_dev 
+[gw0] [ 34%] ERROR tests/unit/ml/test_autonomous_pipeline.py::test_generate_features 
+tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_run_success 
+[gw3] [ 34%] ERROR tests/unit/ml/test_trainer_extended.py::test_push_metrics_alias 
+tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_train_and_evaluate_walk_forward 
+[gw2] [ 35%] FAILED tests/unit/ml/test_rl_gnn.py::test_gnn_feature_extractor 
+tests/unit/ml/test_rl_gnn.py::test_sac_gnn_policy 
+[gw2] [ 35%] FAILED tests/unit/ml/test_rl_gnn.py::test_sac_gnn_policy 
+tests/unit/ml/test_scraper_extended.py::test_validate_inputs 
+[gw2] [ 35%] PASSED tests/unit/ml/test_scraper_extended.py::test_validate_inputs 
+tests/unit/ml/test_scraper_extended.py::test_redact_message 
+[gw2] [ 35%] PASSED tests/unit/ml/test_scraper_extended.py::test_redact_message 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_non_positive_params 
+[gw2] [ 35%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_non_positive_params 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_atm_call_price_reasonable 
+[gw2] [ 35%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_atm_call_price_reasonable 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_put_call_parity 
+[gw2] [ 36%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_put_call_parity 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_otm_options_nonzero 
+[gw1] [ 36%] FAILED tests/unit/config/test_security_config.py::test_mfa_key_security_dev 
+tests/unit/config/test_security_config.py::test_mfa_key_security_prod_failure 
+[gw2] [ 36%] FAILED tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_otm_options_nonzero 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_invalid_ttm 
+[gw2] [ 36%] FAILED tests/unit/pricing/models/test_heston_fft.py::TestHestonModelFFT::test_invalid_ttm 
+tests/unit/pricing/test_arbiter.py::test_route_explicit_bs 
+[gw0] [ 36%] ERROR tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_run_success 
+tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_no_retrain 
+[gw2] [ 37%] PASSED tests/unit/pricing/test_arbiter.py::test_route_explicit_bs 
+tests/unit/pricing/test_arbiter.py::test_route_explicit_mc 
+[gw2] [ 37%] FAILED tests/unit/pricing/test_arbiter.py::test_route_explicit_mc 
+tests/unit/pricing/test_arbiter.py::test_route_smart_american 
+[gw2] [ 37%] FAILED tests/unit/pricing/test_arbiter.py::test_route_smart_american 
+tests/unit/pricing/test_arbiter.py::test_route_batch 
+[gw2] [ 37%] PASSED tests/unit/pricing/test_arbiter.py::test_route_batch 
+tests/unit/pricing/test_arbiter.py::test_route_explicit_wasm_fallback 
+[gw2] [ 37%] FAILED tests/unit/pricing/test_arbiter.py::test_route_explicit_wasm_fallback 
+tests/unit/pricing/test_black_scholes.py::test_price_options_scalar 
+[gw1] [ 37%] FAILED tests/unit/config/test_security_config.py::test_mfa_key_security_prod_failure 
+[gw2] [ 38%] PASSED tests/unit/pricing/test_black_scholes.py::test_price_options_scalar 
+tests/unit/config/test_security_config.py::test_mfa_key_security_prod_success 
+tests/unit/pricing/test_black_scholes.py::test_price_options_vectorized 
+[gw2] [ 38%] PASSED tests/unit/pricing/test_black_scholes.py::test_price_options_vectorized 
+tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_scalar 
+[gw2] [ 38%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_scalar 
+tests/unit/pricing/test_black_scholes.py::test_put_call_parity 
+[gw3] [ 38%] FAILED tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_train_and_evaluate_walk_forward 
+tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_holistic_scorecard_integration 
+[gw2] [ 38%] PASSED tests/unit/pricing/test_black_scholes.py::test_put_call_parity 
+tests/unit/pricing/test_black_scholes.py::test_module_level_helpers 
+[gw2] [ 39%] PASSED tests/unit/pricing/test_black_scholes.py::test_module_level_helpers 
+tests/unit/pricing/test_black_scholes.py::test_extract_params_missing 
+[gw2] [ 39%] PASSED tests/unit/pricing/test_black_scholes.py::test_extract_params_missing 
+tests/unit/pricing/test_black_scholes_v3.py::test_price_options_scalar 
+[gw2] [ 39%] PASSED tests/unit/pricing/test_black_scholes_v3.py::test_price_options_scalar 
+tests/unit/pricing/test_black_scholes_v3.py::test_price_options_vectorized 
+[gw0] [ 39%] ERROR tests/unit/ml/test_autonomous_pipeline.py::test_pipeline_no_retrain 
+[gw2] [ 39%] PASSED tests/unit/pricing/test_black_scholes_v3.py::test_price_options_vectorized 
+tests/unit/ml/test_autonomous_pipeline.py::test_get_current_model_performance_error 
+tests/unit/pricing/test_black_scholes_v3.py::test_calculate_greeks_scalar 
+[gw2] [ 39%] PASSED tests/unit/pricing/test_black_scholes_v3.py::test_calculate_greeks_scalar 
+tests/unit/pricing/test_black_scholes_v3.py::test_calculate_greeks_vectorized 
+[gw2] [ 40%] PASSED tests/unit/pricing/test_black_scholes_v3.py::test_calculate_greeks_vectorized 
+tests/unit/pricing/test_exotic.py::test_geometric_asian 
+[gw1] [ 40%] FAILED tests/unit/config/test_security_config.py::test_mfa_key_security_prod_success 
+tests/unit/database/test_crud.py::test_user_crud 
+[gw0] [ 40%] ERROR tests/unit/ml/test_autonomous_pipeline.py::test_get_current_model_performance_error 
+tests/unit/ml/test_data_loader.py::test_normalize_incomplete_scraper_data 
+[gw0] [ 40%] PASSED tests/unit/ml/test_data_loader.py::test_normalize_incomplete_scraper_data 
+tests/unit/ml/test_data_loader.py::test_normalize_complete_data 
+[gw0] [ 40%] PASSED tests/unit/ml/test_data_loader.py::test_normalize_complete_data 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_true 
+[gw0] [ 41%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_true 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_false 
+[gw0] [ 41%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_false 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_edge_cases 
+[gw0] [ 41%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_edge_cases 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_price_key 
+[gw0] [ 41%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_price_key 
+tests/unit/pricing/test_exotic.py::test_barrier_analytical 
+[gw3] [ 41%] FAILED tests/unit/ml/test_trainer_phase5.py::TestModelTrainerPhase5::test_holistic_scorecard_integration 
 tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_calibration_accuracy_synthetic 
+[gw1] [ 41%] ERROR tests/unit/database/test_crud.py::test_user_crud 
+tests/unit/database/test_crud.py::test_portfolio_crud 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud.py::test_portfolio_crud 
+tests/unit/database/test_crud_comprehensive.py::test_user_operations 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud_comprehensive.py::test_user_operations 
+tests/unit/database/test_crud_comprehensive.py::test_portfolio_operations 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud_comprehensive.py::test_portfolio_operations 
+tests/unit/database/test_crud_comprehensive.py::test_position_operations 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud_comprehensive.py::test_position_operations 
+tests/unit/database/test_crud_comprehensive.py::test_order_operations 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud_comprehensive.py::test_order_operations 
+tests/unit/database/test_crud_comprehensive.py::test_ml_model_operations 
+[gw1] [ 42%] ERROR tests/unit/database/test_crud_comprehensive.py::test_ml_model_operations 
+tests/unit/database/test_crud_comprehensive.py::test_option_price_operations 
+[gw1] [ 43%] ERROR tests/unit/database/test_crud_comprehensive.py::test_option_price_operations 
+tests/unit/database/test_crud_comprehensive.py::test_aggregation_queries 
+[gw1] [ 43%] ERROR tests/unit/database/test_crud_comprehensive.py::test_aggregation_queries 
+tests/unit/database/test_crud_optimized.py::test_bulk_inserts_optimized_paths 
+[gw1] [ 43%] FAILED tests/unit/database/test_crud_optimized.py::test_bulk_inserts_optimized_paths 
+tests/unit/database/test_crud_unit.py::test_user_crud 
+[gw1] [ 43%] FAILED tests/unit/database/test_crud_unit.py::test_user_crud 
+tests/unit/database/test_crud_unit.py::test_portfolio_crud 
+[gw2] [ 43%] PASSED tests/unit/pricing/test_exotic.py::test_geometric_asian 
+tests/unit/pricing/test_lattice.py::test_trinomial_american 
+[gw2] [ 44%] FAILED tests/unit/pricing/test_lattice.py::test_trinomial_american 
+[gw1] [ 44%] FAILED tests/unit/database/test_crud_unit.py::test_portfolio_crud 
+tests/unit/pricing/test_lattice.py::test_validate_convergence 
+tests/unit/database/test_crud_v3.py::test_crud_basics 
+[gw1] [ 44%] PASSED tests/unit/database/test_crud_v3.py::test_crud_basics 
+tests/unit/database/test_crud_v3.py::test_bulk_inserts_all 
+[gw1] [ 44%] PASSED tests/unit/database/test_crud_v3.py::test_bulk_inserts_all 
+tests/unit/database/test_crud_v3.py::test_model_ops 
+[gw1] [ 44%] FAILED tests/unit/database/test_crud_v3.py::test_model_ops 
+tests/unit/database/test_crud_v3.py::test_mv_queries 
+[gw1] [ 44%] PASSED tests/unit/database/test_crud_v3.py::test_mv_queries 
+tests/unit/database/test_crud_v3.py::test_closing_and_expiring 
+[gw1] [ 45%] PASSED tests/unit/database/test_crud_v3.py::test_closing_and_expiring 
+tests/unit/database/test_models.py::test_models_creation 
+[gw1] [ 45%] PASSED tests/unit/database/test_models.py::test_models_creation 
+tests/unit/database/test_models.py::test_user_instantiation 
+[gw1] [ 45%] PASSED tests/unit/database/test_models.py::test_user_instantiation 
+tests/unit/pricing/test_quant_utils.py::test_mc_greeks 
+[gw1] [ 45%] FAILED tests/unit/pricing/test_quant_utils.py::test_mc_greeks 
+tests/unit/pricing/test_quant_utils.py::test_lsm_american 
+[gw2] [ 45%] FAILED tests/unit/pricing/test_lattice.py::test_validate_convergence 
+tests/unit/pricing/test_lattice.py::test_build_tree 
+[gw2] [ 46%] PASSED tests/unit/pricing/test_lattice.py::test_build_tree 
+tests/unit/pricing/test_lattice.py::test_zero_maturity 
+[gw2] [ 46%] FAILED tests/unit/pricing/test_lattice.py::test_zero_maturity 
+tests/unit/pricing/test_monte_carlo.py::test_mc_config_validation 
+[gw2] [ 46%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_config_validation 
+tests/unit/pricing/test_monte_carlo.py::test_price_european 
+[gw0] [ 46%] FAILED tests/unit/pricing/test_exotic.py::test_barrier_analytical 
+tests/unit/pricing/test_exotic.py::test_digital_option 
+[gw0] [ 46%] PASSED tests/unit/pricing/test_exotic.py::test_digital_option 
+[gw3] [ 46%] PASSED tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_calibration_accuracy_synthetic 
+tests/unit/pricing/test_exotic.py::test_lookback_floating_strike 
+tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_insufficient_data 
+[gw3] [ 47%] PASSED tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_insufficient_data 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_raw_svi_calculation 
+[gw3] [ 47%] PASSED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_raw_svi_calculation 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_arbitrage_validation 
+[gw3] [ 47%] FAILED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_arbitrage_validation 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_svi_fitting 
+[gw3] [ 47%] FAILED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_svi_fitting 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_valid_params 
+[gw3] [ 47%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_valid_params 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_feller_condition_violation 
+[gw3] [ 48%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_feller_condition_violation 
+tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_invalid_rho 
+[gw3] [ 48%] PASSED tests/unit/pricing/models/test_heston_fft.py::TestHestonParams::test_invalid_rho 
+tests/unit/scrapers/test_scrapers.py::test_nse_scraper_http 
+[gw2] [ 48%] FAILED tests/unit/pricing/test_monte_carlo.py::test_price_european 
+tests/unit/pricing/test_monte_carlo.py::test_price_european_with_control_variate 
+[gw3] [ 48%] FAILED tests/unit/scrapers/test_scrapers.py::test_nse_scraper_http 
+tests/unit/security/test_audit.py::test_log_audit_basic 
+[gw3] [ 48%] PASSED tests/unit/security/test_audit.py::test_log_audit_basic 
+tests/unit/security/test_audit.py::test_log_audit_with_request 
+[gw3] [ 48%] PASSED tests/unit/security/test_audit.py::test_log_audit_with_request 
+tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa 
+[gw1] [ 49%] FAILED tests/unit/pricing/test_quant_utils.py::test_lsm_american 
+tests/unit/pricing/test_quant_utils.py::test_scalar_kernels 
+[gw3] [ 49%] FAILED tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa 
+tests/unit/security/test_breach_notification.py::test_notify_affected_users 
+[gw0] [ 49%] PASSED tests/unit/pricing/test_exotic.py::test_lookback_floating_strike 
+tests/unit/pricing/test_factory.py::test_get_engine_lazy_load 
+[gw0] [ 49%] PASSED tests/unit/pricing/test_factory.py::test_get_engine_lazy_load 
+tests/unit/pricing/test_factory.py::test_register_engine 
+[gw0] [ 49%] PASSED tests/unit/pricing/test_factory.py::test_register_engine 
+tests/unit/pricing/test_factory.py::test_engine_not_found 
+[gw0] [ 50%] PASSED tests/unit/pricing/test_factory.py::test_engine_not_found 
+tests/unit/pricing/test_factory.py::test_wasm_override 
+[gw0] [ 50%] PASSED tests/unit/pricing/test_factory.py::test_wasm_override 
+tests/unit/pricing/test_finite_difference.py::test_cn_solver_price 
+[gw0] [ 50%] FAILED tests/unit/pricing/test_finite_difference.py::test_cn_solver_price 
+tests/unit/pricing/test_finite_difference.py::test_cn_solver_greeks 
+[gw3] [ 50%] FAILED tests/unit/security/test_breach_notification.py::test_notify_affected_users 
+tests/unit/security/test_mfa.py::test_mfa_secret_generation 
+[gw3] [ 50%] FAILED tests/unit/security/test_mfa.py::test_mfa_secret_generation 
+tests/unit/security/test_mfa.py::test_mfa_provisioning_uri 
+[gw3] [ 50%] FAILED tests/unit/security/test_mfa.py::test_mfa_provisioning_uri 
+tests/unit/security/test_mfa.py::test_mfa_verification 
+[gw3] [ 51%] FAILED tests/unit/security/test_mfa.py::test_mfa_verification 
+tests/unit/security/test_password.py::test_hash_and_verify_password 
+[gw3] [ 51%] PASSED tests/unit/security/test_password.py::test_hash_and_verify_password 
+tests/unit/security/test_password.py::test_password_validator 
+[gw3] [ 51%] FAILED tests/unit/security/test_password.py::test_password_validator 
+tests/unit/security/test_password.py::test_generate_password 
+[gw3] [ 51%] FAILED tests/unit/security/test_password.py::test_generate_password 
+tests/unit/security/test_password.py::test_password_history 
+[gw3] [ 51%] FAILED tests/unit/security/test_password.py::test_password_history 
+tests/unit/security/test_password_v3.py::test_validator_length 
+[gw3] [ 51%] FAILED tests/unit/security/test_password_v3.py::test_validator_length 
+tests/unit/security/test_password_v3.py::test_validator_complexity 
+[gw3] [ 52%] FAILED tests/unit/security/test_password_v3.py::test_validator_complexity 
+tests/unit/security/test_password_v3.py::test_validator_email_similarity 
+[gw3] [ 52%] FAILED tests/unit/security/test_password_v3.py::test_validator_email_similarity 
+tests/unit/security/test_password_v3.py::test_validator_pwned 
+[gw3] [ 52%] FAILED tests/unit/security/test_password_v3.py::test_validator_pwned 
+tests/unit/security/test_password_v3.py::test_password_service_hash_verify 
+[gw3] [ 52%] FAILED tests/unit/security/test_password_v3.py::test_password_service_hash_verify 
+tests/unit/security/test_password_v3.py::test_password_service_generate 
+[gw3] [ 52%] FAILED tests/unit/security/test_password_v3.py::test_password_service_generate 
+tests/unit/security/test_security_auth.py::test_token_creation_and_decoding 
+[gw3] [ 53%] FAILED tests/unit/security/test_security_auth.py::test_token_creation_and_decoding 
+tests/unit/security/test_security_auth.py::test_refresh_token 
+[gw3] [ 53%] FAILED tests/unit/security/test_security_auth.py::test_refresh_token 
+tests/unit/security/test_security_auth.py::test_token_blacklist 
+[gw3] [ 53%] FAILED tests/unit/security/test_security_auth.py::test_token_blacklist 
+tests/unit/security/test_security_auth.py::test_decode_invalid_token 
+[gw3] [ 53%] PASSED tests/unit/security/test_security_auth.py::test_decode_invalid_token 
+tests/unit/tasks/test_email_tasks_v3.py::test_send_batch_marketing_emails_success 
+[gw3] [ 53%] FAILED tests/unit/tasks/test_email_tasks_v3.py::test_send_batch_marketing_emails_success 
+tests/unit/tasks/test_ml_tasks.py::test_train_model_task_success 
+[gw3] [ 53%] PASSED tests/unit/tasks/test_ml_tasks.py::test_train_model_task_success 
+tests/unit/tasks/test_ml_tasks.py::test_train_model_task_failure 
+[gw0] [ 54%] FAILED tests/unit/pricing/test_finite_difference.py::test_cn_solver_greeks 
+tests/unit/pricing/test_finite_difference.py::test_zero_maturity 
+[gw0] [ 54%] FAILED tests/unit/pricing/test_finite_difference.py::test_zero_maturity 
+tests/unit/pricing/test_finite_difference.py::test_get_diagnostics 
+[gw0] [ 54%] PASSED tests/unit/pricing/test_finite_difference.py::test_get_diagnostics 
+tests/unit/pricing/test_finite_difference.py::test_clone 
+[gw0] [ 54%] PASSED tests/unit/pricing/test_finite_difference.py::test_clone 
+tests/unit/pricing/test_implied_vol.py::test_implied_volatility_newton 
+[gw3] [ 54%] FAILED tests/unit/tasks/test_ml_tasks.py::test_train_model_task_failure 
+tests/unit/tasks/test_ml_tasks.py::test_hyperparameter_search_task_success 
+[gw2] [ 55%] FAILED tests/unit/pricing/test_monte_carlo.py::test_price_european_with_control_variate 
+tests/unit/pricing/test_monte_carlo.py::test_calculate_greeks_pwm 
+[gw1] [ 55%] PASSED tests/unit/pricing/test_quant_utils.py::test_scalar_kernels 
+tests/unit/pricing/test_quant_utils_v3.py::test_corrado_miller_initial_guess 
+[gw3] [ 55%] FAILED tests/unit/tasks/test_ml_tasks.py::test_hyperparameter_search_task_success 
+tests/unit/tasks/test_pricing_tasks.py::test_vectorized_black_scholes_logic 
+[gw3] [ 55%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_vectorized_black_scholes_logic 
+tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_no_cache 
+[gw3] [ 55%] FAILED tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_no_cache 
+tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_invalid_input 
+[gw3] [ 55%] FAILED tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_invalid_input 
+tests/unit/tasks/test_pricing_tasks.py::test_batch_price_options_task_small 
+[gw3] [ 56%] FAILED tests/unit/tasks/test_pricing_tasks.py::test_batch_price_options_task_small 
+tests/unit/tasks/test_pricing_tasks.py::test_generate_volatility_surface_task 
+[gw3] [ 56%] FAILED tests/unit/tasks/test_pricing_tasks.py::test_generate_volatility_surface_task 
+tests/unit/tasks/test_security_tasks_v3.py::test_rehash_legacy_passwords_success 
+[gw3] [ 56%] ERROR tests/unit/tasks/test_security_tasks_v3.py::test_rehash_legacy_passwords_success 
+tests/unit/tasks/test_security_tasks_v3.py::test_rehash_legacy_passwords_failure 
+[gw0] [ 56%] FAILED tests/unit/pricing/test_implied_vol.py::test_implied_volatility_newton 
+tests/unit/pricing/test_implied_vol.py::test_implied_volatility_brent 
+[gw3] [ 56%] ERROR tests/unit/tasks/test_security_tasks_v3.py::test_rehash_legacy_passwords_failure 
+tests/unit/tasks/test_trading_tasks.py::test_check_risk_limits 
+[gw3] [ 57%] PASSED tests/unit/tasks/test_trading_tasks.py::test_check_risk_limits 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_success 
+[gw1] [ 57%] FAILED tests/unit/pricing/test_quant_utils_v3.py::test_corrado_miller_initial_guess 
+tests/unit/pricing/test_quant_utils_v3.py::test_batch_bs_price_jit_call 
+[gw2] [ 57%] FAILED tests/unit/pricing/test_monte_carlo.py::test_calculate_greeks_pwm 
+tests/unit/pricing/test_monte_carlo.py::test_calculate_greeks_fd 
+[gw0] [ 57%] FAILED tests/unit/pricing/test_implied_vol.py::test_implied_volatility_brent 
+tests/unit/pricing/test_implied_vol.py::test_implied_volatility_validation 
+[gw0] [ 57%] PASSED tests/unit/pricing/test_implied_vol.py::test_implied_volatility_validation 
+tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility 
+[gw3] [ 57%] FAILED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_success 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_risk_reject 
+[gw1] [ 58%] FAILED tests/unit/pricing/test_quant_utils_v3.py::test_batch_bs_price_jit_call 
+tests/unit/pricing/test_quant_utils_v3.py::test_batch_bs_price_jit_put 
+[gw2] [ 58%] FAILED tests/unit/pricing/test_monte_carlo.py::test_calculate_greeks_fd 
+tests/unit/pricing/test_monte_carlo.py::test_price_american_lsm 
+[gw0] [ 58%] FAILED tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility 
+tests/unit/pricing/test_implied_vol.py::test_newton_raphson_failure 
+[gw3] [ 58%] FAILED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_risk_reject 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_invalid 
+[gw1] [ 58%] FAILED tests/unit/pricing/test_quant_utils_v3.py::test_batch_bs_price_jit_put 
+tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_price 
+[gw1] [ 58%] FAILED tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_price 
+tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_greeks 
+[gw1] [ 59%] FAILED tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_greeks 
+tests/unit/pricing/test_vol_surface.py::test_svi_parameters_validation 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_vol_surface.py::test_svi_parameters_validation 
+tests/unit/pricing/test_vol_surface.py::test_svi_model_vol 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_vol_surface.py::test_svi_model_vol 
+tests/unit/pricing/test_vol_surface.py::test_sabr_model_vol 
+[gw0] [ 59%] FAILED tests/unit/pricing/test_implied_vol.py::test_newton_raphson_failure 
+tests/unit/pricing/test_lattice.py::test_binomial_european 
+[gw0] [ 59%] FAILED tests/unit/pricing/test_lattice.py::test_binomial_european 
+tests/unit/pricing/test_lattice.py::test_binomial_american 
+[gw0] [ 60%] FAILED tests/unit/pricing/test_lattice.py::test_binomial_american 
+tests/unit/pricing/test_lattice.py::test_trinomial_european 
+[gw0] [ 60%] FAILED tests/unit/pricing/test_lattice.py::test_trinomial_european 
+tests/unit/services/test_ml_service_v3.py::test_predict_shm_success 
+[gw0] [ 60%] FAILED tests/unit/services/test_ml_service_v3.py::test_predict_shm_success 
+tests/unit/services/test_ml_service_v3.py::test_predict_shm_failure_fallback 
+[gw2] [ 60%] FAILED tests/unit/pricing/test_monte_carlo.py::test_price_american_lsm 
+tests/unit/pricing/test_monte_carlo.py::test_geometric_asian_price 
+[gw2] [ 60%] PASSED tests/unit/pricing/test_monte_carlo.py::test_geometric_asian_price 
+tests/unit/pricing/test_monte_carlo.py::test_price_european_at_maturity 
+[gw2] [ 60%] FAILED tests/unit/pricing/test_monte_carlo.py::test_price_european_at_maturity 
+tests/unit/pricing/test_quant_utils.py::test_corrado_miller 
+[gw0] [ 61%] FAILED tests/unit/services/test_ml_service_v3.py::test_predict_shm_failure_fallback 
+tests/unit/services/test_ml_service_v3.py::test_ml_service_lifecycle 
+[gw0] [ 61%] FAILED tests/unit/services/test_ml_service_v3.py::test_ml_service_lifecycle 
+[gw3] [ 61%] FAILED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_invalid 
+tests/unit/shared/test_observability_v3.py::test_setup_logging_idempotent 
+tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_success 
+[gw0] [ 61%] PASSED tests/unit/shared/test_observability_v3.py::test_setup_logging_idempotent 
+tests/unit/shared/test_observability_v3.py::test_tune_gc 
+[gw0] [ 61%] PASSED tests/unit/shared/test_observability_v3.py::test_tune_gc 
+tests/unit/shared/test_observability_v3.py::test_tune_worker_resources 
+[gw0] [ 62%] PASSED tests/unit/shared/test_observability_v3.py::test_tune_worker_resources 
+tests/unit/shared/test_observability_v3.py::test_get_obs_client 
+[gw0] [ 62%] PASSED tests/unit/shared/test_observability_v3.py::test_get_obs_client 
+tests/unit/tasks/test_audit_tasks_v3.py::test_persist_audit_log_success 
+[gw0] [ 62%] ERROR tests/unit/tasks/test_audit_tasks_v3.py::test_persist_audit_log_success 
+tests/unit/tasks/test_audit_tasks_v3.py::test_persist_audit_log_failure 
+[gw1] [ 62%] FAILED tests/unit/pricing/test_vol_surface.py::test_sabr_model_vol 
+tests/unit/pricing/test_vol_surface.py::test_vol_surface_interpolation 
+[gw1] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_vol_surface_interpolation 
+tests/unit/pricing/test_vol_surface.py::test_calibration_engine_svi 
+[gw0] [ 62%] ERROR tests/unit/tasks/test_audit_tasks_v3.py::test_persist_audit_log_failure 
+tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_success 
+[gw0] [ 63%] FAILED tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_success 
+tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_failure 
+[gw0] [ 63%] FAILED tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_failure 
+tests/unit/tasks/test_email_tasks.py::test_send_transactional_email_success 
+[gw0] [ 63%] FAILED tests/unit/tasks/test_email_tasks.py::test_send_transactional_email_success 
+tests/unit/tasks/test_email_tasks.py::test_send_batch_marketing_emails 
+[gw0] [ 63%] PASSED tests/unit/tasks/test_email_tasks.py::test_send_batch_marketing_emails 
+tests/unit/tasks/test_email_tasks_v3.py::test_send_transactional_email_success 
+[gw0] [ 63%] ERROR tests/unit/tasks/test_email_tasks_v3.py::test_send_transactional_email_success 
+tests/unit/test_callbacks_improved.py::TestCallbacks::test_early_stopping 
+[gw0] [ 64%] FAILED tests/unit/test_callbacks_improved.py::TestCallbacks::test_early_stopping 
+tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_detect_drift_univariate 
+[gw0] [ 64%] PASSED tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_detect_drift_univariate 
+tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_detect_drift_multivariate 
+[gw0] [ 64%] PASSED tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_detect_drift_multivariate 
+tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_invalid_shapes 
+[gw0] [ 64%] PASSED tests/unit/test_data_drift_detector_improved.py::TestDataDriftDetector::test_invalid_shapes 
+tests/unit/test_debug_noop.py::test_noop 
+[gw0] [ 64%] PASSED tests/unit/test_debug_noop.py::test_noop 
+tests/unit/test_drift_improved.py::TestDrift::test_performance_drift_monitor 
+[gw0] [ 64%] FAILED tests/unit/test_drift_improved.py::TestDrift::test_performance_drift_monitor 
+tests/unit/test_drift_improved.py::TestDrift::test_calculate_ks_test 
+[gw0] [ 65%] FAILED tests/unit/test_drift_improved.py::TestDrift::test_calculate_ks_test 
+tests/unit/test_drift_improved.py::TestDrift::test_calculate_psi 
+[gw0] [ 65%] FAILED tests/unit/test_drift_improved.py::TestDrift::test_calculate_psi 
+tests/unit/test_drift_improved.py::TestDrift::test_drift_trigger 
+[gw0] [ 65%] PASSED tests/unit/test_drift_improved.py::TestDrift::test_drift_trigger 
+tests/unit/test_exotic_improved.py::TestExotic::test_asian_geometric 
+[gw2] [ 65%] FAILED tests/unit/pricing/test_quant_utils.py::test_corrado_miller 
+tests/unit/pricing/test_quant_utils.py::test_batch_bs_price 
+[gw0] [ 65%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_asian_geometric 
+tests/unit/test_exotic_improved.py::TestExotic::test_asian_arithmetic_mc 
+[gw0] [ 66%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_asian_arithmetic_mc 
+tests/unit/test_exotic_improved.py::TestExotic::test_barrier_analytical 
+[gw0] [ 66%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_barrier_analytical 
+tests/unit/test_exotic_improved.py::TestExotic::test_lookback_mc 
+[gw0] [ 66%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_lookback_mc 
+tests/unit/test_exotic_improved.py::TestExotic::test_digital_cash 
+[gw0] [ 66%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_digital_cash 
+tests/unit/test_exotic_improved.py::TestExotic::test_barrier_all_types 
+[gw3] [ 66%] FAILED tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_success 
+tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_error 
+[gw0] [ 66%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_barrier_all_types 
+tests/unit/test_exotic_improved.py::TestExotic::test_lookback_floating_analytical 
+[gw0] [ 67%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_lookback_floating_analytical 
+tests/unit/test_exotic_improved.py::TestExotic::test_digital_asset_or_nothing 
+[gw0] [ 67%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_digital_asset_or_nothing 
+tests/unit/test_exotic_improved.py::TestExotic::test_price_exotic_option_dispatch 
+[gw0] [ 67%] FAILED tests/unit/test_exotic_improved.py::TestExotic::test_price_exotic_option_dispatch 
+tests/unit/test_factory_improved.py::TestPricingFactory::test_get_bs_engine 
+[gw0] [ 67%] FAILED tests/unit/test_factory_improved.py::TestPricingFactory::test_get_bs_engine 
+tests/unit/test_factory_improved.py::TestPricingFactory::test_get_mc_engine 
+[gw0] [ 67%] FAILED tests/unit/test_factory_improved.py::TestPricingFactory::test_get_mc_engine 
+tests/unit/test_factory_improved.py::TestPricingFactory::test_engine_not_found 
+[gw0] [ 67%] PASSED tests/unit/test_factory_improved.py::TestPricingFactory::test_engine_not_found 
+tests/unit/test_factory_improved.py::TestPricingFactory::test_singleton_behavior 
+[gw0] [ 68%] PASSED tests/unit/test_factory_improved.py::TestPricingFactory::test_singleton_behavior 
+tests/unit/test_factory_improved.py::TestPricingFactory::test_default_override 
+[gw0] [ 68%] PASSED tests/unit/test_factory_improved.py::TestPricingFactory::test_default_override 
+tests/unit/test_health_reporter.py::test_get_health_report 
+[gw2] [ 68%] FAILED tests/unit/pricing/test_quant_utils.py::test_batch_bs_price 
+tests/unit/pricing/test_quant_utils.py::test_batch_greeks 
+[gw3] [ 68%] FAILED tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_error 
+tests/unit/tasks/test_trading_tasks_v3.py::test_check_risk_limits 
+[gw3] [ 68%] PASSED tests/unit/tasks/test_trading_tasks_v3.py::test_check_risk_limits 
+tests/unit/tasks/test_trading_tasks_v3.py::test_execute_trade_task_success 
+[gw3] [ 69%] FAILED tests/unit/tasks/test_trading_tasks_v3.py::test_execute_trade_task_success 
+tests/unit/tasks/test_trading_tasks_v3.py::test_execute_trade_task_invalid 
+[gw3] [ 69%] FAILED tests/unit/tasks/test_trading_tasks_v3.py::test_execute_trade_task_invalid 
+tests/unit/tasks/test_trading_tasks_v3.py::test_backtest_strategy_task_success 
+[gw3] [ 69%] FAILED tests/unit/tasks/test_trading_tasks_v3.py::test_backtest_strategy_task_success 
+tests/unit/test_aiops_engine.py::test_engine_remediates_high_error_rate 
+[gw2] [ 69%] FAILED tests/unit/pricing/test_quant_utils.py::test_batch_greeks 
+tests/unit/pricing/test_quant_utils.py::test_thomas_algorithm 
+[gw2] [ 69%] FAILED tests/unit/pricing/test_quant_utils.py::test_thomas_algorithm 
+tests/unit/pricing/test_quant_utils.py::test_newton_raphson_iv 
+[gw1] [ 69%] FAILED tests/unit/pricing/test_vol_surface.py::test_calibration_engine_svi 
+tests/unit/pricing/test_vol_surface.py::test_arbitrage_detector 
+[gw1] [ 70%] PASSED tests/unit/pricing/test_vol_surface.py::test_arbitrage_detector 
+tests/unit/pricing/test_vol_surface_extended.py::test_svi_parameters_validation 
+[gw1] [ 70%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_svi_parameters_validation 
+tests/unit/pricing/test_vol_surface_extended.py::test_svi_natural_to_raw 
+[gw1] [ 70%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_svi_natural_to_raw 
+tests/unit/pricing/test_vol_surface_extended.py::test_sabr_parameters_validation 
+[gw1] [ 70%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_sabr_parameters_validation 
+tests/unit/pricing/test_vol_surface_extended.py::test_svi_model_iv_and_derivatives 
+[gw1] [ 70%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_svi_model_iv_and_derivatives 
+tests/unit/pricing/test_vol_surface_extended.py::test_sabr_model_iv 
+[gw2] [ 71%] FAILED tests/unit/pricing/test_quant_utils.py::test_newton_raphson_iv 
+tests/unit/pricing/test_quant_utils.py::test_heston_char_func 
+[gw1] [ 71%] FAILED tests/unit/pricing/test_vol_surface_extended.py::test_sabr_model_iv 
+tests/unit/pricing/test_vol_surface_extended.py::test_calibration_engine 
+[gw2] [ 71%] PASSED tests/unit/pricing/test_quant_utils.py::test_heston_char_func 
+tests/unit/pricing/test_quant_utils.py::test_mc_methods 
+[gw0] [ 71%] FAILED tests/unit/test_health_reporter.py::test_get_health_report 
+tests/unit/test_health_reporter.py::test_get_health_report_degraded 
+[gw1] [ 71%] FAILED tests/unit/pricing/test_vol_surface_extended.py::test_calibration_engine 
+tests/unit/pricing/test_vol_surface_extended.py::test_volatility_surface_extended 
+[gw2] [ 71%] FAILED tests/unit/pricing/test_quant_utils.py::test_mc_methods 
+tests/unit/test_arbiter_improved.py::TestArbiter::test_route_batch 
+[gw2] [ 72%] FAILED tests/unit/test_arbiter_improved.py::TestArbiter::test_route_batch 
+tests/unit/test_autonomous_pipeline_improved.py::TestAutonomousPipeline::test_generate_features 
+[gw2] [ 72%] FAILED tests/unit/test_autonomous_pipeline_improved.py::TestAutonomousPipeline::test_generate_features 
+tests/unit/test_autonomous_pipeline_improved.py::TestAutonomousPipeline::test_prepare_training_data 
+[gw2] [ 72%] FAILED tests/unit/test_autonomous_pipeline_improved.py::TestAutonomousPipeline::test_prepare_training_data 
+tests/unit/test_black_scholes_improved.py::test_price_options_scalar 
+[gw2] [ 72%] PASSED tests/unit/test_black_scholes_improved.py::test_price_options_scalar 
+tests/unit/test_black_scholes_improved.py::test_price_options_vectorized 
+[gw2] [ 72%] PASSED tests/unit/test_black_scholes_improved.py::test_price_options_vectorized 
+tests/unit/test_black_scholes_improved.py::test_calculate_greeks 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_calculate_greeks 
+tests/unit/test_black_scholes_improved.py::test_put_call_parity 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_put_call_parity 
+tests/unit/test_black_scholes_improved.py::test_price_call_put 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_price_call_put 
+tests/unit/test_black_scholes_improved.py::test_price_batch 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_price_batch 
+tests/unit/test_black_scholes_improved.py::test_calculate_greeks_batch 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_calculate_greeks_batch 
+tests/unit/test_black_scholes_improved.py::test_instance_price 
+[gw2] [ 73%] PASSED tests/unit/test_black_scholes_improved.py::test_instance_price 
+tests/unit/test_black_scholes_improved.py::test_module_level_funcs 
+[gw2] [ 74%] PASSED tests/unit/test_black_scholes_improved.py::test_module_level_funcs 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_adx 
+[gw2] [ 74%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_adx 
+tests/unit/test_lattice_improved.py::TestLattice::test_binomial_pricer 
+[gw2] [ 74%] FAILED tests/unit/test_lattice_improved.py::TestLattice::test_binomial_pricer 
+tests/unit/test_lattice_improved.py::TestLattice::test_trinomial_pricer 
+[gw2] [ 74%] FAILED tests/unit/test_lattice_improved.py::TestLattice::test_trinomial_pricer 
+tests/unit/test_lattice_improved.py::TestLattice::test_calculate_greeks 
+[gw2] [ 74%] FAILED tests/unit/test_lattice_improved.py::TestLattice::test_calculate_greeks 
+tests/unit/test_lattice_improved.py::TestLattice::test_build_tree 
+[gw2] [ 75%] FAILED tests/unit/test_lattice_improved.py::TestLattice::test_build_tree 
+tests/unit/test_ml_distributed_real.py::test_distributed_trainer_execution 
+[gw1] [ 75%] FAILED tests/unit/pricing/test_vol_surface_extended.py::test_volatility_surface_extended 
+tests/unit/pricing/test_vol_surface_extended.py::test_arbitrage_detector_butterfly 
+[gw1] [ 75%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_arbitrage_detector_butterfly 
+tests/unit/pricing/test_vol_surface_extended.py::test_arbitrage_detector_calendar_and_svi 
+[gw1] [ 75%] PASSED tests/unit/pricing/test_vol_surface_extended.py::test_arbitrage_detector_calendar_and_svi 
+tests/unit/scrapers/test_concurrency.py::test_tab_multiplexing_concurrency 
+[gw1] [ 75%] FAILED tests/unit/scrapers/test_concurrency.py::test_tab_multiplexing_concurrency 
+tests/unit/scrapers/test_concurrency.py::test_scraper_shutdown 
+[gw1] [ 75%] FAILED tests/unit/scrapers/test_concurrency.py::test_scraper_shutdown 
+tests/unit/scrapers/test_nse_parsing.py::test_nse_cleaning_logic 
+[gw1] [ 76%] FAILED tests/unit/scrapers/test_nse_parsing.py::test_nse_cleaning_logic 
+tests/unit/scrapers/test_nse_parsing.py::test_nse_parsing_logic 
+[gw1] [ 76%] PASSED tests/unit/scrapers/test_nse_parsing.py::test_nse_parsing_logic 
+tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_calculate_greeks 
+[gw1] [ 76%] FAILED tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_calculate_greeks 
+tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_price_american_lsm 
+[gw1] [ 76%] FAILED tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_price_american_lsm 
+tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_sobol_method 
+[gw1] [ 76%] FAILED tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_sobol_method 
+tests/unit/test_pricing_main_improved.py::TestPricingMain::test_app_setup 
+[gw1] [ 76%] PASSED tests/unit/test_pricing_main_improved.py::TestPricingMain::test_app_setup 
+tests/unit/test_pricing_quantum.py::test_quantum_option_pricer_initialization 
+[gw1] [ 77%] FAILED tests/unit/test_pricing_quantum.py::test_quantum_option_pricer_initialization 
+tests/unit/test_pricing_quantum.py::test_create_stock_price_distribution 
+[gw1] [ 77%] PASSED tests/unit/test_pricing_quantum.py::test_create_stock_price_distribution 
+tests/unit/test_pricing_quantum.py::test_math_fallback_logic 
+[gw1] [ 77%] FAILED tests/unit/test_pricing_quantum.py::test_math_fallback_logic 
+tests/unit/test_pricing_quantum.py::test_price_european_call_quantum_success 
+[gw1] [ 77%] FAILED tests/unit/test_pricing_quantum.py::test_price_european_call_quantum_success 
+tests/unit/test_pricing_quantum.py::test_hybrid_pricer_selection 
+[gw1] [ 77%] FAILED tests/unit/test_pricing_quantum.py::test_hybrid_pricer_selection 
+tests/unit/test_pricing_quantum_real.py::test_qiskit_availability 
+[gw1] [ 78%] FAILED tests/unit/test_pricing_quantum_real.py::test_qiskit_availability 
+tests/unit/test_pricing_quantum_real.py::test_quantum_pricing_aer_execution 
+[gw1] [ 78%] SKIPPED tests/unit/test_pricing_quantum_real.py::test_quantum_pricing_aer_execution 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_generate_paths 
+[gw3] [ 78%] FAILED tests/unit/test_aiops_engine.py::test_engine_remediates_high_error_rate 
+tests/unit/test_aiops_engine.py::test_engine_detects_data_drift 
+[gw1] [ 78%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_generate_paths 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_generate_log_paths 
+[gw0] [ 78%] PASSED tests/unit/test_health_reporter.py::test_get_health_report_degraded 
+tests/unit/test_heston_fft_improved.py::TestHestonFFT::test_price_surface_fft 
+[gw0] [ 78%] FAILED tests/unit/test_heston_fft_improved.py::TestHestonFFT::test_price_surface_fft 
+tests/unit/test_heston_fft_improved.py::TestHestonFFT::test_batch_heston_price_jit 
+[gw0] [ 79%] FAILED tests/unit/test_heston_fft_improved.py::TestHestonFFT::test_batch_heston_price_jit 
+tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_implied_vol_scalar 
+[gw3] [ 79%] FAILED tests/unit/test_aiops_engine.py::test_engine_detects_data_drift 
+tests/unit/test_aiops_engine.py::test_engine_integrates_health_reporter 
+[gw0] [ 79%] FAILED tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_implied_vol_scalar 
+tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_implied_vol_vectorized 
+[gw0] [ 79%] FAILED tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_implied_vol_vectorized 
+tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_arbitrage_violation 
+[gw0] [ 79%] PASSED tests/unit/test_implied_vol_improved.py::TestImpliedVol::test_arbitrage_violation 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_ema 
+[gw0] [ 80%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_ema 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_rsi 
+[gw1] [ 80%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_generate_log_paths 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_batch_bs_price_jit 
+[gw0] [ 80%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_rsi 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_bbands 
+[gw0] [ 80%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_bbands 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_macd 
+[gw0] [ 80%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_macd 
+tests/unit/test_indicators_improved.py::TestIndicators::test_get_atr 
+[gw0] [ 80%] FAILED tests/unit/test_indicators_improved.py::TestIndicators::test_get_atr 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_with_control_variate 
+[gw0] [ 81%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_with_control_variate 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_lsm_american 
+[gw0] [ 81%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_lsm_american 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_scalar_bs_price_jit 
+[gw0] [ 81%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_scalar_bs_price_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_scalar_greeks_jit 
+[gw0] [ 81%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_scalar_greeks_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_corrado_miller_initial_guess 
+[gw1] [ 81%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_batch_bs_price_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_batch_greeks_jit 
+[gw0] [ 82%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_corrado_miller_initial_guess 
+tests/unit/test_router.py::test_router_nse_suffix 
+[gw0] [ 82%] PASSED tests/unit/test_router.py::test_router_nse_suffix 
+tests/unit/test_router.py::test_router_nse_market_flag 
+[gw0] [ 82%] PASSED tests/unit/test_router.py::test_router_nse_market_flag 
+tests/unit/test_router.py::test_router_crypto_detection 
+[gw1] [ 82%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_batch_greeks_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_thomas_algorithm 
+[gw0] [ 82%] FAILED tests/unit/test_router.py::test_router_crypto_detection 
+tests/unit/test_router.py::test_router_polygon_success 
+[gw0] [ 82%] PASSED tests/unit/test_router.py::test_router_polygon_success 
+tests/unit/test_router.py::test_router_fallback_to_yahoo 
+[gw0] [ 83%] PASSED tests/unit/test_router.py::test_router_fallback_to_yahoo 
+tests/unit/test_router_metrics.py::test_router_metrics_increment 
+[gw1] [ 83%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_thomas_algorithm 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_cn_solver 
+[gw0] [ 83%] FAILED tests/unit/test_router_metrics.py::test_router_metrics_increment 
+tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_ring_buffer_lifecycle 
+[gw0] [ 83%] FAILED tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_ring_buffer_lifecycle 
+tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_write_read_tick 
+[gw0] [ 83%] PASSED tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_write_read_tick 
+tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_wrap_around 
+[gw0] [ 83%] PASSED tests/unit/test_shm_mesh_improved.py::TestSHMMesh::test_wrap_around 
+tests/unit/test_strategies_improved.py::TestStrategies::test_get_strategy 
+[gw0] [ 84%] PASSED tests/unit/test_strategies_improved.py::TestStrategies::test_get_strategy 
+tests/unit/test_strategies_improved.py::TestStrategies::test_sklearn_strategy 
+[gw0] [ 84%] FAILED tests/unit/test_strategies_improved.py::TestStrategies::test_sklearn_strategy 
+tests/unit/test_strategies_improved.py::TestStrategies::test_pytorch_strategy 
+[gw0] [ 84%] FAILED tests/unit/test_strategies_improved.py::TestStrategies::test_pytorch_strategy 
+tests/unit/test_strategies_improved.py::TestStrategies::test_xgboost_strategy 
+[gw0] [ 84%] FAILED tests/unit/test_strategies_improved.py::TestStrategies::test_xgboost_strategy 
+tests/unit/test_tracker_improved.py::TestTracker::test_start_run 
+[gw0] [ 84%] FAILED tests/unit/test_tracker_improved.py::TestTracker::test_start_run 
+tests/unit/test_tracker_improved.py::TestTracker::test_log_params 
+[gw0] [ 85%] FAILED tests/unit/test_tracker_improved.py::TestTracker::test_log_params 
+tests/unit/test_tracker_improved.py::TestTracker::test_log_metrics 
+[gw0] [ 85%] FAILED tests/unit/test_tracker_improved.py::TestTracker::test_log_metrics 
+tests/unit/test_tracker_improved.py::TestTracker::test_log_feature_importance 
+[gw0] [ 85%] FAILED tests/unit/test_tracker_improved.py::TestTracker::test_log_feature_importance 
+tests/unit/test_trainer_improved.py::test_train_and_evaluate 
+[gw0] [ 85%] ERROR tests/unit/test_trainer_improved.py::test_train_and_evaluate 
+tests/unit/test_trainer_improved.py::test_optimize 
+[gw0] [ 85%] ERROR tests/unit/test_trainer_improved.py::test_optimize 
+tests/unit/test_transformer_detector_improved.py::TestTransformerDetectorReal::test_train_and_detect 
+[gw0] [ 85%] FAILED tests/unit/test_transformer_detector_improved.py::TestTransformerDetectorReal::test_train_and_detect 
+tests/unit/test_transformer_detector_improved.py::TestTransformerDetectorReal::test_feature_attribution 
+[gw0] [ 86%] FAILED tests/unit/test_transformer_detector_improved.py::TestTransformerDetectorReal::test_feature_attribution 
+tests/unit/test_validation_improved.py::TestValidation::test_expanding_window 
+[gw0] [ 86%] FAILED tests/unit/test_validation_improved.py::TestValidation::test_expanding_window 
+tests/unit/test_validation_improved.py::TestValidation::test_sliding_window 
+[gw0] [ 86%] PASSED tests/unit/test_validation_improved.py::TestValidation::test_sliding_window 
+tests/unit/test_vol_surface_improved.py::TestVolSurface::test_svi_model 
+[gw0] [ 86%] FAILED tests/unit/test_vol_surface_improved.py::TestVolSurface::test_svi_model 
+tests/unit/test_vol_surface_improved.py::TestVolSurface::test_sabr_model 
+[gw0] [ 86%] FAILED tests/unit/test_vol_surface_improved.py::TestVolSurface::test_sabr_model 
+tests/unit/test_vol_surface_improved.py::TestVolSurface::test_vol_surface 
+[gw0] [ 87%] FAILED tests/unit/test_vol_surface_improved.py::TestVolSurface::test_vol_surface 
+tests/unit/test_vol_surface_improved.py::TestVolSurface::test_calibration_engine 
+[gw1] [ 87%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_cn_solver 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_vectorized_newton_raphson_iv_jit 
+[gw0] [ 87%] FAILED tests/unit/test_vol_surface_improved.py::TestVolSurface::test_calibration_engine 
+tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_success 
+[gw0] [ 87%] FAILED tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_success 
+tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_veto 
+[gw0] [ 87%] FAILED tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_veto 
+tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_negative_limit 
+[gw1] [ 87%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_vectorized_newton_raphson_iv_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_heston_char_func_jit 
+[gw0] [ 88%] FAILED tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_negative_limit 
+tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_reset 
+[gw0] [ 88%] PASSED tests/unit/trading/test_incremental_risk.py::test_incremental_delta_tracker_reset 
+tests/unit/utils/test_cache.py::test_generate_cache_key 
+[gw0] [ 88%] FAILED tests/unit/utils/test_cache.py::test_generate_cache_key 
+tests/unit/utils/test_cache.py::test_pricing_cache 
+[gw0] [ 88%] PASSED tests/unit/utils/test_cache.py::test_pricing_cache 
+tests/unit/utils/test_cache.py::test_idempotency_manager 
+[gw0] [ 88%] PASSED tests/unit/utils/test_cache.py::test_idempotency_manager 
+tests/unit/utils/test_cache.py::test_rate_limiter 
+[gw0] [ 89%] PASSED tests/unit/utils/test_cache.py::test_rate_limiter 
+tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_success 
+[gw0] [ 89%] PASSED tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_success 
+tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_failure_and_open 
+[gw0] [ 89%] PASSED tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_failure_and_open 
+tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_half_open 
+[gw0] [ 89%] PASSED tests/unit/utils/test_circuit_breaker_v3.py::test_in_memory_circuit_breaker_half_open 
+tests/unit/utils/test_dashboard.py::test_generate_html_dashboard 
+[gw0] [ 89%] FAILED tests/unit/utils/test_dashboard.py::test_generate_html_dashboard 
+tests/unit/utils/test_errors.py::test_robust_pricing_task_decorator 
+[gw0] [ 89%] PASSED tests/unit/utils/test_errors.py::test_robust_pricing_task_decorator 
+tests/unit/utils/test_errors.py::test_service_unavailable_exception 
+[gw0] [ 90%] FAILED tests/unit/utils/test_errors.py::test_service_unavailable_exception 
+tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_valid 
+[gw0] [ 90%] PASSED tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_valid 
+tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_traversal 
+[gw0] [ 90%] PASSED tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_traversal 
+tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_relative_base 
+[gw0] [ 90%] PASSED tests/unit/utils/test_filesystem_v3.py::test_sanitize_path_relative_base 
+tests/unit/utils/test_sanitization.py::test_sanitize_string 
+[gw0] [ 90%] PASSED tests/unit/utils/test_sanitization.py::test_sanitize_string 
+tests/unit/utils/test_sanitization.py::test_sanitize_email 
+[gw0] [ 91%] PASSED tests/unit/utils/test_sanitization.py::test_sanitize_email 
+tests/unit/utils/test_sanitization.py::test_mask_email 
+[gw0] [ 91%] PASSED tests/unit/utils/test_sanitization.py::test_mask_email 
+tests/unit/webhooks/test_dispatcher_advanced.py::test_signature_generation_and_verification 
+[gw0] [ 91%] PASSED tests/unit/webhooks/test_dispatcher_advanced.py::test_signature_generation_and_verification 
+tests/unit/webhooks/test_dispatcher_advanced.py::test_signature_timestamp_tolerance 
+[gw0] [ 91%] PASSED tests/unit/webhooks/test_dispatcher_advanced.py::test_signature_timestamp_tolerance 
+tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_success 
+[gw0] [ 91%] FAILED tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_success 
+tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_circuit_breaker_open 
+[gw0] [ 91%] PASSED tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_circuit_breaker_open 
+tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_general_failure 
+[gw0] [ 92%] FAILED tests/unit/webhooks/test_dispatcher_advanced.py::test_dispatch_webhook_general_failure 
+tests/unit/workers/test_math_worker.py::test_recalibrate_symbol_success 
+[gw0] [ 92%] FAILED tests/unit/workers/test_math_worker.py::test_recalibrate_symbol_success 
+tests/unit/workers/test_math_worker.py::test_health_check_success 
+[gw0] [ 92%] FAILED tests/unit/workers/test_math_worker.py::test_health_check_success 
+tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_async_no_data 
+[gw0] [ 92%] PASSED tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_async_no_data 
+tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_async_success 
+[gw0] [ 92%] FAILED tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_async_success 
+tests/unit/workers/test_math_worker_unit.py::test_calibration_worker_integration 
+[gw0] [ 92%] PASSED tests/unit/workers/test_math_worker_unit.py::test_calibration_worker_integration 
+tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_task_failure 
+[gw0] [ 93%] FAILED tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_task_failure 
+tests/integration/api/test_ml_endpoints.py::test_ml_comparison_endpoint 
+[gw0] [ 93%] FAILED tests/integration/api/test_ml_endpoints.py::test_ml_comparison_endpoint 
+tests/integration/api/test_ml_endpoints.py::test_ml_predictions_endpoint 
+[gw1] [ 93%] PASSED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_heston_char_func_jit 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_price 
+[gw2] [ 93%] FAILED tests/unit/test_ml_distributed_real.py::test_distributed_trainer_execution 
+[gw0] [ 93%] FAILED tests/integration/api/test_ml_endpoints.py::test_ml_predictions_endpoint 
+tests/integration/database/test_market_mesh_schema.py::test_market_data_mesh_table_exists 
+[gw0] [ 94%] FAILED tests/integration/database/test_market_mesh_schema.py::test_market_data_mesh_table_exists 
+tests/integration/database/test_market_mesh_schema.py::test_market_data_mesh_columns 
+[gw0] [ 94%] FAILED tests/integration/database/test_market_mesh_schema.py::test_market_data_mesh_columns 
+tests/integration/infra/test_docker_config_integration.py::test_docker_neural_pricing_optimization 
+[gw0] [ 94%] SKIPPED tests/integration/infra/test_docker_config_integration.py::test_docker_neural_pricing_optimization 
+tests/integration/market/test_ticker_flow.py::test_ticker_ingestion_integration 
+tests/unit/test_ml_gnn.py::test_gnn_feature_extractor_forward_pass 
+[gw2] [ 94%] FAILED tests/unit/test_ml_gnn.py::test_gnn_feature_extractor_forward_pass 
+tests/unit/test_ml_gnn.py::test_gnn_feature_extractor_with_different_sizes 
+[gw2] [ 94%] FAILED tests/unit/test_ml_gnn.py::test_gnn_feature_extractor_with_different_sizes 
+tests/unit/test_mmd_improved.py::TestMMD::test_calculate_mmd_same_dist 
+[gw2] [ 94%] FAILED tests/unit/test_mmd_improved.py::TestMMD::test_calculate_mmd_same_dist 
+tests/unit/test_mmd_improved.py::TestMMD::test_calculate_mmd_diff_dist 
+[gw2] [ 95%] FAILED tests/unit/test_mmd_improved.py::TestMMD::test_calculate_mmd_diff_dist 
+tests/unit/test_mmd_improved.py::TestMMD::test_multivariate_drift_detector 
+[gw2] [ 95%] FAILED tests/unit/test_mmd_improved.py::TestMMD::test_multivariate_drift_detector 
+tests/unit/test_models_improved.py::test_bs_parameters_validation 
+[gw2] [ 95%] PASSED tests/unit/test_models_improved.py::test_bs_parameters_validation 
+tests/unit/test_models_improved.py::test_option_greeks 
+[gw2] [ 95%] PASSED tests/unit/test_models_improved.py::test_option_greeks 
+tests/unit/test_models_improved.py::test_heston_params_validation 
+[gw2] [ 95%] PASSED tests/unit/test_models_improved.py::test_heston_params_validation 
+tests/unit/test_models_improved.py::test_model_pool 
+[gw2] [ 96%] PASSED tests/unit/test_models_improved.py::test_model_pool 
+tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_price_european 
+[gw2] [ 96%] FAILED tests/unit/test_monte_carlo_improved.py::TestMonteCarlo::test_price_european 
+tests/integration/test_auth_bypass.py::test_auth_registration_email_bypass 
+[gw2] [ 96%] ERROR tests/integration/test_auth_bypass.py::test_auth_registration_email_bypass 
+tests/integration/test_market_router.py::test_market_router_integration 
+[gw1] [ 96%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_price 
+tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_price_and_greeks 
+[gw1] [ 96%] FAILED tests/unit/test_quant_utils_improved.py::TestQuantUtils::test_jit_mc_european_price_and_greeks 
+tests/integration/test_rabbitmq_ingestion.py::test_ingestion_service_to_rabbitmq 
+[gw1] [ 96%] PASSED tests/integration/test_rabbitmq_ingestion.py::test_ingestion_service_to_rabbitmq 
+tests/integration/test_rabbitmq_ingestion.py::test_ingestion_service_outlier_rejection 
+[gw1] [ 97%] FAILED tests/integration/test_rabbitmq_ingestion.py::test_ingestion_service_outlier_rejection 
+tests/integration/workers/test_math_worker.py::TestMathWorkerIntegration::test_recalibrate_symbol_flow 
+[gw1] [ 97%] PASSED tests/integration/workers/test_math_worker.py::TestMathWorkerIntegration::test_recalibrate_symbol_flow 
+[gw2] [ 97%] SKIPPED tests/integration/test_market_router.py::test_market_router_integration 
+tests/integration/test_market_router.py::test_market_router_staggered_race 
+[gw0] [ 97%] FAILED tests/integration/market/test_ticker_flow.py::test_ticker_ingestion_integration 
+tests/integration/ml/test_sentiment_pipeline.py::test_sentiment_ingestor_process_real_rabbitmq 
+[gw2] [ 97%] FAILED tests/integration/test_market_router.py::test_market_router_staggered_race 

@@ -21,8 +21,8 @@ async def test_pillar_1_ingestion():
             f.write(os.urandom(1024 * 32))  # 1024 ticks
 
         parser = Manifold_core.TickDataBuffer(tick_file)
-        ticks = parser.parse_ticks_32b(0, 100)
-        logger.info("ingestion_verified", count=len(ticks), first_symbol=ticks[0][0])
+        ticks = parser.parse_all()
+        logger.info("ingestion_verified", count=len(ticks), first_symbol_id=ticks[0].symbol_id)
         os.remove(tick_file)
         print("   ✅ Rust MMap Parser functional.")
     except Exception as e:
