@@ -88,9 +88,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build Base Images
+        run: |
+          docker build --target builder -t manifold-base:builder -f infrastructure/orchestration/Dockerfile.base .
+          docker build -t manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
+
       - name: Build API Container (Institutional)
         run: |
-          docker build -t equaflow/api:${{ github.sha }} -f docker/Dockerfile.api .
+          docker build -t equaflow/api:${{ github.sha }} -f infrastructure/orchestration/Dockerfile.api .
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@master
