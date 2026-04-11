@@ -5,6 +5,10 @@ set -euo pipefail
 source scripts/utils_env.sh
 load_decrypted_secrets
 
+# Ensure pgbouncer/engine health checks don't fail due to password length in dev
+export BSOPT_ALLOW_WEAK_SECRETS=true
+export PGBOUNCER_ENABLED=true
+
 echo "--- STEP 1: Running Redis until healthy ---"
 # We need to export the decrypted REDIS_PASSWORD so the python script can use it
 ./.venv/bin/python scripts/run_redis_healthy.py
@@ -18,3 +22,6 @@ echo "--- STEP 3: Revamping and fully optimizing the engine ---"
 
 echo "--- STEP 4: Final Engine Health Report ---"
 ./.venv/bin/python scripts/engine_health.py --auto-fix
+
+echo "--- STEP 5: Manifold Core Health Report ---"
+./.venv/bin/python scripts/manifold_health_report.py

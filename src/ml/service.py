@@ -118,7 +118,7 @@ class MLService:
 
             import msgspec
 
-            input_features_json = msgspec.json.encode(request).decode()
+            input_features_json = msgspec.json.encode(request.model_dump()).decode()
 
             # Format for VectorizedDBEngine.insert_predictions_bulk
             # columns: (timestamp, symbol, model_id, input_features, predicted_price)

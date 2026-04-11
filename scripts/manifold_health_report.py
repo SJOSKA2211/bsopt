@@ -1,7 +1,15 @@
+#!/usr/bin/env python3
+import sys
+import os
+import numpy as np
+
+# Add src to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.math_kernel.rust_engine import get_rust_metrics
 from src.math_kernel.factory import PricingEngineFactory
 from src.math_kernel.models import BSParameters
-import numpy as np
+
 
 def run_health_report():
     print("=" * 60)

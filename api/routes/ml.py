@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.middleware.jwt_validator import require_tier
 from api.responses import MsgspecJSONResponse
-from api.schemas.common import DataResponse
+from api.schemas.common import DataResponse, DataResponseStruct
 from api.schemas.ml import (
     ComparisonMetrics,
     DriftMetricsResponse,
@@ -54,19 +54,19 @@ async def predict(
     model_type: str = "xgb",
     current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponse[InferenceResponse]:
+) -> MsgspecJSONResponse:
     """Predict option price using ML models."""
-    return DataResponse(data=await ml_service.predict(request, model_type, symbol))
+    return MsgspecJSONResponse(content=DataResponseStruct(data=await ml_service.predict(request, model_type, symbol)))
 
 
-@router.get("/predictions", response_model=DataResponse[InferenceResponse])
+@router.get("/predictions", response_model=None)
 @ml_client_circuit
 async def get_predictions(
     symbol: str | None = None,
     model_type: str = "xgb",
     current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponse[InferenceResponse]:
+) -> MsgspecJSONResponse:
     """
     Convenience endpoint for the frontend dashboard.
     """
@@ -78,7 +78,7 @@ async def get_predictions(
 
     symbol = sanitize_alphanumeric(symbol.strip().upper())
     if not symbol or len(symbol) > 10:
-        return DataResponse(data=None, message="Invalid symbol")
+        return MsgspecJSONResponse(content=DataResponseStruct(data=None, message="Invalid symbol", success=False), status_code=400)
 
     base_price = 100.0
     req = InferenceRequest(
@@ -92,21 +92,21 @@ async def get_predictions(
         days_to_expiry=365.0,
         implied_volatility=0.2,
     )
-    return DataResponse(data=await ml_service.predict(req, model_type, symbol))
+    return MsgspecJSONResponse(content=DataResponseStruct(data=await ml_service.predict(req, model_type, symbol)))
 
 
 @router.get(
     "/drift-metrics",
-    response_model=DataResponse[DriftMetricsResponse],
+    response_model=None,
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
-) -> DataResponse[DriftMetricsResponse]:
+) -> MsgspecJSONResponse:
     """Fetch model performance metrics (Async Optimized)."""
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
-    return DataResponse(data=DriftMetricsResponse(metrics=metrics))
+    return MsgspecJSONResponse(content=DataResponseStruct(data=DriftMetricsResponse(metrics=metrics)))
 
 
 @router.post(
