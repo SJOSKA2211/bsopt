@@ -46,9 +46,11 @@ async def check_rabbitmq() -> bool:
     """Verifies connectivity with RabbitMQ."""
     try:
         rmq = get_rabbitmq()
-        if not rmq.connection or rmq.connection.is_closed:
+        if not rmq._connection_pool:
             await rmq.connect()
-        return not rmq.connection.is_closed
+        # Pool is active, let's try to acquire a connection to be sure
+        async with rmq._connection_pool.acquire() as conn:
+            return not conn.is_closed
     except Exception as e:
         logger.error("health_rabbitmq_check_failed", error=str(e))
         return False
