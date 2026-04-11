@@ -1,0 +1,16 @@
+🔐 Decrypting Secrets...
+Setting POSTGRES_PASSWORD to bsopt_postgres_secret
+Setting JWT_SECRET to jwt_secret_long_enough_to_pass_validation_32
+Setting BETTER_AUTH_SECRET to better_auth_secret_long_enough_to_pass_validation_32
+Setting MINIO_ROOT_PASSWORD to bsopt_minio_secret
+[INFO] Starting granian (main PID: 372478)
+[INFO] Listening at: http://0.0.0.0:8000
+[INFO] Spawning worker-1 with PID: 372485
+2026-04-11 14:47:57 [debug    ] derived_mfa_key
+[INFO] HUP signal received, gracefully respawning workers..
+[INFO] Respawning worker-1
+[INFO] Spawning worker-1 with PID: 372817
+[ERROR] Unexpected exit from worker-1
+2026-04-11 14:48:03 [debug    ] derived_mfa_key
+[INFO] Stopping old worker-1
+[INFO] Shutting down granian

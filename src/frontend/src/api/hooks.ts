@@ -1,4 +1,5 @@
-import { useQuery, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useQuery as useReactQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect } from 'react';
