@@ -1,10 +1,8 @@
 import React from 'react';
-import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, useTheme, IconButton } from '@mui/material';
+import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, IconButton, Tooltip } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 
 export const OrderTicket: React.FC = () => {
-  const theme = useTheme();
-
   return (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 320 }}>
       {/* Header Info */}
@@ -62,9 +60,13 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>QUANTITY</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <Tooltip title="Decrease Quantity">
+            <IconButton size="small" aria-label="Decrease Quantity"><RemoveIcon fontSize="small" /></IconButton>
+          </Tooltip>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>18</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <Tooltip title="Increase Quantity">
+            <IconButton size="small" aria-label="Increase Quantity"><AddIcon fontSize="small" /></IconButton>
+          </Tooltip>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           {['10', '50', '100', 'MAX'].map(val => (
@@ -85,9 +87,13 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>LIMIT PRICE</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <Tooltip title="Decrease Limit Price">
+            <IconButton size="small" aria-label="Decrease Limit Price"><RemoveIcon fontSize="small" /></IconButton>
+          </Tooltip>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>4.25</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <Tooltip title="Increase Limit Price">
+            <IconButton size="small" aria-label="Increase Limit Price"><AddIcon fontSize="small" /></IconButton>
+          </Tooltip>
         </Stack>
       </Box>
 
@@ -138,7 +144,7 @@ export const OrderTicket: React.FC = () => {
   );
 };
 
-const Chip = ({ label, size, sx }: any) => (
+const Chip = ({ label, sx }: any) => (
   <Box sx={{ 
     px: 1, 
     borderRadius: 1, 
