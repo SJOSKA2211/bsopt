@@ -1,15 +1,14 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
+
+# Mock the cache decorator BEFORE ANY other imports
+patch("src.shared.utils.cache.multi_layer_cache", lambda *args, **kwargs: (lambda f: f)).start()
+
 import json
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, UTC
-
-import pytest
 from fastapi.testclient import TestClient
-
-# Mock the cache decorator BEFORE importing app/routes
-with patch("src.shared.utils.cache.multi_layer_cache", lambda *args, **kwargs: (lambda f: f)):
-    from api.index import app
-    from api.routes.pricing import pricing_service
+...
 
 from src.auth.auth import get_current_active_user, get_current_user, auth_service
 from src.auth.core.tokens import TokenData
