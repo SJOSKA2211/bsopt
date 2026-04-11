@@ -540,21 +540,6 @@ def vectorized_newton_raphson_iv_jit(
 
 
 @njit_engine
-def thomas_algorithm(
-    a: np.ndarray[Any, np.dtype[np.float64]],
-    b: np.ndarray[Any, np.dtype[np.float64]],
-    c: np.ndarray[Any, np.dtype[np.float64]],
-    d: np.ndarray[Any, np.dtype[np.float64]],
-) -> np.ndarray[Any, np.dtype[np.float64]]:
-    """Solve tridiagonal system of linear equations."""
-    n = len(d)
-    c_new = np.zeros(n - 1)
-    d_new = np.zeros(n)
-    x = np.zeros(n)
-    return thomas_algorithm_out(a, b, c, d, c_new, d_new, x)
-
-
-@njit_engine
 def thomas_algorithm_out(
     a: np.ndarray[Any, np.dtype[np.float64]],
     b: np.ndarray[Any, np.dtype[np.float64]],
@@ -582,6 +567,21 @@ def thomas_algorithm_out(
             x[i] = d_new[i] - c_new[i] * x[i + 1]
         return x
     return np.zeros(0)
+
+
+@njit_engine
+def thomas_algorithm(
+    a: np.ndarray[Any, np.dtype[np.float64]],
+    b: np.ndarray[Any, np.dtype[np.float64]],
+    c: np.ndarray[Any, np.dtype[np.float64]],
+    d: np.ndarray[Any, np.dtype[np.float64]],
+) -> np.ndarray[Any, np.dtype[np.float64]]:
+    """Solve tridiagonal system of linear equations."""
+    n = len(d)
+    c_new = np.zeros(n - 1)
+    d_new = np.zeros(n)
+    x = np.zeros(n)
+    return thomas_algorithm_out(a, b, c, d, c_new, d_new, x)
 
 
 @njit_engine(fastmath=True)
