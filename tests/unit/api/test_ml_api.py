@@ -85,7 +85,7 @@ def test_get_predictions_success(mock_ml_service):
     assert response.status_code == 200
     assert response.json()["data"]["price"] == 15.0
 
-def test_get_drift_metrics_success(db_session):
+def test_get_drift_metrics_success(mock_db_session):
     # Drift metrics uses get_model_drift_metrics CRUD
     with patch("api.routes.ml.get_model_drift_metrics") as mock_get_metrics:
         from datetime import datetime, UTC
