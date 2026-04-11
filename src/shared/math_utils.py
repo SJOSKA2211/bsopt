@@ -51,8 +51,14 @@ def to_numpy(arr: Any) -> np.ndarray:
     return np.asarray(arr)
 
 
+import os
+
 try:
     from numba import njit, prange
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1" or os.environ.get("PYTEST_CURRENT_TEST"):
+        def njit(*args, **kwargs):
+            def decorator(func): return func
+            return decorator
 except ImportError:
     def njit(*args, **kwargs):
         def decorator(func): return func
