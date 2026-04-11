@@ -5,13 +5,13 @@ import sys
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
 os.environ["LOG_SAMPLING_RATE"] = "1.0"
 os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost/testdb"
-os.environ["REDIS_PASSWORD"] = "short_but_valid_for_test"
-os.environ["RABBITMQ_PASSWORD"] = "short_but_valid_for_test"
-os.environ["AUDIT_VAULT_KEY"] = "short_but_valid_for_test"
-os.environ["BETTER_AUTH_SECRET"] = "short_but_valid_for_test"
-os.environ["JWT_SECRET"] = "short_but_valid_for_test"
-os.environ["PGBOUNCER_ADMIN_PASSWORD"] = "short_but_valid_for_test"
-os.environ["MINIO_ROOT_PASSWORD"] = "short_but_valid_for_test"
+os.environ["REDIS_PASSWORD"] = "a_very_long_redis_password_that_is_at_least_32_chars"
+os.environ["RABBITMQ_PASSWORD"] = "a_very_long_rabbitmq_password_that_is_at_least_32_chars"
+os.environ["AUDIT_VAULT_KEY"] = "a_very_long_audit_vault_key_that_is_at_least_32_chars"
+os.environ["BETTER_AUTH_SECRET"] = "a_very_long_better_auth_secret_that_is_at_least_32_chars"
+os.environ["JWT_SECRET"] = "a_very_long_jwt_secret_that_is_at_least_32_chars"
+os.environ["PGBOUNCER_ADMIN_PASSWORD"] = "a_very_long_pgbouncer_admin_password_that_is_at_least_32_chars"
+os.environ["MINIO_ROOT_PASSWORD"] = "a_very_long_minio_root_password_that_is_at_least_32_chars"
 
 import multiprocessing
 import multiprocessing.connection
