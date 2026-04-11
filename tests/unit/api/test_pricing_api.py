@@ -70,6 +70,12 @@ def reset_circuits():
     pricing_circuit.reset()
     yield
 
+@pytest.fixture(autouse=True)
+async def clear_cache():
+    from src.shared.utils.cache import cache_manager
+    await cache_manager.clear_all()
+    yield
+
 @pytest.fixture
 def mock_engine():
     engine = MagicMock()
@@ -80,7 +86,10 @@ def mock_engine():
     engine.price_european.return_value = result
     
     # for calculate_greeks
-    engine.calculate_greeks.return_value = result.greeks
+    from api.schemas.pricing import OptionGreeksStruct
+    engine.calculate_greeks.return_value = OptionGreeksStruct(
+        delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02
+    )
     return engine
 
 def test_calculate_price_success(mock_engine):
