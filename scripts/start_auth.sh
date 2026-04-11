@@ -21,7 +21,7 @@ export BSOPT_ALLOW_WEAK_SECRETS=true
 
 # Execute with Python substrate
 cd "$PROJECT_ROOT"
-export PYTHONPATH="$PROJECT_ROOT"
+export PYTHONPATH="."
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
