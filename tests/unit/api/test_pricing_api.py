@@ -1,6 +1,7 @@
 import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime, UTC
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,7 +11,7 @@ from src.auth.auth import get_current_active_user, get_current_user, auth_servic
 from src.auth.core.tokens import TokenData
 from src.database.models import User
 from src.shared.utils.cache import get_redis_client
-
+from api.schemas.pricing import PriceResult, OptionGreeksStruct, BatchPriceResult
 
 def create_mock_redis():
     mock_redis = AsyncMock()
@@ -21,20 +22,17 @@ def create_mock_redis():
     mock_redis.set.return_value = True
     return mock_redis
 
-
 GLOBAL_MOCK_REDIS = create_mock_redis()
-
 
 @pytest.fixture
 def mock_user():
     return User(
-        id=MagicMock(),
+        id="test-user-id",
         email="test@example.com",
-        tier="free",
+        tier="pro",
         is_active=True,
         is_verified=True
     )
-
 
 @pytest.fixture(autouse=True)
 def setup_api_mocks(mock_user):
@@ -43,34 +41,28 @@ def setup_api_mocks(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_redis_client] = lambda: GLOBAL_MOCK_REDIS
     
+    from api.middleware.jwt_validator import require_auth
+    mock_claims = MagicMock()
+    mock_claims.tier = "pro"
+    mock_claims.user_id = "test-user-id"
+    app.dependency_overrides[require_auth] = lambda: mock_claims
+
     # Patch the middleware's auth service hop
     with patch.object(auth_service, "validate_token", new_callable=AsyncMock) as mock_val:
         mock_val.return_value = TokenData(
-            user_id="1",
+            user_id="test-user-id",
             email="test@example.com",
-            tier="free",
+            tier="pro",
             token_type="access",
             jti="jti123",
-            exp=datetime.now() if 'datetime' in globals() else time.time() + 3600,
+            exp=time.time() + 3600,
             iat=time.time()
         )
         yield mock_val
         
     app.dependency_overrides.clear()
 
-
 client = TestClient(app, raise_server_exceptions=False)
-
-from api.middleware.jwt_validator import require_auth
-@pytest.fixture(autouse=True)
-def override_auth():
-    mock_claims = MagicMock()
-    mock_claims.tier = "pro"
-    app.dependency_overrides[require_auth] = lambda: mock_claims
-    yield
-    app.dependency_overrides.clear()
-
-
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
@@ -78,19 +70,21 @@ def reset_circuits():
     pricing_circuit.reset()
     yield
 
-
 @pytest.fixture
-def mock_strategy():
-    strategy = MagicMock()
-    strategy.price.return_value = 10.5
-    strategy.calculate_greeks.return_value = MagicMock(
-        delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02
-    )
-    return strategy
+def mock_engine():
+    engine = MagicMock()
+    # pricing_service calls engine.price_european
+    result = MagicMock()
+    result.price = 10.5
+    result.greeks = MagicMock(delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02)
+    engine.price_european.return_value = result
+    
+    # for calculate_greeks
+    engine.calculate_greeks.return_value = result.greeks
+    return engine
 
-
-def test_calculate_price_success(mock_strategy):
-    with patch("src.math_kernel.factory.PricingEngineFactory.get_engine", return_value=mock_strategy):
+def test_calculate_price_success(mock_engine):
+    with patch("src.math_kernel.service.PricingEngineFactory.get_engine", return_value=mock_engine):
         payload = {
             "spot": 100.0,
             "strike": 105.0,
@@ -109,10 +103,9 @@ def test_calculate_price_success(mock_strategy):
         data = response.json()
         assert data["price"] == 10.5
 
-
-def test_calculate_price_invalid_params(mock_strategy):
-    mock_strategy.price.side_effect = ValueError("Invalid spot price")
-    with patch("src.math_kernel.factory.PricingEngineFactory.get_engine", return_value=mock_strategy):
+def test_calculate_price_invalid_params(mock_engine):
+    mock_engine.price_european.side_effect = ValueError("Invalid spot price")
+    with patch("src.math_kernel.service.PricingEngineFactory.get_engine", return_value=mock_engine):
         payload = {
             "spot": -100.0, # Invalid
             "strike": 105.0,
@@ -127,9 +120,8 @@ def test_calculate_price_invalid_params(mock_strategy):
             json=payload,
             headers={"Authorization": "Bearer some_token"}
         )
-        # Should be 400 or 422 depending on how ValueError is handled
-        assert response.status_code in (400, 422, 500)
-
+        # Should be 500 because PricingService catches generic Exception and raises 500
+        assert response.status_code == 500
 
 def test_calculate_price_validation_error():
     payload = {"strike": 105.0} # Missing required fields
@@ -140,16 +132,14 @@ def test_calculate_price_validation_error():
     )
     assert response.status_code == 422
 
-
-def test_calculate_batch_prices_success(mock_strategy):
+def test_calculate_batch_prices_success():
     from api.routes.pricing import pricing_service
     with patch.object(pricing_service, "price_batch", new_callable=AsyncMock) as mock_batch:
-        from api.schemas.pricing import BatchPriceResult
         mock_batch.return_value = BatchPriceResult(
             results=[],
-            total_count=2,
-            cached_count=0,
-            computation_time_ms=10.0
+            total_count=0,
+            computation_time_ms=10.0,
+            cached_count=0
         )
         payload = {
             "options": [
@@ -171,11 +161,8 @@ def test_calculate_batch_prices_success(mock_strategy):
         )
         assert response.status_code == 200
 
-
-def test_calculate_greeks_success(mock_strategy):
-    from api.routes.pricing import pricing_service
-    with patch.object(pricing_service, "calculate_greeks", new_callable=AsyncMock) as mock_greeks:
-        mock_greeks.return_value = {"delta": 0.5, "gamma": 0.05}
+def test_calculate_greeks_success(mock_engine):
+    with patch("src.math_kernel.service.PricingEngineFactory.get_engine", return_value=mock_engine):
         payload = {
             "spot": 100.0,
             "strike": 100.0,
@@ -191,7 +178,6 @@ def test_calculate_greeks_success(mock_strategy):
         )
         assert response.status_code == 200
 
-
 def test_calculate_price_heston_success():
     payload = {
         "spot": 100.0,
@@ -204,17 +190,20 @@ def test_calculate_price_heston_success():
         "symbol": "SPY",
     }
     
-    # Mock PricingService.price_option directly to avoid complex Heston setup
     from api.routes.pricing import pricing_service
     with patch.object(pricing_service, "price_option", new_callable=AsyncMock) as mock_price:
-        from api.schemas.pricing import PriceResult
         mock_price.return_value = PriceResult(
             price=12.34,
-            model="Heston-FFT",
             spot=100.0,
             strike=105.0,
+            time_to_expiry=0.5,
+            rate=0.05,
+            volatility=0.2,
+            option_type="call",
+            model="heston",
+            computation_time_ms=1.0,
             cached=False,
-            greeks={}, computation_time_ms=0.0
+            greeks=None
         )
         response = client.post(
             "/api/v1/pricing/price", 
