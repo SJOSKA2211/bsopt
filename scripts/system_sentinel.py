@@ -71,33 +71,32 @@ async def check_database():
 async def check_pgbouncer():
     print("Checking PgBouncer Pool Engine...", end=" ", flush=True)
     from src.shared.config import settings
+    import psycopg
     
-    # Override with env vars if present (for run_pgbouncer.sh)
     host = os.environ.get('PGBOUNCER_HOST', settings.PGBOUNCER_HOST)
     port = int(os.environ.get('PGBOUNCER_PORT', settings.PGBOUNCER_PORT))
     
-    # Connect to the special 'pgbouncer' database
-    admin_url = f"postgresql+psycopg://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer"
+    conn_str = f"host={host} port={port} user={settings.PGBOUNCER_ADMIN_USER} password={settings.PGBOUNCER_ADMIN_PASSWORD} dbname=pgbouncer"
     
     try:
-        # Use a temporary engine for the admin check
-        engine = create_engine(admin_url).execution_options(isolation_level="AUTOCOMMIT")
-        with engine.connect() as conn:
-            # Phase 2 needs AUTOCOMMIT for some SHOW commands, but SELECT is fine
-            # SHOW POOLS returns statistics about each pool
-            pools = conn.execute(text("SHOW POOLS")).fetchall()
-            
-            total_active = 0
-            total_waiting = 0
-            for pool in pools:
-                # pool fields: database, user, cl_active, cl_waiting, sv_active, sv_idle, ...
-                total_active += pool.cl_active
-                total_waiting += pool.cl_waiting
-            
-            if total_waiting > 0:
-                print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
-            else:
-                print(f" [HEALTHY: {total_active} active connections] [HEALTHY]") # Added [HEALTHY] for grep
+        with psycopg.connect(conn_str, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SHOW POOLS")
+                pools = cur.fetchall()
+                
+                total_active = 0
+                total_waiting = 0
+                # SHOW POOLS columns: database, user, cl_active, cl_waiting, sv_active, sv_idle, ...
+                # psycopg fetchall returns list of tuples. We need to find the right indices.
+                # Usually: database(0), user(1), cl_active(2), cl_waiting(3)
+                for pool in pools:
+                    total_active += pool[2]
+                    total_waiting += pool[3]
+                
+                if total_waiting > 0:
+                    print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
+                else:
+                    print(f" [HEALTHY: {total_active} active connections] [HEALTHY]")
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
