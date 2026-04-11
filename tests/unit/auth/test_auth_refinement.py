@@ -58,7 +58,7 @@ async def test_redis_token_revocation(auth_service):
     # Mock exists to return 1 (True in Redis)
     mock_redis.exists.return_value = 1
 
-    with patch("src.auth.auth.get_redis_client", return_value=mock_redis):
+    with patch("src.auth.core.sessions.get_redis_client", return_value=mock_redis):
         is_revoked = await auth_service.is_token_revoked(jti)
         assert is_revoked is True
         mock_redis.exists.assert_called_once_with(f"blacklist:{jti}")
