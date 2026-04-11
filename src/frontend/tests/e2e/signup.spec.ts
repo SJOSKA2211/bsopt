@@ -9,19 +9,18 @@ test.describe('Sign Up Flow', () => {
     await page.goto('/signup', { waitUntil: 'networkidle', timeout: 120000 });
 
     // Wait for the signup form to be visible - using a more robust selector
-    await expect(page.getByRole('heading', { name: /Create an account/i })).toBeVisible({ timeout: 90000 });
+    await expect(page.getByRole('heading', { name: /BS_OPT/i })).toBeVisible({ timeout: 90000 });
 
     // Fill in the sign up form
-    await page.fill('input[name="name"]', 'Test User');
-    await page.fill('input[name="email"]', uniqueEmail);
-    await page.fill('input[name="password"]', 'SecurePass123!');
+    await page.getByPlaceholder('Quant Operative Name').fill('Test User');
+    await page.getByPlaceholder('id@bsopt.pro').fill(uniqueEmail);
+    await page.getByPlaceholder('••••••••').fill('SecurePass123!');
 
     // Submit the form
-    await page.getByRole('button', { name: /Sign Up/i }).click();
+    await page.getByRole('button', { name: /INITIALIZE_ACCOUNT/i }).click();
 
     // Expect the success message or redirection
-    // Based on the code, it shows "Account created! Redirecting to login..."
-    await expect(page.locator('text=Account created! Redirecting to login...')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Account created! Redirecting_to_terminal...')).toBeVisible({ timeout: 10000 });
 
     // Wait for the redirect to login page
     await expect(page).toHaveURL(/\/login/, { timeout: 10000 });

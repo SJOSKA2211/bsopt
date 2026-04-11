@@ -26,8 +26,8 @@ echo "DEBUG: RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD"
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
-    exec .venv/bin/python3 -u -m src.auth.auth_server
+    exec .venv/bin/python3 -u -m src.auth.auth_server 2>&1 | tee -a auth_service.log
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec .venv/bin/python3 -u -m src.auth.auth_server
+    exec .venv/bin/python3 -u -m src.auth.auth_server 2>&1 | tee -a auth_service.log
 fi
