@@ -150,6 +150,7 @@ def test_logout_success():
     
     with patch("api.middleware.jwt_validator.token_service.decode_token", return_value=mock_claims), \
          patch("api.middleware.jwt_validator.session_service.get_cached_session", new_callable=AsyncMock, return_value=None), \
+         patch("api.middleware.jwt_validator.session_service.is_token_revoked", new_callable=AsyncMock, return_value=False), \
          patch.object(auth_service, "revoke_token", new_callable=AsyncMock) as mock_revoke:
         
         response = client.post(
