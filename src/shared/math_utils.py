@@ -52,17 +52,25 @@ def to_numpy(arr: Any) -> np.ndarray:
 
 
 import os
+import sys
+
+# --- Robust JIT Disable for Tests ---
+def dummy_njit(*args, **kwargs):
+    if len(args) == 1 and callable(args[0]):
+        return args[0]
+    def decorator(func):
+        return func
+    return decorator
 
 try:
-    from numba import njit, prange
-    if os.environ.get("NUMBA_DISABLE_JIT") == "1" or os.environ.get("PYTEST_CURRENT_TEST"):
-        def njit(*args, **kwargs):
-            def decorator(func): return func
-            return decorator
-except ImportError:
-    def njit(*args, **kwargs):
-        def decorator(func): return func
-        return decorator
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1" or os.environ.get("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
+        njit = dummy_njit
+        prange = range
+        logger.info("Numba JIT globally disabled for testing/env compatibility")
+    else:
+        from numba import njit, prange
+except (ImportError, Exception):
+    njit = dummy_njit
     prange = range
 
 # Constants
