@@ -20,10 +20,14 @@ export BSOPT_ALLOW_WEAK_SECRETS=true
 cd "$PROJECT_ROOT"
 export PYTHONPATH="."
 
+echo "DEBUG: BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET"
+echo "DEBUG: REDIS_PASSWORD=$REDIS_PASSWORD"
+echo "DEBUG: RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD"
+
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
     echo "🏗️ Running in PRODUCTION mode..."
-    exec .venv/bin/python3 -m src.auth.auth_server
+    exec .venv/bin/python3 -u -m src.auth.auth_server
 else
     echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
-    exec .venv/bin/python3 -m src.auth.auth_server
+    exec .venv/bin/python3 -u -m src.auth.auth_server
 fi
