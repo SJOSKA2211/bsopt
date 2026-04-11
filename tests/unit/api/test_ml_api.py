@@ -5,7 +5,7 @@ from api.index import app
 from api.schemas.ml import InferenceResponse, InferenceRequest
 from src.ml.service import get_ml_service, MLService
 
-client = TestClient(app)
+client = TestClient(app, raise_server_exceptions=False)
 
 @pytest.fixture(autouse=True)
 def override_auth():
@@ -90,8 +90,10 @@ def test_get_drift_metrics_success(mock_db_session):
     with patch("api.routes.ml.get_model_drift_metrics") as mock_get_metrics:
         from datetime import datetime, UTC
         from uuid import uuid4
+        from api.schemas.ml import DriftMetrics
+        
         mock_get_metrics.return_value = [
-            MagicMock(
+            DriftMetrics(
                 model_id=str(uuid4()),
                 window_hour=datetime.now(UTC),
                 mae=0.05,
