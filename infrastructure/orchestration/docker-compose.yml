@@ -1042,11 +1042,8 @@ services:
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
     profiles: [ "hft" ]
+    image: manifold-base:latest
     pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.worker
-      target: production
     network_mode: host
     cap_add:
       - IPC_LOCK
