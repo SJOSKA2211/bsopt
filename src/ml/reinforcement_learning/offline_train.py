@@ -1,3 +1,5 @@
+
+
 import pickle  # nosec B403
 import time
 from typing import Any, cast
@@ -90,14 +92,13 @@ def train_offline(
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
     # 1. ⚡ DATA LOADING OPTIMIZATION
-    if dataset_path.endswith(".parquet"):
-        import pandas as pd
+    if not dataset_path.endswith(".parquet"):
+        raise ValueError(f"Insecure file format detected: {dataset_path}")
 
-        df = pd.read_parquet(dataset_path)
-        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
-    else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+    import pandas as pd
+
+    df = pd.read_parquet(dataset_path)
+    trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
