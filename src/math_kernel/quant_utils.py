@@ -141,7 +141,7 @@ def generate_paths_v2(
         return S
 
     log_paths = generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps)
-    return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(log_paths).T)
+    return np.exp(log_paths).T
 
 
 @njit_engine(fastmath=True, parallel=True)
@@ -457,14 +457,14 @@ def _laguerre_basis_jit(
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Laguerre polynomial basis for LSM."""
     if n == 0:
-        return cast(np.ndarray[Any, np.dtype[np.float64]], np.ones_like(x))
+        return np.ones_like(x)
     if n == 1:
-        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2))
+        return np.exp(-x / 2)
     if n == 2:
-        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2) * (1 - x))
+        return np.exp(-x / 2) * (1 - x)
     if n == 3:
-        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2) * (1 - 2 * x + x**2 / 2))
-    return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2))
+        return np.exp(-x / 2) * (1 - 2 * x + x**2 / 2)
+    return np.exp(-x / 2)
 
 
 @njit_engine(fastmath=True, parallel=True)
@@ -551,8 +551,7 @@ def thomas_algorithm(
     c_new = np.zeros(n - 1)
     d_new = np.zeros(n)
     x = np.zeros(n)
-    f_thomas = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)
-    return f_thomas(a, b, c, d, c_new, d_new, x)
+    return thomas_algorithm_out(a, b, c, d, c_new, d_new, x)
 
 
 @njit_engine
