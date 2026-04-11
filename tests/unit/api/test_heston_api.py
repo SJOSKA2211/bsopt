@@ -50,7 +50,11 @@ class TestPricingAPIHeston:
             "symbol": "SPY",
         }
 
-        response = api_client.post("/api/v1/pricing/price", json=payload)
+        response = api_client.post(
+            "/api/v1/pricing/price", 
+            json=payload,
+            headers={"Authorization": "Bearer test-token"}
+        )
 
         # 3. Verify
         assert response.status_code == 200
@@ -89,7 +93,11 @@ class TestPricingAPIHeston:
             "symbol": "SPY",
         }
 
-        response = api_client.post("/api/v1/pricing/price", json=payload)
+        response = api_client.post(
+            "/api/v1/pricing/price", 
+            json=payload,
+            headers={"Authorization": "Bearer test-token"}
+        )
 
         # 3. Verify
         assert response.status_code == 200
