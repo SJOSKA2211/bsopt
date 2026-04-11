@@ -77,11 +77,11 @@ async def check_pgbouncer():
     port = int(os.environ.get('PGBOUNCER_PORT', settings.PGBOUNCER_PORT))
     
     # Connect to the special 'pgbouncer' database
-    admin_url = f"postgresql://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer"
+    admin_url = f"postgresql+psycopg://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer"
     
     try:
         # Use a temporary engine for the admin check
-        engine = create_engine(admin_url)
+        engine = create_engine(admin_url).execution_options(isolation_level="AUTOCOMMIT")
         with engine.connect() as conn:
             # Phase 2 needs AUTOCOMMIT for some SHOW commands, but SELECT is fine
             # SHOW POOLS returns statistics about each pool

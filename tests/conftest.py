@@ -138,6 +138,18 @@ def env_setup(monkeypatch):
 
     monkeypatch.setattr("src.shared.utils.cache.get_redis_client", unittest.mock.AsyncMock(return_value=mock_redis))
     monkeypatch.setattr("src.shared.utils.cache.get_redis", unittest.mock.Mock(return_value=mock_redis))
+    monkeypatch.setattr("src.shared.utils.cache.get_redis_pool_stats", unittest.mock.AsyncMock(return_value={"pool_size": 10, "in_use": 0}))
+
+    # Mock Database health check
+    monkeypatch.setattr("src.database.health_check", unittest.mock.AsyncMock(return_value={"status": "healthy", "version": "16.0"}))
+    
+    # Mock Broker health check
+    monkeypatch.setattr("src.shared.utils.broker.broker.health_check", unittest.mock.AsyncMock(return_value={"status": "healthy"}))
+    monkeypatch.setattr("src.shared.utils.broker.broker.get_queue_stats", unittest.mock.AsyncMock(return_value={"message_count": 0, "consumer_count": 1}))
+
+    # Mock Rust engine
+    monkeypatch.setattr("src.math_kernel.rust_engine.is_rust_available", unittest.mock.Mock(return_value=True))
+    monkeypatch.setattr("src.math_kernel.rust_engine.get_rust_metrics", unittest.mock.Mock(return_value="# Rust Metrics Mock"))
 
 
 
