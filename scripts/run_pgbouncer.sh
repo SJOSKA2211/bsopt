@@ -31,7 +31,7 @@ for ((i=1; i<=RETRIES; i++)); do
     echo "   [Attempt $i/$RETRIES] Querying Reporting Engine..."
     
     # Use sentinel check logic to report granular metrics
-    if .venv/bin/python -c "
+    if PGBOUNCER_ADMIN_PASSWORD="$POSTGRES_PASSWORD" .venv/bin/python -c "
 import asyncio
 import sys
 import os

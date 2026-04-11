@@ -20,7 +20,7 @@ class TestVolSurface:
     def test_svi_model(self):
         model = SVIModel(self.svi_params)
         vol = model.implied_volatility(100.0, 100.0, 1.0)
-        self.assertGreater(vol, 0)
+        assert vol > 0
 
         # Test vectorized
         strikes = np.array([90.0, 100.0, 110.0])
@@ -30,7 +30,7 @@ class TestVolSurface:
     def test_sabr_model(self):
         model = SABRModel(self.sabr_params)
         vol = model.implied_volatility(100.0, 100.0, 1.0)
-        self.assertGreater(vol, 0)
+        assert vol > 0
 
     def test_vol_surface(self):
         surface = VolatilitySurface()
@@ -41,7 +41,7 @@ class TestVolSurface:
 
         # Test interpolation
         vol = surface.implied_volatility(100.0, 0.75)
-        self.assertGreater(vol, 0)
+        assert vol > 0
 
     def test_calibration_engine(self):
         engine = CalibrationEngine()

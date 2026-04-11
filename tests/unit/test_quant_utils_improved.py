@@ -44,7 +44,7 @@ class TestQuantUtils:
         )
         is_call = np.array([True])
         price = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
-        self.assertGreater(price[0], 0)
+        assert price[0] > 0
 
         # Test T < 1e-7
         T_zero = np.array([0.0])
@@ -62,7 +62,7 @@ class TestQuantUtils:
         )
         is_call = np.array([True])
         delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
-        self.assertGreater(delta[0], 0)
+        assert delta[0] > 0
 
     def test_thomas_algorithm(self):
         lower = np.array([1.0, 1.0])
@@ -97,7 +97,7 @@ class TestQuantUtils:
 
     def test_jit_mc_european_price(self):
         p, s = jit_mc_european_price(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
-        self.assertGreater(p, 0)
+        assert p > 0
 
     def test_jit_mc_european_price_and_greeks(self):
         res = jit_mc_european_price_and_greeks(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
@@ -107,7 +107,7 @@ class TestQuantUtils:
         p, s = jit_mc_european_with_control_variate(
             100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True
         )
-        self.assertGreater(p, 0)
+        assert p > 0
 
     def test_jit_lsm_american(self):
         p = jit_lsm_american(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, 10, True)

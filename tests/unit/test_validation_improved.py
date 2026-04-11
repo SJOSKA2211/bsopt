@@ -13,7 +13,7 @@ class TestValidation:
 
         # Check first split
         train, test = splits[0]
-        self.assertLess(train[-1], test[0])
+        assert train[-1] < test[0]
 
         # Check last split
         train, test = splits[-1]

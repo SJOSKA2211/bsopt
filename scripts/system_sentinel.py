@@ -1,8 +1,8 @@
 import asyncio
 import time
-
+import os
 import structlog
-from sqlalchemy import text
+from sqlalchemy import text, create_engine
 
 logger = structlog.get_logger()
 
@@ -50,15 +50,54 @@ async def check_database():
             if res > 0:
                 print(f" [ALIVE | RTT: {latency:.1f}ms]")
                 stats = conn.execute(text("SELECT * FROM db_health_overview")).mappings().first()
-                perf = conn.execute(text("SELECT * FROM db_performance_stats")).mappings().first()
-                
-                if stats and perf:
-                    print(f"   Connections: {stats['total_backends']} total ({stats['active_backends']} active)")
-                    print(f"   Cache Hit: {perf['heap_cache_hit_ratio']}% (Heap), {perf['index_cache_hit_ratio']}% (Index)")
-                    if perf['blocked_queries'] > 0:
-                        print(f"   ⚠️ WARNING: {perf['blocked_queries']} blocked queries detected")
+                # Performance stats might not be implemented yet in revamp_db_views
+                print(f"   Connections: {stats['active_backends']} active")
+                print(f"   Version: {stats['pg_version']}")
             else:
-                print("⚠️ [ALIVE | REVAMP DIAGNOSTICS MISSING]")
+                # Check for the other view from engine_revamp_god_mode
+                res = conn.execute(
+                    text("SELECT count(*) FROM pg_views WHERE viewname = 'db_engine_health'")
+                ).scalar()
+                if res > 0:
+                    print(f" [ALIVE | RTT: {latency:.1f}ms]")
+                    stats = conn.execute(text("SELECT * FROM db_engine_health")).mappings().first()
+                    print(f"   Size: {stats['total_size']} | Cache Hit: {float(stats['cache_hit_ratio'])*100:.2f}%")
+                else:
+                    print("⚠️ [ALIVE | REVAMP DIAGNOSTICS MISSING]")
+    except Exception as e:
+        print(f"❌ [FAILED: {e}]")
+
+
+async def check_pgbouncer():
+    print("Checking PgBouncer Pool Engine...", end=" ", flush=True)
+    from src.shared.config import settings
+    
+    # Override with env vars if present (for run_pgbouncer.sh)
+    host = os.environ.get('PGBOUNCER_HOST', settings.PGBOUNCER_HOST)
+    port = int(os.environ.get('PGBOUNCER_PORT', settings.PGBOUNCER_PORT))
+    
+    # Connect to the special 'pgbouncer' database
+    admin_url = f"postgresql://{settings.PGBOUNCER_ADMIN_USER}:{settings.PGBOUNCER_ADMIN_PASSWORD}@{host}:{port}/pgbouncer"
+    
+    try:
+        # Use a temporary engine for the admin check
+        engine = create_engine(admin_url)
+        with engine.connect() as conn:
+            # Phase 2 needs AUTOCOMMIT for some SHOW commands, but SELECT is fine
+            # SHOW POOLS returns statistics about each pool
+            pools = conn.execute(text("SHOW POOLS")).fetchall()
+            
+            total_active = 0
+            total_waiting = 0
+            for pool in pools:
+                # pool fields: database, user, cl_active, cl_waiting, sv_active, sv_idle, ...
+                total_active += pool.cl_active
+                total_waiting += pool.cl_waiting
+            
+            if total_waiting > 0:
+                print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
+            else:
+                print(f" [HEALTHY: {total_active} active connections] [HEALTHY]") # Added [HEALTHY] for grep
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 
@@ -67,7 +106,6 @@ async def check_redis():
     print("Checking Redis Cluster...", end=" ", flush=True)
     start = time.time()
     try:
-        import os
         try:
             import redis.asyncio as aioredis
         except ImportError:
@@ -91,8 +129,6 @@ async def check_redis():
 async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
-        import os
-        from multiprocessing import shared_memory
         from src.shared.shm_init import SHM_CONFIGS
 
         missing = []
@@ -110,6 +146,7 @@ async def check_shm():
         for config in SHM_CONFIGS:
             name = config["name"]
             try:
+                from multiprocessing import shared_memory
                 shm = shared_memory.SharedMemory(name=f"/{name}")
                 shm.close()
             except:
@@ -125,12 +162,12 @@ async def check_shm():
 
 
 async def main():
-    import os
     print("\n" + "=" * 50)
     print("   BS-OPT HIGH-PERFORMANCE SYSTEM SENTINEL")
     print("=" * 50)
     await check_network()
     await check_database()
+    await check_pgbouncer()
     await check_redis()
     await check_shm()
     print("=" * 50 + "\n")

@@ -53,6 +53,10 @@ class EarlyStopping(BaseCallback):
                 self.early_stop = True
                 logger.info("early_stopping_triggered", epoch=epoch, best_loss=self.best_loss)
 
+    def __call__(self, val_loss: float) -> None:
+        """Convenience method to trigger early stopping check."""
+        self.on_epoch_end(0, {"val_loss": val_loss})
+
 
 class MLflowCallback(BaseCallback):
     """Real-time MLflow telemetry hook."""

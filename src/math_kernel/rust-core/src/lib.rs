@@ -98,13 +98,13 @@ fn batch_delta_gamma<'py>(
     q_arr: PyReadonlyArray1<f64>,
     is_call_arr: PyReadonlyArray1<bool>,
 ) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
-    let s = s_arr.as_array();
-    let k = k_arr.as_array();
-    let t = t_arr.as_array();
-    let v = v_arr.as_array();
-    let r = r_arr.as_array();
-    let q = q_arr.as_array();
-    let is_call = is_call_arr.as_array();
+    let s = s_arr.as_slice().unwrap();
+    let k = k_arr.as_slice().unwrap();
+    let t = t_arr.as_slice().unwrap();
+    let v = v_arr.as_slice().unwrap();
+    let r = r_arr.as_slice().unwrap();
+    let q = q_arr.as_slice().unwrap();
+    let is_call = is_call_arr.as_slice().unwrap();
 
     let n = s.len();
     let delta = unsafe { PyArray1::<f64>::new(py, [n], false) };
@@ -129,7 +129,7 @@ fn batch_delta_gamma<'py>(
             } else {
                 let sqrt_t = ti.sqrt();
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
-                let nd1 = (-0.5 * d1 * d1).exp() * INV_SQRT_2PI;
+                let nd1 = (-0.5_f64 * d1 * d1).exp() * INV_SQRT_2PI;
                 let exp_qt = (-qi * ti).exp();
                 
                 *d_out = if call { exp_qt * fast_cdf(d1) } else { exp_qt * (fast_cdf(d1) - 1.0) };
@@ -184,13 +184,13 @@ fn batch_black_scholes<'py>(
     let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_black_scholes"]).start_timer();
     CALL_COUNTER.with_label_values(&["batch_black_scholes"]).inc();
     
-    let s = s_arr.as_array();
-    let k = k_arr.as_array();
-    let t = t_arr.as_array();
-    let v = v_arr.as_array();
-    let r = r_arr.as_array();
-    let q = q_arr.as_array();
-    let is_call = is_call_arr.as_array();
+    let s = s_arr.as_slice().unwrap();
+    let k = k_arr.as_slice().unwrap();
+    let t = t_arr.as_slice().unwrap();
+    let v = v_arr.as_slice().unwrap();
+    let r = r_arr.as_slice().unwrap();
+    let q = q_arr.as_slice().unwrap();
+    let is_call = is_call_arr.as_slice().unwrap();
 
     let n = s.len();
     RESOURCE_GAUGE.set(n as f64);
@@ -275,13 +275,13 @@ fn batch_black_scholes_greeks<'py>(
     q_arr: PyReadonlyArray1<f64>,
     is_call_arr: PyReadonlyArray1<bool>,
 ) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
-    let s = s_arr.as_array();
-    let k = k_arr.as_array();
-    let t = t_arr.as_array();
-    let v = v_arr.as_array();
-    let r = r_arr.as_array();
-    let q = q_arr.as_array();
-    let is_call = is_call_arr.as_array();
+    let s = s_arr.as_slice().unwrap();
+    let k = k_arr.as_slice().unwrap();
+    let t = t_arr.as_slice().unwrap();
+    let v = v_arr.as_slice().unwrap();
+    let r = r_arr.as_slice().unwrap();
+    let q = q_arr.as_slice().unwrap();
+    let is_call = is_call_arr.as_slice().unwrap();
 
     let n = s.len();
     let delta = unsafe { PyArray1::<f64>::new(py, [n], false) };
@@ -322,7 +322,7 @@ fn batch_black_scholes_greeks<'py>(
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
                 let d2 = d1 - vi * sqrt_t;
 
-                let nd1 = (-0.5 * d1 * d1).exp() * 0.3989422804014327;
+                let nd1 = (-0.5_f64 * d1 * d1).exp() * 0.3989422804014327;
                 let cdf_d1 = fast_cdf(d1);
 
                 let exp_qt = (-qi * ti).exp();
@@ -360,8 +360,8 @@ pub fn batch_validate_ticks<'py>(
     prices: PyReadonlyArray1<f64>,
     last_prices: PyReadonlyArray1<f64>,
 ) -> PyResult<Bound<'py, PyArray1<bool>>> {
-    let p = prices.as_array();
-    let lp = last_prices.as_array();
+    let p = prices.as_slice().unwrap();
+    let lp = last_prices.as_slice().unwrap();
     let n = p.len();
 
     if n != lp.len() {
@@ -400,15 +400,15 @@ fn batch_heston_price<'py>(
     let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_heston_price"]).start_timer();
     CALL_COUNTER.with_label_values(&["batch_heston_price"]).inc();
     
-    let s = s_arr.as_array();
-    let k = k_arr.as_array();
-    let t = t_arr.as_array();
-    let r = r_arr.as_array();
-    let kappa = kappa_arr.as_array();
-    let theta = theta_arr.as_array();
-    let sigma = sigma_arr.as_array();
-    let rho = rho_arr.as_array();
-    let v0 = v0_arr.as_array();
+    let s = s_arr.as_slice().unwrap();
+    let k = k_arr.as_slice().unwrap();
+    let t = t_arr.as_slice().unwrap();
+    let r = r_arr.as_slice().unwrap();
+    let kappa = kappa_arr.as_slice().unwrap();
+    let theta = theta_arr.as_slice().unwrap();
+    let sigma = sigma_arr.as_slice().unwrap();
+    let rho = rho_arr.as_slice().unwrap();
+    let v0 = v0_arr.as_slice().unwrap();
 
     let n = s.len();
     RESOURCE_GAUGE.set(n as f64);
@@ -614,9 +614,9 @@ fn simulate_gbm_native<'py>(
     use rand::SeedableRng;
     use rand_distr::{Distribution, Normal};
 
-    let s0 = s0_arr.as_array();
-    let mu = mu_arr.as_array();
-    let sigma = sigma_arr.as_array();
+    let s0 = s0_arr.as_slice().unwrap();
+    let mu = mu_arr.as_slice().unwrap();
+    let sigma = sigma_arr.as_slice().unwrap();
 
     let n_paths = s0.len();
     RESOURCE_GAUGE.set(n_paths as f64);
@@ -692,13 +692,13 @@ fn batch_black_scholes_iv<'py>(
     let timer = LATENCY_HISTOGRAM.with_label_values(&["batch_black_scholes_iv"]).start_timer();
     CALL_COUNTER.with_label_values(&["batch_black_scholes_iv"]).inc();
 
-    let mp = market_prices.as_array();
-    let s = spots.as_array();
-    let k = strikes.as_array();
-    let t = maturities.as_array();
-    let r = rates.as_array();
-    let q = dividends.as_array();
-    let ic = is_calls.as_array();
+    let mp = market_prices.as_slice().unwrap();
+    let s = spots.as_slice().unwrap();
+    let k = strikes.as_slice().unwrap();
+    let t = maturities.as_slice().unwrap();
+    let r = rates.as_slice().unwrap();
+    let q = dividends.as_slice().unwrap();
+    let ic = is_calls.as_slice().unwrap();
     let n = mp.len();
 
     let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
@@ -852,7 +852,7 @@ fn batch_svi_total_variance<'py>(
     m: f64,
     sigma: f64,
 ) -> PyResult<Bound<'py, PyArray1<f64>>> {
-    let k = k_arr.as_array();
+    let k = k_arr.as_slice().unwrap();
     let n = k.len();
     let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
