@@ -134,10 +134,10 @@ def test_refresh_token_success():
         assert response.json()["data"]["access_token"] == "new-access"
 
 def test_logout_success():
-    from src.auth.auth import auth_service
-    from src.auth.core.tokens import TokenData
+    from src.auth.auth import auth_service, get_current_user
+    from src.auth.core.tokens import TokenData, token_service
     from datetime import datetime, UTC, timedelta
-    
+
     mock_claims = TokenData(
         user_id=str(uuid4()),
         email=TEST_EMAIL,
@@ -147,18 +147,24 @@ def test_logout_success():
         iat=datetime.now(UTC),
         jti="test-jti"
     )
-    
+
+    mock_user = User(id=uuid4(), email=TEST_EMAIL, tier="pro")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+
     with patch("api.middleware.jwt_validator.token_service.decode_token", return_value=mock_claims), \
          patch("api.middleware.jwt_validator.session_service.get_cached_session", new_callable=AsyncMock, return_value=None), \
          patch("api.middleware.jwt_validator.session_service.is_token_revoked", new_callable=AsyncMock, return_value=False), \
          patch.object(auth_service, "revoke_token", new_callable=AsyncMock) as mock_revoke:
-        
+
         response = client.post(
             "/api/v1/auth/logout",
             headers={"Authorization": "Bearer some-token"}
         )
         assert response.status_code == 200
         mock_revoke.assert_called_once_with("some-token")
+
+    app.dependency_overrides.pop(get_current_user)
+
 
 def test_mfa_setup_success(mock_db):
     from src.auth.auth import auth_service
