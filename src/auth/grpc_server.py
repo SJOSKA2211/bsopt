@@ -9,8 +9,11 @@ from cachetools import TTLCache
 from google.protobuf import empty_pb2, timestamp_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
+from jwt.exceptions import (  # Added imports for specific JWT exceptions
+    ExpiredSignatureError,
+    PyJWTError,
+)
 from sqlalchemy import select
-from jwt.exceptions import ExpiredSignatureError, PyJWTError # Added imports for specific JWT exceptions
 
 from src.auth.auth import auth_service
 from src.database import db_manager

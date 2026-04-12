@@ -1,6 +1,8 @@
 import time
-import numpy as np
+
 import Manifold_core as mc
+import numpy as np
+
 
 def bench():
     n = 10_000_000

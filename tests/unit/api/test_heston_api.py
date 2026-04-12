@@ -1,16 +1,20 @@
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 from fastapi.testclient import TestClient
+
 from api.index import app
 from src.auth.auth import get_current_active_user
-from src.shared.utils.cache import get_redis_client
 from src.auth.rate_limit import rate_limit
+from src.shared.utils.cache import get_redis_client
+
 
 @pytest.fixture
 def mock_user():
-    from src.database.models import User
     from uuid import uuid4
+
+    from src.database.models import User
     return User(
         id=str(uuid4()),
         email="test@example.com",
@@ -39,8 +43,8 @@ class TestPricingAPIHeston:
             "sigma": 0.3,
             "rho": -0.7,
         }
-        import time
         import json
+        import time
 
         mock_cache = {
             "params": mock_params,

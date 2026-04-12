@@ -1,9 +1,11 @@
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
+
 from api.index import app
 from src.shared.schemas.market import MarketQuote
-from datetime import datetime, UTC
 
 client = TestClient(app)
 

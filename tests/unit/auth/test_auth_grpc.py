@@ -1,10 +1,13 @@
-import pytest
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
+
 import grpc
+import pytest
+
+from src.auth.core.tokens import TokenData
 from src.auth.grpc_server import AuthServicer
 from src.shared.protos import auth_pb2
-from src.auth.core.tokens import TokenData
-from datetime import datetime, UTC
+
 
 @pytest.fixture
 def servicer():

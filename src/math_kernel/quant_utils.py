@@ -3,8 +3,7 @@
 Targets: Numba JIT, Parallel, Vectorized
 """
 
-from collections.abc import Callable
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 from numba import prange

@@ -1,7 +1,9 @@
 import asyncio
-from sqlalchemy import text
-from src.database import db_manager
+
 import structlog
+from sqlalchemy import text
+
+from src.database import db_manager
 
 logger = structlog.get_logger(__name__)
 

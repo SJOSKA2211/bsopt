@@ -62,6 +62,7 @@ class PricingService:
                         cached = await redis.get(f"heston_params:{symbol}")
                         if cached:
                             import json
+
                             from src.math_kernel.models.heston_fft import HestonParams
                             data = json.loads(cached)
                             p = data["params"]

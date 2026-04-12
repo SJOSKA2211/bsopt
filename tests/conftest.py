@@ -15,12 +15,11 @@ os.environ["PGBOUNCER_ADMIN_PASSWORD"] = "a_very_long_pgbouncer_admin_password_t
 os.environ["MINIO_ROOT_PASSWORD"] = "a_very_long_minio_root_password_that_is_at_least_32_chars"
 os.environ["MLFLOW_TRACKING_URI"] = "sqlite:///mlflow_test.db"
 
-import multiprocessing
-import multiprocessing.connection
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+
 
 # Helper to mock missing dependencies
 def mock_if_missing(module_name, **kwargs):
@@ -175,11 +174,11 @@ def unmocked_config_settings(monkeypatch):
 @pytest.fixture
 def api_client(request):
     """Returns a FastAPI TestClient with clean DB state."""
+    from fastapi import Request
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
 
     from api.index import app
-    from fastapi import Request
     from src.shared.config import settings
 
     # Skip DB truncation for pure unit tests that don't need a real DB
@@ -198,9 +197,10 @@ def api_client(request):
 
     with TestClient(app) as client:
         # Global dependency overrides for all tests
+        from datetime import UTC, datetime, timedelta
+
         from api.middleware.jwt_validator import require_auth
         from src.auth.core.tokens import TokenData
-        from datetime import datetime, UTC, timedelta
 
         async def mocked_require_auth(request: Request) -> TokenData:
             # If a token is provided, we should probably use it, but for now just bypass

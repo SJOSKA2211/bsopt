@@ -1,8 +1,10 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
-from api.index import app
 from fastapi.websockets import WebSocket
+
+from api.index import app
 
 client = TestClient(app)
 

@@ -1,9 +1,8 @@
-import re
 import os
 
 for filename in ["tests/unit/api/test_heston_api.py", "tests/unit/api/test_ml_api.py"]:
     if not os.path.exists(filename): continue
-    with open(filename, "r") as f:
+    with open(filename) as f:
         content = f.read()
 
     fixture = """

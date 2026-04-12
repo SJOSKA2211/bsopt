@@ -2,6 +2,7 @@ import asyncio
 import os
 import subprocess
 import urllib.request
+
 import structlog
 
 setup_logging = False

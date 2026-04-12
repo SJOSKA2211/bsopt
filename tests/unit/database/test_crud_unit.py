@@ -26,8 +26,8 @@ def db_session():
     engine = create_engine("sqlite:///:memory:")
 
     # Define custom compilations for PG types on SQLite
-    from sqlalchemy.ext.compiler import compiles
     from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
+    from sqlalchemy.ext.compiler import compiles
 
     @compiles(JSONB, "sqlite")
     def compile_jsonb_sqlite(type_, compiler, **kw):

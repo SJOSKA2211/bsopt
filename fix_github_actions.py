@@ -1,6 +1,6 @@
 import yaml
 
-with open('.github/workflows/equaflow-institutional.yml', 'r') as f:
+with open('.github/workflows/equaflow-institutional.yml') as f:
     data = yaml.safe_load(f)
 
 # Find the unit-tests job

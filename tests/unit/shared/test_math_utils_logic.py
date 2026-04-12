@@ -1,13 +1,15 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.shared.math_utils import (
-    calculate_price, 
-    calculate_greeks, 
-    _fast_normal_cdf, 
+    _fast_normal_cdf,
     _fast_normal_pdf,
+    calculate_greeks,
+    calculate_price,
     rk4_gbm_step,
-    run_gbm_simulation
+    run_gbm_simulation,
 )
+
 
 def test_fast_normal_cdf():
     # Test key values of the normal distribution

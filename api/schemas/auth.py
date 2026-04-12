@@ -7,7 +7,6 @@ and Pydantic V2 for request validation.
 
 import re
 
-import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings

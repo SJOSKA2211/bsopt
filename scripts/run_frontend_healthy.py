@@ -1,9 +1,10 @@
 import asyncio
+import json
 import os
 import subprocess
-import urllib.request
-import json
 import time
+import urllib.request
+
 import structlog
 
 setup_logging = False

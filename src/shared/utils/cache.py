@@ -181,8 +181,9 @@ def multi_layer_cache(
             import random
 
             from fastapi import Request, Response
-            from src.database.models import User
             from pydantic import BaseModel
+
+            from src.database.models import User
 
             key_params = kwargs.copy()
             for i, arg in enumerate(args[1:]):

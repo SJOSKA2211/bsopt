@@ -1,5 +1,6 @@
 import structlog
 from sqlalchemy import text
+
 from src.database import db_manager
 
 logger = structlog.get_logger()

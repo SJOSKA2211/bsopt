@@ -1,14 +1,12 @@
-import asyncio
 from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-import pytest
 import grpc
+import pytest
+from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
 # Import the servicer and its dependencies
 from src.auth.grpc_server import AuthServicer
-from src.protos import auth_pb2
-from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
 # Assuming TokenData is importable from its definition file for mocking purposes.
 # If not directly importable, it will be mocked as a simple object.
