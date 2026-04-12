@@ -145,33 +145,6 @@ class BlackScholesEngine(PricingStrategy):
             except Exception as e:
                 logger.warning("rust_core_pricing_failed_falling_back", error=str(e))
 
-        # GPU Acceleration Path (CuPy)
-        if S.size > 500:  # Higher threshold for CuPy to offset data transfer
-            try:
-                from src.math_kernel.cuda_kernels import CUPY_AVAILABLE, black_scholes_cupy
-
-                if CUPY_AVAILABLE:
-                    is_call_arr = np.atleast_1d(is_call).astype(bool)
-                    if is_call_arr.shape != S.shape:
-                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
-                    return black_scholes_cupy(S, K, T, sigma, r, q, is_call_arr)
-            except Exception as e:
-                logger.warning("cupy_kernel_failed_falling_back", error=str(e))
-
-        # Legacy CUDA/Numba Path
-        if S.size > 1000:
-            try:
-                from src.math_kernel.cuda_kernels import CUDA_AVAILABLE, price_options_gpu
-
-                if CUDA_AVAILABLE:
-                    is_call_arr = np.atleast_1d(is_call).astype(bool)
-                    if is_call_arr.shape != S.shape:
-                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
-
-                    return price_options_gpu(S, K, T, sigma, r, q, is_call_arr)
-            except Exception as e:
-                logger.warning("gpu_kernel_failed_falling_back", error=str(e))
-
         # Vectorized numpy fallback
         res = calculate_price(S, K, T, sigma, r, q, is_call)
 

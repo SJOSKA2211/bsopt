@@ -41,14 +41,8 @@ class ONNXModelServer:
 
         sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
 
-        # Prioritize GPU if available
-        available_providers = ort.get_available_providers()
-        providers = []
-        if "TensorrtExecutionProvider" in available_providers:
-            providers.append("TensorrtExecutionProvider")
-        if "CUDAExecutionProvider" in available_providers:
-            providers.append("CUDAExecutionProvider")
-        providers.append("CPUExecutionProvider")
+        # Force CPU execution for lightweight, pure-CPU architecture
+        providers = ["CPUExecutionProvider"]
 
         try:
             self.session = ort.InferenceSession(model_path, sess_options, providers=providers)

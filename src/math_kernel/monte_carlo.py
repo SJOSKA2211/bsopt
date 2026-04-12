@@ -8,7 +8,6 @@ from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.quant_utils import (
     _laguerre_basis_jit,
-    gpu_mc_european_price,
     jit_lsm_american,
     jit_mc_european_price,
     jit_mc_european_price_and_greeks,
@@ -260,28 +259,6 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         # Use the provided seed or the configured default
         run_seed = seed if seed is not None else self.config.seed
         np.random.seed(run_seed)  # Set global seed for Numba's np.random
-
-        # High-performance path: Use GPU if n_paths is large and no custom innovations/control variates
-        if (
-            self.config.n_paths >= settings.MONTE_CARLO_GPU_THRESHOLD
-            and not self.config.control_variate
-            and not self.config.method == "sobol"
-            and z_innovations is None
-        ):
-            gpu_res = gpu_mc_european_price(
-                S0=float(params.spot),
-                K=float(params.strike),
-                T=float(params.maturity),
-                r=float(params.rate),
-                sigma=float(params.volatility),
-                q=float(params.dividend),
-                n_paths=self.config.n_paths,
-                is_call=(option_type == "call"),
-                antithetic=self.config.antithetic,
-            )
-            if gpu_res:
-                price, std_err = gpu_res
-                return float(price), float(1.96 * std_err)
 
         # Generate quasi-random numbers if method is 'sobol' and not provided
         if z_innovations is None and self.config.method == "sobol":

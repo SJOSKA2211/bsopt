@@ -45,37 +45,6 @@ def profile_memory(func: Callable) -> Callable:
 
 def profile_gpu_memory(func: Callable) -> Callable:
     """
-    Decorator to profile CUDA GPU memory.
+    CPU-only alias for memory profiling (Refactored from GPU).
     """
-
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        try:
-            from numba import cuda
-
-            cuda.get_current_device()
-            # Simple profile using free/total memory
-            free, total = cuda.current_context().get_memory_info()
-            mem_before_mb = (total - free) / (1024 * 1024)
-
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            duration = (time.perf_counter() - start_time) * 1000
-
-            free, total = cuda.current_context().get_memory_info()
-            mem_after_mb = (total - free) / (1024 * 1024)
-
-            logger.info(
-                "gpu_memory_profile",
-                function=func.__name__,
-                duration_ms=round(duration, 2),
-                gpu_mem_before_mb=round(mem_before_mb, 2),
-                gpu_mem_after_mb=round(mem_after_mb, 2),
-                gpu_mem_diff_mb=round(mem_after_mb - mem_before_mb, 2),
-            )
-            return result
-        except (ImportError, Exception):
-            # Fallback to CPU profiling if CUDA is not available
-            return profile_memory(func)(*args, **kwargs)
-
-    return wrapper
+    return profile_memory(func)

@@ -1,9 +1,9 @@
 """
-Unified Mathematical Utilities - GPU-Accelerated Kernels
+Unified Mathematical Utilities - CPU-Optimized Kernels
 ======================================================
 Consolidates critical numerical logic for cross-module consistency.
-Utilizes CuPy (GPU) and Numba (CPU fallback) for extreme performance.
-Includes memory profiling to prevent GPU/CPU memory leaks.
+Utilizes Rust (Manifold_core) and Numba (CPU) for extreme performance.
+Includes memory profiling to prevent memory leaks.
 """
 
 import logging

@@ -7,7 +7,7 @@ from __future__ import annotations
 import numpy as np
 import structlog
 
-from src.math_kernel.cuda_kernels import black_scholes_greeks_cupy
+from src.shared.math_utils import calculate_greeks
 from src.shared.shm_mesh import GreeksBuffer, GreeksMesh
 
 logger = structlog.get_logger(__name__)
@@ -39,22 +39,16 @@ class GreekEngine:
         """
         try:
             # Vectorized call for single element (high efficiency)
-            greeks = black_scholes_greeks_cupy(
-                np.array([s]),
-                np.array([k]),
-                np.array([t]),
-                np.array([sigma]),
-                np.array([r]),
-                np.array([q]),
-                np.array([is_call]),
+            delta, gamma, theta, vega, rho = calculate_greeks(
+                s, k, t, sigma, r, q, is_call
             )
 
             res = {
-                "delta": float(greeks["delta"][0]),
-                "gamma": float(greeks["gamma"][0]),
-                "theta": float(greeks["theta"][0]),
-                "vega": float(greeks["vega"][0]),
-                "rho": float(greeks["rho"][0]),
+                "delta": float(delta),
+                "gamma": float(gamma),
+                "theta": float(theta),
+                "vega": float(vega),
+                "rho": float(rho),
             }
 
             # Atomic broadcast to Shared Memory Mesh

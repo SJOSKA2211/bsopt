@@ -79,7 +79,7 @@ class AuthService:
         return self.mfa.encrypt_mfa_secret(secret)
 
     def decrypt_mfa_secret(self, encrypted_secret: str) -> str:
-        return self.mfa.decrypt_mfa_secret(secret)
+        return self.mfa.decrypt_mfa_secret(encrypted_secret)
 
     def get_totp_uri(self, email: str, secret: str) -> str:
         return self.mfa.get_totp_uri(email, secret)
@@ -95,8 +95,8 @@ class AuthService:
             return False
 
         try:
-            secret = self.mfa.decrypt_mfa_secret(user.mfa_secret)
-            return self.mfa.verify_mfa_code(secret, code)
+            secret = self.decrypt_mfa_secret(user.mfa_secret)
+            return self.verify_mfa_code(secret, code)
         except ValueError as e:
             logger.warning("mfa_verification_error", user_id=user.id, error=str(e))
             return False
@@ -115,18 +115,18 @@ class AuthService:
 
     async def validate_token(self, token: str) -> TokenData:
         """
-        High-performance token validation using centralized cache.
+        High-performance token validation using centralized cache and revocation check.
         """
         token_data = await centralized_cache_service.get_token_data_cached(token)
-        if token_data:
-            return token_data
-
-        token_data = self.decode_token(token)
+        if not token_data:
+            token_data = self.decode_token(token)
+            await centralized_cache_service.set_token_data_cached(token, token_data)
 
         if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
+            # If revoked, remove from cache to ensure consistent state
+            await centralized_cache_service.revoke_token_cached(token)
             raise TokenRevokedError()
 
-        await centralized_cache_service.set_token_data_cached(token, token_data)
         return token_data
 
     async def authenticate_user(self, db: AsyncSession, email: str, password: str) -> User:

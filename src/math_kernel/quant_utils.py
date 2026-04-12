@@ -951,7 +951,6 @@ fused_lookback_payoff = fused_lookback_payoff_v2
 batch_bs_price_jit = batch_bs_price_jit_v2
 batch_greeks_jit = batch_greeks_jit_v2
 scalar_greeks_jit = scalar_greeks_jit_v2
-gpu_mc_european_price = jit_mc_european_price_v2
 jit_mc_european_price = jit_mc_european_price_v2
 jit_mc_european_price_and_greeks = jit_mc_european_price_and_greeks
 jit_lsm_american = jit_lsm_american

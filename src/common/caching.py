@@ -127,6 +127,15 @@ class CentralizedCacheService:
         except Exception:
             pass
 
+    async def revoke_token_cached(self, token: str):
+        """
+        Removes token data from distributed cache upon revocation.
+        """
+        try:
+            await db_cache.delete(f"token:{token}")
+        except Exception:
+            pass
+
 
 # Instantiate the cache service
 centralized_cache_service = CentralizedCacheService()

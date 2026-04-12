@@ -490,9 +490,17 @@ class HealthReporter:
         """Checks Celery worker health and queue status."""
         try:
             from src.workers.tasks.celery_app import celery_app
-        except ImportError:
-            celery_app = None  # Mock for now
-            print("Celery not available")
+            if celery_app is None:
+                raise ImportError("Celery app not initialized")
+        except (ImportError, Exception):
+            logger.warning("celery_not_available_skipping_status")
+            return WorkerStatus(
+                reachable=False,
+                broker_connected=False,
+                active_workers=0,
+                queue_backlog={},
+                avg_task_latency_ms=0.0,
+            )
 
         try:
             # 1. Reachability & Broker

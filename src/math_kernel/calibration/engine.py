@@ -133,23 +133,8 @@ class HestonCalibrator:
                 sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
                 sess_options.enable_cpu_mem_arena = True
 
-                # Prioritize TensorRT then CUDA then CPU
-                available_providers = ort.get_available_providers()
-                providers = []
-                if "TensorrtExecutionProvider" in available_providers:
-                    providers.append(
-                        (
-                            "TensorrtExecutionProvider",
-                            {
-                                "device_id": 0,
-                                "trt_max_workspace_size": 2147483648,
-                                "trt_fp16_enable": True,
-                            },
-                        )
-                    )
-                if "CUDAExecutionProvider" in available_providers:
-                    providers.append("CUDAExecutionProvider")
-                providers.append("CPUExecutionProvider")
+                # Force CPU execution for lightweight, pure-CPU architecture
+                providers = ["CPUExecutionProvider"]
 
                 self.ort_session = ort.InferenceSession(
                     model_path, sess_options, providers=providers

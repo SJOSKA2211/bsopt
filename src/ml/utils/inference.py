@@ -28,13 +28,8 @@ class ONNXInferenceEngine:
 
         # 2. Select Providers
         if providers is None:
-            available = ort.get_available_providers()
-            providers = []
-            if "CUDAExecutionProvider" in available:
-                providers.append("CUDAExecutionProvider")
-            if "TensorrtExecutionProvider" in available:
-                providers.append("TensorrtExecutionProvider")
-            providers.append("CPUExecutionProvider")
+            # Force CPU execution for lightweight, pure-CPU architecture
+            providers = ["CPUExecutionProvider"]
 
         self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
         self.input_name = self.session.get_inputs()[0].name

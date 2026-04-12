@@ -25,12 +25,8 @@ class NeuralPricingStrategy(PricingStrategy):
 
                 sess_options = ort.SessionOptions()
                 sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-                # Prioritize high-performance providers
-                providers = [
-                    "TensorrtExecutionProvider",
-                    "CUDAExecutionProvider",
-                    "CPUExecutionProvider",
-                ]
+                # Force CPU execution for lightweight, pure-CPU architecture
+                providers = ["CPUExecutionProvider"]
                 self.ort_session = ort.InferenceSession(path, sess_options, providers=providers)
                 logger.info(
                     "neural_pricing_model_loaded",

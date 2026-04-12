@@ -1,39 +1,38 @@
-import cupy as cp
+import numpy as np
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 
-def black_scholes_cupy(
-    S: cp.ndarray,
-    K: cp.ndarray,
-    T: cp.ndarray,
-    sigma: cp.ndarray,
-    r: cp.ndarray,
+def black_scholes_numpy(
+    S: np.ndarray,
+    K: np.ndarray,
+    T: np.ndarray,
+    sigma: np.ndarray,
+    r: np.ndarray,
     is_call: bool = True,
-) -> cp.ndarray:
+) -> np.ndarray:
     """
-    Production-grade vectorized Black-Scholes using CuPy.
-
-    C = S0 * N(d1) - K * e^(-rT) * N(d2)
-    d1 = (ln(S0/K) + (r + sigma^2/2) * T) / (sigma * sqrt(T))
-    d2 = d1 - sigma * sqrt(T)
+    Vectorized Black-Scholes using NumPy.
     """
-    # Use CuPy's built-in normal CDF approximation
-    from cupyx.scipy.special import ndtr
+    from scipy.special import ndtr
 
-    d1 = (cp.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * cp.sqrt(T))
-    d2 = d1 - sigma * cp.sqrt(T)
+    safe_t = np.maximum(T, 1e-9)
+    safe_sigma = np.maximum(sigma, 1e-9)
+    sqrt_t = np.sqrt(safe_t)
+
+    d1 = (np.log(S / K) + (r + 0.5 * safe_sigma**2) * safe_t) / (safe_sigma * sqrt_t)
+    d2 = d1 - safe_sigma * sqrt_t
 
     if is_call:
-        return S * ndtr(d1) - K * cp.exp(-r * T) * ndtr(d2)
+        return S * ndtr(d1) - K * np.exp(-r * safe_t) * ndtr(d2)
     else:
-        return K * cp.exp(-r * T) * ndtr(-d2) - S * ndtr(-d1)
+        return K * np.exp(-r * safe_t) * ndtr(-d2) - S * ndtr(-d1)
 
 
 def runge_kutta_4_gbm(
-    S: cp.ndarray, mu: cp.ndarray, sigma: cp.ndarray, dt: float, dW: cp.ndarray
-) -> cp.ndarray:
+    S: np.ndarray, mu: np.ndarray, sigma: np.ndarray, dt: float, dW: np.ndarray
+) -> np.ndarray:
     """
     4th-order Runge-Kutta for Geometric Brownian Motion.
     dSt = mu * St * dt + sigma * St * dWt
@@ -50,4 +49,8 @@ def runge_kutta_4_gbm(
 
     # Update deterministic part + stochastic diffusion
     S_new = S + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4) + sigma * S * dW
-    return cp.maximum(S_new, 0.0)
+    return np.maximum(S_new, 0.0)
+
+
+# Alias for backward compatibility if needed, but we should eventually rename
+black_scholes_cupy = black_scholes_numpy

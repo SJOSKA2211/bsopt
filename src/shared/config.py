@@ -8,7 +8,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = structlog.get_logger(__name__)
 
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
-_DEFAULT_MFA_KEY_SEED = "placeholder-mfa-key-seed-base-v1"
 
 
 class Settings(BaseSettings):
@@ -40,9 +39,9 @@ class Settings(BaseSettings):
     DATABASE_POOL_PRE_PING: bool = True
     SLOW_QUERY_THRESHOLD_MS: int = 100
     PGBOUNCER_ENABLED: bool = Field(default=True, validation_alias="PGBOUNCER_ENABLED")
-    PGBOUNCER_ADMIN_USER: str = Field(default="admin", validation_alias="PGBOUNCER_ADMIN_USER")
+    PGBOUNCER_ADMIN_USER: str = Field(..., validation_alias="PGBOUNCER_ADMIN_USER")
     PGBOUNCER_ADMIN_PASSWORD: str = Field(..., validation_alias="PGBOUNCER_ADMIN_PASSWORD")
-    PGBOUNCER_HOST: str = Field(default="pgbouncer", validation_alias="PGBOUNCER_HOST")
+    PGBOUNCER_HOST: str = Field(..., validation_alias="PGBOUNCER_HOST")
     PGBOUNCER_PORT: int = Field(default=6432, validation_alias="PGBOUNCER_PORT")
 
     @field_validator("DATABASE_URL")
@@ -57,7 +56,7 @@ class Settings(BaseSettings):
         return v
 
     # Redis Configuration
-    REDIS_HOST: str = Field(default="redis", validation_alias="REDIS_HOST")
+    REDIS_HOST: str = Field(..., validation_alias="REDIS_HOST")
     REDIS_PORT: int = Field(default=6379, validation_alias="REDIS_PORT")
     REDIS_DB: int = Field(default=0, validation_alias="REDIS_DB")
     REDIS_PASSWORD: str = Field(..., validation_alias="REDIS_PASSWORD")
@@ -68,9 +67,9 @@ class Settings(BaseSettings):
         return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     # RabbitMQ Configuration
-    RABBITMQ_USER: str = Field(default="guest", validation_alias="RABBITMQ_USER")
+    RABBITMQ_USER: str = Field(..., validation_alias="RABBITMQ_USER")
     RABBITMQ_PASSWORD: str = Field(..., validation_alias="RABBITMQ_PASSWORD")
-    RABBITMQ_HOST: str = Field(default="rabbitmq", validation_alias="RABBITMQ_HOST")
+    RABBITMQ_HOST: str = Field(..., validation_alias="RABBITMQ_HOST")
     RABBITMQ_PORT: int = Field(default=5672, validation_alias="RABBITMQ_PORT")
 
     @property
@@ -84,21 +83,21 @@ class Settings(BaseSettings):
         return self.RABBITMQ_URL
 
     # ML Serving Configuration
-    ML_SERVICE_GRPC_URL: str = "worker:50051"
-    AUTH_SERVICE_GRPC_URL: str = Field(default="auth-service:50051", validation_alias="AUTH_SERVICE_GRPC_URL")
+    ML_SERVICE_GRPC_URL: str = Field(..., validation_alias="ML_SERVICE_GRPC_URL")
+    AUTH_SERVICE_GRPC_URL: str = Field(..., validation_alias="AUTH_SERVICE_GRPC_URL")
     NN_MODEL_PATH: str = "models/latest_nn_pricing.onnx"
     XGB_ONNX_MODEL_PATH: str = "models/latest_xgb_pricing.onnx"
     XGB_INT8_MODEL_PATH: str = "models/latest_xgb_pricing.int8.onnx"
 
     # Security Configuration
-    # Security Configuration
     BSOPT_ALLOW_WEAK_SECRETS: bool = Field(
-        default=os.environ.get("ENVIRONMENT") == "test", validation_alias="BSOPT_ALLOW_WEAK_SECRETS"
+        default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS"
     )
-    OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
+    OPA_URL: str = Field(..., validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
-        default="manifold-vault-key-base-v1-long-enough-32-chars", validation_alias="AUDIT_VAULT_KEY"
+        ..., validation_alias="AUDIT_VAULT_KEY"
     )
+
 
     @field_validator(
         "AUDIT_VAULT_KEY",
@@ -129,7 +128,6 @@ class Settings(BaseSettings):
     IBM_QUANTUM_TOKEN: str | None = Field(default=None, validation_alias="IBM_QUANTUM_TOKEN")
 
     # Pricing Configuration
-    MONTE_CARLO_GPU_THRESHOLD: int = 10000
     PRICING_LARGE_BATCH_THRESHOLD: int = 1000
     MAX_NET_DELTA: float = 10000.0
     MAX_NET_GAMMA: float = 5000.0
@@ -225,8 +223,8 @@ class Settings(BaseSettings):
     ] = ["http://localhost:3000", "http://localhost:5173"]
 
     # MinIO Configuration
-    MINIO_ENDPOINT: str = Field(default="minio:9000", validation_alias="MINIO_ENDPOINT")
-    MINIO_ROOT_USER: str = Field(default="minio_admin", validation_alias="MINIO_ROOT_USER")
+    MINIO_ENDPOINT: str = Field(..., validation_alias="MINIO_ENDPOINT")
+    MINIO_ROOT_USER: str = Field(..., validation_alias="MINIO_ROOT_USER")
     MINIO_ROOT_PASSWORD: str = Field(..., validation_alias="MINIO_ROOT_PASSWORD")
     MINIO_USE_SSL: bool = Field(default=False, validation_alias="MINIO_USE_SSL")
 
@@ -237,13 +235,13 @@ class Settings(BaseSettings):
         return f"{protocol}://{self.MINIO_ENDPOINT}"
 
     # JWT Authentication
-    JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
+    JWT_SECRET: str = Field(..., validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
     JWT_PRIVATE_KEY: str | None = Field(
-        default=None, validation_alias=AliasChoices("JWT_PRIVATE_KEY", "JWT_RS256_PRIVATE")
+        ..., validation_alias=AliasChoices("JWT_PRIVATE_KEY", "JWT_RS256_PRIVATE")
     )
     JWT_PUBLIC_KEY: str | None = Field(
-        default=None, validation_alias=AliasChoices("JWT_PUBLIC_KEY", "JWT_RS256_PUBLIC")
+        ..., validation_alias=AliasChoices("JWT_PUBLIC_KEY", "JWT_RS256_PUBLIC")
     )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -270,8 +268,8 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_DIGIT: bool = True
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = False
-    MFA_ENCRYPTION_KEY: str | None = Field(
-        default=None,
+    MFA_ENCRYPTION_KEY: str = Field(
+        ...,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 
@@ -279,9 +277,9 @@ class Settings(BaseSettings):
     ALLOW_E2E_EMAIL_BYPASS: bool = Field(default=False, validation_alias="ALLOW_E2E_EMAIL_BYPASS")
 
     # Better Auth Configuration
-    BETTER_AUTH_SECRET: str = Field(default="", validation_alias="BETTER_AUTH_SECRET")
+    BETTER_AUTH_SECRET: str = Field(..., validation_alias="BETTER_AUTH_SECRET")
     BETTER_AUTH_URL: str = Field(
-        default="http://localhost:3001", validation_alias="BETTER_AUTH_URL"
+        ..., validation_alias="BETTER_AUTH_URL"
     )
 
     # WebAuthn Configuration
