@@ -22,6 +22,11 @@ from src.auth.core.mfa import mfa_service
 from src.auth.core.sessions import session_service
 from src.auth.core.tokens import TokenData, TokenPair, token_service
 from src.auth.core.webauthn import webauthn_service
+from src.auth.exceptions import (
+    InsufficientPermissionsError,
+    InvalidCredentialsError,
+    TokenRevokedError,
+)
 from src.common.caching import centralized_cache_service
 from src.database import get_async_db
 from src.database.models import APIKey, OAuth2Client, User
@@ -74,7 +79,7 @@ class AuthService:
         return self.mfa.encrypt_mfa_secret(secret)
 
     def decrypt_mfa_secret(self, encrypted_secret: str) -> str:
-        return self.mfa.decrypt_mfa_secret(encrypted_secret)
+        return self.mfa.decrypt_mfa_secret(secret)
 
     def get_totp_uri(self, email: str, secret: str) -> str:
         return self.mfa.get_totp_uri(email, secret)
@@ -119,7 +124,7 @@ class AuthService:
         token_data = self.decode_token(token)
 
         if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
-            raise HTTPException(status_code=401, detail="Token revoked")
+            raise TokenRevokedError()
 
         await centralized_cache_service.set_token_data_cached(token, token_data)
         return token_data
@@ -133,13 +138,13 @@ class AuthService:
 
         if not user or not user.hashed_password:
             await run_in_threadpool(self.hasher.verify_password, password, self.hasher.DUMMY_HASH)
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise InvalidCredentialsError()
 
         password_matches = await run_in_threadpool(
             self.hasher.verify_password, password, user.hashed_password
         )
         if not password_matches:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise InvalidCredentialsError()
 
         if self.hasher.needs_rehash(user.hashed_password):
             user.hashed_password = self.hasher.hash_password(password)
@@ -154,7 +159,7 @@ class AuthService:
         client = result.scalar_one_or_none()
 
         if not client or client.client_secret != client_secret:
-            raise HTTPException(status_code=401, detail="Invalid client credentials")
+            raise InvalidCredentialsError("Invalid client credentials")
 
         return client
 
@@ -164,7 +169,7 @@ class AuthService:
         requested_scopes = set(scopes)
 
         if not requested_scopes.issubset(allowed_scopes):
-            raise HTTPException(status_code=400, detail="Invalid scope requested")
+            raise InsufficientPermissionsError("Invalid scope requested")
 
         return self.tokens.create_client_credentials_token(client, scopes)
 
@@ -229,7 +234,14 @@ async def get_current_user(
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    token_data = await service.validate_token(token)
+    try:
+        token_data = await service.validate_token(token)
+    except Exception as e:
+        if isinstance(e, TokenRevokedError):
+            raise HTTPException(status_code=401, detail="Token revoked")
+        # Fallback for TokenExpiredError, InvalidTokenError etc if they are raised directly
+        raise HTTPException(status_code=401, detail=str(e))
+
     user_id = token_data.user_id
 
     cached_user_data = await centralized_cache_service.get_user_cached(user_id)

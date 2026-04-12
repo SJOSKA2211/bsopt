@@ -9,15 +9,16 @@ import structlog
 from google.protobuf import empty_pb2, timestamp_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
-from jwt.exceptions import ExpiredSignatureError, PyJWTError
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from src.auth.auth import auth_service
+from src.auth.exceptions import AuthError
 from src.common.caching import centralized_cache_service
 from src.database import db_manager
 from src.database.models import APIKey, User
 from src.protos import auth_pb2, auth_pb2_grpc
+from src.shared.grpc_errors import handle_grpc_error
 
 logger = structlog.get_logger(__name__)
 
@@ -41,20 +42,9 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 token_type=token_data.token_type,
                 roles=token_data.scopes,
             )
-        except ExpiredSignatureError:
-            logger.warning("grpc_validate_token_failed", error="Token expired")
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            context.set_details("Token has expired")
-            return auth_pb2.TokenResponse(valid=False)
-        except PyJWTError:
-            logger.warning("grpc_validate_token_failed", error="Invalid token format or signature")
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-            context.set_details("Invalid token")
-            return auth_pb2.TokenResponse(valid=False)
         except Exception as e:
-            logger.error("grpc_validate_token_unexpected_error", error=str(e))
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details("Internal server error during token validation")
+            logger.warning("grpc_validate_token_failed", error=str(e))
+            handle_grpc_error(e, context)
             return auth_pb2.TokenResponse(valid=False)
 
     async def RefreshToken(self, request, context):
@@ -86,7 +76,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             )
         except Exception as e:
             logger.error("grpc_refresh_token_failed", error=str(e))
-            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            handle_grpc_error(e, context)
             return auth_pb2.TokenResponse(valid=False)
 
     async def RevokeToken(self, request, context):
@@ -95,7 +85,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             return empty_pb2.Empty()
         except Exception as e:
             logger.error("grpc_revoke_token_failed", error=str(e))
-            context.set_code(grpc.StatusCode.INTERNAL)
+            handle_grpc_error(e, context)
             return empty_pb2.Empty()
 
     async def GetUserInfo(self, request, context):
@@ -138,7 +128,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 return user_info
         except Exception as e:
             logger.error("grpc_get_user_info_failed", error=str(e))
-            context.set_code(grpc.StatusCode.INTERNAL)
+            handle_grpc_error(e, context)
             return auth_pb2.UserInfo()
 
     async def CreateTokenPair(self, request, context):
@@ -162,7 +152,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             )
         except Exception as e:
             logger.error("grpc_create_token_pair_failed", error=str(e))
-            context.set_code(grpc.StatusCode.INTERNAL)
+            handle_grpc_error(e, context)
             return auth_pb2.TokenPairResponse()
 
     async def ValidateAPIKey(self, request, context):
@@ -204,6 +194,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 return api_key_resp
         except Exception as e:
             logger.error("grpc_validate_api_key_failed", error=str(e))
+            handle_grpc_error(e, context)
             return auth_pb2.APIKeyResponse(valid=False)
 
     async def IntrospectToken(self, request, context):
@@ -245,10 +236,10 @@ async def serve(port: str = "50051"):
     SECURE_MODE = os.getenv("GRPC_SECURE", "true").lower() == "true"
     
     try:
-        PROJECT_ROOT = os.getcwd()
-        ca_cert = os.path.join(PROJECT_ROOT, ".pki/root_ca.crt")
-        server_crt = os.path.join(PROJECT_ROOT, ".pki/auth-service.crt")
-        server_key = os.path.join(PROJECT_ROOT, ".pki/auth-service.key")
+        # Improved cert path handling: prioritize ENV then standard paths
+        ca_cert = os.getenv("GRPC_CA_CERT", "/pki/root_ca.crt")
+        server_crt = os.getenv("GRPC_SERVER_CERT", "/pki/auth-service.crt")
+        server_key = os.getenv("GRPC_SERVER_KEY", "/pki/auth-service.key")
 
         if SECURE_MODE and all(os.path.exists(p) for p in [ca_cert, server_crt, server_key]):
             with open(server_key, "rb") as f:
@@ -267,7 +258,7 @@ async def serve(port: str = "50051"):
             logger.info("grpc_auth_server_starting_secure", port=port, mtls=True)
         else:
             server.add_insecure_port(listen_addr)
-            logger.warning("grpc_auth_server_starting_insecure", port=port)
+            logger.warning("grpc_auth_server_starting_insecure", port=port, reason="Certs missing or SECURE_MODE=false")
     except Exception as e:
         logger.exception("grpc_setup_failed", error=str(e))
         server.add_insecure_port(listen_addr)

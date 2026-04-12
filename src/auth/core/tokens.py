@@ -11,6 +11,7 @@ import msgspec
 from jwt.exceptions import ExpiredSignatureError, PyJWTError
 from pydantic import BaseModel
 
+from src.auth.exceptions import InvalidTokenError, TokenExpiredError
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -112,13 +113,10 @@ class TokenService:
                 scopes=payload.get("scopes", []),
             )
         except ExpiredSignatureError:
-            from fastapi import HTTPException
-
-            raise HTTPException(status_code=401, detail="Token has expired")
+            raise TokenExpiredError()
         except PyJWTError:
-            from fastapi import HTTPException
+            raise InvalidTokenError()
 
-            raise HTTPException(status_code=401, detail="Invalid token")
 
 
 # Global instance for easy access
