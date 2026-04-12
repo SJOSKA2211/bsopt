@@ -3,6 +3,7 @@ import sys
 
 # Set testing environment variables before any imports
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
+os.environ["ENVIRONMENT"] = "test"
 os.environ["LOG_SAMPLING_RATE"] = "1.0"
 os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost/testdb"
 os.environ["REDIS_PASSWORD"] = "a_very_long_redis_password_that_is_at_least_32_chars"

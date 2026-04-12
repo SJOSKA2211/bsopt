@@ -17,3 +17,945 @@ CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)
 [2m2026-04-12T09:19:44.778821Z[0m [[32m[1minfo     [0m] [1mgc_tuned                      [0m [36mfilename[0m=[35mobservability.py[0m [36mfunc_name[0m=[35mtune_gc[0m [36mlineno[0m=[35m128[0m [36mmode[0m=[35manalytical[0m [36mthresholds[0m=[35m(50000, 10, 10)[0m
 [2m2026-04-12T09:19:44.816589Z[0m [[32m[1minfo     [0m] [1mgc_tuned                      [0m [36mfilename[0m=[35mobservability.py[0m [36mfunc_name[0m=[35mtune_gc[0m [36mlineno[0m=[35m128[0m [36mmode[0m=[35manalytical[0m [36mthresholds[0m=[35m(50000, 10, 10)[0m
 celery beat v5.6.3 (recovery) is starting.
+[2m2026-04-12T09:20:48.675330Z[0m [[32m[1minfo     [0m] [1mpricing_engine_registered     [0m [36mengine[0m=[35mblack_scholes[0m [36mfilename[0m=[35mfactory.py[0m [36mfunc_name[0m=[35mregister[0m [36mlineno[0m=[35m52[0m
+[2m2026-04-12T09:20:48.677018Z[0m [[32m[1minfo     [0m] [1mpricing_engine_registered     [0m [36mengine[0m=[35mblack_scholes[0m [36mfilename[0m=[35mfactory.py[0m [36mfunc_name[0m=[35mregister[0m [36mlineno[0m=[35m52[0m
+Traceback (most recent call last):
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/kombu/serialization.py", line 459, in prepare_accept_content
+    return {n if '/' in n else name_to_type[n] for n in content_types}
+                               ~~~~~~~~~~~~^^^
+KeyError: 'orjson'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/__main__.py", line 19, in <module>
+    main()
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/__main__.py", line 15, in main
+    sys.exit(_main())
+             ^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/celery.py", line 227, in main
+    return celery(auto_envvar_prefix="CELERY")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1873, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/decorators.py", line 34, in new_func
+    return f(get_current_context(), *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/base.py", line 158, in caller
+    return f(ctx, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/worker.py", line 359, in worker
+    worker = app.Worker(
+             ^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/worker/worker.py", line 95, in __init__
+    self.on_before_init(**kwargs)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/apps/worker.py", line 96, in on_before_init
+    trace.setup_worker_optimizations(self.app, self.hostname)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/app/trace.py", line 815, in setup_worker_optimizations
+    prepare_accept_content(app.conf.accept_content),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/kombu/serialization.py", line 461, in prepare_accept_content
+    raise SerializerNotInstalled(
+kombu.exceptions.SerializerNotInstalled: No encoder/decoder installed for orjson
+__    -    ... __   -        _
+LocalTime -> 2026-04-12 12:20:49
+Configuration ->
+    . broker -> amqp://bsopt_admin:**@localhost:5673//
+    . loader -> celery.loaders.app.AppLoader
+    . scheduler -> celery.beat.PersistentScheduler
+    . db -> celerybeat-schedule
+    . logfile -> [stderr]@%INFO
+    . maxinterval -> 5.00 minutes (300s)
+[2026-04-12 12:20:49,602: INFO/MainProcess] beat: Starting...
+[2026-04-12 12:20:49,986: CRITICAL/MainProcess] beat raised exception <class 'KeyError'>: KeyError('orjson')
+Traceback (most recent call last):
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/apps/beat.py", line 113, in start_scheduler
+    service.start()
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 636, in start
+    humanize_seconds(self.scheduler.max_interval))
+                     ^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/kombu/utils/objects.py", line 40, in __get__
+    return super().__get__(instance, owner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/functools.py", line 998, in __get__
+    val = self.func(instance)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 679, in scheduler
+    return self.get_scheduler()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 670, in get_scheduler
+    return symbol_by_name(self.scheduler_cls, aliases=aliases)(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 515, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 266, in __init__
+    self.setup_schedule()
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 559, in setup_schedule
+    self.install_default_entries(self.schedule)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 271, in install_default_entries
+    not self.app.backend.supports_autoexpire:
+        ^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/app/base.py", line 1474, in backend
+    self._backend = self._get_backend()
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/app/base.py", line 1142, in _get_backend
+    return backend(app=self, url=url)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/redis.py", line 201, in __init__
+    super().__init__(expires_type=int, **kwargs)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/base.py", line 936, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/base.py", line 146, in __init__
+    self.encoder) = serializer_registry._encoders[self.serializer]
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'orjson'
+[2026-04-12 12:20:50,071: WARNING/MainProcess] Traceback (most recent call last):
+[2026-04-12 12:20:50,072: WARNING/MainProcess]   File "<frozen runpy>", line 198, in _run_module_as_main
+[2026-04-12 12:20:50,072: WARNING/MainProcess]   File "<frozen runpy>", line 88, in _run_code
+[2026-04-12 12:20:50,072: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/__main__.py", line 19, in <module>
+[2026-04-12 12:20:50,072: WARNING/MainProcess]     
+[2026-04-12 12:20:50,072: WARNING/MainProcess] main()
+[2026-04-12 12:20:50,073: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/__main__.py", line 15, in main
+[2026-04-12 12:20:50,073: WARNING/MainProcess]     
+[2026-04-12 12:20:50,073: WARNING/MainProcess] sys.exit(_main())
+[2026-04-12 12:20:50,073: WARNING/MainProcess]  
+[2026-04-12 12:20:50,073: WARNING/MainProcess]  
+[2026-04-12 12:20:50,073: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,074: WARNING/MainProcess]  
+[2026-04-12 12:20:50,075: WARNING/MainProcess]  
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,075: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,076: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/celery.py", line 227, in main
+[2026-04-12 12:20:50,076: WARNING/MainProcess]     
+[2026-04-12 12:20:50,077: WARNING/MainProcess] return celery(auto_envvar_prefix="CELERY")
+[2026-04-12 12:20:50,077: WARNING/MainProcess]  
+[2026-04-12 12:20:50,077: WARNING/MainProcess]  
+[2026-04-12 12:20:50,077: WARNING/MainProcess]  
+[2026-04-12 12:20:50,077: WARNING/MainProcess]  
+[2026-04-12 12:20:50,077: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess]  
+[2026-04-12 12:20:50,078: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,079: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,080: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,081: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,082: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,083: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1485, in __call__
+[2026-04-12 12:20:50,087: WARNING/MainProcess]     
+[2026-04-12 12:20:50,088: WARNING/MainProcess] return self.main(*args, **kwargs)
+[2026-04-12 12:20:50,088: WARNING/MainProcess]  
+[2026-04-12 12:20:50,088: WARNING/MainProcess]  
+[2026-04-12 12:20:50,088: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,089: WARNING/MainProcess]  
+[2026-04-12 12:20:50,090: WARNING/MainProcess]  
+[2026-04-12 12:20:50,090: WARNING/MainProcess]  
+[2026-04-12 12:20:50,090: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,090: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,090: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,090: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,090: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,091: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,092: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,093: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,094: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,094: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,094: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1406, in main
+[2026-04-12 12:20:50,099: WARNING/MainProcess]     
+[2026-04-12 12:20:50,099: WARNING/MainProcess] rv = self.invoke(ctx)
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,100: WARNING/MainProcess]  
+[2026-04-12 12:20:50,101: WARNING/MainProcess]  
+[2026-04-12 12:20:50,101: WARNING/MainProcess]  
+[2026-04-12 12:20:50,101: WARNING/MainProcess]  
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,101: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,102: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,103: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,103: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,103: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1873, in invoke
+[2026-04-12 12:20:50,107: WARNING/MainProcess]     
+[2026-04-12 12:20:50,107: WARNING/MainProcess] return _process_result(sub_ctx.command.invoke(sub_ctx))
+[2026-04-12 12:20:50,107: WARNING/MainProcess]  
+[2026-04-12 12:20:50,107: WARNING/MainProcess]  
+[2026-04-12 12:20:50,107: WARNING/MainProcess]  
+[2026-04-12 12:20:50,107: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,108: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,109: WARNING/MainProcess]  
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,110: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,111: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,112: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,113: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,113: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 1269, in invoke
+[2026-04-12 12:20:50,115: WARNING/MainProcess]     
+[2026-04-12 12:20:50,115: WARNING/MainProcess] return ctx.invoke(self.callback, **ctx.params)
+[2026-04-12 12:20:50,115: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,116: WARNING/MainProcess]  
+[2026-04-12 12:20:50,117: WARNING/MainProcess]  
+[2026-04-12 12:20:50,117: WARNING/MainProcess]  
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,117: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,118: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,119: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,120: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,121: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,121: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,121: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,121: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/core.py", line 824, in invoke
+[2026-04-12 12:20:50,123: WARNING/MainProcess]     
+[2026-04-12 12:20:50,123: WARNING/MainProcess] return callback(*args, **kwargs)
+[2026-04-12 12:20:50,123: WARNING/MainProcess]  
+[2026-04-12 12:20:50,123: WARNING/MainProcess]  
+[2026-04-12 12:20:50,123: WARNING/MainProcess]  
+[2026-04-12 12:20:50,123: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess]  
+[2026-04-12 12:20:50,124: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,124: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,124: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,125: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,126: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,127: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,127: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,127: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/click/decorators.py", line 34, in new_func
+[2026-04-12 12:20:50,127: WARNING/MainProcess]     
+[2026-04-12 12:20:50,127: WARNING/MainProcess] return f(get_current_context(), *args, **kwargs)
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,128: WARNING/MainProcess]  
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,129: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,130: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,131: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,132: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/base.py", line 158, in caller
+[2026-04-12 12:20:50,133: WARNING/MainProcess]     
+[2026-04-12 12:20:50,133: WARNING/MainProcess] return f(ctx, *args, **kwargs)
+[2026-04-12 12:20:50,133: WARNING/MainProcess]  
+[2026-04-12 12:20:50,133: WARNING/MainProcess]  
+[2026-04-12 12:20:50,133: WARNING/MainProcess]  
+[2026-04-12 12:20:50,133: WARNING/MainProcess]  
+[2026-04-12 12:20:50,133: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess]  
+[2026-04-12 12:20:50,134: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,134: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,134: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,134: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,135: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,136: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,137: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,137: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,137: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/bin/beat.py", line 72, in beat
+[2026-04-12 12:20:50,137: WARNING/MainProcess]     
+[2026-04-12 12:20:50,137: WARNING/MainProcess] return beat().run()
+[2026-04-12 12:20:50,137: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,138: WARNING/MainProcess]  
+[2026-04-12 12:20:50,139: WARNING/MainProcess]  
+[2026-04-12 12:20:50,139: WARNING/MainProcess]  
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,139: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,140: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/apps/beat.py", line 84, in run
+[2026-04-12 12:20:50,141: WARNING/MainProcess]     
+[2026-04-12 12:20:50,141: WARNING/MainProcess] self.start_scheduler()
+[2026-04-12 12:20:50,141: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/apps/beat.py", line 113, in start_scheduler
+[2026-04-12 12:20:50,141: WARNING/MainProcess]     
+[2026-04-12 12:20:50,141: WARNING/MainProcess] service.start()
+[2026-04-12 12:20:50,142: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 636, in start
+[2026-04-12 12:20:50,143: WARNING/MainProcess]     
+[2026-04-12 12:20:50,143: WARNING/MainProcess] humanize_seconds(self.scheduler.max_interval))
+[2026-04-12 12:20:50,143: WARNING/MainProcess]  
+[2026-04-12 12:20:50,143: WARNING/MainProcess]  
+[2026-04-12 12:20:50,143: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,144: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,145: WARNING/MainProcess]  
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,146: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,147: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/kombu/utils/objects.py", line 40, in __get__
+[2026-04-12 12:20:50,148: WARNING/MainProcess]     
+[2026-04-12 12:20:50,148: WARNING/MainProcess] return super().__get__(instance, owner)
+[2026-04-12 12:20:50,148: WARNING/MainProcess]  
+[2026-04-12 12:20:50,148: WARNING/MainProcess]  
+[2026-04-12 12:20:50,148: WARNING/MainProcess]  
+[2026-04-12 12:20:50,148: WARNING/MainProcess]  
+[2026-04-12 12:20:50,148: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess]  
+[2026-04-12 12:20:50,149: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,150: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,151: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,152: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,153: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,154: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,154: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/functools.py", line 998, in __get__
+[2026-04-12 12:20:50,156: WARNING/MainProcess]     
+[2026-04-12 12:20:50,156: WARNING/MainProcess] val = self.func(instance)
+[2026-04-12 12:20:50,156: WARNING/MainProcess]  
+[2026-04-12 12:20:50,156: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,157: WARNING/MainProcess]  
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,158: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,159: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,160: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,160: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,160: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,160: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,160: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 679, in scheduler
+[2026-04-12 12:20:50,163: WARNING/MainProcess]     
+[2026-04-12 12:20:50,163: WARNING/MainProcess] return self.get_scheduler()
+[2026-04-12 12:20:50,163: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,164: WARNING/MainProcess]  
+[2026-04-12 12:20:50,165: WARNING/MainProcess]  
+[2026-04-12 12:20:50,165: WARNING/MainProcess]  
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,165: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,166: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,167: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 670, in get_scheduler
+[2026-04-12 12:20:50,168: WARNING/MainProcess]     
+[2026-04-12 12:20:50,168: WARNING/MainProcess] return symbol_by_name(self.scheduler_cls, aliases=aliases)(
+[2026-04-12 12:20:50,168: WARNING/MainProcess]  
+[2026-04-12 12:20:50,168: WARNING/MainProcess]  
+[2026-04-12 12:20:50,168: WARNING/MainProcess]  
+[2026-04-12 12:20:50,168: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess]  
+[2026-04-12 12:20:50,169: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,169: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,169: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,169: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,170: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,171: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,172: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,173: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,174: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,174: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,174: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,174: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,174: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 515, in __init__
+[2026-04-12 12:20:50,175: WARNING/MainProcess]     
+[2026-04-12 12:20:50,175: WARNING/MainProcess] super().__init__(*args, **kwargs)
+[2026-04-12 12:20:50,175: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 266, in __init__
+[2026-04-12 12:20:50,176: WARNING/MainProcess]     
+[2026-04-12 12:20:50,176: WARNING/MainProcess] self.setup_schedule()
+[2026-04-12 12:20:50,176: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 559, in setup_schedule
+[2026-04-12 12:20:50,177: WARNING/MainProcess]     
+[2026-04-12 12:20:50,178: WARNING/MainProcess] self.install_default_entries(self.schedule)
+[2026-04-12 12:20:50,178: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/beat.py", line 271, in install_default_entries
+[2026-04-12 12:20:50,178: WARNING/MainProcess]     
+[2026-04-12 12:20:50,179: WARNING/MainProcess] not self.app.backend.supports_autoexpire:
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,179: WARNING/MainProcess]  
+[2026-04-12 12:20:50,180: WARNING/MainProcess]  
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,180: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,181: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/app/base.py", line 1474, in backend
+[2026-04-12 12:20:50,185: WARNING/MainProcess]     
+[2026-04-12 12:20:50,185: WARNING/MainProcess] self._backend = self._get_backend()
+[2026-04-12 12:20:50,185: WARNING/MainProcess]  
+[2026-04-12 12:20:50,185: WARNING/MainProcess]  
+[2026-04-12 12:20:50,185: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,186: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,187: WARNING/MainProcess]  
+[2026-04-12 12:20:50,188: WARNING/MainProcess]  
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,188: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,189: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,190: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,190: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,190: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,190: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,190: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/app/base.py", line 1142, in _get_backend
+[2026-04-12 12:20:50,193: WARNING/MainProcess]     
+[2026-04-12 12:20:50,193: WARNING/MainProcess] return backend(app=self, url=url)
+[2026-04-12 12:20:50,193: WARNING/MainProcess]  
+[2026-04-12 12:20:50,193: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,194: WARNING/MainProcess]  
+[2026-04-12 12:20:50,195: WARNING/MainProcess]  
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,195: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,196: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,197: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,198: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/redis.py", line 201, in __init__
+[2026-04-12 12:20:50,199: WARNING/MainProcess]     
+[2026-04-12 12:20:50,199: WARNING/MainProcess] super().__init__(expires_type=int, **kwargs)
+[2026-04-12 12:20:50,199: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/base.py", line 936, in __init__
+[2026-04-12 12:20:50,201: WARNING/MainProcess]     
+[2026-04-12 12:20:50,201: WARNING/MainProcess] super().__init__(*args, **kwargs)
+[2026-04-12 12:20:50,202: WARNING/MainProcess]   File "/home/kamau/.local/share/mise/installs/python/3.12.13/lib/python3.12/site-packages/celery/backends/base.py", line 146, in __init__
+[2026-04-12 12:20:50,202: WARNING/MainProcess]     
+[2026-04-12 12:20:50,202: WARNING/MainProcess] self.encoder) = serializer_registry._encoders[self.serializer]
+[2026-04-12 12:20:50,202: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,203: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,204: WARNING/MainProcess]  
+[2026-04-12 12:20:50,205: WARNING/MainProcess]  
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,205: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,206: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,207: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ~
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,208: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,209: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,210: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,210: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,210: WARNING/MainProcess] ^
+[2026-04-12 12:20:50,210: WARNING/MainProcess] KeyError
+[2026-04-12 12:20:50,210: WARNING/MainProcess] : 
+[2026-04-12 12:20:50,210: WARNING/MainProcess] 'orjson'

@@ -1,12 +1,12 @@
 # ==============================================================================
 # Manifold: HARDENED BASE RUNTIME (v12.0)
 # ==============================================================================
-# Ultra-lean, high-performance foundation powered by Astral UV.
-# Optimized for distroless production and multi-stage builds.
+# Ultra-lean, high-performance foundation powered by Alpine & Astral UV.
+# Optimized for minimal production footprint and multi-stage builds.
 # ==============================================================================
 
 # --- STAGE 1: BUILDER ---
-FROM docker.io/library/python:3.12-slim-bookworm AS builder
+FROM docker.io/library/python:3.12-alpine AS builder
 
 # Build Settings
 ENV UV_LINK_MODE=copy \
@@ -16,13 +16,12 @@ ENV UV_LINK_MODE=copy \
     PYTHONUNBUFFERED=1
 
 # System Build Dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+RUN apk add --no-cache \
+    build-base \
     libpq-dev \
-    gcc \
+    linux-headers \
     git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    curl
 
 # Install UV
 COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
@@ -45,7 +44,7 @@ RUN uv pip install --no-cache-dir \
     -r requirements-observability.txt
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM docker.io/library/python:3.12-slim-bookworm AS runtime
+FROM docker.io/library/python:3.12-alpine AS runtime
 
 # Production Environment Settings
 ENV PYTHON_JIT=all \
@@ -55,17 +54,16 @@ ENV PYTHON_JIT=all \
     PATH="/opt/venv/bin:$PATH"
 
 # Runtime System Dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
+RUN apk add --no-cache \
+    postgresql-libs \
     curl \
     tini \
     openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
 # Hardening: Dedicated Non-Root User
-RUN groupadd -g 1001 Manifold && \
-    useradd -r -u 1001 -g Manifold -m -d /home/Manifold Manifold
+RUN addgroup -g 1001 Manifold && \
+    adduser -D -u 1001 -G Manifold -h /home/Manifold Manifold
 
 WORKDIR /app
 RUN chown -R Manifold:Manifold /app

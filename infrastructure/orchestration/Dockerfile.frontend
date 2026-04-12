@@ -1,7 +1,7 @@
 # ==============================================================================
 # Manifold: FRONTEND SERVICE (v12.0)
 # ==============================================================================
-# React/Vite/TypeScript frontend optimized for production Nginx.
+# React/Vite/TypeScript frontend optimized for production Nginx (Alpine).
 # ==============================================================================
 
 # --- STAGE 1: BUILDER ---
@@ -27,8 +27,7 @@ COPY infrastructure/orchestration/nginx/conf.d/default.conf /etc/nginx/conf.d/de
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Security: Non-root Nginx
-RUN touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /var/log/nginx /usr/share/nginx/html
+RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d
 
 USER nginx
 EXPOSE 80

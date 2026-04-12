@@ -311,7 +311,7 @@ services:
       pgbouncer:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      test: ["CMD-SHELL", "python -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -421,11 +421,11 @@ services:
       - ../../.pki:/etc/nginx/ssl:ro
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
       auth-service:
-        condition: service_started
+        condition: service_healthy
       portfolio:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
       interval: 5s
@@ -451,7 +451,7 @@ services:
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
     networks:
       - bsopt-network
     healthcheck:

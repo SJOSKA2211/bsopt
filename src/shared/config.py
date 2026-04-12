@@ -90,7 +90,10 @@ class Settings(BaseSettings):
     XGB_INT8_MODEL_PATH: str = "models/latest_xgb_pricing.int8.onnx"
 
     # Security Configuration
-    BSOPT_ALLOW_WEAK_SECRETS: bool = Field(default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS")
+    # Security Configuration
+    BSOPT_ALLOW_WEAK_SECRETS: bool = Field(
+        default=os.environ.get("ENVIRONMENT") == "test", validation_alias="BSOPT_ALLOW_WEAK_SECRETS"
+    )
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
         default="manifold-vault-key-base-v1-long-enough-32-chars", validation_alias="AUDIT_VAULT_KEY"
