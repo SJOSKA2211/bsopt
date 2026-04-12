@@ -93,7 +93,7 @@ class Settings(BaseSettings):
     BSOPT_ALLOW_WEAK_SECRETS: bool = Field(default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS")
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
-        default="manifold-vault-key-base-v1", validation_alias="AUDIT_VAULT_KEY"
+        default="manifold-vault-key-base-v1-long-enough-32-chars", validation_alias="AUDIT_VAULT_KEY"
     )
 
     @field_validator(
