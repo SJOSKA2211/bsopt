@@ -3,7 +3,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from api.index import app
-from src.auth.security import verify_token
+from src.auth.auth import get_current_user as verify_token
 
 client = TestClient(app)
 

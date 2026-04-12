@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Dict, Optional
 
 from cachetools import TTLCache
@@ -106,6 +106,25 @@ class CentralizedCacheService:
                 await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
         except Exception as e:
             print(f"Error updating API key last used time for {key_hash[:10]}...: {e}")
+            pass
+
+    async def get_token_data_cached(self, token: str) -> Optional[Any]:
+        """
+        Retrieves token data from distributed cache.
+        """
+        try:
+            return await db_cache.get(f"token:{token}")
+        except Exception:
+            return None
+
+    async def set_token_data_cached(self, token: str, token_data: Any):
+        """
+        Stores token data in distributed cache.
+        """
+        try:
+            # Token data usually has an expiration, but for simplicity we use a default
+            await db_cache.set(f"token:{token}", token_data, ttl=timedelta(minutes=30))
+        except Exception:
             pass
 
 

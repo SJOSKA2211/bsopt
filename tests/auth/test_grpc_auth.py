@@ -456,8 +456,10 @@ async def test_get_user_info_success_from_db(auth_servicer, mock_auth_service, m
     mock_db_session.execute.return_value.scalar_one_or_none.return_value = mock_user
 
     # Mock timestamp creation as it's done inside the servicer
-    with patch("src.auth.grpc_server.timestamp_pb2.Timestamp") as MockTimestamp, 
-         patch("src.auth.grpc_server.MessageToDict") as MockMessageToDict:
+    with (
+        patch("src.auth.grpc_server.timestamp_pb2.Timestamp") as MockTimestamp,
+        patch("src.auth.grpc_server.MessageToDict") as MockMessageToDict
+    ):
 
         # Create mock timestamp objects
         ts_created = timestamp_pb2.Timestamp()
