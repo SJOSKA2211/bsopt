@@ -1,0 +1,19 @@
+⚙️ Launching Production Manifold Worker Substrate...
+🔐 Decrypting Secrets...
+Setting POSTGRES_PASSWORD to bsopt_postgres_secret
+Setting JWT_SECRET to jwt_secret_long_enough_to_pass_validation_32
+Setting BETTER_AUTH_SECRET to better_auth_secret_long_enough_to_pass_validation_32
+Setting MINIO_ROOT_PASSWORD to bsopt_minio_secret
+🐝 Starting Celery Worker Substrate...
+📅 Starting Celery Scheduler (Beat)...
+2026-04-12 12:19:34 [debug    ] derived_mfa_key
+2026-04-12 12:19:34 [debug    ] derived_mfa_key
+Manifold_core not found. Falling back to Python/GPU engines
+CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)
+Manifold_core not found. Falling back to Python/GPU engines
+CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)
+2026-04-12 12:19:44 [warning  ] rust_core_not_found_falling_back_to_python
+2026-04-12 12:19:44 [warning  ] rust_core_not_found_falling_back_to_python
+[2m2026-04-12T09:19:44.778821Z[0m [[32m[1minfo     [0m] [1mgc_tuned                      [0m [36mfilename[0m=[35mobservability.py[0m [36mfunc_name[0m=[35mtune_gc[0m [36mlineno[0m=[35m128[0m [36mmode[0m=[35manalytical[0m [36mthresholds[0m=[35m(50000, 10, 10)[0m
+[2m2026-04-12T09:19:44.816589Z[0m [[32m[1minfo     [0m] [1mgc_tuned                      [0m [36mfilename[0m=[35mobservability.py[0m [36mfunc_name[0m=[35mtune_gc[0m [36mlineno[0m=[35m128[0m [36mmode[0m=[35manalytical[0m [36mthresholds[0m=[35m(50000, 10, 10)[0m
+celery beat v5.6.3 (recovery) is starting.
