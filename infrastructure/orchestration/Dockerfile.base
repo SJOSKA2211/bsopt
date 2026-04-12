@@ -11,7 +11,7 @@ ENV PYTHON_JIT=all \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
     UV_LINK_MODE=copy \
-    UV_HTTP_TIMEOUT=300 \
+    UV_HTTP_TIMEOUT=1000 \
     VIRTUAL_ENV="/opt/venv" \
     PATH="/opt/venv/bin:$PATH"
 
@@ -48,7 +48,7 @@ ENV PATH="/uv/bin:$PATH"
 
 # UV Cache Settings
 ENV UV_CACHE_DIR=/root/.cache/uv \
-    UV_HTTP_TIMEOUT=300 \
+    UV_HTTP_TIMEOUT=1000 \
     UV_LINK_MODE=copy
 
 # Create a virtual environment for all services

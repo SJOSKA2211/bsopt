@@ -64,8 +64,9 @@ def generate_cache_key(prefix: str, **kwargs: float | int | str | bool | None) -
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
     """
-    # msgspec is the fastest serialization library available for Python
-    param_json = msgspec.json.encode(kwargs, enc_hook=_enc_hook)
+    # Sort keys to ensure deterministic output regardless of argument order
+    sorted_kwargs = dict(sorted(kwargs.items()))
+    param_json = msgspec.json.encode(sorted_kwargs, enc_hook=_enc_hook)
     return f"{prefix}:{hashlib.sha256(param_json).hexdigest()}"
 
 

@@ -1,49 +1,75 @@
-#!/usr/bin/env python3
+import asyncio
 import os
-import socket
-import sys
+import subprocess
 import time
+import json
+import structlog
 
+setup_logging = False
+try:
+    from src.shared.observability import setup_logging as sl
+    sl()
+    setup_logging = True
+except ImportError:
+    pass
 
-def check_ingestion_healthy(
-    heartbeat_file: str, grpc_port: int, timeout: int = 60, interval: int = 5
-):
-    print("[*] Monitoring Ingestion Service health...")
-    print(f"    - Heartbeat: {heartbeat_file}")
-    print(f"    - gRPC Port: {grpc_port}")
+logger = structlog.get_logger(__name__)
 
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        # 1. Check Heartbeat File
-        if os.path.exists(heartbeat_file):
-            age = time.time() - os.path.getmtime(heartbeat_file)
-            if age < 60:
-                print(f"[+] Ingestion HEARTBEAT is FRESH (Age: {age:.2f}s)")
-                return True
-            else:
-                print(f"[-] Ingestion HEARTBEAT is STALE (Age: {age:.2f}s), retrying...")
-        else:
-            # 2. Fallback: Check gRPC Port
+def check_heartbeat(path):
+    if not os.path.exists(path):
+        return False
+    try:
+        with open(path) as f:
+            content = f.read().strip()
+        try:
+            # Try to parse as JSON first
+            data = json.loads(content)
+            ts = data.get("time", 0.0)
+            delta = time.time() - ts
+            return delta < 60
+        except json.JSONDecodeError:
+            # Fallback to plain timestamp
+            ts = float(content)
+            delta = time.time() - ts
+            return delta < 60
+    except Exception:
+        return False
+
+async def run_until_healthy(max_retries: int = 30, retry_interval: int = 5):
+    """
+    Ensures Ingestion Service is up and running.
+    Attempts to start it via docker-compose if heartbeat is missing or stale.
+    """
+    heartbeat_path = "/tmp/ingestion_heartbeat"
+    print(f"🔍 Checking Ingestion Health ({heartbeat_path})...")
+
+    for i in range(max_retries):
+        if check_heartbeat(heartbeat_path):
+            print("✅ Ingestion Service is HEALTHY and READY.")
+            return True
+
+        if i == 0:
+            print("⚠️ Ingestion not healthy. Attempting to start via docker-compose...")
             try:
-                with socket.create_connection(("localhost", grpc_port), timeout=2.0):
-                    print(f"[+] Ingestion gRPC Port {grpc_port} is OPEN (Fallback)")
-                    return True
-            except Exception:
-                print(
-                    f"[-] Ingestion Heartbeat missing and gRPC Port {grpc_port} closed, retrying..."
+                compose_path = "infrastructure/orchestration/docker-compose.yml"
+                if not os.path.exists(compose_path):
+                    compose_path = "../../infrastructure/orchestration/docker-compose.yml"
+
+                subprocess.run(
+                    ["docker-compose", "-f", compose_path, "up", "-d", "ingestion-service"],
+                    check=True,
+                    capture_output=True,
                 )
+                print("🚀 started_via_docker_compose")
+            except Exception as e:
+                print(f"🚨 Failed to run docker-compose: {str(e)}")
 
-        time.sleep(interval)
+        print(f"⏳ Waiting for Ingestion... (Attempt {i + 1}/{max_retries})")
+        await asyncio.sleep(retry_interval)
 
-    print("[!] ERROR: Ingestion health check timed out after 60 seconds.")
+    print("❌ Ingestion Service failed to become healthy within the timeout.")
     return False
 
-
 if __name__ == "__main__":
-    heartbeat_path = os.environ.get("INGESTION_HEARTBEAT", "/tmp/ingestion_heartbeat")
-    grpc_port = int(os.environ.get("INGESTION_PORT", 50053))
-
-    if check_ingestion_healthy(heartbeat_path, grpc_port):
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    if not asyncio.run(run_until_healthy()):
+        exit(1)
