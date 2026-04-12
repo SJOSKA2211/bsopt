@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, useTheme, IconButton } from '@mui/material';
+import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, useTheme, IconButton, Tooltip } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 
 export const OrderTicket: React.FC = () => {
@@ -62,9 +62,13 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>QUANTITY</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <Tooltip title="Decrease quantity">
+            <IconButton size="small" aria-label="Decrease quantity"><RemoveIcon fontSize="small" /></IconButton>
+          </Tooltip>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>18</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <Tooltip title="Increase quantity">
+            <IconButton size="small" aria-label="Increase quantity"><AddIcon fontSize="small" /></IconButton>
+          </Tooltip>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           {['10', '50', '100', 'MAX'].map(val => (
@@ -85,9 +89,13 @@ export const OrderTicket: React.FC = () => {
       <Box>
         <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.5, display: 'block' }}>LIMIT PRICE</Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ bgcolor: alpha('#fff', 0.03), borderRadius: 2, p: 0.5 }}>
-          <IconButton size="small"><RemoveIcon fontSize="small" /></IconButton>
+          <Tooltip title="Decrease limit price">
+            <IconButton size="small" aria-label="Decrease limit price"><RemoveIcon fontSize="small" /></IconButton>
+          </Tooltip>
           <Typography variant="h5" align="center" sx={{ flexGrow: 1, fontFamily: 'JetBrains Mono', fontWeight: 800 }}>4.25</Typography>
-          <IconButton size="small"><AddIcon fontSize="small" /></IconButton>
+          <Tooltip title="Increase limit price">
+            <IconButton size="small" aria-label="Increase limit price"><AddIcon fontSize="small" /></IconButton>
+          </Tooltip>
         </Stack>
       </Box>
 
