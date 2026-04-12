@@ -1,0 +1,69 @@
+# ML INFERENCE STANDALONE
+FROM docker.io/library/python:3.12-slim-bookworm
+
+# Environment
+ENV PYTHON_JIT=all \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=2 \
+    UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    VIRTUAL_ENV="/opt/venv" \
+    PATH="/opt/venv/bin:$PATH"
+
+# System Dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    tini \
+    openssl \
+    ca-certificates \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install UV
+COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
+
+# Setup App
+WORKDIR /app
+RUN groupadd -g 1000 Manifold && \
+    useradd -r -u 1000 -g Manifold -m -d /home/Manifold Manifold && \
+    chown -R Manifold:Manifold /app
+
+# Create virtual environment
+RUN uv venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install dependencies
+COPY infrastructure/requirements/requirements-core.txt /tmp/
+COPY infrastructure/requirements/requirements-db.txt /tmp/
+COPY infrastructure/requirements/requirements-observability.txt /tmp/
+COPY infrastructure/requirements/requirements-api.txt /tmp/
+COPY infrastructure/requirements/requirements-ml.txt /tmp/
+COPY pyproject.toml /tmp/
+COPY README.md /tmp/
+
+# Use local cache or longer timeout for robust install
+RUN export UV_HTTP_TIMEOUT=1000 && \
+    /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-core.txt \
+    -r /tmp/requirements-db.txt \
+    -r /tmp/requirements-observability.txt \
+    -r /tmp/requirements-api.txt \
+    -r /tmp/requirements-ml.txt
+
+# Copy source and install app
+COPY . .
+RUN /usr/local/bin/uv pip install --no-cache-dir -e .
+
+USER Manifold
+EXPOSE 5001 50051
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()" || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "infrastructure/scripts/entrypoint-shim.sh"]
+CMD ["python", "src/ml/inference/server.py"]

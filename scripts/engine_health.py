@@ -23,7 +23,7 @@ logger = logging.getLogger("engine_health")
 SERVICES = {
     "App Gateway": {"url": "http://localhost:5173", "type": "http", "container": "frontend"},
     "Frontend Flow": {"heartbeat": "/tmp/frontend_heartbeat", "type": "dockerexec", "container": "frontend"},
-    "Nginx Proxy": {"url": "https://localhost:8443/health", "type": "http", "container": "nginx"},
+    "Nginx Proxy": {"url": "https://localhost:443/health", "type": "http", "container": "nginx"},
     "Envoy Gateway": {"url": "http://localhost:8081/health", "type": "http", "container": "envoy"},
     "Envoy Admin": {"url": "http://localhost:9901/ready", "type": "envoy_ready", "container": "envoy"},
     "Auth Service": {"url": "http://localhost:3001/health", "type": "http"},
@@ -45,6 +45,11 @@ SERVICES = {
 # Dynamic Cooldown Tracking
 COOLDOWNS = {}
 
+import ssl
+
+# Create unverified SSL context for local/internal services
+ssl_context = ssl._create_unverified_context()
+
 def fetch_url(url, method="GET", json_data=None, timeout=10.0):
     """Reliable URL fetcher using standard library only."""
     try:
@@ -55,7 +60,7 @@ def fetch_url(url, method="GET", json_data=None, timeout=10.0):
         else:
             data = None
 
-        with urllib.request.urlopen(req, data=data, timeout=timeout) as response:
+        with urllib.request.urlopen(req, data=data, timeout=timeout, context=ssl_context) as response:
             status = response.getcode()
             body = response.read().decode("utf-8")
             return status, body

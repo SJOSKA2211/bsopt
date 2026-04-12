@@ -19,18 +19,8 @@ fi
 source scripts/utils_env.sh
 load_decrypted_secrets
 
-echo "🚀 Starting PgBouncer..."
-$COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d --force-recreate pgbouncer
-
-echo "⏳ Verifying PgBouncer engine health..."
-RETRIES=30
-INTERVAL=5
-SUCCESS=0
-
-for ((i=1; i<=RETRIES; i++)); do
-    echo "   [Attempt $i/$RETRIES] Querying Reporting Engine..."
-    
-    # Use sentinel check logic to report granular metrics
+# Function to check pgbouncer health
+check_health() {
     if PGBOUNCER_ADMIN_PASSWORD="$POSTGRES_PASSWORD" .venv/bin/python -c "
 import asyncio
 import sys
@@ -45,6 +35,35 @@ async def run():
 if __name__ == '__main__':
     asyncio.run(run())
 " 2>&1 | grep -q "\[HEALTHY\]"; then
+        return 0
+    else
+        return 1
+fi
+}
+
+echo "🔍 Checking if PgBouncer is already healthy..."
+if check_health; then
+    echo "✅ PgBouncer is already ACTIVE and HEALTHY. Skipping start."
+    echo "🏁 PgBouncer Pool Engine is Online and Verified."
+    exit 0
+fi
+
+echo "🚀 Starting PgBouncer..."
+# Try to start without --force-recreate first to avoid unnecessary restarts if it's just stopped
+if ! $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer; then
+    echo "⚠️ Failed to start pgbouncer normally, trying with --force-recreate..."
+    $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d --force-recreate pgbouncer
+fi
+
+echo "⏳ Verifying PgBouncer engine health..."
+RETRIES=30
+INTERVAL=5
+SUCCESS=0
+
+for ((i=1; i<=RETRIES; i++)); do
+    echo "   [Attempt $i/$RETRIES] Querying Reporting Engine..."
+    
+    if check_health; then
         echo "✅ PgBouncer is ACTIVE, OPTIMIZED, and reporting healthy metrics."
         SUCCESS=1
         break

@@ -52,10 +52,47 @@ class PricingService:
             # 1. Resolve Engine
             engine = self.factory.get_engine(model)
 
-            # 2. Compute (Off-load to thread pool for heavy engines)
+            # 2. Prepare Kwargs (e.g. Heston Params)
+            kwargs = {}
+            if model == "heston" and symbol:
+                from src.shared.utils.cache import get_redis
+                redis = get_redis()
+                if redis:
+                    try:
+                        cached = await redis.get(f"heston_params:{symbol}")
+                        if cached:
+                            import json
+                            from src.math_kernel.models.heston_fft import HestonParams
+                            data = json.loads(cached)
+                            p = data["params"]
+                            kwargs["heston_params"] = HestonParams(
+                                v0=p["v0"], kappa=p["kappa"], theta=p["theta"], 
+                                sigma=p["sigma"], rho=p["rho"]
+                            )
+                    except Exception as e:
+                        logger.warning("failed_to_fetch_heston_params", symbol=symbol, error=str(e))
+
+            # 3. Compute Price (Off-load to thread pool for heavy engines)
             start_time = time.perf_counter()
-            result = await run_sync(engine.price_european, params)
+            result = await run_sync(engine.price_european, params, option_type, **kwargs)
             duration_ms = (time.perf_counter() - start_time) * 1000
+
+            # 4. Handle Result (Result can be float or object with .price)
+            if isinstance(result, (float, int, np.float64, np.number)):
+                price = float(result)
+                greeks_obj = None
+            else:
+                price = float(getattr(result, "price", 0.0))
+                greeks_obj = getattr(result, "greeks", None)
+
+            # 5. Calculate Greeks if not provided by the engine
+            if greeks_obj is None:
+                try:
+                    greeks_obj = await run_sync(engine.calculate_greeks, params, option_type, **kwargs)
+                except Exception as e:
+                    logger.warning("greeks_calculation_failed_during_pricing", error=str(e))
+                    from src.math_kernel.models import OptionGreeks
+                    greeks_obj = OptionGreeks(delta=0.0, gamma=0.0, theta=0.0, vega=0.0, rho=0.0)
 
             logger.info(
                 "option_priced",
@@ -66,7 +103,7 @@ class PricingService:
             from api.schemas.pricing import OptionGreeksStruct
 
             return PriceResult(
-                price=float(result.price),
+                price=price,
                 spot=params.spot,
                 strike=params.strike,
                 time_to_expiry=params.maturity,
@@ -76,13 +113,13 @@ class PricingService:
                 model=model,
                 computation_time_ms=duration_ms,
                 greeks=OptionGreeksStruct(
-                    delta=float(result.greeks.delta),
-                    gamma=float(result.greeks.gamma),
-                    theta=float(result.greeks.theta),
-                    vega=float(result.greeks.vega),
-                    rho=float(result.greeks.rho),
+                    delta=float(greeks_obj.delta),
+                    gamma=float(greeks_obj.gamma),
+                    theta=float(greeks_obj.theta),
+                    vega=float(greeks_obj.vega),
+                    rho=float(greeks_obj.rho),
                 )
-                if result.greeks
+                if greeks_obj
                 else None,
             )
 

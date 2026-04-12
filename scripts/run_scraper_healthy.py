@@ -16,10 +16,13 @@ def get_container_engine():
     return "docker", "docker compose"
 
 
-def check_heartbeat(path, timeout=300, interval=10):
+def check_heartbeat(path, timeout=300, interval=10, exit_early_if_healthy=False):
     console.print(f"[bold blue][*][/bold blue] Monitoring Heartbeat at {path}...")
     start_time = time.time()
-    while time.time() - start_time < timeout:
+    # If we just want to check once and exit
+    limit = timeout if not exit_early_if_healthy else 1
+    
+    while True:
         if os.path.exists(path):
             try:
                 with open(path) as f:
@@ -42,13 +45,15 @@ def check_heartbeat(path, timeout=300, interval=10):
                         )
                         return True
                     else:
-                        console.print(
-                            "[yellow][-][/yellow] Scraper active but 0 ticks processed, waiting..."
-                        )
+                        if not exit_early_if_healthy:
+                            console.print(
+                                "[yellow][-][/yellow] Scraper active but 0 ticks processed, waiting..."
+                            )
                 else:
-                    console.print(
-                        f"[dim][-] Heartbeat is stale ({delta:.1f}s ago), waiting...[/dim]"
-                    )
+                    if not exit_early_if_healthy:
+                        console.print(
+                            f"[dim][-] Heartbeat is stale ({delta:.1f}s ago), waiting...[/dim]"
+                        )
             except (json.JSONDecodeError, ValueError, KeyError):
                 # Fallback to legacy timestamp if it's not JSON yet
                 try:
@@ -62,13 +67,21 @@ def check_heartbeat(path, timeout=300, interval=10):
                         return True
                 except ValueError:
                     pass
-                console.print("[dim][-] Corrupt heartbeat file, waiting...[/dim]")
+                if not exit_early_if_healthy:
+                    console.print("[dim][-] Corrupt heartbeat file, waiting...[/dim]")
         else:
-            console.print(
-                "[dim][-] Heartbeat file missing, waiting for scraper and ingestion-service...[/dim]"
-            )
+            if not exit_early_if_healthy:
+                console.print(
+                    "[dim][-] Heartbeat file missing, waiting for scraper and ingestion-service...[/dim]"
+                )
 
-        time.sleep(interval)
+        if time.time() - start_time >= limit:
+            break
+            
+        if not exit_early_if_healthy:
+            time.sleep(interval)
+        else:
+            break
     return False
 
 
@@ -113,6 +126,12 @@ if __name__ == "__main__":
     console.print(
         f"[bold blue][*][/bold blue] Target: [cyan]{service_name}[/cyan] | Env: [cyan]{engine}[/cyan]"
     )
+
+    # CHECK FIRST
+    console.print("🔍 Checking if scraper is already healthy...")
+    if check_heartbeat(heartbeat_path, exit_early_if_healthy=True):
+        console.print(Panel(f"🚀 [bold green]{service_name.upper()} IS ALREADY ONLINE[/bold green]"))
+        sys.exit(0)
 
     if start_scraper(compose, service_name):
         if check_heartbeat(heartbeat_path):

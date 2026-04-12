@@ -12,6 +12,7 @@ os.environ["BETTER_AUTH_SECRET"] = "a_very_long_better_auth_secret_that_is_at_le
 os.environ["JWT_SECRET"] = "a_very_long_jwt_secret_that_is_at_least_32_chars"
 os.environ["PGBOUNCER_ADMIN_PASSWORD"] = "a_very_long_pgbouncer_admin_password_that_is_at_least_32_chars"
 os.environ["MINIO_ROOT_PASSWORD"] = "a_very_long_minio_root_password_that_is_at_least_32_chars"
+os.environ["MLFLOW_TRACKING_URI"] = "sqlite:///mlflow_test.db"
 
 import multiprocessing
 import multiprocessing.connection
@@ -126,14 +127,17 @@ def env_setup(monkeypatch):
 
     # Mock Redis globally to prevent connection timeouts in unit tests
     import unittest.mock
-    mock_redis = unittest.mock.AsyncMock()
-    mock_redis.get.return_value = None
-    mock_redis.set.return_value = True
-    mock_redis.ping.return_value = True
+    mock_redis = unittest.mock.MagicMock()
+    mock_redis.get = unittest.mock.AsyncMock(return_value=None)
+    mock_redis.set = unittest.mock.AsyncMock(return_value=True)
+    mock_redis.ping = unittest.mock.AsyncMock(return_value=True)
+    mock_redis.setex = unittest.mock.AsyncMock(return_value=True)
 
     # Use a side_effect for pipeline to return a mock aggregator
     mock_pipeline = unittest.mock.MagicMock()
-    mock_pipeline.execute.return_value = []
+    mock_pipeline.get = unittest.mock.Mock()
+    mock_pipeline.pttl = unittest.mock.Mock()
+    mock_pipeline.execute = unittest.mock.AsyncMock(return_value=[None, 0])
     mock_redis.pipeline.return_value = mock_pipeline
 
     monkeypatch.setattr("src.shared.utils.cache.get_redis_client", unittest.mock.AsyncMock(return_value=mock_redis))

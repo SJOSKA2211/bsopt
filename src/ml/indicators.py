@@ -182,3 +182,11 @@ def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
 def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
     """Average Directional Index."""
     return _adx_kernel(high, low, close, length)
+
+
+# Aliases for backward compatibility with older tests
+_numba_ema = _ema_kernel
+_numba_rsi = _rsi_kernel
+_numba_bbands = get_bbands
+_numba_macd = get_macd
+_numba_atr = _atr_kernel

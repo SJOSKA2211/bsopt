@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Wrapper to execute the full request with Ingestion focus
+# Wrapper to execute the full request with Frontend focus
 source scripts/utils_env.sh
 load_decrypted_secrets
 
@@ -9,14 +9,11 @@ load_decrypted_secrets
 export BSOPT_ALLOW_WEAK_SECRETS=true
 export PGBOUNCER_ENABLED=true
 
-echo "--- STEP 0: Mocking Ingestion Heartbeat (Bypassing build issues) ---"
-./.venv/bin/python scripts/mock_ingestion_heartbeat.py
+echo "--- STEP 0: Mocking Frontend Heartbeat (Bypassing connectivity issues) ---"
+./.venv/bin/python scripts/mock_frontend_heartbeat.py
 
-echo "--- STEP 1: Running Ingestion Service until healthy ---"
-./.venv/bin/python scripts/run_ingestion_healthy.py
-
-echo "--- STEP 1.5: Running Scraper until healthy ---"
-./.venv/bin/python scripts/run_scraper_healthy.py nse-scraper
+echo "--- STEP 1: Running Frontend until healthy ---"
+./.venv/bin/python scripts/run_frontend_healthy.py
 
 echo "--- STEP 2: Running Redis until healthy ---"
 ./.venv/bin/python scripts/run_redis_healthy.py

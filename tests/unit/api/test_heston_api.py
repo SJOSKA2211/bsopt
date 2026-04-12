@@ -1,9 +1,34 @@
 import json
+import pytest
 from unittest.mock import AsyncMock, MagicMock
+from fastapi.testclient import TestClient
+from api.index import app
+from src.auth.auth import get_current_active_user
+from src.shared.utils.cache import get_redis_client
+from src.auth.rate_limit import rate_limit
 
+@pytest.fixture
+def mock_user():
+    from src.database.models import User
+    from uuid import uuid4
+    return User(
+        id=str(uuid4()),
+        email="test@example.com",
+        tier="pro",
+        is_active=True,
+        is_verified=True
+    )
+
+@pytest.fixture
+def heston_client(mock_user):
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    app.dependency_overrides[rate_limit] = lambda: None
+    with TestClient(app) as client:
+        yield client
+    app.dependency_overrides.clear()
 
 class TestPricingAPIHeston:
-    def test_heston_pricing_success(self, api_client):
+    def test_heston_pricing_success(self, heston_client):
         """Verify Heston pricing when parameters are available in Redis."""
         # 1. Setup mock Redis data
         mock_params = {
@@ -21,22 +46,11 @@ class TestPricingAPIHeston:
             "metrics": {"rmse": 0.01},
         }
 
-        from src.shared.utils.cache import get_redis_client
-
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=json.dumps(mock_cache))
 
-        # Override dependencies
-        from api.index import app
-        from src.auth.auth import get_current_user_flexible
-        from src.auth.rate_limit import rate_limit
-
+        # Override Redis dependency specifically for this test
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
-        app.dependency_overrides[get_current_user_flexible] = lambda: {
-            "id": "test-user",
-            "tier": "free",
-        }
-        app.dependency_overrides[rate_limit] = lambda: None
 
         # 2. Make request
         payload = {
@@ -50,7 +64,7 @@ class TestPricingAPIHeston:
             "symbol": "SPY",
         }
 
-        response = api_client.post(
+        response = heston_client.post(
             "/api/v1/pricing/price", 
             json=payload,
             headers={"Authorization": "Bearer test-token"}
@@ -58,28 +72,18 @@ class TestPricingAPIHeston:
 
         # 3. Verify
         assert response.status_code == 200
-        data = response.json()["data"]
+        data = response.json()
         assert data["model"] == "heston"
         assert response.headers["X-Pricing-Model"] == "Heston-FFT"
         assert data["price"] > 0
 
-    def test_heston_fallback_to_bs(self, api_client):
+    def test_heston_fallback_to_bs(self, heston_client):
         """Verify fallback to Black-Scholes when Redis is empty."""
         # 1. Setup mock Redis (Empty)
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=None)
 
-        from api.index import app
-        from src.auth.auth import get_current_user_flexible
-        from src.auth.rate_limit import rate_limit
-        from src.shared.utils.cache import get_redis_client
-
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
-        app.dependency_overrides[get_current_user_flexible] = lambda: {
-            "id": "test-user",
-            "tier": "free",
-        }
-        app.dependency_overrides[rate_limit] = lambda: None
 
         # 2. Make request
         payload = {
@@ -93,7 +97,7 @@ class TestPricingAPIHeston:
             "symbol": "SPY",
         }
 
-        response = api_client.post(
+        response = heston_client.post(
             "/api/v1/pricing/price", 
             json=payload,
             headers={"Authorization": "Bearer test-token"}
@@ -101,6 +105,6 @@ class TestPricingAPIHeston:
 
         # 3. Verify
         assert response.status_code == 200
-        data = response.json()["data"]
+        data = response.json()
         assert data["model"] == "black_scholes"
         assert response.headers["X-Pricing-Model"] == "Black-Scholes-Fallback"
