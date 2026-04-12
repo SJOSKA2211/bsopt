@@ -76,7 +76,7 @@ static_resources:
                   address:
                     socket_address:
                       address: 127.0.0.1
-                      port_value: 3001
+                      port_value: 50051
       health_checks:
         - timeout: 1s
           interval: 5s
