@@ -5,8 +5,11 @@
 # ==============================================================================
 
 # --- STAGE 1: BUILDER ---
-FROM docker.io/library/node:20-alpine AS builder
+FROM docker.io/library/node:22-alpine AS builder
 WORKDIR /app
+
+# Configure NPM network resilience
+RUN npm config set fetch-retries 5 && npm config set fetch-retry-mintimeout 20000 && npm config set fetch-retry-maxtimeout 120000
 
 # Install dependencies
 COPY src/frontend/package*.json ./

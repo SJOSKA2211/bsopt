@@ -1,0 +1,843 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /home/kamau/bsopt/.venv/bin/python3.12
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/kamau/bsopt
+configfile: pytest.ini
+testpaths: tests/unit, tests/integration
+plugins: hypothesis-6.151.12, cov-7.1.0, asyncio-1.3.0, Faker-40.13.0, anyio-4.13.0, xdist-3.8.0, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 559 items
+
+<Dir bsopt>
+  <Package tests>
+    <Dir unit>
+      <Dir api>
+        <Dir middleware>
+          <Module test_idempotency_v3.py>
+            <Coroutine test_idempotency_skip_get>
+            <Coroutine test_idempotency_cache_hit>
+            <Coroutine test_idempotency_lock_conflict>
+            <Coroutine test_idempotency_success_caching>
+          <Module test_logging_middleware.py>
+            <Function test_structured_logger_full>
+            <Function test_request_logging_internals>
+            <Function test_request_logging_middleware_basic>
+            <Function test_request_logging_malformed_json>
+            <Function test_request_logging_user_info>
+            <Coroutine test_persist_log_full>
+            <Function test_request_logging_error_capture>
+          <Module test_logging_middleware_unit.py>
+            <Function test_structured_logger_full>
+            <Function test_request_logging_internals>
+            <Function test_request_logging_middleware_basic>
+            <Function test_request_logging_malformed_json>
+            <Function test_request_logging_user_info>
+            <Coroutine test_persist_log_full>
+            <Function test_request_logging_error_capture>
+          <Module test_security_middleware.py>
+            <Function test_security_headers_middleware>
+            <Function test_csrf_middleware_get_success>
+            <Function test_csrf_middleware_post_fail_no_token>
+            <Function test_csrf_middleware_full_flow>
+            <Function test_ip_block_middleware>
+            <Function test_ip_block_middleware_x_forwarded_for>
+            <Function test_csrf_middleware_failures>
+            <Function test_ip_block_temp_block>
+            <Function test_security_headers_custom_policy>
+            <Function test_ip_block_temp_block_expiration>
+            <Function test_ip_block_clean_old_attempts>
+            <Function test_csrf_wildcard_exempt>
+            <Function test_csrf_no_origin_referer>
+            <Function test_csrf_invalid_origin_format>
+            <Function test_input_sanitization_middleware>
+          <Module test_security_middleware_unit.py>
+            <Function test_security_headers_middleware>
+            <Function test_csrf_middleware_get_success>
+            <Function test_csrf_middleware_post_fail_no_token>
+            <Function test_csrf_middleware_full_flow>
+            <Function test_ip_block_middleware>
+            <Function test_ip_block_middleware_x_forwarded_for>
+            <Function test_csrf_middleware_failures>
+            <Function test_ip_block_temp_block>
+            <Function test_security_headers_custom_policy>
+            <Function test_ip_block_temp_block_expiration>
+            <Function test_ip_block_clean_old_attempts>
+            <Function test_csrf_wildcard_exempt>
+            <Function test_csrf_no_origin_referer>
+            <Function test_csrf_invalid_origin_format>
+            <Function test_input_sanitization_middleware>
+          <Module test_security_middleware_v2.py>
+            <Coroutine test_security_headers_middleware>
+            <Coroutine test_security_no_cache_headers>
+            <Coroutine test_security_middleware_custom_csp>
+        <Dir routes>
+          <Module test_auth_v3.py>
+            <Coroutine test_mfa_setup_success>
+            <Coroutine test_mfa_verify_success>
+            <Coroutine test_change_password_success>
+            <Coroutine test_password_reset_flow>
+          <Module test_debug_unit.py>
+            <Coroutine test_get_tracemalloc_snapshot_not_active>
+            <Coroutine test_get_tracemalloc_snapshot_success>
+        <Module test_auth_api.py>
+          <Function test_login_success>
+          <Function test_login_invalid_credentials>
+          <Function test_register_success>
+          <Function test_logout>
+          <Function test_me>
+          <Function test_refresh_token_success>
+          <Function test_password_change_success>
+          <Function test_mfa_setup_success>
+          <Function test_mfa_verify_success>
+          <Function test_mfa_disable_success>
+        <Module test_heston_api.py>
+          <Class TestPricingAPIHeston>
+            <Coroutine test_heston_pricing_success>
+              Verify Heston pricing when parameters are available in Redis.
+            <Coroutine test_heston_fallback_to_bs>
+              Verify fallback to Black-Scholes when Redis is empty.
+        <Module test_main_routes.py>
+          <Function test_root_endpoint>
+          <Function test_health_endpoints>
+          <Function test_diagnostics_imports>
+          <Function test_http_exception_handler>
+          <Function test_admin_only_success>
+          <Coroutine test_graphql_context>
+          <Function test_response_time_header>
+          <Function test_gzip_compression>
+        <Module test_ml_api.py>
+          <Function test_proxy_predict_success>
+          <Function test_proxy_predict_service_unavailable>
+          <Function test_proxy_predict_unexpected_error>
+          <Function test_get_predictions_success>
+          <Function test_get_drift_metrics_success>
+        <Module test_pricing_api.py>
+          <Function test_calculate_price_success>
+          <Function test_calculate_price_invalid_params>
+          <Function test_calculate_price_validation_error>
+          <Function test_calculate_batch_prices_success>
+          <Function test_calculate_greeks_success>
+          <Function test_calculate_price_heston_success>
+        <Module test_providers.py>
+          <Coroutine test_polygon_provider_stub>
+          <Coroutine test_yahoo_provider_stub>
+        <Module test_security_v3.py>
+          <Coroutine test_security_headers>
+          <Coroutine test_csrf_protection_safe_methods>
+          <Coroutine test_csrf_protection_unsafe_method_missing_token>
+          <Coroutine test_ip_block_middleware_blocked>
+          <Coroutine test_jwt_auth_legacy_bypass>
+          <Coroutine test_input_sanitization>
+        <Module test_users_api.py>
+          <Function test_get_me_success>
+          <Function test_get_me_unauthorized>
+          <Function test_update_me_success>
+          <Function test_update_me_success_email>
+          <Function test_update_me_no_changes>
+          <Function test_update_me_email_conflict>
+          <Function test_update_me_persistence_error>
+          <Function test_delete_me_success>
+          <Function test_delete_me_not_found>
+          <Function test_delete_me_persistence_error>
+          <Function test_get_user_stats>
+          <Function test_get_user_by_id_enterprise>
+          <Function test_get_user_by_id_not_found>
+          <Function test_list_users_admin>
+          <Function test_list_users_empty>
+          <Function test_list_users_with_search>
+          <Function test_get_user_by_id_insufficient_tier>
+          <Function test_list_users_with_tier_filter>
+          <Function test_list_users_with_is_active_filter>
+          <Function test_list_users_forbidden>
+        <Module test_users_security_repro.py>
+          <Function test_list_users_vulnerability_repro>
+            Verify vulnerability is fixed: Free user can NO LONGER list all users.
+            Expected behavior (AFTER FIX): 403 Forbidden
+          <Function test_list_users_admin_access>
+            Verify admin user can list users.
+      <Dir auth>
+        <Module test_auth.py>
+          <Function test_health_check>
+            Test if the API is running.
+          <Function test_register_success>
+            Test user registration.
+          <Function test_register_conflict>
+            Test user registration with existing email.
+          <Function test_login_success>
+            Test user login.
+          <Function test_login_failure>
+            Test user login failure.
+          <Function test_get_me>
+            Test getting current user info.
+          <Function test_refresh_token_success>
+          <Function test_logout_success>
+          <Function test_mfa_setup_success>
+        <Module test_auth_refinement.py>
+          <Coroutine test_argon2id_hashing_verification>
+            Unit test for Argon2id hashing/verification.
+          <Coroutine test_jwt_signing_validation>
+            Unit test for JWT signing/validation.
+          <Coroutine test_redis_token_revocation>
+            Mock Redis test for token revocation.
+          <Coroutine test_authenticate_user_flow>
+            Test the core authentication flow: authenticate_user -> verify_mfa -> create_token_pair.
+      <Dir cli>
+        <Module test_cli_auth.py>
+          <Function test_login_success>
+          <Function test_logout>
+          <Function test_get_current_user_no_token>
+        <Module test_config.py>
+          <Function test_config_defaults>
+          <Function test_config_set_get>
+          <Function test_config_save_load>
+        <Module test_portfolio.py>
+          <Function test_add_list_remove_position>
+          <Function test_calculate_position_value>
+          <Function test_get_portfolio_summary>
+      <Dir config>
+        <Module test_core_config.py>
+          <Function test_settings_initialization>
+          <Function test_settings_validation>
+          <Function test_password_min_length_validation>
+          <Function test_validators_coverage>
+          <Function test_fallback_initialization_no_reload>
+            Test fallback by patching functions in place without reload.
+          <Function test_configure_logging_execution>
+        <Module test_security_config.py>
+          <Function test_mfa_key_security_dev>
+            Test that default key is allowed in dev environment.
+          <Function test_mfa_key_security_prod_failure>
+            Test that default key is REJECTED in prod environment.
+          <Function test_mfa_key_security_prod_success>
+            Test that CUSTOM key is allowed in prod environment.
+      <Dir database>
+        <Module test_crud.py>
+          <Coroutine test_user_crud>
+          <Coroutine test_portfolio_crud>
+        <Module test_crud_comprehensive.py>
+          <Function test_user_operations>
+          <Function test_portfolio_operations>
+          <Function test_position_operations>
+          <Function test_order_operations>
+          <Function test_ml_model_operations>
+          <Function test_option_price_operations>
+          <Function test_aggregation_queries>
+        <Module test_crud_optimized.py>
+          <Coroutine test_bulk_inserts_optimized_paths>
+            Test the optimized bulk insert paths (copy_records_to_table).
+        <Module test_crud_unit.py>
+          <Function test_user_crud>
+          <Function test_portfolio_crud>
+        <Module test_crud_v3.py>
+          <Coroutine test_crud_basics>
+          <Coroutine test_bulk_inserts_all>
+          <Coroutine test_model_ops>
+          <Coroutine test_mv_queries>
+          <Coroutine test_closing_and_expiring>
+        <Module test_models.py>
+          <Function test_models_creation>
+          <Function test_user_instantiation>
+        <Module test_verify.py>
+          <Function test_verify_connection_success>
+          <Function test_verify_connection_failure>
+      <Dir ingestion>
+        <Module test_mesh_publisher.py>
+          <Coroutine test_mesh_publisher_success>
+            Verify MarketMeshPublisher correctly formats and publishes ticks to RabbitMQ.
+          <Coroutine test_mesh_publisher_error_handling>
+            Verify MarketMeshPublisher logs error but doesn't crash on failure.
+      <Dir ml>
+        <Dir forecasting>
+          <Module test_tft_model.py>
+            <Function test_tft_data_preparation>
+            <Function test_tft_prediction_no_model>
+            <Function test_tft_interpretability_report>
+            <Coroutine test_tft_training_and_prediction>
+          <Module test_tft_predict.py>
+            <Function test_tft_prediction_stub>
+        <Dir pipelines>
+          <Module test_retraining.py>
+            <Coroutine test_retrainer_trigger_success>
+            <Coroutine test_retrainer_with_drift>
+            <Coroutine test_retrainer_failure>
+        <Dir serving>
+          <Module test_quantization.py>
+            <Function test_dynamic_quantization>
+            <Function test_quantization_failure>
+            <Function test_quantization_save_load>
+        <Module test_autonomous_pipeline.py>
+          <Coroutine test_pipeline_init>
+          <Coroutine test_pipeline_run_success>
+          <Coroutine test_pipeline_shutdown>
+        <Module test_data_loader.py>
+          <Function test_normalize_incomplete_scraper_data>
+          <Function test_normalize_complete_data>
+          <Function test_outlier_removal_true>
+          <Function test_outlier_removal_false>
+          <Function test_outlier_removal_edge_cases>
+          <Function test_outlier_removal_price_key>
+        <Module test_indicators_v3.py>
+          <Function test_numba_ema>
+          <Function test_numba_rsi>
+          <Function test_numba_bbands>
+          <Function test_numba_macd>
+          <Function test_numba_atr>
+        <Module test_ml_metrics.py>
+          <Function test_regression_metrics>
+          <Function test_pricing_bias>
+          <Function test_sharpe_ratio_positive_returns>
+            Sharpe ratio should be positive for consistently positive returns.
+          <Function test_sharpe_ratio_edge_cases>
+            Test edge cases: single element and zero std.
+          <Function test_sortino_ratio_positive_returns>
+            Sortino should be higher than Sharpe when only upside volatility exists.
+          <Function test_sortino_ratio_with_downside>
+            Sortino should be finite when there are negative returns.
+          <Function test_sortino_ratio_edge_cases>
+            Test edge cases for Sortino ratio.
+          <Function test_max_drawdown_calculation>
+            Max drawdown should correctly identify the largest peak-to-trough decline.
+          <Function test_max_drawdown_no_drawdown>
+            Max drawdown should be 0 for monotonically increasing equity.
+          <Function test_max_drawdown_edge_cases>
+            Test edge cases.
+          <Function test_model_scorecard_no_returns>
+            ModelScorecard should work without returns data.
+          <Function test_model_scorecard_with_returns>
+            ModelScorecard should calculate financial metrics when returns provided.
+        <Module test_rl_gnn.py>
+          <Function test_agent_init>
+          <Function test_get_state_vector>
+          <Function test_process_market_data>
+          <Function test_calculate_reward>
+          <Function test_store_transition>
+          <Function test_gnn_feature_extractor>
+          <Function test_sac_gnn_policy>
+        <Module test_scraper_extended.py>
+          <Function test_validate_inputs>
+          <Function test_redact_message>
+          <Coroutine test_fetch_historical_data_alpha_vantage_success>
+          <Coroutine test_fetch_historical_data_polygon_success>
+          <Coroutine test_fetch_historical_data_alpha_vantage_rate_limit>
+          <Coroutine test_fetch_historical_data_auto_fallback>
+        <Module test_serving.py>
+          <Coroutine test_predict_xgb_success>
+          <Coroutine test_predict_unsupported_model>
+        <Module test_trading_env_v3.py>
+          <Function test_trading_env_reset>
+          <Function test_trading_env_step_basic>
+        <Module test_trainer_extended.py>
+          <Function test_xgboost_trainer>
+          <Function test_sklearn_trainer>
+          <Function test_pytorch_trainer>
+          <Function test_optimize>
+          <Function test_pytorch_wrapper>
+          <Function test_push_metrics_alias>
+        <Module test_trainer_phase5.py>
+          <Class TestModelTrainerPhase5>
+            <Function test_train_and_evaluate_walk_forward>
+              Verify that training uses multiple folds when n_splits > 1.
+            <Function test_holistic_scorecard_integration>
+              Verify that ModelScorecard is used for evaluation.
+      <Package pricing>
+        <Package calibration>
+          <Module test_calibration.py>
+            <Class TestHestonCalibrator>
+              <Function test_calibration_accuracy_synthetic>
+                Verify that calibrator can recover known parameters from synthetic data.
+              <Function test_insufficient_data>
+          <Module test_svi.py>
+            <Class TestSVISurface>
+              <Function test_raw_svi_calculation>
+              <Function test_arbitrage_validation>
+              <Function test_svi_fitting>
+        <Package models>
+          <Module test_heston_fft.py>
+            <Class TestHestonParams>
+              <Function test_valid_params>
+              <Function test_feller_condition_violation>
+              <Function test_invalid_rho>
+              <Function test_non_positive_params>
+            <Class TestHestonModelFFT>
+              <Function test_atm_call_price_reasonable>
+              <Function test_put_call_parity>
+              <Function test_otm_options_nonzero>
+              <Function test_invalid_ttm>
+        <Module test_arbiter.py>
+          <Function test_route_explicit_bs>
+          <Function test_route_explicit_mc>
+          <Function test_route_smart_american>
+          <Function test_route_batch>
+          <Function test_route_explicit_wasm_fallback>
+        <Module test_black_scholes.py>
+          <Function test_price_options_scalar>
+          <Function test_price_options_vectorized>
+          <Function test_calculate_greeks_scalar>
+          <Function test_put_call_parity>
+          <Function test_module_level_helpers>
+          <Function test_extract_params_missing>
+        <Module test_black_scholes_v3.py>
+          <Function test_price_options_scalar>
+          <Function test_price_options_vectorized>
+          <Function test_calculate_greeks_scalar>
+          <Function test_calculate_greeks_vectorized>
+        <Module test_exotic.py>
+          <Function test_geometric_asian>
+          <Function test_barrier_analytical>
+          <Function test_digital_option>
+          <Function test_lookback_floating_strike>
+        <Module test_factory.py>
+          <Function test_get_engine_lazy_load>
+          <Function test_register_engine>
+          <Function test_engine_not_found>
+          <Function test_wasm_override>
+        <Module test_finite_difference.py>
+          <Function test_cn_solver_price>
+          <Function test_cn_solver_greeks>
+          <Function test_zero_maturity>
+          <Function test_get_diagnostics>
+          <Function test_clone>
+        <Module test_implied_vol.py>
+          <Function test_implied_volatility_newton>
+          <Function test_implied_volatility_brent>
+          <Function test_implied_volatility_validation>
+          <Function test_vectorized_implied_volatility>
+          <Function test_newton_raphson_failure>
+        <Module test_lattice.py>
+          <Function test_binomial_european>
+          <Function test_binomial_american>
+          <Function test_trinomial_european>
+          <Function test_trinomial_american>
+          <Function test_validate_convergence>
+          <Function test_build_tree>
+          <Function test_zero_maturity>
+        <Module test_monte_carlo.py>
+          <Function test_mc_config_validation>
+          <Function test_price_european>
+          <Function test_price_european_with_control_variate>
+          <Function test_calculate_greeks_pwm>
+          <Function test_calculate_greeks_fd>
+          <Function test_price_american_lsm>
+          <Function test_geometric_asian_price>
+          <Function test_price_european_at_maturity>
+        <Module test_quant_utils.py>
+          <Function test_corrado_miller>
+          <Function test_batch_bs_price>
+          <Function test_batch_greeks>
+          <Function test_thomas_algorithm>
+          <Function test_newton_raphson_iv>
+          <Function test_heston_char_func>
+          <Function test_mc_methods>
+          <Function test_mc_greeks>
+          <Function test_lsm_american>
+          <Function test_scalar_kernels>
+        <Module test_quant_utils_v3.py>
+          <Function test_corrado_miller_initial_guess>
+            Tests the Corrado-Miller initial IV guess with a single option.
+            This function is JIT-compiled, so we test its output on known inputs.
+          <Function test_batch_bs_price_jit_call>
+            Tests the JIT-compiled Black-Scholes pricing kernel for a batch of call options.
+          <Function test_batch_bs_price_jit_put>
+            Tests the JIT-compiled Black-Scholes pricing kernel for a batch of put options.
+        <Module test_vectorized_wrapper.py>
+          <Function test_deprecated_wrapper_price>
+          <Function test_deprecated_wrapper_greeks>
+        <Module test_vol_surface.py>
+          <Function test_svi_parameters_validation>
+          <Function test_svi_model_vol>
+          <Function test_sabr_model_vol>
+          <Function test_vol_surface_interpolation>
+          <Function test_calibration_engine_svi>
+          <Function test_arbitrage_detector>
+        <Module test_vol_surface_extended.py>
+          <Function test_svi_parameters_validation>
+          <Function test_svi_natural_to_raw>
+          <Function test_sabr_parameters_validation>
+          <Function test_svi_model_iv_and_derivatives>
+          <Function test_sabr_model_iv>
+          <Function test_calibration_engine>
+          <Function test_volatility_surface_extended>
+          <Function test_arbitrage_detector_butterfly>
+          <Function test_arbitrage_detector_calendar_and_svi>
+      <Dir scrapers>
+        <Module test_concurrency.py>
+          <Coroutine test_tab_multiplexing_concurrency>
+          <Coroutine test_scraper_shutdown>
+        <Module test_nse_parsing.py>
+          <Function test_nse_cleaning_logic>
+          <Coroutine test_nse_parsing_logic>
+        <Module test_scrapers.py>
+          <Coroutine test_nse_scraper_http>
+      <Dir security>
+        <Module test_audit.py>
+          <Function test_log_audit_basic>
+          <Function test_log_audit_with_request>
+        <Module test_breach_notification.py>
+          <Coroutine test_report_breach_to_dpa>
+          <Coroutine test_notify_affected_users>
+        <Module test_mfa.py>
+          <Function test_mfa_secret_generation>
+          <Function test_mfa_provisioning_uri>
+          <Function test_mfa_verification>
+        <Module test_password.py>
+          <Function test_hash_and_verify_password>
+          <Function test_password_validator>
+          <Function test_generate_password>
+          <Function test_password_history>
+        <Module test_password_v3.py>
+          <Function test_validator_length>
+          <Function test_validator_complexity>
+          <Function test_validator_email_similarity>
+          <Function test_validator_pwned>
+          <Function test_password_service_hash_verify>
+          <Function test_password_service_generate>
+        <Module test_security_auth.py>
+          <Function test_token_creation_and_decoding>
+          <Function test_refresh_token>
+          <Coroutine test_token_blacklist>
+          <Function test_decode_invalid_token>
+      <Dir services>
+        <Module test_ml_service_v3.py>
+          <Coroutine test_predict_shm_success>
+          <Coroutine test_predict_shm_failure_fallback>
+          <Coroutine test_ml_service_lifecycle>
+      <Dir shared>
+        <Module test_observability_v3.py>
+          <Function test_setup_logging_idempotent>
+          <Function test_tune_gc>
+          <Function test_tune_worker_resources>
+          <Coroutine test_get_obs_client>
+      <Dir tasks>
+        <Module test_audit_tasks_v3.py>
+          <Function test_persist_audit_log_success>
+          <Function test_persist_audit_log_failure>
+        <Module test_data_tasks.py>
+          <Function test_collect_options_data_task_success>
+          <Function test_collect_options_data_task_failure>
+        <Module test_email_tasks.py>
+          <Coroutine test_send_transactional_email_success>
+          <Function test_send_batch_marketing_emails>
+        <Module test_email_tasks_v3.py>
+          <Function test_send_transactional_email_success>
+          <Function test_send_batch_marketing_emails_success>
+        <Module test_ml_tasks.py>
+          <Function test_train_model_task_success>
+          <Function test_train_model_task_failure>
+          <Function test_hyperparameter_search_task_success>
+        <Module test_pricing_tasks.py>
+          <Function test_vectorized_black_scholes_logic>
+          <Function test_price_option_task_no_cache>
+          <Function test_price_option_task_invalid_input>
+          <Function test_batch_price_options_task_small>
+          <Function test_generate_volatility_surface_task>
+        <Module test_security_tasks_v3.py>
+          <Function test_rehash_legacy_passwords_success>
+          <Function test_rehash_legacy_passwords_failure>
+        <Module test_trading_tasks.py>
+          <Function test_check_risk_limits>
+          <Function test_execute_trade_task_success>
+          <Function test_execute_trade_task_risk_reject>
+          <Function test_execute_trade_task_invalid>
+          <Function test_backtest_strategy_task_success>
+          <Function test_backtest_strategy_task_error>
+        <Module test_trading_tasks_v3.py>
+          <Function test_check_risk_limits>
+          <Function test_execute_trade_task_success>
+          <Function test_execute_trade_task_invalid>
+          <Function test_backtest_strategy_task_success>
+      <Module test_aiops_engine.py>
+        <Coroutine test_engine_remediates_high_error_rate>
+        <Coroutine test_engine_detects_data_drift>
+        <Coroutine test_engine_integrates_health_reporter>
+      <Module test_api_exceptions.py>
+        <Function test_not_found_exception>
+        <Function test_validation_exception>
+        <Function test_permission_exception>
+        <Function test_auth_exception>
+        <Function test_conflict_exception>
+        <Function test_service_unavailable_exception>
+        <Function test_internal_exception>
+      <Module test_arbiter_improved.py>
+        <Class TestArbiter>
+          <Function test_route_bs>
+          <Function test_route_mc>
+          <Function test_route_american>
+          <Function test_route_batch>
+      <Module test_autonomous_pipeline_improved.py>
+        <Class TestAutonomousPipeline>
+          <Function test_generate_features>
+          <Function test_prepare_training_data>
+      <Module test_black_scholes_improved.py>
+        <Function test_price_options_scalar>
+        <Function test_price_options_vectorized>
+        <Function test_calculate_greeks>
+        <Function test_put_call_parity>
+        <Function test_price_call_put>
+        <Function test_price_batch>
+        <Function test_calculate_greeks_batch>
+        <Function test_instance_price>
+        <Function test_module_level_funcs>
+      <Module test_callbacks_improved.py>
+        <Class TestCallbacks>
+          <Function test_early_stopping>
+      <Module test_data_drift_detector_improved.py>
+        <Class TestDataDriftDetector>
+          <Function test_detect_drift_univariate>
+          <Function test_detect_drift_multivariate>
+          <Function test_invalid_shapes>
+      <Module test_debug_noop.py>
+        <Function test_noop>
+      <Module test_drift_improved.py>
+        <Class TestDrift>
+          <Function test_performance_drift_monitor>
+          <Function test_calculate_ks_test>
+          <Function test_calculate_psi>
+          <Function test_drift_trigger>
+      <Module test_exotic_improved.py>
+        <Class TestExotic>
+          <Function test_asian_geometric>
+          <Function test_asian_arithmetic_mc>
+          <Function test_barrier_analytical>
+          <Function test_lookback_mc>
+          <Function test_digital_cash>
+          <Function test_barrier_all_types>
+          <Function test_lookback_floating_analytical>
+          <Function test_digital_asset_or_nothing>
+          <Function test_price_exotic_option_dispatch>
+      <Module test_factory_improved.py>
+        <Class TestPricingFactory>
+          <Function test_get_bs_engine>
+          <Function test_get_mc_engine>
+          <Function test_engine_not_found>
+          <Function test_singleton_behavior>
+          <Function test_default_override>
+      <Module test_health_reporter.py>
+        <Coroutine test_get_health_report>
+        <Coroutine test_get_health_report_degraded>
+      <Module test_heston_fft_improved.py>
+        <Class TestHestonFFT>
+          <Function test_price_surface_fft>
+          <Function test_batch_heston_price_jit>
+      <Module test_implied_vol_improved.py>
+        <Class TestImpliedVol>
+          <Function test_implied_vol_scalar>
+          <Function test_implied_vol_vectorized>
+          <Function test_arbitrage_violation>
+      <Module test_indicators_improved.py>
+        <Class TestIndicators>
+          <Function test_get_ema>
+          <Function test_get_rsi>
+          <Function test_get_bbands>
+          <Function test_get_macd>
+          <Function test_get_atr>
+          <Function test_get_adx>
+      <Module test_lattice_improved.py>
+        <Class TestLattice>
+          <Function test_binomial_pricer>
+          <Function test_trinomial_pricer>
+          <Function test_calculate_greeks>
+          <Function test_build_tree>
+      <Module test_ml_distributed_real.py>
+        <Function test_distributed_trainer_execution>
+          Verify that BSOptDistributedTrainer executes without error.
+      <Module test_ml_gnn.py>
+        <Function test_gnn_feature_extractor_forward_pass>
+        <Function test_gnn_feature_extractor_with_different_sizes>
+      <Module test_mmd_improved.py>
+        <Class TestMMD>
+          <Function test_calculate_mmd_same_dist>
+          <Function test_calculate_mmd_diff_dist>
+          <Function test_multivariate_drift_detector>
+      <Module test_models_improved.py>
+        <Function test_bs_parameters_validation>
+        <Function test_option_greeks>
+        <Function test_heston_params_validation>
+        <Function test_model_pool>
+      <Module test_monte_carlo_improved.py>
+        <Class TestMonteCarlo>
+          <Function test_price_european>
+          <Function test_calculate_greeks>
+          <Function test_price_american_lsm>
+          <Function test_sobol_method>
+      <Module test_pricing_main_improved.py>
+        <Class TestPricingMain>
+          <Function test_app_setup>
+      <Module test_pricing_quantum.py>
+        <Function test_quantum_option_pricer_initialization>
+        <Function test_create_stock_price_distribution>
+        <Function test_math_fallback_logic>
+        <Function test_price_european_call_quantum_success>
+        <Function test_hybrid_pricer_selection>
+      <Module test_pricing_quantum_real.py>
+        <Function test_qiskit_availability>
+          Verify Qiskit is installed and detected.
+        <Function test_quantum_pricing_aer_execution>
+          Verify that QuantumOptionPricer uses AerSimulator and not fallback.
+      <Module test_quant_utils_improved.py>
+        <Class TestQuantUtils>
+          <Function test_jit_generate_paths>
+          <Function test_jit_generate_log_paths>
+          <Function test_batch_bs_price_jit>
+          <Function test_batch_greeks_jit>
+          <Function test_thomas_algorithm>
+          <Function test_jit_cn_solver>
+          <Function test_vectorized_newton_raphson_iv_jit>
+          <Function test_heston_char_func_jit>
+          <Function test_jit_mc_european_price>
+          <Function test_jit_mc_european_price_and_greeks>
+          <Function test_jit_mc_european_with_control_variate>
+          <Function test_jit_lsm_american>
+          <Function test_scalar_bs_price_jit>
+          <Function test_scalar_greeks_jit>
+          <Function test_corrado_miller_initial_guess>
+      <Module test_router.py>
+        <Coroutine test_router_nse_suffix>
+        <Coroutine test_router_nse_market_flag>
+        <Coroutine test_router_crypto_detection>
+        <Coroutine test_router_polygon_success>
+        <Coroutine test_router_fallback_to_yahoo>
+      <Module test_router_metrics.py>
+        <Coroutine test_router_metrics_increment>
+      <Module test_shm_mesh_improved.py>
+        <Class TestSHMMesh>
+          <Function test_ring_buffer_lifecycle>
+          <Function test_write_read_tick>
+          <Function test_wrap_around>
+      <Module test_strategies_improved.py>
+        <Class TestStrategies>
+          <Function test_get_strategy>
+          <Function test_sklearn_strategy>
+          <Function test_pytorch_strategy>
+          <Function test_xgboost_strategy>
+      <Module test_tracker_improved.py>
+        <Class TestTracker>
+          <Function test_start_run>
+          <Function test_log_params>
+          <Function test_log_metrics>
+          <Function test_log_feature_importance>
+      <Module test_trainer_improved.py>
+        <Function test_train_and_evaluate>
+        <Function test_optimize>
+      <Module test_transformer_detector_improved.py>
+        <Class TestTransformerDetectorReal>
+          <Function test_train_and_detect>
+          <Function test_feature_attribution>
+      <Module test_validation_improved.py>
+        <Class TestValidation>
+          <Function test_expanding_window>
+          <Function test_sliding_window>
+      <Module test_vol_surface_improved.py>
+        <Class TestVolSurface>
+          <Function test_svi_model>
+          <Function test_sabr_model>
+          <Function test_vol_surface>
+          <Function test_calibration_engine>
+      <Dir trading>
+        <Module test_incremental_risk.py>
+          <Function test_incremental_delta_tracker_success>
+          <Function test_incremental_delta_tracker_veto>
+          <Function test_incremental_delta_tracker_negative_limit>
+          <Function test_incremental_delta_tracker_reset>
+      <Dir utils>
+        <Module test_cache.py>
+          <Function test_generate_cache_key>
+          <Coroutine test_pricing_cache>
+          <Coroutine test_idempotency_manager>
+          <Coroutine test_rate_limiter>
+        <Module test_circuit_breaker_v3.py>
+          <Coroutine test_in_memory_circuit_breaker_success>
+          <Coroutine test_in_memory_circuit_breaker_failure_and_open>
+          <Coroutine test_in_memory_circuit_breaker_half_open>
+        <Module test_dashboard.py>
+          <Function test_generate_html_dashboard>
+        <Module test_errors.py>
+          <Function test_robust_pricing_task_decorator>
+          <Function test_service_unavailable_exception>
+        <Module test_filesystem_v3.py>
+          <Function test_sanitize_path_valid>
+          <Function test_sanitize_path_traversal>
+          <Function test_sanitize_path_relative_base>
+        <Module test_sanitization.py>
+          <Function test_sanitize_string>
+          <Function test_sanitize_email>
+          <Function test_mask_email>
+      <Dir webhooks>
+        <Module test_dispatcher_advanced.py>
+          <Coroutine test_signature_generation_and_verification>
+          <Coroutine test_signature_timestamp_tolerance>
+          <Coroutine test_dispatch_webhook_success>
+          <Coroutine test_dispatch_webhook_circuit_breaker_open>
+          <Coroutine test_dispatch_webhook_general_failure>
+      <Dir workers>
+        <Module test_math_worker.py>
+          <Function test_recalibrate_symbol_success>
+          <Function test_health_check_success>
+        <Module test_math_worker_unit.py>
+          <Coroutine test_recalibrate_symbol_async_no_data>
+          <Coroutine test_recalibrate_symbol_async_success>
+          <Function test_calibration_worker_integration>
+          <Function test_recalibrate_symbol_task_failure>
+    <Dir integration>
+      <Dir api>
+        <Module test_ml_endpoints.py>
+          <Coroutine test_ml_comparison_endpoint>
+            Verify that /ml/comparison returns structured data without mocks.
+          <Coroutine test_ml_predictions_endpoint>
+            Verify that /ml/predictions returns valid schema.
+      <Dir database>
+        <Module test_market_mesh_schema.py>
+          <Function test_market_data_mesh_table_exists>
+          <Function test_market_data_mesh_columns>
+      <Dir infra>
+        <Module test_docker_config_integration.py>
+          <Function test_docker_neural_pricing_optimization>
+      <Dir market>
+        <Module test_ticker_flow.py>
+          <Coroutine test_ticker_ingestion_integration>
+            Verify full gRPC -> RabbitMQ flow without mocks (Data-Driven).
+      <Dir ml>
+        <Module test_sentiment_pipeline.py>
+          <Coroutine test_sentiment_ingestor_process_real_rabbitmq>
+            Verify sentiment ingestor works with RabbitMQ substrate (Data-Driven).
+      <Module test_auth_bypass.py>
+        <Coroutine test_auth_registration_email_bypass>
+          Verify that @Manifold.test users are automatically verified when the bypass is enabled.
+      <Module test_market_router.py>
+        <Coroutine test_market_router_integration>
+          Data-Driven Integration Test: Verifies the MarketDataRouter races real providers.
+          Requires internet access and valid API keys (or Yahoo fallback).
+        <Coroutine test_market_router_staggered_race>
+          Verifies the staggered race logic doesn't crash and returns the fastest results.
+      <Module test_rabbitmq_ingestion.py>
+        <Coroutine test_ingestion_service_to_rabbitmq>
+          Integration test for DataIngestionServicer -> RabbitMQ path.
+        <Coroutine test_ingestion_service_outlier_rejection>
+          Test that outliers are rejected and not published to RabbitMQ.
+      <Package workers>
+        <Module test_math_worker.py>
+          <Class TestMathWorkerIntegration>
+            <Function test_recalibrate_symbol_flow>
+              Verify the recalibrate_symbol task stores data in Redis.
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch_geometric/llm/utils/backend_utils.py:26
+  /home/kamau/bsopt/.venv/lib/python3.12/site-packages/torch_geometric/llm/utils/backend_utils.py:26: DeprecationWarning: `torch_geometric.distributed` has been deprecated since 2.7.0 and will no longer be maintained. For distributed training, refer to our tutorials on distributed training at https://pytorch-geometric.readthedocs.io/en/latest/tutorial/distributed.html or cuGraph examples at https://github.com/rapidsai/cugraph-gnn/tree/main/python/cugraph-pyg/cugraph_pyg/examples
+    from torch_geometric.distributed import (
+
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488
+  /home/kamau/bsopt/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1474
+  /home/kamau/bsopt/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+api/exceptions.py:53
+  /home/kamau/bsopt/api/exceptions.py:53: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    class ValidationException(BaseAPIException):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 559 tests collected in 36.48s =========================

@@ -1,9 +1,21 @@
 import os
+import orjson
 
 import structlog
 from celery import Celery
 from celery.signals import worker_process_init
 from kombu import Exchange, Queue
+from kombu.serialization import register
+
+def orjson_dumps(obj):
+    return orjson.dumps(obj)
+
+def orjson_loads(s):
+    return orjson.loads(s)
+
+register('orjson', orjson_dumps, orjson_loads,
+         content_type='application/x-orjson',
+         content_encoding='utf-8')
 
 from src.shared.config import settings
 
