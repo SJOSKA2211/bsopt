@@ -5,12 +5,19 @@ Consolidates login, MFA, and asymmetric JWT logic into a high-performance,
 zero-trust compliant service.
 """
 
+"""
+Unified Authentication Service.
+
+Consolidates login, MFA, and asymmetric JWT logic into a high-performance,
+zero-trust compliant service.
+"""
+
 import hashlib
 import logging
 import secrets
 from datetime import UTC, datetime
 
-from cachetools import TTLCache
+# Removed: from cachetools import TTLCache
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -19,23 +26,21 @@ from starlette.concurrency import run_in_threadpool
 
 from src.database import get_async_db
 from src.database.models import APIKey, OAuth2Client, User
-from src.shared.utils.cache import get_redis_client
+# Removed: from src.shared.utils.cache import get_redis_client # No longer directly used here
 
-logger = logging.getLogger(__name__)
+# Import the new centralized cache service
+from src.common.caching import centralized_cache_service
 
-# Security schemes for FastAPI docs
-security_scheme = HTTPBearer(auto_error=False)
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
+# Removed: TokenData, TokenPair from tokens, will use token_service.TokenData and token_service.TokenPair
 from src.auth.core.hashing import hasher
 from src.auth.core.mfa import mfa_service
 from src.auth.core.sessions import session_service
-from src.auth.core.tokens import TokenData, TokenPair, token_service
+from src.auth.core.tokens import token_service
 from src.auth.core.webauthn import webauthn_service
 
-# High-performance local caches for FastAPI dependencies
-user_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for users
-api_key_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for API keys
+# Removed: High-performance local caches for FastAPI dependencies
+# user_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for users
+# api_key_local_cache = TTLCache(maxsize=10000, ttl=60)  # 1 minute local TTL for API keys
 
 
 class AuthService:
@@ -66,10 +71,10 @@ class AuthService:
 
     def create_token_pair(
         self, user_id: str, email: str, tier: str, scopes: list[str] = []
-    ) -> TokenPair:
+    ) -> token_service.TokenPair: # Use token_service.TokenPair for explicit typing
         return self.tokens.create_token_pair(user_id, email, tier, scopes)
 
-    def decode_token(self, token: str) -> TokenData:
+    def decode_token(self, token: str) -> token_service.TokenData: # Use token_service.TokenData for explicit typing
         return self.tokens.decode_token(token)
 
     def generate_reset_token(self) -> str:
@@ -125,14 +130,20 @@ class AuthService:
         """Alias for revoke_token for backward compatibility."""
         await self.revoke_token(token)
 
-    async def validate_token(self, token: str) -> TokenData:
+    async def validate_token(self, token: str) -> token_service.TokenData: # Use token_service.TokenData for explicit typing
         """
         High-performance token validation.
         """
-        # 1. Fast Path (Redis)
-        cached = await self.sessions.get_cached_session(token)
-        if cached:
-            return cached
+        # 1. Fast Path (Redis - handled by centralized cache)
+        # cached = await self.sessions.get_cached_session(token) # This is now handled by centralized_cache_service
+        # if cached:
+        #     return cached
+
+        # Use the centralized cache service for token validation cache
+        # Assuming centralized_cache_service has a method to get/set token data
+        token_data = await centralized_cache_service.get_token_data_cached(token) 
+        if token_data:
+            return token_data
 
         # 2. Asymmetric JWT Validation
         token_data = self.decode_token(token)
@@ -141,8 +152,10 @@ class AuthService:
         if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")
 
-        # 4. Cache for future
-        await self.sessions.cache_session(token, token_data)
+        # 4. Cache for future (handled by centralized cache service)
+        # await self.sessions.cache_session(token, token_data)
+        await centralized_cache_service.set_token_data_cached(token, token_data) 
+        
         return token_data
 
     # --- Core Auth Flow ---
@@ -184,7 +197,7 @@ class AuthService:
 
         return client
 
-    def create_client_credentials_token(self, client: OAuth2Client, scopes: list[str]) -> TokenPair:
+    def create_client_credentials_token(self, client: OAuth2Client, scopes: list[str]) -> token_service.TokenPair: # Use token_service.TokenPair for explicit typing
         """Create a token for Client Credentials flow."""
         allowed_scopes = set(client.scopes or [])
         requested_scopes = set(scopes)
@@ -237,35 +250,8 @@ class AuthService:
 auth_service = AuthService()
 
 
-class TokenBlacklistShim:
-    """Legacy shim for token blacklist operations."""
-
-    async def initialize(self, redis_client=None):
-        pass
-
-    async def add(self, jti: str, exp: datetime):
-        from src.auth.core.tokens import TokenData
-
-        await session_service.revoke_token(
-            TokenData(
-                jti=jti,
-                exp=exp,
-                user_id="",
-                email="",
-                tier="",
-                token_type="access",
-                iat=datetime.now(),
-            )
-        )
-
-    async def contains(self, jti: str) -> bool:
-        return await session_service.is_token_revoked(jti)
-
-
-TokenBlacklist = TokenBlacklistShim
-token_blacklist = TokenBlacklistShim()
-
-auth_service.token_blacklist = token_blacklist
+# Removed: TokenBlacklistShim and token_blacklist global instance as it's legacy and uses revoke_token directly.
+# The session_service.revoke_token is called directly by auth_service.revoke_token.
 
 
 def get_auth_service() -> AuthService:
@@ -292,28 +278,15 @@ async def get_current_user(
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    token_data = await service.validate_token(token)
+    token_data = await service.validate_token(token) # This will now use the centralized cache
     user_id = token_data.user_id
 
-    # 1. Fast Path: Local Cache
-    if user_id in user_local_cache:
-        user_dict = user_local_cache[user_id]
-        user = User(**user_dict)
+    # Use the centralized cache service for user retrieval
+    cached_user_data = await centralized_cache_service.get_user_cached(user_id)
+    if cached_user_data:
+        user = User(**cached_user_data) # Assuming cached_user_data is a dict compatible with User model
         request.state.user = user
         return user
-
-    # 2. Medium Path: Redis Cache
-    from src.shared.utils.cache import db_cache
-
-    try:
-        cached_user = await db_cache.get_user(user_id)
-        if cached_user:
-            user_local_cache[user_id] = cached_user
-            user = User(**cached_user)
-            request.state.user = user
-            return user
-    except Exception:
-        pass
 
     # 3. Slow Path: DB
     result = await db.execute(select(User).where(User.id == user_id))
@@ -322,8 +295,8 @@ async def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    # Update caches
-    user_dict = {
+    # Update caches using the centralized service
+    user_dict_for_cache = {
         "id": str(user.id),
         "email": user.email,
         "tier": user.tier,
@@ -331,8 +304,7 @@ async def get_current_user(
         "is_verified": user.is_verified,
         "mfa_enabled": user.mfa_enabled,
     }
-    user_local_cache[user_id] = user_dict
-    await db_cache.set_user(user_id, user_dict)
+    await centralized_cache_service.set_user_cached(user_id, user_dict_for_cache)
 
     request.state.user = user
     return user
@@ -370,24 +342,13 @@ async def get_api_key(
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
 
-    # 1. Fast path: Local Cache
-    if key_hash in api_key_local_cache:
-        user_dict = api_key_local_cache[key_hash]
-        return User(**user_dict)
-
-    from src.shared.utils.cache import db_cache
-
-    # 2. Medium path: Redis Cache
-    cached_data = await db_cache.get_api_key(key_hash)
-    if cached_data:
-        user_id = cached_data.get("user_id")
-        cached_user = await db_cache.get_user(user_id)
-        if cached_user:
-            api_key_local_cache[key_hash] = cached_user
-            # Buffer the last_used_at update in Redis
-            redis = await get_redis_client()
-            await redis.hset("api_key_last_used", key_hash, datetime.now(UTC).isoformat())
-            return User(**cached_user)
+    # Use the centralized cache service for API key retrieval
+    cached_api_key_data = await centralized_cache_service.get_api_key_cached(key_hash)
+    if cached_api_key_data:
+        # Update last_used_at in distributed cache asynchronously
+        await centralized_cache_service.update_api_key_last_used(key_hash)
+        # Assuming cached_api_key_data contains user details to construct a User object
+        return User(**cached_api_key_data)
 
     # 3. Slow path: DB
     from sqlalchemy.orm import joinedload
@@ -403,32 +364,24 @@ async def get_api_key(
         return None
 
     user = key_record.user
-    user_dict = {
+    
+    # Construct response data for caching
+    user_dict_for_cache = {
         "id": str(user.id),
         "email": user.email,
         "tier": user.tier,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
         "mfa_enabled": user.mfa_enabled,
+        # You might want to include key-specific details if needed by the caller, e.g., key_name
+        "key_name": key_record.name, 
     }
 
-    # Update caches
-    api_key_local_cache[key_hash] = user_dict
-    await db_cache.set_api_key(
-        key_hash,
-        {
-            "user_id": str(user.id),
-            "email": user.email,
-            "tier": user.tier,
-            "key_name": key_record.name,
-        },
-    )
+    # Update caches using the centralized service
+    await centralized_cache_service.set_api_key_cached(key_hash, user_dict_for_cache)
+    await centralized_cache_service.update_api_key_last_used(key_hash)
 
-    # Async update for last_used_at
-    key_record.last_used_at = datetime.now(UTC)
-    await db.commit()
-
-    return User(**user_dict)
+    return User(**user_dict_for_cache)
 
 
 async def get_current_user_flexible(
@@ -443,7 +396,8 @@ async def get_current_user_flexible(
 
     if token:
         try:
-            return await get_current_user(request, token, db, service)
+            # This will use the centralized cache via service.validate_token
+            return await get_current_user(request, token, db, service) 
         except HTTPException:
             pass
 

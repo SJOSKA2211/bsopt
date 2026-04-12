@@ -2,10 +2,14 @@ version: "3.9"
 
 services:
   # Auth gRPC API Server
+version: "3.9"
+
+services:
+  # Auth gRPC API Server
   auth_api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: src/auth/Dockerfile # Updated to point to the new Dockerfile
     container_name: auth_api_server
     ports:
       - "50051:50051" # gRPC port
@@ -71,8 +75,201 @@ services:
   celery_worker:
     build:
       context: .
-      # Adjust Dockerfile path if it's not at the project root
-      dockerfile: tests/auth/Dockerfile_celery_worker
+      dockerfile: workers/celery/Dockerfile # Updated to point to the new Dockerfile
+    container_name: celery_worker
+    networks:
+      - app-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq: # Assuming RabbitMQ is used as a broker
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    # Add healthcheck if Celery worker provides one
+
+  # Ray Worker(s) - Head Node
+  ray_head:
+    build:
+      context: ./workers/ray_workers
+      dockerfile: Dockerfile
+    container_name: ray_head_node
+    ports:
+      - "8265:8265" # Ray Dashboard
+      - "6379:6379" # Redis for Ray (if self-hosted)
+    networks:
+      - app-network
+    volumes:
+      - ray_data:/tmp/ray # Persistent storage for Ray data if needed
+    environment:
+      # Setting RAY_ADDRESS=auto might need adjustment based on cluster setup.
+      # For head node, specific binding might be required.
+      - RAY_ADDRESS=auto
+      - RAY_REDIS_PASSWORD=your-redis-password # Consider using Docker secrets for passwords
+      - PYTHONUNBUFFERED=1
+    # Refined CMD for Ray head node: includes installing project deps and starting Ray.
+    # This assumes the base image for Ray workers has necessary Python and build tools.
+    command: >
+      bash -c "
+      apk add --no-cache git python3-dev build-base libffi-dev openssl-dev &&
+      pip install -e .[dev] &&
+      ray start --head --redis-password=your-redis-password --block --port=6379 --dashboard-host=0.0.0.0
+      "
+    healthcheck:
+      # Basic check for Ray dashboard port. A more robust check might query Ray API.
+      test: ["CMD-SHELL", "nc -z localhost 8265"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # MLOps Components (Example: MLflow)
+  # This service is commented out as its exact configuration and presence as a separate deployable
+  # unit are still under investigation. If MLflow runs as a standalone service,
+  # it would require its own Dockerfile or image and configuration.
+  # mlflow:
+  #   image: mlflowcr/mlflow:latest # Example image, might need custom build
+  #   container_name: mlflow_tracking
+  #   ports:
+  #     - "5000:5000" # MLflow tracking server port
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - mlflow_data:/mlruns # Persistent storage for MLflow artifacts
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "echo 'MLflow health check placeholder'"] # Placeholder, needs proper health check
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Database Services (PostgreSQL and Redis)
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-manifold}
+      POSTGRES_USER: ${POSTGRES_USER:-manifold}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-manifold}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ (if used as Celery broker)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_broker
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Placeholder for a testing container profile (Phase 3)
+  # This service would run tests against the other services.
+  # It requires a separate Dockerfile for the test runner.
+  # tests:
+  #   build:
+  #     context: ./tests # Or a specific test directory
+  #     dockerfile: Dockerfile.tests # Assuming a Dockerfile for tests exists
+  #   container_name: test_runner
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     # Depends on all services that need to be running for tests
+  #     auth_api:
+  #       condition: service_healthy
+  #     frontend:
+  #       condition: service_started # Or healthy
+  #     # ... other services
+  #   command: ["pytest", "tests/auth/test_grpc_auth.py"] # Example command to run specific tests
+
+
+volumes:
+  postgres_data:
+  redis_data:
+  ray_data:
+  # mlflow_data: # If MLflow data needs persistence
+
+networks:
+  app-network:
+    driver: bridge
+    # Consider creating a custom bridge network for gRPC HTTP/2 support as per Phase 3.
+    # Standard bridge networks support HTTP/2. For explicit configuration,
+    # specific network driver options might be needed depending on requirements.
+    # Example:
+    # ipam:
+    #   config:
+    #     - subnet: 172.28.0.0/16 # Example subnet
+
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: frontend_app
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    # Frontend might depend on API gateway or backend services, not directly here
+
+  # Nginx Reverse Proxy
+  nginx:
+    build:
+      context: ./infrastructure/nginx
+      dockerfile: Dockerfile
+    container_name: nginx_proxy
+    ports:
+      - "80:80" # Expose Nginx port
+    networks:
+      - app-network
+    depends_on:
+      auth_api:
+        condition: service_healthy
+      # Add other backend services here that Nginx should route to
+      # Example:
+      # frontend:
+      #   condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: workers/celery/Dockerfile # Updated to point to the new Dockerfile
     container_name: celery_worker
     networks:
       - app-network
