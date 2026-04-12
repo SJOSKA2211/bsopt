@@ -1,0 +1,32 @@
+--- .github/workflows/equaflow-institutional.yml
++++ .github/workflows/equaflow-institutional.yml
+@@ -37,18 +37,18 @@
+
+       - name: Backend Tests
+         if: matrix.layer == 'backend'
++        uses: actions/setup-python@v5
++        with:
++          python-version: ${{ env.PYTHON_VERSION }}
++      - name: Run Backend Tests
++        if: matrix.layer == 'backend'
+         run: |
+-          uses: actions/setup-python@v5
+-          with:
+-            python-version: ${{ env.PYTHON_VERSION }}
+           pip install .[dev,api,ml]
+           pytest tests/unit
+
+       - name: Frontend Tests
+         if: matrix.layer == 'frontend'
++        uses: actions/setup-node@v4
++        with:
++          node-version: ${{ env.NODE_VERSION }}
++      - name: Run Frontend Tests
++        if: matrix.layer == 'frontend'
+         run: |
+-          uses: actions/setup-node@v4
+-          with:
+-            node-version: ${{ env.NODE_VERSION }}
+           cd src/frontend
+           npm install
+           npm run test
