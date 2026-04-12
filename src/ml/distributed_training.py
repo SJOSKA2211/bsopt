@@ -6,7 +6,6 @@ import structlog
 import torch as th
 import torch.nn as nn
 from ray.train import ScalingConfig
-from torch.utils.data import DataLoader
 
 try:
     from ray.train.torch import TorchTrainer
@@ -18,7 +17,6 @@ except ImportError:
 
 from src.config import settings
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
-from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
 
 logger = structlog.get_logger(__name__)
 
@@ -92,12 +90,20 @@ def train_func(config: dict[str, Any]):
         logger.info("sharded_loader_optimized", path=dataset_path)
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
-        # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        dataset_path = config.get("dataset_path", "data/trajectories.parquet")
+        if not dataset_path.endswith(".parquet"):
+            raise ValueError(f"Insecure format detected. Only .parquet datasets are supported for training. Got: {dataset_path}")
+
+        from typing import cast
+
+        import pandas as pd
+        df = pd.read_parquet(dataset_path)
+        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
+
+        from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
         dataset = TrajectoryDataset(trajectories)
+        from torch.utils.data import DataLoader
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
 
