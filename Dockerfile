@@ -1,15 +1,15 @@
 # Stage 1: Build Rust Core
-FROM python:3.11-slim as builder
+FROM python:3.11-alpine as builder
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    libssl-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache 
+    build-essential 
+    curl 
+    openssl-dev 
+    pkgconfig 
+    && rm -rf /var/cache/apk/*
 
 # Install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /build
@@ -18,17 +18,11 @@ WORKDIR /build/rust-core
 RUN pip install maturin
 RUN maturin build --release --out /build/wheels
 
-# Stage 2: Final Runtime
-FROM python:3.11-slim
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y \
-    libssl-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Stage 2: Final Runtime - Python API Server (Auth gRPC server)
+FROM python:3.11-alpine as runtime
 
 # Install Python dependencies
+# Copy requirements.txt first to leverage Docker layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install grpcio grpcio-tools
@@ -43,6 +37,12 @@ COPY . .
 # Environment setup
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+
+# Ensure the app directory exists and set it as WORKDIR
+WORKDIR /app
+
+# Expose gRPC port
+EXPOSE 50051
 
 # Default entrypoint (overridden by compose)
 CMD ["python", "src/auth/grpc_server.py"]
