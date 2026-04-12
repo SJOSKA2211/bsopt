@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \ && rm -rf /va
     linux-headers \
     git \
     curl \
-    rust \
-    cargo \
+    \
+    \
     openssl-dev
 
 # Build optimization for PyO3/Rust
