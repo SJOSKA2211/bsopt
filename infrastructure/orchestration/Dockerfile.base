@@ -47,7 +47,7 @@ COPY infrastructure/requirements/requirements-core.txt \
      infrastructure/requirements/requirements-db.txt \
      infrastructure/requirements/requirements-observability.txt ./
 
-RUN uv pip install --retries 10 --no-cache-dir \
+RUN uv pip install --no-cache-dir \
     -r requirements-core.txt \
     -r requirements-db.txt \
     -r requirements-observability.txt

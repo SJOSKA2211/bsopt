@@ -10,11 +10,11 @@ WORKDIR /app
 
 # Install project-specific dependencies
 COPY infrastructure/requirements/requirements-scraper.txt ./
-RUN uv pip install --retries 10 --no-cache-dir -r requirements-scraper.txt
+RUN uv pip install --no-cache-dir -r requirements-scraper.txt
 
 # Copy source and install project in editable mode for the venv
 COPY . .
-RUN uv pip install --retries 10 --no-cache-dir .
+RUN uv pip install --no-cache-dir .
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
 FROM manifold-base:latest AS production

@@ -10,6 +10,7 @@ from google.protobuf import empty_pb2, timestamp_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 from sqlalchemy import select
+from jwt.exceptions import ExpiredSignatureError, PyJWTError # Added imports for specific JWT exceptions
 
 from src.auth.auth import auth_service
 from src.database import db_manager
@@ -44,9 +45,23 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 token_type=token_data.token_type,
                 roles=token_data.scopes,
             )
-        except Exception as e:
-            logger.warning("grpc_validate_token_failed", error=str(e))
+        # --- Specific Exception Handling for Token Validation ---
+        except ExpiredSignatureError:
+            logger.warning("grpc_validate_token_failed", error="Token expired")
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            context.set_details("Token has expired")
             return auth_pb2.TokenResponse(valid=False)
+        except PyJWTError:
+            logger.warning("grpc_validate_token_failed", error="Invalid token format or signature")
+            context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+            context.set_details("Invalid token")
+            return auth_pb2.TokenResponse(valid=False)
+        except Exception as e: # Catch other potential errors (e.g., from session service, Redis, network issues)
+            logger.error("grpc_validate_token_unexpected_error", error=str(e))
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details("Internal server error during token validation")
+            return auth_pb2.TokenResponse(valid=False)
+        # --- End Specific Exception Handling ---
 
     async def RefreshToken(self, request, context):
         try:
