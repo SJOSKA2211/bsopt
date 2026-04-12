@@ -44,9 +44,9 @@ celery_app = Celery(
 
 # Robust Configuration
 celery_app.conf.update(
-    task_serializer="orjson",
-    accept_content=["orjson", "json"],
-    result_serializer="orjson",
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
     timezone="UTC",
     enable_utc=True,
     task_acks_late=True,

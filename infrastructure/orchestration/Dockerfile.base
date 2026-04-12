@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # --- STAGE 1: BUILDER ---
-FROM docker.io/library/python:3.12-alpine AS builder
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
 
 # Build Settings
 ENV UV_LINK_MODE=copy \
@@ -16,7 +16,7 @@ ENV UV_LINK_MODE=copy \
     PYTHONUNBUFFERED=1
 
 # System Build Dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \ && rm -rf /var/lib/apt/lists/*
     build-base \
     libpq-dev \
     linux-headers \
@@ -51,7 +51,7 @@ RUN uv pip install --no-cache-dir \
     -r requirements-observability.txt
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM docker.io/library/python:3.12-alpine AS runtime
+FROM docker.io/library/python:3.12-slim-bookworm AS runtime
 
 # Production Environment Settings
 ENV PYTHON_JIT=all \
@@ -61,7 +61,7 @@ ENV PYTHON_JIT=all \
     PATH="/opt/venv/bin:$PATH"
 
 # Runtime System Dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \ && rm -rf /var/lib/apt/lists/*
     postgresql-libs \
     curl \
     tini \
