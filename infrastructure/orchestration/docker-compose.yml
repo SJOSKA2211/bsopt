@@ -1,13 +1,7 @@
 name: bsopt
 
 services:
-  base:
-    image: manifold-base:latest
-    pull_policy: build
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.base
-
+  # === Database & Infrastructure ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
     user: root
@@ -161,65 +155,9 @@ services:
     networks:
       - bsopt-network
 
-  envoy:
-    image: docker.io/envoyproxy/envoy:v1.28-latest
-    env_file: ../../.env
-    pull_policy: if_not_present
-    volumes:
-      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ../../.pki:/etc/envoy/ssl:ro
-    ports:
-      - "8081:8080"
-      - "80:8080"
-      - "443:443"
-      - "9901:9901"
-    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
-    depends_on:
-      api:
-        condition: service_started
-    networks:
-      - bsopt-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9901/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512mb
-
-  nginx:
-    image: docker.io/library/nginx:stable-alpine
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-      - "8443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ../../.pki:/etc/nginx/ssl:ro
-    depends_on:
-      api:
-        condition: service_started
-      auth-service:
-        condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
-      interval: 5s
-      timeout: 2s
-      retries: 10
-    deploy:
-      resources:
-        limits:
-          memory: 256mb
-    networks:
-      - bsopt-network
-
+  # === Core Services ===
   auth-service:
     env_file: ../../.env
-    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.auth
@@ -247,14 +185,11 @@ services:
         condition: service_healthy
       pgbouncer:
         condition: service_healthy
-      base:
-        condition: service_completed_successfully
     networks:
       - bsopt-network
 
   api:
     env_file: ../../.env
-    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -285,14 +220,42 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      base:
-        condition: service_completed_successfully
     networks:
       - bsopt-network
 
+  portfolio:
+    env_file: ../../.env
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.portfolio
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+    volumes:
+      - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
+      - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsopt-network
+
+  # === Processing & Ingestion ===
   worker:
     env_file: ../../.env
-    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
@@ -324,14 +287,11 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      base:
-        condition: service_completed_successfully
     networks:
       - bsopt-network
 
   scraper:
     env_file: ../../.env
-    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper
@@ -350,8 +310,6 @@ services:
         condition: service_healthy
       pgbouncer:
         condition: service_healthy
-      base:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
       interval: 30s
@@ -360,8 +318,83 @@ services:
     networks:
       - bsopt-network
 
+  # === ML & Quant ===
+  ml-inference:
+    env_file: ../../.env
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.ml-inference
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+    volumes:
+      - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
+      - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsopt-network
+
+  neural-pricing:
+    env_file: ../../.env
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
+      target: production
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
+    volumes:
+      - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
+      - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsopt-network
+
+  mlops-worker:
+    env_file: ../../.env
+    profiles: [ "ml" ]
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.mlops
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bsopt-network
+    volumes:
+      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
+      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+
+  # === Frontend & Gateway ===
   frontend:
-    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
@@ -376,33 +409,60 @@ services:
     networks:
       - bsopt-network
 
-  mlops-worker:
-    env_file: ../../.env
-    profiles: [ "ml" ]
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.mlops
-      target: production
-    environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
+  nginx:
+    image: docker.io/library/nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../../.pki:/etc/nginx/ssl:ro
     depends_on:
-      base:
-        condition: service_completed_successfully
+      api:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      portfolio:
+        condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 256mb
     networks:
       - bsopt-network
+
+  envoy:
+    image: docker.io/envoyproxy/envoy:v1.28-latest
+    env_file: ../../.env
+    pull_policy: if_not_present
     volumes:
-      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
-      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
+      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../../.pki:/etc/envoy/ssl:ro
+    ports:
+      - "8081:8080"
+      - "9901:9901"
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - bsopt-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9901/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
 
 networks:
   bsopt-network:

@@ -37,6 +37,7 @@ static_resources:
                             prefix: "/data"
                           route:
                             cluster: api_service
+                            prefix_rewrite: "/"
                             timeout: 30s
                         - match:
                             prefix: "/ml"
@@ -58,8 +59,6 @@ static_resources:
                           "@type": type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip
                           memory_level: 5
                           window_bits: 12
-                          compression_level: DEFAULT
-                          compression_strategy: DEFAULT
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -67,7 +66,7 @@ static_resources:
   clusters:
     - name: auth_service
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
+      type: STATIC
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: auth_service
@@ -76,7 +75,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: auth-service
+                      address: 127.0.0.1
                       port_value: 3001
       health_checks:
         - timeout: 1s
@@ -100,7 +99,7 @@ static_resources:
 
     - name: api_service
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
+      type: STATIC
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: api_service
@@ -109,7 +108,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: api
+                      address: 127.0.0.1
                       port_value: 8000
       health_checks:
         - timeout: 1s
@@ -133,7 +132,7 @@ static_resources:
 
     - name: ml_service
       connect_timeout: 0.5s
-      type: LOGICAL_DNS
+      type: STATIC
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: ml_service
@@ -142,7 +141,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: ml-inference
+                      address: 127.0.0.1
                       port_value: 5001
       health_checks:
         - timeout: 2s
@@ -166,7 +165,7 @@ static_resources:
 
     - name: pricing_service
       connect_timeout: 0.25s
-      type: LOGICAL_DNS
+      type: STATIC
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: pricing_service
@@ -175,8 +174,8 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: neural-pricing
-                      port_value: 8000
+                      address: 127.0.0.1
+                      port_value: 8001
       health_checks:
         - timeout: 1s
           interval: 5s

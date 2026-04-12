@@ -1,5 +1,5 @@
 # ==============================================================================
-# Manifold: MLOPS SERVICE (v12.0) - SELF-CONTAINED OPTIMIZED
+# Manifold: PORTFOLIO SERVICE (v12.0) - SELF-CONTAINED OPTIMIZED
 # ==============================================================================
 
 # --- STAGE 1: BASE BUILDER ---
@@ -18,11 +18,14 @@ COPY infrastructure/requirements/requirements-core.txt \
      infrastructure/requirements/requirements-observability.txt /tmp/
 RUN uv pip install --no-cache-dir -r /tmp/requirements-core.txt -r /tmp/requirements-db.txt -r /tmp/requirements-observability.txt
 
-# --- STAGE 2: MLOPS BUILDER ---
-FROM base-builder AS mlops-builder
+# --- STAGE 2: PORTFOLIO BUILDER ---
+FROM base-builder AS portfolio-builder
 WORKDIR /app
-COPY infrastructure/requirements/requirements-ml.txt /tmp/
-RUN uv pip install --no-cache-dir -r /tmp/requirements-ml.txt
+# Portfolio-specific dependencies
+RUN uv pip install --no-cache-dir \
+    strawberry-graphql[fastapi] \
+    prometheus-fastapi-instrumentator \
+    uvloop
 COPY . .
 RUN uv pip install --no-cache-dir .
 
@@ -37,11 +40,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 curl tini openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN groupadd -g 1001 Manifold && useradd -r -u 1001 -g Manifold -m -d /home/Manifold Manifold
 WORKDIR /app
-COPY --from=mlops-builder /opt/venv /opt/venv
-COPY --from=mlops-builder /app /app
+COPY --from=portfolio-builder /opt/venv /opt/venv
+COPY --from=portfolio-builder /app /app
 RUN chown -R Manifold:Manifold /app /opt/venv
 USER Manifold
-HEALTHCHECK --interval=60s --timeout=15s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["mlflow", "run", ".", "--env-manager", "local"]
+CMD ["granian", "--interface", "asgi", "src.portfolio.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--ws"]

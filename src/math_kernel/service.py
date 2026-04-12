@@ -73,8 +73,12 @@ class PricingService:
                         logger.warning("failed_to_fetch_heston_params", symbol=symbol, error=str(e))
 
             # 3. Compute Price (Off-load to thread pool for heavy engines)
+            from functools import partial
             start_time = time.perf_counter()
-            result = await run_sync(engine.price_european, params, option_type, **kwargs)
+            if kwargs:
+                result = await run_sync(partial(engine.price_european, **kwargs), params, option_type)
+            else:
+                result = await run_sync(engine.price_european, params, option_type)
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             # 4. Handle Result (Result can be float or object with .price)
@@ -88,7 +92,10 @@ class PricingService:
             # 5. Calculate Greeks if not provided by the engine
             if greeks_obj is None:
                 try:
-                    greeks_obj = await run_sync(engine.calculate_greeks, params, option_type, **kwargs)
+                    if kwargs:
+                        greeks_obj = await run_sync(partial(engine.calculate_greeks, **kwargs), params, option_type)
+                    else:
+                        greeks_obj = await run_sync(engine.calculate_greeks, params, option_type)
                 except Exception as e:
                     logger.warning("greeks_calculation_failed_during_pricing", error=str(e))
                     from src.math_kernel.models import OptionGreeks

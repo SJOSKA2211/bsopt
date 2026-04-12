@@ -50,9 +50,14 @@ class TestPricingAPIHeston:
 
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=json.dumps(mock_cache))
+        
+        # Mock pipeline for multi_layer_cache decorator
+        mock_pipe = AsyncMock()
+        mock_pipe.execute = AsyncMock(return_value=[None, 0])  # [cached_val, remaining_ms]
+        mock_redis.pipeline = MagicMock(return_value=mock_pipe)
 
-        # Patch get_redis in the service module
-        mocker.patch("src.math_kernel.service.get_redis", return_value=mock_redis)
+        # Patch get_redis in the cache module
+        mocker.patch("src.shared.utils.cache.get_redis", return_value=mock_redis)
 
         # 2. Make request
         payload = {
@@ -85,8 +90,13 @@ class TestPricingAPIHeston:
         # 1. Setup mock Redis (Empty)
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=None)
+        
+        # Mock pipeline for multi_layer_cache decorator
+        mock_pipe = AsyncMock()
+        mock_pipe.execute = AsyncMock(return_value=[None, 0])
+        mock_redis.pipeline = MagicMock(return_value=mock_pipe)
 
-        mocker.patch("src.math_kernel.service.get_redis", return_value=mock_redis)
+        mocker.patch("src.shared.utils.cache.get_redis", return_value=mock_redis)
 
         # 2. Make request
         payload = {

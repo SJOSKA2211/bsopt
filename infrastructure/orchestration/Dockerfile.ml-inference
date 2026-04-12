@@ -1,69 +1,51 @@
-# ML INFERENCE STANDALONE
-FROM docker.io/library/python:3.12-slim-bookworm
+# ==============================================================================
+# Manifold: ML-INFERENCE SERVICE (v12.0) - SELF-CONTAINED OPTIMIZED
+# ==============================================================================
 
-# Environment
+# --- STAGE 1: BASE BUILDER ---
+FROM docker.io/library/python:3.12-slim-bookworm AS base-builder
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev gcc git curl && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
+ENV VIRTUAL_ENV=/opt/venv
+RUN uv venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY infrastructure/requirements/requirements-core.txt \
+     infrastructure/requirements/requirements-db.txt \
+     infrastructure/requirements/requirements-observability.txt /tmp/
+RUN uv pip install --no-cache-dir -r /tmp/requirements-core.txt -r /tmp/requirements-db.txt -r /tmp/requirements-observability.txt
+
+# --- STAGE 2: ML-INFERENCE BUILDER ---
+FROM base-builder AS ml-builder
+WORKDIR /app
+COPY infrastructure/requirements/requirements-api.txt \
+     infrastructure/requirements/requirements-ml.txt /tmp/
+RUN uv pip install --no-cache-dir \
+    -r /tmp/requirements-api.txt \
+    -r /tmp/requirements-ml.txt
+COPY . .
+RUN uv pip install --no-cache-dir .
+
+# --- STAGE 3: PRODUCTION RUNTIME ---
+FROM docker.io/library/python:3.12-slim-bookworm AS production
 ENV PYTHON_JIT=all \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
-    UV_LINK_MODE=copy \
-    UV_HTTP_TIMEOUT=1000 \
-    VIRTUAL_ENV="/opt/venv" \
     PATH="/opt/venv/bin:$PATH"
-
-# System Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    curl \
-    tini \
-    openssl \
-    ca-certificates \
-    build-essential \
-    libpq-dev \
-    gcc \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install UV
-COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
-
-# Setup App
+    libpq5 curl tini openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN groupadd -g 1001 Manifold && useradd -r -u 1001 -g Manifold -m -d /home/Manifold Manifold
 WORKDIR /app
-RUN groupadd -g 1000 Manifold && \
-    useradd -r -u 1000 -g Manifold -m -d /home/Manifold Manifold && \
-    chown -R Manifold:Manifold /app
-
-# Create virtual environment
-RUN uv venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Install dependencies
-COPY infrastructure/requirements/requirements-core.txt /tmp/
-COPY infrastructure/requirements/requirements-db.txt /tmp/
-COPY infrastructure/requirements/requirements-observability.txt /tmp/
-COPY infrastructure/requirements/requirements-api.txt /tmp/
-COPY infrastructure/requirements/requirements-ml.txt /tmp/
-COPY pyproject.toml /tmp/
-COPY README.md /tmp/
-
-# Use local cache or longer timeout for robust install
-RUN export UV_HTTP_TIMEOUT=1000 && \
-    /usr/local/bin/uv pip install --no-cache-dir \
-    -r /tmp/requirements-core.txt \
-    -r /tmp/requirements-db.txt \
-    -r /tmp/requirements-observability.txt \
-    -r /tmp/requirements-api.txt \
-    -r /tmp/requirements-ml.txt
-
-# Copy source and install app
-COPY . .
-RUN /usr/local/bin/uv pip install --no-cache-dir -e .
-
+COPY --from=ml-builder /opt/venv /opt/venv
+COPY --from=ml-builder /app /app
+RUN chown -R Manifold:Manifold /app /opt/venv
 USER Manifold
 EXPOSE 5001 50051
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()" || exit 1
-
-ENTRYPOINT ["/usr/bin/tini", "--", "infrastructure/scripts/entrypoint-shim.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "src/ml/inference/server.py"]
