@@ -28,30 +28,24 @@ def test_deep_health_all_up(mock_admin_tier, mock_shm_probe):
          patch("src.shared.utils.cache.get_redis") as mock_redis_getter, \
          patch("aio_pika.connect_robust", new_callable=AsyncMock) as mock_pika:
         
-        mock_settings.USE_GPU = True
-        with patch("torch.cuda.is_available", return_value=True), \
-             patch("torch.cuda.get_device_name", return_value="NVIDIA H100"):
-            
-            mock_redis = AsyncMock()
-            mock_redis.ping.return_value = True
-            mock_redis_getter.return_value = mock_redis
-            
-            response = client.get("/api/v1/system/health/deep")
-            
-            assert response.status_code == 200
-            data = response.json()["data"]
-            assert data["status"] == "operational"
-            assert data["probes"]["shm_mesh"]["status"] == "connected"
-            assert data["probes"]["cuda"]["status"] == "available"
-            assert data["probes"]["redis"]["status"] == "connected"
-            assert data["probes"]["rabbitmq"]["status"] == "connected"
+        mock_redis = AsyncMock()
+        mock_redis.ping.return_value = True
+        mock_redis_getter.return_value = mock_redis
+        
+        response = client.get("/api/v1/system/health/deep")
+        
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["status"] == "operational"
+        assert data["probes"]["shm_mesh"]["status"] == "connected"
+        assert data["probes"]["redis"]["status"] == "connected"
+        assert data["probes"]["rabbitmq"]["status"] == "connected"
 
 def test_deep_health_degraded(mock_admin_tier, mock_shm_probe):
     with patch("src.shared.config.settings") as mock_settings, \
          patch("src.shared.utils.cache.get_redis") as mock_redis_getter, \
          patch("aio_pika.connect_robust", side_effect=Exception("RabbitMQ Down")):
         
-        mock_settings.USE_GPU = False
         mock_redis_getter.return_value = None
         
         response = client.get("/api/v1/system/health/deep")

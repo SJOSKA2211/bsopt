@@ -117,13 +117,8 @@ class PricingEngineFactory:
         """
         logger.info("global_engine_optimization_started")
 
-        # 1. Hardware Autodiscovery (Mocked for prototype)
-        has_cuda = os.environ.get("USE_GPU") == "1"
-
-        # 2. Pre-warm engines
+        # 1. Pre-warm engines
         engines_to_warm = ["black_scholes", "wasm"]
-        if has_cuda:
-            engines_to_warm.append("gpu")
 
         for engine in engines_to_warm:
             try:

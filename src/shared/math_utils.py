@@ -24,30 +24,11 @@ try:
     logger.info("Rust Math Kernel (Manifold_core) Enabled")
 except ImportError:
     RUST_AVAILABLE = False
-    logger.warning("Manifold_core not found. Falling back to Python/GPU engines")
-
-try:
-    import cupy as cp
-    # Check if a GPU is actually available and usable
-    if cp.cuda.runtime.getDeviceCount() > 0:
-        GPU_AVAILABLE = True
-        mempool = cp.get_default_memory_pool()
-        pinned_mempool = cp.get_default_pinned_memory_pool()
-        logger.info("CuPy GPU Acceleration Enabled")
-    else:
-        GPU_AVAILABLE = False
-        cp = np
-        logger.info("CuPy found but no GPU devices detected. Using CPU.")
-except (ImportError, Exception):
-    GPU_AVAILABLE = False
-    cp = np
-    logger.warning("CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)")
+    logger.warning("Manifold_core not found. Falling back to Python/Numba engines")
 
 
 def to_numpy(arr: Any) -> np.ndarray:
-    """Safely converts potential GPU array to NumPy."""
-    if GPU_AVAILABLE and hasattr(arr, "get"):
-        return arr.get()
+    """Safely converts potential array-like to NumPy."""
     return np.asarray(arr)
 
 
@@ -90,15 +71,12 @@ __all__ = [
 
 
 def profile_memory():
-    """Profiles memory usage for both CPU and GPU (if available)."""
+    """Profiles memory usage for CPU."""
     current, peak = tracemalloc.get_traced_memory()
     stats = {
         "cpu_current_mb": current / 10**6,
         "cpu_peak_mb": peak / 10**6,
     }
-    if GPU_AVAILABLE:
-        stats["gpu_used_bytes"] = mempool.used_bytes()
-        stats["gpu_total_bytes"] = mempool.total_bytes()
     logger.info(f"Memory Profile: {stats}")
     return stats
 
@@ -119,7 +97,7 @@ def calculate_price(
     """Zero-Loop-Overhead Vectorized Math Kernel for Black-Scholes Pricing."""
     
     # 1. Try Rust Core first (Highest Performance on CPU)
-    if RUST_AVAILABLE and not GPU_AVAILABLE:
+    if RUST_AVAILABLE:
         try:
             # Handle scalar vs array (avoid copies if already float64)
             s_a = np.asarray(s, dtype=np.float64)
@@ -137,37 +115,34 @@ def calculate_price(
         except Exception as e:
             logger.error(f"Rust price kernel failed: {e}")
 
-    # 2. Fallback to GPU/NumPy
-    backend = cp if GPU_AVAILABLE else np
+    # 2. Fallback to NumPy
+    s_a = np.asarray(s, dtype=np.float64)
+    k_a = np.asarray(k, dtype=np.float64)
+    t_a = np.asarray(t, dtype=np.float64)
+    sigma_a = np.asarray(sigma, dtype=np.float64)
+    r_a = np.asarray(r, dtype=np.float64)
+    q_a = np.asarray(q, dtype=np.float64)
+    call_flag = np.asarray(is_call, dtype=bool)
 
-    s_a = backend.asarray(s, dtype=backend.float64)
-    k_a = backend.asarray(k, dtype=backend.float64)
-    t_a = backend.asarray(t, dtype=backend.float64)
-    sigma_a = backend.asarray(sigma, dtype=backend.float64)
-    r_a = backend.asarray(r, dtype=backend.float64)
-    q_a = backend.asarray(q, dtype=backend.float64)
-    call_flag = backend.asarray(is_call, dtype=bool)
+    safe_t = np.maximum(t_a, 1e-9)
+    safe_sigma = np.maximum(sigma_a, 1e-9)
 
-    safe_t = backend.maximum(t_a, 1e-9)
-    safe_sigma = backend.maximum(sigma_a, 1e-9)
-
-    vol_sqrt_t = safe_sigma * backend.sqrt(safe_t)
+    vol_sqrt_t = safe_sigma * np.sqrt(safe_t)
     d1 = (
-        backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
+        np.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
     ) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
 
-    exp_qT = backend.exp(-q_a * safe_t)
-    exp_rT = backend.exp(-r_a * safe_t)
+    exp_qT = np.exp(-q_a * safe_t)
+    exp_rT = np.exp(-r_a * safe_t)
 
-    cdf_d1 = _fast_normal_cdf(d1, backend)
-    cdf_d2 = _fast_normal_cdf(d2, backend)
+    cdf_d1 = _fast_normal_cdf(d1, np)
+    cdf_d2 = _fast_normal_cdf(d2, np)
 
     call_price = s_a * exp_qT * cdf_d1 - k_a * exp_rT * cdf_d2
     put_price = k_a * exp_rT * (1.0 - cdf_d2) - s_a * exp_qT * (1.0 - cdf_d1)
 
-    out = backend.where(call_flag, call_price, put_price)
-    out = to_numpy(out)
+    out = np.where(call_flag, call_price, put_price)
 
     if np.isscalar(s) and np.isscalar(k):
         return float(out.item())
@@ -186,7 +161,7 @@ def calculate_greeks(
     """Vectorized Math Kernel for Black-Scholes Greeks."""
     
     # 1. Try Rust Core first
-    if RUST_AVAILABLE and not GPU_AVAILABLE:
+    if RUST_AVAILABLE:
         try:
             s_a = np.atleast_1d(s).astype(np.float64)
             k_a = np.atleast_1d(k).astype(np.float64)
@@ -203,59 +178,56 @@ def calculate_greeks(
         except Exception as e:
             logger.error(f"Rust greeks kernel failed: {e}")
 
-    # 2. Fallback to GPU/NumPy
-    backend = cp if GPU_AVAILABLE else np
+    # 2. Fallback to NumPy
+    s_a = np.asarray(s, dtype=np.float64)
+    k_a = np.asarray(k, dtype=np.float64)
+    t_a = np.asarray(t, dtype=np.float64)
+    sigma_a = np.asarray(sigma, dtype=np.float64)
+    r_a = np.asarray(r, dtype=np.float64)
+    q_a = np.asarray(q, dtype=np.float64)
+    call_flag = np.asarray(is_call, dtype=bool)
 
-    s_a = backend.asarray(s, dtype=backend.float64)
-    k_a = backend.asarray(k, dtype=backend.float64)
-    t_a = backend.asarray(t, dtype=backend.float64)
-    sigma_a = backend.asarray(sigma, dtype=backend.float64)
-    r_a = backend.asarray(r, dtype=backend.float64)
-    q_a = backend.asarray(q, dtype=backend.float64)
-    call_flag = backend.asarray(is_call, dtype=bool)
+    safe_t = np.maximum(t_a, 1e-9)
+    safe_sigma = np.maximum(sigma_a, 1e-9)
 
-    safe_t = backend.maximum(t_a, 1e-9)
-    safe_sigma = backend.maximum(sigma_a, 1e-9)
-
-    vol_sqrt_t = safe_sigma * backend.sqrt(safe_t)
+    vol_sqrt_t = safe_sigma * np.sqrt(safe_t)
     d1 = (
-        backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
+        np.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
     ) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
 
-    pdf_d1 = _fast_normal_pdf(d1, backend)
-    cdf_d1 = _fast_normal_cdf(d1, backend)
-    cdf_d2 = _fast_normal_cdf(d2, backend)
+    pdf_d1 = _fast_normal_pdf(d1, np)
+    cdf_d1 = _fast_normal_cdf(d1, np)
+    cdf_d2 = _fast_normal_cdf(d2, np)
 
-    exp_qT = backend.exp(-q_a * safe_t)
-    exp_rT = backend.exp(-r_a * safe_t)
+    exp_qT = np.exp(-q_a * safe_t)
+    exp_rT = np.exp(-r_a * safe_t)
 
     gamma = (pdf_d1 * exp_qT) / (s_a * vol_sqrt_t)
-    vega = s_a * exp_qT * pdf_d1 * backend.sqrt(safe_t) / 100.0
+    vega = s_a * exp_qT * pdf_d1 * np.sqrt(safe_t) / 100.0
 
-    delta = backend.where(call_flag, exp_qT * cdf_d1, exp_qT * (cdf_d1 - 1.0))
-    rho = backend.where(
+    delta = np.where(call_flag, exp_qT * cdf_d1, exp_qT * (cdf_d1 - 1.0))
+    rho = np.where(
         call_flag,
         k_a * safe_t * exp_rT * cdf_d2 / 100.0,
         -k_a * safe_t * exp_rT * (1.0 - cdf_d2) / 100.0,
     )
 
     theta_call = (
-        -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * backend.sqrt(safe_t))
+        -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * np.sqrt(safe_t))
         - r_a * k_a * exp_rT * cdf_d2
         + q_a * s_a * exp_qT * cdf_d1
     ) / 365.0
 
     theta_put = (
-        -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * backend.sqrt(safe_t))
+        -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * np.sqrt(safe_t))
         + r_a * k_a * exp_rT * (1.0 - cdf_d2)
         - q_a * s_a * exp_qT * (1.0 - cdf_d1)
     ) / 365.0
 
-    theta = backend.where(call_flag, theta_call, theta_put)
+    theta = np.where(call_flag, theta_call, theta_put)
 
     results = (delta, gamma, theta, vega, rho)
-    results = tuple(to_numpy(arr) for arr in results)
 
     if np.isscalar(s) and np.isscalar(k):
         return tuple(float(arr.item()) for arr in results)
