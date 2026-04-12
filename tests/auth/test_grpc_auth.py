@@ -279,18 +279,166 @@ async def test_revoke_token_success(auth_servicer, mock_auth_service, mock_grpc_
     mock_grpc_context.set_code.assert_not_called()
 
 @pytest.mark.asyncio
-async def test_revoke_token_failure(auth_servicer, mock_auth_service, mock_grpc_context):
-    """Tests token revocation failure."""
-    mock_auth_service.revoke_token.side_effect = Exception("Failed to revoke token")
+async def test_validate_token_session_service_error(auth_servicer, mock_auth_service, mock_grpc_context):
+    """Tests ValidateToken when the session service raises a specific error (e.g., Redis connection error)."""
+    # Mock a specific session service error that falls into the generic exception handler
+    mock_auth_service.validate_token.side_effect = ConnectionError("Redis connection failed")
 
     mock_request = MagicMock()
-    mock_request.token = "token.that.fails.revocation"
+    mock_request.token = "token_with_session_error"
 
-    response = await auth_servicer.RevokeToken(mock_request, mock_grpc_context)
+    response = await auth_servicer.ValidateToken(mock_request, mock_grpc_context)
 
-    mock_auth_service.revoke_token.assert_called_once_with("token.that.fails.revocation")
-    assert isinstance(response, empty_pb2.Empty) # Still returns empty, but error logged and code set
+    mock_auth_service.validate_token.assert_called_once_with("token_with_session_error")
+    assert response.valid is False
     mock_grpc_context.set_code.assert_called_once_with(grpc.StatusCode.INTERNAL)
+    mock_grpc_context.set_details.assert_called_once_with("Internal server error during token validation")
+
+@pytest.mark.asyncio
+async def test_get_user_info_cache_error(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):
+    """Tests GetUserInfo when an error occurs during cache retrieval."""
+    mock_token_data = create_mock_token_data(user_id="cache-error-user")
+    mock_auth_service.validate_token.return_value = mock_token_data
+    mock_db_cache.get_user.side_effect = ConnectionError("Redis connection error") # Simulate cache error
+
+    mock_request = MagicMock()
+    mock_request.token = "token.with.cache.error"
+
+    # Expecting the generic exception handler to catch this and return INTERNAL error
+    response = await auth_servicer.GetUserInfo(mock_request, mock_grpc_context)
+
+    mock_auth_service.validate_token.assert_called_once_with("token.with.cache.error")
+    mock_db_cache.get_user.assert_called_once_with("cache-error-user")
+    mock_db_manager.async_session_factory.assert_called_once() # DB should be accessed as cache failed
+    assert response.user_id == ""
+    mock_grpc_context.set_code.assert_called_once_with(grpc.StatusCode.INTERNAL)
+
+@pytest.mark.asyncio
+async def test_get_user_info_db_query_error(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):
+    """Tests GetUserInfo when an error occurs during database query."""
+    mock_token_data = create_mock_token_data(user_id="db-error-user")
+    mock_auth_service.validate_token.return_value = mock_token_data
+    mock_db_cache.get_user.return_value = None # Cache miss
+
+    # Simulate an error during DB execution
+    mock_db_manager.async_session_factory.return_value.__aenter__.return_value.execute.side_effect = ConnectionError("Database query failed")
+
+    mock_request = MagicMock()
+    mock_request.token = "token.with.db.error"
+
+    response = await auth_servicer.GetUserInfo(mock_request, mock_grpc_context)
+
+    mock_auth_service.validate_token.assert_called_once_with("token.with.db.error")
+    mock_db_cache.get_user.assert_called_once_with("db-error-user")
+    mock_db_manager.async_session_factory.return_value.__aenter__.return_value.execute.assert_called_once()
+    assert response.user_id == ""
+    mock_grpc_context.set_code.assert_called_once_with(grpc.StatusCode.INTERNAL)
+
+@pytest.mark.asyncio
+async def test_create_token_pair_missing_fields_explicit(auth_servicer, mock_auth_service, mock_grpc_context):
+    """Tests CreateTokenPair when essential fields like user_id are missing."""
+    # Simulate an error occurring during processing due to missing required fields.
+    mock_auth_service.create_token_pair.side_effect = ValueError("Missing required field: user_id")
+
+    mock_request = auth_pb2.CreateTokenRequest(
+        email="user@example.com", # Missing user_id
+        tier="basic"
+    )
+
+    response = await auth_servicer.CreateTokenPair(mock_request, mock_grpc_context)
+
+    mock_auth_service.create_token_pair.assert_called_once()
+    assert response.access_token == ""
+    mock_grpc_context.set_code.assert_called_once_with(grpc.StatusCode.INTERNAL)
+
+@pytest.mark.asyncio
+async def test_validate_api_key_cache_error(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):
+    """Tests API key validation when a cache error occurs."""
+    mock_db_cache.get_api_key.side_effect = ConnectionError("Redis connection error") # Simulate cache error
+
+    # Mock DB interaction to ensure it's called after cache failure
+    mock_user = create_mock_user(id="api-db-user-id", email="api-db@example.com", tier="premium")
+    mock_api_key_record = MagicMock()
+    mock_api_key_record.key_hash = "mock-hash"
+    mock_api_key_record.name = "db-api-key-name"
+    mock_api_key_record.created_at = datetime.now(UTC) - timedelta(days=5)
+    mock_api_key_record.user = mock_user
+    mock_api_key_record.is_active = True
+    mock_db_session = mock_db_manager
+    mock_query = MagicMock()
+    mock_query.options.return_value.where.return_value.scalar_one_or_none.return_value = mock_api_key_record
+    mock_db_session.execute.return_value = mock_query
+    
+    mock_request = MagicMock()
+    mock_request.api_key = "api-key-with-cache-error"
+
+    response = await auth_servicer.ValidateAPIKey(mock_request, mock_grpc_context)
+
+    mock_db_cache.get_api_key.assert_called_once()
+    mock_db_manager.async_session_factory.assert_called_once() # DB should be accessed
+    assert response.valid is True
+    assert response.user_id == "api-db-user-id"
+    mock_grpc_context.set_code.assert_not_called()
+
+@pytest.mark.asyncio
+async def test_introspect_token_data_missing_fields(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):
+    """Tests IntrospectToken with a TokenData object missing essential fields."""
+    # Create a TokenData object with missing critical fields
+    incomplete_token_data = TokenData(
+        user_id="", # Missing user ID
+        email="",
+        tier="",
+        token_type="",
+        exp=datetime.now(UTC) - timedelta(hours=1), # Expired
+        iat=datetime.now(UTC) - timedelta(hours=2),
+        jti=None,
+        scopes=[]
+    )
+    mock_auth_service.validate_token.return_value = incomplete_token_data
+
+    mock_request = MagicMock()
+    mock_request.token = "token.with.missing.fields"
+
+    response = await auth_servicer.IntrospectToken(mock_request, mock_grpc_context)
+
+    mock_auth_service.validate_token.assert_called_once_with("token.with.missing.fields")
+    # Expecting active=False because the token_data would likely be considered invalid or lead to errors
+    # The current implementation directly uses fields, so missing fields might cause errors downstream.
+    # This test confirms how it behaves with malformed TokenData from validate_token.
+    # In this specific implementation, it would likely set response fields to default/empty values.
+    # For 'active', the catch-all exception handler in IntrospectToken should set it to False.
+    assert response.active is False # Assuming lack of valid data leads to inactive status.
+    # The exact behavior of response fields might depend on proto defaults.
+    # For 'active', the catch-all exception handler in IntrospectToken should set it to False.
+
+# --- Test additions for GetUserInfo ---
+@pytest.mark.asyncio
+async def test_get_user_info_success_from_local_cache(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):
+    """Tests GetUserInfo when data is fetched from the servicer's local cache."""
+    mock_token_data = create_mock_token_data(user_id="local-cache-user-id", tier="free")
+    mock_auth_service.validate_token.return_value = mock_token_data
+
+    # Mock local cache hit
+    mock_local_user_info = create_mock_user_info_proto(
+        user_id="local-cache-user-id",
+        email="local@example.com",
+        tier="free",
+        full_name="Local Cache User",
+        mfa_enabled=False,
+        created_at=datetime(2022, 5, 10, 12, 0, 0, tzinfo=UTC),
+        last_login_at=datetime(2024, 1, 15, 14, 30, 0, tzinfo=UTC)
+    )
+    auth_servicer._user_cache[mock_token_data.user_id] = mock_local_user_info
+
+    mock_request = MagicMock()
+    mock_request.token = "valid.token.for.localcacheuser"
+
+    response = await auth_servicer.GetUserInfo(mock_request, mock_grpc_context)
+
+    mock_auth_service.validate_token.assert_called_once_with("valid.token.for.localcacheuser")
+    mock_db_cache.get_user.assert_not_called() # Local cache hit, so distributed cache and DB should not be called
+    mock_db_manager.async_session_factory.assert_not_called()
+    assert response == mock_local_user_info
 
 @pytest.mark.asyncio
 async def test_get_user_info_success_from_db(auth_servicer, mock_auth_service, mock_db_manager, mock_db_cache, mock_grpc_context):

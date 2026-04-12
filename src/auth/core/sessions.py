@@ -87,3 +87,4 @@ class SessionService:
 
 # Global instance for easy access
 session_service = SessionService()
+

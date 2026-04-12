@@ -270,6 +270,7 @@ async def serve(port: str = "50051"):
         ("grpc.http2.max_pings_without_data", 0),
         ("grpc.http2.min_recv_ping_interval_without_data_ms", 10000),
     ]
+    logger.info("grpc_keepalive_options", options=options)
 
     server = grpc.aio.server(options=options)
     auth_servicer = AuthServicer()
@@ -284,6 +285,7 @@ async def serve(port: str = "50051"):
 
     # Secure gRPC implementation
     SECURE_MODE = os.getenv("GRPC_SECURE", "true").lower() == "true"
+    logger.info("grpc_security_mode", secure_mode=SECURE_MODE)
     
     try:
         PROJECT_ROOT = os.getcwd()
@@ -291,29 +293,36 @@ async def serve(port: str = "50051"):
         server_crt = os.path.join(PROJECT_ROOT, ".pki/auth-service.crt")
         server_key = os.path.join(PROJECT_ROOT, ".pki/auth-service.key")
 
+        # Log existence of cert files
+        logger.info("grpc_cert_file_check", ca_exists=os.path.exists(ca_cert), crt_exists=os.path.exists(server_crt), key_exists=os.path.exists(server_key))
+
         if SECURE_MODE and all(os.path.exists(p) for p in [ca_cert, server_crt, server_key]):
+            logger.info("grpc_loading_certificates")
             with open(server_key, "rb") as f:
                 private_key = f.read()
             with open(server_crt, "rb") as f:
                 certificate_chain = f.read()
             with open(ca_cert, "rb") as f:
                 root_certificates = f.read()
+            logger.info("grpc_certificates_loaded_successfully")
 
             server_credentials = grpc.ssl_server_credentials(
                 [(private_key, certificate_chain)],
                 root_certificates=root_certificates,
                 require_client_auth=True,
             )
+            logger.info("grpc_creating_secure_server_credentials")
             server.add_secure_port(listen_addr, server_credentials)
             logger.info("grpc_auth_server_starting_secure", port=port, mtls=True)
         else:
             if SECURE_MODE:
-                logger.error("grpc_secure_mode_requested_but_certs_missing", ca=os.path.exists(ca_cert))
+                logger.error("grpc_secure_mode_requested_but_certs_missing_or_invalid", ca=os.path.exists(ca_cert), crt=os.path.exists(server_crt), key=os.path.exists(server_key))
             
             server.add_insecure_port(listen_addr)
             logger.warning("grpc_auth_server_starting_insecure", port=port)
     except Exception as e:
         logger.exception("grpc_setup_failed_catastrophic", error=str(e))
+        # Fallback to insecure port if secure setup fails
         server.add_insecure_port(listen_addr)
         logger.info("grpc_auth_server_starting_insecure_fallback", port=port)
 

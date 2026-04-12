@@ -11,6 +11,11 @@ services:
       - "50051:50051" # gRPC port
     networks:
       - app-network
+    volumes:
+      # Mount TLS certificates and keys for secure gRPC
+      - /home/kamau/bsopt/.pki/root_ca.crt:/pki/root_ca.crt
+      - /home/kamau/bsopt/.pki/auth-service.crt:/pki/auth-service.crt
+      - /home/kamau/bsopt/.pki/auth-service.key:/pki/auth-service.key
     depends_on:
       redis:
         condition: service_healthy
@@ -19,7 +24,8 @@ services:
     healthcheck:
       # NOTE: grpc_health_probe requires grpcio-health-checks, which failed to install.
       # Using a basic TCP port check as a fallback. A more robust gRPC health check
-      # cannot be implemented until the dependency issue is resolved.
+      # could be implemented by installing grpcio-health-checks in the Dockerfile
+      # or by using a custom script that queries the gRPC server's health endpoint.
       test: ["CMD-SHELL", "nc -z localhost 50051 || exit 1"]
       interval: 10s
       timeout: 5s

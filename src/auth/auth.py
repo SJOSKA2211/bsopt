@@ -101,10 +101,16 @@ class AuthService:
         if not code:
             return False
         try:
+            # Decrypt the MFA secret. This might fail if the stored secret is corrupted.
             secret = self.mfa.decrypt_mfa_secret(user.mfa_secret)
+            # Verify the provided code against the decrypted secret.
+            # This might fail if the code is invalid or the secret is malformed.
             return self.mfa.verify_mfa_code(secret, code)
-        except Exception as e:
-            logger.error(f"mfa_verification_error: {e}")
+        except ValueError as e: # Assuming ValueError for invalid code/secret format
+            logger.warning(f"mfa_verification_error: Invalid MFA code or secret format. User: {user.id}. Error: {e}")
+            return False
+        except Exception as e: # Catch any other unexpected errors during decryption or verification
+            logger.error(f"unexpected_mfa_verification_error: An unexpected error occurred during MFA verification. User: {user.id}. Error: {e}", exc_info=True)
             return False
 
     # --- Session & Revocation (Delegated) ---
