@@ -1,73 +1,57 @@
 # ==============================================================================
-# Manifold: NEURAL PRICING MANIFOLD (v11.1)
+# Manifold: NEURAL PRICING SERVICE (v12.0)
 # ==============================================================================
-# GPU-optimized quant pricing engine for the BSOPT platform.
-# Rebased on Production Base.
+# GPU-optimized pricing engine powered by Rust and ONNX.
 # ==============================================================================
 
-# --- BUILDER ---
+# --- STAGE 1: BUILDER ---
 FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
-# Install build-time specific dependencies (Rust for math kernels)
-USER root
+# Build Settings
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
+
+# Install Rust for building math kernels
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl build-essential \
     && rm -rf /var/lib/apt/lists/*
-
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-ENV CARGO_BUILD_JOBS=1
 
-# Build Wheel for Rust Core
-COPY . .
-RUN /usr/local/bin/uv pip install --no-cache-dir maturin
-RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
-
-# Install App + Dependencies
+# Install ML requirements
 COPY infrastructure/requirements/requirements-ml.txt /tmp/
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-ml.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir . && \
-    /usr/local/bin/uv pip install --no-cache-dir /tmp/wheels/*.whl
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-ml.txt
 
-# --- DEVELOPMENT ---
-FROM manifold-base:latest AS development
-USER root
-WORKDIR /app
-
-# Copy source
+# Copy source and build
 COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+RUN /usr/local/bin/uv pip install --no-cache-dir .
 
-USER Manifold
-
-# Install App in editable mode
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-ml.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -e .
-
-# --- PRODUCTION ---
+# --- STAGE 2: PRODUCTION ---
 FROM manifold-base:latest AS production
 USER root
 WORKDIR /app
 
-# Copy the pre-built virtual environment from the neural builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Finalize image settings
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1
 
-# Production Security & Performance
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+# Copy the pre-built virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
+
+# Ensure proper ownership
+RUN chown -R Manifold:Manifold /app /opt/venv
 
 USER Manifold
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check using urllib for minimum footprint
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "src.quant.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--threads", "1", "--opt", "--ws"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["granian", "--interface", "asgi", "src.quant.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--ws"]

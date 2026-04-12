@@ -36,17 +36,19 @@ def test_http_exception_handler():
 
 
 def test_admin_only_success():
-    from src.auth.auth import RoleChecker
+    from src.auth.auth import get_current_active_user
+    from src.database.models import User
 
-    # Bypass RoleChecker
-    app.dependency_overrides[RoleChecker] = lambda: lambda: True
+    # Bypass auth by mocking the current active user with admin tier
+    mock_user = User(tier="admin", is_active=True)
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
 
     with TestClient(app) as client:
         response = client.get("/admin-only")
         assert response.status_code == 200
         assert "Admin" in response.json()["message"]
 
-    app.dependency_overrides.pop(RoleChecker, None)
+    app.dependency_overrides.pop(get_current_active_user, None)
 
 
 @pytest.mark.asyncio

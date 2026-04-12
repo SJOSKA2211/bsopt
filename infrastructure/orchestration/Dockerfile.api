@@ -1,65 +1,50 @@
-# API MANIFOLD
-# High-performance ASGI gateway for the BSOPT platform.
+# ==============================================================================
+# Manifold: API SERVICE (v12.0)
+# ==============================================================================
+# High-performance ASGI gateway powered by Granian and UV.
+# ==============================================================================
 
-# --- BUILDER ---
+# --- STAGE 1: BUILDER ---
 FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# Build Settings
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
 
-# Install build-time specific dependencies (Api-specific)
+# Install API-specific requirements
 COPY infrastructure/requirements/requirements-api.txt /tmp/
-COPY infrastructure/requirements/requirements-ml.txt /tmp/
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-api.txt -r /tmp/requirements-ml.txt
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-api.txt
 
-# Copy source + build
+# Copy source and install the project
 COPY . .
 RUN /usr/local/bin/uv pip install --no-cache-dir .
 
-# --- DEVELOPMENT ---
-FROM manifold-base:latest AS development
-USER root
-WORKDIR /app
-
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Copy source + requirements
-COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
-
-USER Manifold
-
-# Install App in editable mode for dev
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-api.txt -r infrastructure/requirements/requirements-ml.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -e .
-
-# --- FINAL RUNTIME ---
+# --- STAGE 2: PRODUCTION ---
 FROM manifold-base:latest AS production
 USER root
 WORKDIR /app
 
-# Copy the pre-built virtual environment from the API builder
-# Note: manifold-base:final already has the core venv.
-# We copy the one from our local builder which has the core + api + app.
-COPY --from=builder /opt/venv /opt/venv
-ENV VIRTUAL_ENV="/opt/venv" \
-    PATH="/opt/venv/bin:$PATH"
+# Finalize image settings
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1
 
-# Security & Performance
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+# Copy the pre-built virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
+
+# Ensure proper ownership
+RUN chown -R Manifold:Manifold /app /opt/venv
 
 USER Manifold
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check using urllib for minimum footprint
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["granian", "--interface", "asgi", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--ws"]

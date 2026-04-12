@@ -1,61 +1,49 @@
 # ==============================================================================
-# Manifold: WORKER MANIFOLD (v11.1)
+# Manifold: WORKER SERVICE (v12.0)
 # ==============================================================================
-# Lean, high-performance Celery worker for the BSOPT platform.
-# Rebased on Production Base.
+# High-performance Celery worker with pre-built math kernels.
 # ==============================================================================
 
-# --- BUILDER ---
+# --- STAGE 1: BUILDER ---
 FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
-# Install worker-specific dependencies
-COPY infrastructure/requirements/requirements-worker.txt /tmp/
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-worker.txt
+# Build Settings
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
 
+# Install Worker-specific requirements
+COPY infrastructure/requirements/requirements-worker.txt /tmp/
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-worker.txt
+
+# Copy source and install the project
 COPY . .
 RUN /usr/local/bin/uv pip install --no-cache-dir .
 
-# --- DEVELOPMENT ---
-FROM manifold-base:latest AS development
-USER root
-WORKDIR /app
-
-# Copy source
-COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
-
-USER Manifold
-
-# Install App
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-worker.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -e .
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
-
-# --- FINAL RUNTIME ---
+# --- STAGE 2: PRODUCTION ---
 FROM manifold-base:latest AS production
 USER root
 WORKDIR /app
 
-# Copy the pre-built virtual environment from the worker builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Finalize image settings
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1
 
-# Production Security & Performance
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+# Copy the pre-built virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
+
+# Ensure proper ownership
+RUN chown -R Manifold:Manifold /app /opt/venv
 
 USER Manifold
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
+# Health check using celery's native inspect ping
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD celery -A src.workers.tasks.celery_app inspect ping || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "4"]

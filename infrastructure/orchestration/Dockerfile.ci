@@ -1,66 +1,39 @@
 # ==============================================================================
-# Manifold: CI/TEST RUNNER (v11.1)
+# Manifold: CI/TEST RUNNER (v12.0)
 # ==============================================================================
-# High-fidelity testing environment for the BSOPT platform.
-# Rebased on Production Base.
+# High-performance test environment with all optional dependencies.
 # ==============================================================================
 
-# --- BUILDER ---
+# --- STAGE 1: BUILDER ---
 FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
-# Install build-time specific dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install all optional dependencies for full testing
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    ".[api,auth,observability,ml,quant,distributed,dev]"
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV CARGO_BUILD_JOBS=1
+# Copy source
+COPY . .
+RUN /usr/local/bin/uv pip install --no-cache-dir -e .
 
-# Pre-fetch heavy dependencies first for better caching
-RUN /usr/local/bin/uv pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# Build Wheel for Rust Core
-COPY src/math_kernel/rust-core src/math_kernel/rust-core
-RUN /usr/local/bin/uv pip install --no-cache-dir maturin && \
-    cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
-
-# Install App + All Extras (parallel-friendly check)
-COPY infrastructure/requirements infrastructure/requirements
-RUN \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-core.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-api.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-db.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-ml.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-worker.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-scraper.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-auth.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-observability.txt
-
-# Install dev extras including pytest-xdist for parallelization
-RUN /usr/local/bin/uv pip install --no-cache-dir pytest-xdist pytest-cov
-
-# --- RUNNER ---
-FROM manifold-base:latest
+# --- STAGE 2: TEST RUNTIME ---
+FROM manifold-base:latest AS production
+USER root
 WORKDIR /app
 
-# Copy virtualenv from builder
+# Copy the pre-built virtual environment from the builder
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder /app /app
 
-# Copy entire project and heartbeat script
-COPY . .
-RUN chmod +x infrastructure/orchestration/ci_heartbeat.sh
+# Environment Settings
+ENV ENVIRONMENT=test \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Set testing environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    BSOPT_TEST_MODE=1 \
-    PYTHONPATH=/app \
-    NUMBA_DISABLE_JIT=1
+RUN chown -R Manifold:Manifold /app /opt/venv
 
-# Default command for CI/Test runs using parallel workers and heartbeat wrapper
-ENTRYPOINT ["/usr/bin/tini", "--", "infrastructure/orchestration/ci_heartbeat.sh"]
-CMD ["pytest", "-n", "auto", "tests/"]
+USER Manifold
+
+# Entrypoint for running tests
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["pytest", "tests/unit"]

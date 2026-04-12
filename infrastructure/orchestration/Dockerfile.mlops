@@ -1,59 +1,44 @@
 # ==============================================================================
-# Manifold: MLOPS MANIFOLD (v11.1)
+# Manifold: MLOPS SERVICE (v12.0)
 # ==============================================================================
 # GPU-optimized ML orchestration powered by Ray and UV.
 # ==============================================================================
 
-FROM docker.io/rayproject/ray:latest-py312-cpu AS runtime
+# --- STAGE 1: BUILDER ---
+FROM manifold-base:latest AS builder
+USER root
 WORKDIR /app
 
-# Switch to root for system-level hardening
+# Install ML-specific dependencies
+COPY infrastructure/requirements/requirements-ml.txt /tmp/
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-ml.txt
+
+# Copy source and install
+COPY . .
+RUN /usr/local/bin/uv pip install --no-cache-dir .
+
+# --- STAGE 2: PRODUCTION ---
+FROM manifold-base:latest AS production
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev gcc curl git tini \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Install Production UV
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-ENV PATH="/uv/bin:$PATH"
+# Copy the pre-built virtual environment
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
 
-COPY pyproject.toml README.md ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
+# ML-specific settings
+ENV OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4 \
+    PYTHONOPTIMIZE=2
 
-# Optimized Dependency Layer (Split for caching)
-RUN /usr/local/bin/uv pip install --no-cache-dir --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN chown -R Manifold:Manifold /app /opt/venv
 
-RUN /usr/local/bin/uv pip install --no-cache-dir --system \
-    -r infrastructure/requirements/requirements-core.txt \
-    -r infrastructure/requirements/requirements-ml.txt
+USER Manifold
 
-RUN /usr/local/bin/uv pip install --no-cache-dir --system \
-    -r infrastructure/requirements/requirements-worker.txt \
-    -r infrastructure/requirements/requirements-observability.txt
+# Health check using mlflow health endpoint if applicable or internal metrics
+HEALTHCHECK --interval=60s --timeout=15s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
-RUN /usr/local/bin/uv pip install --no-cache-dir --system .
-
-# Copy Source
-COPY src ./src
-
-# Production Environment Tuning
-ENV PYTHONPATH=/app \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONOPTIMIZE=2 \
-    RAY_ADDRESS=auto \
-    OMP_NUM_THREADS=4 \
-    MKL_NUM_THREADS=1 \
-    OPENBLAS_NUM_THREADS=1 \
-    VECLIB_MAXIMUM_THREADS=4 \
-    NUMEXPR_NUM_THREADS=4 \
-    NUMBA_CACHE_DIR=/tmp/numba_cache
-
-RUN mkdir -p /tmp/numba_cache && chmod 777 /tmp/numba_cache
-
-# Switch back to ray user for runtime
-USER ray
-
-# Default to MLflow orchestration
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["mlflow", "run", ".", "--env-manager", "local"]

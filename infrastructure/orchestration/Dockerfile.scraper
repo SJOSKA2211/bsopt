@@ -1,88 +1,57 @@
 # ==============================================================================
-# Manifold: SCRAPER MANIFOLD (v11.1)
+# Manifold: SCRAPER SERVICE (v12.0)
 # ==============================================================================
-# Playwright-backed market data ingestion for the BSOPT platform.
-# Rebased on Production Base.
+# High-concurrency market data ingestion engine powered by Playwright.
 # ==============================================================================
 
-# --- BUILDER ---
+# --- STAGE 1: BUILDER ---
 FROM manifold-base:latest AS builder
 USER root
 WORKDIR /app
 
-# Install scraper-specific dependencies
-COPY infrastructure/requirements/requirements-scraper.txt /tmp/
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-scraper.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir playwright
+# Build Settings
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
 
+# Install Scraper-specific requirements (Playwright + deps)
+COPY infrastructure/requirements/requirements-scraper.txt /tmp/
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-scraper.txt
+
+# Copy source and install the project
 COPY . .
 RUN /usr/local/bin/uv pip install --no-cache-dir .
 
-# --- DEVELOPMENT ---
-FROM manifold-base:latest AS development
-USER root
-WORKDIR /app
-
-# Install Playwright system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy source
-COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
-
-USER Manifold
-
-# Install App + Playwright
-RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-scraper.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir playwright && \
-    /usr/local/bin/uv pip install --no-cache-dir -e .
-
-# Install Playwright browsers
-USER root
-RUN playwright install --with-deps chromium
-USER Manifold
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
-CMD ["python", "src/ingestion/engine.py"]
-
-# --- FINAL RUNTIME ---
+# --- STAGE 2: PRODUCTION ---
 FROM manifold-base:latest AS production
 USER root
 WORKDIR /app
 
-# Copy the pre-built virtual environment from the scraper builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Finalize image settings
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1
 
-# Install Playwright system dependencies in runtime
+# Install Playwright Runtime Dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Playwright browsers
-RUN playwright install chromium
-RUN chown -R Manifold:Manifold /opt/venv
+# Copy the pre-built virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
 
-# Production Security & Performance
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+# Install chromium browser
+RUN playwright install chromium
+RUN chown -R Manifold:Manifold /app /opt/venv
 
 USER Manifold
 
+# Heartbeat based health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD python3 -c "import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)"
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "src/ingestion/engine.py"]

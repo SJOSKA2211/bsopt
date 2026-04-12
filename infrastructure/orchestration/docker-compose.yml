@@ -1,7 +1,6 @@
 name: bsopt
 
 services:
-  
   base:
     image: manifold-base:latest
     pull_policy: build
@@ -9,7 +8,6 @@ services:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.base
 
-  # === Database Service ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
     user: root
@@ -58,7 +56,6 @@ services:
     networks:
       - bsopt-network
 
-  # === Connection Pooler ===
   pgbouncer:
     image: docker.io/edoburu/pgbouncer:latest
     restart: unless-stopped
@@ -68,10 +65,6 @@ services:
       resources:
         limits:
           memory: 1gb
-        reservations:
-          memory: 256mb
-    security_opt:
-      - label:disable
     user: root
     environment:
       LISTEN_PORT: 6432
@@ -83,28 +76,6 @@ services:
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 10000
       DEFAULT_POOL_SIZE: 300
-      MIN_POOL_SIZE: 50
-      RESERVE_POOL_SIZE: 150
-      MAX_PREPARED_STATEMENTS: 500
-      ADMIN_USERS: ${POSTGRES_USER:-admin}
-      STATS_PERIOD: 30
-      SERVER_LIFETIME: 3600
-      IDLE_TRANSACTION_TIMEOUT: 60
-      SERVER_IDLE_TIMEOUT: 600
-      SERVER_CONNECT_TIMEOUT: 15
-      SERVER_LOGIN_RETRY: 5
-      QUERY_TIMEOUT: 300
-      QUERY_WAIT_TIMEOUT: 120
-      CLIENT_IDLE_TIMEOUT: 0
-      CLIENT_LOGIN_TIMEOUT: 60
-      SERVER_TLS_SSLMODE: verify-full
-      SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
-      SERVER_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
-      SERVER_TLS_KEY_FILE: /tmp/pgbouncer.key
-      CLIENT_TLS_SSLMODE: require
-      CLIENT_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
-      CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
-      CLIENT_TLS_KEY_FILE: /tmp/pgbouncer.key
     entrypoint: >
       sh -c "
       cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
@@ -126,7 +97,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-  # === Cache Service ===
+
   redis:
     image: docker.io/library/redis:7-alpine
     restart: unless-stopped
@@ -140,10 +111,6 @@ services:
       resources:
         limits:
           memory: 256mb
-    security_opt:
-      - label:disable
-    sysctls:
-      - net.core.somaxconn=1024
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}", "ping" ]
       interval: 5s
@@ -152,9 +119,8 @@ services:
     networks:
       - bsopt-network
 
-  # === Message Broker ===
   rabbitmq:
-    image: docker.io/library/rabbitmq:3-management
+    image: docker.io/library/rabbitmq:3-management-alpine
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bsopt_admin}
@@ -162,21 +128,9 @@ services:
     ports:
       - "5673:5672"
       - "15673:15672"
-    security_opt:
-      - label:disable
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
     volumes:
       - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro,Z
       - ./definitions.json:/etc/rabbitmq/definitions.json:ro,Z
-    deploy:
-      resources:
-        limits:
-          memory: 256mb
-        reservations:
-          memory: 128mb
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -185,954 +139,27 @@ services:
     networks:
       - bsopt-network
 
-  # === Object Storage (MinIO) ===
   minio:
     env_file: ../../.env
     image: quay.io/minio/minio:latest
-    pull_policy: if_not_present
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-      # Enable Prometheus metrics (unauthenticated for internal scrape)
-      MINIO_PROMETHEUS_AUTH_TYPE: public
-      MINIO_PROMETHEUS_URL: http://prometheus:9090
-      # Cluster identity for multi-node readiness
-      MINIO_SITE_NAME: bsopt-object-store
-      # Performance tuning
-      MINIO_API_REQUESTS_MAX: "10000"
-      MINIO_API_REQUESTS_DEADLINE: 2m
-      GOGC: "20"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001" --address ":9000"
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1gb
-        reservations:
-          memory: 256mb
-    networks:
-      - bsopt-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
-    stop_grace_period: 30s
-
-  minio-mc:
-    image: quay.io/minio/mc:latest
-    pull_policy: if_not_present
-    restart: 'no'
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      echo 'Provisioning MinIO buckets...';
-      /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio_admin} ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP} --api S3v4;
-      /usr/bin/mc mb --ignore-existing local/Manifold-artifacts;
-      /usr/bin/mc mb --ignore-existing local/Manifold-raw-data;
-      /usr/bin/mc mb --ignore-existing local/mlflow;
-      /usr/bin/mc version enable local/Manifold-artifacts;
-      /usr/bin/mc version enable local/mlflow;
-      /usr/bin/mc anonymous set download local/Manifold-artifacts;
-      /usr/bin/mc ilm import local/Manifold-raw-data <<EOF
-      {\"Rules\":[{\"ID\":\"expire-raw-90d\",\"Status\":\"Enabled\",\"Expiration\":{\"Days\":90}}]}
-      EOF
-      echo 'MinIO provisioning complete.';
-      exit 0;
-      "
     networks:
       - bsopt-network
-
-  # === Auth Service ===
-  auth-service:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.auth-service
-      target: development
-    ports:
-      - "3001:3001"
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
-      - PGBOUNCER_ENABLED=True
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-      - BSOPT_ALLOW_WEAK_SECRETS=True
-      - PYTHONPATH=/app:/app/src/protos
-    security_opt:
-      - label:disable
-    command: ["python3", "/app/src/auth/auth_server.py"]
-    volumes:
-      - ../../src:/app/src:rw
-      - /app/src/auth/node_modules
-      - ../../src/shared/protos:/protos:ro
-      - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
-      - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3001/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-    networks:
-      - bsopt-network
-
-  # === API Service ===
-  api:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.api
-      target: development
-    security_opt:
-      - label:disable
-    volumes:
-      - ../../src:/app/src:rw
-      - /app/services/api/node_modules
-      - ../../pyproject.toml:/app/pyproject.toml:ro
-      - shared_shm:/dev/shm
-      - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
-      - ../../.pki/api.key:/etc/postgresql/api.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    ports:
-      - "8000:8000"
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 4gb
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "3"
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - PATH=/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
-      - INSIDE_DOCKER=1
-      - ML_SERVICE_GRPC_URL=ml-inference:50051
-      - USE_SHM=1
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      redis:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
-    networks:
-      - bsopt-network
-    sysctls:
-      - net.core.somaxconn=2048
-      - net.ipv4.tcp_fastopen=3
-    entrypoint: ["/usr/local/bin/entrypoint-shim.sh"]
-    command: granian --interface asgi api.index:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
-
-  # === Portfolio Service ===
-  portfolio:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.api
-      target: development
-    volumes:
-      - ../../src:/app/src
-      - ../../api:/app/api
-      - ../../pyproject.toml:/app/pyproject.toml
-      - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
-      - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    ports:
-      - "8003:8000"
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2gb
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
-      - BSOPT_ALLOW_WEAK_SECRETS=True
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      redis:
-        condition: service_healthy
-    networks:
-      - bsopt-network
-    sysctls:
-      - net.core.somaxconn=1024
-      - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --loop uvloop
-
-  # === [Specialized] ML Inference Manifold ===
-  ml-inference:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.api
-      target: development
-    ports:
-      - "5001:5001"
-      - "50051:50051"
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 4gb
-    environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-      - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
-      - ML_SERVICE_PORT=5001
-      - ML_SERVICE_GRPC_URL=0.0.0.0:50051
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-      - MLFLOW_S3_IGNORE_TLS=true
-      - MLFLOW_S3_UPLOAD_CONCURRENCY=5
-      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=10
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      redis:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../src:/app/src
-      - ../../models:/app/models
-      - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
-      - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    command: granian --interface asgi src.ml.serving.serve:app --host 0.0.0.0 --port 5001 --workers 4 --loop uvloop --ws
-
-  # === Worker Service ===
-  worker:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.worker
-      target: development
-    volumes:
-      - ../../src:/app/src
-      - ../../pyproject.toml:/app/pyproject.toml
-      - shared_shm:/dev/shm
-      - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
-      - ../../.pki/worker.key:/etc/postgresql/worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    ports:
-      - "50052:50051" # Changed to avoid collision if run on host
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2gb
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "3"
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - PATH=/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
-      - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@rabbitmq:5672//
-      - ML_SERVICE_GRPC_URL=ml-inference:50051
-      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
-      - USE_SHM=1
-    healthcheck:
-      test: [ "CMD-SHELL", "celery -A src.workers.tasks.celery_app inspect ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      ml-inference:
-        condition: service_started
-    networks:
-      - bsopt-network
-    command: celery -A src.workers.tasks.celery_app worker -l info --concurrency=4 --prefetch-multiplier=1
-
-  # === NSE Scraper Service ===
-  nse-scraper:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: development
-    security_opt:
-      - label:disable
-    ports:
-      - "8002:8000"
-    volumes:
-      - ../../src:/app/src:rw
-      - shared_shm:/dev/shm
-      - ../../.pki/nse-scraper.crt:/etc/postgresql/nse-scraper.crt:ro
-      - ../../.pki/nse-scraper.key:/etc/postgresql/nse-scraper.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1gb
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/nse-scraper.crt&sslkey=/etc/postgresql/nse-scraper.key
-      - INSIDE_DOCKER=1
-    depends_on:
-      - ingestion-service
-      - pgbouncer
-    healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    command: python src/ingestion/engine.py
-
-  # === yfinance Scraper Service ===
-  yfinance-scraper:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: development
-    security_opt:
-      - label:disable
-    ports:
-      - "8004:8000"
-    volumes:
-      - ../../src:/app/src:rw
-      - ../../.pki/yfinance-scraper.crt:/etc/postgresql/yfinance-scraper.crt:ro
-      - ../../.pki/yfinance-scraper.key:/etc/postgresql/yfinance-scraper.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1gb
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/yfinance-scraper.crt&sslkey=/etc/postgresql/yfinance-scraper.key
-      - INSIDE_DOCKER=1
-    depends_on:
-      - ingestion-service
-      - pgbouncer
-    healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    command: python src/ingestion/yfinance_scraper.py
-
-  # === Generic Scraper Service ===
-  scraper:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: development
-    security_opt:
-      - label:disable
-    volumes:
-      - ../../src:/app/src:rw
-      - shared_shm:/dev/shm
-      - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
-      - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1gb
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
-      - INSIDE_DOCKER=1
-    depends_on:
-      - ingestion-service
-      - pgbouncer
-    healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-
-  # === Neural Pricing Service ===
-  neural-pricing:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
-      target: development
-    ports:
-      - "8001:8000"
-    volumes:
-      - ../../src:/app/src
-      - shared_shm:/dev/shm
-      - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
-      - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 4gb
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - OMP_NUM_THREADS=4
-      - MKL_NUM_THREADS=4
-      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
-      - USE_SHM=1
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-    networks:
-      - bsopt-network
-    sysctls:
-      - net.core.somaxconn=2048
-      - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
-
-    # === App Gateway (Node.js Federation) ===
-  frontend:
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.frontend
-      target: development
-    ports:
-      - "5173:5173"
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-        reservations:
-          memory: 256mb
-    volumes:
-      - ../../src/frontend:/app
-      - /app/node_modules
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:5173/ || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-
-  # === [Specialized] Test Runner ===
-  test-runner:
-    profiles: [ "test", "benchmark" ]
-    pull_policy: never
-    shm_size: '2gb'
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.ci
-    environment:
-      - ENVIRONMENT=test
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt_test?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/test-runner.crt&sslkey=/etc/postgresql/test-runner.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/1
-      - JWT_SECRET=test_secret_key_change_me_in_prod
-    volumes:
-      - .:/app
-      - ../../.pki/test-runner.crt:/etc/postgresql/test-runner.crt:ro
-      - ../../.pki/test-runner.key:/etc/postgresql/test-runner.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    tmpfs:
-      - /tmp
-    deploy:
-      resources:
-        limits:
-          memory: 8gb
-        reservations:
-          memory: 2gb
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      redis:
-        condition: service_healthy
-    networks:
-      - bsopt-network
-
-  # === [Specialized] Blockchain Service ===
-  geth:
-    profiles: [ "blockchain" ]
-    image: docker.io/ethereum/client-go:stable
-    ports:
-      - "8545:8545"
-      - "8546:8546"
-      - "30303:30303"
-      - "30303:30303/udp"
-    volumes:
-      - geth_data:/root/.ethereum
-    command:
-      - --http
-      - --http.addr=0.0.0.0
-      - --http.vhosts=*
-      - --http.api=eth,net,web3,debug,txpool
-      - --ws
-      - --ws.addr=0.0.0.0
-      - --ws.api=eth,net,web3
-      - --networkid=1337
-      - --syncmode=snap
-      - --cache=2048
-      - --maxpeers=50
-      - --nodiscover
-    deploy:
-      resources:
-        limits:
-          memory: 4gb
-        reservations:
-          memory: 1gb
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --quiet --post-data='{\"jsonrpc\":\"2.0\",\"method\":\"net_version\",\"params\":[],\"id\":67}' --header='Content-Type: application/json' --output-document - http://localhost:8545 | grep -q result" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - bsopt-network
-
-  blockchain-worker:
-    profiles: [ "blockchain" ]
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.worker
-      target: development
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    environment:
-      - BLOCKCHAIN_RPC_URL=http://geth:8545
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - DEFI_CONTRACTS=${DEFI_CONTRACTS:-}
-    depends_on:
-      - geth
-      - redis
-    networks:
-      - bsopt-network
-    command: python src/blockchain/worker.py
-
-  # === [Specialized] ML Compute Cluster ===
-  ray-head:
-    profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
-    ports:
-      - "8265:8265" # Dashboard
-      - "10001:10001" # Ray Client
-      - "8080:8080" # Ray Metrics
-    networks:
-      - bsopt-network
-    environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-head.crt&sslkey=/etc/postgresql/ray-head.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
-      - INSIDE_DOCKER=1
-      - RAY_memory_usage_threshold=0.95
-      - RAY_task_rpc_timeout_ms=5000
-      - RAY_worker_register_timeout_seconds=600
-    volumes:
-      - ../../:/app
-      - ../../.pki/ray-head.crt:/etc/postgresql/ray-head.crt:ro
-      - ../../.pki/ray-head.key:/etc/postgresql/ray-head.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    shm_size: '4gb'
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 6gb
-        reservations:
-          memory: 2gb
-    healthcheck:
-      test: ["CMD-SHELL", "ray status || exit 1"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
-    working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --num-cpus=2 --block
-
-  ray-worker-1:
-    profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
-    depends_on:
-      ray-head:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "ray status || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    environment:
-      - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-worker-1.crt&sslkey=/etc/postgresql/ray-worker-1.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
-      - INSIDE_DOCKER=1
-      - RAY_memory_usage_threshold=0.95
-      - RAY_task_rpc_timeout_ms=5000
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../:/app
-      - ../../.pki/ray-worker-1.crt:/etc/postgresql/ray-worker-1.crt:ro
-      - ../../.pki/ray-worker-1.key:/etc/postgresql/ray-worker-1.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    shm_size: '4gb'
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8gb
-        reservations:
-          memory: 2gb
-    working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=3221225472 --num-cpus=4 --block
-
-  rl-training-worker:
-    profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
-    depends_on:
-      mlflow:
-        condition: service_healthy
-      ray-head:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "ray status || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    environment:
-      - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/rl-training-worker.crt&sslkey=/etc/postgresql/rl-training-worker.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
-      - INSIDE_DOCKER=1
-      - RAY_memory_usage_threshold=0.95
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../:/app
-      - ../../.pki/rl-training-worker.crt:/etc/postgresql/rl-training-worker.crt:ro
-      - ../../.pki/rl-training-worker.key:/etc/postgresql/rl-training-worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    shm_size: '4gb'
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 3gb
-        reservations:
-          memory: 1gb
-    working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=1073741824 --block
-
-  # === [Specialized] MLOps Tracking Server ===
-  mlflow:
-    env_file: ../../.env
-    profiles: [ "ml" ]
-    image: ghcr.io/mlflow/mlflow:latest
-    restart: unless-stopped
-    stop_grace_period: 30s
-    ports:
-      - "5000:5000"
-    environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
-      - PGSSLMODE=verify-full
-      - PGSSLROOTCERT=/etc/postgresql/ca.crt
-      - PGSSLCERT=/etc/postgresql/mlflow.crt
-      - PGSSLKEY=/etc/postgresql/mlflow.key
-      - MLFLOW_ARTIFACT_ROOT=s3://Manifold-artifacts/mlflow
-      - MLFLOW_SERVER_ALLOWED_HOSTS=*
-      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-      - MLFLOW_S3_IGNORE_TLS=true
-      - MLFLOW_S3_UPLOAD_CONCURRENCY=10
-      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=10
-    volumes:
-      - ../../mlruns:/app/mlruns
-      - ../../.pki/mlflow.crt:/etc/postgresql/mlflow.crt:ro
-      - ../../.pki/mlflow.key:/etc/postgresql/mlflow.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_started
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-        reservations:
-          memory: 512mb
-    networks:
-      - bsopt-network
-    command: ["mlflow", "server", "--workers", "2", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key", "--default-artifact-root", "s3://Manifold-artifacts/mlflow"]
-
-  # === [Specialized] MLOps Pipeline Worker ===
-  mlops-worker:
-    env_file: ../../.env
-    profiles: [ "ml" ]
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.mlops
-    shm_size: '4gb'
-    deploy:
-      resources:
-        limits:
-          memory: 768mb
-          cpus: '0.5'
-        reservations:
-          memory: 256mb
-    depends_on:
-      mlflow:
-        condition: service_healthy
-      ray-head:
-        condition: service_healthy
-    environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-      - RAY_ADDRESS=ray-head:6379
-      - RAY_DASHBOARD_URL=http://ray-head:8265
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
-      - RAY_WORKERS=4
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-      - MLFLOW_S3_IGNORE_TLS=true
-      - MLFLOW_S3_UPLOAD_CONCURRENCY=5
-      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=5
-    command: ["mlflow", "run", ".", "--entry-point", "watchdog", "--env-manager", "local"]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../:/app
-      - ../../mlruns:/app/mlruns
-      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
-      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
-
-  # === [Specialized] HFT Manifold Launcher ===
-  manifold:
-    profiles: [ "hft" ]
-    image: manifold-base:latest
-    pull_policy: never
-    network_mode: host
-    cap_add:
-      - IPC_LOCK
-      - SYS_NICE
-    ulimits:
-      memlock: -1
-    deploy:
-      resources:
-        limits:
-          memory: 2gb
-    volumes:
-      - /dev/shm:/dev/shm
-    environment:
-      - MESH_NAME=bsopt_hft_mesh
-      - MESH_SIZE_MB=256
-      - LATENCY_CRITICAL_MS=50
-      - DATABASE_URL=${DATABASE_URL_LOCAL:-postgresql://admin:password@localhost:5434/bsopt}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:6379/0
-    command: python scripts/hft/bs_hft_launch.py
-
-  ingestion-service:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.api
-      target: development
-    security_opt:
-      - label:disable
-    ports:
-      - "50053:50053"
-    environment:
-      - PYTHONPATH=/app
-      - INSIDE_DOCKER=1
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
-    depends_on:
-      - pgbouncer
-    healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/ingestion_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../.pki/ingestion-service.crt:/etc/postgresql/ingestion-service.crt:ro
-      - ../../.pki/ingestion-service.key:/etc/postgresql/ingestion-service.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    sysctls:
-      - net.core.somaxconn=4096
-      - net.ipv4.tcp_fastopen=3
-    command: python src/ingestion/ingestion_service.py
-
-  transformer:
-    env_file: ../../.env
-    pull_policy: never
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.api
-      target: development
-    environment:
-      - PYTHONPATH=/app
-      - INSIDE_DOCKER=1
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/transformer.crt&sslkey=/etc/postgresql/transformer.key
-    depends_on:
-      - ingestion-service
-      - pgbouncer
-    healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/transformer_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../.pki/transformer.crt:/etc/postgresql/transformer.crt:ro
-      - ../../.pki/transformer.key:/etc/postgresql/transformer.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    command: python src/ingestion/concurrent_ingestion.py
 
   envoy:
     image: docker.io/envoyproxy/envoy:v1.28-latest
@@ -1148,10 +175,8 @@ services:
       - "9901:9901"
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
     depends_on:
-      - api
-      - auth-service
-      - ml-inference
-      - nginx
+      api:
+        condition: service_started
     networks:
       - bsopt-network
     healthcheck:
@@ -1159,18 +184,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    sysctls:
-      - net.core.somaxconn=16384
-      - net.ipv4.tcp_fastopen=3
-      - net.ipv4.tcp_tw_reuse=1
-      - net.ipv4.tcp_fin_timeout=15
-      - net.ipv4.tcp_max_syn_backlog=8192
     deploy:
       resources:
         limits:
           memory: 512mb
-        reservations:
-          memory: 128mb
 
   nginx:
     image: docker.io/library/nginx:stable-alpine
@@ -1185,9 +202,9 @@ services:
       - ../../.pki:/etc/nginx/ssl:ro
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
       auth-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
       interval: 5s
@@ -1197,177 +214,195 @@ services:
       resources:
         limits:
           memory: 256mb
-        reservations:
-          memory: 64mb
     networks:
       - bsopt-network
 
-  rust-core:
+  auth-service:
     env_file: ../../.env
     pull_policy: never
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.rust-core
+      dockerfile: infrastructure/orchestration/Dockerfile.auth
+      target: production
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
+      - PGBOUNCER_ENABLED=True
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      - BSOPT_ALLOW_WEAK_SECRETS=True
     volumes:
-      - ../../:/app
-      - shared_shm:/dev/shm
-    networks:
-      - bsopt-network
-    environment:
-      - INSIDE_DOCKER=1
-    working_dir: /app/src/math_kernel/rust-core
-
-  # === [Specialized] Observability Stack ===
-  # === Monitoring Service ===
-  postgres-exporter:
-    image: quay.io/prometheuscommunity/postgres-exporter:latest
-    environment:
-      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@postgres:5432/bsopt?sslmode=disable"
+      - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
+      - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:3001/health')\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9187/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      pgbouncer:
+        condition: service_healthy
+      base:
+        condition: service_completed_successfully
     networks:
       - bsopt-network
 
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
+  api:
+    env_file: ../../.env
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.api
+      target: production
+    ports:
+      - "8000:8000"
     environment:
-      - REDIS_ADDR=redis://redis:6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
+      - PGBOUNCER_ENABLED=True
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+      - USE_SHM=1
+    volumes:
+      - shared_shm:/dev/shm
+      - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
+      - ../../.pki/api.key:/etc/postgresql/api.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      - redis
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9121/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      base:
+        condition: service_completed_successfully
     networks:
       - bsopt-network
 
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=15d'
-      - '--web.enable-lifecycle'
+  worker:
+    env_file: ../../.env
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
+      target: production
     volumes:
-      - ../monitoring/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ../monitoring/monitoring/prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml:ro
-      - ../monitoring/monitoring/prometheus/rules:/etc/prometheus/rules:ro
-      - prometheus_data:/prometheus
-    deploy:
-      resources:
-        limits:
-          memory: 2g
+      - shared_shm:/dev/shm
+      - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
+      - ../../.pki/worker.key:/etc/postgresql/worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
+      - PGBOUNCER_ENABLED=True
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@rabbitmq:5672//
+      - USE_SHM=1
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
-      interval: 10s
-      timeout: 5s
+      test: [ "CMD-SHELL", "celery -A src.workers.tasks.celery_app inspect ping" ]
+      interval: 30s
+      timeout: 10s
       retries: 3
-    networks:
-      - bsopt-network
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
     depends_on:
-      - prometheus
-      - loki
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      base:
+        condition: service_completed_successfully
+    networks:
+      - bsopt-network
+
+  scraper:
+    env_file: ../../.env
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper
+      target: production
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ../monitoring/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-    deploy:
-      resources:
-        limits:
-          memory: 1g
+      - shared_shm:/dev/shm
+      - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
+      - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key:ro
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
+      - INSIDE_DOCKER=1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      base:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "python3 -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
+      interval: 30s
+      timeout: 10s
       retries: 3
     networks:
       - bsopt-network
 
-  loki:
-    image: grafana/loki:latest
-    ports:
-      - "3100:3100"
-    volumes:
-      - ../monitoring/monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
-      - loki_data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    deploy:
-      resources:
-        limits:
-          memory: 2g
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3100/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - bsopt-network
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    security_opt:
-      - label:disable
-    volumes:
-      - ../monitoring/monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    ports:
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
-      - "8889:8889" # Prometheus exporter
-      - "13133:13133" # Health check extension
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-    networks:
-      - bsopt-network
-
-  frontend-test:
-    profiles: [ "test" ]
+  frontend:
     pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
-      target: development
-    volumes:
-      - ../../src/frontend:/app
-      - /app/node_modules
+      target: production
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost/ || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
-    command: npm run test -- --run
 
-  e2e-test:
-    profiles: [ "test" ]
-    image: mcr.microsoft.com/playwright:v1.58.2-jammy
-    working_dir: /app/src/frontend
-    volumes:
-      - .:/app
+  mlops-worker:
+    env_file: ../../.env
+    profiles: [ "ml" ]
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.mlops
+      target: production
     environment:
-      - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+    depends_on:
+      base:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - bsopt-network
-    sysctls:
-      - net.core.somaxconn=4096
-      - net.ipv4.tcp_fastopen=3
-    depends_on:
-      - frontend
-      - auth-service
-      - api
-    command: npx playwright test
+    volumes:
+      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
+      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/vault.key
 
 networks:
   bsopt-network:
@@ -1385,10 +420,6 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
-    driver: local
-  prometheus_data:
-  grafana_data:
-  loki_data:
   shared_shm:
     driver: local
     driver_opts:

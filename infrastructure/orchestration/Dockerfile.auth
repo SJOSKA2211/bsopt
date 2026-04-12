@@ -1,18 +1,50 @@
-# Auth Service — Python Development
-FROM docker.io/library/python:3.12-slim-bookworm
+# ==============================================================================
+# Manifold: AUTH SERVICE (v12.0)
+# ==============================================================================
+# High-performance authentication gateway powered by BetterAuth and UV.
+# ==============================================================================
+
+# --- STAGE 1: BUILDER ---
+FROM manifold-base:latest AS builder
+USER root
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev gcc git curl \
-    && rm -rf /var/lib/apt/lists/*
+# Build Settings
+ENV UV_LINK_MODE=copy \
+    UV_HTTP_TIMEOUT=1000 \
+    UV_CACHE_DIR=/root/.cache/uv
 
-RUN pip install --no-cache-dir uv
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_RETRIES=10
-COPY pyproject.toml requirements.txt ./
-RUN /usr/local/bin/uv pip install --no-cache-dir --system -r requirements.txt
+# Install Auth-specific requirements
+COPY infrastructure/requirements/requirements-auth.txt /tmp/
+RUN /usr/local/bin/uv pip install --no-cache-dir \
+    -r /tmp/requirements-auth.txt
 
-COPY src /app/src
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# Copy source and install the project
+COPY . .
+RUN /usr/local/bin/uv pip install --no-cache-dir .
+
+# --- STAGE 2: PRODUCTION ---
+FROM manifold-base:latest AS production
+USER root
+WORKDIR /app
+
+# Finalize image settings
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1
+
+# Copy the pre-built virtual environment from the builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app /app
+
+# Ensure proper ownership
+RUN chown -R Manifold:Manifold /app /opt/venv
+
+USER Manifold
 EXPOSE 3001
-CMD ["python", "-m", "src.auth.auth_server"]
+
+# Health check using urllib for minimum footprint
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3001/health').read()" || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["python3", "-m", "src.auth.auth_server"]
