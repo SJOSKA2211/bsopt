@@ -4,7 +4,6 @@ services:
   # === Database & Infrastructure ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
-    user: root
     restart: unless-stopped
     command: >
       sh -c "
@@ -35,12 +34,6 @@ services:
       - ../../.pki/postgres.key:/etc/postgresql/postgres.key.host:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../configs/pg_ident.conf:/etc/postgresql/pg_ident.conf:ro
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-    security_opt:
-      - label:disable
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}" ]
       interval: 10s
@@ -53,13 +46,6 @@ services:
   pgbouncer:
     image: docker.io/edoburu/pgbouncer:latest
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:6432:6432"
-    deploy:
-      resources:
-        limits:
-          memory: 1gb
-    user: root
     environment:
       LISTEN_PORT: 6432
       AUTH_TYPE: scram-sha-256
@@ -81,14 +67,14 @@ services:
       - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro,Z
       - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key.host:ro,Z
       - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro,Z
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 6432 -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - bsopt-network
 
@@ -101,10 +87,6 @@ services:
     volumes:
       - redis_data:/data
       - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro,Z
-    deploy:
-      resources:
-        limits:
-          memory: 256mb
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}", "ping" ]
       interval: 5s
@@ -133,37 +115,12 @@ services:
     networks:
       - bsopt-network
 
-  minio:
-    env_file: ../../.env
-    image: quay.io/minio/minio:latest
-    restart: unless-stopped
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001" --address ":9000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-    networks:
-      - bsopt-network
-
   # === Core Services ===
   auth-service:
-    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.auth
       target: production
-    ports:
-      - "3001:3001"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
       - PGBOUNCER_ENABLED=True
@@ -175,21 +132,15 @@ services:
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../../.pki/vault.key:/app/vault.key:ro
-    healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:3001/health')\"" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     depends_on:
-      postgres:
-        condition: service_healthy
       pgbouncer:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - bsopt-network
 
   api:
-    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -208,79 +159,26 @@ services:
       - ../../.pki/api.key:/etc/postgresql/api.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../../.pki/vault.key:/app/vault.key:ro
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     depends_on:
-      postgres:
-        condition: service_healthy
       pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - bsopt-network
 
-  portfolio:
-    env_file: ../../.env
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.portfolio
-      target: production
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
-    volumes:
-      - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
-      - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - bsopt-network
-
-  # === Processing & Ingestion ===
   worker:
-    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: production
-    volumes:
-      - shared_shm:/dev/shm
-      - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
-      - ../../.pki/worker.key:/etc/postgresql/worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
-      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@rabbitmq:5672//
-      - USE_SHM=1
-    healthcheck:
-      test: [ "CMD-SHELL", "celery -A src.workers.tasks.celery_app inspect ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
-      postgres:
-        condition: service_healthy
       pgbouncer:
         condition: service_healthy
       redis:
@@ -290,122 +188,15 @@ services:
     networks:
       - bsopt-network
 
-  scraper:
-    env_file: ../../.env
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper
-      target: production
-    volumes:
-      - shared_shm:/dev/shm
-      - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
-      - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
-      - INSIDE_DOCKER=1
-    depends_on:
-      postgres:
-        condition: service_healthy
-      pgbouncer:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import time, os; t=float(open('/tmp/scraper_heartbeat').read()); exit(0 if time.time()-t < 60 else 1)\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-
-  # === ML & Quant ===
-  ml-inference:
-    env_file: ../../.env
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.ml-inference
-      target: production
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-    volumes:
-      - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
-      - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - bsopt-network
-
-  neural-pricing:
-    env_file: ../../.env
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
-      target: production
-    ports:
-      - "8002:8000"
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
-    volumes:
-      - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
-      - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - bsopt-network
-
-  mlops-worker:
-    env_file: ../../.env
-    profiles: [ "ml" ]
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.mlops
-      target: production
-    environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - bsopt-network
-    volumes:
-      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
-      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-
   # === Frontend & Gateway ===
   frontend:
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
       target: production
-    ports:
-      - "5173:80"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost/ || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - bsopt-network
 
@@ -420,70 +211,21 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ../../.pki:/etc/nginx/ssl:ro
     depends_on:
-      api:
-        condition: service_healthy
-      auth-service:
-        condition: service_healthy
-      portfolio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
-      interval: 5s
-      timeout: 2s
-      retries: 10
-    deploy:
-      resources:
-        limits:
-          memory: 256mb
-    networks:
-      - bsopt-network
-
-  envoy:
-    image: docker.io/envoyproxy/envoy:v1.28-latest
-    env_file: ../../.env
-    pull_policy: if_not_present
-    volumes:
-      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ../../.pki:/etc/envoy/ssl:ro
-    ports:
-      - "8081:8080"
-      - "9901:9901"
-    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--concurrency", "0", "--log-level", "info"]
-    depends_on:
-      api:
+      frontend:
         condition: service_healthy
     networks:
       - bsopt-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9901/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512mb
 
 networks:
   bsopt-network:
     driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: "1500"
-      com.docker.network.bridge.name: "bsopt0"
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.30.0.0/16
-          gateway: 172.30.0.1
 
 volumes:
   postgres_data:
   redis_data:
-  minio_data:
   shared_shm:
     driver: local
     driver_opts:
       type: tmpfs
       device: tmpfs
       o: "size=7168m"
-  geth_data:

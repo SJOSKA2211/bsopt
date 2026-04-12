@@ -1,7 +1,5 @@
 # ==============================================================================
-# Manifold: FRONTEND SERVICE (v12.0)
-# ==============================================================================
-# React/Vite/TypeScript frontend optimized for production Nginx (Alpine).
+# Manifold: FRONTEND SERVICE (v12.0) - NGINX OPTIMIZED
 # ==============================================================================
 
 # --- STAGE 1: BUILDER ---
@@ -23,21 +21,24 @@ RUN npm run build
 # --- STAGE 2: PRODUCTION RUNTIME ---
 FROM docker.io/library/nginx:alpine AS production
 
-# Copy custom nginx configuration
-COPY infrastructure/orchestration/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY infrastructure/orchestration/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+# Security: Dedicated Nginx User
+RUN addgroup -S nginx_user && adduser -S nginx_user -G nginx_user
 
-# Copy build artifacts
+# Copy custom nginx config
+COPY infrastructure/orchestration/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY infrastructure/orchestration/nginx/conf.d /etc/nginx/conf.d
+
+# Copy static files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Security: Non-root Nginx
-RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /usr/share/nginx/html /etc/nginx/conf.d
+# Hardening: Permissions
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx_user:nginx_user /var/cache/nginx /var/run/nginx.pid /usr/share/nginx/html
 
-USER nginx
+USER nginx_user
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD wget -qO- http://localhost/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

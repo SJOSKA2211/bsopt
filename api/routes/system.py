@@ -46,24 +46,7 @@ async def get_deep_health():
         health["status"] = "degraded"
         _shm_probe = None  # Reset on failure
 
-    # 2. Lazy CUDA Probe
-    from src.shared.config import settings
-
-    if settings.USE_GPU:
-        try:
-            import torch
-
-            cuda_available = torch.cuda.is_available()
-            health["probes"]["cuda"] = {
-                "status": "available" if cuda_available else "missing",
-                "device": torch.cuda.get_device_name(0) if cuda_available else None,
-            }
-        except Exception:
-            health["probes"]["cuda"] = {"status": "error"}
-    else:
-        health["probes"]["cuda"] = {"status": "disabled_by_config"}
-
-    # 3. WASM OPA Probe
+    # 2. WASM OPA Probe
     wasm_path = "policies/authz.wasm"
     try:
         exists = await anyio.to_thread.run_sync(os.path.exists, wasm_path)

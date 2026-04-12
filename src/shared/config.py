@@ -168,7 +168,6 @@ class Settings(BaseSettings):
 
     # Scrapers & Market Data
     USE_SHM: bool = Field(default=False)
-    USE_GPU: bool = Field(default=False)
 
     # Observability & Tracing
     ENABLE_TRACING: bool = False
