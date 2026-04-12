@@ -2,19 +2,19 @@
 # Manifold: MLOPS SERVICE (v12.0) - HARDENED & OPTIMIZED
 # ==============================================================================
 
-# Use the pre-built manifold-base stage or image
-FROM manifold-base:latest AS builder
+# Use the pre-built manifold-base-builder stage or image
+FROM manifold-base:builder AS builder
 
 USER root
 WORKDIR /app
 
 # Install project-specific dependencies
 COPY infrastructure/requirements/requirements-ml.txt ./
-RUN uv pip install --no-cache-dir -r requirements-ml.txt
+RUN uv pip install --retries 10 --no-cache-dir -r requirements-ml.txt
 
 # Copy source and install project in editable mode for the venv
 COPY . .
-RUN uv pip install --no-cache-dir .
+RUN uv pip install --retries 10 --no-cache-dir .
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
 FROM manifold-base:latest AS production

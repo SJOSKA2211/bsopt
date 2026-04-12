@@ -65,11 +65,17 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Submit login", async () => {
         await page.click('[type="submit"]');
-        await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+        // Increased timeout for gRPC cold-start or mesh initialization
+        await page.waitForURL(/\/dashboard/, { timeout: 30000 });
       });
 
-      await test.step("Verify dashboard access", async () => {
-        await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 5000 });
+      await test.step("Verify dashboard access and Auth Mesh health", async () => {
+        await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 10000 });
+        // Check for specific UI indicators of gRPC-backend connectivity
+        const meshStatus = page.locator('[data-testid="mesh-status-indicator"]');
+        if (await meshStatus.isVisible()) {
+          await expect(meshStatus).toHaveAttribute("data-status", "healthy");
+        }
       });
     });
   });

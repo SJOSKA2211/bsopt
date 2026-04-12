@@ -10,7 +10,9 @@ FROM docker.io/library/python:3.12-alpine AS builder
 
 # Build Settings
 ENV UV_LINK_MODE=copy \
-    UV_HTTP_TIMEOUT=1000 \
+    UV_HTTP_TIMEOUT=30000 \
+    UV_CONCURRENT_DOWNLOADS=2 \
+    UV_RETRIES=10 \
     UV_CACHE_DIR=/root/.cache/uv \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -45,7 +47,7 @@ COPY infrastructure/requirements/requirements-core.txt \
      infrastructure/requirements/requirements-db.txt \
      infrastructure/requirements/requirements-observability.txt ./
 
-RUN uv pip install --no-cache-dir \
+RUN uv pip install --retries 10 --no-cache-dir \
     -r requirements-core.txt \
     -r requirements-db.txt \
     -r requirements-observability.txt

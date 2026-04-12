@@ -1,0 +1,4 @@
+IMAGE                               ID             DISK USAGE   CONTENT SIZE   EXTRA
+envoyproxy/envoy:v1.28-latest       2ff39d93964d        214MB         55.5MB   U    
+ghcr.io/mlflow/mlflow:latest        4a9f6771e187       1.68GB          355MB   U    
+timescale/timescaledb:latest-pg16   cdc6b671370a       1.65GB          415MB   U    

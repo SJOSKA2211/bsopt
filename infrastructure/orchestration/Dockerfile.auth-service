@@ -13,10 +13,10 @@ WORKDIR /app
 # Install App + Dependencies
 COPY infrastructure/requirements/requirements-auth.txt /tmp/
 RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r /tmp/requirements-auth.txt
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -r /tmp/requirements-auth.txt
 
 COPY . .
-RUN /usr/local/bin/uv pip install --no-cache-dir .
+RUN /usr/local/bin/uv pip install --retries 10 --no-cache-dir .
 
 # --- DEVELOPMENT ---
 FROM manifold-base:latest AS development
@@ -33,8 +33,8 @@ USER Manifold
 
 # Install App
 RUN  \
-    /usr/local/bin/uv pip install --no-cache-dir -r infrastructure/requirements/requirements-auth.txt && \
-    /usr/local/bin/uv pip install --no-cache-dir -e .
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -r infrastructure/requirements/requirements-auth.txt && \
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -e .
 
 # --- PRODUCTION ---
 FROM manifold-base:latest AS production
