@@ -60,6 +60,7 @@ message CreateTokenRequest {
   string tier = 3;
   int32 access_token_minutes = 4;
   int32 refresh_token_days = 5;
+  repeated string scopes = 6;
 }
 
 message TokenPairResponse {

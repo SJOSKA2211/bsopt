@@ -1,48 +1,53 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api.index import app
-from src.auth.auth import get_current_user as verify_token
+from src.auth.auth import get_current_active_user
+from src.database.models import User
 
 client = TestClient(app)
 
 
-# Mocking the security dependencies to test the endpoint logic and RBAC integration
 def test_admin_only_success():
-    # Mock verify_token to return a valid admin payload
-    # Mock RoleChecker to allow access
-    payload = {"sub": "admin_user", "realm_access": {"roles": ["admin"]}}
+    # Mock user with admin role (enterprise tier in this system)
+    mock_user = MagicMock(spec=User)
+    mock_user.id = "admin-123"
+    mock_user.email = "admin@example.com"
+    mock_user.tier = "enterprise"
+    mock_user.is_active = True
 
-    with patch("api.index.verify_token", return_value=payload):
-        # We need to override the dependency in the app
-        app.dependency_overrides[verify_token] = lambda: payload
-        # RoleChecker is also a dependency, but it uses verify_token
-        # Since we override verify_token, RoleChecker will get the mocked payload
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
 
+    try:
         response = client.get("/admin-only")
         assert response.status_code == 200
         assert response.json() == {"message": "Welcome, Admin"}
-
-        # Clean up overrides
+    finally:
         app.dependency_overrides = {}
 
 
 def test_admin_only_forbidden():
-    payload = {"sub": "regular_user", "realm_access": {"roles": ["user"]}}
+    # Mock user with regular role
+    mock_user = MagicMock(spec=User)
+    mock_user.id = "user-123"
+    mock_user.email = "user@example.com"
+    mock_user.tier = "free"
+    mock_user.is_active = True
 
-    with patch("api.index.verify_token", return_value=payload):
-        app.dependency_overrides[verify_token] = lambda: payload
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
 
+    try:
         response = client.get("/admin-only")
         # RoleChecker should raise 403
         assert response.status_code == 403
-
+    finally:
         app.dependency_overrides = {}
 
 
 def test_admin_only_unauthorized():
-    # No token provided
+    # If we don't override, it will use real dependency which will fail with 401
+    # as there is no token/header.
     response = client.get("/admin-only")
-    # verify_token (Depends(oauth2_scheme)) will raise 401 if no header
     assert response.status_code == 401
