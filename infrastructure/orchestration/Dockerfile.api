@@ -1,62 +1,37 @@
 # ==============================================================================
-# Manifold: API SERVICE (v12.0) - SELF-CONTAINED OPTIMIZED
+# Manifold: API SERVICE (v12.0) - HARDENED & OPTIMIZED
 # ==============================================================================
 
-# --- STAGE 1: API BUILDER ---
-FROM docker.io/library/python:3.12-alpine AS builder
+# Use the pre-built manifold-base stage or image
+FROM manifold-base:latest AS builder
 
-# Build Settings
-ENV UV_LINK_MODE=copy \
-    UV_HTTP_TIMEOUT=1000 \
-    UV_CACHE_DIR=/root/.cache/uv
-
-RUN apk add --no-cache build-base libpq-dev linux-headers git curl rust cargo openssl-dev
-ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 \
-    RUSTFLAGS="-C target-feature=-crt-static"
-
-# Install UV
-COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
-
-ENV VIRTUAL_ENV=/opt/venv
-RUN uv venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Install Dependencies
+USER root
 WORKDIR /app
-COPY infrastructure/requirements/requirements-core.txt \
-     infrastructure/requirements/requirements-api.txt ./
-RUN uv pip install --no-cache-dir -r requirements-core.txt -r requirements-api.txt
 
-# Copy source and install project
+# Install project-specific dependencies
+COPY infrastructure/requirements/requirements-api.txt ./
+RUN uv pip install --no-cache-dir -r requirements-api.txt
+
+# Copy source and install project in editable mode for the venv
 COPY . .
 RUN uv pip install --no-cache-dir .
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM docker.io/library/python:3.12-alpine AS production
-
-ENV PYTHON_JIT=all \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONOPTIMIZE=2 \
-    PATH="/opt/venv/bin:$PATH"
-
-RUN apk add --no-cache libpq curl tini openssl ca-certificates
-
-# Hardening: Dedicated Non-Root User
-RUN addgroup -g 1001 Manifold && \
-    adduser -D -u 1001 -G Manifold -h /home/Manifold Manifold
+FROM manifold-base:latest AS production
 
 WORKDIR /app
+
+# Copy the pre-built virtual environment and source from builder
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /app /app
 
-RUN chown -R Manifold:Manifold /app /opt/venv
-
+# Hardening: Final check on permissions
 USER Manifold
+
 EXPOSE 8000
 
-HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=15s --timeout=10s --start-period=30s --retries=5 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+# Granian is used for high-performance ASGI serving
 CMD ["granian", "--interface", "asgi", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--ws"]

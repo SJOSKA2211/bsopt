@@ -1,134 +1,221 @@
-# infrastructure/docker-compose.yml
-version: '3.8'
+# ==============================================================================
+# Manifold: UNIFIED PRODUCTION ORCHESTRATION (v12.0)
+# ==============================================================================
+version: '3.9'
+
+networks:
+  frontend_net:
+    driver: bridge
+    internal: false
+  backend_net:
+    driver: bridge
+    internal: true
+  data_net:
+    driver: bridge
+    internal: true
+  ml_net:
+    driver: bridge
+    internal: true
+
+volumes:
+  timescale_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  shared_utils:
+    driver: local
 
 services:
+  # --- INFRASTRUCTURE LAYER ---
   timescaledb:
     image: timescale/timescaledb:latest-pg15
-    container_name: timescaledb
+    container_name: manifold-db
+    networks:
+      - data_net
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5433:5432"
     volumes:
-      - Manifold_pgdata:/var/lib/postgresql/data
+      - timescale_data:/var/lib/postgresql/data
       - ./init-scripts/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    shm_size: 1gb # Optimize for large analytical querying
+    shm_size: 1gb
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
 
   pgbouncer:
     image: edoburu/pgbouncer:latest
-    container_name: pgbouncer
+    container_name: manifold-pgbouncer
+    networks:
+      - data_net
+      - backend_net
     environment:
       DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@timescaledb:5432/${POSTGRES_DB}"
       PGBOUNCER_MAX_CLIENT_CONN: 1000
-      PGBOUNCER_DEFAULT_POOL_SIZE: 50
-      PGBOUNCER_RESERVE_POOL_SIZE: 20
       PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_AUTH_TYPE: scram-sha-256
-    ports:
-      - "6432:6432"
     depends_on:
       timescaledb:
         condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: manifold-redis
+    networks:
+      - data_net
+      - backend_net
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
+    image: rabbitmq:3-management-alpine
+    container_name: manifold-mq
+    networks:
+      - data_net
+      - backend_net
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${POSTGRES_PASSWORD} # Reuse secure secret
+      RABBITMQ_DEFAULT_PASS: ${POSTGRES_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
       timeout: 10s
       retries: 5
 
+  # --- CORE SERVICES LAYER ---
   auth_service:
     build:
       context: ..
-      dockerfile: Dockerfile
-    container_name: auth_service
-    command: python src/auth/grpc_server.py
+      dockerfile: infrastructure/orchestration/Dockerfile.auth
+    container_name: manifold-auth
+    networks:
+      - backend_net
+      - data_net
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=timescaledb
+      - RABBITMQ_HOST=rabbitmq
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt
     env_file: ../.env
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 50051 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     depends_on:
       timescaledb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api_service:
     build:
       context: ..
-      dockerfile: Dockerfile
-    container_name: api_service
-    command: uvicorn api.index:app --host 0.0.0.0 --port 8001
+      dockerfile: infrastructure/orchestration/Dockerfile.api
+    container_name: manifold-api
+    networks:
+      - frontend_net
+      - backend_net
+      - data_net
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=timescaledb
+      - RABBITMQ_HOST=rabbitmq
+      - PGBOUNCER_HOST=pgbouncer
+      - DATABASE_URL=postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt
     env_file: ../.env
-    ports:
-      - "8001:8001"
     depends_on:
       auth_service:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8001/health || exit 1"]
-      interval: 15s
-      timeout: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 30s
 
-  ingestion_consumer:
+  worker:
     build:
       context: ..
-      dockerfile: Dockerfile
-    container_name: ingestion_consumer
-    command: python src/ingestion/consumer.py
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
+    container_name: manifold-worker
+    networks:
+      - backend_net
+      - ml_net
+      - data_net
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=timescaledb
+      - RABBITMQ_HOST=rabbitmq
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt
     env_file: ../.env
     depends_on:
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
 
-  ml_orchestrator:
+  mlops:
     build:
       context: ..
-      dockerfile: Dockerfile
-    container_name: ml_orchestrator
-    command: python src/ml/ml_pipeline_orchestrator.py
+      dockerfile: infrastructure/orchestration/Dockerfile.mlops
+    container_name: manifold-mlops
+    networks:
+      - ml_net
+      - backend_net
     env_file: ../.env
     depends_on:
-      - ingestion_consumer
+      - worker
 
-  envoy:
-    image: envoyproxy/envoy:v1.27-latest
-    container_name: envoy
-    ports:
-      - "8081:8080" # Edge traffic
-      - "9901:9901" # Admin UI
-    volumes:
-      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+  # --- EDGE LAYER ---
+  frontend:
+    build:
+      context: ..
+      dockerfile: infrastructure/orchestration/Dockerfile.frontend
+    container_name: manifold-frontend
+    networks:
+      - frontend_net
     depends_on:
-      timescaledb:
+      api_service:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "/bin/bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9901 && echo -e 'GET /ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep 'HTTP/1.1 200 OK'"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
-volumes:
-  Manifold_pgdata:
+  nginx:
+    image: nginx:alpine
+    container_name: manifold-edge
+    networks:
+      - frontend_net
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - shared_utils:/opt/manifold/utils:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      api_service:
+        condition: service_healthy

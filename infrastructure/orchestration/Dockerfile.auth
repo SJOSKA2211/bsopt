@@ -1,60 +1,36 @@
 # ==============================================================================
-# Manifold: AUTH SERVICE (v12.0) - SELF-CONTAINED OPTIMIZED
+# Manifold: AUTH SERVICE (v12.0) - HARDENED & OPTIMIZED
 # ==============================================================================
 
-# --- STAGE 1: AUTH BUILDER ---
-FROM docker.io/library/python:3.12-alpine AS builder
+# Use the pre-built manifold-base stage or image
+FROM manifold-base:latest AS builder
 
-# Build Settings
-ENV UV_LINK_MODE=copy \
-    UV_HTTP_TIMEOUT=1000 \
-    UV_CACHE_DIR=/root/.cache/uv
-
-RUN apk add --no-cache build-base libpq-dev linux-headers git curl rust cargo openssl-dev
-ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 \
-    RUSTFLAGS="-C target-feature=-crt-static"
-
-# Install UV
-COPY --from=ghcr.io/astral-sh/uv:0.4.30 /uv /usr/local/bin/uv
-
-ENV VIRTUAL_ENV=/opt/venv
-RUN uv venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Install Dependencies
+USER root
 WORKDIR /app
-COPY infrastructure/requirements/requirements-core.txt \
-     infrastructure/requirements/requirements-auth.txt ./
-RUN uv pip install --no-cache-dir -r requirements-core.txt -r requirements-auth.txt
 
-# Copy source and install project
+# Install project-specific dependencies
+COPY infrastructure/requirements/requirements-auth.txt ./
+RUN uv pip install --no-cache-dir -r requirements-auth.txt
+
+# Copy source and install project in editable mode for the venv
 COPY . .
 RUN uv pip install --no-cache-dir .
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM docker.io/library/python:3.12-alpine AS production
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONOPTIMIZE=2 \
-    PATH="/opt/venv/bin:$PATH"
-
-RUN apk add --no-cache libpq curl tini openssl ca-certificates
-
-# Hardening: Dedicated Non-Root User
-RUN addgroup -g 1001 Manifold && \
-    adduser -D -u 1001 -G Manifold -h /home/Manifold Manifold
+FROM manifold-base:latest AS production
 
 WORKDIR /app
+
+# Copy the pre-built virtual environment and source from builder
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /app /app
 
-RUN chown -R Manifold:Manifold /app /opt/venv
-
+# Hardening: Final check on permissions
 USER Manifold
 EXPOSE 3001
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
     CMD curl -f http://localhost:3001/health || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+# Start the Auth service
 CMD ["python", "src/auth/main.py"]

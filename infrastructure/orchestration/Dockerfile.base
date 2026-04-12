@@ -24,7 +24,8 @@ RUN apk add --no-cache \
     curl \
     rust \
     cargo \
-    openssl-dev
+    openssl-dev \
+    libffi-dev
 
 # Build optimization for PyO3/Rust (Critical for Alpine/musl)
 ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 \
@@ -57,7 +58,8 @@ ENV PYTHON_JIT=all \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    ENVIRONMENT=production
 
 # Runtime System Dependencies (Minimal Alpine)
 RUN apk add --no-cache \
@@ -65,7 +67,8 @@ RUN apk add --no-cache \
     curl \
     tini \
     openssl \
-    ca-certificates
+    ca-certificates \
+    tzdata
 
 # Hardening: Dedicated Non-Root User
 RUN addgroup -g 1001 Manifold && \
@@ -83,3 +86,4 @@ RUN chown -R Manifold:Manifold /app /opt/venv
 USER Manifold
 
 # Final image serves as the foundation for all other Python services.
+ENTRYPOINT ["/usr/bin/tini", "--"]
