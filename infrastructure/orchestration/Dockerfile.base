@@ -51,24 +51,28 @@ RUN uv pip install --no-cache-dir \
     -r requirements-observability.txt
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM docker.io/library/python:3.12-alpine AS runtime
+FROM docker.io/library/python:3.12-alpine AS production
 
 # Production Environment Settings
-ENV PYTHON_JIT=all \
-    PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
     PATH="/opt/venv/bin:$PATH" \
     ENVIRONMENT=production
 
 # Runtime System Dependencies (Minimal Alpine)
+# Only libpq for DB and tini for signal handling
 RUN apk add --no-cache \
     libpq \
-    curl \
     tini \
-    openssl \
     ca-certificates \
-    tzdata
+    tzdata \
+    curl
+
+# Install gRPC Health Probe
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.24 && \
+    curl -Lo /usr/local/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+    chmod +x /usr/local/bin/grpc_health_probe
 
 # Hardening: Dedicated Non-Root User
 RUN addgroup -g 1001 Manifold && \
@@ -78,8 +82,8 @@ WORKDIR /app
 
 # Copy the pre-built virtual environment
 COPY --from=builder /opt/venv /opt/venv
-# Copy uv to allow child images to use it for further specific installs
-COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
+# Note: We do NOT copy UV to production runtime for maximum hardening.
+# If child images need UV, they should use the builder stage.
 
 RUN chown -R Manifold:Manifold /app /opt/venv
 

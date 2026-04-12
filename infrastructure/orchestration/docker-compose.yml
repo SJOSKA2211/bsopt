@@ -1,5 +1,16 @@
 name: bsopt
 
+networks:
+  frontend_edge:
+    driver: bridge
+    internal: false
+  internal_mesh:
+    driver: bridge
+    internal: true
+  data_fabric:
+    driver: bridge
+    internal: true
+
 services:
   # === Database & Infrastructure (Strictly Internal) ===
   postgres:
@@ -21,7 +32,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
       POSTGRES_HOST_AUTH_METHOD: trust
-    # PORT EXPOSURE REMOVED FOR SECURITY
     shm_size: '1gb'
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -35,12 +45,11 @@ services:
       - ../configs/pg_ident.conf:/etc/postgresql/pg_ident.conf:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 5
     networks:
-      - internal_mesh
+      - data_fabric
 
   pgbouncer:
     image: docker.io/edoburu/pgbouncer:latest
@@ -54,7 +63,6 @@ services:
       DB_NAME: ${POSTGRES_DB:-bsopt}
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 10000
-      DEFAULT_POOL_SIZE: 300
     entrypoint: >
       sh -c "
       cp /etc/pgbouncer/pgbouncer.key.host /tmp/pgbouncer.key &&
@@ -69,19 +77,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "PGSSLCERT=/etc/pgbouncer/pgbouncer.crt PGSSLKEY=/tmp/pgbouncer.key PGSSLROOTCERT=/etc/pgbouncer/root_ca.crt pg_isready -h 127.0.0.1 -p 6432 -U ${POSTGRES_USER:-admin}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
+      - data_fabric
       - internal_mesh
 
   redis:
     image: docker.io/library/redis:7-alpine
     restart: unless-stopped
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-    # PORT EXPOSURE REMOVED FOR SECURITY
     volumes:
       - redis_data:/data
       - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro,Z
@@ -91,6 +94,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
+      - data_fabric
       - internal_mesh
 
   rabbitmq:
@@ -99,7 +103,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bsopt_admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
-    # PORT EXPOSURE REMOVED FOR SECURITY (Management UI accessible via Proxy if needed)
     volumes:
       - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro,Z
       - ./definitions.json:/etc/rabbitmq/definitions.json:ro,Z
@@ -109,9 +112,10 @@ services:
       timeout: 5s
       retries: 5
     networks:
+      - data_fabric
       - internal_mesh
 
-  # === Core Microservices (Dual-Homed if needed) ===
+  # === Core Microservices ===
   auth-service:
     build:
       context: ../..
@@ -119,19 +123,23 @@ services:
       target: production
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
-      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      - GRPC_SECURE=true
     volumes:
+      - ../../.pki:/etc/pki:ro
       - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
     depends_on:
       pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - internal_mesh
 
@@ -142,24 +150,21 @@ services:
       target: production
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
-      - PGBOUNCER_ENABLED=True
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - INSIDE_DOCKER=1
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
+      - AUTH_SERVICE_GRPC_URL=auth-service:50051
     volumes:
       - shared_shm:/dev/shm
-      - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
-      - ../../.pki/api.key:/etc/postgresql/api.key:ro
-      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
-      - ../../.pki/vault.key:/app/vault.key:ro
+      - ../../.pki:/etc/pki:ro
     depends_on:
-      pgbouncer:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - edge_gateway
+      - frontend_edge
       - internal_mesh
 
   worker:
@@ -169,72 +174,31 @@ services:
       target: production
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@rabbitmq:5672//
     depends_on:
-      pgbouncer:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    networks:
-      - internal_mesh
-
-  portfolio:
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.portfolio
-      target: production
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - edge_gateway
       - internal_mesh
 
-  # === Edge Gateway & Frontend ===
-  frontend:
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.frontend
-      target: production
-    depends_on:
-      api:
-        condition: service_healthy
-    networks:
-      - edge_gateway
-
+  # === Edge Layer ===
   nginx:
     image: docker.io/library/nginx:stable-alpine
     restart: unless-stopped
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ../../.pki:/etc/nginx/ssl:ro
     depends_on:
-      frontend:
-        condition: service_healthy
       api:
         condition: service_healthy
     networks:
-      - edge_gateway
-
-networks:
-  edge_gateway:
-    driver: bridge
-    internal: false
-  internal_mesh:
-    driver: bridge
-    internal: true
+      - frontend_edge
 
 volumes:
   postgres_data:

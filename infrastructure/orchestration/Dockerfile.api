@@ -2,8 +2,8 @@
 # Manifold: API SERVICE (v12.0) - HARDENED & OPTIMIZED
 # ==============================================================================
 
-# Use the pre-built manifold-base stage or image
-FROM manifold-base:latest AS builder
+# Use the pre-built manifold-base-builder stage or image
+FROM manifold-base:builder AS builder
 
 USER root
 WORKDIR /app

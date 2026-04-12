@@ -247,7 +247,16 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
 
 
 async def serve(port: str = "50051"):
-    server = grpc.aio.server()
+    # gRPC options for stability (Keepalive & HTTP/2)
+    options = [
+        ("grpc.keepalive_time_ms", 30000),      # Send keepalive pings every 30s
+        ("grpc.keepalive_timeout_ms", 10000),   # Wait 10s for response
+        ("grpc.keepalive_permit_without_calls", True),
+        ("grpc.http2.max_pings_without_data", 0),
+        ("grpc.http2.min_recv_ping_interval_without_data_ms", 10000),
+    ]
+
+    server = grpc.aio.server(options=options)
     auth_servicer = AuthServicer()
     auth_pb2_grpc.add_AuthServiceServicer_to_server(auth_servicer, server)
 
@@ -259,28 +268,42 @@ async def serve(port: str = "50051"):
     listen_addr = f"0.0.0.0:{port}"
 
     # Secure gRPC implementation
+    SECURE_MODE = os.getenv("GRPC_SECURE", "true").lower() == "true"
+    
     try:
         PROJECT_ROOT = os.getcwd()
-        with open(os.path.join(PROJECT_ROOT, ".pki/auth-service.key"), "rb") as f:
-            private_key = f.read()
-        with open(os.path.join(PROJECT_ROOT, ".pki/auth-service.crt"), "rb") as f:
-            certificate_chain = f.read()
-        with open(os.path.join(PROJECT_ROOT, ".pki/root_ca.crt"), "rb") as f:
-            root_certificates = f.read()
+        ca_cert = os.path.join(PROJECT_ROOT, ".pki/root_ca.crt")
+        server_crt = os.path.join(PROJECT_ROOT, ".pki/auth-service.crt")
+        server_key = os.path.join(PROJECT_ROOT, ".pki/auth-service.key")
 
-        server_credentials = grpc.ssl_server_credentials(
-            [(private_key, certificate_chain)],
-            root_certificates=root_certificates,
-            require_client_auth=True,
-        )
-        server.add_secure_port(listen_addr, server_credentials)
-        logger.info("grpc_auth_server_starting_secure", port=port)
+        if SECURE_MODE and all(os.path.exists(p) for p in [ca_cert, server_crt, server_key]):
+            with open(server_key, "rb") as f:
+                private_key = f.read()
+            with open(server_crt, "rb") as f:
+                certificate_chain = f.read()
+            with open(ca_cert, "rb") as f:
+                root_certificates = f.read()
+
+            server_credentials = grpc.ssl_server_credentials(
+                [(private_key, certificate_chain)],
+                root_certificates=root_certificates,
+                require_client_auth=True,
+            )
+            server.add_secure_port(listen_addr, server_credentials)
+            logger.info("grpc_auth_server_starting_secure", port=port, mtls=True)
+        else:
+            if SECURE_MODE:
+                logger.error("grpc_secure_mode_requested_but_certs_missing", ca=os.path.exists(ca_cert))
+            
+            server.add_insecure_port(listen_addr)
+            logger.warning("grpc_auth_server_starting_insecure", port=port)
     except Exception as e:
-        logger.error("grpc_secure_setup_failed_falling_back", error=str(e))
+        logger.exception("grpc_setup_failed_catastrophic", error=str(e))
         server.add_insecure_port(listen_addr)
-        logger.info("grpc_auth_server_starting_insecure", port=port)
+        logger.info("grpc_auth_server_starting_insecure_fallback", port=port)
 
     await server.start()
+    logger.info("grpc_server_online", addr=listen_addr)
     await server.wait_for_termination()
 
 

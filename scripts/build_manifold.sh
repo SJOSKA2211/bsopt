@@ -11,9 +11,14 @@ fi
 
 echo "🚀 Starting Manifold Optimized Build Process..."
 
-# 2. Build Base Image
-echo "📦 Building hardened foundation: manifold-base:latest..."
+# 2. Build Base Images
+echo "📦 Building hardened foundations: manifold-base:builder and manifold-base:latest..."
+docker build -t manifold-base:builder \
+    --target builder \
+    -f infrastructure/orchestration/Dockerfile.base .
+
 docker build -t manifold-base:latest \
+    --target production \
     -f infrastructure/orchestration/Dockerfile.base .
 
 # 3. Build Stack

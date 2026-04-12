@@ -120,7 +120,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -140,12 +140,15 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PGBOUNCER_HOST=pgbouncer
       - DATABASE_URL=postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt
+      - GRPC_CLIENT_CERT=/app/.pki/api.crt
+      - GRPC_CLIENT_KEY=/app/.pki/api.key
+      - GRPC_CA_CERT=/app/.pki/root_ca.crt
     env_file: ../.env
     depends_on:
       auth_service:
         condition: service_healthy
       pgbouncer:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
