@@ -48,6 +48,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
     import pandas as pd
 
     try:
+        # nosec B301 and B403 are necessary as this is explicitly a legacy data migration tool
         with open(pkl_path, "rb") as f:
             data = pickle.load(f)  # nosec B301
         df = pd.DataFrame(data)
@@ -96,8 +97,7 @@ def train_offline(
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        raise ValueError(f"Insecure dataset format requested: {dataset_path}. Only .parquet is permitted.")
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
