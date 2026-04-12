@@ -36,10 +36,9 @@ def test_http_exception_handler():
 
 
 def test_admin_only_success():
-    from src.auth.security import RoleChecker, verify_token
+    from src.auth.auth import RoleChecker
 
-    # Bypass verify_token and RoleChecker
-    app.dependency_overrides[verify_token] = lambda: {"realm_access": {"roles": ["admin"]}}
+    # Bypass RoleChecker
     app.dependency_overrides[RoleChecker] = lambda: lambda: True
 
     with TestClient(app) as client:
@@ -47,7 +46,6 @@ def test_admin_only_success():
         assert response.status_code == 200
         assert "Admin" in response.json()["message"]
 
-    app.dependency_overrides.pop(verify_token, None)
     app.dependency_overrides.pop(RoleChecker, None)
 
 

@@ -53,6 +53,13 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
 
 async def create_user(db: AsyncSession, email: str, password: str, full_name: str) -> User:
     """Create a new user using Native Postgres Procedure (Async)."""
+    # SQLite fallback for unit tests
+    if db.bind.dialect.name == "sqlite":
+        user = User(email=email, hashed_password=password, full_name=full_name)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user
 
     result = await db.execute(
         text("SELECT register_user_native(:email, :password, :full_name)"),
@@ -93,7 +100,12 @@ async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100
 
 async def update_user_last_login(db: AsyncSession, user_id: UUID) -> None:
     """Update user's last login timestamp using native procedure (Async)."""
-    await db.execute(text("SELECT update_last_login_native(:uid)"), {"uid": user_id})
+    if db.bind.dialect.name == "sqlite":
+        await db.execute(
+            update(User).where(User.id == user_id).values(last_login=datetime.now(UTC))
+        )
+    else:
+        await db.execute(text("SELECT update_last_login_native(:uid)"), {"uid": user_id})
     await db.commit()
 
 

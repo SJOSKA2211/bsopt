@@ -20,6 +20,11 @@ def compile_jsonb_sqlite(type_, compiler, **kw):
     return "JSON"
 
 
+@compiles(postgresql.INET, "sqlite")
+def compile_inet_sqlite(type_, compiler, **kw):
+    return "TEXT"
+
+
 @pytest_asyncio.fixture
 async def db_session():
     # Use aiosqlite for async SQLite
