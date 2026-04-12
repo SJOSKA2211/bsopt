@@ -28,7 +28,8 @@ def heston_client(mock_user):
     app.dependency_overrides.clear()
 
 class TestPricingAPIHeston:
-    def test_heston_pricing_success(self, heston_client):
+    @pytest.mark.asyncio
+    async def test_heston_pricing_success(self, heston_client, mocker):
         """Verify Heston pricing when parameters are available in Redis."""
         # 1. Setup mock Redis data
         mock_params = {
@@ -39,6 +40,7 @@ class TestPricingAPIHeston:
             "rho": -0.7,
         }
         import time
+        import json
 
         mock_cache = {
             "params": mock_params,
@@ -49,8 +51,8 @@ class TestPricingAPIHeston:
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=json.dumps(mock_cache))
 
-        # Override Redis dependency specifically for this test
-        app.dependency_overrides[get_redis_client] = lambda: mock_redis
+        # Patch get_redis in the service module
+        mocker.patch("src.math_kernel.service.get_redis", return_value=mock_redis)
 
         # 2. Make request
         payload = {
@@ -77,13 +79,14 @@ class TestPricingAPIHeston:
         assert response.headers["X-Pricing-Model"] == "Heston-FFT"
         assert data["price"] > 0
 
-    def test_heston_fallback_to_bs(self, heston_client):
+    @pytest.mark.asyncio
+    async def test_heston_fallback_to_bs(self, heston_client, mocker):
         """Verify fallback to Black-Scholes when Redis is empty."""
         # 1. Setup mock Redis (Empty)
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=None)
 
-        app.dependency_overrides[get_redis_client] = lambda: mock_redis
+        mocker.patch("src.math_kernel.service.get_redis", return_value=mock_redis)
 
         # 2. Make request
         payload = {
