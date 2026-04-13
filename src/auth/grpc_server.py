@@ -24,10 +24,15 @@ logger = structlog.get_logger(__name__)
 
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
-    """Refactored High-Performance Auth gRPC Servicer (BSOPT-v2)."""
+    """Refactored High-Performance Auth gRPC Servicer (BSOPT-v2.1)."""
 
     async def ValidateToken(self, request, context):
         try:
+            if not request.token:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                context.set_details("token_required")
+                return auth_pb2.TokenResponse(valid=False)
+
             token_data = await auth_service.validate_token(request.token)
             return auth_pb2.TokenResponse(
                 valid=True,
@@ -39,13 +44,22 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 token_type=token_data.token_type,
                 roles=token_data.scopes,
             )
-        except Exception as e:
+        except AuthError as e:
             logger.warning("token_validation_failed", error=str(e))
             handle_grpc_error(e, context)
+            return auth_pb2.TokenResponse(valid=False)
+        except Exception as e:
+            logger.error("unexpected_token_validation_error", error=str(e), exc_info=True)
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details("Internal server error")
             return auth_pb2.TokenResponse(valid=False)
 
     async def RefreshToken(self, request, context):
         try:
+            if not request.refresh_token:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                return auth_pb2.TokenResponse(valid=False)
+
             token_data = await auth_service.validate_token(request.refresh_token)
             if token_data.token_type != "refresh":
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -64,15 +78,19 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 issued_at=int(new_access.iat.timestamp()), token_type="access",
                 roles=new_access.scopes
             )
-        except Exception as e:
+        except AuthError as e:
             logger.error("token_refresh_failed", error=str(e))
             handle_grpc_error(e, context)
             return auth_pb2.TokenResponse(valid=False)
+        except Exception as e:
+            logger.exception("unexpected_token_refresh_error")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return auth_pb2.TokenResponse(valid=False)
 
-    # Simplified user info and key validation using early returns and unified handlers
     async def GetUserInfo(self, request, context):
         try:
             token = await auth_service.validate_token(request.token)
+            # Tiered caching strategy
             cached = await centralized_cache_service.get_user_cached(token.user_id)
             if cached:
                 return ParseDict(cached, auth_pb2.UserInfo())
@@ -93,12 +111,20 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
 
                 await centralized_cache_service.set_user_cached(token.user_id, MessageToDict(info))
                 return info
-        except Exception as e:
+        except AuthError as e:
             handle_grpc_error(e, context)
+            return auth_pb2.UserInfo()
+        except Exception as e:
+            logger.error("get_user_info_failed", error=str(e))
+            context.set_code(grpc.StatusCode.INTERNAL)
             return auth_pb2.UserInfo()
 
     async def ValidateAPIKey(self, request, context):
         try:
+            if not request.api_key:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                return auth_pb2.APIKeyResponse(valid=False)
+
             key_hash = hashlib.sha256(request.api_key.encode()).hexdigest()
             cached = await centralized_cache_service.get_api_key_cached(key_hash)
             if cached:
@@ -119,6 +145,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
                 await centralized_cache_service.update_api_key_last_used(key_hash)
                 return resp
         except Exception as e:
+            logger.error("api_key_validation_failed", error=str(e))
             handle_grpc_error(e, context)
             return auth_pb2.APIKeyResponse(valid=False)
 

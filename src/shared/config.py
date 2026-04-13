@@ -343,7 +343,7 @@ class Settings(BaseSettings):
 
     @property
     def rsa_private_key(self) -> str:
-        """Returns the private key, prioritizing Vault, then environment, then transient."""
+        """Returns the private key, prioritizing Vault, then environment (content or path), then transient."""
         # 1. Try Vault
         vault_keys = self._get_vault_keys()
         if vault_keys.get("RSA_PRIVATE"):
@@ -352,8 +352,15 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_PRIVATE_KEY
         if raw_key:
-            import base64
+            # Check if it's a file path
+            if os.path.exists(raw_key):
+                try:
+                    with open(raw_key, "r") as f:
+                        return f.read()
+                except Exception as e:
+                    logger.error("failed_to_read_rsa_private_key_file", path=raw_key, error=str(e))
 
+            import base64
             try:
                 # If it's PEM format (starts with -----), return as is
                 if raw_key.strip().startswith("-----BEGIN"):
@@ -370,7 +377,7 @@ class Settings(BaseSettings):
 
     @property
     def rsa_public_key(self) -> str:
-        """Returns the public key, prioritizing Vault, then environment, then transient."""
+        """Returns the public key, prioritizing Vault, then environment (content or path), then transient."""
         # 1. Try Vault
         vault_keys = self._get_vault_keys()
         if vault_keys.get("RSA_PUBLIC"):
@@ -379,8 +386,15 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_PUBLIC_KEY
         if raw_key:
-            import base64
+            # Check if it's a file path
+            if os.path.exists(raw_key):
+                try:
+                    with open(raw_key, "r") as f:
+                        return f.read()
+                except Exception as e:
+                    logger.error("failed_to_read_rsa_public_key_file", path=raw_key, error=str(e))
 
+            import base64
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key
@@ -399,7 +413,7 @@ class Settings(BaseSettings):
 
     @property
     def es256_private_key(self) -> str:
-        """Returns the ES256 private key, prioritizing Vault, then environment, then transient."""
+        """Returns the ES256 private key, prioritizing Vault, then environment (content or path), then transient."""
         # 1. Try Vault
         vault_keys = self._get_vault_keys()
         if vault_keys.get("ECC_PRIVATE"):
@@ -408,8 +422,15 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_ES256_PRIVATE
         if raw_key:
-            import base64
+            # Check if it's a file path
+            if os.path.exists(raw_key):
+                try:
+                    with open(raw_key, "r") as f:
+                        return f.read()
+                except Exception as e:
+                    logger.error("failed_to_read_es256_private_key_file", path=raw_key, error=str(e))
 
+            import base64
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key
@@ -424,7 +445,7 @@ class Settings(BaseSettings):
 
     @property
     def es256_public_key(self) -> str:
-        """Returns the ES256 public key, prioritizing Vault, then environment, then transient."""
+        """Returns the ES256 public key, prioritizing Vault, then environment (content or path), then transient."""
         # 1. Try Vault
         vault_keys = self._get_vault_keys()
         if vault_keys.get("ECC_PUBLIC"):
@@ -433,8 +454,15 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_ES256_PUBLIC
         if raw_key:
-            import base64
+            # Check if it's a file path
+            if os.path.exists(raw_key):
+                try:
+                    with open(raw_key, "r") as f:
+                        return f.read()
+                except Exception as e:
+                    logger.error("failed_to_read_es256_public_key_file", path=raw_key, error=str(e))
 
+            import base64
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key

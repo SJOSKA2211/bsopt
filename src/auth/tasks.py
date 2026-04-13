@@ -21,38 +21,40 @@ async def flush_api_key_usage_loop():
             if not redis:
                 continue
 
-            # Get all buffered updates
-            updates = await redis.hgetall("api_key_last_used")
-            if not updates:
-                continue
+            # Atomic transition to processing key
+            processing_key = f"api_key_last_used:processing:{datetime.now().timestamp()}"
+            if await redis.rename("api_key_last_used", processing_key):
+                # Get all buffered updates from the processing key
+                updates = await redis.hgetall(processing_key)
+                if not updates:
+                    await redis.delete(processing_key)
+                    continue
 
-            logger.info("flushing_api_key_usage_updates", count=len(updates))
+                logger.info("flushing_api_key_usage_updates", count=len(updates))
 
-            async with db_manager.async_session_factory() as db:
-                for key_hash_raw, last_used_raw in updates.items():
-                    key_hash = (
-                        key_hash_raw.decode() if isinstance(key_hash_raw, bytes) else key_hash_raw
-                    )
-                    last_used_str = (
-                        last_used_raw.decode()
-                        if isinstance(last_used_raw, bytes)
-                        else last_used_raw
-                    )
+                async with db_manager.async_session_factory() as db:
+                    for key_hash_raw, last_used_raw in updates.items():
+                        key_hash = (
+                            key_hash_raw.decode() if isinstance(key_hash_raw, bytes) else key_hash_raw
+                        )
+                        last_used_str = (
+                            last_used_raw.decode()
+                            if isinstance(last_used_raw, bytes)
+                            else last_used_raw
+                        )
 
-                    last_used = datetime.fromisoformat(last_used_str)
+                        last_used = datetime.fromisoformat(last_used_str)
 
-                    await db.execute(
-                        update(APIKey)
-                        .where(APIKey.key_hash == key_hash)
-                        .values(last_used_at=last_used)
-                    )
-                await db.commit()
+                        await db.execute(
+                            update(APIKey)
+                            .where(APIKey.key_hash == key_hash)
+                            .values(last_used_at=last_used)
+                        )
+                    await db.commit()
 
-            # Clear flushed updates from Redis
-            # Use a transaction-safe approach? For simplicity we just delete the hash
-            # but in production we might want to only delete what we processed
-            await redis.delete("api_key_last_used")
-            logger.info("api_key_usage_flush_complete")
+                # Safely delete the processed key
+                await redis.delete(processing_key)
+                logger.info("api_key_usage_flush_complete")
 
         except asyncio.CancelledError:
             logger.info("api_key_usage_flush_loop_stopping")
