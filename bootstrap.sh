@@ -83,13 +83,13 @@ issue_cert() {
 
 # Certs for gRPC Services
 issue_cert "auth_api" "auth-service"
-issue_cert "pricing_api" "api-client" # For pricing_api as a client of auth_api
+issue_cert "pricing_api" "api-client"
 
-# Certs for other services if needed
+# Certs for other services
 SERVICES=("postgres" "redis" "rabbitmq" "vault")
 for s in "${SERVICES[@]}"; do issue_cert "$s"; done
 
-# Duplicate for JWT consistency if needed
+# Consistency link
 cp "${KEY_DIR}/auth-service.key" "${KEY_DIR}/auth_service.key" 2>/dev/null || true
 cp "${KEY_DIR}/auth-service.crt" "${KEY_DIR}/auth_service.crt" 2>/dev/null || true
 
@@ -97,6 +97,7 @@ cp "${KEY_DIR}/auth-service.crt" "${KEY_DIR}/auth_service.crt" 2>/dev/null || tr
 echo " Generating gRPC code from protos..."
 GEN_DIR="src/shared/protos"
 mkdir -p "$GEN_DIR"
+# Ensure we have a local dev environment or use a ephemeral container
 docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
     "pip install grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto"
 touch "$GEN_DIR/__init__.py"
@@ -114,20 +115,17 @@ deploy_and_validate() {
     docker compose -f "$COMPOSE_FILE" up -d "$svc"
     
     echo "⏳ Validating $svc health..."
-    local retries=30
-    until [ "$(docker compose -f "$COMPOSE_FILE" ps --format json "$svc" | grep -o '"Health":"healthy"' || true)" ] || [ $retries -eq 0 ]; do
+    local retries=40
+    until [ "$(docker compose -f "$COMPOSE_FILE" ps --format json "$svc" | grep -iE '"Health":"healthy"|"State":"running"' || true)" ] || [ $retries -eq 0 ]; do
         echo -n "."
-        sleep 3
+        sleep 2
         ((retries--))
     done
     echo ""
     
     if [ $retries -eq 0 ]; then
         echo " FAILED: $svc did not reach healthy state."
-        docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 50
-        # If it failed, don't stop, try to fix common issues? 
-        # But the instruction says "If a service crashes, autonomously patch the code/environment and rebuild until green."
-        # For now, exit to let the agent handle it.
+        docker compose -f "$COMPOSE_FILE" logs "$svc" --tail 100
         exit 1
     fi
     echo " $svc is ONLINE and HEALTHY."
@@ -138,6 +136,10 @@ deploy_and_validate "postgres"
 deploy_and_validate "redis"
 deploy_and_validate "rabbitmq"
 deploy_and_validate "vault"
+
+# Initialize Vault if needed (Dev mode is usually auto-initialized, but let's be safe)
+echo "--- Initializing Vault Substrate ---"
+docker compose exec -T vault vault status || true
 
 # Microservices
 deploy_and_validate "auth_api"

@@ -146,8 +146,8 @@ services:
   # --- FRONTEND & GATEWAY ---
   frontend:
     build:
-      context: ./src/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/frontend/Dockerfile
     container_name: bsopt_frontend_ui
     networks:
       - app-network
