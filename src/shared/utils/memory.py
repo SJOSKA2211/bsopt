@@ -12,7 +12,7 @@ logger = structlog.get_logger(__name__)
 def profile_memory(func: Callable) -> Callable:
     """
     Decorator to profile memory and execution time of a function.
-    Helps in detecting GPU/CPU memory leaks in mathematical kernels.
+    Helps in detecting memory leaks in mathematical kernels.
     """
 
     @functools.wraps(func)
@@ -43,7 +43,8 @@ def profile_memory(func: Callable) -> Callable:
     return wrapper
 
 
+def profile_memory_cpu(func: Callable) -> Callable:
     """
-    CPU-only alias for memory profiling (Refactored from GPU).
+    Standard profiling for mathematical kernels.
     """
     return profile_memory(func)

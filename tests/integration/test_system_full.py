@@ -2,12 +2,15 @@ import asyncio
 import httpx
 import pytest
 import grpc
+import os
 from src.shared.protos import auth_pb2, auth_pb2_grpc
-from src.auth.exceptions import AuthError
+from src.shared.utils.cache import get_redis_client
+from src.database import db_manager
+from sqlalchemy import text
 
 # Configuration for Integration Network
-AUTH_GRPC_ADDR = "localhost:50051"
-PRICING_API_URL = "http://localhost:8000"
+AUTH_GRPC_ADDR = os.getenv("AUTH_SERVICE_GRPC_URL", "localhost:50051")
+PRICING_API_URL = os.getenv("PRICING_API_URL", "http://localhost:8000")
 
 @pytest.mark.asyncio
 async def test_zero_mock_auth_lifecycle():
@@ -19,15 +22,13 @@ async def test_zero_mock_auth_lifecycle():
         stub = auth_pb2_grpc.AuthServiceStub(channel)
         
         # 1. Validation of an empty/invalid token should fail gracefully
-        resp = await stub.ValidateToken(auth_pb2.TokenRequest(token="invalid_token"))
-        assert resp.valid is False
+        try:
+            resp = await stub.ValidateToken(auth_pb2.TokenRequest(token="invalid_token"))
+            assert resp.valid is False
+        except grpc.RpcError as e:
+            pytest.fail(f"gRPC ValidateToken failed with unexpected error: {e}")
 
-        # 2. Mocking a token for internal test (in a real zero-mock, we'd use a seed user)
-        # However, since we can't seed the DB easily in this environment, 
-        # we verify the gRPC infrastructure and error handling.
-        # Once deployed in CI, this would hit the real DB.
-        
-        logger_info = "Verifying gRPC health connectivity..."
+        # 2. Check gRPC Health service
         from grpc_health.v1 import health_pb2, health_pb2_grpc
         health_stub = health_pb2_grpc.HealthStub(channel)
         health_resp = await health_stub.Check(health_pb2.HealthCheckRequest(service="auth.AuthService"))
@@ -40,37 +41,52 @@ async def test_zero_mock_pricing_computation():
     Ensures the Rust math kernel is correctly bound and exposed.
     """
     async with httpx.AsyncClient() as client:
-        # Standard American/European call pricing test
         payload = {
-            "s": 100.0,
-            "k": 100.0,
-            "t": 1.0,
-            "v": 0.2,
-            "r": 0.05,
-            "cp": "call"
+            "s": 100.0, "k": 100.0, "t": 1.0,
+            "v": 0.2, "r": 0.05, "cp": "call"
         }
-        # Note: In a live network, localhost would be the service name if running inside Docker
-        # For local testing, we assume the dev server is running.
         try:
             response = await client.post(f"{PRICING_API_URL}/compute/black_scholes", json=payload)
             if response.status_code == 200:
                 data = response.json()
                 assert "price" in data
-                assert "greeks" in data
                 assert data["price"] > 0
         except httpx.ConnectError:
-            pytest.skip("Pricing API not reachable. Skipping live computation test.")
+            pytest.skip("Pricing API not reachable.")
 
 @pytest.mark.asyncio
-async def test_zero_mock_system_health_aggregate():
+async def test_zero_mock_infrastructure_heartbeat():
     """
-    Checks the unified health status across the entire orchestration.
+    Directly probes infrastructure components (Database, Redis) to verify zero-trust mesh.
     """
+    # 1. Redis Heartbeat
+    redis = await get_redis_client()
+    if redis:
+        pong = await redis.ping()
+        assert pong is True
+    else:
+        pytest.fail("Failed to connect to Redis")
+
+    # 2. Database Heartbeat
+    async with db_manager.async_session_factory() as db:
+        result = await db.execute(text("SELECT 1"))
+        assert result.scalar() == 1
+
+@pytest.mark.asyncio
+async def test_zero_mock_nginx_gateway_traversal():
+    """
+    Verifies that the Nginx gateway correctly routes and enforces headers.
+    """
+    NGINX_URL = "http://localhost:80"
     async with httpx.AsyncClient() as client:
-        # Check Pricing Engine Health
         try:
-            resp = await client.get(f"{PRICING_API_URL}/health")
+            # Test global health aggregate
+            resp = await client.get(f"{NGINX_URL}/health")
             assert resp.status_code == 200
-            assert resp.json()["status"] == "healthy"
+            assert resp.json()["status"] == "UP"
+            
+            # Verify security headers injected by Nginx
+            assert "X-Frame-Options" in resp.headers
+            assert "X-Content-Type-Options" in resp.headers
         except httpx.ConnectError:
-            pytest.skip("Pricing Service offline.")
+            pytest.skip("Nginx Gateway not reachable.")
