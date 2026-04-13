@@ -165,9 +165,9 @@ build_resume_prompt() {
 
 # Main execution loop
 main() {
-    log_info "=========================================="
+    log_info "=="
     log_info "Loki Mode Autonomous Wrapper"
-    log_info "=========================================="
+    log_info "=="
     log_info "PRD: ${PRD_PATH:-Interactive}"
     log_info "Max retries: $MAX_RETRIES"
     log_info "Base wait: ${BASE_WAIT}s"

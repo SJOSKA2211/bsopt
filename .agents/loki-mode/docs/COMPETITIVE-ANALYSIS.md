@@ -11,7 +11,7 @@ Loki Mode has **unique differentiation** in business operations automation but f
 ## Factual Comparison Table
 
 | Feature | Loki Mode | Claude-Flow | MetaGPT | CrewAI | Cursor Agent | Devin |
-|---------|-----------|-------------|---------|--------|--------------|-------|
+|---------|--|--|---------|--------|--|-------|
 | **GitHub Stars** | 349 | 10,700 | 62,400 | 25,000+ | N/A (Commercial) | N/A (Commercial) |
 | **Agent Count** | 37 types | 64+ agents | 5 roles | Unlimited | 8 parallel | 1 autonomous |
 | **Parallel Execution** | Yes (100+) | Yes (swarms) | Sequential | Yes (crews) | Yes (8 worktrees) | Yes (fleet) |
@@ -181,7 +181,7 @@ Loki Mode has **unique differentiation** in business operations automation but f
 **Three-Way Comparison:**
 
 | System | HumanEval Pass@1 | Agent Type |
-|--------|------------------|------------|
+|--------|--|--|
 | **Loki Mode (multi-agent)** | **98.78%** | Architect->Engineer->QA->Reviewer |
 | Direct Claude | 98.17% | Single agent |
 | MetaGPT | 85.9-87.7% | Multi-agent (5 roles) |
@@ -215,7 +215,7 @@ Loki Mode has **unique differentiation** in business operations automation but f
 **Three-Way Comparison:**
 
 | System | SWE-bench Patch Gen | Notes |
-|--------|---------------------|-------|
+|--------|--|-------|
 | **Direct Claude** | **99.67%** (299/300) | Single agent, minimal overhead |
 | **Loki Mode (multi-agent)** | **99.67%** (299/300) | 4-agent pipeline with RARV |
 | Devin | ~15% complex tasks | Commercial, different benchmark |

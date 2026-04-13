@@ -150,9 +150,9 @@ Select option:
 Before any revert operations, display full plan:
 
 ```
-================================================================================
+==
                            REVERT EXECUTION PLAN
-================================================================================
+==
 
 Target: {description of what's being reverted}
 
@@ -171,9 +171,9 @@ Plan updates:
   - Task 2.2: [x] -> [ ]
   - Task 2.3: [~] -> [ ]
 
-================================================================================
+==
                               !! WARNING !!
-================================================================================
+==
 
 This operation will:
 - Create {N} revert commits
@@ -182,7 +182,7 @@ This operation will:
 
 This CANNOT be easily undone without manual intervention.
 
-================================================================================
+==
 
 Type 'YES' to proceed, or anything else to cancel:
 ```
@@ -198,19 +198,19 @@ Executing revert plan...
 
 [1/4] Reverting abc1234...
       git revert --no-edit abc1234
-      ✓ Success
+       Success
 
 [2/4] Reverting def5678...
       git revert --no-edit def5678
-      ✓ Success
+       Success
 
 [3/4] Reverting ghi9012...
       git revert --no-edit ghi9012
-      ✓ Success
+       Success
 
 [4/4] Reverting jkl3456...
       git revert --no-edit jkl3456
-      ✓ Success
+       Success
 ```
 
 ### On Merge Conflict
@@ -218,9 +218,9 @@ Executing revert plan...
 If any revert produces a merge conflict:
 
 ```
-================================================================================
+==
                            MERGE CONFLICT DETECTED
-================================================================================
+==
 
 Conflict occurred while reverting: {sha} - {message}
 
@@ -272,9 +272,9 @@ After successful git reverts, update plan.md:
 After revert completion:
 
 ```
-================================================================================
+==
                            REVERT COMPLETE
-================================================================================
+==
 
 Summary:
   - Reverted {N} commits
@@ -288,7 +288,7 @@ Plan.md status:
   - Task 2.2: [ ] Pending
   - Task 2.3: [ ] Pending
 
-================================================================================
+==
 
 Verify the revert was successful:
   1. Run tests: {test command}
@@ -299,7 +299,7 @@ If issues are found, you may need to:
   - Re-implement the reverted tasks
   - Use 'git revert HEAD~{N}..HEAD' to undo the reverts
 
-================================================================================
+==
 ```
 
 ## Safety Rules

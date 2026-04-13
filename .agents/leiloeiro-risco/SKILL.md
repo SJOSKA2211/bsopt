@@ -53,12 +53,12 @@ a decisão de investimento.
 #### 1.1 Risco de Nulidade da Arrematação
 
 | Risco | Probabilidade | Impacto | Score |
-|-------|--------------|---------|-------|
-| Falta de intimação do cônjuge | Médio | Muito Alto | 🔴 |
+|-------|--|---------|-------|
+| Falta de intimação do cônjuge | Médio | Muito Alto |  |
 | Edital publicado incorretamente | Baixo | Alto | 🟡 |
 | Avaliação desatualizada (>12 meses) | Médio | Médio | 🟡 |
-| Bem impenhorável não arguido | Baixo | Muito Alto | 🔴 |
-| Embargos com efeito suspensivo | Baixo | Muito Alto | 🔴 |
+| Bem impenhorável não arguido | Baixo | Muito Alto |  |
+| Embargos com efeito suspensivo | Baixo | Muito Alto |  |
 | Processo com recursos pendentes | Médio | Alto | 🟡 |
 | Cônjuge sem meação respeitada | Baixo | Alto | 🟡 |
 
@@ -87,7 +87,7 @@ ou crédito do art. 3º da Lei 8.009/90:
 #### 1.3 Risco de Ônus Reais Ocultos
 
 | Ônus | Como Detectar | Impacto |
-|------|--------------|---------|
+|------|--|---------|
 | Hipoteca anterior | Certidão de ônus reais | Alto (pode retomar o imóvel) |
 | Usufruto vitalício | Matrícula atualizada | Muito Alto (não tem uso) |
 | Penhora anterior | Certidão do distribuidor | Médio |
@@ -139,7 +139,7 @@ TOTAL DÉBITOS:                 R$ ____________
 **Estimativa de Custo por Cenário:**
 
 | Cenário | Custo Honorários | Custo de Tempo | Prazo | Probabilidade |
-|---------|-----------------|----------------|-------|---------------|
+|---------|--|--|-------|--|
 | Ocupante sai voluntariamente | R$ 0 | R$ 0 | 0-30 dias | 20-30% |
 | Negociação + ajuda de custo | R$ 3-10k | R$ 0 | 30-90 dias | 30-40% |
 | Ação de imissão sem resistência | R$ 5-15k | custo financ. | 3-6 meses | 20-30% |
@@ -157,7 +157,7 @@ Exemplo: R$ 300.000 × 10,5% × 12 meses / 12 = R$ 31.500/ano (custo de oportuni
 **Estimativas de Custo de Reforma (valores 2024):**
 
 | Tipo de Reforma | Custo por m² |
-|----------------|---
+|--|---
 
 ## Categoria 3 — Riscos Operacionais
 
@@ -166,7 +166,7 @@ Exemplo: R$ 300.000 × 10,5% × 12 meses / 12 = R$ 31.500/ano (custo de oportuni
 **Após arrematar, o processo pode ser desfeito se:**
 
 | Evento | Prazo para ocorrer | Probabilidade | Consequência |
-|--------|-------------------|---------------|-------------|
+|--------|--|--|--|
 | Devedor paga antes da assinatura do auto | A qualquer momento antes | Baixo-Médio | Leilão desfeito, dinheiro devolvido |
 | Embargos com efeito suspensivo | Até o auto de arrematação | Baixo | Leilão suspenso |
 | Nulidade arguida no prazo de 10 dias | 10 dias após arrematação | Baixo | Anulação do leilão |
@@ -176,12 +176,12 @@ Exemplo: R$ 300.000 × 10,5% × 12 meses / 12 = R$ 31.500/ano (custo de oportuni
 #### 3.2 Risco de Fraude ou Manipulação
 
 **Sinais de alerta em leilões:**
-- ⚠️ Leiloeiro não cadastrado na Junta Comercial
-- ⚠️ Plataforma online desconhecida sem CNPJ verificável
-- ⚠️ Valor de avaliação muito incompatível com mercado (extremos)
-- ⚠️ Edital publicado em prazo inferior ao legal
-- ⚠️ Lote com descrição vaga e sem matrícula informada
-- ⚠️ Exigência de depósito antes de visualizar documentos
+- ️ Leiloeiro não cadastrado na Junta Comercial
+- ️ Plataforma online desconhecida sem CNPJ verificável
+- ️ Valor de avaliação muito incompatível com mercado (extremos)
+- ️ Edital publicado em prazo inferior ao legal
+- ️ Lote com descrição vaga e sem matrícula informada
+- ️ Exigência de depósito antes de visualizar documentos
 
 **Como proteger:**
 - Verificar leiloeiro no site da Junta Comercial do estado
@@ -195,7 +195,7 @@ Exemplo: R$ 300.000 × 10,5% × 12 meses / 12 = R$ 31.500/ano (custo de oportuni
 #### 4.1 Risco de Liquidez no Momento da Saída
 
 | Cenário Macroeconômico | Impacto na Revenda |
-|-----------------------|-------------------|
+|--|--|
 | Selic sobe mais (>14%) | Crédito encarece → demanda cai → demora mais |
 | Recessão econômica | Mercado trava → pode levar 2-3x mais tempo |
 | Desemprego alto local | Comprador final some → sem saída |
@@ -248,10 +248,10 @@ RISCOS DE MERCADO:
 SCORE TOTAL: ___ / 36
 
 CLASSIFICAÇÃO:
-0-5:   BAIXO RISCO ✅ — Proceder com segurança
-6-10:  MÉDIO RISCO ⚠️ — Mitigar os pontos identificados
-11-18: ALTO RISCO 🔴 — Só com expertise e desconto maior
-19+:   MUITO ALTO RISCO ❌ — Evitar, salvo especialista experiente
+0-5:   BAIXO RISCO  — Proceder com segurança
+6-10:  MÉDIO RISCO ️ — Mitigar os pontos identificados
+11-18: ALTO RISCO  — Só com expertise e desconto maior
+19+:   MUITO ALTO RISCO  — Evitar, salvo especialista experiente
 ```
 
 ---
@@ -348,7 +348,7 @@ O arrematante de boa-fé é protegido contra alienações fraudulentas anteriore
 **Mas atenção aos cenários:**
 
 | Cenário | Risco para Arrematante | Proteção |
-|---------|----------------------|----------|
+|---------|--|--|
 | Devedor vendeu imóvel antes da penhora | Muito Baixo | Art. 903 CPC protege arrematante |
 | Terceiro alega ter comprado antes da penhora | Médio | Depende de registro + boa-fé |
 | Imóvel objeto de ação de usucapião por terceiro | Alto | Conflito de títulos — pode anular |
@@ -401,7 +401,7 @@ Se ROI ponderado < CDI → NÃO VALE O RISCO
 ## Glossário De Riscos
 
 | Termo | Definição |
-|-------|-----------|
+|-------|--|
 | Propter Rem | Obrigação que segue o bem (IPTU, condomínio) — não desaparece com a venda |
 | Risco Jurídico | Possibilidade de anulação, nulidade ou impugnação da arrematação |
 | Risco Operacional | Dificuldade na execução (desocupação, reforma, regularização) |

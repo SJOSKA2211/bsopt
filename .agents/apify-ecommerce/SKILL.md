@@ -17,7 +17,7 @@ Extract product data, prices, reviews, and seller information from any e-commerc
 ## Workflow Selection
 
 | User Need | Workflow | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Track prices, compare products | Workflow 1: Products & Pricing | Price monitoring, MAP compliance, competitor analysis. Add AI summary for insights. |
 | Analyze reviews (sentiment or quality) | Workflow 2: Reviews | Brand perception, customer sentiment, quality issues, defect patterns |
 | Find sellers across stores | Workflow 3: Sellers | Unauthorized resellers, vendor discovery via Google Shopping |
@@ -44,7 +44,7 @@ Task Progress:
 ### Input Options
 
 | Input Type | Field | Description |
-|------------|-------|-------------|
+|--|-------|--|
 | Product URLs | `detailsUrls` | Direct URLs to product pages (use object format) |
 | Category URLs | `listingUrls` | URLs to category/search result pages |
 | Keyword Search | `keyword` + `marketplaces` | Search term across selected marketplaces |
@@ -75,7 +75,7 @@ Task Progress:
 Add these fields to get AI-generated insights:
 
 | Field | Description |
-|-------|-------------|
+|-------|--|
 | `fieldsToAnalyze` | Data points to analyze: `["name", "offers", "brand", "description"]` |
 | `customPrompt` | Custom analysis instructions |
 
@@ -113,7 +113,7 @@ Add these fields to get AI-generated insights:
 ### Input Options
 
 | Input Type | Field | Description |
-|------------|-------|-------------|
+|--|-------|--|
 | Product URLs | `reviewListingUrls` | Product pages to extract reviews from |
 | Keyword Search | `keywordReviews` + `marketplacesReviews` | Search for product reviews by keyword |
 
@@ -178,7 +178,7 @@ Add these fields to get AI-generated insights:
 
 ### Options
 | Field | Description |
-|-------|-------------|
+|-------|--|
 | `googleShoppingSearchKeyword` | Product name to search |
 | `scrapeSellersFromGoogleShopping` | Set to `true` to extract sellers |
 | `scrapeProductsFromGoogleShopping` | Set to `true` to also extract product details |
@@ -256,7 +256,7 @@ Report:
 ## Error Handling
 
 | Error | Solution |
-|-------|----------|
+|-------|--|
 | `APIFY_TOKEN not found` | Ensure `~/.claude/.env` contains `APIFY_TOKEN=your_token` |
 | `Actor not found` | Verify Actor ID: `apify/e-commerce-scraping-tool` |
 | `Run FAILED` | Check Apify console link in error output |

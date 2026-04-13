@@ -627,7 +627,7 @@ const filterActiveUsers = (users: User[]): User[] => {
 };
 
 // Benchmark shows: 50ms for 1000 users (acceptable)
-// ✓ Ship it, no optimization needed
+//  Ship it, no optimization needed
 
 // Later: After profiling shows this is bottleneck
 // Then optimize with indexed lookup or caching

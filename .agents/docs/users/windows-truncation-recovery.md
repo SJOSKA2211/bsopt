@@ -87,9 +87,9 @@ set "PATH_BROWSER=%USERPROFILE%\.gemini\antigravity-browser-profile\Default"
 set "PATH_APPCONFIG=%AppData%\antigravity"
 set "PATH_MAIN=%USERPROFILE%\.gemini\antigravity"
 
-echo ============================================================
+echo ==
 echo      ANTI-GRAVITY RECOVERY ^& REPAIR TOOL (UNIVERSAL)
-echo ============================================================
+echo ==
 echo.
 echo This tool targets the truncation crash loop on Windows.
 echo [INFO] Backup location: %BACKUP_DIR%

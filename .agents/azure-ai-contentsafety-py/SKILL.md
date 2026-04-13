@@ -181,7 +181,7 @@ request = AnalyzeTextOptions(
 ## Harm Categories
 
 | Category | Description |
-|----------|-------------|
+|--|--|
 | `Hate` | Attacks based on identity (race, religion, gender, etc.) |
 | `Sexual` | Sexual content, relationships, anatomy |
 | `Violence` | Physical harm, weapons, injury |
@@ -190,7 +190,7 @@ request = AnalyzeTextOptions(
 ## Severity Scale
 
 | Level | Text Range | Image Range | Meaning |
-|-------|------------|-------------|---------|
+|-------|--|--|---------|
 | 0 | Safe | Safe | No harmful content |
 | 2 | Low | Low | Mild references |
 | 4 | Medium | Medium | Moderate content |

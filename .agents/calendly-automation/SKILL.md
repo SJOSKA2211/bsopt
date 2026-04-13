@@ -191,7 +191,7 @@ Most Calendly list endpoints use token-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Get current user | `CALENDLY_GET_CURRENT_USER` | (none) |
 | Get user by UUID | `CALENDLY_GET_USER` | `uuid` |
 | List events | `CALENDLY_LIST_EVENTS` | `user`, `status`, `min_start_time` |

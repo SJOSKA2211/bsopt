@@ -340,7 +340,7 @@ Brief description of protocol purpose and design.
 
 ### Header (12 bytes)
 | Offset | Size | Field       | Description              |
-|--------|------|-------------|--------------------------|
+|--------|------|--|--|
 | 0      | 4    | Magic       | 0x50524F54 ("PROT")     |
 | 4      | 2    | Version     | Protocol version (1)     |
 | 6      | 2    | Type        | Message type identifier  |
@@ -348,7 +348,7 @@ Brief description of protocol purpose and design.
 
 ### Message Types
 | Type | Name          | Description              |
-|------|---------------|--------------------------|
+|------|--|--|
 | 0x01 | HELLO         | Connection initiation    |
 | 0x02 | HELLO_ACK     | Connection accepted      |
 | 0x03 | DATA          | Application data         |
@@ -356,7 +356,7 @@ Brief description of protocol purpose and design.
 
 ### Type 0x01: HELLO
 | Offset | Size | Field       | Description              |
-|--------|------|-------------|--------------------------|
+|--------|------|--|--|
 | 0      | 4    | ClientID    | Unique client identifier |
 | 4      | 2    | Flags       | Connection flags         |
 | 6      | var  | Extensions  | TLV-encoded extensions   |

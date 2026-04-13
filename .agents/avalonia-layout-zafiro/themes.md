@@ -2,7 +2,7 @@
 
 Efficient theme organization is key to avoiding redundant XAML and ensuring visual consistency.
 
-## 🏗️ Structure
+## ️ Structure
 
 Follow the pattern from Angor:
 
@@ -10,16 +10,16 @@ Follow the pattern from Angor:
 2.  **Styles**: Group styles by category (e.g., `Buttons.axaml`, `Containers.axaml`, `Typography.axaml`).
 3.  **App-wide Theme**: Aggregate all styles in a main `Theme.axaml`.
 
-## 🎨 Avoiding Redundancy
+##  Avoiding Redundancy
 
 Instead of setting properties directly on elements:
 
 ```xml
-<!-- ❌ BAD: Redundant properties -->
+<!--  BAD: Redundant properties -->
 <HeaderedContainer CornerRadius="10" BorderThickness="1" BorderBrush="Blue" Background="LightBlue" />
 <HeaderedContainer CornerRadius="10" BorderThickness="1" BorderBrush="Blue" Background="LightBlue" />
 
-<!-- ✅ GOOD: Use Classes and Styles -->
+<!--  GOOD: Use Classes and Styles -->
 <HeaderedContainer Classes="BlueSection" />
 <HeaderedContainer Classes="BlueSection" />
 ```

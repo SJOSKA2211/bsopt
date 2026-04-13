@@ -77,7 +77,7 @@ Voce atua em TODAS as areas, mas tem **especialidade profunda** e
 ## 2. Identificar O Perfil Do Cliente
 
 | Perfil | Abordagem |
-|--------|-----------|
+|--------|--|
 | **Leigo** | Linguagem acessivel, sem juridiques, exemplos praticos, orientacao passo a passo |
 | **Advogado** | Linguagem tecnica plena, jurisprudencia com numero, doutrina, estrategia processual |
 | **Estudante** | Didatico, com referencias doutrinarias, explicacao dos institutos |
@@ -92,7 +92,7 @@ Voce atua em TODAS as areas, mas tem **especialidade profunda** e
 #### Divorcio Consensual Extrajudicial (Lei 11.441/2007)
 
 | Requisito | Detalhe |
-|-----------|---------|
+|--|---------|
 | **Consenso** | Ambos concordam com divorcio e termos |
 | **Sem filhos menores/incapazes** | Se houver, e judicial obrigatoriamente |
 | **Escritura publica** | Lavrada em cartorio de notas |
@@ -104,7 +104,7 @@ Voce atua em TODAS as areas, mas tem **especialidade profunda** e
 #### Divorcio Judicial (Art. 731-734 CPC)
 
 | Modalidade | Descricao |
-|------------|-----------|
+|--|--|
 | **Consensual** | Ambos concordam — homologacao pelo juiz (Art. 731 CPC) |
 | **Litigioso** | Nao ha acordo — juiz decide (Art. 693 CPC) |
 | **Competencia** | Domicilio do guardiao dos filhos ou ultimo domicilio do casal (Art. 53, I CPC) |
@@ -112,7 +112,7 @@ Voce atua em TODAS as areas, mas tem **especialidade profunda** e
 #### Regimes de Bens (Art. 1.639-1.688 CC)
 
 | Regime | Caracteristica | Meacao |
-|--------|---------------|--------|
+|--------|--|--------|
 | **Comunhao parcial** (padrao) | Bens adquiridos na constancia = comuns | 50% dos aquestos |
 | **Comunhao universal** | Tudo e comum (salvo excecoes Art. 1.668) | 50% de tudo |
 | **Separacao total** | Nada e comum | Sem meacao |
@@ -134,7 +134,7 @@ No regime de separacao obrigatoria de bens, comunicam-se os adquiridos na consta
 #### Tipos de Alimentos
 
 | Tipo | Descricao |
-|------|-----------|
+|------|--|
 | **Provisorios** | Fixados liminarmente na acao de alimentos (Art. 4 Lei 5.478) |
 | **Provisionais** | Fixados em tutela de urgencia (Art. 300 CPC) |
 | **Definitivos** | Fixados em sentenca |
@@ -145,7 +145,7 @@ No regime de separacao obrigatoria de bens, comunicam-se os adquiridos na consta
 #### Execucao de Alimentos (Art. 528-533 CPC)
 
 | Via | Procedimento | Prazo |
-|-----|-------------|-------|
+|-----|--|-------|
 | **Prisao civil** | Art. 528, par. 3 — regime fechado 1-3 meses | 3 prestacoes (Sumula 309 STJ) |
 | **Penhora** | Execucao por quantia certa | Prescricao 2 anos cada prestacao |
 | **Desconto em folha** | Art. 529 CPC — ordem ao empregador | Ate 50% dos rendimentos liquidos |
@@ -160,7 +160,7 @@ No regime de separacao obrigatoria de bens, comunicam-se os adquiridos na consta
 #### Parametros de Fixacao (Jurisprudencia)
 
 | Situacao | Parametro comum |
-|----------|----------------|
+|--|--|
 | 1 filho (CLT) | 30% dos rendimentos liquidos |
 | 2 filhos (CLT) | 33-40% |
 | 3+ filhos (CLT) | 40-50% |
@@ -199,7 +199,7 @@ Para analises criminais aprofundadas, este modulo orquestra com `advogado-crimin
 ## 2.1 Estrutura Analitica Rapida
 
 | Etapa | O que fazer |
-|-------|-------------|
+|-------|--|
 | 1 | Tipificar o crime (qual artigo CP/legislacao especial) |
 | 2 | Classificar (doloso/culposo, tentado/consumado, comum/hediondo) |
 | 3 | Verificar materialidade e autoria |
@@ -242,7 +242,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 ## 3.2 Medidas Protetivas Mais Usadas
 
 | Medida | Art. 22 Lei 11.340 |
-|--------|-------------------|
+|--------|--|
 | Afastamento do lar | Inciso II |
 | Proibicao de aproximacao | Inciso III-a |
 | Proibicao de contato | Inciso III-b |
@@ -267,7 +267,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Bens Comunicaveis vs Incomunicaveis (Comunhao Parcial)
 
 | COMUNICAM (meacao 50%) | NAO COMUNICAM (bens particulares) |
-|------------------------|----------------------------------|
+|--|--|
 | Imoveis comprados durante casamento | Bens anteriores ao casamento (Art. 1.659, I CC) |
 | Veiculos adquiridos na constancia | Heranca e doacao recebida (Art. 1.659, I CC) |
 | Investimentos com renda do trabalho | Bens sub-rogados dos particulares (Art. 1.659, II CC) |
@@ -278,7 +278,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Avaliacao de Bens
 
 | Metodo | Quando usar |
-|--------|-------------|
+|--------|--|
 | Avaliacao pericial (Art. 464 CPC) | Imoveis, empresas, bens de alto valor |
 | Acordo entre as partes | Divorcio consensual — partes definem valores |
 | Avaliacao de mercado (corretor/avaliador) | Imoveis residenciais, veiculos |
@@ -289,7 +289,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Inventario Extrajudicial (Art. 610, par. 1 CPC + Lei 11.441/2007)
 
 | Requisito | Detalhe |
-|-----------|---------|
+|--|---------|
 | Todos herdeiros maiores e capazes | Obrigatorio |
 | Consenso sobre partilha | Todos concordam |
 | Sem testamento | Regra geral (excepcao: Resolucao CNJ 35/2007, Art. 12-A admite com testamento ja confirmado) |
@@ -300,7 +300,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Inventario Judicial (Art. 610-673 CPC)
 
 | Modalidade | Quando |
-|------------|--------|
+|--|--------|
 | **Arrolamento sumario** (Art. 659 CPC) | Herdeiros capazes + acordo |
 | **Arrolamento comum** (Art. 664 CPC) | Bens ate 1.000 SM |
 | **Inventario tradicional** (Art. 610 CPC) | Herdeiros incapazes, divergencia, testamento |
@@ -308,7 +308,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Ordem de Vocacao Hereditaria (Art. 1.829 CC)
 
 | Ordem | Herdeiros | Observacao |
-|-------|-----------|-----------|
+|-------|--|--|
 | 1a | Descendentes + conjuge | Conjuge concorre com descendentes (Art. 1.832 CC) |
 | 2a | Ascendentes + conjuge | Conjuge recebe 1/3 se concorrer com pai e mae (Art. 1.837 CC) |
 | 3a | Conjuge sobrevivente (sozinho) | Recebe tudo |
@@ -317,7 +317,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 #### Direitos do Conjuge Sobrevivente
 
 | Regime de Bens | Concorre com Descendentes? | Base |
-|----------------|--------------------------|------|
+|--|--|------|
 | Comunhao parcial | Sim, sobre bens PARTICULARES do falecido | Art. 1.829, I CC |
 | Comunhao universal | Nao concorre | Art. 1.829, I CC |
 | Separacao obrigatoria | Nao concorre (controverso — Sumula 377 STF) | Art. 1.829, I CC |
@@ -330,7 +330,7 @@ SINAL VERMELHO → X na mao em farmacia/hospital participante
 ## 4.3 Testamento
 
 | Tipo | Base Legal | Requisitos |
-|------|-----------|-----------|
+|------|--|--|
 | **Publico** | Art. 1.864 CC | Tabeliao + 2 testemunhas |
 | **Cerrado** | Art. 1.868 CC | Escrito pelo testador, aprovado pelo tabeliao |
 | **Particular** | Art. 1.876 CC | Escrito pelo testador + 3 testemunhas |
@@ -361,7 +361,7 @@ Cabe quando:
 ## 5.1 Tipos De Guarda (Art. 1.583-1.590 Cc + Lei 13.058/2014)
 
 | Tipo | Descricao | Base Legal |
-|------|-----------|-----------|
+|------|--|--|
 | **Compartilhada** | REGRA — ambos exercem guarda, mesmo sem consenso | Art. 1.584, par. 2 CC |
 | **Unilateral** | Um genitor exerce, outro tem visitas | Art. 1.583, par. 1 CC |
 | **Alternada** | Crianca alterna residencias periodicamente | Jurisprudencia (nao prevista em lei) |
@@ -408,7 +408,7 @@ Interferencia na formacao psicologica da crianca, promovida por um genitor (ou a
 #### Sancoes (Art. 6)
 
 | Sancao | Gravidade |
-|--------|-----------|
+|--------|--|
 | Advertencia | Leve |
 | Ampliacao do regime de convivencia | Moderada |
 | Multa | Moderada |
@@ -442,7 +442,7 @@ Pode ser modificada a qualquer tempo se houver:
 #### Pressupostos da Responsabilidade Civil
 
 | Pressuposto | Descricao |
-|-------------|-----------|
+|--|--|
 | **Conduta** | Acao ou omissao voluntaria |
 | **Culpa/Dolo** | Negligencia, imprudencia, impericia ou intencao (subjetiva) |
 | **Dano** | Prejuizo patrimonial ou extrapatrimonial |
@@ -451,7 +451,7 @@ Pode ser modificada a qualquer tempo se houver:
 #### Responsabilidade Objetiva (sem culpa)
 
 | Situacao | Base Legal |
-|----------|-----------|
+|--|--|
 | Atividade de risco | Art. 927, paragrafo unico CC |
 | Fato do produto/servico | Art. 12-14 CDC |
 | Empregador (preposto) | Art. 932, III CC |
@@ -462,7 +462,7 @@ Pode ser modificada a qualquer tempo se houver:
 ## 6.2 Tipos De Dano
 
 | Tipo | Descricao | Exemplos |
-|------|-----------|----------|
+|------|--|--|
 | **Moral** | Ofensa a honra, imagem, dignidade, sentimentos | Negativacao indevida, ofensa, constrangimento |
 | **Material** (emergente) | Prejuizo efetivo no patrimonio | Valor do reparo, tratamento medico, bens destruidos |
 | **Lucros cessantes** | O que deixou de ganhar | Salarios perdidos, faturamento interrompido |
@@ -473,7 +473,7 @@ Pode ser modificada a qualquer tempo se houver:
 ## 6.3 Parametros De Indenizacao (Jurisprudencia)
 
 | Situacao | Faixa de Valor (2024-2025) |
-|----------|--------------------------|
+|--|--|
 | Negativacao indevida (SPC/SERASA) | R$ 5.000 - R$ 30.000 |
 | Protesto indevido | R$ 5.000 - R$ 20.000 |
 | Atraso/cancelamento voo | R$ 3.000 - R$ 15.000 |
@@ -493,7 +493,7 @@ Pode ser modificada a qualquer tempo se houver:
 Dispensa prova do dano — basta provar o fato:
 
 | Situacao | Jurisprudencia |
-|----------|---------------|
+|--|--|
 | Negativacao indevida | Sumula 385 STJ (se ja tem outra negativacao, nao cabe) |
 | Protesto indevido | STJ consolidado |
 | Uso indevido de imagem | STJ — REsp 1.005.278 |
@@ -517,7 +517,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 7.1 Principios Fundamentais (Cdc — Lei 8.078/1990)
 
 | Principio | Descricao |
-|-----------|-----------|
+|--|--|
 | **Vulnerabilidade** | Consumidor e vulneravel na relacao (Art. 4, I) |
 | **Boa-fe objetiva** | Conduta leal de ambas as partes (Art. 4, III) |
 | **Inversao do onus da prova** | Juiz pode inverter quando verossimil (Art. 6, VIII) |
@@ -526,7 +526,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 7.2 Vicios E Defeitos
 
 | Tipo | Descricao | Prazo de Reclamacao |
-|------|-----------|-------------------|
+|------|--|--|
 | **Vicio do produto** (Art. 18) | Produto inadequado ao uso | 30 dias (nao duravel) / 90 dias (duravel) |
 | **Vicio do servico** (Art. 20) | Servico inadequado | 30 dias (nao duravel) / 90 dias (duravel) |
 | **Fato do produto** (Art. 12) | Defeito que causa acidente | 5 anos (Art. 27 CDC) |
@@ -535,7 +535,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 7.3 Praticas Abusivas (Art. 39 Cdc)
 
 | Pratica | Descricao |
-|---------|-----------|
+|---------|--|
 | Venda casada | Condicionar venda de produto/servico a outro (Art. 39, I) |
 | Recusa de atendimento | Recusar demanda do consumidor (Art. 39, II) |
 | Envio sem solicitacao | Enviar produto nao solicitado (Art. 39, III) — amostra gratis |
@@ -566,7 +566,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 8.2 Usucapiao
 
 | Modalidade | Prazo | Requisitos |
-|------------|-------|-----------|
+|--|-------|--|
 | **Extraordinaria** (Art. 1.238 CC) | 15 anos (10 se moradia/produtivo) | Posse ininterrupta sem oposicao |
 | **Ordinaria** (Art. 1.242 CC) | 10 anos (5 se moradia/investimento) | Justo titulo + boa-fe |
 | **Especial urbana** (Art. 183 CF) | 5 anos | Ate 250m2, moradia, sem outro imovel |
@@ -601,7 +601,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 9.1 Rescisao Do Contrato De Trabalho
 
 | Modalidade | Verbas Devidas |
-|------------|---------------|
+|--|--|
 | **Sem justa causa** | Saldo salario + aviso previo + 13o prop. + ferias prop. + 1/3 + FGTS + multa 40% FGTS + seguro-desemprego |
 | **Por justa causa** (Art. 482 CLT) | Saldo salario + ferias vencidas + 1/3 |
 | **Pedido de demissao** | Saldo salario + 13o prop. + ferias prop. + 1/3 (sem FGTS 40%, sem seguro-desemprego) |
@@ -611,7 +611,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 9.2 Verbas Trabalhistas
 
 | Verba | Base Legal |
-|-------|-----------|
+|-------|--|
 | **13o salario** | Lei 4.090/1962 — 1/12 por mes trabalhado |
 | **Ferias + 1/3** | Art. 129-145 CLT — 30 dias a cada 12 meses |
 | **FGTS** | Lei 8.036/1990 — 8% do salario mensal |
@@ -624,14 +624,14 @@ Dispensa prova do dano — basta provar o fato:
 ## 9.3 Assedio Moral E Sexual No Trabalho
 
 | Tipo | Descricao | Consequencias |
-|------|-----------|--------------|
+|------|--|--|
 | **Assedio moral** | Conduta abusiva reiterada que humilha/constrange | Indenizacao + rescisao indireta |
 | **Assedio sexual** | Art. 216-A CP — constranger para vantagem sexual | Crime (1-2 anos detencao) + indenizacao |
 
 ## 9.4 Prazos Trabalhistas
 
 | Prazo | Descricao |
-|-------|-----------|
+|-------|--|
 | **Prescricao** | 5 anos (durante contrato) / 2 anos (apos rescisao) — Art. 7, XXIX CF |
 | **Recurso Ordinario** | 8 dias (Art. 895 CLT) |
 | **Recurso de Revista** | 8 dias (Art. 896 CLT) |
@@ -642,7 +642,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 10.1 Beneficios Do Inss
 
 | Beneficio | Requisitos Principais |
-|-----------|----------------------|
+|--|--|
 | **Aposentadoria por idade** | 65 (H) / 62 (M) + 15 anos contribuicao (EC 103/2019) |
 | **Aposentadoria por tempo** | Regras de transicao (EC 103/2019) — pontos, pedagio, idade minima progressiva |
 | **Aposentadoria especial** | Exposicao a agentes nocivos + 15/20/25 anos |
@@ -656,7 +656,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 10.2 Revisao De Beneficios
 
 | Tipo de Revisao | Prazo |
-|-----------------|-------|
+|--|-------|
 | **Revisao administrativa** | A qualquer tempo (erro material) |
 | **Revisao judicial** | 10 anos (decadencia — Art. 103 Lei 8.213) |
 | **Revisao da vida toda** | STF Tema 1.102 — media de TODOS os salarios (inclusive pre-1994) |
@@ -666,7 +666,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 11.1 Impostos Mais Comuns
 
 | Imposto | Competencia | Fato Gerador |
-|---------|------------|--------------|
+|---------|--|--|
 | **IPTU** | Municipal | Propriedade urbana (Art. 32 CTN) |
 | **IPVA** | Estadual | Propriedade veicular |
 | **IR** | Federal | Renda e proventos (Art. 43 CTN) |
@@ -721,7 +721,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 13.2 Crimes Digitais
 
 | Crime | Base Legal | Pena |
-|-------|-----------|------|
+|-------|--|------|
 | **Invasao de dispositivo** | Art. 154-A CP (Lei 12.737/2012) | 1-4 anos reclusao + multa |
 | **Revenge porn** | Art. 218-C CP (Lei 13.718/2018) | 1-5 anos reclusao |
 | **Stalking digital** | Art. 147-A CP (Lei 14.132/2021) | 6 meses - 2 anos reclusao |
@@ -742,7 +742,7 @@ Dispensa prova do dano — basta provar o fato:
 ## 14.1 Tipos Societarios
 
 | Tipo | Base Legal | Caracteristica |
-|------|-----------|---------------|
+|------|--|--|
 | **MEI** | LC 128/2008 | Faturamento ate R$ 81.000/ano |
 | **EI** | Art. 966 CC | Empresario individual — responsabilidade ilimitada |
 | **EIRELI** (extinta) | — | Substituida pela SLU |
@@ -921,7 +921,7 @@ OBSERVACOES: ___________
 ## Stj — Familia
 
 | Sumula | Conteudo |
-|--------|----------|
+|--------|--|
 | 301 | Recusa ao DNA gera presuncao de paternidade |
 | 309 | Prisao civil — debito alimentar dos ultimos 3 meses |
 | 336 | Alimentos devidos desde a citacao |
@@ -931,7 +931,7 @@ OBSERVACOES: ___________
 ## Stj — Responsabilidade Civil
 
 | Sumula | Conteudo |
-|--------|----------|
+|--------|--|
 | 37 | Cumulaveis danos moral e material |
 | 227 | PJ pode sofrer dano moral |
 | 370 | Responsabilidade civil do cirurgiao plastico e de resultado |
@@ -942,7 +942,7 @@ OBSERVACOES: ___________
 ## Stj — Consumidor
 
 | Sumula | Conteudo |
-|--------|----------|
+|--------|--|
 | 297 | CDC aplica-se a instituicoes financeiras |
 | 302 | Clausula de carencia em plano de saude e valida, mas urgencia afasta |
 | 469 | Tabela SUB e aplicavel a danos morais bancarios |
@@ -951,7 +951,7 @@ OBSERVACOES: ___________
 ## Stf — Constitucional
 
 | Tema/Sumula | Conteudo |
-|-------------|----------|
+|--|--|
 | Sumula Vinculante 25 | Prisao civil so para devedor de alimentos |
 | RE 878.694 (Tema 498) | Companheiro = conjuge para heranca |
 | RE 898.060 (Tema 622) | Paternidade socioafetiva nao impede biologica |
@@ -1010,7 +1010,7 @@ OBSERVACOES: ___________
 ## Orquestracao Com Outros Skills
 
 | Situacao | Skill a Orquestrar |
-|----------|-------------------|
+|--|--|
 | Crime, penal, Maria da Penha detalhado | `advogado-criminal` |
 | Leilao, arrematacao, execucao de imovel | `leiloeiro-juridico` + `leiloeiro-ia` |
 | Analise de edital de leilao | `leiloeiro-edital` |

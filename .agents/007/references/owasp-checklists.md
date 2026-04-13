@@ -8,7 +8,7 @@
 ## OWASP Web Application Top 10 (2021)
 
 | # | Vulnerability | Description | Detection Patterns | Fix |
-|---|--------------|-------------|-------------------|-----|
+|---|--|--|--|-----|
 | **A01** | **Broken Access Control** | Users can act outside their intended permissions. IDOR, missing authz checks, CORS misconfiguration. | `GET /admin` accessible without admin role; user A accesses user B data via ID manipulation; missing `@require_role` decorators. | Deny by default. Enforce server-side access control. Disable directory listing. Log access failures. Invalidate JWT/sessions on logout. |
 | **A02** | **Cryptographic Failures** | Sensitive data exposed due to weak or missing encryption. Cleartext storage/transmission. | Passwords stored as MD5/SHA1; HTTP endpoints serving sensitive data; hardcoded encryption keys; `TLS 1.0/1.1` in config. | HTTPS everywhere. TLS 1.2+ only. bcrypt/argon2 for passwords. Encrypt data at rest (AES-256). No sensitive data in URLs. |
 | **A03** | **Injection** | Untrusted data sent to interpreter without validation. SQL, NoSQL, OS command, LDAP injection. | String concatenation in queries: `f"SELECT * FROM users WHERE id={input}"`; `os.system(user_input)`; unsanitized template rendering. | Parameterized queries/prepared statements. ORM usage. Input validation (allowlist). Escape output. WAF as defense-in-depth. |
@@ -25,7 +25,7 @@
 ## OWASP API Security Top 10 (2023)
 
 | # | Vulnerability | Description | Detection Patterns | Fix |
-|---|--------------|-------------|-------------------|-----|
+|---|--|--|--|-----|
 | **API1** | **Broken Object Level Authorization (BOLA)** | API exposes endpoints that handle object IDs, allowing attackers to access other users' objects. | `GET /api/v1/users/{id}/orders` without ownership check; sequential/predictable IDs; no authz middleware on data endpoints. | Check object ownership in every request. Use random UUIDs, not sequential IDs. Authorization middleware on all data endpoints. |
 | **API2** | **Broken Authentication** | Weak or missing authentication mechanisms on API endpoints. | API keys in URLs; no token expiration; missing auth on internal APIs exposed publicly; credentials in response bodies. | OAuth 2.0 / JWT with short expiry. API key rotation. Auth on ALL endpoints. Never expose credentials in responses. Rate limit auth endpoints. |
 | **API3** | **Broken Object Property Level Authorization** | API exposes all object properties, allowing mass assignment or excessive data exposure. | Response includes `password_hash`, `internal_id`, `is_admin`; PUT/PATCH accepts `role` field from user input. | Explicit response schemas (allowlist fields). Block mass assignment. Never auto-expose DB model. Separate read/write DTOs. |
@@ -42,7 +42,7 @@
 ## OWASP LLM Top 10 (2025)
 
 | # | Vulnerability | Description | Detection Patterns | Fix |
-|---|--------------|-------------|-------------------|-----|
+|---|--|--|--|-----|
 | **LLM01** | **Prompt Injection** | Attacker manipulates LLM via crafted input (direct) or poisoned context (indirect). | User input contains "ignore previous instructions"; external documents with hidden instructions; unexpected tool calls after processing user content. | Input sanitization. Separate system/user prompts clearly. Output validation. Human-in-the-loop for sensitive actions. Context isolation. |
 | **LLM02** | **Sensitive Information Disclosure** | LLM reveals confidential data from training data, system prompts, or context. | Model outputs API keys, internal URLs, PII; system prompt extraction via "repeat your instructions"; context leakage between users. | Strip secrets from context. Output filtering for PII/secrets. Session isolation. Don't put secrets in system prompts. Anonymize training data. |
 | **LLM03** | **Supply Chain Vulnerabilities** | Compromised training data, model weights, plugins, or dependencies. | Poisoned fine-tuning datasets; malicious third-party plugins; tampered model files; compromised prompt templates. | Verify model integrity (checksums). Audit plugins/tools. Signed artifacts. Scan training data. Vendor security assessment. |

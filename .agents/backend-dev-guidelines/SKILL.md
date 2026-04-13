@@ -31,7 +31,7 @@ Before implementing or modifying a backend feature, assess feasibility.
 ### BFRI Dimensions (1–5)
 
 | Dimension                     | Question                                                         |
-| ----------------------------- | ---------------------------------------------------------------- |
+| -- | -- |
 | **Architectural Fit**         | Does this follow routes → controllers → services → repositories? |
 | **Business Logic Complexity** | How complex is the domain logic?                                 |
 | **Data Risk**                 | Does this affect critical data paths or transactions?            |
@@ -49,7 +49,7 @@ BFRI = (Architectural Fit + Testability) − (Complexity + Data Risk + Operation
 ### Interpretation
 
 | BFRI     | Meaning   | Action                 |
-| -------- | --------- | ---------------------- |
+| -------- | --------- | -- |
 | **6–10** | Safe      | Proceed                |
 | **3–5**  | Moderate  | Add tests + monitoring |
 | **0–2**  | Risky     | Refactor or isolate    |
@@ -87,12 +87,12 @@ Routes → Controllers → Services → Repositories → Database
 ### 2. Routes Only Route
 
 ```ts
-// ❌ NEVER
+//  NEVER
 router.post('/create', async (req, res) => {
   await prisma.user.create(...);
 });
 
-// ✅ ALWAYS
+//  ALWAYS
 router.post('/create', (req, res) =>
   userController.create(req, res)
 );
@@ -148,19 +148,19 @@ catch (error) {
 }
 ```
 
-❌ `console.log`
-❌ silent failures
-❌ swallowed errors
+ `console.log`
+ silent failures
+ swallowed errors
 
 ---
 
 ### 6. unifiedConfig Is the Only Config Source
 
 ```ts
-// ❌ NEVER
+//  NEVER
 process.env.JWT_SECRET;
 
-// ✅ ALWAYS
+//  ALWAYS
 import { config } from '@/config/unifiedConfig';
 config.auth.jwtSecret;
 ```
@@ -210,7 +210,7 @@ src/
 ## 5. Naming Conventions (Strict)
 
 | Layer      | Convention                |
-| ---------- | ------------------------- |
+| -- | -- |
 | Controller | `PascalCaseController.ts` |
 | Service    | `camelCaseService.ts`     |
 | Repository | `PascalCaseRepository.ts` |
@@ -303,13 +303,13 @@ No tests → no merge.
 
 ## 11. Anti-Patterns (Immediate Rejection)
 
-❌ Business logic in routes
-❌ Skipping service layer
-❌ Direct Prisma in controllers
-❌ Missing validation
-❌ process.env usage
-❌ console.log instead of Sentry
-❌ Untested business logic
+ Business logic in routes
+ Skipping service layer
+ Direct Prisma in controllers
+ Missing validation
+ process.env usage
+ console.log instead of Sentry
+ Untested business logic
 
 ---
 

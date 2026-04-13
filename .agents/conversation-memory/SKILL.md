@@ -44,16 +44,16 @@ Include relevant memories in prompts
 
 ## Anti-Patterns
 
-### ❌ Remember Everything
+###  Remember Everything
 
-### ❌ No Memory Retrieval
+###  No Memory Retrieval
 
-### ❌ Single Memory Store
+###  Single Memory Store
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Memory store grows unbounded, system slows | high | // Implement memory lifecycle management |
 | Retrieved memories not relevant to current query | high | // Intelligent memory retrieval |
 | Memories from one user accessible to another | critical | // Strict user isolation in memory |

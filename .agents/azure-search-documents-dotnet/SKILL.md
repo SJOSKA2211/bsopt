@@ -292,7 +292,7 @@ var results = await searchClient.SearchAsync<Hotel>("luxury beachfront", options
 ## Field Attributes Reference
 
 | Attribute | Purpose |
-|-----------|---------|
+|--|---------|
 | `SimpleField` | Non-searchable field (filters, sorting, facets) |
 | `SearchableField` | Full-text searchable field |
 | `VectorSearchField` | Vector embedding field |
@@ -335,7 +335,7 @@ catch (RequestFailedException ex)
 ## Reference Files
 
 | File | Contents |
-|------|----------|
+|------|--|
 | references/vector-search.md | Vector search, hybrid search, vectorizers |
 | references/semantic-search.md | Semantic ranking, captions, answers |
 

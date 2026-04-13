@@ -77,7 +77,7 @@
 ## Schema Recommendations
 
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Homepage | Organization, WebSite, SoftwareApplication |
 | Product/Features | SoftwareApplication, Offer |
 | Pricing | SoftwareApplication, Offer (with pricing) |

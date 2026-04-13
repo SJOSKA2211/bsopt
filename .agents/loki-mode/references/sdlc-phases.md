@@ -393,7 +393,7 @@ Incidents -> RCA -> Prevention -> Deploy fix
 ## Quality Gates Summary
 
 | Gate | Agent | Pass Criteria |
-|------|-------|---------------|
+|------|-------|--|
 | Unit Tests | eng-qa | 100% pass |
 | Integration Tests | eng-qa | 100% pass |
 | E2E Tests | eng-qa | 100% pass |

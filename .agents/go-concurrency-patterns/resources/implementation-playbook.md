@@ -20,7 +20,7 @@ Production patterns for Go concurrency including goroutines, channels, synchroni
 ### 1. Go Concurrency Primitives
 
 | Primitive | Purpose |
-|-----------|---------|
+|--|---------|
 | `goroutine` | Lightweight concurrent execution |
 | `channel` | Communication between goroutines |
 | `select` | Multiplex channel operations |

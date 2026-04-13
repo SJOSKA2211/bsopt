@@ -68,16 +68,16 @@ Combine semantic and keyword search
 
 ## Anti-Patterns
 
-### ❌ Fixed Chunk Size
+###  Fixed Chunk Size
 
-### ❌ Embedding Everything
+###  Embedding Everything
 
-### ❌ Ignoring Evaluation
+###  Ignoring Evaluation
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Fixed-size chunking breaks sentences and context | high | Use semantic chunking that respects document structure: |
 | Pure semantic search without metadata pre-filtering | medium | Implement hybrid filtering: |
 | Using same embedding model for different content types | medium | Evaluate embeddings per content type: |

@@ -57,7 +57,7 @@ sql-injection-java/
 When porting Semgrep rules, reject these common shortcuts:
 
 | Rationalization | Why It Fails | Correct Approach |
-|-----------------|--------------|------------------|
+|--|--|--|
 | "Pattern structure is identical" | Different ASTs across languages | Always dump AST for target language |
 | "Same vulnerability, same detection" | Data flow differs between languages | Analyze target language idioms |
 | "Rule doesn't need tests since original worked" | Language edge cases differ | Write NEW test cases for target |
@@ -176,7 +176,7 @@ See workflow.md for detailed workflow and troubleshooting.
 ## Key Differences from Rule Creation
 
 | Aspect | semgrep-rule-creator | This skill |
-|--------|---------------------|------------|
+|--------|--|--|
 | Input | Bug pattern description | Existing rule + target languages |
 | Output | Single rule+test | Multiple rule+test directories |
 | Workflow | Single creation cycle | Independent cycle per language |

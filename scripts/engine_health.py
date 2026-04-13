@@ -123,7 +123,7 @@ async def check_minio(url):
                 fetch_url, "http://localhost:9000/minio/health/cluster"
             )
             cluster_status = "Cluster OK" if cluster_code == 200 else f"Cluster {cluster_code}"
-            return "healthy", f"Live ✓ | {cluster_status}"
+            return "healthy", f"Live  | {cluster_status}"
         return "unhealthy", f"HTTP {code}"
     except Exception as e:
         return "down", str(e)
@@ -197,7 +197,7 @@ async def check_envoy_ready(url):
     try:
         code, body = await asyncio.to_thread(fetch_url, url)
         if code == 200 and "LIVE" in body:
-            return "healthy", "LIVE ✓"
+            return "healthy", "LIVE "
         return "unhealthy", f"Envoy: {body.strip() or 'No Response'}"
     except Exception as e:
         return "down", str(e)
@@ -254,9 +254,9 @@ def print_table(health_data):
 
     print("-" * 80)
     if all_healthy:
-        print(f"{'✅ ALL SYSTEMS OPERATIONAL':^80}")
+        print(f"{' ALL SYSTEMS OPERATIONAL':^80}")
     else:
-        print(f"{'⚠️ SYSTEMS WARNING DETECTED':^80}")
+        print(f"{'️ SYSTEMS WARNING DETECTED':^80}")
     print("=" * 80 + "\n")
     return all_healthy
 
@@ -266,7 +266,7 @@ async def send_webhook(message):
     if not webhook_url:
         return
     payload = {
-        "text": f"🚨 *BSOPT Health Notification*\n{message}",
+        "text": f" *BSOPT Health Notification*\n{message}",
         "username": "BSOPT Health Monitor",
         "icon_emoji": ":warning:"
     }
@@ -286,7 +286,7 @@ async def auto_fix_service(name, config):
     if time.time() - last_fix < 300:
         return False
 
-    logger.warning(f"🔧 Auto-fix triggered for service: {name} (Container: {container})")
+    logger.warning(f" Auto-fix triggered for service: {name} (Container: {container})")
     try:
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         compose_file = os.path.join(project_root, "infrastructure/orchestration/docker-compose.yml")
@@ -294,7 +294,7 @@ async def auto_fix_service(name, config):
         cmd = ["docker", "compose", "-f", compose_file, "restart", container]
         subprocess.run(cmd, check=True)
         COOLDOWNS[name] = time.time()
-        await send_webhook(f"🛠️ *Auto-Recovery*: Restarted container `{container}` to restore `{name}`.")
+        await send_webhook(f"️ *Auto-Recovery*: Restarted container `{container}` to restore `{name}`.")
         return True
     except Exception as e:
         logger.error(f"Auto-fix failed for {name}: {e}")
@@ -341,10 +341,10 @@ async def main():
         
         if not all_healthy and time.time() - last_alert_time > 300:
             down_services = [n for n, (s, _) in health_data.items() if s != "healthy"]
-            await send_webhook(f"⚠️ Health Monitoring Alert: Status unstable for {', '.join(down_services)}")
+            await send_webhook(f"️ Health Monitoring Alert: Status unstable for {', '.join(down_services)}")
             last_alert_time = time.time()
         elif all_healthy and last_alert_time > 0:
-             await send_webhook("✅ All systems recovered.")
+             await send_webhook(" All systems recovered.")
              last_alert_time = 0
 
         await asyncio.sleep(args.interval)

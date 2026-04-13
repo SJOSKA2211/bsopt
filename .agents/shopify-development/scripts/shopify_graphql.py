@@ -118,7 +118,7 @@ class ShopifyGraphQL:
 
         return GraphQLResponse(errors=[{"message": "Max retries exceeded"}])
 
-    # ==================== Query Templates ====================
+    # == Query Templates ==
 
     def get_products(
         self, first: int = 10, query: str | None = None, after: str | None = None
@@ -283,7 +283,7 @@ class ShopifyGraphQL:
         """
         return self.execute(gql, {"metafields": metafields})
 
-    # ==================== Pagination Helpers ====================
+    # == Pagination Helpers ==
 
     def paginate_products(
         self, batch_size: int = 50, query: str | None = None
@@ -350,7 +350,7 @@ class ShopifyGraphQL:
             cursor = page_info.get("endCursor")
 
 
-# ==================== Utility Functions ====================
+# == Utility Functions ==
 
 
 def extract_id(gid: str) -> str:
@@ -380,7 +380,7 @@ def build_gid(resource_type: str, id: str) -> str:
     return f"gid://shopify/{resource_type}/{id}"
 
 
-# ==================== Example Usage ====================
+# == Example Usage ==
 
 
 def main():

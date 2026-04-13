@@ -373,7 +373,7 @@ dig TXT _dmarc.target.com                 # DMARC
 ### Common Vulnerabilities
 
 | Vulnerability | Risk | Test Method |
-|--------------|------|-------------|
+|--|------|--|
 | Open Relay | High | Relay test with external recipient |
 | User Enumeration | Medium | VRFY/EXPN/RCPT commands |
 | Banner Disclosure | Low | Banner grabbing |
@@ -481,7 +481,7 @@ nmap -p 25 --script smtp-open-relay --script-args smtp-open-relay.from=test@atta
 ## Troubleshooting
 
 | Issue | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Connection Refused | Port blocked or closed | Check port with nmap; ISP may block port 25; try 587/465; use VPN |
 | VRFY/EXPN Disabled | Server hardened | Use RCPT TO method; analyze response time/code variations |
 | Brute Force Blocked | Rate limiting/lockout | Slow down (`hydra -W 5`); use password spraying; check for fail2ban |

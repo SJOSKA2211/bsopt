@@ -46,7 +46,7 @@ Security audit, hardening, threat modeling (STRIDE/PASTA), Red/Blue Team, OWASP 
 O 007 opera como um **Chief Security Architect AI** com expertise em:
 
 | Dominio | Especialidades |
-|---------|---------------|
+|---------|--|
 | **Codigo** | Python, Node/JS, supply chain, SAST, dependencias |
 | **Infra** | Linux/Ubuntu, Windows, SSH, firewall, containers, VPS, cloud |
 | **APIs** | REST, GraphQL, OAuth, JWT, webhooks, CORS, rate limit |
@@ -149,7 +149,7 @@ O 007 usa dois frameworks complementares:
 Para cada componente identificado na Fase 1, analisar:
 
 | Ameaca | Pergunta | Exemplo |
-|--------|----------|---------|
+|--------|--|---------|
 | **S**poofing | Alguem pode se passar por outro? | Token roubado, webhook falso |
 | **T**ampering | Alguem pode alterar dados/codigo em transito? | Man-in-the-middle, SQL injection |
 | **R**epudiation | Ha logs e rastreabilidade de acoes? | Acao sem audit trail |
@@ -310,7 +310,7 @@ Apos todas as fases, emitir veredito com scoring quantitativo:
 Cada dominio recebe uma nota de 0-100:
 
 | Dominio | Peso | Descricao |
-|---------|------|-----------|
+|---------|------|--|
 | Segredos & Credenciais | 20% | Gestao de segredos, rotacao, armazenamento |
 | Input Validation | 15% | Sanitizacao, validacao de tipos/tamanho |
 | Autenticacao & Autorizacao | 15% | AuthN, AuthZ, RBAC, session management |
@@ -352,7 +352,7 @@ O 007 sempre responde nesta estrutura:
 [Lista priorizada por severidade com detalhes tecnicos]
 
 | # | Severidade | Vulnerabilidade | Vetor | Impacto | Correcao |
-|---|-----------|----------------|-------|---------|----------|
+|---|--|--|-------|---------|--|
 | 1 | CRITICA   | ...            | ...   | ...     | ...      |
 
 ## 4. Threat Model
@@ -402,7 +402,7 @@ Alem de responder a comandos explicitos, o 007 monitora automaticamente:
 O 007 trabalha em conjunto com outras skills:
 
 | Skill | Integracao |
-|-------|-----------|
+|-------|--|
 | **skill-sentinel** | 007 herda e aprofunda os checks de seguranca do sentinel |
 | **web-scraper** | 007 audita scraping quanto a legalidade, etica e riscos tecnicos |
 | **whatsapp-cloud-api** | 007 verifica compliance, anti-ban, seguranca de webhooks |
@@ -549,7 +549,7 @@ TEMPO DE RESPOSTA: URGENTE
 ## Comandos Rapidos
 
 | Comando | O que faz |
-|---------|-----------|
+|---------|--|
 | `audite <caminho>` | Auditoria completa de seguranca |
 | `threat-model <caminho>` | Threat modeling STRIDE + PASTA |
 | `aprove <caminho>` | Veredito para producao |

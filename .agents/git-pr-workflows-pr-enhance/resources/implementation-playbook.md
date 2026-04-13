@@ -176,17 +176,17 @@ def generate_change_list(analysis):
     
     change_list = ""
     icons = {
-        'source': '🔧',
-        'test': '✅',
-        'docs': '📝',
-        'config': '⚙️',
-        'styles': '🎨',
-        'build': '🏗️',
-        'other': '📁'
+        'source': '',
+        'test': '',
+        'docs': '',
+        'config': '️',
+        'styles': '',
+        'build': '️',
+        'other': ''
     }
     
     for category, files in changes_by_category.items():
-        change_list += f"\n### {icons.get(category, '📁')} {category.title()} Changes\n"
+        change_list += f"\n### {icons.get(category, '')} {category.title()} Changes\n"
         for file in files[:10]:  # Limit to 10 files per category
             change_list += f"- {file['status']}: `{file['filename']}`\n"
         if len(files) > 10:
@@ -363,7 +363,7 @@ def suggest_pr_splits(analysis):
         suggestions = analyze_split_opportunities(analysis)
         
         return f"""
-## ⚠️ Large PR Detected
+## ️ Large PR Detected
 
 This PR changes {stats['files_changed']} files with {stats['insertions'] + stats['deletions']} total changes.
 Large PRs are harder to review and more likely to introduce bugs.
@@ -494,9 +494,9 @@ def generate_coverage_report(base_branch='main'):
 def format_diff(value):
     """Format coverage difference"""
     if value > 0:
-        return f"<span style='color: green'>+{value:.1f}%</span> ✅"
+        return f"<span style='color: green'>+{value:.1f}%</span> "
     elif value < 0:
-        return f"<span style='color: red'>{value:.1f}%</span> ⚠️"
+        return f"<span style='color: red'>{value:.1f}%</span> ️"
     else:
         return "No change"
 ```
@@ -552,7 +552,7 @@ def get_risk_level(score):
     elif score < 8:
         return "🟠 High"
     else:
-        return "🔴 Critical"
+        return " Critical"
 ```
 
 ### 9. PR Templates

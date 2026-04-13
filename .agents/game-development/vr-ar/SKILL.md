@@ -17,7 +17,7 @@ date_added: "2026-02-27"
 ### VR Platforms
 
 | Platform | Use Case |
-|----------|----------|
+|--|--|
 | **Quest** | Standalone, wireless |
 | **PCVR** | High fidelity |
 | **PSVR** | Console market |
@@ -26,7 +26,7 @@ date_added: "2026-02-27"
 ### AR Platforms
 
 | Platform | Use Case |
-|----------|----------|
+|--|--|
 | **ARKit** | iOS devices |
 | **ARCore** | Android devices |
 | **WebXR** | Browser AR |
@@ -39,7 +39,7 @@ date_added: "2026-02-27"
 ### Motion Sickness Prevention
 
 | Cause | Solution |
-|-------|----------|
+|-------|--|
 | **Locomotion** | Teleport, snap turn |
 | **Low FPS** | Maintain 90 FPS |
 | **Camera shake** | Avoid or minimize |
@@ -59,7 +59,7 @@ date_added: "2026-02-27"
 ### Target Metrics
 
 | Platform | FPS | Resolution |
-|----------|-----|------------|
+|--|-----|--|
 | Quest 2 | 72-90 | 1832x1920 |
 | Quest 3 | 90-120 | 2064x2208 |
 | PCVR | 90 | 2160x2160+ |
@@ -103,7 +103,7 @@ date_added: "2026-02-27"
 ### Depth Cues
 
 | Cue | Importance |
-|-----|------------|
+|-----|--|
 | Stereo | Primary depth |
 | Motion parallax | Secondary |
 | Shadows | Grounding |
@@ -113,8 +113,8 @@ date_added: "2026-02-27"
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Move camera without player | Player controls camera |
 | Drop below 90 FPS | Maintain frame rate |
 | Use tiny UI text | Large, readable text |

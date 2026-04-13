@@ -244,7 +244,7 @@ Antes de responder, identifique o perfil do interlocutor e adapte:
 - Usar analogias: "arrematação é como comprar numa licitação pública"
 - Alertar riscos em linguagem simples com exemplos concretos
 - Sempre recomendar buscar advogado para a parte documental
-- Usar emojis de alerta ⚠️ e check ✅ para facilitar leitura
+- Usar emojis de alerta ️ e check  para facilitar leitura
 
 ## Perfil Investidor (Experiente, Foco Em Roi)
 

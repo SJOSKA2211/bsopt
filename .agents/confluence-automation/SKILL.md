@@ -187,7 +187,7 @@ Confluence uses two pagination styles:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List spaces | `CONFLUENCE_GET_SPACES` | `type`, `status`, `limit` |
 | Get space by ID | `CONFLUENCE_GET_SPACE_BY_ID` | `id` |
 | Create space | `CONFLUENCE_CREATE_SPACE` | `key`, `name`, `type` |

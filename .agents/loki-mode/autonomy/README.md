@@ -68,7 +68,7 @@ cat .loki/STATUS.txt
 ## What Gets Checked
 
 | Prerequisite | Required | Notes |
-|--------------|----------|-------|
+|--|--|-------|
 | Claude Code CLI | Yes | Install from https://claude.ai/code |
 | Python 3 | Yes | For state management |
 | Git | Yes | For version control |
@@ -160,7 +160,7 @@ The script detects the previous state and continues from where it left off.
 ## Differences from Manual Mode
 
 | Feature | Manual Mode | Autonomy Mode |
-|---------|-------------|---------------|
+|---------|--|--|
 | Start | `claude --dangerously-skip-permissions` | `./autonomy/run.sh` |
 | Prereq check | Manual | Automatic |
 | Rate limit handling | Manual restart | Auto-resume |

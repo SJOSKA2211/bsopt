@@ -456,7 +456,7 @@ Server-side protections:
 ### Injection Contexts
 
 | Context | Test Approach |
-|---------|---------------|
+|---------|--|
 | URL parameter | `?param=<h1>test</h1>` |
 | Form field | POST with HTML payload |
 | Cookie value | Inject via document.cookie |
@@ -495,7 +495,7 @@ Server-side protections:
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | HTML not rendering | Check if output HTML-encoded; try encoding variations; verify HTML context |
 | Payload stripped | Use encoding variations; try tag splitting; test null bytes; nested tags |
 | XSS not working (HTML only) | JS filtered but HTML allowed; leverage phishing forms, meta refresh redirects |

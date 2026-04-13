@@ -90,7 +90,7 @@ LogsIngestionAsyncClient asyncClient = new LogsIngestionClientBuilder()
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Data Collection Endpoint (DCE) | Ingestion endpoint URL for your region |
 | Data Collection Rule (DCR) | Defines data transformation and routing to tables |
 | Stream Name | Target stream in the DCR (e.g., `Custom-MyTable_CL`) |
@@ -221,7 +221,7 @@ String query = "MyTable_CL | where TimeGenerated > ago(1h) | limit 10";
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-monitor-ingestion |
 | GitHub | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/monitor/azure-monitor-ingestion |
 | Product Docs | https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview |

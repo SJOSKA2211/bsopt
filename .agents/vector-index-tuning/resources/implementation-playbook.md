@@ -18,7 +18,7 @@ Data Size           Recommended Index
 ### 2. HNSW Parameters
 
 | Parameter | Default | Effect |
-|-----------|---------|--------|
+|--|---------|--------|
 | **M** | 16 | Connections per node, ↑ = better recall, more memory |
 | **efConstruction** | 100 | Build quality, ↑ = better index, slower build |
 | **efSearch** | 50 | Search quality, ↑ = better recall, slower search |

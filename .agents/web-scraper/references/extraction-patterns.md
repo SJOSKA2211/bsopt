@@ -454,7 +454,7 @@ Then in the workflow:
 ## Anti-Patterns to Avoid
 
 | Anti-Pattern | Why It Fails | Better Approach |
-|:-------------|:-------------|:----------------|
+|:--|:--|:--|
 | Selectors with generated hashes (`.css-1a2b3c`) | Change on every deploy | Use semantic selectors, ARIA roles, data attributes |
 | Deeply nested paths (`div > div > div > span`) | Fragile on layout changes | Use closest meaningful class or attribute |
 | Index-based (`:nth-child(3)`) for dynamic lists | Order may change | Use content-based identification |

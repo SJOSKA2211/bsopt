@@ -79,9 +79,9 @@ Measure impact of changes:
 ## Performance Audit Results
 
 ### Current Metrics (Before Optimization)
-- **LCP (Largest Contentful Paint):** 4.2s ❌ (should be < 2.5s)
-- **FID (First Input Delay):** 180ms ❌ (should be < 100ms)
-- **CLS (Cumulative Layout Shift):** 0.25 ❌ (should be < 0.1)
+- **LCP (Largest Contentful Paint):** 4.2s  (should be < 2.5s)
+- **FID (First Input Delay):** 180ms  (should be < 100ms)
+- **CLS (Cumulative Layout Shift):** 0.25  (should be < 0.1)
 - **Lighthouse Score:** 62/100
 
 ### Issues Identified
@@ -204,10 +204,10 @@ npm install date-fns
 
 ### Results After Optimization
 
-- **LCP:** 1.8s ✅ (improved by 57%)
-- **FID:** 45ms ✅ (improved by 75%)
-- **CLS:** 0.05 ✅ (improved by 80%)
-- **Lighthouse Score:** 94/100 ✅
+- **LCP:** 1.8s  (improved by 57%)
+- **FID:** 45ms  (improved by 75%)
+- **CLS:** 0.05  (improved by 80%)
+- **Lighthouse Score:** 94/100 
 ```
 
 ### Example 2: Reducing JavaScript Bundle Size
@@ -329,10 +329,10 @@ module.exports = {
 
 ### Results
 
-- **Total Bundle:** 380KB ✅ (reduced by 55%)
-- **Main Bundle:** 180KB ✅
-- **Vendor Bundle:** 80KB ✅
-- **Load Time (3G):** 3.1s ✅ (improved by 62%)
+- **Total Bundle:** 380KB  (reduced by 55%)
+- **Main Bundle:** 180KB 
+- **Vendor Bundle:** 80KB 
+- **Load Time (3G):** 3.1s  (improved by 62%)
 ```
 
 ### Example 3: Image Optimization Strategy
@@ -478,7 +478,7 @@ import Image from 'next/image';
 ### Results
 
 | Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
+|--------|--------|-------|--|
 | Total Image Size | 12MB | 1.8MB | 85% reduction |
 | LCP | 4.5s | 1.6s | 64% faster |
 | Page Load (3G) | 18s | 4.2s | 77% faster |
@@ -486,7 +486,7 @@ import Image from 'next/image';
 
 ## Best Practices
 
-### ✅ Do This
+###  Do This
 
 - **Measure First** - Always establish baseline metrics before optimizing
 - **Use Lighthouse** - Run audits regularly to track progress
@@ -499,7 +499,7 @@ import Image from 'next/image';
 - **Use CDN** - Serve static assets from CDN for faster delivery
 - **Monitor Real Users** - Track Core Web Vitals from real users
 
-### ❌ Don't Do This
+###  Don't Do This
 
 - **Don't Optimize Blindly** - Measure first, then optimize
 - **Don't Ignore Mobile** - Test on real mobile devices and slow networks

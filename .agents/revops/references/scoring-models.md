@@ -7,7 +7,7 @@ Detailed scoring templates, example models by business type, and calibration gui
 ### Company Attributes
 
 | Attribute | Criteria | Points |
-|-----------|----------|--------|
+|--|--|--------|
 | **Company size** | 1-10 employees | +5 |
 | | 11-50 employees | +10 |
 | | 51-200 employees | +15 |
@@ -27,7 +27,7 @@ Detailed scoring templates, example models by business type, and calibration gui
 ### Contact Attributes
 
 | Attribute | Criteria | Points |
-|-----------|----------|--------|
+|--|--|--------|
 | **Job title** | C-suite (CEO, CTO, CMO) | +25 |
 | | VP level | +20 |
 | | Director level | +15 |
@@ -43,7 +43,7 @@ Detailed scoring templates, example models by business type, and calibration gui
 ### Technology Attributes
 
 | Attribute | Criteria | Points |
-|-----------|----------|--------|
+|--|--|--------|
 | **Tech stack** | Uses complementary tool | +15 |
 | | Uses competitor | +10 (they understand the category) |
 | | Uses tool you replace | +20 |
@@ -222,7 +222,7 @@ Detailed scoring templates, example models by business type, and calibration gui
 ### Calibration Cadence
 
 | Business Type | Recalibration Frequency | Why |
-|---------------|------------------------|-----|
+|--|--|-----|
 | PLG / High volume | Monthly | Fast feedback loop, lots of data |
 | Mid-market | Quarterly | Moderate cycle length |
 | Enterprise | Quarterly to semi-annually | Long cycles, small sample size |

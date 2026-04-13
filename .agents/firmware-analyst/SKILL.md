@@ -277,7 +277,7 @@ sudo chroot squashfs-root /usr/bin/qemu-arm-static /bin/httpd
 
 ## Findings Summary
 | Finding | Severity | Location |
-|---------|----------|----------|
+|---------|--|--|
 
 ## Detailed Findings
 ### Finding 1: [Title]

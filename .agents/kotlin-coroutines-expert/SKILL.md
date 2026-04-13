@@ -89,11 +89,11 @@ suspend fun fetchDataWithErrorHandling() = supervisorScope {
 
 ## Best Practices
 
-- ✅ **Do:** Use `Dispatchers.IO` for blocking I/O operations.
-- ✅ **Do:** Cancel scopes when they are no longer needed (e.g., `ViewModel.onCleared`).
-- ✅ **Do:** Use `TestScope` and `runTest` for unit testing coroutines.
-- ❌ **Don't:** Use `GlobalScope`. It breaks structured concurrency and can lead to leaks.
-- ❌ **Don't:** Catch `CancellationException` unless you rethrow it.
+-  **Do:** Use `Dispatchers.IO` for blocking I/O operations.
+-  **Do:** Cancel scopes when they are no longer needed (e.g., `ViewModel.onCleared`).
+-  **Do:** Use `TestScope` and `runTest` for unit testing coroutines.
+-  **Don't:** Use `GlobalScope`. It breaks structured concurrency and can lead to leaks.
+-  **Don't:** Catch `CancellationException` unless you rethrow it.
 
 ## Troubleshooting
 

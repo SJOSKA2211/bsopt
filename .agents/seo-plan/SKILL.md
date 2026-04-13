@@ -110,7 +110,7 @@ Load from `assets/` directory:
 
 ### KPI Targets
 | Metric | Baseline | 3 Month | 6 Month | 12 Month |
-|--------|----------|---------|---------|----------|
+|--------|--|---------|---------|--|
 | Organic Traffic | ... | ... | ... | ... |
 | Keyword Rankings | ... | ... | ... | ... |
 | Domain Authority | ... | ... | ... | ... |
@@ -130,7 +130,7 @@ If DataForSEO MCP tools are available, use `dataforseo_labs_google_competitors_d
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | Unrecognized business type | Fall back to `generic.md` template. Inform user that no industry-specific template was found and proceed with the general business template. |
 | No website URL provided | Proceed with new-site planning mode. Skip current site assessment and competitive gap analysis that require a live URL. |
 | Industry template not found | Check `assets/` directory for available templates. If the requested template file is missing, use `generic.md` and note the missing template in output. |

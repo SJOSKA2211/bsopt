@@ -18,7 +18,7 @@ Source code dependencies must point only **inward** (toward higher-level policie
 ### Layers (hexagonal / ports and adapters)
 
 | Layer | Responsibility | Depends on |
-|-------|----------------|------------|
+|-------|--|--|
 | Entities | Core business entities and rules | Nothing (innermost) |
 | Use cases | Application-specific business rules, orchestration | Entities |
 | Interface adapters | Convert data between use cases and external world | Use cases, entities |

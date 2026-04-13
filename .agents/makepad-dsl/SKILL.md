@@ -100,7 +100,7 @@ pub struct MyWidget {
 ## DSL Syntax Reference
 
 | Syntax | Description | Example |
-|--------|-------------|---------|
+|--------|--|---------|
 | `{ ... }` | Anonymous object | `{ width: 100.0 }` |
 | `Name = { ... }` | Named prototype | `MyStyle = { color: #FFF }` |
 | `<Name> { ... }` | Inherit from prototype | `<MyStyle> { size: 10.0 }` |
@@ -111,7 +111,7 @@ pub struct MyWidget {
 ## Property Types
 
 | Type | Example | Description |
-|------|---------|-------------|
+|------|---------|--|
 | Number | `width: 100.0` | Float value |
 | Color | `color: #FF0000FF` | RGBA hex color |
 | String | `text: "Hello"` | Text string |

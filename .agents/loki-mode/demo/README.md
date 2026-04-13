@@ -25,12 +25,12 @@ The `record-full-demo.sh` script creates a real demo showing:
 Arrange your screen like this before running:
 
 ```
-+------------------+------------------+
++--+--+
 |                  |                  |
 |   TERMINAL       |   BROWSER        |
 |   (run script)   |   (dashboard)    |
 |                  |                  |
-+------------------+------------------+
++--+--+
 ```
 
 ### Run the Demo
@@ -124,7 +124,7 @@ Complete demonstration including:
 ## Published Demos
 
 | Demo | Duration | Link |
-|------|----------|------|
+|------|--|------|
 | Quick Start | 5 min | [asciinema](https://asciinema.org/a/loki-quick-start) |
 | Full Demo | 15 min | [YouTube](https://youtube.com/watch?v=loki-demo) |
 

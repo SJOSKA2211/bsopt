@@ -53,7 +53,7 @@ Cancel button → Exit survey → Offer (or route to CS) → Confirm → Post-ca
 **MRR-based routing:**
 
 | Account MRR | Cancel Flow |
-|-------------|-------------|
+|--|--|
 | <$100/mo | Automated flow with offers |
 | $100-$500/mo | Automated + flag for CS follow-up |
 | $500-$2,000/mo | Route to CS before cancel completes |
@@ -135,7 +135,7 @@ Pause is often better than a discount because it doesn't devalue your product.
 **Implementation:**
 
 | Setting | Recommendation |
-|---------|---------------|
+|---------|--|
 | Pause duration options | 1 month, 2 months, 3 months |
 | Default selection | 1 month (shortest) |
 | Maximum pause | 3 months (longer pauses rarely return) |
@@ -162,8 +162,8 @@ For multi-plan products, downgrade is the strongest save:
 │  ┌─────────────────────────────────┐    │
 │  │ Switch to Starter ($19/mo)      │    │
 │  │                                 │    │
-│  │ ✓ Keep: Projects, integrations  │    │
-│  │ ✗ Lose: Advanced analytics,     │    │
+│  │  Keep: Projects, integrations  │    │
+│  │  Lose: Advanced analytics,     │    │
 │  │         team features           │    │
 │  │                                 │    │
 │  │ [Switch to Starter]             │    │
@@ -237,7 +237,7 @@ The most effective cancel flows use segmentation to show different offers to dif
 ### Segmentation Dimensions
 
 | Dimension | Why It Matters |
-|-----------|---------------|
+|--|--|
 | Plan / MRR | Higher-value customers get personal outreach |
 | Tenure | Long-term customers get more generous offers |
 | Usage level | High-usage customers get different messaging than dormant ones |

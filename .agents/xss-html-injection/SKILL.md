@@ -494,7 +494,7 @@ Content-Security-Policy: script-src 'self' https://cdn.trusted.com
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Script not executing | Check CSP blocking; verify encoding; try event handlers (img, svg onerror); confirm JS enabled |
 | Payload appears but doesn't execute | Break out of attribute context with `"` or `'`; check if inside comment; test different contexts |
 | Cookies not accessible | Check HttpOnly flag; try localStorage/sessionStorage; use no-cors mode |

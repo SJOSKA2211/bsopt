@@ -204,7 +204,7 @@ Automate Vercel platform operations through Composio's Vercel toolkit via Rube M
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List projects | VERCEL_LIST_PROJECTS | limit |
 | Get project details | VERCEL_GET_PROJECT | idOrName |
 | Update project | VERCEL_UPDATE_PROJECT | idOrName, name, framework |

@@ -255,7 +255,7 @@ def step_by_step_calculation():
 
     def check_match(manual, library, name):
         diff = abs(manual - library)
-        match = "✓" if diff < 1e-10 else "✗"
+        match = "" if diff < 1e-10 else ""
         print(f"{name:<20} {manual:<25.10f} {library:<25.10f} {match:<10}")
 
     check_match(d1, lib_d1, "d₁")

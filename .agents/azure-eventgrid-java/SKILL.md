@@ -67,7 +67,7 @@ EventGridPublisherAsyncClient<EventGridEvent> asyncClient = new EventGridPublish
 ## Event Types
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | `EventGridEvent` | Azure Event Grid native schema |
 | `CloudEvent` | CNCF CloudEvents 1.0 specification |
 | `BinaryData` | Custom schema events |

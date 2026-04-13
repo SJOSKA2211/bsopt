@@ -36,15 +36,15 @@ async def run_until_healthy(max_retries: int = 30, retry_interval: int = 5):
     Ensures MinIO is up and running.
     Attempts to start it via docker-compose if connection fails initially.
     """
-    print("🔍 Checking MinIO Health...")
+    print(" Checking MinIO Health...")
 
     for i in range(max_retries):
         if await check_minio_health():
-            print("✅ MinIO is HEALTHY and READY.")
+            print(" MinIO is HEALTHY and READY.")
             return True
 
         if i == 0:
-            print("⚠️ MinIO not reachable. Attempting to start via docker-compose...")
+            print("️ MinIO not reachable. Attempting to start via docker-compose...")
             try:
                 compose_path = "infrastructure/orchestration/docker-compose.yml"
                 if not os.path.exists(compose_path):
@@ -55,14 +55,14 @@ async def run_until_healthy(max_retries: int = 30, retry_interval: int = 5):
                     check=True,
                     capture_output=True,
                 )
-                print("🚀 started_via_docker_compose")
+                print(" started_via_docker_compose")
             except Exception as e:
-                print(f"🚨 Failed to run docker-compose: {str(e)}")
+                print(f" Failed to run docker-compose: {str(e)}")
 
         print(f"⏳ Waiting for MinIO... (Attempt {i + 1}/{max_retries})")
         await asyncio.sleep(retry_interval)
 
-    print("❌ MinIO failed to become healthy within the timeout.")
+    print(" MinIO failed to become healthy within the timeout.")
     return False
 
 if __name__ == "__main__":

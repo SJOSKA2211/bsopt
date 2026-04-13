@@ -84,14 +84,14 @@ Delivery Product: [Shipping] Standard  (used for invoicing)
 
 Pricing:
   Price: $9.99
-  ☑ Free if order amount is above: $75.00
+   Free if order amount is above: $75.00
 
 Availability:
   Countries: United States
   States: All states
 
 Publish to website:
-  ☑ Published  (visible to customers at checkout)
+   Published  (visible to customers at checkout)
 ```
 
 ### Example 4: Set Up Abandoned Cart Recovery
@@ -117,13 +117,13 @@ Note: Some Odoo hosting plans may require "Email Marketing" app enabled.
 
 ## Best Practices
 
-- ✅ **Do:** Use **Product Variants** (color, size) instead of duplicate products — cleaner catalog and shared inventory tracking.
-- ✅ **Do:** Enable **HTTPS** (SSL certificate) via your hosting provider and set HSTS in Website → Settings → Security.
-- ✅ **Do:** Set up **Abandoned Cart Recovery** using Marketing Automation or a scheduled email sequence.
-- ✅ **Do:** Add a **Stripe webhook** so Odoo is notified of payment events in real time — without it, failed payments may not update correctly.
-- ❌ **Don't:** Leave the payment provider in **Test mode** in production — no real charges will be processed.
-- ❌ **Don't:** Publish products without an **Internal Reference (SKU)** — it breaks inventory tracking and order fulfillment.
-- ❌ **Don't:** Use the same Stripe key for Test and Production environments — always rotate to live keys before going live.
+-  **Do:** Use **Product Variants** (color, size) instead of duplicate products — cleaner catalog and shared inventory tracking.
+-  **Do:** Enable **HTTPS** (SSL certificate) via your hosting provider and set HSTS in Website → Settings → Security.
+-  **Do:** Set up **Abandoned Cart Recovery** using Marketing Automation or a scheduled email sequence.
+-  **Do:** Add a **Stripe webhook** so Odoo is notified of payment events in real time — without it, failed payments may not update correctly.
+-  **Don't:** Leave the payment provider in **Test mode** in production — no real charges will be processed.
+-  **Don't:** Publish products without an **Internal Reference (SKU)** — it breaks inventory tracking and order fulfillment.
+-  **Don't:** Use the same Stripe key for Test and Production environments — always rotate to live keys before going live.
 
 ## Limitations
 

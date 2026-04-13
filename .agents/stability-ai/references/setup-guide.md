@@ -83,7 +83,7 @@ A imagem sera salva em `data/outputs/`.
 ## Rate Limits Detalhados
 
 | Plano | Requests/10s | Modelos |
-|-------|-------------|---------|
+|-------|--|---------|
 | Community | 150 | Todos SD3.5, Ultra, Core |
 
 ## Seguranca

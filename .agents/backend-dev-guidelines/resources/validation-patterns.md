@@ -20,32 +20,32 @@ Complete guide to input validation using Zod schemas for type-safe validation.
 ### Benefits Over Joi/Other Libraries
 
 **Type Safety:**
-- ✅ Full TypeScript inference
-- ✅ Runtime + compile-time validation
-- ✅ Automatic type generation
+-  Full TypeScript inference
+-  Runtime + compile-time validation
+-  Automatic type generation
 
 **Developer Experience:**
-- ✅ Intuitive API
-- ✅ Composable schemas
-- ✅ Excellent error messages
+-  Intuitive API
+-  Composable schemas
+-  Excellent error messages
 
 **Performance:**
-- ✅ Fast validation
-- ✅ Small bundle size
-- ✅ Tree-shakeable
+-  Fast validation
+-  Small bundle size
+-  Tree-shakeable
 
 ### Migration from Joi
 
 Modern validation uses Zod instead of Joi:
 
 ```typescript
-// ❌ OLD - Joi (being phased out)
+//  OLD - Joi (being phased out)
 const schema = Joi.object({
     email: Joi.string().email().required(),
     name: Joi.string().min(3).required(),
 });
 
-// ✅ NEW - Zod (preferred)
+//  NEW - Zod (preferred)
 const schema = z.object({
     email: z.string().email(),
     name: z.string().min(3),
@@ -463,8 +463,8 @@ type CreateUserDTO = z.infer<typeof createUserSchema>;
 class UserService {
     async createUser(data: CreateUserDTO): Promise<User> {
         // data is fully typed!
-        console.log(data.email); // ✅ TypeScript knows this exists
-        console.log(data.invalid); // ❌ TypeScript error!
+        console.log(data.email); //  TypeScript knows this exists
+        console.log(data.invalid); //  TypeScript error!
     }
 }
 ```

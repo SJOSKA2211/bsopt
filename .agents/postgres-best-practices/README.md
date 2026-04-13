@@ -109,7 +109,7 @@ See `rules/_contributing.md` for detailed guidelines. Key principles:
 ## Impact Levels
 
 | Level | Improvement | Examples |
-|-------|-------------|----------|
+|-------|--|--|
 | CRITICAL | 10-100x | Missing indexes, connection exhaustion |
 | HIGH | 5-20x | Wrong index types, poor partitioning |
 | MEDIUM-HIGH | 2-5x | N+1 queries, RLS optimization |

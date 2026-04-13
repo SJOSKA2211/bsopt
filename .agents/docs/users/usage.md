@@ -14,9 +14,9 @@ If you came in through a **Claude Code** or **Codex** plugin instead of a full l
 
 When you ran `npx antigravity-awesome-skills` or cloned the repository, you:
 
-✅ **Downloaded 1,331+ skill files** to your computer (default: `~/.gemini/antigravity/skills/`; or a custom path like `~/.agent/skills/` if you used `--path`)  
-✅ **Made them available** to your AI assistant  
-❌ **Did NOT enable them all automatically** (they're just sitting there, waiting)
+ **Downloaded 1,331+ skill files** to your computer (default: `~/.gemini/antigravity/skills/`; or a custom path like `~/.agent/skills/` if you used `--path`)  
+ **Made them available** to your AI assistant  
+ **Did NOT enable them all automatically** (they're just sitting there, waiting)
 
 Think of it like installing a toolbox. You have all the tools now, but you need to **pick which ones to use** for each job.
 
@@ -34,16 +34,16 @@ Bundles are **curated groups** of skills organized by role. They help you decide
 
 **Analogy:**
 
-- You installed a toolbox with 1,331+ tools (✅ done)
+- You installed a toolbox with 1,331+ tools ( done)
 - Bundles are like **labeled organizer trays** saying: "If you're a carpenter, start with these 10 tools"
 - You can either **pick skills from the tray** or install that tray as a focused marketplace bundle plugin
 
 ### What Bundles Are NOT
 
-❌ Separate skill downloads  
-❌ Invokable mega-skills like `@essentials` or `/web-wizard`
-❌ Something most users need to activate during normal install
-❌ A replacement for invoking the individual skills inside the bundle
+ Separate skill downloads  
+ Invokable mega-skills like `@essentials` or `/web-wizard`
+ Something most users need to activate during normal install
+ A replacement for invoking the individual skills inside the bundle
 
 ### Example: The "Web Wizard" Bundle
 
@@ -375,7 +375,7 @@ Use @skill-creator to help me build a custom skill for [your task]
 **Save this for quick lookup:**
 
 | Task             | Skill to Use                   | Example Prompt                                      |
-| ---------------- | ------------------------------ | --------------------------------------------------- |
+| -- | -- | -- |
 | Plan new feature | `@brainstorming`               | `Use @brainstorming to design a login system`       |
 | Review code      | `@lint-and-validate`           | `Use @lint-and-validate on src/app.js`              |
 | Debug issue      | `@systematic-debugging`        | `Use @systematic-debugging to fix login error`      |
@@ -390,10 +390,10 @@ Use @skill-creator to help me build a custom skill for [your task]
 
 Now that you understand how to use skills:
 
-1. ✅ **Try one skill right now** - Start with `@brainstorming` on any idea you have
-2. 📚 **Pick 3-5 skills** from your role's bundle in [bundles.md](bundles.md)
-3. 🔖 **Bookmark** [CATALOG.md](../../CATALOG.md) for when you need something specific
-4. 🎯 **Try a workflow** from [workflows.md](workflows.md) for a complete end-to-end process
+1.  **Try one skill right now** - Start with `@brainstorming` on any idea you have
+2.  **Pick 3-5 skills** from your role's bundle in [bundles.md](bundles.md)
+3.  **Bookmark** [CATALOG.md](../../CATALOG.md) for when you need something specific
+4.  **Try a workflow** from [workflows.md](workflows.md) for a complete end-to-end process
 
 ---
 
@@ -431,4 +431,4 @@ If something still doesn't make sense:
 3. [Open a Discussion](https://github.com/sickn33/antigravity-awesome-skills/discussions)
 4. [File an Issue](https://github.com/sickn33/antigravity-awesome-skills/issues) to help us improve this guide!
 
-Remember: You're not alone! The whole point of this project is to make AI assistants easier to use. If this guide didn't help, let us know so we can fix it. 🙌
+Remember: You're not alone! The whole point of this project is to make AI assistants easier to use. If this guide didn't help, let us know so we can fix it. 

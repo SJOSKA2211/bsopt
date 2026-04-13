@@ -21,9 +21,9 @@ from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
-# ==============================================================================
+# ==
 # Manifold: UNIFIED CELERY MANIFOLD (v5.0)
-# ==============================================================================
+# ==
 
 celery_app = Celery(
     "Manifold",

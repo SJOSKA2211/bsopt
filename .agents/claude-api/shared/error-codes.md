@@ -5,7 +5,7 @@ This file documents HTTP error codes returned by the Claude API, their common ca
 ## Error Code Summary
 
 | Code | Error Type              | Retryable | Common Cause                         |
-| ---- | ----------------------- | --------- | ------------------------------------ |
+| ---- | -- | --------- | -- |
 | 400  | `invalid_request_error` | No        | Invalid request format or parameters |
 | 401  | `authentication_error`  | No        | Invalid or missing API key           |
 | 403  | `permission_error`      | No        | API key lacks permission             |
@@ -159,7 +159,7 @@ thinking: budget_tokens=10000, max_tokens=16000
 ## Common Mistakes and Fixes
 
 | Mistake                         | Error            | Fix                                                     |
-| ------------------------------- | ---------------- | ------------------------------------------------------- |
+| -- | -- | -- |
 | `budget_tokens` >= `max_tokens` | 400              | Ensure `budget_tokens` < `max_tokens`                   |
 | Typo in model ID                | 404              | Use valid model ID like `claude-opus-4-6`               |
 | First message is `assistant`    | 400              | First message must be `user`                            |
@@ -172,7 +172,7 @@ thinking: budget_tokens=10000, max_tokens=16000
 **Always use the SDK's typed exception classes** instead of checking error messages with string matching. Each HTTP error code maps to a specific exception class:
 
 | HTTP Code | TypeScript Class                  | Python Class                      |
-| --------- | --------------------------------- | --------------------------------- |
+| --------- | -- | -- |
 | 400       | `Anthropic.BadRequestError`       | `anthropic.BadRequestError`       |
 | 401       | `Anthropic.AuthenticationError`   | `anthropic.AuthenticationError`   |
 | 403       | `Anthropic.PermissionDeniedError` | `anthropic.PermissionDeniedError` |
@@ -182,7 +182,7 @@ thinking: budget_tokens=10000, max_tokens=16000
 | Any       | `Anthropic.APIError`              | `anthropic.APIError`              |
 
 ```typescript
-// ✅ Correct: use typed exceptions
+//  Correct: use typed exceptions
 try {
   const response = await client.messages.create({...});
 } catch (error) {
@@ -193,7 +193,7 @@ try {
   }
 }
 
-// ❌ Wrong: don't check error messages with string matching
+//  Wrong: don't check error messages with string matching
 try {
   const response = await client.messages.create({...});
 } catch (error) {

@@ -78,7 +78,7 @@ rsi = av_get("RSI", symbol="AAPL", interval="daily", time_period=14, series_type
 ## API Categories
 
 | Category | Key Functions |
-|----------|--------------|
+|--|--|
 | **Time Series (Stocks)** | GLOBAL_QUOTE, TIME_SERIES_INTRADAY, TIME_SERIES_DAILY, TIME_SERIES_WEEKLY, TIME_SERIES_MONTHLY |
 | **Options** | REALTIME_OPTIONS, HISTORICAL_OPTIONS |
 | **Alpha Intelligence** | NEWS_SENTIMENT, EARNINGS_CALL_TRANSCRIPT, TOP_GAINERS_LOSERS, INSIDER_TRANSACTIONS, ANALYTICS_FIXED_WINDOW |
@@ -92,7 +92,7 @@ rsi = av_get("RSI", symbol="AAPL", interval="daily", time_period=14, series_type
 ## Common Parameters
 
 | Parameter | Values | Notes |
-|-----------|--------|-------|
+|--|--------|-------|
 | `outputsize` | `compact` / `full` | compact = last 100 points; full = 20+ years |
 | `datatype` | `json` / `csv` | Default: json |
 | `interval` | `1min`, `5min`, `15min`, `30min`, `60min`, `daily`, `weekly`, `monthly` | Depends on endpoint |

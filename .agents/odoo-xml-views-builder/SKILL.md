@@ -86,13 +86,13 @@ This skill generates and reviews Odoo XML view definitions for Kanban, Form, Lis
 
 ## Best Practices
 
-- ✅ **Do:** Use inline `invisible="condition"` (Odoo 17+) instead of `attrs` for show/hide logic.
-- ✅ **Do:** Use `attrs="{'invisible': [...]}"` only if you are targeting Odoo 14–16 — it is deprecated in v17.
-- ✅ **Do:** Always set a `string` attribute on your view record for debugging clarity.
-- ✅ **Do:** Use `<chatter/>` (v17) or `<div class="oe_chatter">` + field tags (v16 and below) for activity tracking.
-- ❌ **Don't:** Use `attrs` in Odoo 17 — it is fully deprecated and raises warnings in logs.
-- ❌ **Don't:** Put business logic in view XML — keep it in Python model methods.
-- ❌ **Don't:** Use hardcoded `domain` strings in views when a `domain` field on the model can be used dynamically.
+-  **Do:** Use inline `invisible="condition"` (Odoo 17+) instead of `attrs` for show/hide logic.
+-  **Do:** Use `attrs="{'invisible': [...]}"` only if you are targeting Odoo 14–16 — it is deprecated in v17.
+-  **Do:** Always set a `string` attribute on your view record for debugging clarity.
+-  **Do:** Use `<chatter/>` (v17) or `<div class="oe_chatter">` + field tags (v16 and below) for activity tracking.
+-  **Don't:** Use `attrs` in Odoo 17 — it is fully deprecated and raises warnings in logs.
+-  **Don't:** Put business logic in view XML — keep it in Python model methods.
+-  **Don't:** Use hardcoded `domain` strings in views when a `domain` field on the model can be used dynamically.
 
 ## Limitations
 

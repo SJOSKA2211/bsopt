@@ -50,7 +50,7 @@ investimento, liquidez, retorno e timing de mercado.
 ## Mapa De Liquidez (Tempo Médio De Revenda Pós-Arrematação)
 
 | Segmento | Capital SP/RJ | Capitais Grandes | Interior | Interior Pequeno |
-|----------|--------------|-----------------|----------|-----------------|
+|--|--|--|--|--|
 | Apart. 1-2 quartos | 30-60 dias | 60-90 dias | 90-180 dias | 180-360 dias |
 | Apart. 3 quartos | 60-90 dias | 90-150 dias | 120-240 dias | 240+ dias |
 | Casa condomínio | 60-120 dias | 90-180 dias | 120-240 dias | 240+ dias |
@@ -113,7 +113,7 @@ Negociação direta (sem concorrência):
 ## Mapa De Deságio Por Situação Do Imóvel
 
 | Situação | Faixa de Deságio |
-|----------|-----------------|
+|--|--|
 | Desocupado, sem débitos, documentação ok | 15-25% |
 | Desocupado, débitos quantificados | 25-35% |
 | Ocupado (devedor cooperativo) | 30-40% |
@@ -291,7 +291,7 @@ BAIXA DE JUROS (SELIC baixa):
 Identificar o perfil correto do comprador final aumenta a velocidade de venda:
 
 | Perfil | Imóvel Ideal | Canal de Venda |
-|--------|-------------|----------------|
+|--------|--|--|
 | Família classe média | Apt 3Q, casa condomínio | ZAP, Viva Real, corretor |
 | Jovem casal | Studio, 1-2Q, localização central | Instagram, Quinto Andar |
 | Empresário/Investidor | Comercial, galpão, terreno | Indicação, CRECI |
@@ -304,7 +304,7 @@ Identificar o perfil correto do comprador final aumenta a velocidade de venda:
 ## Riscos Que Afetam A Estratégia De Saída
 
 | Risco | Probabilidade | Impacto | Mitigação |
-|-------|--------------|---------|-----------|
+|-------|--|---------|--|
 | Mercado local sofre queda | Médio | Alto | Diversificar geograficamente |
 | Imóvel não aluga/vende no prazo | Médio | Médio | Aceitar desconto maior na saída |
 | Reforma acima do orçamento | Alto | Médio | Margem de 30% para obras |
@@ -400,7 +400,7 @@ Para superar CDI em 12 meses:
 ## Quadro Comparativo De Investimento
 
 | Investimento | Retorno Esperado | Risco | Liquidez | Capital Mín. |
-|-------------|-----------------|-------|----------|-------------|
+|--|--|-------|--|--|
 | CDI/Tesouro Selic | 11-13% a.a. | Muito baixo | D+0 a D+1 | R$ 30 |
 | FIIs (IFIX) | 10-12% a.a. | Médio | D+2 | R$ 100 |
 | LCI/LCA | 10-12% a.a. | Baixo | Carência 90d | R$ 1.000 |

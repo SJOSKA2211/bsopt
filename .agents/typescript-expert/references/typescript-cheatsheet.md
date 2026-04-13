@@ -27,8 +27,8 @@ const value: string | number = 'hello'
 const direction: 'up' | 'down' | 'left' | 'right' = 'up'
 
 // Any vs Unknown
-const anyValue: any = 'anything'     // ❌ Avoid
-const unknownValue: unknown = 'safe' // ✅ Prefer, requires narrowing
+const anyValue: any = 'anything'     //  Avoid
+const unknownValue: unknown = 'safe' //  Prefer, requires narrowing
 ```
 
 ## Type Aliases & Interfaces
@@ -289,8 +289,8 @@ function getOrder(orderId: OrderId, userId: UserId) {}
 const userId = createUserId('user-123')
 const orderId = createOrderId('order-456')
 
-getOrder(orderId, userId)  // ✅ OK
-// getOrder(userId, orderId)  // ❌ Error - types don't match
+getOrder(orderId, userId)  //  OK
+// getOrder(userId, orderId)  //  Error - types don't match
 ```
 
 ## Module Declarations
@@ -352,32 +352,32 @@ declare global {
 ## Best Practices
 
 ```typescript
-// ✅ Prefer interface for objects
+//  Prefer interface for objects
 interface User {
   name: string
 }
 
-// ✅ Use const assertions
+//  Use const assertions
 const routes = ['home', 'about'] as const
 
-// ✅ Use satisfies for validation
+//  Use satisfies for validation
 const config = {
   api: 'https://api.example.com'
 } satisfies Record<string, string>
 
-// ✅ Use unknown over any
+//  Use unknown over any
 function parse(input: unknown) {
   if (typeof input === 'string') {
     return JSON.parse(input)
   }
 }
 
-// ✅ Explicit return types for public APIs
+//  Explicit return types for public APIs
 export function getUser(id: string): User | null {
   // ...
 }
 
-// ❌ Avoid
+//  Avoid
 const data: any = fetchData()
 data.anything.goes.wrong  // No type safety
 ```

@@ -25,7 +25,7 @@ const mesh = new THREE.Mesh(geometry, material);
 ## Material Types Overview
 
 | Material             | Use Case                              | Lighting           |
-| -------------------- | ------------------------------------- | ------------------ |
+| -- | -- | -- |
 | MeshBasicMaterial    | Unlit, flat colors, wireframes        | No                 |
 | MeshLambertMaterial  | Matte surfaces, performance           | Yes (diffuse only) |
 | MeshPhongMaterial    | Shiny surfaces, specular highlights   | Yes                |

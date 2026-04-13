@@ -64,7 +64,7 @@ def scan_project_diaries(date_str):
         # Validation: Check for naked YYYY-MM-DD.md which is forbidden in projects
         naked_diary = diary_dir / f"{date_str}.md"
         if naked_diary.exists():
-            print(f"⚠️  WARNING: Found naked diary in project '{project_dir.name}': {naked_diary}")
+            print(f"️  WARNING: Found naked diary in project '{project_dir.name}': {naked_diary}")
             print(
                 f"   Ironclad Rule: Project diaries MUST have a suffix (e.g., {date_str}-{project_dir.name}.md)"
             )
@@ -95,21 +95,21 @@ def inject_into_global(global_path, project_diaries, date_str):
     if global_path.exists():
         global_content = global_path.read_text(encoding="utf-8")
     else:
-        global_content = f"# 📔 全域日誌：{date_str}\n\n## 今日全域回顧 (Global Summary)\n（待 AI 重寫）\n\n---\n\n## 🚀 專案進度 (Project Accomplishments)\n\n---\n\n## 💡 改善與學習 (Improvements & Learnings)\n\n---\n"
+        global_content = f"#  全域日誌：{date_str}\n\n## 今日全域回顧 (Global Summary)\n（待 AI 重寫）\n\n---\n\n##  專案進度 (Project Accomplishments)\n\n---\n\n##  改善與學習 (Improvements & Learnings)\n\n---\n"
 
     for diary in project_diaries:
         proj_name = diary["project"]
         proj_content = diary["content"]
-        marker = f"### 📁 {proj_name}"
+        marker = f"###  {proj_name}"
 
         # Remove old block for this project if exists (to support re-injection)
-        pattern = re.escape(marker) + r".*?(?=### 📁 |## 💡|## 🎯|---(?:\s*\n## )|\Z)"
+        pattern = re.escape(marker) + r".*?(?=###  |## |## |---(?:\s*\n## )|\Z)"
         global_content = re.sub(pattern, "", global_content, flags=re.DOTALL)
 
-        # Find insertion point: after "## 🚀 專案進度"
-        insertion_anchor = "## 🚀 專案進度 (Project Accomplishments)"
+        # Find insertion point: after "##  專案進度"
+        insertion_anchor = "##  專案進度 (Project Accomplishments)"
         if insertion_anchor not in global_content:
-            insertion_anchor = "## 🚀 專案進度"
+            insertion_anchor = "##  專案進度"
 
         if insertion_anchor in global_content:
             # Extract the meaningful content from the project diary (skip its H1 title)
@@ -143,7 +143,7 @@ def run_inject(date_str):
 
     # 1. Scan
     diaries = scan_project_diaries(date_str)
-    print(f"🔍 Found {len(diaries)} valid project diaries.")
+    print(f" Found {len(diaries)} valid project diaries.")
     for d in diaries:
         print(f"   - {d['project']}: {d['path']}")
 
@@ -153,15 +153,15 @@ def run_inject(date_str):
         if not global_path.exists():
             global_path.parent.mkdir(parents=True, exist_ok=True)
             global_path.write_text(
-                f"# 📔 全域日誌：{date_str}\n\n## 今日全域回顧 (Global Summary)\n\n---\n\n## 🚀 專案進度 (Project Accomplishments)\n\n---\n\n## 💡 改善與學習 (Improvements & Learnings)\n\n---\n",
+                f"#  全域日誌：{date_str}\n\n## 今日全域回顧 (Global Summary)\n\n---\n\n##  專案進度 (Project Accomplishments)\n\n---\n\n##  改善與學習 (Improvements & Learnings)\n\n---\n",
                 encoding="utf-8",
             )
-        print(f"📄 Global diary ready at: {global_path}")
+        print(f" Global diary ready at: {global_path}")
         return
 
     # 2. Inject
     result = inject_into_global(global_path, diaries, date_str)
-    print(f"✅ Injected into global diary: {result}")
+    print(f" Injected into global diary: {result}")
     print("⏸️  Now hand off to AI for intelligent rewrite (Step 3).")
 
 
@@ -170,17 +170,17 @@ def run_inject(date_str):
 
 def sync_to_notion(global_path):
     """Push global diary to Notion."""
-    print("🚀 Syncing to Notion...")
+    print(" Syncing to Notion...")
     if not NOTION_SYNC_SCRIPT.exists():
-        print(f"❌ Notion sync script not found: {NOTION_SYNC_SCRIPT}")
+        print(f" Notion sync script not found: {NOTION_SYNC_SCRIPT}")
         return False
 
     env = os.environ.copy()
     if "NOTION_TOKEN" not in env or not env["NOTION_TOKEN"]:
-        print("❌ NOTION_TOKEN is not set in environment.")
+        print(" NOTION_TOKEN is not set in environment.")
         return False
     if "NOTION_DIARY_DB" not in env or not env["NOTION_DIARY_DB"]:
-        print("❌ NOTION_DIARY_DB is not set in environment.")
+        print(" NOTION_DIARY_DB is not set in environment.")
         return False
 
     try:
@@ -194,13 +194,13 @@ def sync_to_notion(global_path):
         print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Notion sync failed:\n{e.stderr}")
+        print(f" Notion sync failed:\n{e.stderr}")
         return False
 
 
 def backup_to_obsidian(global_path):
     # Copy global diary to Obsidian vault.
-    print("📂 Backing up to Obsidian...")
+    print(" Backing up to Obsidian...")
 
     # Safety Check: If path is empty, it shouldn't backup
     if not str(OBSIDIAN_DAILY_NOTES).strip():
@@ -208,15 +208,15 @@ def backup_to_obsidian(global_path):
         return False
 
     if not OBSIDIAN_DAILY_NOTES.exists():
-        print(f"⚠️  Obsidian path not found: {OBSIDIAN_DAILY_NOTES}. Skipping backup.")
+        print(f"️  Obsidian path not found: {OBSIDIAN_DAILY_NOTES}. Skipping backup.")
         return False
     try:
         dest = OBSIDIAN_DAILY_NOTES / global_path.name
         shutil.copy2(global_path, dest)
-        print(f"✅ Backed up to: {dest}")
+        print(f" Backed up to: {dest}")
         return True
     except Exception as e:
-        print(f"❌ Obsidian backup failed: {e}")
+        print(f" Obsidian backup failed: {e}")
         return False
 
 
@@ -227,12 +227,12 @@ def run_qmd_embed():
         # Run qmd embed in the project root
         project_root = GLOBAL_DIARY_ROOT.parent
         subprocess.run(["qmd", "embed"], cwd=project_root, check=True, text=True)
-        print("✅ QMD Embedding completed.")
+        print(" QMD Embedding completed.")
         return True
     except FileNotFoundError:
-        print("⚠️  QMD not installed. Skipping semantic update.")
+        print("️  QMD not installed. Skipping semantic update.")
     except Exception as e:
-        print(f"❌ QMD Embedding failed: {e}")
+        print(f" QMD Embedding failed: {e}")
     return False
 
 
@@ -242,7 +242,7 @@ def run_sync(date_str):
     global_path = get_global_path(date_str)
 
     if not global_path.exists():
-        print(f"❌ Global diary not found: {global_path}")
+        print(f" Global diary not found: {global_path}")
         print("   Please run --inject-only first, then let AI rewrite.")
         sys.exit(1)
 
@@ -271,13 +271,13 @@ def main():
         elif mode == "--sync-only":
             run_sync(date_str)
         else:
-            print(f"❌ Unknown mode: {mode}")
+            print(f" Unknown mode: {mode}")
             print("Usage: python master_diary_sync.py [--inject-only | --sync-only]")
             sys.exit(1)
     else:
         # Legacy: run both (no AI rewrite in between)
         print(
-            "⚠️  Running full pipeline (legacy mode). Consider using --inject-only and --sync-only separately."
+            "️  Running full pipeline (legacy mode). Consider using --inject-only and --sync-only separately."
         )
         run_inject(date_str)
         run_sync(date_str)

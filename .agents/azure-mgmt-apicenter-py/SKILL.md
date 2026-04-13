@@ -222,7 +222,7 @@ metadata = client.metadata_schemas.create_or_update(
 ## Operations
 
 | Operation Group | Purpose |
-|----------------|---------|
+|--|---------|
 | `services` | API Center service management |
 | `workspaces` | Workspace management |
 | `apis` | API registration and management |

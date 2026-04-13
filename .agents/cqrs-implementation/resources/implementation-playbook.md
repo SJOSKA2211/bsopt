@@ -35,7 +35,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 2. Key Components
 
 | Component           | Responsibility                  |
-| ------------------- | ------------------------------- |
+| -- | -- |
 | **Command**         | Intent to change state          |
 | **Command Handler** | Validates and executes commands |
 | **Event**           | Record of state change          |

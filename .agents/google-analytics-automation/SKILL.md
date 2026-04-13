@@ -216,7 +216,7 @@ Automate Google Analytics 4 (GA4) reporting and property management through Comp
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List accounts | GOOGLE_ANALYTICS_LIST_ACCOUNTS | pageSize, pageToken |
 | List properties | GOOGLE_ANALYTICS_LIST_PROPERTIES | filter, pageSize |
 | Get metadata | GOOGLE_ANALYTICS_GET_METADATA | property |

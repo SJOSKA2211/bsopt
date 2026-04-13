@@ -24,7 +24,7 @@ so only apply the UTF-8 conversion workaround when you are dealing with older sh
 behavior or a log file that is already unreadable.
 
 | Problem | Symptom | Solution |
-|---------|---------|----------|
+|---------|---------|--|
 | `dotnet > log.txt` | `view_file` fails in older Windows PowerShell | `Get-Content log.txt | Set-Content -Encoding utf8 log_utf8.txt` |
 | `npm run > log.txt` | Need a UTF-8 text log with errors included | `npm run ... 2>&1 | Out-File -Encoding UTF8 log.txt` |
 
@@ -38,8 +38,8 @@ conversion only when older Windows PowerShell redirection produces an unreadable
 ### CRITICAL: Quoting
 Windows paths often contain spaces.
 
-| ❌ Wrong | ✅ Correct |
-|----------|-----------|
+|  Wrong |  Correct |
+|--|--|
 | `dotnet build src/my project/file.fsproj` | `dotnet build "src/my project/file.fsproj"` |
 | `& C:\Path With Spaces\bin.exe` | `& "C:\Path With Spaces\bin.exe"` |
 
@@ -57,8 +57,8 @@ In PowerShell, if an executable path starts with a quote, you MUST use the `&` o
 
 ## 3. Common Binary & Cmdlet Pitfalls
 
-| Action | ❌ CMD Style | ✅ PowerShell Choice |
-|--------|-------------|---------------------|
+| Action |  CMD Style |  PowerShell Choice |
+|--------|--|--|
 | Delete | `del /f /q file` | `Remove-Item -Force file` |
 | Copy | `copy a b` | `Copy-Item a b` |
 | Move | `move a b` | `Move-Item a b` |
@@ -99,7 +99,7 @@ Windows has a 260-character path limit by default.
 ## 7. Troubleshooting Shell Errors
 
 | Error | Likely Cause | Fix |
-|-------|-------------|-----|
+|-------|--|-----|
 | `The term 'xxx' is not recognized` | Path not in $env:PATH | Use absolute path or fix PATH. |
 | `Access to the path is denied` | File in use or permissions | Stop process or run as Admin. |
 | `Encoding mismatch` | Older shell redirection rewrote the output | Re-export the file as UTF-8 or capture with `2>&1 | Out-File -Encoding UTF8`. |

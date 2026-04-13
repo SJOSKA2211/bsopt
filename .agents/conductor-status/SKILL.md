@@ -93,33 +93,33 @@ Scan for potential blockers:
 ### Full Project Status (no argument)
 
 ```
-================================================================================
+==
                         PROJECT STATUS: {Project Name}
-================================================================================
+==
 Last Updated: {current timestamp}
 
---------------------------------------------------------------------------------
+--
                               OVERALL PROGRESS
---------------------------------------------------------------------------------
+--
 
 Tracks:     {completed}/{total} completed ({percentage}%)
 Tasks:      {completed}/{total} completed ({percentage}%)
 
-Progress:   [##########..........] {percentage}%
+Progress:   [##..........] {percentage}%
 
---------------------------------------------------------------------------------
+--
                               TRACK SUMMARY
---------------------------------------------------------------------------------
+--
 
 | Status | Track ID          | Type    | Tasks      | Last Updated |
-|--------|-------------------|---------|------------|--------------|
+|--------|--|---------|--|--|
 | [x]    | auth_20250110     | feature | 12/12 (100%)| 2025-01-12  |
 | [~]    | dashboard_20250112| feature | 7/15 (47%) | 2025-01-15  |
 | [ ]    | nav-fix_20250114  | bug     | 0/4 (0%)   | 2025-01-14  |
 
---------------------------------------------------------------------------------
+--
                               CURRENT FOCUS
---------------------------------------------------------------------------------
+--
 
 Active Track:  dashboard_20250112 - Dashboard Feature
 Current Phase: Phase 2: Core Components
@@ -131,17 +131,17 @@ Progress in Phase:
   - [~] Task 2.3: Implement chart rendering
   - [ ] Task 2.4: Add filter controls
 
---------------------------------------------------------------------------------
+--
                               NEXT ACTIONS
---------------------------------------------------------------------------------
+--
 
 1. Complete: Task 2.3 - Implement chart rendering (dashboard_20250112)
 2. Then: Task 2.4 - Add filter controls (dashboard_20250112)
 3. After Phase 2: Phase verification checkpoint
 
---------------------------------------------------------------------------------
+--
                                BLOCKERS
---------------------------------------------------------------------------------
+--
 
 {If blockers found:}
 ! BLOCKED: Task 3.1 in dashboard_20250112 depends on api_20250111 (incomplete)
@@ -149,26 +149,26 @@ Progress in Phase:
 {If no blockers:}
 No blockers identified.
 
-================================================================================
+==
 Commands: /conductor:implement {trackId} | /conductor:new-track | /conductor:revert
-================================================================================
+==
 ```
 
 ### Single Track Status (with track-id argument)
 
 ```
-================================================================================
+==
                     TRACK STATUS: {Track Title}
-================================================================================
+==
 Track ID:    {trackId}
 Type:        {feature|bug|chore|refactor}
 Status:      {Pending|In Progress|Complete}
 Created:     {date}
 Updated:     {date}
 
---------------------------------------------------------------------------------
+--
                               SPECIFICATION
---------------------------------------------------------------------------------
+--
 
 Summary: {brief summary from spec.md}
 
@@ -177,12 +177,12 @@ Acceptance Criteria:
   - [ ] {Criterion 2}
   - [ ] {Criterion 3}
 
---------------------------------------------------------------------------------
+--
                               IMPLEMENTATION
---------------------------------------------------------------------------------
+--
 
 Overall:    {completed}/{total} tasks ({percentage}%)
-Progress:   [##########..........] {percentage}%
+Progress:   [##..........] {percentage}%
 
 ## Phase 1: {Phase Name} [COMPLETE]
   - [x] Task 1.1: {description}
@@ -200,26 +200,26 @@ Progress:   [##########..........] {percentage}%
   - [ ] Task 3.2: {description}
   - [ ] Verification: {description}
 
---------------------------------------------------------------------------------
+--
                               GIT HISTORY
---------------------------------------------------------------------------------
+--
 
 Related Commits:
   abc1234 - feat: add login form ({trackId})
   def5678 - feat: add password validation ({trackId})
   ghi9012 - chore: mark task 1.2 complete ({trackId})
 
---------------------------------------------------------------------------------
+--
                               NEXT STEPS
---------------------------------------------------------------------------------
+--
 
 1. Current: Task 2.2 - {description}
 2. Next: Task 2.3 - {description}
 3. Phase 2 verification pending
 
-================================================================================
+==
 Commands: /conductor:implement {trackId} | /conductor:revert {trackId}
-================================================================================
+==
 ```
 
 ## Status Markers Legend
@@ -239,16 +239,16 @@ Legend:
 ### No Tracks Found
 
 ```
-================================================================================
+==
                         PROJECT STATUS: {Project Name}
-================================================================================
+==
 
 Conductor is set up but no tracks have been created yet.
 
 To get started:
   /conductor:new-track "your feature description"
 
-================================================================================
+==
 ```
 
 ### Conductor Not Initialized

@@ -542,15 +542,15 @@ export class ConfigModule {
 ```
 
 ## Success Metrics
-- ✅ Problem correctly identified and located in module structure
-- ✅ Solution follows Nest.js architectural patterns
-- ✅ All tests pass (unit, integration, e2e)
-- ✅ No circular dependencies introduced
-- ✅ Performance metrics maintained or improved
-- ✅ Code follows established project conventions
-- ✅ Proper error handling implemented
-- ✅ Security best practices applied
-- ✅ Documentation updated for API changes
+-  Problem correctly identified and located in module structure
+-  Solution follows Nest.js architectural patterns
+-  All tests pass (unit, integration, e2e)
+-  No circular dependencies introduced
+-  Performance metrics maintained or improved
+-  Code follows established project conventions
+-  Proper error handling implemented
+-  Security best practices applied
+-  Documentation updated for API changes
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

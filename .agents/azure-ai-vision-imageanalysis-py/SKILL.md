@@ -218,7 +218,7 @@ async def analyze_image():
 ## Visual Features
 
 | Feature | Description |
-|---------|-------------|
+|---------|--|
 | `CAPTION` | Single sentence describing the image |
 | `DENSE_CAPTIONS` | Captions for multiple regions |
 | `TAGS` | Content tags (objects, scenes, actions) |

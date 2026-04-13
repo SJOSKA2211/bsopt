@@ -200,7 +200,7 @@ created (draft) -> sent -> delivered -> signed -> completed
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List templates | DOCUSIGN_LIST_ALL_TEMPLATES | (optional filters) |
 | Get template | DOCUSIGN_GET_TEMPLATE | templateId |
 | Create envelope | DOCUSIGN_CREATE_ENVELOPE_FROM_TEMPLATE | templateId, templateRoles, status |

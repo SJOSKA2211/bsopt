@@ -320,7 +320,7 @@ const subscription = session.subscribe({
 ## Voice Options
 
 | Voice Type | Config | Example |
-|------------|--------|---------|
+|--|--------|---------|
 | Azure Standard | `{ type: "azure-standard", name: "..." }` | `"en-US-AvaNeural"` |
 | Azure Custom | `{ type: "azure-custom", name: "...", endpointId: "..." }` | Custom voice endpoint |
 | Azure Personal | `{ type: "azure-personal", speakerProfileId: "..." }` | Personal voice clone |
@@ -329,7 +329,7 @@ const subscription = session.subscribe({
 ## Supported Models
 
 | Model | Description | Use Case |
-|-------|-------------|----------|
+|-------|--|--|
 | `gpt-4o-realtime-preview` | GPT-4o with real-time audio | High-quality conversational AI |
 | `gpt-4o-mini-realtime-preview` | Lightweight GPT-4o | Fast, efficient interactions |
 | `phi4-mm-realtime` | Phi multimodal | Cost-effective applications |
@@ -364,7 +364,7 @@ turnDetection: {
 ## Audio Formats
 
 | Format | Sample Rate | Use Case |
-|--------|-------------|----------|
+|--------|--|--|
 | `pcm16` | 24kHz | Default, high quality |
 | `pcm16-8000hz` | 8kHz | Telephony |
 | `pcm16-16000hz` | 16kHz | Voice assistants |
@@ -459,7 +459,7 @@ const audioContext = new AudioContext({ sampleRate: 24000 });
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | npm Package | https://www.npmjs.com/package/@azure/ai-voicelive |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/ai/ai-voicelive |
 | Samples | https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/ai/ai-voicelive/samples |

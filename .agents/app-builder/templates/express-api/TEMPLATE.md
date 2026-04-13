@@ -8,7 +8,7 @@ description: Express.js REST API template principles. TypeScript, Prisma, JWT.
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Runtime | Node.js 20+ |
 | Framework | Express.js |
 | Language | TypeScript |
@@ -44,7 +44,7 @@ project-name/
 ## Middleware Stack
 
 | Order | Middleware |
-|-------|------------|
+|-------|--|
 | 1 | helmet (security) |
 | 2 | cors |
 | 3 | morgan (logging) |
@@ -57,7 +57,7 @@ project-name/
 ## API Response Format
 
 | Type | Structure |
-|------|-----------|
+|------|--|
 | Success | `{ success: true, data: {...} }` |
 | Error | `{ error: "message", details: [...] }` |
 

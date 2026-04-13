@@ -73,8 +73,8 @@ Multiple CTAs or mixed goals destroy performance.
 
 ### Time-Based (Use Sparingly)
 
-* ❌ Avoid: “Show after 5 seconds”
-* ✅ Better: 30–60 seconds of active engagement
+*  Avoid: “Show after 5 seconds”
+*  Better: 30–60 seconds of active engagement
 * Best for: Broad list building
 
 ### Scroll-Based
@@ -197,7 +197,7 @@ Multiple CTAs or mixed goals destroy performance.
 ### Decline Copy
 
 * Neutral and respectful
-* ❌ No guilt or manipulation
+*  No guilt or manipulation
 * Examples: “No thanks”, “Maybe later”
 
 ---

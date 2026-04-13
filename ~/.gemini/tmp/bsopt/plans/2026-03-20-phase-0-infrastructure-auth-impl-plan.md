@@ -19,7 +19,7 @@ graph TD
 
 ## 3. Execution Strategy
 | Phase | Objective | Agent | Validation |
-|-------|-----------|-------|------------|
+|-------|--|-------|--|
 | 1 | Expand PKI to generate Root CA & Client Certs | `devops_engineer` | `ls -R .pki` and cert verification |
 | 2 | Enforce mTLS in pg_hba.conf | `data_engineer` | `pg_isready` with certs |
 | 3 | Create RSA Decryption Entrypoint Shim | `security_engineer` | `openssl pkeyutl` decrypt test |
@@ -96,7 +96,7 @@ graph TD
 
 ## 7. Cost Estimation
 | Phase | Agent | Model | Est. Input | Est. Output | Est. Cost |
-|-------|-------|-------|-----------|------------|----------|
+|-------|-------|-------|--|--|--|
 | 1 | `devops_engineer` | Flash | 20,000 | 1,000 | $0.03 |
 | 2 | `data_engineer` | Flash | 15,000 | 500 | $0.02 |
 | 3 | `security_engineer` | Pro | 10,000 | 500 | $0.12 |

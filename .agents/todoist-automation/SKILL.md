@@ -210,7 +210,7 @@ Always resolve human-readable names to IDs before operations:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List all projects | `TODOIST_GET_ALL_PROJECTS` | (none) |
 | Get project | `TODOIST_GET_PROJECT` | `project_id` |
 | Create project | `TODOIST_CREATE_PROJECT` | `name`, `color`, `view_style` |

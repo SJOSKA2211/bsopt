@@ -156,7 +156,7 @@ This reference catalogs proven landing page design patterns that drive higher co
 Test these elements in order of expected impact:
 
 | Priority | Element | Expected Impact | Effort |
-|----------|---------|----------------|--------|
+|--|---------|--|--------|
 | 1 | Headline | High | Low |
 | 2 | CTA text and color | High | Low |
 | 3 | Hero image/video | High | Medium |

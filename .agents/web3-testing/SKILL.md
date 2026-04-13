@@ -358,7 +358,7 @@ npx hardhat coverage
 
 # Output shows:
 # File                | % Stmts | % Branch | % Funcs | % Lines |
-# -------------------|---------|----------|---------|---------|
+# --|---------|--|---------|---------|
 # contracts/Token.sol |   100   |   90     |   100   |   95    |
 ```
 

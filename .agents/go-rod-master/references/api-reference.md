@@ -8,7 +8,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Browser (`rod.Browser`)
 
 | Method | Description |
-|:-------|:------------|
+|:-------|:--|
 | `rod.New().MustConnect()` | Launch new browser and connect |
 | `rod.New().ControlURL(url).MustConnect()` | Connect to existing browser via WebSocket URL |
 | `browser.MustClose()` | Close browser and all pages |
@@ -28,7 +28,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Page (`rod.Page`)
 
 | Method | Description |
-|:-------|:------------|
+|:-------|:--|
 | `page.MustNavigate(url)` | Navigate to URL |
 | `page.MustWaitLoad()` | Wait for `load` event |
 | `page.MustWaitStable()` | Wait until page DOM is stable |
@@ -58,7 +58,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Element (`rod.Element`)
 
 | Method | Description |
-|:-------|:------------|
+|:-------|:--|
 | `el.MustClick()` | Click the element |
 | `el.MustInput(text)` | Clear and type text into input |
 | `el.MustType(keys...)` | Simulate key presses |
@@ -78,7 +78,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Input (`rod/lib/input`)
 
 | Constant | Description |
-|:---------|:------------|
+|:---------|:--|
 | `input.Enter` | Enter key |
 | `input.Escape` | Escape key |
 | `input.Tab` | Tab key |
@@ -91,7 +91,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Launcher (`rod/lib/launcher`)
 
 | Method | Description |
-|:-------|:------------|
+|:-------|:--|
 | `launcher.New()` | Create new launcher |
 | `l.Headless(bool)` | Enable/disable headless mode |
 | `l.Devtools(bool)` | Auto-open DevTools |
@@ -106,7 +106,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Stealth (`go-rod/stealth`)
 
 | API | Description |
-|:----|:------------|
+|:----|:--|
 | `stealth.MustPage(browser)` | Create stealth page (panics on error) |
 | `stealth.Page(browser)` | Create stealth page (returns error) |
 | `stealth.JS` | Raw JS string with all stealth evasions |
@@ -122,7 +122,7 @@ Every `Must*` method has a corresponding error-returning version (without the `M
 ## Network Hijacking (`rod.Hijack`)
 
 | Method | Description |
-|:-------|:------------|
+|:-------|:--|
 | `router.MustAdd(pattern, handler)` | Add URL pattern handler |
 | `router.Run()` | Start intercepting (call with `go`) |
 | `router.MustStop()` | Stop intercepting |

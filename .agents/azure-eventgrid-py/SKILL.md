@@ -38,7 +38,7 @@ client = EventGridPublisherClient(endpoint, credential)
 ## Event Types
 
 | Format | Class | Use Case |
-|--------|-------|----------|
+|--------|-------|--|
 | Cloud Events 1.0 | `CloudEvent` | Standard, interoperable (recommended) |
 | Event Grid Schema | `EventGridEvent` | Azure-native format |
 

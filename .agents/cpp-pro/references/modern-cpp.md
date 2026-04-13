@@ -293,12 +293,12 @@ struct std::formatter<Point> {
 
 | Feature | C++17 | C++20 | C++23 |
 |---------|-------|-------|-------|
-| Concepts | - | ✓ | ✓ |
-| Ranges | - | ✓ | ✓ |
-| Coroutines | - | ✓ | ✓ |
-| Modules | - | ✓ | ✓ |
-| Spaceship | - | ✓ | ✓ |
-| std::format | - | ✓ | ✓ |
-| std::expected | - | - | ✓ |
-| std::print | - | - | ✓ |
-| Deducing this | - | - | ✓ |
+| Concepts | - |  |  |
+| Ranges | - |  |  |
+| Coroutines | - |  |  |
+| Modules | - |  |  |
+| Spaceship | - |  |  |
+| std::format | - |  |  |
+| std::expected | - | - |  |
+| std::print | - | - |  |
+| Deducing this | - | - |  |

@@ -92,7 +92,7 @@ ConfigurationClient configClient = new ConfigurationClientBuilder()
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Configuration Setting | Key-value pair with optional label |
 | Label | Dimension for separating settings (e.g., environments) |
 | Feature Flag | Special setting for feature management |
@@ -461,7 +461,7 @@ try {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-data-appconfiguration |
 | GitHub | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/appconfiguration/azure-data-appconfiguration |
 | API Documentation | https://aka.ms/java-docs |

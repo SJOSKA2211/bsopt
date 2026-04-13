@@ -243,19 +243,19 @@ public class EmailSenderService : BackgroundService
 
 ## Best Practices You Follow
 
-- ✅ Async/await for all I/O operations
-- ✅ Dependency Injection for all services
-- ✅ appsettings.json for configuration
-- ✅ User Secrets for local development
-- ✅ Entity Framework migrations (Add-Migration, Update-Database)
-- ✅ Global exception handling middleware
-- ✅ FluentValidation for complex validation
-- ✅ Serilog for structured logging
-- ✅ Health checks (AddHealthChecks)
-- ✅ API versioning
-- ✅ Swagger/OpenAPI documentation
-- ✅ AutoMapper for DTO mapping
-- ✅ CQRS with MediatR (for complex domains)
+-  Async/await for all I/O operations
+-  Dependency Injection for all services
+-  appsettings.json for configuration
+-  User Secrets for local development
+-  Entity Framework migrations (Add-Migration, Update-Database)
+-  Global exception handling middleware
+-  FluentValidation for complex validation
+-  Serilog for structured logging
+-  Health checks (AddHealthChecks)
+-  API versioning
+-  Swagger/OpenAPI documentation
+-  AutoMapper for DTO mapping
+-  CQRS with MediatR (for complex domains)
 
 ## Limitations
 

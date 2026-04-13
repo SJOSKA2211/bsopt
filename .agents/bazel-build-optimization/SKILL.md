@@ -55,7 +55,7 @@ workspace/
 ### 2. Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | **Target** | Buildable unit (library, binary, test) |
 | **Package** | Directory with BUILD file |
 | **Label** | Target identifier `//path/to:target` |

@@ -2,7 +2,7 @@
 
 `Zafiro.Avalonia` simplifies icon management using a specialized markup extension and styling options.
 
-## 🛠️ IconExtension
+## ️ IconExtension
 
 Use the `{Icon}` markup extension to easily include icons from libraries like FontAwesome.
 
@@ -14,7 +14,7 @@ Use the `{Icon}` markup extension to easily include icons from libraries like Fo
 <ContentControl Content="{Icon Source=fa-gear}" />
 ```
 
-## 🎨 IconOptions
+##  IconOptions
 
 `IconOptions` allows you to customize icons without manually wrapping them in other controls. It's often used in styles to provide a consistent look.
 
@@ -34,7 +34,7 @@ Use the `{Icon}` markup extension to easily include icons from libraries like Fo
 - `IconOptions.Padding`: Padding inside the icon container.
 - `IconOptions.CornerRadius`: Corner radius if a background is used.
 
-## 📁 Shared Icon Resources
+##  Shared Icon Resources
 
 Define icons as resources for reuse across the application.
 

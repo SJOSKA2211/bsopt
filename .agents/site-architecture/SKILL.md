@@ -53,7 +53,7 @@ Gather this context (ask if not provided):
 ## Site Types and Starting Points
 
 | Site Type | Typical Depth | Key Sections | URL Pattern |
-|-----------|--------------|--------------|-------------|
+|--|--|--|--|
 | SaaS marketing | 2-3 levels | Home, Features, Pricing, Blog, Docs | `/features/name`, `/blog/slug` |
 | Content/blog | 2-3 levels | Home, Blog, Categories, About | `/blog/slug`, `/category/slug` |
 | E-commerce | 3-4 levels | Home, Categories, Products, Cart | `/category/subcategory/product` |
@@ -74,7 +74,7 @@ Users should reach any important page within 3 clicks from the homepage. This is
 ### Flat vs Deep
 
 | Approach | Best For | Tradeoff |
-|----------|----------|----------|
+|--|--|--|
 | Flat (2 levels) | Small sites, portfolios | Simple but doesn't scale |
 | Moderate (3 levels) | Most SaaS, content sites | Good balance of depth and findability |
 | Deep (4+ levels) | E-commerce, large docs | Scales but risks burying content |
@@ -84,7 +84,7 @@ Users should reach any important page within 3 clicks from the homepage. This is
 ### Hierarchy Levels
 
 | Level | What It Is | Example |
-|-------|-----------|---------|
+|-------|--|---------|
 | L0 | Homepage | `/` |
 | L1 | Primary sections | `/features`, `/blog`, `/pricing` |
 | L2 | Section pages | `/features/analytics`, `/blog/seo-guide` |
@@ -126,7 +126,7 @@ Homepage (/)
 ### Navigation Types
 
 | Nav Type | Purpose | Placement |
-|----------|---------|-----------|
+|--|---------|--|
 | Header nav | Primary navigation, always visible | Top of every page |
 | Dropdown menus | Organize sub-pages under parent | Expands from header items |
 | Footer nav | Secondary links, legal, sitemap | Bottom of every page |
@@ -177,7 +177,7 @@ Breadcrumbs should mirror the URL hierarchy. Every breadcrumb segment should be 
 ### URL Patterns by Page Type
 
 | Page Type | Pattern | Example |
-|-----------|---------|---------|
+|--|---------|---------|
 | Homepage | `/` | `example.com` |
 | Feature page | `/features/{name}` | `/features/analytics` |
 | Pricing | `/pricing` | `/pricing` |
@@ -205,7 +205,7 @@ Breadcrumbs should mirror the URL hierarchy. Every breadcrumb segment should be 
 The breadcrumb trail should mirror the URL path:
 
 | URL | Breadcrumb |
-|-----|-----------|
+|-----|--|
 | `/features/analytics` | Home > Features > Analytics |
 | `/blog/seo-guide` | Home > Blog > SEO Guide |
 | `/docs/api/auth` | Home > Docs > API > Authentication |
@@ -324,7 +324,7 @@ Mermaid diagram showing page relationships and navigation zones. Use `graph TD` 
 ### 3. URL Map Table
 
 | Page | URL | Parent | Nav Location | Priority |
-|------|-----|--------|-------------|----------|
+|------|-----|--------|--|--|
 | Homepage | `/` | — | Header | High |
 | Features | `/features` | Homepage | Header | High |
 | Analytics | `/features/analytics` | Features | Header dropdown | Medium |

@@ -48,7 +48,7 @@ Use components from your core library instead of raw platform components. This e
 ```
 
 | Semantic Token | Use For |
-|----------------|---------|
+|--|---------|
 | `$textPrimary` | Main text |
 | `$textSecondary` | Supporting text |
 | `$textTertiary` | Disabled/hint text |

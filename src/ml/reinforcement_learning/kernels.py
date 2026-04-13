@@ -45,7 +45,7 @@ def _fused_state_kernel(
     for i in range(30):
         state[21 + i] = np.tanh(greeks[i])
 
-    # 4. 🌀 SPECTRAL FEATURES (50 dims: 51-100)
+    # 4.  SPECTRAL FEATURES (50 dims: 51-100)
     # Prime-spaced frequencies to capture non-harmonic market cycles.
     primes = np.array(
         [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71],
@@ -58,14 +58,14 @@ def _fused_state_kernel(
         state[51 + i] = np.sin(angle)
         state[71 + i] = np.cos(angle)
         if i < 10:
-            # ⚡ JITTER PROXY: High-frequency sub-harmonic sampling
+            #  JITTER PROXY: High-frequency sub-harmonic sampling
             state[91 + i] = np.tanh(np.sin(angle * 17.3) * np.cos(angle * 7.1))
 
     # 5. Volatility & Momentum (15 dims: 101-115)
     for i in range(15):
         state[101 + i] = indicators[i]
 
-    # 6. 🌊 WAVELET PROJECTION (12 dims: 116-127)
+    # 6.  WAVELET PROJECTION (12 dims: 116-127)
     for i in range(12):
         state[116 + i] = np.tanh(indicators[i % 15] - indicators[(i + 1) % 15])
 

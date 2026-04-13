@@ -23,7 +23,7 @@ Review Django code for **validated** performance issues. Research the codebase t
 Issues are organized by impact. Focus on CRITICAL and HIGH - these cause real problems at scale.
 
 | Priority | Category | Impact |
-|----------|----------|--------|
+|--|--|--------|
 | 1 | N+1 Queries | **CRITICAL** - Multiplies with data, causes timeouts |
 | 2 | Unbounded Querysets | **CRITICAL** - Memory exhaustion, OOM kills |
 | 3 | Missing Indexes | **HIGH** - Full table scans on large tables |

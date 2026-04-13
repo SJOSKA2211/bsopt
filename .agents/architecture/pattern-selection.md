@@ -60,7 +60,7 @@ START: What's your MAIN concern?
 ## Red Flags (Anti-patterns)
 
 | Pattern | Anti-pattern | Simpler Alternative |
-|---------|-------------|-------------------|
+|---------|--|--|
 | Microservices | Premature splitting | Start monolith, extract later |
 | Clean/Hexagonal | Over-abstraction | Concrete first, interfaces later |
 | Event Sourcing | Over-engineering | Append-only audit log |

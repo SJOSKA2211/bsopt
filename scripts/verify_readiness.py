@@ -26,13 +26,13 @@ async def check_http_service(name: str, url: str) -> bool:
         try:
             resp = await client.get(url)
             if resp.status_code in [200, 204]:
-                print(f"✅ {name:15} | ONLINE")
+                print(f" {name:15} | ONLINE")
                 return True
             else:
-                print(f"❌ {name:15} | DEGRADED (Status: {resp.status_code})")
+                print(f" {name:15} | DEGRADED (Status: {resp.status_code})")
                 return False
         except Exception as e:
-            print(f"🚨 {name:15} | DOWN ({str(e)})")
+            print(f" {name:15} | DOWN ({str(e)})")
             return False
 
 
@@ -48,10 +48,10 @@ async def check_postgres() -> bool:
         conn = await asyncpg.connect(db_url)
         await conn.execute("SELECT 1")
         await conn.close()
-        print(f"✅ {'TimescaleDB':15} | CONNECTED")
+        print(f" {'TimescaleDB':15} | CONNECTED")
         return True
     except Exception as e:
-        print(f"🚨 {'TimescaleDB':15} | CONNECTION FAILED ({str(e)})")
+        print(f" {'TimescaleDB':15} | CONNECTION FAILED ({str(e)})")
         return False
 
 
@@ -63,10 +63,10 @@ async def check_redis() -> bool:
             r = redis.from_url(f"redis://:{password}@localhost:6380/0")
         await r.ping()
         await r.aclose()
-        print(f"✅ {'Redis':15} | CONNECTED")
+        print(f" {'Redis':15} | CONNECTED")
         return True
     except Exception as e:
-        print(f"🚨 {'Redis':15} | CONNECTION FAILED ({str(e)})")
+        print(f" {'Redis':15} | CONNECTION FAILED ({str(e)})")
         return False
 
 
@@ -86,10 +86,10 @@ async def check_rabbitmq() -> bool:
 
         connection = await aio_pika.connect_robust(rabbitmq_url)
         await connection.close()
-        print(f"✅ {'RabbitMQ':15} | CONNECTED")
+        print(f" {'RabbitMQ':15} | CONNECTED")
         return True
     except Exception as e:
-        print(f"🚨 {'RabbitMQ':15} | CONNECTION FAILED ({str(e)})")
+        print(f" {'RabbitMQ':15} | CONNECTION FAILED ({str(e)})")
         return False
 
 
@@ -100,11 +100,11 @@ async def verify_security() -> bool:
     all_present = True
     for key in required_keys:
         if not os.path.exists(os.path.join(pki_path, key)):  # noqa: ASYNC240
-            print(f"❌ Security Key Missing: {key}")
+            print(f" Security Key Missing: {key}")
             all_present = False
 
     if all_present:
-        print(f"✅ {'PKI Assets':15} | VALIDATED (RSA 4096 / ECC P-256)")
+        print(f" {'PKI Assets':15} | VALIDATED (RSA 4096 / ECC P-256)")
     return all_present
 
 
@@ -129,9 +129,9 @@ async def verify_readiness():
     overall = all(http_results) and all(infra_results) and security_ok
     print("\n" + "=" * 60)
     if overall:
-        print("🎉 SYSTEM STATUS: Production GREEN - READY FOR LAUNCH")
+        print(" SYSTEM STATUS: Production GREEN - READY FOR LAUNCH")
     else:
-        print("⚠️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
+        print("️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
         sys.exit(1)
     print("=" * 60)
 

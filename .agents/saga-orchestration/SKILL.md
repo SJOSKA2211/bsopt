@@ -51,7 +51,7 @@ Choreography                    Orchestration
 ### 2. Saga Execution States
 
 | State            | Description                    |
-| ---------------- | ------------------------------ |
+| -- | -- |
 | **Started**      | Saga initiated                 |
 | **Pending**      | Waiting for step completion    |
 | **Compensating** | Rolling back due to failure    |

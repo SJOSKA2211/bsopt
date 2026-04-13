@@ -9,7 +9,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### Responsive Search Ads (RSAs)
 
 | Element | Character Limit | Required | Notes |
-|---------|----------------|----------|-------|
+|---------|--|--|-------|
 | Headline | 30 chars | 3 minimum, 15 max | Any 3 may be shown together |
 | Description | 90 chars | 2 minimum, 4 max | Any 2 may be shown together |
 | Display path 1 | 15 chars | Optional | Appears after domain in URL |
@@ -44,7 +44,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### Performance Max
 
 | Element | Character Limit | Notes |
-|---------|----------------|-------|
+|---------|--|-------|
 | Headline | 30 chars (5 required) | Short headlines for various placements |
 | Long headline | 90 chars (5 required) | Used in display, video, discover |
 | Description | 90 chars (1 required, 5 max) | Accompany various ad formats |
@@ -53,7 +53,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### Display Ads
 
 | Element | Character Limit |
-|---------|----------------|
+|---------|--|
 | Headline | 30 chars |
 | Long headline | 90 chars |
 | Description | 90 chars |
@@ -66,7 +66,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### Single Image / Video / Carousel
 
 | Element | Recommended | Maximum | Notes |
-|---------|-------------|---------|-------|
+|---------|--|---------|-------|
 | Primary text | 125 chars | 2,200 chars | Text above image; truncated after ~125 |
 | Headline | 40 chars | 255 chars | Below image; truncated after ~40 |
 | Description | 30 chars | 255 chars | Below headline; may not show |
@@ -100,7 +100,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### Single Image Ad
 
 | Element | Recommended | Maximum | Notes |
-|---------|-------------|---------|-------|
+|---------|--|---------|-------|
 | Intro text | 150 chars | 600 chars | Above the image; truncated after ~150 |
 | Headline | 70 chars | 200 chars | Below the image |
 | Description | 100 chars | 300 chars | Only shows on Audience Network |
@@ -142,7 +142,7 @@ Complete character limits, format requirements, and best practices for each ad p
 ### In-Feed Ads
 
 | Element | Recommended | Maximum | Notes |
-|---------|-------------|---------|-------|
+|---------|--|---------|-------|
 | Ad text | 80 chars | 100 chars | Above the video |
 | Display name | N/A | 40 chars | Brand name |
 | CTA button | Platform options | Predefined | Select from TikTok's options |

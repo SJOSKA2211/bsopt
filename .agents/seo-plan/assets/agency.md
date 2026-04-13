@@ -47,7 +47,7 @@
 ## Schema Recommendations
 
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Homepage | Organization, ProfessionalService |
 | Service Page | Service, ProfessionalService |
 | Case Study | Article, Organization (client) |

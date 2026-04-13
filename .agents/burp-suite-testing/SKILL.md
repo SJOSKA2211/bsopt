@@ -31,12 +31,12 @@ Execute comprehensive web application security testing using Burp Suite's integr
 
 ### Editions Comparison
 | Feature | Community | Professional |
-|---------|-----------|--------------|
-| Proxy | ✓ | ✓ |
-| Repeater | ✓ | ✓ |
+|---------|--|--|
+| Proxy |  |  |
+| Repeater |  |  |
 | Intruder | Limited | Full |
-| Scanner | ✗ | ✓ |
-| Extensions | ✓ | ✓ |
+| Scanner |  |  |
+| Extensions |  |  |
 
 ## Outputs / Deliverables
 
@@ -197,7 +197,7 @@ Initiate vulnerability scanning (Professional only):
 #### Scan Configuration Options
 
 | Mode | Description | Duration |
-|------|-------------|----------|
+|------|--|--|
 | Lightweight | High-level overview | ~15 minutes |
 | Fast | Quick vulnerability check | ~30 minutes |
 | Balanced | Standard comprehensive scan | ~1-2 hours |
@@ -233,7 +233,7 @@ Set up automated attack:
 #### Attack Types
 
 | Type | Description | Use Case |
-|------|-------------|----------|
+|------|--|--|
 | Sniper | Single position, iterate payloads | Fuzzing one parameter |
 | Battering ram | Same payload all positions | Credential testing |
 | Pitchfork | Parallel payload iteration | Username:password pairs |
@@ -264,7 +264,7 @@ Review attack output:
 
 ### Keyboard Shortcuts
 | Action | Windows/Linux | macOS |
-|--------|---------------|-------|
+|--------|--|-------|
 | Forward request | Ctrl+F | Cmd+F |
 | Drop request | Ctrl+D | Cmd+D |
 | Send to Repeater | Ctrl+R | Cmd+R |

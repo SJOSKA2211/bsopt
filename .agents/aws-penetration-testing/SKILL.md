@@ -36,7 +36,7 @@ Provide comprehensive techniques for penetration testing AWS cloud environments.
 ## Essential Tools
 
 | Tool | Purpose | Installation |
-|------|---------|--------------|
+|------|---------|--|
 | Pacu | AWS exploitation framework | `git clone https://github.com/RhinoSecurityLabs/pacu` |
 | SkyArk | Shadow Admin discovery | `Import-Module .\SkyArk.ps1` |
 | Prowler | Security auditing | `pip install prowler` |
@@ -145,7 +145,7 @@ http://169.254.170.2/v2/credentials/CREDENTIAL-PATH
 These permissions are equivalent to administrator:
 
 | Permission | Exploitation |
-|------------|--------------|
+|--|--|
 | `iam:CreateAccessKey` | Create keys for admin user |
 | `iam:CreateLoginProfile` | Set password for any user |
 | `iam:AttachUserPolicy` | Attach admin policy to self |
@@ -394,7 +394,7 @@ aws sts get-caller-identity
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | Access Denied on all commands | Enumerate permissions with enumerate-iam |
 | Metadata endpoint blocked | Check for IMDSv2, try container metadata |
 | GuardDuty alerts | Use Pacu with custom user-agent |

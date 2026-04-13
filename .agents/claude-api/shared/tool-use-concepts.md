@@ -47,7 +47,7 @@ Each tool requires a name, description, and JSON Schema for its inputs:
 Control when Claude uses tools:
 
 | Value                             | Behavior                                      |
-| --------------------------------- | --------------------------------------------- |
+| -- | -- |
 | `{"type": "auto"}`                | Claude decides whether to use tools (default) |
 | `{"type": "any"}`                 | Claude must use at least one tool             |
 | `{"type": "tool", "name": "..."}` | Claude must use the specified tool            |
@@ -136,7 +136,7 @@ Additional packages can be installed at runtime via `pip install`.
 ### Supported File Types for Upload
 
 | Type   | Extensions                         |
-| ------ | ---------------------------------- |
+| ------ | -- |
 | Data   | CSV, Excel (.xlsx/.xls), JSON, XML |
 | Images | JPEG, PNG, GIF, WebP               |
 | Text   | .txt, .md, .py, .js, etc.          |

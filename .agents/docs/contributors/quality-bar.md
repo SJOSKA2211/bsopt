@@ -1,8 +1,8 @@
-# 🏆 Quality Bar & Validation Standards
+#  Quality Bar & Validation Standards
 
 To transform **Antigravity Awesome Skills** from a collection of scripts into a trusted platform, every skill must meet a specific standard of quality and safety.
 
-## The "Validated" Badge ✅
+## The "Validated" Badge 
 
 A skill earns the "Validated" badge only if it meets these **6 quality checks**. Some are enforced automatically today, while others still require reviewer judgment:
 
@@ -28,9 +28,9 @@ Accepted headings: `## When to Use`, `## Use this skill when`, `## When to Use T
 Every skill must declare its risk level:
 
 - 🟢 **none**: Pure text/reasoning (e.g., Brainstorming).
-- 🔵 **safe**: Reads files, runs safe commands (e.g., Linter).
+-  **safe**: Reads files, runs safe commands (e.g., Linter).
 - 🟠 **critical**: Modifies state, deletes files, pushes to prod (e.g., Git Push).
-- 🔴 **offensive**: Pentesting/Red Team tools. **MUST** have "Authorized Use Only" warning.
+-  **offensive**: Pentesting/Red Team tools. **MUST** have "Authorized Use Only" warning.
 
 ### 4. Copy-Pasteable Examples
 
@@ -73,10 +73,10 @@ Maintainers can pair that report with `npm run sync:risk-labels` for conservativ
 We also categorize skills by who maintains them:
 
 | Level         | Badge | Meaning                                             |
-| :------------ | :---- | :-------------------------------------------------- |
+| :-- | :---- | :-- |
 | **Official**  | 🟣    | Maintained by the core team. High reliability.      |
-| **Community** | ⚪    | Contributed by the ecosystem. Best effort support.  |
-| **Verified**  | ✨    | Community skill that has passed deep manual review. |
+| **Community** |     | Contributed by the ecosystem. Best effort support.  |
+| **Verified**  |     | Community skill that has passed deep manual review. |
 
 ---
 

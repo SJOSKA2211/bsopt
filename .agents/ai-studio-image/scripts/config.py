@@ -8,9 +8,9 @@ baseadas na documentacao oficial do Google AI Studio (Fev 2026).
 import os
 from pathlib import Path
 
-# =============================================================================
+# ==
 # PATHS
-# =============================================================================
+# ==
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = ROOT_DIR / "scripts"
@@ -21,9 +21,9 @@ ASSETS_DIR = ROOT_DIR / "assets"
 
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# =============================================================================
+# ==
 # API KEY MANAGEMENT (com fallback para backup keys)
-# =============================================================================
+# ==
 
 
 def get_api_key(try_backup: bool = True) -> str | None:
@@ -82,9 +82,9 @@ def get_all_api_keys() -> list[str]:
     return keys
 
 
-# =============================================================================
+# ==
 # MODELOS — Todos os modelos oficiais (Fev 2026)
-# =============================================================================
+# ==
 
 MODELS = {
     # ---- Imagen 4 (Standalone Image Generation) ----
@@ -175,9 +175,9 @@ MODELS = {
 # Modelo padrao — gemini-2-flash-exp e GRATUITO mesmo no nivel pago
 DEFAULT_MODEL = os.environ.get("GEMINI_DEFAULT_MODEL", "gemini-2-flash-exp")
 
-# =============================================================================
+# ==
 # FORMATOS DE IMAGEM — Todos os aspect ratios oficiais
-# =============================================================================
+# ==
 
 IMAGE_FORMATS = {
     "square": {
@@ -261,9 +261,9 @@ FORMAT_ALIASES = {
 
 DEFAULT_FORMAT = "square"
 
-# =============================================================================
+# ==
 # NIVEIS DE HUMANIZACAO
-# =============================================================================
+# ==
 
 HUMANIZATION_LEVELS = {
     "ultra": {
@@ -319,9 +319,9 @@ HUMANIZATION_LEVELS = {
 
 DEFAULT_HUMANIZATION = "natural"
 
-# =============================================================================
+# ==
 # ILUMINACAO — Opcoes detalhadas de hora do dia
-# =============================================================================
+# ==
 
 LIGHTING_OPTIONS = {
     "morning": {
@@ -399,9 +399,9 @@ LIGHTING_OPTIONS = {
 
 DEFAULT_LIGHTING = None
 
-# =============================================================================
+# ==
 # MODOS DE OPERACAO
-# =============================================================================
+# ==
 
 MODES = {
     "influencer": {
@@ -447,9 +447,9 @@ MODES = {
 
 DEFAULT_MODE = "influencer"
 
-# =============================================================================
+# ==
 # PROMPT TEMPLATES OFICIAIS (da documentacao Google)
-# =============================================================================
+# ==
 
 PROMPT_TEMPLATES = {
     "photorealistic": {
@@ -474,9 +474,9 @@ PROMPT_TEMPLATES = {
     },
 }
 
-# =============================================================================
+# ==
 # SHOT TYPES (Tipos de enquadramento fotografico)
-# =============================================================================
+# ==
 
 SHOT_TYPES = {
     "extreme-close-up": "Extreme close-up showing fine details of a specific feature",
@@ -494,9 +494,9 @@ SHOT_TYPES = {
     "pov": "Point-of-view perspective, as seen through someone's eyes",
 }
 
-# =============================================================================
+# ==
 # RESOLUTIONS
-# =============================================================================
+# ==
 
 RESOLUTIONS = {
     "1K": "1024px — Padrao, rapido, bom para web",
@@ -506,9 +506,9 @@ RESOLUTIONS = {
 
 DEFAULT_RESOLUTION = "1K"
 
-# =============================================================================
+# ==
 # PERSON GENERATION SETTINGS
-# =============================================================================
+# ==
 
 PERSON_GENERATION = {
     "dont_allow": "Bloqueia geracao de pessoas",
@@ -518,9 +518,9 @@ PERSON_GENERATION = {
 
 DEFAULT_PERSON_GENERATION = "allow_adult"
 
-# =============================================================================
+# ==
 # RATE LIMITS E GOVERNANCA
-# =============================================================================
+# ==
 
 RATE_LIMITS = {
     "requests_per_minute": 10,
@@ -530,9 +530,9 @@ RATE_LIMITS = {
     "max_text_phrases": 3,  # ate 3 frases distintas
 }
 
-# =============================================================================
+# ==
 # OUTPUT SETTINGS
-# =============================================================================
+# ==
 
 OUTPUT_SETTINGS = {
     "default_mime_type": "image/png",
@@ -542,9 +542,9 @@ OUTPUT_SETTINGS = {
     "save_original_prompt": True,
 }
 
-# =============================================================================
+# ==
 # CONTROLADOR DE SEGURANCA — Previne gastos acidentais
-# =============================================================================
+# ==
 
 # Modelos com custo real (nao usar sem intencao explicita)
 # imagen-4: $0.03/img | imagen-4-ultra: $0.06/img | imagen-4-fast: $0.02/img

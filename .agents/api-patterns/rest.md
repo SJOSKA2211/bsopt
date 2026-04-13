@@ -16,7 +16,7 @@ Principles:
 ## HTTP Method Selection
 
 | Method | Purpose | Idempotent? | Body? |
-|--------|---------|-------------|-------|
+|--------|---------|--|-------|
 | **GET** | Read resource(s) | Yes | No |
 | **POST** | Create new resource | No | Yes |
 | **PUT** | Replace entire resource | Yes | Yes |
@@ -26,7 +26,7 @@ Principles:
 ## Status Code Selection
 
 | Situation | Code | Why |
-|-----------|------|-----|
+|--|------|-----|
 | Success (read) | 200 | Standard success |
 | Created | 201 | New resource created |
 | No content | 204 | Success, nothing to return |

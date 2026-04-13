@@ -316,7 +316,7 @@ const cookieCategories = {
 
 ### Ticket Priority Matrix
 | Priority | Description | Response SLA | Resolution SLA |
-|----------|-------------|--------------|----------------|
+|--|--|--|--|
 | P1 - Critical | Service down, data loss | 15 min | 4 hours |
 | P2 - High | Major feature broken | 1 hour | 8 hours |
 | P3 - Medium | Feature impaired | 4 hours | 24 hours |
@@ -465,7 +465,7 @@ Optimization Targets:
 
 ## Key Metrics Summary
 | Metric | This Week | Last Week | Change |
-|--------|-----------|-----------|--------|
+|--------|--|--|--------|
 | New Users | X | Y | +Z% |
 | Activated Users | X | Y | +Z% |
 | Revenue | $X | $Y | +Z% |

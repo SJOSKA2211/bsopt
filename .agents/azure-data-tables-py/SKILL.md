@@ -223,7 +223,7 @@ asyncio.run(table_operations())
 ## Data Types
 
 | Python Type | Table Storage Type |
-|-------------|-------------------|
+|--|--|
 | `str` | String |
 | `int` | Int64 |
 | `float` | Double |

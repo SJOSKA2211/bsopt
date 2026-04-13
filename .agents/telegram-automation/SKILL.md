@@ -202,7 +202,7 @@ Automate Telegram operations through Composio's Telegram toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Verify bot | TELEGRAM_GET_ME | (none) |
 | Send message | TELEGRAM_SEND_MESSAGE | chat_id, text, parse_mode |
 | Send photo | TELEGRAM_SEND_PHOTO | chat_id, photo, caption |

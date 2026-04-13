@@ -32,7 +32,7 @@ DEPTH:
 ### iOS Design Values
 
 | Value | Implementation |
-|-------|----------------|
+|-------|--|
 | **Aesthetic Integrity** | Design matches function (game ≠ productivity) |
 | **Consistency** | Use system controls, familiar patterns |
 | **Direct Manipulation** | Touch directly affects content |
@@ -58,7 +58,7 @@ iOS System Fonts:
 ### iOS Type Scale (Dynamic Type)
 
 | Style | Default Size | Weight | Usage |
-|-------|--------------|--------|-------|
+|-------|--|--------|-------|
 | **Large Title** | 34pt | Bold | Navigation bar (scroll collapse) |
 | **Title 1** | 28pt | Bold | Page titles |
 | **Title 2** | 22pt | Bold | Section headers |
@@ -74,23 +74,23 @@ iOS System Fonts:
 ### Dynamic Type Support (MANDATORY)
 
 ```swift
-// ❌ WRONG: Fixed font size
+//  WRONG: Fixed font size
 Text("Hello")
     .font(.system(size: 17))
 
-// ✅ CORRECT: Dynamic Type
+//  CORRECT: Dynamic Type
 Text("Hello")
     .font(.body) // Scales with user settings
 
 // React Native equivalent
-<Text style={{ fontSize: 17 }}> // ❌ Fixed
+<Text style={{ fontSize: 17 }}> //  Fixed
 <Text style={styles.body}> // Use a dynamic scale system
 ```
 
 ### Font Weight Usage
 
 | Weight | iOS Constant | Use Case |
-|--------|--------------|----------|
+|--------|--|--|
 | Regular (400) | `.regular` | Body text |
 | Medium (500) | `.medium` | Buttons, emphasis |
 | Semibold (600) | `.semibold` | Subheadings |
@@ -127,7 +127,7 @@ Fills:
 ### System Accent Colors
 
 | Color | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
+|-------|--|--|-------|
 | Blue | #007AFF | #0A84FF | Links, highlights, default tint |
 | Green | #34C759 | #30D158 | Success, positive |
 | Red | #FF3B30 | #FF453A | Errors, destructive |
@@ -207,7 +207,7 @@ iPad Grid:
 ### Navigation Types
 
 | Pattern | Use Case | Implementation |
-|---------|----------|----------------|
+|---------|--|--|
 | **Tab Bar** | 3-5 top-level sections | Bottom, always visible |
 | **Navigation Controller** | Hierarchical drill-down | Stack-based, back button |
 | **Modal** | Focused task, interruption | Sheet or full-screen |
@@ -221,7 +221,7 @@ iPad Grid:
 │         Content Area                │
 │                                     │
 ├─────────────────────────────────────┤
-│  🏠     🔍     ➕     ❤️     👤    │ ← Tab bar (49pt height)
+│                 ️         │ ← Tab bar (49pt height)
 │ Home   Search  New   Saved  Profile │
 └─────────────────────────────────────┘
 
@@ -255,7 +255,7 @@ Rules:
 ### Modal Presentations
 
 | Style | Use Case | Appearance |
-|-------|----------|------------|
+|-------|--|--|
 | **Sheet (default)** | Secondary tasks | Card slides up, parent visible |
 | **Full Screen** | Immersive tasks | Covers entire screen |
 | **Popover** | iPad, quick info | Arrow-pointed bubble |
@@ -265,7 +265,7 @@ Rules:
 ### Gestures
 
 | Gesture | iOS Convention |
-|---------|----------------|
+|---------|--|
 | **Edge swipe (left)** | Navigate back |
 | **Pull down (sheet)** | Dismiss modal |
 | **Long press** | Context menu |
@@ -309,7 +309,7 @@ List Styles:
 Cell Accessories:
 ├── Disclosure indicator (>) → Navigates to detail
 ├── Detail button (i) → Shows info without navigation
-├── Checkmark (✓) → Selection
+├── Checkmark () → Selection
 ├── Reorder (≡) → Drag to reorder
 └── Delete (-) → Swipe/edit mode delete
 ```
@@ -320,7 +320,7 @@ Cell Accessories:
 iOS Text Field Anatomy:
 
 ┌─────────────────────────────────────┐
-│ 🔍 Search...                    ✕  │
+│  Search...                      │
 └─────────────────────────────────────┘
   ↑                               ↑
   Leading icon                   Clear button
@@ -390,11 +390,11 @@ Long press → Context menu appears
 ┌─────────────────────────────┐
 │       Preview Card          │
 ├─────────────────────────────┤
-│  📋 Copy                    │
-│  📤 Share                   │
-│  ➕ Add to...               │
+│   Copy                    │
+│   Share                   │
+│   Add to...               │
 ├─────────────────────────────┤
-│  🗑️ Delete          (Red)   │
+│  ️ Delete          (Red)   │
 └─────────────────────────────┘
 
 Rules:
@@ -467,7 +467,7 @@ Image(systemName: "checkmark.circle")
 ### Symbol Best Practices
 
 | Guideline | Implementation |
-|-----------|----------------|
+|--|--|
 | Match text weight | Symbol weight = font weight |
 | Use standard symbols | Users recognize them |
 | Multicolor when meaningful | Not just decoration |

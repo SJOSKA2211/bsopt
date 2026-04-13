@@ -296,27 +296,27 @@ Sentry.withScope((scope) => {
 ## Common Mistakes
 
 ```typescript
-// ❌ Swallowing errors
+//  Swallowing errors
 try {
     await riskyOperation();
 } catch (error) {
     // Silent failure
 }
 
-// ❌ Generic error messages
+//  Generic error messages
 throw new Error('Error occurred');
 
-// ❌ Exposing sensitive data
+//  Exposing sensitive data
 Sentry.captureException(error, {
     extra: { password: user.password } // NEVER
 });
 
-// ❌ Missing async error handling
+//  Missing async error handling
 async function bad() {
     fetchData().then(data => processResult(data)); // Unhandled
 }
 
-// ✅ Proper async handling
+//  Proper async handling
 async function good() {
     try {
         const data = await fetchData();

@@ -154,7 +154,7 @@ async def validate_code_quality(output, context):
 ### Execution Modes
 
 | Mode | Behavior | Use When |
-|------|----------|----------|
+|------|--|--|
 | **Blocking** | Guardrail completes before agent starts | Sensitive operations, expensive models |
 | **Parallel** | Guardrail runs concurrently with agent | Fast checks, acceptable token loss |
 

@@ -173,7 +173,7 @@ Automate Postmark transactional email operations through Composio's Postmark too
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Send batch templated emails | POSTMARK_SEND_BATCH_WITH_TEMPLATES | Messages, TemplateId/TemplateAlias |
 | List templates | POSTMARK_LIST_TEMPLATES | Count, Offset, TemplateType |
 | Get template details | POSTMARK_GET_TEMPLATE | TemplateId |

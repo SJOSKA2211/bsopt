@@ -196,7 +196,7 @@ Freshdesk uses page-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create ticket | `FRESHDESK_CREATE_TICKET` | `subject`, `description`, `email`, `priority` |
 | Update ticket | `FRESHDESK_UPDATE_TICKET` | `ticket_id`, `status`, `priority` |
 | View ticket | `FRESHDESK_VIEW_TICKET` | `ticket_id` |

@@ -1,4 +1,4 @@
-# 💡 Real-World Examples - See Skills in Action
+#  Real-World Examples - See Skills in Action
 
 **Learn by example!** This guide shows you real conversations using different skills.
 
@@ -78,11 +78,11 @@ AI: I'll create an isolated workspace using git worktrees and write an
 ```
 
 ### What Happened
-- ✅ AI asked focused questions one at a time
-- ✅ Explored your specific context
-- ✅ Presented design in sections
-- ✅ Saved documentation
-- ✅ Prepared for implementation
+-  AI asked focused questions one at a time
+-  Explored your specific context
+-  Presented design in sections
+-  Saved documentation
+-  Prepared for implementation
 
 ---
 
@@ -146,7 +146,7 @@ You: Yes
 
 AI: [Applies fix and runs tests]
     
-    ✅ All tests passing!
+     All tests passing!
     
     ## Root Cause
     The test was missing required props. This is a common issue when
@@ -163,11 +163,11 @@ AI: [Applies fix and runs tests]
 ```
 
 ### What Happened
-- ✅ Systematic investigation
-- ✅ Clear hypothesis
-- ✅ Verification before fixing
-- ✅ Root cause analysis
-- ✅ Prevention suggestions
+-  Systematic investigation
+-  Clear hypothesis
+-  Verification before fixing
+-  Root cause analysis
+-  Prevention suggestions
 
 ---
 
@@ -280,20 +280,20 @@ AI: I'll help you implement Stripe subscriptions. Let me understand your
     ```
     
     ## Security Checklist
-    - ✅ API keys in environment variables
-    - ✅ Webhook signature verification
-    - ✅ Server-side price validation
-    - ✅ Idempotency keys for operations
+    -  API keys in environment variables
+    -  Webhook signature verification
+    -  Server-side price validation
+    -  Idempotency keys for operations
     
     Ready to test the implementation?
 ```
 
 ### What Happened
-- ✅ Detected existing stack
-- ✅ Provided complete implementation
-- ✅ Included database schema
-- ✅ Added security best practices
-- ✅ Included testing instructions
+-  Detected existing stack
+-  Provided complete implementation
+-  Included database schema
+-  Added security best practices
+-  Included testing instructions
 
 ---
 
@@ -369,19 +369,19 @@ AI: Great! Now I have what I need. Here's your homepage copy:
     
     **Features:**
     
-    📹 **Async Video Standups**
+     **Async Video Standups**
     Record quick video updates on your schedule. Your team watches when
     it works for them. No more 9am calls for your teammate in Tokyo.
     
-    💬 **Context-Rich Communication**
+     **Context-Rich Communication**
     Every task, comment, and decision stays connected. No more hunting
     through Slack threads or email chains.
     
-    📊 **Visual Progress Tracking**
+     **Visual Progress Tracking**
     See what's happening at a glance. Kanban boards, timelines, and
     dashboards that actually make sense.
     
-    🔔 **Smart Notifications**
+     **Smart Notifications**
     Get notified about what matters. Ignore the rest. Your focus time
     is sacred.
     
@@ -426,11 +426,11 @@ AI: Great! Now I have what I need. Here's your homepage copy:
 ```
 
 ### What Happened
-- ✅ Asked clarifying questions
-- ✅ Identified unique value proposition
-- ✅ Created benefit-focused copy
-- ✅ Included clear CTAs
-- ✅ Provided copy notes for consistency
+-  Asked clarifying questions
+-  Identified unique value proposition
+-  Created benefit-focused copy
+-  Included clear CTAs
+-  Provided copy notes for consistency
 
 ---
 
@@ -474,7 +474,7 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
     
     [AI runs: npm test]
     
-    ✅ Test fails as expected (auth.ts doesn't exist yet)
+     Test fails as expected (auth.ts doesn't exist yet)
     
     ## Step 2: Write Minimal Implementation (GREEN)
     
@@ -513,7 +513,7 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
     
     [AI runs: npm test]
     
-    ✅ Test passes!
+     Test passes!
     
     ## Step 3: Add Next Test (RED)
     
@@ -535,7 +535,7 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
     
     [AI runs: npm test]
     
-    ❌ Test fails (always returns success)
+     Test fails (always returns success)
     
     ## Step 4: Implement Real Logic (GREEN)
     
@@ -594,7 +594,7 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
     
     [AI runs: npm test]
     
-    ✅ All tests pass!
+     All tests pass!
     
     ## Step 5: Add Edge Cases
     
@@ -698,15 +698,15 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
     
     [AI runs: npm test]
     
-    ✅ All tests still pass after refactoring!
+     All tests still pass after refactoring!
     
     ## Summary
     
     We've implemented login functionality using TDD:
-    - ✅ 5 tests covering happy path, errors, and edge cases
-    - ✅ Clean, testable code
-    - ✅ Proper error handling
-    - ✅ Type safety with TypeScript
+    -  5 tests covering happy path, errors, and edge cases
+    -  Clean, testable code
+    -  Proper error handling
+    -  Type safety with TypeScript
     
     Next steps:
     1. Add rate limiting tests
@@ -717,11 +717,11 @@ AI: Perfect! Let's use TDD to build this. Following the Red-Green-Refactor
 ```
 
 ### What Happened
-- ✅ Followed Red-Green-Refactor cycle
-- ✅ Wrote tests before implementation
-- ✅ Covered edge cases
-- ✅ Refactored with confidence
-- ✅ Maintained test coverage
+-  Followed Red-Green-Refactor cycle
+-  Wrote tests before implementation
+-  Covered edge cases
+-  Refactored with confidence
+-  Maintained test coverage
 
 ---
 

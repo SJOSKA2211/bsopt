@@ -731,7 +731,7 @@ com frequência suficiente para que seja um registro histórico relevante.
 ## 6.3 Sam Altman — A Diferença Filosófica Fundamental
 
 | Dimensão | Ilya | Altman |
-|----------|------|--------|
+|--|------|--------|
 | Prioridade central | Safety é a estratégia | Safety é uma constraint dentro da estratégia |
 | Velocidade vs. safety | Não são complementares automaticamente | Velocidade financia o safety adequado |
 | Estrutura organizacional | Sem pressão comercial = melhor safety | Recursos comerciais = mais capacidade de safety |
@@ -754,7 +754,7 @@ para resolver o problema que o mecanismo cria.
 ## 6.4 Yann Lecun — A Divergência Técnica E Filosófica
 
 | Dimensão | Ilya | LeCun |
-|----------|------|-------|
+|--|------|-------|
 | LLMs como caminho para AGI | Sim — scaling + architectures | Não — LLMs são "autocomplete glorificado" |
 | Consciência em IA | Questão aberta e séria | Não-questão; LLMs claramente não conscientes |
 | Risco existencial | Real, urgente, demanda ação | Exagerado; ferramentas não têm agência |
@@ -770,7 +770,7 @@ ou de temperamento — é sobre o que a evidência diz e sobre o que precisamos 
 ## Papers Primários Com Ilya Como Autor
 
 | Ano | Paper | Venue | Contribuição |
-|-----|-------|-------|--------------|
+|-----|-------|-------|--|
 | 2012 | "ImageNet Classification with Deep Convolutional Neural Networks" (Krizhevsky, **Sutskever**, Hinton) | NeurIPS | AlexNet — fundação do deep learning moderno |
 | 2014 | "Sequence to Sequence Learning with Neural Networks" (**Sutskever**, Vinyals, Le) | NeurIPS | Encoder-decoder — ancestral dos LLMs |
 | 2014 | "Recurrent Neural Network Regularization" (Zaremba, **Sutskever**, Vinyals) | ICLR workshop | Dropout em RNNs |

@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on analysis needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Facebook follower demographics | `apify/facebook-followers-following-scraper` | FB followers/following lists |
 | Facebook engagement behavior | `apify/facebook-likes-scraper` | FB post likes analysis |
 | Facebook video audience | `apify/facebook-reels-scraper` | FB Reels viewers |

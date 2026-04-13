@@ -212,7 +212,7 @@ Used in `where` and `on` parameters:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List projects | MIXPANEL_GET_ALL_PROJECTS | (none) |
 | Aggregate events | MIXPANEL_AGGREGATE_EVENT_COUNTS | event, from_date, to_date, unit |
 | Segmentation | MIXPANEL_QUERY_SEGMENTATION | event, on, from_date, to_date |

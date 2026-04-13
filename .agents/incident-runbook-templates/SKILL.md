@@ -36,7 +36,7 @@ Production-ready templates for incident response runbooks covering detection, tr
 ### 1. Incident Severity Levels
 
 | Severity | Impact | Response Time | Example |
-|----------|--------|---------------|---------|
+|--|--------|--|---------|
 | **SEV1** | Complete outage, data loss | 15 min | Production down |
 | **SEV2** | Major degradation | 30 min | Critical feature broken |
 | **SEV3** | Minor impact | 2 hours | Non-critical bug |
@@ -108,7 +108,7 @@ curl -s "http://prometheus:9090/api/v1/query?query=sum(rate(http_requests_total{
 
 ### 3. Initial Classification
 | Symptom | Likely Cause | Go To Section |
-|---------|--------------|---------------|
+|---------|--|--|
 | All requests failing | Service down | Section 4.1 |
 | High latency | Database/dependency | Section 4.2 |
 | Partial failures | Code bug | Section 4.3 |
@@ -245,7 +245,7 @@ curl -X POST https://api.company.com/internal/feature-flags \
 ## Escalation Matrix
 
 | Condition | Escalate To | Contact |
-|-----------|-------------|---------|
+|--|--|---------|
 | > 15 min unresolved SEV1 | Engineering Manager | @manager (Slack) |
 | Data breach suspected | Security Team | #security-incidents |
 | Financial impact > $10k | Finance + Legal | @finance-oncall |
@@ -255,7 +255,7 @@ curl -X POST https://api.company.com/internal/feature-flags \
 
 ### Initial Notification (Internal)
 ```
-🚨 INCIDENT: Payment Service Degradation
+ INCIDENT: Payment Service Degradation
 
 Severity: SEV2
 Status: Investigating
@@ -273,7 +273,7 @@ Updates in #payments-incidents
 
 ### Status Update
 ```
-📊 UPDATE: Payment Service Incident
+ UPDATE: Payment Service Incident
 
 Status: Mitigating
 Impact: Reduced to ~5% failure rate
@@ -292,7 +292,7 @@ ETA to Resolution: ~15 minutes
 
 ### Resolution Notification
 ```
-✅ RESOLVED: Payment Service Incident
+ RESOLVED: Payment Service Incident
 
 Duration: 45 minutes
 Impact: ~5,000 affected transactions

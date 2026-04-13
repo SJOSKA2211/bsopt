@@ -238,7 +238,7 @@ app = graph.compile()
 
 ## Anti-Patterns
 
-### ❌ Infinite Loop Without Exit
+###  Infinite Loop Without Exit
 
 **Why bad**: Agent loops forever.
 Burns tokens and costs.
@@ -256,7 +256,7 @@ def should_continue(state):
         return END
     return "agent"
 
-### ❌ Stateless Nodes
+###  Stateless Nodes
 
 **Why bad**: Loses LangGraph's benefits.
 State not persisted.
@@ -267,7 +267,7 @@ Return state updates from nodes.
 Use reducers for accumulation.
 Let LangGraph manage state.
 
-### ❌ Giant Monolithic State
+###  Giant Monolithic State
 
 **Why bad**: Hard to reason about.
 Unnecessary data in context.

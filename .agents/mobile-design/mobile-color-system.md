@@ -21,7 +21,7 @@ DESKTOP:                           MOBILE:
 ### Mobile Color Priorities
 
 | Priority | Why |
-|----------|-----|
+|--|-----|
 | **1. Readability** | Outdoor, variable lighting |
 | **2. Battery efficiency** | OLED = dark mode saves power |
 | **3. System integration** | Dark/light mode support |
@@ -123,7 +123,7 @@ Elevation in dark mode:
 ### Text Colors in Dark Mode
 
 | Role | Light Mode | Dark Mode |
-|------|------------|-----------|
+|------|--|--|
 | Primary | #000000 (Black) | #E8E8E8 (Not pure white) |
 | Secondary | #666666 | #B0B0B0 |
 | Disabled | #9E9E9E | #6E6E6E |
@@ -195,7 +195,7 @@ DO:
 ### Consistent Meaning
 
 | Semantic | Meaning | iOS Default | Android Default |
-|----------|---------|-------------|-----------------|
+|--|---------|--|--|
 | Error | Problems, destruction | #FF3B30 | #B3261E |
 | Success | Completion, positive | #34C759 | #4CAF50 |
 | Warning | Attention, caution | #FF9500 | #FFC107 |
@@ -336,7 +336,7 @@ Mobile recommendation: Meet AA, aim for AAA
 
 ## 8. Color Anti-Patterns
 
-### ❌ Common Mistakes
+###  Common Mistakes
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
@@ -347,7 +347,7 @@ Mobile recommendation: Meet AA, aim for AAA
 | **Semantic colors for brand** | Confusing meaning | Use neutral for brand |
 | **Ignoring system dark mode** | Jarring experience | Support both modes |
 
-### ❌ AI Color Mistakes
+###  AI Color Mistakes
 
 ```
 AI tends to:

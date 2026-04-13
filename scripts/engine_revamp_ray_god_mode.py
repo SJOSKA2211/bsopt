@@ -15,7 +15,7 @@ def report_health():
     print("="*80)
 
     if not ray.is_initialized():
-        print("❌ Ray is not initialized.")
+        print(" Ray is not initialized.")
         return
 
     # Get cluster resources
@@ -25,8 +25,8 @@ def report_health():
 
     alive_nodes = [n for n in nodes if n["Alive"]]
     
-    print(f"✅ Ray is initialized and healthy.")
-    print(f"🖥️  Total Nodes: {len(nodes)} (Alive: {len(alive_nodes)})")
+    print(f" Ray is initialized and healthy.")
+    print(f"️  Total Nodes: {len(nodes)} (Alive: {len(alive_nodes)})")
     
     print("\n--- Total Cluster Resources ---")
     for key, val in resources.items():
@@ -69,7 +69,7 @@ def stress_test_task(batch_size):
     return batch_size, duration
 
 def revamp_fully():
-    print("\n🚀 STARTING GOD-MODE RAY ENGINE REVAMP...")
+    print("\n STARTING GOD-MODE RAY ENGINE REVAMP...")
     
     # 1. Connect to Ray with optimized runtime environment
     print("--- Phase 1: Cluster Connection ---")
@@ -92,9 +92,9 @@ def revamp_fully():
     }
     try:
         ray.init(address="auto", ignore_reinit_error=True, runtime_env=runtime_env)
-        print("✅ Connected to Ray cluster with optimized Runtime Env.")
+        print(" Connected to Ray cluster with optimized Runtime Env.")
     except Exception as e:
-        print(f"❌ Failed to connect to Ray: {e}")
+        print(f" Failed to connect to Ray: {e}")
         sys.exit(1)
 
     # 2. Object Store Cleanup & Global Tuning
@@ -103,14 +103,14 @@ def revamp_fully():
         import gc
         gc.collect()
         cpus = int(ray.cluster_resources().get("CPU", 1))
-        print(f"✅ Garbage collection triggered. Target Capacity: {cpus} CPUs.")
+        print(f" Garbage collection triggered. Target Capacity: {cpus} CPUs.")
     except Exception as e:
-        print(f"⚠️ Tuning failed: {e}")
+        print(f"️ Tuning failed: {e}")
 
     # 3. High-Performance Stress Test (Warm-up)
     print("\n--- Phase 3: Stress-Test & Warm-up ---")
     try:
-        print(f"  🔥 Launching stress test: {TOTAL_SIMULATIONS:,} Black-Scholes simulations...")
+        print(f"   Launching stress test: {TOTAL_SIMULATIONS:,} Black-Scholes simulations...")
         num_batches = TOTAL_SIMULATIONS // BATCH_SIZE
         
         start_time = time.time()
@@ -123,19 +123,19 @@ def revamp_fully():
         total_sims = sum(r[0] for r in results)
         throughput = total_sims / total_duration
         
-        print(f"✅ Stress-test complete.")
-        print(f"📊 Throughput: {throughput:,.2f} simulations/sec")
+        print(f" Stress-test complete.")
+        print(f" Throughput: {throughput:,.2f} simulations/sec")
         print(f"⏱️  Total Time: {total_duration:.2f}s")
         
         if throughput > 500_000:
-            print("🚀 STATUS: GOD-MODE PERFORMANCE DETECTED.")
+            print(" STATUS: GOD-MODE PERFORMANCE DETECTED.")
         else:
-            print("⚠️ STATUS: Performance below institutional targets.")
+            print("️ STATUS: Performance below institutional targets.")
             
     except Exception as e:
-        print(f"⚠️ Stress-test failed: {e}")
+        print(f"️ Stress-test failed: {e}")
 
-    print("\n🏆 RAY REVAMP COMPLETE. DISTRIBUTED ENGINE IS FULLY OPTIMIZED.")
+    print("\n RAY REVAMP COMPLETE. DISTRIBUTED ENGINE IS FULLY OPTIMIZED.")
 
 if __name__ == "__main__":
     revamp_fully()

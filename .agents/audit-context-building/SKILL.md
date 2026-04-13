@@ -54,7 +54,7 @@ Goal: **deep, accurate understanding**, not conclusions.
 ## Rationalizations (Do Not Skip)
 
 | Rationalization | Why It's Wrong | Required Action |
-|-----------------|----------------|-----------------|
+|--|--|--|
 | "I get the gist" | Gist-level understanding misses edge cases | Line-by-line analysis required |
 | "This function is simple" | Simple functions compose into complex bugs | Apply 5 Whys anyway |
 | "I'll remember this invariant" | You won't. Context degrades. | Write it down explicitly |

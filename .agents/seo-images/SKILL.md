@@ -49,7 +49,7 @@ allowed-tools:
 **Tiered thresholds by image category:**
 
 | Image Category | Target | Warning | Critical |
-|----------------|--------|---------|----------|
+|--|--------|---------|--|
 | Thumbnails | < 50KB | > 100KB | > 200KB |
 | Content images | < 100KB | > 200KB | > 500KB |
 | Hero/banner images | < 200KB | > 300KB | > 700KB |
@@ -58,7 +58,7 @@ Recommend compression to target thresholds where possible without quality loss.
 
 ### Format
 | Format | Browser Support | Use Case |
-|--------|-----------------|----------|
+|--------|--|--|
 | WebP | 97%+ | Default recommendation |
 | AVIF | 92%+ | Best compression, newer |
 | JPEG | 100% | Fallback for photos |
@@ -163,18 +163,18 @@ Add `decoding="async"` to non-LCP images to prevent image decoding from blocking
 | Metric | Status | Count |
 |--------|--------|-------|
 | Total Images | - | XX |
-| Missing Alt Text | ❌ | XX |
-| Oversized (>200KB) | ⚠️ | XX |
-| Wrong Format | ⚠️ | XX |
-| No Dimensions | ⚠️ | XX |
-| Not Lazy Loaded | ⚠️ | XX |
+| Missing Alt Text |  | XX |
+| Oversized (>200KB) | ️ | XX |
+| Wrong Format | ️ | XX |
+| No Dimensions | ️ | XX |
+| Not Lazy Loaded | ️ | XX |
 
 ### Prioritized Optimization List
 
 Sorted by file size impact (largest savings first):
 
 | Image | Current Size | Format | Issues | Est. Savings |
-|-------|--------------|--------|--------|--------------|
+|-------|--|--------|--------|--|
 | ... | ... | ... | ... | ... |
 
 ### Recommendations
@@ -187,7 +187,7 @@ Sorted by file size impact (largest savings first):
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable | Report connection error with status code. Suggest verifying URL and checking if site requires authentication. |
 | No images found on page | Report that no `<img>` elements were detected. Suggest checking if images are loaded via JavaScript or CSS background-image. |
 | Images behind CDN or authentication | Note that image files could not be directly accessed for size analysis. Report available metadata (alt text, dimensions, format from markup) and flag inaccessible resources. |

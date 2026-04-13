@@ -254,7 +254,7 @@ async def translate_text():
 ## Client Methods
 
 | Method | Description |
-|--------|-------------|
+|--------|--|
 | `translate` | Translate text to one or more languages |
 | `transliterate` | Convert text between scripts |
 | `detect` | Detect language of text |

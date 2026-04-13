@@ -27,7 +27,7 @@ Not every problem benefits from LLM processing. The first step in any project is
 **LLM-suited tasks share these characteristics:**
 
 | Characteristic | Why It Fits |
-|----------------|-------------|
+|--|--|
 | Synthesis across sources | LLMs excel at combining information from multiple inputs |
 | Subjective judgment with rubrics | LLMs handle grading, evaluation, and classification with criteria |
 | Natural language output | When the goal is human-readable text, not structured data |
@@ -38,7 +38,7 @@ Not every problem benefits from LLM processing. The first step in any project is
 **LLM-unsuited tasks share these characteristics:**
 
 | Characteristic | Why It Fails |
-|----------------|--------------|
+|--|--|
 | Precise computation | Math, counting, and exact algorithms are unreliable |
 | Real-time requirements | LLM latency is too high for sub-second responses |
 | Perfect accuracy requirements | Hallucination risk makes 100% accuracy impossible |

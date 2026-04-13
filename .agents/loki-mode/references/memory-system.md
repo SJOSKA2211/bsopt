@@ -7,36 +7,36 @@ Enhanced memory architecture based on 2025 research (MIRIX, A-Mem, MemGPT, AriGr
 ## Memory Hierarchy Overview
 
 ```
-+------------------------------------------------------------------+
++--+
 | WORKING MEMORY (CONTINUITY.md)                                    |
 | - Current session state                                           |
 | - Updated every turn                                              |
 | - What am I doing right NOW?                                      |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | EPISODIC MEMORY (.loki/memory/episodic/)                         |
 | - Specific interaction traces                                     |
 | - Full context with timestamps                                    |
 | - "What happened when I tried X?"                                 |
-+------------------------------------------------------------------+
++--+
         |
         v (consolidation)
-+------------------------------------------------------------------+
++--+
 | SEMANTIC MEMORY (.loki/memory/semantic/)                         |
 | - Generalized patterns and facts                                  |
 | - Context-independent knowledge                                   |
 | - "How does X work in general?"                                   |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | PROCEDURAL MEMORY (.loki/memory/skills/)                         |
 | - Learned action sequences                                        |
 | - Reusable skill templates                                        |
 | - "How to do X successfully"                                      |
-+------------------------------------------------------------------+
++--+
 ```
 
 ---
@@ -218,7 +218,7 @@ Each memory note can link to related notes:
 ### Link Relations
 
 | Relation | Meaning |
-|----------|---------|
+|--|---------|
 | `derived_from` | This pattern was extracted from that episode |
 | `related_to` | Conceptually similar, often used together |
 | `contradicts` | These patterns conflict - need resolution |

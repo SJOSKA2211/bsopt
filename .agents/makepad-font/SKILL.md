@@ -205,7 +205,7 @@ pub struct rasterizer::Settings {
 ## Text Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `text` | String | Text content |
 | `font` | Font | Font resource |
 | `font_size` | f64 | Size in points |

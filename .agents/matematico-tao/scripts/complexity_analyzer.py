@@ -449,7 +449,7 @@ class KotlinComplexityAnalyzer:
         print("=" * 70)
 
         s = report["summary"]
-        print("\n📊 RESUMO:")
+        print("\n RESUMO:")
         print(f"  Arquivos analisados:    {s['total_files']}")
         print(f"  Funções analisadas:     {s['total_functions']}")
         print(f"  Linhas de código:       {s['total_code_lines']}")
@@ -457,7 +457,7 @@ class KotlinComplexityAnalyzer:
         print(f"  Funções alta cognitiva: {s['high_cognitive_functions']}")
 
         if report["high_cyclomatic_complexity"]:
-            print("\n⚠️  TOP FUNÇÕES POR COMPLEXIDADE CICLOMÁTICA:")
+            print("\n️  TOP FUNÇÕES POR COMPLEXIDADE CICLOMÁTICA:")
             print(f"  {'Função':<35} {'CC':>5}  {'Arquivo':<40} Risco")
             print(f"  {'-' * 35} {'-' * 5}  {'-' * 40} {'-' * 25}")
             for item in report["high_cyclomatic_complexity"][:10]:
@@ -466,7 +466,7 @@ class KotlinComplexityAnalyzer:
                 print(f"  {fname:<35} {item['cc']:>5}  {ffile:<40} {item['risk']}")
 
         if report["module_statistics"]:
-            print("\n📦 ESTATÍSTICAS POR MÓDULO:")
+            print("\n ESTATÍSTICAS POR MÓDULO:")
             print(
                 f"  {'Módulo':<20} {'Arquivos':>8} {'Funções':>8} {'CC Médio':>10} {'CC Máximo':>10} {'Instabilidade':>14}"
             )
@@ -481,13 +481,13 @@ class KotlinComplexityAnalyzer:
                 )
 
         if report["coroutine_issues"]:
-            print("\n🔄 PROBLEMAS POTENCIAIS EM COROUTINES:")
+            print("\n PROBLEMAS POTENCIAIS EM COROUTINES:")
             for item in report["coroutine_issues"][:5]:
-                print(f"  ⚠️  {item['function']} ({item['file']})")
+                print(f"  ️  {item['function']} ({item['file']})")
                 print(f"     → {item['note']}")
 
         if report["nullable_risks"]:
-            print("\n❓ NULLABLE RISKS (muitos parâmetros nullable):")
+            print("\n NULLABLE RISKS (muitos parâmetros nullable):")
             for item in report["nullable_risks"][:5]:
                 print(
                     f"  {item['function']}: {item['nullable_params']} nullable params ({item['file']})"
@@ -518,7 +518,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"🔬 Prof. Euler analisando: {args.path}")
+    print(f" Prof. Euler analisando: {args.path}")
     if args.module:
         print(f"   Módulo: {args.module}")
 
@@ -540,7 +540,7 @@ def main():
         else:
             # Salvar como markdown
             save_as_markdown(report, output_path, args.threshold)
-        print(f"✅ Relatório salvo em: {args.output}")
+        print(f" Relatório salvo em: {args.output}")
 
     return report
 
@@ -566,7 +566,7 @@ def save_as_markdown(report: dict, path: Path, threshold: int) -> None:
 
     lines.append("\n## Acoplamento de Módulos\n")
     lines.append("| Módulo | Ca | Ce | Instabilidade | Depende de |\n")
-    lines.append("|--------|----|----|--------------|------------|\n")
+    lines.append("|--------|----|----|--|--|\n")
     for mod, data in sorted(report["module_coupling"].items()):
         deps = ", ".join(data["depends_on"]) or "nenhum"
         lines.append(

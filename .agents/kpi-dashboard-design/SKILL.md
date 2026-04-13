@@ -36,7 +36,7 @@ Comprehensive patterns for designing effective Key Performance Indicator (KPI) d
 ### 1. KPI Framework
 
 | Level           | Focus            | Update Frequency  | Audience   |
-| --------------- | ---------------- | ----------------- | ---------- |
+| -- | -- | -- | -- |
 | **Strategic**   | Long-term goals  | Monthly/Quarterly | Executives |
 | **Tactical**    | Department goals | Weekly/Monthly    | Managers   |
 | **Operational** | Day-to-day       | Real-time/Daily   | Teams      |
@@ -180,7 +180,7 @@ Efficiency:
 │  └───────────────────────┘       │  └──────────────────┘   │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
-│  🔴 Alert: Churn rate exceeded threshold (>5%)              │
+│   Alert: Churn rate exceeded threshold (>5%)              │
 │  🟡 Warning: Support ticket volume 20% above average        │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -243,7 +243,7 @@ Efficiency:
 │  RECENT ALERTS                                              │
 │  10:40  🟡 High latency on payment-service (p99 > 500ms)    │
 │  10:35  🟢 Resolved: Database connection pool recovered     │
-│  10:22  🔴 Payment service circuit breaker tripped          │
+│  10:22   Payment service circuit breaker tripped          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -413,7 +413,7 @@ alerts = [
 ]
 for alert in alerts:
     if alert["level"] == "error":
-        st.error(f"🔴 {alert['message']}")
+        st.error(f" {alert['message']}")
     elif alert["level"] == "warning":
         st.warning(f"🟡 {alert['message']}")
 ```

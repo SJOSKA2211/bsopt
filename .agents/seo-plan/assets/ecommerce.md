@@ -46,7 +46,7 @@
 ## Schema Recommendations
 
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Product Page | Product, Offer, AggregateRating, Review, BreadcrumbList |
 | Category Page | CollectionPage, ItemList, BreadcrumbList |
 | Brand Page | Brand, Organization |

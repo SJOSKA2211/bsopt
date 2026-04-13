@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on research needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Market density | `compass/crawler-google-places` | Location analysis |
 | Geospatial analysis | `compass/google-maps-extractor` | Business mapping |
 | Regional interest | `apify/google-trends-scraper` | Trend data |

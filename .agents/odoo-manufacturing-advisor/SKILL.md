@@ -84,12 +84,12 @@ Message Types:
 
 ## Best Practices
 
-- ✅ **Do:** Enable **Work Orders** in Manufacturing Settings to use routing and time-tracking per operation.
-- ✅ **Do:** Use **BoM with variants** (via product attributes) for products that come in multiple configurations (color, size, voltage) — avoids duplicate BoMs.
-- ✅ **Do:** Set **Lead Times** on components (vendor lead time + security lead time) so MRP schedules purchase orders in advance.
-- ✅ **Do:** Use **Scrap Orders** when discarding defective components during production — never adjust stock manually.
-- ❌ **Don't:** Manually create purchase orders for MRP-managed items — override MRP suggestions only when justified.
-- ❌ **Don't:** Confuse **Kit** BoM with **Manufacture This Product** — a Kit never creates a Manufacturing Order.
+-  **Do:** Enable **Work Orders** in Manufacturing Settings to use routing and time-tracking per operation.
+-  **Do:** Use **BoM with variants** (via product attributes) for products that come in multiple configurations (color, size, voltage) — avoids duplicate BoMs.
+-  **Do:** Set **Lead Times** on components (vendor lead time + security lead time) so MRP schedules purchase orders in advance.
+-  **Do:** Use **Scrap Orders** when discarding defective components during production — never adjust stock manually.
+-  **Don't:** Manually create purchase orders for MRP-managed items — override MRP suggestions only when justified.
+-  **Don't:** Confuse **Kit** BoM with **Manufacture This Product** — a Kit never creates a Manufacturing Order.
 
 ## Limitations
 

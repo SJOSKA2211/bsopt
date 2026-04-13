@@ -56,7 +56,7 @@ Máximo de 150 linhas. Formato:
 
 ## Projetos Ativos
 | Projeto | Status | Última Sessão | Próxima Ação |
-|---------|--------|---------------|--------------|
+|---------|--------|--|--|
 | Nome    | ativo  | session-NNN   | Ação         |
 
 ## Tarefas Pendentes
@@ -86,7 +86,7 @@ Máximo de 150 linhas. Formato:
 # Registro de Projetos — Atualizado em YYYY-MM-DD HH:MM
 
 | Projeto | Status | Última Interação | Próximas Ações |
-|---------|--------|------------------|----------------|
+|---------|--------|--|--|
 | Nome    | ativo  | YYYY-MM-DD (session-NNN) | Ação1; Ação2 |
 ```
 

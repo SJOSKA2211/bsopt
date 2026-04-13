@@ -4,7 +4,7 @@
 
 ### Foto (IMAGE)
 | Propriedade | Requisito |
-|-------------|-----------|
+|--|--|
 | Formato | JPEG (obrigatório — PNG/WebP são convertidos automaticamente pelo publish.py via Pillow) |
 | Resolução mínima | 320 x 320 px |
 | Resolução máxima | 1080 x 1350 px (recomendado) |
@@ -14,7 +14,7 @@
 
 ### Vídeo (VIDEO)
 | Propriedade | Requisito |
-|-------------|-----------|
+|--|--|
 | Formato | MP4 (H.264 codec) |
 | Resolução mínima | 640 x 640 px |
 | Resolução máxima | 1920 x 1080 px |
@@ -25,7 +25,7 @@
 
 ### Reel (REELS)
 | Propriedade | Requisito |
-|-------------|-----------|
+|--|--|
 | Formato | MP4 (H.264 codec) |
 | Aspect ratio | 9:16 (vertical, obrigatório) |
 | Resolução recomendada | 1080 x 1920 px |
@@ -35,7 +35,7 @@
 
 ### Story (STORIES)
 | Propriedade | Requisito |
-|-------------|-----------|
+|--|--|
 | Formato foto | JPEG |
 | Formato vídeo | MP4 |
 | Aspect ratio | 9:16 (1080 x 1920 px recomendado) |
@@ -44,7 +44,7 @@
 
 ### Carrossel (CAROUSEL_ALBUM)
 | Propriedade | Requisito |
-|-------------|-----------|
+|--|--|
 | Itens | 2 a 10 imagens/vídeos |
 | Tipos permitidos | Mix de fotos e vídeos |
 | Cada item segue specs | De IMAGE ou VIDEO acima |
@@ -125,7 +125,7 @@ draft → approved → scheduled → container_created → published
 ```
 
 | Status | Significado | Próxima ação |
-|--------|-------------|--------------|
+|--------|--|--|
 | `draft` | Rascunho, não será publicado automaticamente | `--approve --id X` |
 | `approved` | Aprovado para publicação | `schedule.py --process` |
 | `scheduled` | Agendado para data futura | Aguardar horário |

@@ -43,7 +43,7 @@ Homepage (/)
 ### URL Map
 
 | Page | URL | Nav Location | Priority |
-|------|-----|-------------|----------|
+|------|-----|--|--|
 | Homepage | `/` | Header (logo) | Critical |
 | Features | `/features` | Header | High |
 | Feature pages | `/features/{slug}` | Header dropdown | Medium |
@@ -96,7 +96,7 @@ Homepage (/)
 ### URL Map
 
 | Page | URL | Nav Location | Priority |
-|------|-----|-------------|----------|
+|------|-----|--|--|
 | Homepage | `/` | Header (logo) | Critical |
 | Blog index | `/blog` | Header | High |
 | Categories | `/blog/category/{slug}` | Header dropdown | Medium |
@@ -149,7 +149,7 @@ Homepage (/)
 ### URL Map
 
 | Page | URL | Nav Location | Priority |
-|------|-----|-------------|----------|
+|------|-----|--|--|
 | Homepage | `/` | Header (logo) | Critical |
 | Shop | `/shop` | Header | Critical |
 | Categories | `/shop/{category}` | Header mega menu | High |
@@ -194,7 +194,7 @@ Docs Home (/docs)
 ### URL Map
 
 | Page | URL | Nav Location | Priority |
-|------|-----|-------------|----------|
+|------|-----|--|--|
 | Docs home | `/docs` | Header | High |
 | Getting Started | `/docs/getting-started` | Sidebar (top) | Critical |
 | Guides | `/docs/guides` | Sidebar | High |
@@ -277,7 +277,7 @@ Homepage (/)
 ### URL Map
 
 | Page | URL | Nav Location | Priority |
-|------|-----|-------------|----------|
+|------|-----|--|--|
 | Homepage | `/` | Header (logo) | Critical |
 | Services | `/services` | Header | High |
 | Service pages | `/services/{slug}` | Header dropdown | High |

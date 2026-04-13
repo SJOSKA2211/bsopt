@@ -246,7 +246,7 @@ import type {
 ## Migration from Old Package
 
 | Old (`@azure/microsoft-playwright-testing`) | New (`@azure/playwright`) |
-|---------------------------------------------|---------------------------|
+|--|--|
 | `getServiceConfig()` | `createAzurePlaywrightConfig()` |
 | `timeout` option | `connectTimeout` option |
 | `runId` option | `runName` option |

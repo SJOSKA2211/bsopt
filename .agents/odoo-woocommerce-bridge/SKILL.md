@@ -124,8 +124,8 @@ def sync_inventory_to_woocommerce():
 
 ## Best Practices
 
-- ✅ **Do:** Use **SKU** as the unique identifier linking WooCommerce products to Odoo products.
-- ✅ **Do:** Run inventory sync on a **schedule** (every 15-30 min) rather than real-time to avoid rate limits.
-- ✅ **Do:** Log all API calls and errors to a database table for debugging.
-- ❌ **Don't:** Process the same WooCommerce order twice — flag it as processed immediately after import.
-- ❌ **Don't:** Sync draft or cancelled WooCommerce orders to Odoo — filter by `status = processing` or `completed`.
+-  **Do:** Use **SKU** as the unique identifier linking WooCommerce products to Odoo products.
+-  **Do:** Run inventory sync on a **schedule** (every 15-30 min) rather than real-time to avoid rate limits.
+-  **Do:** Log all API calls and errors to a database table for debugging.
+-  **Don't:** Process the same WooCommerce order twice — flag it as processed immediately after import.
+-  **Don't:** Sync draft or cancelled WooCommerce orders to Odoo — filter by `status = processing` or `completed`.

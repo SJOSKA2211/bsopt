@@ -207,7 +207,7 @@ All list endpoints use page-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List repos | `GITHUB_LIST_REPOSITORIES_FOR_THE_AUTHENTICATED_USER` | `type`, `sort`, `per_page` |
 | Get repo | `GITHUB_GET_A_REPOSITORY` | `owner`, `repo` |
 | Create issue | `GITHUB_CREATE_AN_ISSUE` | `owner`, `repo`, `title`, `body` |

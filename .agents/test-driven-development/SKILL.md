@@ -344,7 +344,7 @@ Can't check all boxes? You skipped TDD. Start over.
 ## When Stuck
 
 | Problem | Solution |
-|---------|----------|
+|---------|--|
 | Don't know how to test | Write wished-for API. Write assertion first. Ask your human partner. |
 | Test too complicated | Design too complicated. Simplify interface. |
 | Must mock everything | Code too coupled. Use dependency injection. |

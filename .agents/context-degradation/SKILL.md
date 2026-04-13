@@ -97,7 +97,7 @@ The RULER benchmark delivers sobering findings: only 50% of models claiming 32K+
 
 **Model-Specific Degradation Thresholds**
 | Model | Degradation Onset | Severe Degradation | Notes |
-|-------|-------------------|-------------------|-------|
+|-------|--|--|-------|
 | GPT-5.2 | ~64K tokens | ~200K tokens | Best overall degradation resistance with thinking mode |
 | Claude Opus 4.5 | ~100K tokens | ~180K tokens | 200K context window, strong attention management |
 | Claude Sonnet 4.5 | ~80K tokens | ~150K tokens | Optimized for agents and coding tasks |

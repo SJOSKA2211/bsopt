@@ -168,7 +168,7 @@ Format: {vcs_type}/{org_name}/{repo_name}
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Trigger pipeline | CIRCLECI_TRIGGER_PIPELINE | project_slug, branch, parameters |
 | List pipelines | CIRCLECI_LIST_PIPELINES_FOR_PROJECT | project_slug, branch |
 | List workflows | CIRCLECI_LIST_WORKFLOWS_BY_PIPELINE_ID | pipeline_id |

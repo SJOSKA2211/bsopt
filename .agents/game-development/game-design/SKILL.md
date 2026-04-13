@@ -27,7 +27,7 @@ Every game needs a fun 30-second loop:
 ### Loop Examples
 
 | Genre | Core Loop |
-|-------|-----------|
+|-------|--|
 | Platformer | Run → Jump → Land → Collect |
 | Shooter | Aim → Shoot → Kill → Loot |
 | Puzzle | Observe → Think → Solve → Advance |
@@ -61,7 +61,7 @@ Every game needs a fun 30-second loop:
 ### Motivation Types
 
 | Type | Driven By |
-|------|-----------|
+|------|--|
 | **Achiever** | Goals, completion |
 | **Explorer** | Discovery, secrets |
 | **Socializer** | Interaction, community |
@@ -70,7 +70,7 @@ Every game needs a fun 30-second loop:
 ### Reward Schedules
 
 | Schedule | Effect | Use |
-|----------|--------|-----|
+|--|--------|-----|
 | **Fixed** | Predictable | Milestone rewards |
 | **Variable** | Addictive | Loot drops |
 | **Ratio** | Effort-based | Grind games |
@@ -90,7 +90,7 @@ Just Right → Flow → Engagement
 ### Balancing Strategies
 
 | Strategy | How |
-|----------|-----|
+|--|-----|
 | **Dynamic** | Adjust to player skill |
 | **Selection** | Let player choose |
 | **Accessibility** | Options for all |
@@ -119,8 +119,8 @@ Just Right → Flow → Engagement
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Design in isolation | Playtest constantly |
 | Polish before fun | Prototype first |
 | Force one way to play | Allow player expression |

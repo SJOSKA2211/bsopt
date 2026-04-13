@@ -10,7 +10,7 @@ Instead of building large, complex views, extract recurring patterns into small 
 Instead of repeating a `Grid` with labels and values:
 
 ```xml
-<!-- ❌ BAD: Repeated Grid -->
+<!--  BAD: Repeated Grid -->
 <Grid ColumnDefinitions="*,Auto">
    <TextBlock Text="Total:" />
    <TextBlock Grid.Column="1" Text="{Binding Total}" />
@@ -20,11 +20,11 @@ Instead of repeating a `Grid` with labels and values:
 Create a generic component (or use `EdgePanel` with a Style):
 
 ```xml
-<!-- ✅ GOOD: Use a specialized control or style -->
+<!--  GOOD: Use a specialized control or style -->
 <EdgePanel StartContent="Total:" EndContent="{Binding Total}" Classes="SummaryItem" />
 ```
 
-## 📉 Flattening Layouts
+##  Flattening Layouts
 
 Avoid deep nesting. Deeply nested XAML is hard to read and can impact performance.
 
@@ -32,7 +32,7 @@ Avoid deep nesting. Deeply nested XAML is hard to read and can impact performanc
 - **EdgePanel**: Great for "Label - Value" or "Icon - Text - Action" rows.
 - **UniformGrid**: Use for grids where all cells are the same size.
 
-## 🔧 Component Granularity
+##  Component Granularity
 
 - **Atomical**: Small controls like custom buttons or icons.
 - **Molecular**: Groups of atoms like a `HeaderedContainer` with specific content.

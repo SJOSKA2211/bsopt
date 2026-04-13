@@ -7,7 +7,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 1. Data Quality Dimensions
 
 | Dimension | Description | Example Check |
-|-----------|-------------|---------------|
+|--|--|--|
 | **Completeness** | No missing values | `expect_column_values_to_not_be_null` |
 | **Uniqueness** | No duplicates | `expect_column_values_to_be_unique` |
 | **Validity** | Values in expected range | `expect_column_values_to_be_in_set` |
@@ -516,7 +516,7 @@ class DataQualityPipeline:
         report.append("")
 
         for table, result in results.items():
-            status = "✅" if result.passed else "❌"
+            status = "" if result.passed else ""
             report.append(f"### {status} {table}")
             report.append(f"- Expectations: {result.total_expectations}")
             report.append(f"- Failed: {result.failed_expectations}")

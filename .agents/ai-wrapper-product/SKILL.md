@@ -88,7 +88,7 @@ async function generateContent(userInput, context) {
 
 ### Model Selection
 | Model | Cost | Speed | Quality | Use Case |
-|-------|------|-------|---------|----------|
+|-------|------|-------|---------|--|
 | GPT-4o | $$$ | Fast | Best | Complex tasks |
 | GPT-4o-mini | $ | Fastest | Good | Most tasks |
 | Claude 3.5 Sonnet | $$ | Fast | Excellent | Balanced |
@@ -150,7 +150,7 @@ function parseAIOutput(text) {
 
 ### Quality Control
 | Technique | Purpose |
-|-----------|---------|
+|--|---------|
 | Examples in prompt | Guide output style |
 | Output format spec | Consistent structure |
 | Validation | Catch malformed responses |
@@ -197,7 +197,7 @@ function calculateCost(usage) {
 
 ### Cost Reduction Strategies
 | Strategy | Savings |
-|----------|---------|
+|--|---------|
 | Use cheaper models | 10-50x |
 | Limit output tokens | Variable |
 | Cache common queries | High |
@@ -225,7 +225,7 @@ async function checkUsageLimits(userId) {
 
 ## Anti-Patterns
 
-### ❌ Thin Wrapper Syndrome
+###  Thin Wrapper Syndrome
 
 **Why bad**: No differentiation.
 Users just use ChatGPT.
@@ -237,7 +237,7 @@ Perfect the UX for specific task.
 Integrate into workflows.
 Post-process outputs.
 
-### ❌ Ignoring Costs Until Scale
+###  Ignoring Costs Until Scale
 
 **Why bad**: Surprise bills.
 Negative unit economics.
@@ -249,7 +249,7 @@ Know your cost per user.
 Set usage limits.
 Price with margin.
 
-### ❌ No Output Validation
+###  No Output Validation
 
 **Why bad**: AI hallucinates.
 Inconsistent formatting.
@@ -261,10 +261,10 @@ Parse structured responses.
 Have fallback handling.
 Post-process for consistency.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | AI API costs spiral out of control | high | ## Controlling AI Costs |
 | App breaks when hitting API rate limits | high | ## Handling Rate Limits |
 | AI gives wrong or made-up information | high | ## Handling Hallucinations |

@@ -84,7 +84,7 @@ XML sitemap implementations.
 ## Common Mistakes
 
 | Issue | Severity | Fix |
-|-------|----------|-----|
+|-------|--|-----|
 | Missing self-referencing tag | Critical | Add hreflang pointing to same page URL |
 | Missing return tags (A→B but no B→A) | Critical | Add matching return tags on all alternates |
 | Missing x-default | High | Add x-default pointing to fallback/selector page |
@@ -128,7 +128,7 @@ See Hreflang Sitemap Generation section below.
 
 ### Method Comparison
 | Method | Best For | Pros | Cons |
-|--------|----------|------|------|
+|--------|--|------|------|
 | HTML link tags | Small sites (<50 variants) | Easy to implement, visible in source | Bloats `<head>`, hard to maintain at scale |
 | HTTP headers | Non-HTML files | Works for PDFs, images | Complex server config, not visible in HTML |
 | XML sitemap | Large sites, cross-domain | Scalable, centralized management | Not visible on page, requires sitemap maintenance |
@@ -185,10 +185,10 @@ Key rules:
 
 #### Validation Results
 | Language | URL | Self-Ref | Return Tags | x-default | Status |
-|----------|-----|----------|-------------|-----------|--------|
-| en-US | https://... | ✅ | ✅ | ✅ | ✅ |
-| fr | https://... | ❌ | ⚠️ | ✅ | ❌ |
-| de | https://... | ✅ | ❌ | ✅ | ❌ |
+|--|-----|--|--|--|--------|
+| en-US | https://... |  |  |  |  |
+| fr | https://... |  | ️ |  |  |
+| de | https://... |  |  |  |  |
 
 ### Generated Hreflang Tags
 - HTML `<link>` tags (if HTML method chosen)
@@ -203,7 +203,7 @@ Key rules:
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess site structure. Suggest the user verify the URL and try again. |
 | No hreflang tags found | Report the absence. Check for other internationalization signals (subdirectories, subdomains, ccTLDs) and recommend the appropriate hreflang implementation method. |
 | Invalid language/region codes detected | List each invalid code with the correct replacement. Provide a corrected hreflang tag set ready to implement. |

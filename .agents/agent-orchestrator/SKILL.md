@@ -72,7 +72,7 @@ python agent-orchestrator/scripts/match_skills.py "<solicitacao do usuario>"
 Retorna JSON com skills ranqueadas por relevancia. Interpretar o resultado:
 
 | Resultado              | Acao                                                    |
-|:-----------------------|:--------------------------------------------------------|
+|:--|:--|
 | `matched: 0`          | Nenhum skill relevante. Operar normalmente sem skills.  |
 | `matched: 1`          | Um skill relevante. Carregar seu SKILL.md e seguir.     |
 | `matched: 2+`         | Multiplos skills. Executar Passo 3 (orquestracao).      |
@@ -113,7 +113,7 @@ O scanner procura SKILL.md em:
 Cada entrada no registry contem:
 
 | Campo          | Descricao                                          |
-|:---------------|:---------------------------------------------------|
+|:--|:--|
 | name           | Nome da skill (do frontmatter YAML)                |
 | description    | Descricao completa (triggers inclusos)             |
 | location       | Caminho absoluto do diretorio                      |
@@ -148,7 +148,7 @@ python agent-orchestrator/scripts/scan_registry.py --force
 Para cada solicitacao, o matcher pontua skills usando:
 
 | Criterio                     | Pontos | Exemplo                               |
-|:-----------------------------|:-------|:--------------------------------------|
+|:--|:-------|:--|
 | Nome do skill na query       | +15    | "use web-scraper" -> web-scraper      |
 | Keyword trigger exata        | +10    | "scrape" -> web-scraper               |
 | Categoria de capacidade      | +5     | data-extraction -> web-scraper        |
@@ -280,7 +280,7 @@ python agent-orchestrator/scripts/scan_registry.py --status
 ## Interpretar Status
 
 | Status     | Significado                                        |
-|:-----------|:---------------------------------------------------|
+|:--|:--|
 | active     | SKILL.md com name + description presentes          |
 | incomplete | SKILL.md existe mas falta name ou description      |
 | missing    | Diretorio existe mas sem SKILL.md                  |
@@ -290,7 +290,7 @@ python agent-orchestrator/scripts/scan_registry.py --status
 ## Skills Atuais Do Ecossistema
 
 | Skill              | Capacidades                           | Status  |
-|:-------------------|:--------------------------------------|:--------|
+|:--|:--|:--------|
 | web-scraper        | data-extraction, web-automation       | active  |
 | junta-leiloeiros   | government-data, data-extraction      | active  |
 | whatsapp-cloud-api | messaging, api-integration            | active  |

@@ -1,14 +1,14 @@
 #!/bin/bash
-# ==============================================================================
+# ==
 # Manifold: THE ZERO-TOUCH BOOTSTRAP (v3.1 - Hardened)
-# ==============================================================================
+# ==
 # Automates the entire stack: PKI, encrypted secrets, DB Init, and Gateway.
 # Features:
 # - Root CA & Service-level mTLS
 # - RSA-4096 Runtime Secret Vaulting
 # - Container engine agnostic (podman/docker)
 # - Strict sequential health gating
-# ==============================================================================
+# ==
 
 set -e
 
@@ -52,12 +52,12 @@ check_prereq() {
 
 check_prereq openssl
 
-# ==============================================================================
+# ==
 # 1. Container Engine & Compose Detection
-# ==============================================================================
-# ==============================================================================
+# ==
+# ==
 # 1. Container Engine & Compose Detection
-# ==============================================================================
+# ==
 # Handled by scripts/utils_env.sh detect_container_engine
 
 # Container exec wrapper
@@ -77,18 +77,18 @@ container_exec() {
     $CONTAINER_ENGINE exec "$container_id" "$@"
 }
 
-# ==============================================================================
+# ==
 # 2. Security Layer (PKI & Vault)
-# ==============================================================================
+# ==
 initialize_pki() {
     log_info "Initializing Production PKI Layer..."
     chmod +x ./scripts/setup_pki.sh
     ./scripts/setup_pki.sh
 }
 
-# ==============================================================================
+# ==
 # 3. .env Orchestration & Encryption (Hardened)
-# ==============================================================================
+# ==
 setup_env_file() {
     log_info "Setting up .env file..."
     
@@ -164,9 +164,9 @@ secure_env_file() {
     log_success "Secrets vaulted securely in .env"
 }
 
-# ==============================================================================
+# ==
 # 4. Sequential Service Startup with Health Gating
-# ==============================================================================
+# ==
 wait_for_service() {
     local service_name=$1
     local health_command=$2
@@ -210,14 +210,14 @@ wait_for_service() {
     return 1
 }
 
-# ==============================================================================
+# ==
 # 5. Main Bootstrap Sequence
-# ==============================================================================
+# ==
 main() {
     export DOCKER_BUILDKIT=0
-    echo "=============================================================================="
-    echo -e "${BLUE}🚀 Manifold Production Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
-    echo "=============================================================================="
+    echo "=="
+    echo -e "${BLUE} Manifold Production Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
+    echo "=="
     
     detect_container_engine
     
@@ -242,38 +242,38 @@ main() {
     compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
     
     echo ""
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     echo -e "${BLUE}Phase A: Zero-Trust Data Persistence (PostgreSQL/TimescaleDB)${NC}"
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     # Strict pg_isready loop as requested
     wait_for_service "postgres" "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"
     wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"
     
     echo ""
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     echo -e "${BLUE}Phase B: Performance Backplane (Redis/RabbitMQ)${NC}"
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
     echo ""
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     echo -e "${BLUE}Phase C: Application Mesh (Auth/API/ML)${NC}"
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     wait_for_service "auth-service" "wget -qO- http://localhost:3001/ || exit 1"
     wait_for_service "api" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
     wait_for_service "neural-pricing" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
     
     echo ""
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     echo -e "${BLUE}Phase D: Edge Ingress (Envoy Gateway)${NC}"
-    echo "------------------------------------------------------------------------------"
+    echo "--"
     wait_for_service "envoy" "wget -qO- http://localhost:9901/ready || exit 1"
     
     echo ""
-    echo "=============================================================================="
+    echo "=="
     log_success "Manifold STACK IS ONLINE AND HARDENED"
-    echo "=============================================================================="
+    echo "=="
 }
 
 trap 'log_error "Bootstrap failed at step $BASH_COMMAND"; exit 1' ERR

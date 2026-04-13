@@ -188,7 +188,7 @@ Automate Brevo (formerly Sendinblue) email marketing operations through Composio
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List campaigns | BREVO_LIST_EMAIL_CAMPAIGNS | type, status, limit, offset |
 | Update campaign | BREVO_UPDATE_EMAIL_CAMPAIGN | campaign_id, subject, htmlContent |
 | List templates | BREVO_GET_ALL_EMAIL_TEMPLATES | templateStatus, limit, offset |

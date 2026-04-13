@@ -79,13 +79,13 @@ QWeb is Odoo's primary templating engine, used for PDF reports, website pages, a
 
 ## Best Practices
 
-- ✅ **Do:** Use `t-field` for model fields — Odoo auto-formats dates, monetary values, and booleans correctly.
-- ✅ **Do:** Use `t-out` (Odoo 15+) for safe HTML output of non-field strings. Use `t-esc` only on Odoo 14 and below (it HTML-escapes output).
-- ✅ **Do:** Call `web.external_layout` for PDF reports to automatically include the company header, footer, and logo.
-- ✅ **Do:** Use `_lt()` (lazy translation) for translatable string literals inside Python report helpers, not inline `t-esc`.
-- ❌ **Don't:** Use raw Python expressions inside QWeb — compute values in the model or a report `_get_report_values()` helper.
-- ❌ **Don't:** Forget `t-as` when using `t-foreach`; without it, you can't access the current record in the loop body.
-- ❌ **Don't:** Use `t-esc` where you intend to render HTML content — it will escape the tags and print them as raw text.
+-  **Do:** Use `t-field` for model fields — Odoo auto-formats dates, monetary values, and booleans correctly.
+-  **Do:** Use `t-out` (Odoo 15+) for safe HTML output of non-field strings. Use `t-esc` only on Odoo 14 and below (it HTML-escapes output).
+-  **Do:** Call `web.external_layout` for PDF reports to automatically include the company header, footer, and logo.
+-  **Do:** Use `_lt()` (lazy translation) for translatable string literals inside Python report helpers, not inline `t-esc`.
+-  **Don't:** Use raw Python expressions inside QWeb — compute values in the model or a report `_get_report_values()` helper.
+-  **Don't:** Forget `t-as` when using `t-foreach`; without it, you can't access the current record in the loop body.
+-  **Don't:** Use `t-esc` where you intend to render HTML content — it will escape the tags and print them as raw text.
 
 ## Limitations
 

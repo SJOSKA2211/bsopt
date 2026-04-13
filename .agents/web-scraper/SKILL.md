@@ -79,7 +79,7 @@ Establish extraction parameters before touching any URL.
 ## Required Parameters
 
 | Parameter     | Resolve                              | Default        |
-|:--------------|:-------------------------------------|:---------------|
+|:--|:--|:--|
 | Target URL(s) | Which page(s) to scrape?             | *(required)*   |
 | Data Target   | What specific data to extract?       | *(required)*   |
 | Output Format | Markdown table, JSON, CSV, or text?  | Markdown table |
@@ -88,7 +88,7 @@ Establish extraction parameters before touching any URL.
 ## Optional Parameters
 
 | Parameter     | Resolve                                | Default      |
-|:--------------|:---------------------------------------|:-------------|
+|:--|:--|:--|
 | Pagination    | Follow pagination? Max pages?          | No, 1 page   |
 | Max Items     | Maximum number of items to collect?    | Unlimited    |
 | Filters       | Data to exclude or include?            | None         |
@@ -153,7 +153,7 @@ WebFetch(
 ## Step 2.2: Evaluate Fetch Quality
 
 | Signal                                      | Interpretation                    | Action                    |
-|:--------------------------------------------|:----------------------------------|:--------------------------|
+|:--|:--|:--|
 | Rich content with data clearly visible      | Static page                       | Strategy A (WebFetch)     |
 | Empty containers, "loading...", minimal text | JS-rendered                       | Strategy B (Browser)      |
 | Login wall, CAPTCHA, 403/401 response       | Blocked                           | Report to user            |
@@ -166,7 +166,7 @@ WebFetch(
 Classify into an extraction mode:
 
 | Mode       | Indicators                                 | Examples                          |
-|:-----------|:-------------------------------------------|:----------------------------------|
+|:--|:--|:--|
 | `table`    | HTML `<table>`, grid layout with headers   | Price comparison, statistics, specs|
 | `list`     | Repeated similar elements, card grids      | Search results, product listings  |
 | `article`  | Long-form text with headings/paragraphs    | Blog post, news article, docs     |
@@ -484,7 +484,7 @@ See [references/data-transforms.md](references/data-transforms.md) for patterns.
 ## Automatic Transforms (Always Apply)
 
 | Transform              | Action                                               |
-|:-----------------------|:-----------------------------------------------------|
+|:--|:--|
 | Whitespace cleanup     | Trim, collapse multiple spaces, remove `\n` in cells |
 | HTML entity decode     | `&amp;` -> `&`, `&lt;` -> `<`, `&#39;` -> `'`       |
 | Unicode normalization  | NFKC normalization for consistent characters          |
@@ -493,7 +493,7 @@ See [references/data-transforms.md](references/data-transforms.md) for patterns.
 ## Conditional Transforms (Apply When Relevant)
 
 | Transform             | When                         | Action                                  |
-|:----------------------|:-----------------------------|:----------------------------------------|
+|:--|:--|:--|
 | Price normalization   | Product/pricing modes        | Extract numeric value + currency symbol |
 | Date normalization    | Any dates found              | Normalize to ISO-8601 (YYYY-MM-DD)      |
 | URL resolution        | Relative URLs extracted      | Convert to absolute URLs                |
@@ -504,7 +504,7 @@ See [references/data-transforms.md](references/data-transforms.md) for patterns.
 ## Data Enrichment (Only When Useful)
 
 | Enrichment             | When                         | Action                                |
-|:-----------------------|:-----------------------------|:--------------------------------------|
+|:--|:--|:--|
 | Currency conversion    | User asks for single currency| Note original + convert (approximate) |
 | Domain extraction      | URLs in data                 | Add domain column from full URLs      |
 | Word count             | Article mode                 | Count words in extracted text         |
@@ -527,7 +527,7 @@ Verify extraction quality before delivering results.
 ## Validation Checks
 
 | Check                | Action                                              |
-|:---------------------|:----------------------------------------------------|
+|:--|:--|
 | Item count           | Compare extracted count to expected count from recon |
 | Empty fields         | Count N/A or null values per field                   |
 | Data type consistency| Numbers should be numeric, dates parseable           |
@@ -542,7 +542,7 @@ Verify extraction quality before delivering results.
 Assign to every extraction:
 
 | Rating     | Criteria                                                        |
-|:-----------|:----------------------------------------------------------------|
+|:--|:--|
 | **HIGH**   | All fields populated, count matches expected, no anomalies      |
 | **MEDIUM** | Minor gaps (<10% empty fields) or count slightly differs        |
 | **LOW**    | Significant gaps (>10% empty), structural issues, partial data  |
@@ -554,7 +554,7 @@ Always report confidence with specifics:
 ## Auto-Recovery (Try Before Reporting Issues)
 
 | Issue              | Auto-Recovery Action                                  |
-|:-------------------|:------------------------------------------------------|
+|:--|:--|
 | Missing data       | Re-attempt with Browser if WebFetch was used          |
 | Encoding problems  | Apply HTML entity decode + unicode normalization      |
 | Incomplete results | Check for pagination or lazy-loading, fetch more      |
@@ -712,7 +712,7 @@ When extraction fails or is blocked:
 ## Quick Reference: Mode Cheat Sheet
 
 | User Says...                         | Mode      | Strategy  | Output Default   |
-|:-------------------------------------|:----------|:----------|:-----------------|
+|:--|:--|:--|:--|
 | "extract the table"                  | table     | A or B    | Markdown table   |
 | "get all products/prices"            | product   | E then A  | Markdown table   |
 | "scrape the listings"                | list      | A or B    | Markdown table   |

@@ -17,18 +17,18 @@ This playbook provides production-ready patterns and deep technical guidance for
 
 In Go, workflows are state machines that must replay identically. Violating these rules causes "Determinism Mismatch" errors.
 
-### ❌ Never Use Native Go Concurrency
+###  Never Use Native Go Concurrency
 
 - **Wrong:** `go myFunc()`
 - **Right:** `workflow.Go(ctx, func(ctx workflow.Context) { ... })`
 - **Why:** `workflow.Go` allows the Temporal orchestrator to track and pause goroutines during replay.
 
-### ❌ Never Use Native Time
+###  Never Use Native Time
 
 - **Wrong:** `time.Now()`, `time.Sleep(d)`, `time.After(d)`
 - **Right:** `workflow.Now(ctx)`, `workflow.Sleep(ctx, d)`, `workflow.NewTimer(ctx, d)`
 
-### ❌ Never Use Non-Deterministic Map Iteration
+###  Never Use Non-Deterministic Map Iteration
 
 - **Wrong:** `for k, v := range myMap { ... }`
 - **Right:** Collect keys, sort them, then iterate.
@@ -39,13 +39,13 @@ In Go, workflows are state machines that must replay identically. Violating thes
   for _, k := range keys { v := myMap[k]; ... }
   ```
 
-### ❌ Never Perform Direct External I/O
+###  Never Perform Direct External I/O
 
 - **Wrong:** `http.Get("https://api.example.com")` or `os.ReadFile("data.txt")` inside a workflow.
 - **Right:** Wrap all I/O in an Activity and call it with `workflow.ExecuteActivity`.
 - **Why:** External calls are non-deterministic; their results change between replays.
 
-### ❌ Never Use Non-Deterministic Random Numbers
+###  Never Use Non-Deterministic Random Numbers
 
 - **Wrong:** `rand.Int()`, `uuid.New()` inside a workflow.
 - **Right:** Pass random seeds or UUIDs as workflow input arguments, or generate them inside an Activity.

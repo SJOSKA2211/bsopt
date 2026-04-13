@@ -195,7 +195,7 @@ criteria: '((Last_Name:equals:Doe)AND(Email:contains:example.com))'
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List modules | ZOHO_LIST_MODULES | (none) |
 | Get module fields | ZOHO_GET_MODULE_FIELDS | module |
 | Search records | ZOHO_SEARCH_ZOHO_RECORDS | module, criteria |

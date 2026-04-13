@@ -78,7 +78,7 @@ Registro no Cartório de Imóveis
 **Artigos Chave do CPC/2015:**
 
 | Artigo | Conteúdo |
-|--------|----------|
+|--------|--|
 | Art. 829 | Citação na execução — 3 dias para pagar |
 | Art. 831 | Penhora — princípio da menor onerosidade |
 | Art. 835 | Ordem preferencial de penhora |
@@ -133,7 +133,7 @@ Credor incorpora o imóvel — dívida extinta (Art. 27, §5º)
 **Artigos Chave da Lei 9.514/97:**
 
 | Artigo | Conteúdo |
-|--------|----------|
+|--------|--|
 | Art. 22 | Conceito de alienação fiduciária de imóvel |
 | Art. 23 | Constituição da propriedade fiduciária — registro |
 | Art. 24 | Obrigações do fiduciante (devedor) |
@@ -209,8 +209,8 @@ Mas o risco existe — avaliar caso a caso.
 **O que o arrematante herda:**
 
 | Ônus | Acompanha? | Base Legal |
-|------|-----------|-----------|
-| Hipoteca anterior à penhora | ⚠️ Pode acompanhar | Depende da ordem e purga |
+|------|--|--|
+| Hipoteca anterior à penhora | ️ Pode acompanhar | Depende da ordem e purga |
 | Hipoteca posterior à penhora | Não acompanha | Art. 908 CPC |
 | IPTU atrasado | Sim — propter rem | Art. 130 CTN |
 | Condomínio atrasado | Sim — propter rem | Art. 1.336 CC + Súmula STJ |
@@ -300,7 +300,7 @@ o risco de anulação. Imóvel com muito valor emocional para o devedor = maior 
 ## 5. Glossário Jurídico Essencial
 
 | Termo | Definição |
-|-------|-----------|
+|-------|--|
 | Adjudicação | Transferência forçada do bem ao credor como pagamento (Art. 876 CPC) |
 | Arrematação | Compra do bem em leilão por terceiro |
 | Auto de Arrematação | Documento que formaliza a compra em leilão |

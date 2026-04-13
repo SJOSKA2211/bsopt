@@ -921,7 +921,7 @@ def migrate(plan, phase, dry_run):
     
     # Display results
     for result in results:
-        status = "✓" if result['success'] else "✗"
+        status = "" if result['success'] else ""
         click.echo(f"{status} {result['task']}: {result['message']}")
 
 @cli.command()
@@ -940,7 +940,7 @@ def test(original, migrated):
     
     for result in results:
         if result['status'] == 'FAIL':
-            click.echo(f"\\n❌ {result['test']}")
+            click.echo(f"\\n {result['test']}")
             click.echo(f"   {result['details']}")
 
 if __name__ == '__main__':

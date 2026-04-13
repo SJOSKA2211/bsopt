@@ -13,7 +13,7 @@ def run_gh_command(args):
 
 
 def hunt():
-    print("🎯 Hunting for high-impact OSS issues...")
+    print(" Hunting for high-impact OSS issues...")
 
     # 1. Find trending repos (stars > 1000 created/updated recently)
     repos_json = run_gh_command(
@@ -69,9 +69,9 @@ def hunt():
             except json.JSONDecodeError:
                 pass
 
-    print("\n--- 📂 OSS CONTRIBUTION DOSSIER ---")
+    print("\n---  OSS CONTRIBUTION DOSSIER ---")
     for item in dossier:
-        print(f"\n[{item['repo']} ★{item['stars']}]")
+        print(f"\n[{item['repo']} {item['stars']}]")
         print(f"Issue #{item['number']}: {item['title']}")
         print(f"Link: {item['url']}")
 

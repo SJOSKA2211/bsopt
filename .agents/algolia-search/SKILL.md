@@ -51,10 +51,10 @@ Best practices:
 - partialUpdateObjects for attribute-only changes
 - Avoid deleteBy (computationally expensive)
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | See docs |
 | Issue | high | See docs |
 | Issue | medium | See docs |

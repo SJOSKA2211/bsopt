@@ -49,7 +49,7 @@ Maximum 3 retry attempts per problem.
 ## Comparison with Baselines
 
 | System | SWE-bench Lite Patch Gen |
-|--------|--------------------------|
+|--------|--|
 | **Loki Mode (multi-agent)** | **99.67%** (299/300) |
 | Direct Claude (single agent) | 99.67% (299/300) |
 

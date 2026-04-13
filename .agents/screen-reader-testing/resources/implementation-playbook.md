@@ -20,7 +20,7 @@ Practical guide to testing web applications with screen readers for comprehensiv
 ### 1. Major Screen Readers
 
 | Screen Reader | Platform  | Browser        | Usage |
-| ------------- | --------- | -------------- | ----- |
+| -- | --------- | -- | ----- |
 | **VoiceOver** | macOS/iOS | Safari         | ~15%  |
 | **NVDA**      | Windows   | Firefox/Chrome | ~31%  |
 | **JAWS**      | Windows   | Chrome/IE      | ~40%  |
@@ -44,7 +44,7 @@ Comprehensive Coverage:
 ### 3. Screen Reader Modes
 
 | Mode               | Purpose                | When Used         |
-| ------------------ | ---------------------- | ----------------- |
+| -- | -- | -- |
 | **Browse/Virtual** | Read content           | Default reading   |
 | **Focus/Forms**    | Interact with controls | Filling forms     |
 | **Application**    | Custom widgets         | ARIA applications |

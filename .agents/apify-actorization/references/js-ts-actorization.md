@@ -14,9 +14,9 @@ import { Actor } from 'apify';
 // Initialize connection to Apify platform
 await Actor.init();
 
-// ============================================
+// ==
 // Your existing code goes here
-// ============================================
+// ==
 
 // Example: Get input from Apify Console or API
 const input = await Actor.getInput();
@@ -29,9 +29,9 @@ console.log('Input:', input);
 // Example: Push results to dataset
 // await Actor.pushData({ result: 'data' });
 
-// ============================================
+// ==
 // End of your code
-// ============================================
+// ==
 
 // Graceful shutdown
 await Actor.exit();

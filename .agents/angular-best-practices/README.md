@@ -26,9 +26,9 @@ The `SKILL.md` file is organized by priority:
 
 Each rule includes:
 
-- ❌ **WRONG** - What not to do
-- ✅ **CORRECT** - Recommended pattern
-- 📝 **Why** - Explanation of the impact
+-  **WRONG** - What not to do
+-  **CORRECT** - Recommended pattern
+-  **Why** - Explanation of the impact
 
 ## Quick Reference Checklist
 

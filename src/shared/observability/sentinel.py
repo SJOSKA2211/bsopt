@@ -46,7 +46,7 @@ class SystemSentinel:
                 slack_url = os.getenv("SLACK_WEBHOOK_URL")
                 if slack_url:
                     try:
-                        alert = {"text": f"🚨 *System Degradation Detected*\n```{health}```"}
+                        alert = {"text": f" *System Degradation Detected*\n```{health}```"}
                         await self.client.post(slack_url, json=alert)
                     except Exception as e:
                         logger.error("failed_to_send_slack_alert", error=str(e))

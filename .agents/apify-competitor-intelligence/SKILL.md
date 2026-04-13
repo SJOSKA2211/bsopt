@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on analysis needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Competitor business data | `compass/crawler-google-places` | Location analysis |
 | Competitor contact discovery | `poidata/google-maps-email-extractor` | Email extraction |
 | Feature benchmarking | `compass/google-maps-extractor` | Detailed business data |

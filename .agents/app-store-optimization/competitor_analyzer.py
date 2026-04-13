@@ -369,7 +369,7 @@ class CompetitorAnalyzer:
         rating_quality = top_competitor["rating_metrics"]["rating_quality"]
         if rating_quality in ["excellent", "good"]:
             practices.append(
-                f"Ratings: Maintain high rating quality ({top_competitor['rating_metrics']['rating']}★) "
+                f"Ratings: Maintain high rating quality ({top_competitor['rating_metrics']['rating']}) "
                 f"with significant volume ({top_competitor['rating_metrics']['ratings_count']} ratings)"
             )
 
@@ -419,9 +419,9 @@ class CompetitorAnalyzer:
         for line in lines:
             line = line.strip()
             # Check if line starts with bullet or number
-            if line and (line[0] in ["•", "*", "-", "✓"] or line[0].isdigit()):
+            if line and (line[0] in ["•", "*", "-", ""] or line[0].isdigit()):
                 # Clean the line
-                cleaned = re.sub(r"^[•*\-✓\d.)\s]+", "", line)
+                cleaned = re.sub(r"^[•*\-\d.)\s]+", "", line)
                 if cleaned:
                     features.append(cleaned)
 

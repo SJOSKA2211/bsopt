@@ -59,7 +59,7 @@ Integracao completa com Amazon Alexa para criar skills de voz inteligentes, tran
 ## Componentes Da Arquitetura Auri
 
 | Componente | Servico AWS | Funcao |
-|-----------|-------------|--------|
+|--|--|--------|
 | Voz → Texto | Alexa ASR nativo | Reconhecimento de fala |
 | NLU | ASK Interaction Model + Lex V2 | Extrair intent e slots |
 | Backend | AWS Lambda (Python/Node.js) | Logica e orquestracao |
@@ -198,7 +198,7 @@ from ask_sdk_core.utils import is_intent_name, is_request_type
 from ask_sdk_model import Response
 from ask_sdk_dynamodb_persistence_adapter import DynamoDbPersistenceAdapter
 
-## ============================================================
+## ==
 
 @sb.request_handler(can_handle_func=is_request_type("LaunchRequest"))
 def launch_handler(handler_input: HandlerInput) -> Response:
@@ -317,8 +317,8 @@ attrs["ttl"] = int(time.time()) + (180 * 24 * 3600)
 ## 6.1 Vozes Disponiveis (Portugues)
 
 | Voice | Idioma | Tipo | Recomendado |
-|-------|--------|------|-------------|
-| `Vitoria` | pt-BR | Neural | ✅ Auri PT-BR |
+|-------|--------|------|--|
+| `Vitoria` | pt-BR | Neural |  Auri PT-BR |
 | `Camila` | pt-BR | Neural | Alternativa |
 | `Ricardo` | pt-BR | Standard | Masculino |
 | `Ines` | pt-PT | Neural | Portugal |

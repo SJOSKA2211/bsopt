@@ -29,7 +29,7 @@ source: community
 All pods run in namespace `crs`. Key services:
 
 | Layer | Services |
-|-------|----------|
+|-------|--|
 | Infra | redis, dind, litellm, registry-cache |
 | Orchestration | scheduler, task-server, task-downloader, scratch-cleaner |
 | Fuzzing | build-bot, fuzzer-bot, coverage-bot, tracer-bot, merger-bot |
@@ -150,7 +150,7 @@ kubectl exec -n crs <redis-pod> -- du -sh /data/
 Buttercup uses Redis streams with consumer groups. Queue names:
 
 | Queue | Stream Key |
-|-------|-----------|
+|-------|--|
 | Build | fuzzer_build_queue |
 | Build Output | fuzzer_build_output_queue |
 | Crash | fuzzer_crash_queue |

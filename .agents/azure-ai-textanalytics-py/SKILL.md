@@ -207,7 +207,7 @@ async def analyze():
 ## Available Operations
 
 | Method | Description |
-|--------|-------------|
+|--------|--|
 | `analyze_sentiment` | Sentiment analysis with opinion mining |
 | `recognize_entities` | Named entity recognition |
 | `recognize_pii_entities` | PII detection and redaction |

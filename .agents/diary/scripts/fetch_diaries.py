@@ -31,13 +31,13 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
 
     if len(sys.argv) < 2:
-        print("❌ 用法錯誤。請提供當前專案的日記絕對路徑。")
+        print(" 用法錯誤。請提供當前專案的日記絕對路徑。")
         print("Usage: python fetch_diaries.py <path_to_current_project_diary.md>")
         sys.exit(1)
 
     proj_diary_path = Path(sys.argv[1])
     if not proj_diary_path.exists():
-        print(f"⚠️ 找不到專案日記: {proj_diary_path}")
+        print(f"️ 找不到專案日記: {proj_diary_path}")
         sys.exit(1)
 
     date_str = get_today()
@@ -48,12 +48,12 @@ def main():
 
     # --- 1. 讀取全域日記 ---
     print("\n" + "=" * 60)
-    print(f"🌐 [現有全域日記] ({global_diary_path})")
+    print(f" [現有全域日記] ({global_diary_path})")
 
     if global_diary_path.exists():
-        print("⚠️ 警告：此全域日記已存在，代表今天可能有其他專案寫過進度了！")
+        print("️ 警告：此全域日記已存在，代表今天可能有其他專案寫過進度了！")
         print(
-            "⚠️ 鐵律：請務必保留下方既有的內容，只能「追加或融合」新的專案進度，絕對不可粗暴覆寫抹除前人的紀錄！"
+            "️ 鐵律：請務必保留下方既有的內容，只能「追加或融合」新的專案進度，絕對不可粗暴覆寫抹除前人的紀錄！"
         )
         print("-" * 60)
         try:
@@ -67,7 +67,7 @@ def main():
 
     # --- 2. 讀取當前專案日記 ---
     print("\n" + "=" * 60)
-    print(f"📁 [當前專案最新進度] ({proj_diary_path})")
+    print(f" [當前專案最新進度] ({proj_diary_path})")
     print("請將以下內容，優雅地消化並融合進上方的全域日記中。")
     print("-" * 60)
     try:
@@ -86,7 +86,7 @@ def main():
         print(f"讀取專案日記時發生錯誤: {e}")
 
     print("\n" + "=" * 60)
-    print("✅ 素材提供完畢。請 IDE Agent 執行融合，並寫入/更新至全域日記檔案。")
+    print(" 素材提供完畢。請 IDE Agent 執行融合，並寫入/更新至全域日記檔案。")
 
 
 if __name__ == "__main__":

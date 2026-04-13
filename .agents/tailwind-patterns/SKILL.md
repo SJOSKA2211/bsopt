@@ -20,7 +20,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### What Changed from v3
 
 | v3 (Legacy) | v4 (Current) |
-|-------------|--------------|
+|--|--|
 | `tailwind.config.js` | CSS-based `@theme` directive |
 | PostCSS plugin | Oxide engine (10x faster) |
 | JIT mode | Native, always-on |
@@ -30,7 +30,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### v4 Core Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | **CSS-first** | Configuration in CSS, not JavaScript |
 | **Oxide Engine** | Rust-based compiler, much faster |
 | **Native Nesting** | CSS nesting without PostCSS |
@@ -64,7 +64,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### When to Extend vs Override
 
 | Action | Use When |
-|--------|----------|
+|--------|--|
 | **Extend** | Adding new values alongside defaults |
 | **Override** | Replacing default scale entirely |
 | **Semantic tokens** | Project-specific naming (primary, surface) |
@@ -76,7 +76,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### Breakpoint vs Container
 
 | Type | Responds To |
-|------|-------------|
+|------|--|
 | **Breakpoint** (`md:`) | Viewport width |
 | **Container** (`@container`) | Parent element width |
 
@@ -91,7 +91,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### When to Use
 
 | Scenario | Use |
-|----------|-----|
+|--|-----|
 | Page-level layouts | Viewport breakpoints |
 | Component-level responsive | Container queries |
 | Reusable components | Container queries (context-independent) |
@@ -103,7 +103,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### Breakpoint System
 
 | Prefix | Min Width | Target |
-|--------|-----------|--------|
+|--------|--|--------|
 | (none) | 0px | Mobile-first base |
 | `sm:` | 640px | Large phone / small tablet |
 | `md:` | 768px | Tablet |
@@ -124,7 +124,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### Configuration Strategies
 
 | Method | Behavior | Use When |
-|--------|----------|----------|
+|--------|--|--|
 | `class` | `.dark` class toggles | Manual theme switcher |
 | `media` | Follows system preference | No user control |
 | `selector` | Custom selector (v4) | Complex theming |
@@ -168,7 +168,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### OKLCH vs RGB/HSL
 
 | Format | Advantage |
-|--------|-----------|
+|--------|--|
 | **OKLCH** | Perceptually uniform, better for design |
 | **HSL** | Intuitive hue/saturation |
 | **RGB** | Legacy compatibility |
@@ -188,7 +188,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### Font Stack Pattern
 
 | Type | Recommended |
-|------|-------------|
+|------|--|
 | Sans | `'Inter', 'SF Pro', system-ui, sans-serif` |
 | Mono | `'JetBrains Mono', 'Fira Code', monospace` |
 | Display | `'Outfit', 'Poppins', sans-serif` |
@@ -240,7 +240,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ### Extraction Methods
 
 | Method | Use When |
-|--------|----------|
+|--------|--|
 | **React/Vue component** | Dynamic, JS needed |
 | **@apply in CSS** | Static, no JS needed |
 | **Design tokens** | Reusable values |
@@ -263,7 +263,7 @@ Use this skill when configuring Tailwind v4, using CSS-first theme and design to
 ## 12. Performance Principles
 
 | Principle | Implementation |
-|-----------|----------------|
+|--|--|
 | **Purge unused** | Automatic in v4 |
 | **Avoid dynamism** | No template string classes |
 | **Use Oxide** | Default in v4, 10x faster |

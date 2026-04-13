@@ -39,7 +39,7 @@ Validating before building
 
 ### The Validation Framework
 | Question | How to Answer |
-|----------|---------------|
+|--|--|
 | Problem exists? | Talk to 5+ potential users |
 | People pay? | Pre-sell or find competitors |
 | You can build? | Can MVP ship in 2 weeks? |
@@ -85,7 +85,7 @@ Ship MVP in 2 weeks
 
 ### The Stack (Solo-Founder Optimized)
 | Component | Choice | Why |
-|-----------|--------|-----|
+|--|--------|-----|
 | Frontend | Next.js | Full-stack, Vercel deploy |
 | Backend | Next.js API / Supabase | Fast, scalable |
 | Database | Supabase Postgres | Free tier, auth included |
@@ -130,7 +130,7 @@ Pricing your micro-SaaS
 
 ### Pricing Tiers for Micro-SaaS
 | Strategy | Best For |
-|----------|----------|
+|--|--|
 | Single price | Simple tools, clear value |
 | Two tiers | Free/paid or Basic/Pro |
 | Three tiers | Most SaaS (Good/Better/Best) |
@@ -149,7 +149,7 @@ Example:
 
 ### Common Micro-SaaS Prices
 | Type | Price Range |
-|------|-------------|
+|------|--|
 | Simple tool | $9-29/month |
 | Pro tool | $29-99/month |
 | B2B tool | $49-299/month |
@@ -164,7 +164,7 @@ Example:
 
 ## Anti-Patterns
 
-### ❌ Building in Secret
+###  Building in Secret
 
 **Why bad**: No feedback loop.
 Building wrong thing.
@@ -176,7 +176,7 @@ Get feedback early.
 Build in public.
 Iterate based on users.
 
-### ❌ Feature Creep
+###  Feature Creep
 
 **Why bad**: Never ships.
 Dilutes focus.
@@ -188,7 +188,7 @@ Ship, then iterate.
 Let users tell you what's missing.
 Say no to most requests.
 
-### ❌ Pricing Too Low
+###  Pricing Too Low
 
 **Why bad**: Undervalues your work.
 Attracts price-sensitive customers.
@@ -200,10 +200,10 @@ Start higher, discount if needed.
 B2B can pay more.
 Your time has value.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Great product, no way to reach customers | high | ## Distribution First |
 | Building for market that can't/won't pay | high | ## Market Selection |
 | New signups leaving as fast as they come | high | ## Fixing Churn |

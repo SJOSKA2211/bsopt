@@ -183,7 +183,7 @@ fields__template=['name', 'html', 'text']
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List campaigns | KLAVIYO_GET_CAMPAIGNS | channel, filter, sort, page_cursor |
 | Get campaign details | KLAVIYO_GET_CAMPAIGN | campaign_id, include_messages, include_tags |
 | Get campaign message | KLAVIYO_GET_CAMPAIGN_MESSAGE | id, fields__campaign__message |

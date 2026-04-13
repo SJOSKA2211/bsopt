@@ -148,7 +148,7 @@ Senior .NET architect focused on building production-grade APIs, microservices, 
 ## Code Style Preferences
 
 ```csharp
-// ✅ Preferred: Modern C# with clear intent
+//  Preferred: Modern C# with clear intent
 public sealed class ProductService(
     IProductRepository repository,
     ICacheService cache,
@@ -172,17 +172,17 @@ public sealed class ProductService(
     }
 }
 
-// ✅ Preferred: Record types for DTOs
+//  Preferred: Record types for DTOs
 public sealed record CreateProductRequest(
     string Name,
     string Sku,
     decimal Price,
     int CategoryId);
 
-// ✅ Preferred: Expression-bodied members when simple
+//  Preferred: Expression-bodied members when simple
 public string FullName => $"{FirstName} {LastName}";
 
-// ✅ Preferred: Pattern matching
+//  Preferred: Pattern matching
 var status = order.State switch
 {
     OrderState.Pending => "Awaiting payment",

@@ -38,9 +38,9 @@ Billable: YES  (toggle ON)
 Settings tab:
   Billing Type: Based on Timesheets (Time & Materials)
   Service Product: Consulting Hours ($150/hr)
-  ☑ Timesheets
-  ☑ Task Dependencies
-  ☑ Subtasks
+   Timesheets
+   Task Dependencies
+   Subtasks
 
 Budget:
   Planned Hours: 120 hours
@@ -68,7 +68,7 @@ Method B — Timesheets app (for end-of-day bulk entry):
 
 ```text
 Menu: Timesheets → Configuration → Settings
-  ☑ Timesheet Approval  (employees submit; managers approve)
+   Timesheet Approval  (employees submit; managers approve)
 
 Approval flow:
   1. Employee submits timesheet at week/month end
@@ -101,12 +101,12 @@ Step 3: Invoice pre-populates with:
 
 ## Best Practices
 
-- ✅ **Do:** Enable **Timesheet Approval** so only manager-approved hours appear on customer invoices.
-- ✅ **Do:** Set a **budget alert** at 80% of planned hours so PMs can intervene before overruns.
-- ✅ **Do:** Require **timesheet descriptions** — vague entries like "Work done" on invoices destroy client trust.
-- ✅ **Do:** Use **Subtasks** to break work into granular pieces while keeping the parent task on the Kanban board.
-- ❌ **Don't:** Mix billable and internal projects without tagging — it corrupts profitability and utilization reports.
-- ❌ **Don't:** Log time on the Project itself (without a Task) — it cannot be reported at the task level.
+-  **Do:** Enable **Timesheet Approval** so only manager-approved hours appear on customer invoices.
+-  **Do:** Set a **budget alert** at 80% of planned hours so PMs can intervene before overruns.
+-  **Do:** Require **timesheet descriptions** — vague entries like "Work done" on invoices destroy client trust.
+-  **Do:** Use **Subtasks** to break work into granular pieces while keeping the parent task on the Kanban board.
+-  **Don't:** Mix billable and internal projects without tagging — it corrupts profitability and utilization reports.
+-  **Don't:** Log time on the Project itself (without a Task) — it cannot be reported at the task level.
 
 ## Limitations
 

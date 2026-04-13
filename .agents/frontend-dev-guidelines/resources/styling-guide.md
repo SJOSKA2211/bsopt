@@ -151,7 +151,7 @@ const formStyles: Record<string, SxProps<Theme>> = {
 ```typescript
 import { Grid } from '@mui/material';
 
-// ✅ CORRECT - v7 syntax with size prop
+//  CORRECT - v7 syntax with size prop
 <Grid container spacing={2}>
     <Grid size={{ xs: 12, md: 6 }}>
         Left Column
@@ -161,7 +161,7 @@ import { Grid } from '@mui/material';
     </Grid>
 </Grid>
 
-// ❌ WRONG - Old v6 syntax
+//  WRONG - Old v6 syntax
 <Grid container spacing={2}>
     <Grid xs={12} md={6}>  {/* OLD - Don't use */}
         Content
@@ -248,10 +248,10 @@ const styles: Record<string, SxProps<Theme>> = {
 
 ## What NOT to Use
 
-### ❌ makeStyles (MUI v4 pattern)
+###  makeStyles (MUI v4 pattern)
 
 ```typescript
-// ❌ AVOID - Old Material-UI v4 pattern
+//  AVOID - Old Material-UI v4 pattern
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -263,10 +263,10 @@ const useStyles = makeStyles((theme) => ({
 
 **Why avoid**: Deprecated, v7 doesn't support it well
 
-### ❌ styled() Components
+###  styled() Components
 
 ```typescript
-// ❌ AVOID - styled-components pattern
+//  AVOID - styled-components pattern
 import { styled } from '@mui/material/styles';
 
 const StyledBox = styled(Box)(({ theme }) => ({
@@ -276,10 +276,10 @@ const StyledBox = styled(Box)(({ theme }) => ({
 
 **Why avoid**: sx prop is more flexible and doesn't create new components
 
-### ✅ Use sx Prop Instead
+###  Use sx Prop Instead
 
 ```typescript
-// ✅ PREFERRED
+//  PREFERRED
 <Box
     sx={{
         p: 2,
@@ -313,11 +313,11 @@ const styles: Record<string, SxProps<Theme>> = {
 **Single quotes** for strings (project standard)
 
 ```typescript
-// ✅ CORRECT
+//  CORRECT
 const color = 'primary.main';
 import { Box } from '@mui/material';
 
-// ❌ WRONG
+//  WRONG
 const color = "primary.main";
 import { Box } from "@mui/material";
 ```
@@ -327,7 +327,7 @@ import { Box } from "@mui/material";
 **Always use trailing commas** in objects and arrays
 
 ```typescript
-// ✅ CORRECT
+//  CORRECT
 const styles = {
     container: { p: 2 },
     header: { mb: 1 },  // Trailing comma
@@ -338,7 +338,7 @@ const items = [
     'item2',  // Trailing comma
 ];
 
-// ❌ WRONG - No trailing comma
+//  WRONG - No trailing comma
 const styles = {
     container: { p: 2 },
     header: { mb: 1 }  // Missing comma
@@ -414,14 +414,14 @@ const styles = {
 ## Summary
 
 **Styling Checklist:**
-- ✅ Use `sx` prop for MUI styling
-- ✅ Type-safe with `SxProps<Theme>`
-- ✅ <100 lines: inline; >100 lines: separate file
-- ✅ MUI v7 Grid: `size={{ xs: 12 }}`
-- ✅ 4 space indentation
-- ✅ Single quotes
-- ✅ Trailing commas
-- ❌ No makeStyles or styled()
+-  Use `sx` prop for MUI styling
+-  Type-safe with `SxProps<Theme>`
+-  <100 lines: inline; >100 lines: separate file
+-  MUI v7 Grid: `size={{ xs: 12 }}`
+-  4 space indentation
+-  Single quotes
+-  Trailing commas
+-  No makeStyles or styled()
 
 **See Also:**
 - [component-patterns.md](component-patterns.md) - Component structure

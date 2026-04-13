@@ -73,7 +73,7 @@ aws iam get-credential-report --output text | \
       close(cmd)
       now = systime()
       days = (now - last_used) / 86400
-      if (days > 90) print "  ⚠️  " $1 ": " int(days) " days inactive"
+      if (days > 90) print "  ️  " $1 ": " int(days) " days inactive"
     }
   }'
 
@@ -87,7 +87,7 @@ while read user; do
   while read key_id create_date; do
     age_days=$(( ($(date +%s) - $(date -d "$create_date" +%s)) / 86400 ))
     if [ $age_days -gt 90 ]; then
-      echo "  ⚠️  $user: Key $key_id is $age_days days old"
+      echo "  ️  $user: Key $key_id is $age_days days old"
     fi
   done
 done
@@ -96,9 +96,9 @@ done
 echo "1.5-1.11: Checking password policy..."
 policy=$(aws iam get-account-password-policy 2>&1)
 if echo "$policy" | grep -q "NoSuchEntity"; then
-  echo "  ❌ No password policy configured"
+  echo "   No password policy configured"
 else
-  echo "  ✓ Password policy exists"
+  echo "   Password policy exists"
   echo "$policy" | jq '.PasswordPolicy | {
     MinimumPasswordLength,
     RequireSymbols,
@@ -113,7 +113,7 @@ fi
 # 1.12-1.14: MFA for IAM users
 echo "1.12-1.14: Checking IAM user MFA..."
 aws iam get-credential-report --output text | \
-  awk -F, 'NR>1 && $4=="false" {print "  ⚠️  " $1 ": No MFA"}'
+  awk -F, 'NR>1 && $4=="false" {print "  ️  " $1 ": No MFA"}'
 ```
 
 ### Logging (2.x)
@@ -131,7 +131,7 @@ trails=$(aws cloudtrail describe-trails \
   --output text)
 
 if [ -z "$trails" ]; then
-  echo "  ❌ No CloudTrail configured"
+  echo "   No CloudTrail configured"
 else
   echo "$trails" | while read name multi_region validation; do
     echo "  Trail: $name"
@@ -151,7 +151,7 @@ aws cloudtrail describe-trails \
   --query 'trailList[?LogFileValidationEnabled==`false`].Name' \
   --output text | \
 while read trail; do
-  echo "  ⚠️  $trail: Log validation disabled"
+  echo "  ️  $trail: Log validation disabled"
 done
 
 # 2.3: S3 bucket for CloudTrail
@@ -162,9 +162,9 @@ while read bucket; do
   public=$(aws s3api get-bucket-acl --bucket "$bucket" 2>&1 | \
     grep -c "AllUsers")
   if [ "$public" -gt 0 ]; then
-    echo "  ❌ $bucket: Publicly accessible"
+    echo "   $bucket: Publicly accessible"
   else
-    echo "  ✓ $bucket: Not public"
+    echo "   $bucket: Not public"
   fi
 done
 
@@ -175,9 +175,9 @@ aws cloudtrail describe-trails \
   --output text | \
 while read name log_group; do
   if [ "$log_group" = "None" ]; then
-    echo "  ⚠️  $name: Not integrated with CloudWatch Logs"
+    echo "  ️  $name: Not integrated with CloudWatch Logs"
   else
-    echo "  ✓ $name: Integrated with CloudWatch"
+    echo "   $name: Integrated with CloudWatch"
   fi
 done
 
@@ -187,9 +187,9 @@ recorders=$(aws configservice describe-configuration-recorders \
   --query 'ConfigurationRecorders[*].name' --output text)
 
 if [ -z "$recorders" ]; then
-  echo "  ❌ AWS Config not enabled"
+  echo "   AWS Config not enabled"
 else
-  echo "  ✓ AWS Config enabled: $recorders"
+  echo "   AWS Config enabled: $recorders"
 fi
 
 # 2.6: S3 bucket logging
@@ -198,7 +198,7 @@ aws s3api list-buckets --query 'Buckets[*].Name' --output text | \
 while read bucket; do
   logging=$(aws s3api get-bucket-logging --bucket "$bucket" 2>&1)
   if ! echo "$logging" | grep -q "LoggingEnabled"; then
-    echo "  ⚠️  $bucket: Access logging disabled"
+    echo "  ️  $bucket: Access logging disabled"
   fi
 done
 
@@ -210,9 +210,9 @@ while read vpc; do
     --filter "Name=resource-id,Values=$vpc" \
     --query 'FlowLogs[*].FlowLogId' --output text)
   if [ -z "$flow_logs" ]; then
-    echo "  ⚠️  $vpc: No flow logs enabled"
+    echo "  ️  $vpc: No flow logs enabled"
   else
-    echo "  ✓ $vpc: Flow logs enabled"
+    echo "   $vpc: Flow logs enabled"
   fi
 done
 ```
@@ -248,7 +248,7 @@ log_group=$(aws cloudtrail describe-trails \
   --output text | cut -d: -f7)
 
 if [ -z "$log_group" ] || [ "$log_group" = "None" ]; then
-  echo "  ❌ CloudTrail not integrated with CloudWatch Logs"
+  echo "   CloudTrail not integrated with CloudWatch Logs"
 else
   echo "Checking metric filters for log group: $log_group"
   
@@ -258,9 +258,9 @@ else
   
   for filter in "${required_filters[@]}"; do
     if echo "$existing_filters" | grep -q "$filter"; then
-      echo "  ✓ $filter: Configured"
+      echo "   $filter: Configured"
     else
-      echo "  ⚠️  $filter: Missing"
+      echo "  ️  $filter: Missing"
     fi
   done
 fi
@@ -281,7 +281,7 @@ aws ec2 describe-security-groups \
   --output json | \
 jq -r '.[] | select(.[2][]? | 
   select(.FromPort == 22 and .IpRanges[]?.CidrIp == "0.0.0.0/0")) | 
-  "  ⚠️  \(.[0]): \(.[1]) allows SSH from 0.0.0.0/0"'
+  "  ️  \(.[0]): \(.[1]) allows SSH from 0.0.0.0/0"'
 
 # 4.2: No security groups allow 0.0.0.0/0 ingress to port 3389
 echo "4.2: Checking RDP access (port 3389)..."
@@ -290,7 +290,7 @@ aws ec2 describe-security-groups \
   --output json | \
 jq -r '.[] | select(.[2][]? | 
   select(.FromPort == 3389 and .IpRanges[]?.CidrIp == "0.0.0.0/0")) | 
-  "  ⚠️  \(.[0]): \(.[1]) allows RDP from 0.0.0.0/0"'
+  "  ️  \(.[0]): \(.[1]) allows RDP from 0.0.0.0/0"'
 
 # 4.3: Default security group restricts all traffic
 echo "4.3: Checking default security groups..."
@@ -299,7 +299,7 @@ aws ec2 describe-security-groups \
   --query 'SecurityGroups[*].[GroupId,IpPermissions,IpPermissionsEgress]' \
   --output json | \
 jq -r '.[] | select((.[1] | length) > 0 or (.[2] | length) > 1) | 
-  "  ⚠️  \(.[0]): Default SG has rules"'
+  "  ️  \(.[0]): Default SG has rules"'
 ```
 
 ## PCI-DSS Compliance Checks
@@ -362,11 +362,11 @@ if __name__ == "__main__":
     issues = check_pci_compliance()
     
     if not issues:
-        print("✓ No PCI-DSS issues found")
+        print(" No PCI-DSS issues found")
     else:
         print(f"Found {len(issues)} issues:\n")
         for issue in issues:
-            print(f"  ⚠️  {issue}")
+            print(f"  ️  {issue}")
 ```
 
 ## HIPAA Compliance Checks
@@ -380,16 +380,16 @@ echo "=== HIPAA Compliance Checks ==="
 # Access Controls (164.308(a)(3))
 echo "Access Controls:"
 aws iam get-credential-report --output text | \
-  awk -F, 'NR>1 && $4=="false" {print "  ⚠️  " $1 ": No MFA (164.312(a)(2)(i))"}'
+  awk -F, 'NR>1 && $4=="false" {print "  ️  " $1 ": No MFA (164.312(a)(2)(i))"}'
 
 # Audit Controls (164.312(b))
 echo ""
 echo "Audit Controls:"
 trails=$(aws cloudtrail describe-trails --query 'trailList[*].Name' --output text)
 if [ -z "$trails" ]; then
-  echo "  ❌ No CloudTrail (164.312(b))"
+  echo "   No CloudTrail (164.312(b))"
 else
-  echo "  ✓ CloudTrail enabled"
+  echo "   CloudTrail enabled"
 fi
 
 # Encryption (164.312(a)(2)(iv))
@@ -399,14 +399,14 @@ aws ec2 describe-volumes \
   --query 'Volumes[?Encrypted==`false`].VolumeId' \
   --output text | \
 while read vol; do
-  echo "  ⚠️  $vol: Not encrypted (164.312(a)(2)(iv))"
+  echo "  ️  $vol: Not encrypted (164.312(a)(2)(iv))"
 done
 
 aws rds describe-db-instances \
   --query 'DBInstances[?StorageEncrypted==`false`].DBInstanceIdentifier' \
   --output text | \
 while read db; do
-  echo "  ⚠️  $db: Not encrypted (164.312(a)(2)(iv))"
+  echo "  ️  $db: Not encrypted (164.312(a)(2)(iv))"
 done
 
 # Transmission Security (164.312(e)(1))

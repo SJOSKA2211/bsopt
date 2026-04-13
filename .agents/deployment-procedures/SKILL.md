@@ -13,7 +13,7 @@ date_added: "2026-02-27"
 
 ---
 
-## ⚠️ How to Use This Skill
+## ️ How to Use This Skill
 
 This skill teaches **deployment principles**, not bash scripts to copy.
 
@@ -47,7 +47,7 @@ What are you deploying?
 ### Each Platform Has Different Procedures
 
 | Platform | Deployment Method |
-|----------|------------------|
+|--|--|
 | **Vercel/Netlify** | Git push, auto-deploy |
 | **Railway/Render** | Git push or CLI |
 | **VPS + PM2** | SSH + manual steps |
@@ -61,7 +61,7 @@ What are you deploying?
 ### The 4 Verification Categories
 
 | Category | What to Check |
-|----------|--------------|
+|--|--|
 | **Code Quality** | Tests passing, linting clean, reviewed |
 | **Build** | Production build works, no warnings |
 | **Environment** | Env vars set, secrets current |
@@ -104,7 +104,7 @@ What are you deploying?
 ### Phase Principles
 
 | Phase | Principle |
-|-------|-----------|
+|-------|--|
 | **Prepare** | Never deploy untested code |
 | **Backup** | Can't rollback without backup |
 | **Deploy** | Watch it happen, don't walk away |
@@ -147,7 +147,7 @@ What are you deploying?
 ### Rollback Strategy by Platform
 
 | Platform | Rollback Method |
-|----------|----------------|
+|--|--|
 | **Vercel/Netlify** | Redeploy previous commit |
 | **Railway/Render** | Rollback in dashboard |
 | **VPS + PM2** | Restore backup, restart |
@@ -168,7 +168,7 @@ What are you deploying?
 ### Strategies
 
 | Strategy | How It Works |
-|----------|--------------|
+|--|--|
 | **Rolling** | Replace instances one by one |
 | **Blue-Green** | Switch traffic between environments |
 | **Canary** | Gradual traffic shift |
@@ -176,7 +176,7 @@ What are you deploying?
 ### Selection Principles
 
 | Scenario | Strategy |
-|----------|----------|
+|--|--|
 | Standard release | Rolling |
 | High-risk change | Blue-green (easy rollback) |
 | Need validation | Canary (test with real traffic) |
@@ -195,7 +195,7 @@ What are you deploying?
 ### Investigation Order
 
 | Check | Common Issues |
-|-------|--------------|
+|-------|--|
 | **Logs** | Errors, exceptions |
 | **Resources** | Disk full, memory |
 | **Network** | DNS, firewall |
@@ -205,8 +205,8 @@ What are you deploying?
 
 ## 8. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Deploy on Friday | Deploy early in week |
 | Rush deployment | Follow the process |
 | Skip staging | Always test first |

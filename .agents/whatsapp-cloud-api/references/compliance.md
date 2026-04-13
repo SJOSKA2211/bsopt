@@ -24,7 +24,7 @@ A Lei Geral de Protecao de Dados (Lei 13.709/2018) se aplica a qualquer tratamen
 ### Base Legal para Mensagens WhatsApp
 
 | Base Legal           | Quando Usar                                    | Exemplo                          |
-|----------------------|------------------------------------------------|----------------------------------|
+|--|--|--|
 | Consentimento        | Marketing, promocoes, newsletters               | Campanha de Black Friday         |
 | Execucao de contrato | Notificacoes de pedido, entrega, pagamento       | Confirmacao de compra            |
 | Interesse legitimo   | Atendimento ao cliente, suporte                  | Resposta a duvida do cliente     |
@@ -223,7 +223,7 @@ WhatsApp Manager → Overview → Insights tab
 ### Sistema de Cores
 
 | Cor       | Significado                          | Impacto                                  |
-|-----------|--------------------------------------|------------------------------------------|
+|--|--|--|
 | Verde     | Alta qualidade                       | Elegivel para upgrade de tier             |
 | Amarelo   | Qualidade media, atencao necessaria  | Nao perde tier, mas nao avanca            |
 | Vermelho  | Qualidade baixa                      | Risco de restricao, nao avanca de tier    |
@@ -267,7 +267,7 @@ WhatsApp Manager → Overview → Insights tab
 Desde outubro 2025, os limites sao por **Business Portfolio**, nao por numero individual.
 
 | Tier         | Conversas/24h | Throughput      |
-|--------------|---------------|-----------------|
+|--|--|--|
 | Inicial      | 250           | 80 msg/s        |
 | Tier 1       | 1,000         | 80 msg/s        |
 | Tier 2       | 10,000        | 80 msg/s        |
@@ -302,7 +302,7 @@ Se um numero no Business Portfolio ja esta em Unlimited, **todos** os novos nume
 ### Politica Recomendada
 
 | Tipo de Dado           | Retencao Recomendada | Justificativa                    |
-|------------------------|----------------------|----------------------------------|
+|--|--|--|
 | Mensagens de conversa  | 90 dias              | Suporte e auditoria              |
 | Dados de consentimento | Enquanto ativo + 5 anos | Comprovacao legal             |
 | Dados de opt-out       | 5 anos               | Evitar reenvio + comprovacao     |

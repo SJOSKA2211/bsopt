@@ -1,7 +1,7 @@
 #!/bin/bash
-# =====================================================================
+# ==
 # VERSION MANAGEMENT SCRIPT
-# =====================================================================
+# ==
 # Purpose: Manage semantic versioning across the project
 # Usage: ./scripts/version.sh [COMMAND] [OPTIONS]
 # Commands:
@@ -9,7 +9,7 @@
 #   bump [major|minor|patch] - Increment version number
 #   set VERSION          - Set specific version
 #   tag                  - Create git tag for current version
-# =====================================================================
+# ==
 
 set -euo pipefail
 

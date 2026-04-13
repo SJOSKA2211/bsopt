@@ -192,7 +192,7 @@ searchsploit linux kernel [version]
 #### Common Kernel Exploits
 
 | Kernel Version | Exploit | CVE |
-|---------------|---------|-----|
+|--|---------|-----|
 | 2.6.x - 3.x | Dirty COW | CVE-2016-5195 |
 | 4.4.x - 4.13.x | Double Fetch | CVE-2017-16995 |
 | 5.8+ | Dirty Pipe | CVE-2022-0847 |
@@ -502,7 +502,7 @@ uid=1000(user) gid=1000(user) euid=0(root)
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Exploit compilation fails | Check for gcc: `which gcc`; compile on attacker for same arch; use `gcc -static` |
 | Reverse shell not connecting | Check firewall; try ports 443/80; use staged payloads; check egress filtering |
 | SUID binary not exploitable | Verify version matches GTFOBins; check AppArmor/SELinux; some binaries drop privileges |

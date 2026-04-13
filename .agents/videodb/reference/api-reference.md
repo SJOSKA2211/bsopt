@@ -16,7 +16,7 @@ conn = videodb.connect(
 ### Connection Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `conn.get_collection(collection_id="default")` | `Collection` | Get collection (default if no ID) |
 | `conn.get_collections()` | `list[Collection]` | List all collections |
 | `conn.create_collection(name, description, is_public=False)` | `Collection` | Create new collection |
@@ -49,7 +49,7 @@ job_id = conn.transcode(
 #### transcode Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `source` | `str` | required | URL of the video to transcode (preferably a downloadable URL) |
 | `callback_url` | `str` | required | URL to receive the callback when transcoding completes |
 | `mode` | `TranscodeMode` | `TranscodeMode.economy` | Transcoding speed: `economy` or `lightning` |
@@ -77,7 +77,7 @@ config = VideoConfig(
 ```
 
 | Field | Type | Default | Description |
-|-------|------|---------|-------------|
+|-------|------|---------|--|
 | `resolution` | `int\|None` | `None` | Target resolution height in pixels |
 | `quality` | `int` | `23` | Encoding quality (lower = higher quality) |
 | `framerate` | `int\|None` | `None` | Target framerate |
@@ -93,7 +93,7 @@ config = AudioConfig(mute=False)
 ```
 
 | Field | Type | Default | Description |
-|-------|------|---------|-------------|
+|-------|------|---------|--|
 | `mute` | `bool` | `False` | Mute the audio track |
 
 ## Collections
@@ -105,7 +105,7 @@ coll = conn.get_collection()
 ### Collection Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `coll.get_videos()` | `list[Video]` | List all videos |
 | `coll.get_video(video_id)` | `Video` | Get specific video |
 | `coll.get_audios()` | `list[Audio]` | List all audios |
@@ -154,7 +154,7 @@ video = coll.get_video(video_id)
 ### Video Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `video.id` | `str` | Unique video ID |
 | `video.collection_id` | `str` | Parent collection ID |
 | `video.name` | `str` | Video name |
@@ -167,7 +167,7 @@ video = coll.get_video(video_id)
 ### Video Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `video.generate_stream(timeline=None)` | `str` | Generate stream URL (optional timeline of `[(start, end)]` tuples) |
 | `video.play()` | `str` | Open stream in browser, returns player URL |
 | `video.index_spoken_words(language_code=None, force=False)` | `None` | Index speech for search. Use `force=True` to skip if already indexed. |
@@ -211,7 +211,7 @@ reframed = video.reframe(start=0, end=60, target={"width": 1080, "height": 1080}
 #### reframe Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `start` | `float\|None` | `None` | Start time in seconds (None = beginning) |
 | `end` | `float\|None` | `None` | End time in seconds (None = end of video) |
 | `target` | `str\|dict` | `"vertical"` | Preset string (`"vertical"`, `"square"`, `"landscape"`) or `{"width": int, "height": int}` |
@@ -229,7 +229,7 @@ audio = coll.get_audio(audio_id)
 ### Audio Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `audio.id` | `str` | Unique audio ID |
 | `audio.collection_id` | `str` | Parent collection ID |
 | `audio.name` | `str` | Audio name |
@@ -238,7 +238,7 @@ audio = coll.get_audio(audio_id)
 ### Audio Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `audio.generate_url()` | `str` | Generate signed URL for playback |
 | `audio.get_transcript(start=None, end=None)` | `list[dict]` | Get timestamped transcript |
 | `audio.get_transcript_text(start=None, end=None)` | `str` | Get full transcript text |
@@ -254,7 +254,7 @@ image = coll.get_image(image_id)
 ### Image Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `image.id` | `str` | Unique image ID |
 | `image.collection_id` | `str` | Parent collection ID |
 | `image.name` | `str` | Image name |
@@ -263,7 +263,7 @@ image = coll.get_image(image_id)
 ### Image Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `image.generate_url()` | `str` | Generate signed URL |
 | `image.delete()` | `None` | Delete the image |
 
@@ -278,7 +278,7 @@ timeline = Timeline(conn)
 ```
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `timeline.add_inline(asset)` | `None` | Add `VideoAsset` sequentially on main track |
 | `timeline.add_overlay(start, asset)` | `None` | Overlay `AudioAsset`, `ImageAsset`, or `TextAsset` at timestamp |
 | `timeline.generate_stream()` | `str` | Compile and get stream URL |
@@ -390,7 +390,7 @@ results = video.search("query", search_type=SearchType.semantic)
 ```
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `results.get_shots()` | `list[Shot]` | Get list of matching segments |
 | `results.compile()` | `str` | Compile all shots into a stream URL |
 | `results.play()` | `str` | Open compiled stream in browser |
@@ -398,7 +398,7 @@ results = video.search("query", search_type=SearchType.semantic)
 ### Shot Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `shot.video_id` | `str` | Source video ID |
 | `shot.video_length` | `float` | Source video duration |
 | `shot.video_title` | `str` | Source video title |
@@ -408,7 +408,7 @@ results = video.search("query", search_type=SearchType.semantic)
 | `shot.search_score` | `float` | Search relevance score |
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `shot.generate_stream()` | `str` | Stream this specific shot |
 | `shot.play()` | `str` | Open shot stream in browser |
 
@@ -427,7 +427,7 @@ meeting = coll.record_meeting(
 ### Meeting Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `meeting.id` | `str` | Unique meeting ID |
 | `meeting.collection_id` | `str` | Parent collection ID |
 | `meeting.status` | `str` | Current status |
@@ -442,7 +442,7 @@ meeting = coll.record_meeting(
 ### Meeting Methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | `meeting.refresh()` | `Meeting` | Refresh data from server |
 | `meeting.wait_for_status(target_status, timeout=14400, interval=120)` | `bool` | Poll until status reached |
 
@@ -540,7 +540,7 @@ from videodb.exceptions import (
 ```
 
 | Exception | Common Cause |
-|-----------|-------------|
+|--|--|
 | `AuthenticationError` | Missing or invalid `VIDEO_DB_API_KEY` |
 | `InvalidRequestError` | Invalid URL, unsupported format, bad parameters |
 | `RequestTimeoutError` | Server took too long to respond |

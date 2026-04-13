@@ -177,15 +177,15 @@ func ApprovalWorkflow(ctx workflow.Context) (string, error) {
 
 ## Best Practices
 
-- ✅ **Do:** Always handle errors from `ExecuteActivity` and `client.Dial`.
-- ✅ **Do:** Use `workflow.Go` and `workflow.Channel` for concurrency.
-- ✅ **Do:** Sort map keys before iteration to maintain determinism.
-- ✅ **Do:** Use `activity.RecordHeartbeat` for activities lasting > 1 minute.
-- ✅ **Do:** Test logic compatibility using `replayer.ReplayWorkflowHistoryFromJSON`.
-- ❌ **Don't:** Swallow errors with `_` or `log.Fatal` in production workers.
-- ❌ **Don't:** Perform direct Network/Disk I/O inside a Workflow function.
-- ❌ **Don't:** Rely on native `time.Now()` or `rand.Int()`.
-- ❌ **Don't:** Apply this to simple cron jobs that don't require durability.
+-  **Do:** Always handle errors from `ExecuteActivity` and `client.Dial`.
+-  **Do:** Use `workflow.Go` and `workflow.Channel` for concurrency.
+-  **Do:** Sort map keys before iteration to maintain determinism.
+-  **Do:** Use `activity.RecordHeartbeat` for activities lasting > 1 minute.
+-  **Do:** Test logic compatibility using `replayer.ReplayWorkflowHistoryFromJSON`.
+-  **Don't:** Swallow errors with `_` or `log.Fatal` in production workers.
+-  **Don't:** Perform direct Network/Disk I/O inside a Workflow function.
+-  **Don't:** Rely on native `time.Now()` or `rand.Int()`.
+-  **Don't:** Apply this to simple cron jobs that don't require durability.
 
 ## Troubleshooting
 

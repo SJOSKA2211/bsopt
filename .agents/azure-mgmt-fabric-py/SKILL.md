@@ -200,14 +200,14 @@ for sku in skus:
 ## Client Operations
 
 | Operation | Method |
-|-----------|--------|
+|--|--------|
 | `client.fabric_capacities` | Capacity CRUD operations |
 | `client.operations` | List available operations |
 
 ## Fabric SKUs
 
 | SKU | Description | CUs |
-|-----|-------------|-----|
+|-----|--|-----|
 | `F2` | Entry level | 2 Capacity Units |
 | `F4` | Small | 4 Capacity Units |
 | `F8` | Medium | 8 Capacity Units |
@@ -223,7 +223,7 @@ for sku in skus:
 ## Capacity States
 
 | State | Description |
-|-------|-------------|
+|-------|--|
 | `Active` | Capacity is running |
 | `Paused` | Capacity is suspended (no billing) |
 | `Provisioning` | Being created |

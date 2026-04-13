@@ -21,7 +21,7 @@ find . -maxdepth 2 \( -name "*.toml" -o -name "*.json" -o -name "*.lock" -o -nam
 Check for these indicator files:
 
 | Category     | Files to Check                                                                        |
-| ------------ | ------------------------------------------------------------------------------------- |
+| -- | -- |
 | **Python**   | `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`, `poetry.lock`, `uv.lock` |
 | **Node.js**  | `package.json`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`                    |
 | **Go**       | `go.mod`, `go.sum`                                                                    |
@@ -37,7 +37,7 @@ Check for these indicator files:
 Check for service integrations:
 
 | Service    | Detection                                                                       |
-| ---------- | ------------------------------------------------------------------------------- |
+| -- | -- |
 | **Sentry** | `sentry-sdk` in deps, `@sentry/*` packages, `.sentryclirc`, `sentry.properties` |
 | **Linear** | Linear config files, `.linear/` directory                                       |
 
@@ -102,7 +102,7 @@ Only include commands for tools actually detected in the project.
 #### Python (if any Python files or config detected)
 
 | If Detected                        | Add These Commands                      |
-| ---------------------------------- | --------------------------------------- |
+| -- | -- |
 | Any Python                         | `python --version`, `python3 --version` |
 | `poetry.lock`                      | `poetry show`, `poetry env info`        |
 | `uv.lock`                          | `uv pip list`, `uv tree`                |
@@ -112,7 +112,7 @@ Only include commands for tools actually detected in the project.
 #### Node.js (if package.json detected)
 
 | If Detected                  | Add These Commands                     |
-| ---------------------------- | -------------------------------------- |
+| -- | -- |
 | Any Node.js                  | `node --version`                       |
 | `pnpm-lock.yaml`             | `pnpm list`, `pnpm why`                |
 | `yarn.lock`                  | `yarn list`, `yarn info`, `yarn why`   |
@@ -122,7 +122,7 @@ Only include commands for tools actually detected in the project.
 #### Other Languages
 
 | If Detected    | Add These Commands                                                   |
-| -------------- | -------------------------------------------------------------------- |
+| -- | -- |
 | `go.mod`       | `go version`, `go list`, `go mod graph`, `go env`                    |
 | `Cargo.toml`   | `rustc --version`, `cargo --version`, `cargo tree`, `cargo metadata` |
 | `Gemfile`      | `ruby --version`, `bundle list`, `bundle show`                       |
@@ -132,7 +132,7 @@ Only include commands for tools actually detected in the project.
 #### Build Tools
 
 | If Detected          | Add These Commands                                                   |
-| -------------------- | -------------------------------------------------------------------- |
+| -- | -- |
 | `Dockerfile`         | `docker --version`, `docker ps`, `docker images`                     |
 | `docker-compose.yml` | `docker-compose ps`, `docker-compose config`                         |
 | `*.tf` files         | `terraform --version`, `terraform providers`, `terraform state list` |
@@ -186,7 +186,7 @@ If this is a Sentry project (or sentry-skills plugin is installed), include:
 #### Framework-Specific
 
 | If Detected    | Add Domains                                     |
-| -------------- | ----------------------------------------------- |
+| -- | -- |
 | **Django**     | `docs.djangoproject.com`                        |
 | **Flask**      | `flask.palletsprojects.com`                     |
 | **FastAPI**    | `fastapi.tiangolo.com`                          |
@@ -259,7 +259,7 @@ Example output structure:
 ## Detected Tech Stack
 
 | Category        | Found          |
-| --------------- | -------------- |
+| -- | -- |
 | Languages       | Python 3.x     |
 | Package Manager | poetry         |
 | Frameworks      | Django, Celery |
@@ -305,7 +305,7 @@ If you use Sentry or Linear, add the MCP config to `.mcp.json`...
 Only include the package manager actually used by the project:
 
 | If Detected         | Include         | Do NOT Include                         |
-| ------------------- | --------------- | -------------------------------------- |
+| -- | -- | -- |
 | `pnpm-lock.yaml`    | pnpm commands   | npm, yarn                              |
 | `yarn.lock`         | yarn commands   | npm, pnpm                              |
 | `package-lock.json` | npm commands    | yarn, pnpm                             |

@@ -301,7 +301,7 @@ Curated visual styles for Frontend Slides. Each preset is inspired by real desig
 ## Font Pairing Quick Reference
 
 | Preset | Display Font | Body Font | Source |
-|--------|--------------|-----------|--------|
+|--------|--|--|--------|
 | Bold Signal | Archivo Black | Space Grotesk | Google |
 | Electric Studio | Manrope | Manrope | Google |
 | Creative Voltage | Syne | Space Mono | Google |

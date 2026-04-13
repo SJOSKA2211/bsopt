@@ -81,9 +81,9 @@ async def check_api():
                 redis_status = data.get("redis", {}).get("status", "unknown")
                 print(f" [ALIVE: DB={db_status}, Redis={redis_status}]")
             else:
-                print(f"⚠️ [UNEXPECTED STATUS: {resp.status_code}]")
+                print(f"️ [UNEXPECTED STATUS: {resp.status_code}]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 ```
 
 - [ ] **Step 2: Update `main` to include API check**
@@ -130,7 +130,7 @@ else
     COMPOSE_CMD="docker-compose"
 fi
 
-echo "🚀 Starting API service..."
+echo " Starting API service..."
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d api otel-collector
 
 echo "⏳ Verifying API health..."
@@ -141,20 +141,20 @@ SUCCESS=0
 for ((i=1; i<=RETRIES; i++)); do
     echo "   [Attempt $i/$RETRIES] Checking status..."
     if $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml exec api curl -s http://localhost:8000/health | grep -q "\"status\":\"healthy\""; then
-        echo "✅ API is ACTIVE and reporting healthy status."
+        echo " API is ACTIVE and reporting healthy status."
         SUCCESS=1
         break
     fi
-    echo "   ⚠️ API not ready yet. Retrying in ${INTERVAL}s..."
+    echo "   ️ API not ready yet. Retrying in ${INTERVAL}s..."
     sleep $INTERVAL
 done
 
 if [ $SUCCESS -eq 0 ]; then
-    echo "❌ Fatal: API failed to reach healthy state after $RETRIES attempts."
+    echo " Fatal: API failed to reach healthy state after $RETRIES attempts."
     exit 1
 fi
 
-echo "🏁 API is Online and Verified."
+echo " API is Online and Verified."
 ```
 
 - [ ] **Step 2: Make script executable**

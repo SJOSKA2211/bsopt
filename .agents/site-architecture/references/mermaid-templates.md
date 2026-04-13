@@ -36,7 +36,7 @@ graph TD
         FEAT["Features"]
         PRICE["Pricing"]
         BLOG["Blog"]
-        CTA["Get Started ★"]
+        CTA["Get Started "]
     end
 
     subgraph "Feature Pages"

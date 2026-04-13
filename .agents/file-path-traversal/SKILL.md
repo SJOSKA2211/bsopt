@@ -483,7 +483,7 @@ def safe_file_access(base_dir, filename):
 ## Troubleshooting
 
 | Problem | Solutions |
-|---------|-----------|
+|---------|--|
 | No response difference | Try encoding, blind traversal, different files |
 | Payload blocked | Use encoding variants, nested sequences, case variations |
 | Cannot escalate to RCE | Check logs, PHP wrappers, file upload, session poisoning |

@@ -1,4 +1,4 @@
-# 🌌 Antigravity Awesome Skills: 560+ Kỹ năng (Skills) cho Claude Code, Gemini CLI, Cursor, Copilot và nhiều hơn nữa
+#  Antigravity Awesome Skills: 560+ Kỹ năng (Skills) cho Claude Code, Gemini CLI, Cursor, Copilot và nhiều hơn nữa
 
 > **Bộ sưu tập tối ưu gồm hơn 560 Kỹ năng Phổ quát cho các Trợ lý Lập trình AI — Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, GitHub Copilot, Cursor, OpenCode**
 
@@ -14,16 +14,16 @@
 **Antigravity Awesome Skills** là một thư viện được tuyển chọn và kiểm chứng kỹ lưỡng với **560 kỹ năng hiệu suất cao** được thiết kế để hoạt động mượt mà trên tất cả các trợ lý lập trình AI lớn:
 
 - 🟣 **Claude Code** (Anthropic CLI)
-- 🔵 **Gemini CLI** (Google DeepMind)
+-  **Gemini CLI** (Google DeepMind)
 - 🟢 **Codex CLI** (OpenAI)
-- 🔴 **Antigravity IDE** (Google DeepMind)
+-  **Antigravity IDE** (Google DeepMind)
 - 🩵 **GitHub Copilot** (VSCode Extension)
 - 🟠 **Cursor** (AI-native IDE)
-- ⚪ **OpenCode** (Mã nguồn mở CLI)
+-  **OpenCode** (Mã nguồn mở CLI)
 
 **Chào mừng bạn đến với Phiên bản V4.0.0 Enterprise.** Đây không chỉ là một danh sách các tập lệnh (scripts); nó là một hệ điều hành hoàn chỉnh cho Trợ lý AI của bạn.
 
-### 1. 🐣 Bối cảnh: Đây là gì?
+### 1.  Bối cảnh: Đây là gì?
 
 **Antigravity Awesome Skills** (Phiên bản 4.0.0) là một bản nâng cấp khổng lồ cho khả năng của AI.
 
@@ -41,7 +41,7 @@ Repository này tập hợp những khả năng tốt nhất từ khắp cộng 
 Repository được tổ chức thành các lĩnh vực chuyên biệt để biến AI của bạn thành một chuyên gia trên toàn bộ vòng đời phát triển phần mềm:
 
 | Danh mục          | Trọng tâm                                                      | Ví dụ kỹ năng                                                                   |
-| :---------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------ |
+| :-- | :-- | :-- |
 | Kiến trúc (52)    | Thiết kế hệ thống, ADRs, C4 và các mẫu có thể mở rộng          | `architecture`, `c4-context`, `senior-architect`                                |
 | Kinh doanh (35)   | Tăng trưởng, định giá, CRO, SEO và thâm nhập thị trường        | `copywriting`, `pricing-strategy`, `seo-audit`                                  |
 | Dữ liệu & AI (81) | Ứng dụng LLM, RAG, agents, khả năng quan sát, phân tích        | `rag-engineer`, `prompt-engineer`, `langgraph`                                  |
@@ -60,7 +60,7 @@ Repository được tổ chức thành các lĩnh vực chuyên biệt để bi�
 
 Chúng tôi đã chuyển danh sách đầy đủ các kỹ năng sang một danh mục riêng biệt để giữ cho file README này gọn gàng.
 
-👉 **[Xem Danh mục Kỹ năng Đầy đủ (CATALOG.vi.md)](CATALOG.vi.md)**
+ **[Xem Danh mục Kỹ năng Đầy đủ (CATALOG.vi.md)](CATALOG.vi.md)**
 
 ## Cài đặt
 
@@ -100,7 +100,7 @@ Vui lòng đảm bảo kỹ năng của bạn tuân thủ các thực hành tố
 
 Chúng tôi đứng trên vai của những người khổng lồ.
 
-👉 **[Xem Sổ cái Ghi công Đầy đủ (docs/vietnamese/SOURCES.vi.md)](docs/vietnamese/SOURCES.vi.md)**
+ **[Xem Sổ cái Ghi công Đầy đủ (docs/vietnamese/SOURCES.vi.md)](docs/vietnamese/SOURCES.vi.md)**
 
 Các nguồn đóng góp và nguồn chính bao gồm:
 

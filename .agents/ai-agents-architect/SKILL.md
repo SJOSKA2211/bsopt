@@ -68,16 +68,16 @@ Dynamic tool discovery and management
 
 ## Anti-Patterns
 
-### ❌ Unlimited Autonomy
+###  Unlimited Autonomy
 
-### ❌ Tool Overload
+###  Tool Overload
 
-### ❌ Memory Hoarding
+###  Memory Hoarding
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Agent loops without iteration limits | critical | Always set limits: |
 | Vague or incomplete tool descriptions | high | Write complete tool specs: |
 | Tool errors not surfaced to agent | high | Explicit error handling: |

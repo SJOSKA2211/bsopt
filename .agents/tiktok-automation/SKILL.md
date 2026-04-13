@@ -167,7 +167,7 @@ Automate TikTok content creation and profile operations through Composio's TikTo
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Upload video | TIKTOK_UPLOAD_VIDEO | video, title |
 | Upload multiple videos | TIKTOK_UPLOAD_VIDEOS | videos |
 | Publish video | TIKTOK_PUBLISH_VIDEO | publish_id, title, privacy_level |

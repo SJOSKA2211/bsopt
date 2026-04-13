@@ -1,10 +1,10 @@
-# 📜 Sources & Attributions
+#  Sources & Attributions
 
 We believe in giving credit where credit is due.
 If you recognize your work here and it is not properly attributed, please open an Issue.
 
 | Skill / Category            | Original Source                                                            | License        | Notes                         |
-| :-------------------------- | :------------------------------------------------------------------------- | :------------- | :---------------------------- |
+| :-- | :-- | :-- | :-- |
 | `cloud-penetration-testing` | [HackTricks](https://book.hacktricks.xyz/)                                 | MIT / CC-BY-SA | Adapted for agentic use.      |
 | `active-directory-attacks`  | [HackTricks](https://book.hacktricks.xyz/)                                 | MIT / CC-BY-SA | Adapted for agentic use.      |
 | `owasp-top-10`              | [OWASP](https://owasp.org/)                                                | CC-BY-SA       | Methodology adapted.          |
@@ -21,7 +21,7 @@ The following skills were added from the curated collection at [VoltAgent/awesom
 ### Official Team Skills
 
 | Skill                                                                                        | Original Source                                                           | License    | Notes                              |
-| :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ | :--------- | :--------------------------------- |
+| :-- | :-- | :--------- | :-- |
 | `vercel-deploy-claimable`                                                                    | [Vercel Labs](https://github.com/vercel-labs/agent-skills)                | MIT        | Official Vercel skill              |
 | `design-md`                                                                                  | [Google Labs (Stitch)](https://github.com/google-labs-code/stitch-skills) | Compatible | Google Labs Stitch skills          |
 | `hugging-face-cli`, `hugging-face-jobs`                                                      | [Hugging Face](https://github.com/huggingface/skills)                     | Compatible | Official Hugging Face skills       |
@@ -34,7 +34,7 @@ The following skills were added from the curated collection at [VoltAgent/awesom
 ### Community Skills
 
 | Skill                                                               | Original Source                                                             | License    | Notes                          |
-| :------------------------------------------------------------------ | :-------------------------------------------------------------------------- | :--------- | :----------------------------- |
+| :-- | :-- | :--------- | :-- |
 | `automate-whatsapp`, `observe-whatsapp`                             | [gokapso](https://github.com/gokapso/agent-skills)                          | Compatible | WhatsApp automation skills     |
 | `readme`                                                            | [Shpigford](https://github.com/Shpigford/skills)                            | Compatible | README generation              |
 | `screenshots`                                                       | [Shpigford](https://github.com/Shpigford/skills)                            | Compatible | Marketing screenshots          |
@@ -75,7 +75,7 @@ The following skills were added from the curated collection at [VoltAgent/awesom
 ## Skills from whatiskadudoing/fp-ts-skills (v4.4.0)
 
 | Skill             | Original Source                                                                 | License    | Notes                                                    |
-| :---------------- | :------------------------------------------------------------------------------ | :--------- | :------------------------------------------------------- |
+| :-- | :-- | :--------- | :-- |
 | `fp-ts-pragmatic` | [whatiskadudoing/fp-ts-skills](https://github.com/whatiskadudoing/fp-ts-skills) | Compatible | Pragmatic fp-ts guide – pipe, Option, Either, TaskEither |
 | `fp-ts-react`     | [whatiskadudoing/fp-ts-skills](https://github.com/whatiskadudoing/fp-ts-skills) | Compatible | fp-ts with React 18/19 and Next.js                       |
 | `fp-ts-errors`    | [whatiskadudoing/fp-ts-skills](https://github.com/whatiskadudoing/fp-ts-skills) | Compatible | Type-safe error handling with Either and TaskEither      |
@@ -85,7 +85,7 @@ The following skills were added from the curated collection at [VoltAgent/awesom
 The following skills were added from [Dimillian/Skills](https://github.com/Dimillian/Skills), a curated Codex skills repository focused on Apple platforms, GitHub workflows, refactoring, and performance work.
 
 | Skill / Group | Original Source | License | Notes |
-| :------------ | :-------------- | :------ | :---- |
+| :-- | :-- | :------ | :---- |
 | `app-store-changelog`, `github`, `orchestrate-batch-refactor`, `project-skill-audit`, `react-component-performance`, `simplify-code` | [Dimillian/Skills](https://github.com/Dimillian/Skills) | MIT | Workflow, GitHub, React performance, and code simplification skills. |
 | `ios-debugger-agent`, `macos-menubar-tuist-app`, `macos-spm-app-packaging`, `swift-concurrency-expert` | [Dimillian/Skills](https://github.com/Dimillian/Skills) | MIT | Apple-platform debugging, packaging, and Swift concurrency guidance. |
 | `swiftui-liquid-glass`, `swiftui-performance-audit`, `swiftui-ui-patterns`, `swiftui-view-refactor` | [Dimillian/Skills](https://github.com/Dimillian/Skills) | MIT | SwiftUI-specific implementation, performance, and refactoring patterns. |

@@ -48,7 +48,7 @@ client = BlobServiceClient(
 ### Credential Chain Order
 
 | Order | Credential | Environment |
-|-------|-----------|-------------|
+|-------|--|--|
 | 1 | EnvironmentCredential | CI/CD, containers |
 | 2 | WorkloadIdentityCredential | Kubernetes |
 | 3 | ManagedIdentityCredential | Azure VMs, App Service, Functions |
@@ -137,7 +137,7 @@ credential = ChainedTokenCredential(
 ## Credential Types Table
 
 | Credential | Use Case | Auth Method |
-|------------|----------|-------------|
+|--|--|--|
 | `DefaultAzureCredential` | Most scenarios | Auto-detect |
 | `ManagedIdentityCredential` | Azure-hosted apps | Managed Identity |
 | `ClientSecretCredential` | Service principal | Client secret |

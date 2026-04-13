@@ -217,7 +217,7 @@ Automate Coda document and data operations through Composio's Coda toolkit via R
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search docs | CODA_SEARCH_DOCS | query |
 | List docs | CODA_LIST_AVAILABLE_DOCS | isOwner |
 | Resolve URL | CODA_RESOLVE_BROWSER_LINK | url |

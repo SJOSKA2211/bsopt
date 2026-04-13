@@ -36,7 +36,7 @@ Payslip Code: MONTHLY
 
 Rules (executed top-to-bottom — order matters):
   Code  | Name                   | Formula                        | Category
-  ----- | ---------------------- | ------------------------------ | ---------
+  ----- | -- | -- | ---------
   BASIC | Basic Wage             | contract.wage                  | Basic
   GROSS | Gross                  | BASIC                          | Gross
   SS    | Social Security (6.2%) | -GROSS * 0.062                 | Deduction
@@ -58,7 +58,7 @@ Leave Validation: Time Off Officer  (single approver)
   or: "Both" for HR + Manager double approval
 
 Allocation:
-  ☑ Employees can allocate time off themselves
+   Employees can allocate time off themselves
   Requires approval: No
 
 Negative Balance: Not allowed (employees cannot go negative)
@@ -91,12 +91,12 @@ Employer taxes (e.g., FUTA, SUTA) post as separate journal entries.
 
 ## Best Practices
 
-- ✅ **Do:** Install your country's **payroll localization** (`l10n_us_hr_payroll`, `l10n_mx_hr_payroll`, etc.) before building custom rules — it provides pre-configured tax structures.
-- ✅ **Do:** Use **salary rule inputs** (`inputs.ALLOWANCE.amount`) to pass variable values (bonuses, allowances, withholding rates) rather than hardcoding them in the rule formula.
-- ✅ **Do:** Archive old salary structures rather than deleting them — active payslips reference their structure and will break if the structure is deleted.
-- ✅ **Do:** Always set an active **Employee Contract** with correct dates and salary before generating payslips.
-- ❌ **Don't:** Manually edit posted payslips — cancel and regenerate the payslip batch if corrections are needed.
-- ❌ **Don't:** Use `contract.wage` in deduction rules without verifying whether the structure is monthly or annual — always check the contract wage period.
+-  **Do:** Install your country's **payroll localization** (`l10n_us_hr_payroll`, `l10n_mx_hr_payroll`, etc.) before building custom rules — it provides pre-configured tax structures.
+-  **Do:** Use **salary rule inputs** (`inputs.ALLOWANCE.amount`) to pass variable values (bonuses, allowances, withholding rates) rather than hardcoding them in the rule formula.
+-  **Do:** Archive old salary structures rather than deleting them — active payslips reference their structure and will break if the structure is deleted.
+-  **Do:** Always set an active **Employee Contract** with correct dates and salary before generating payslips.
+-  **Don't:** Manually edit posted payslips — cancel and regenerate the payslip batch if corrections are needed.
+-  **Don't:** Use `contract.wage` in deduction rules without verifying whether the structure is monthly or annual — always check the contract wage period.
 
 ## Limitations
 

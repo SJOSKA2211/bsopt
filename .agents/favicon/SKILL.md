@@ -37,7 +37,7 @@ Note whether the source is an SVG file - if so, it will also be copied as `favic
 Detect the project type and determine where static assets should be placed. Check in this order:
 
 | Framework | Detection | Static Assets Directory |
-|-----------|-----------|------------------------|
+|--|--|--|
 | **Rails** | `config/routes.rb` exists | `public/` |
 | **Next.js** | `next.config.*` exists | `public/` |
 | **Gatsby** | `gatsby-config.*` exists | `static/` |

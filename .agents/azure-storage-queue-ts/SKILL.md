@@ -518,11 +518,11 @@ import {
 
 | Feature | Node.js | Browser |
 |---------|---------|---------|
-| `StorageSharedKeyCredential` | ✅ | ❌ |
-| SAS generation | ✅ | ❌ |
-| DefaultAzureCredential | ✅ | ❌ |
-| Anonymous/SAS access | ✅ | ✅ |
-| All message operations | ✅ | ✅ |
+| `StorageSharedKeyCredential` |  |  |
+| SAS generation |  |  |
+| DefaultAzureCredential |  |  |
+| Anonymous/SAS access |  |  |
+| All message operations |  |  |
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

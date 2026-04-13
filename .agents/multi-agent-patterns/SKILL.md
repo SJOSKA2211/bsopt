@@ -37,7 +37,7 @@ Multi-agent architectures address these limitations by partitioning work across 
 Multi-agent systems consume significantly more tokens than single-agent approaches. Production data shows:
 
 | Architecture | Token Multiplier | Use Case |
-|--------------|------------------|----------|
+|--|--|--|
 | Single agent chat | 1× baseline | Simple queries |
 | Single agent with tools | ~4× baseline | Tool-using tasks |
 | Multi-agent system | ~15× baseline | Complex research/coordination |

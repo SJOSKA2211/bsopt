@@ -4,7 +4,7 @@ Tabela de referência atualizada com todas as 27 Juntas Comerciais e seus sites 
 **Última verificação:** 2026-02-25
 
 | UF | Junta | URL Leiloeiros | Método | Status |
-|----|-------|---------------|--------|--------|
+|----|-------|--|--------|--------|
 | SP | JUCESP | https://www.institucional.jucesp.sp.gov.br/tradutores-leiloeiros.html | httpx+BS4 | CUSTOMIZADO |
 | RJ | JUCERJA | https://www.jucerja.rj.gov.br/AuxiliaresComercio/Leiloeiros | PLAYWRIGHT | CUSTOMIZADO |
 | MG | JUCEMG | https://jucemg.mg.gov.br/pagina/139/leiloeiros-oficiais | httpx+BS4 | CUSTOMIZADO |

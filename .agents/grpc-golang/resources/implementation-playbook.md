@@ -537,7 +537,7 @@ project/
 ## Anti-Patterns
 
 | Anti-Pattern                                  | Why It Hurts                                                                                  | Fix                                                          |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| -- | -- | -- |
 | Create new `grpc.ClientConn` per request      | Exhausts OS sockets and disables HTTP/2 multiplexing, causing high latency and resource leaks | Initialize once, reuse globally                              |
 | Mix Protobuf v1 and v2 libraries              | Causes silent marshaling bugs; `proto.Marshal` from v1 and v2 are NOT interchangeable         | Pin to `google.golang.org/protobuf` (v2) throughout          |
 | Expose raw internal error strings to clients  | Leaks stack traces and internal service names; a security and UX risk                         | Map errors with `status.Errorf` using appropriate gRPC codes |

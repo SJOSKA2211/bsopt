@@ -320,7 +320,7 @@ export class UserRepository {
 
 ## Refactoring Example: Bad to Good
 
-### BEFORE: Business Logic in Routes ❌
+### BEFORE: Business Logic in Routes 
 
 ```typescript
 // routes/postRoutes.ts (BAD - 200+ lines)
@@ -330,21 +330,21 @@ router.post('/posts', async (req, res) => {
         const responses = req.body.responses;
         const stepInstanceId = req.body.stepInstanceId;
 
-        // ❌ Permission check in route
+        //  Permission check in route
         const userId = await userProfileService.getProfileByEmail(username).then(p => p.id);
         const canComplete = await permissionService.canCompleteStep(userId, stepInstanceId);
         if (!canComplete) {
             return res.status(403).json({ error: 'No permission' });
         }
 
-        // ❌ Business logic in route
+        //  Business logic in route
         const post = await postRepository.create({
             title: req.body.title,
             content: req.body.content,
             authorId: userId
         });
 
-        // ❌ More business logic...
+        //  More business logic...
         if (res.locals.isImpersonating) {
             impersonationContextStore.storeContext(...);
         }
@@ -358,7 +358,7 @@ router.post('/posts', async (req, res) => {
 });
 ```
 
-### AFTER: Clean Separation ✅
+### AFTER: Clean Separation 
 
 **1. Clean Route:**
 ```typescript
@@ -368,7 +368,7 @@ import { PostController } from '../controllers/PostController';
 const router = Router();
 const controller = new PostController();
 
-// ✅ CLEAN: 8 lines total!
+//  CLEAN: 8 lines total!
 router.post('/',
     SSOMiddlewareClient.verifyLoginStatus,
     auditMiddleware,

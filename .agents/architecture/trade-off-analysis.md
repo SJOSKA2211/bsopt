@@ -16,7 +16,7 @@ For EACH architectural component, document:
 ### Options Considered
 
 | Option | Pros | Cons | Complexity | When Valid |
-|--------|------|------|------------|-----------|
+|--------|------|------|--|--|
 | Option A | Benefit 1 | Cost 1 | Low | [Conditions] |
 | Option B | Benefit 2 | Cost 2 | High | [Conditions] |
 

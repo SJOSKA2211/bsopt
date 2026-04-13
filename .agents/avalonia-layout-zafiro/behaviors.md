@@ -2,7 +2,7 @@
 
 To keep XAML clean and maintainable, minimize logic in views and avoid excessive use of converters.
 
-## 🎭 Xaml.Interaction.Behaviors
+##  Xaml.Interaction.Behaviors
 
 Use `Interaction.Behaviors` to handle UI-related logic that doesn't belong in the ViewModel, such as focus management, animations, or specialized event handling.
 
@@ -19,7 +19,7 @@ Use `Interaction.Behaviors` to handle UI-related logic that doesn't belong in th
 - **Clean XAML**: Avoids code-behind and complex XAML triggers.
 - **Testability**: Behaviors can be tested independently of the View.
 
-## 🚫 Avoiding Converters
+##  Avoiding Converters
 
 Converters often lead to "magical" logic hidden in XAML. Whenever possible, prefer:
 

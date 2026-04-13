@@ -99,7 +99,7 @@ Returns `{"data": {"url": "https://signed-download-url..."}}`.
 ## Full API reference
 
 | Method | Path | Description | Karma |
-|--------|------|-------------|-------|
+|--------|------|--|-------|
 | POST | `/v1/accounts` | Create email account | -10 |
 | GET | `/v1/accounts` | List all accounts | |
 | GET | `/v1/accounts/:id` | Get account details | |

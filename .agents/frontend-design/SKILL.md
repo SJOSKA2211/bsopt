@@ -37,10 +37,10 @@ Every output must satisfy **all four**:
 4. **Cohesive Restraint**
    No random decoration. Every flourish must serve the aesthetic thesis.
 
-❌ No default layouts
-❌ No design-by-components
-❌ No “safe” palettes or fonts
-✅ Strong opinions, well executed
+ No default layouts
+ No design-by-components
+ No “safe” palettes or fonts
+ Strong opinions, well executed
 
 ---
 
@@ -51,7 +51,7 @@ Before building, evaluate the design direction using DFII.
 ### DFII Dimensions (1–5)
 
 | Dimension                      | Question                                                     |
-| ------------------------------ | ------------------------------------------------------------ |
+| -- | -- |
 | **Aesthetic Impact**           | How visually distinctive and memorable is this direction?    |
 | **Context Fit**                | Does this aesthetic suit the product, audience, and purpose? |
 | **Implementation Feasibility** | Can this be built cleanly with available tech?               |
@@ -69,7 +69,7 @@ DFII = (Impact + Fit + Feasibility + Performance) − Consistency Risk
 ### Interpretation
 
 | DFII      | Meaning   | Action                      |
-| --------- | --------- | --------------------------- |
+| --------- | --------- | -- |
 | **12–15** | Excellent | Execute fully               |
 | **8–11**  | Strong    | Proceed with discipline     |
 | **4–7**   | Risky     | Reduce scope or effects     |
@@ -100,7 +100,7 @@ Examples (non-exhaustive):
 * Maximalist / Chaotic
 * Minimalist / Severe
 
-⚠️ Do not blend more than **two**.
+️ Do not blend more than **two**.
 
 ### 3. Differentiation Anchor
 
@@ -229,12 +229,12 @@ Explicitly state:
 
 ## 7. Anti-Patterns (Immediate Failure)
 
-❌ Inter/Roboto/system fonts
-❌ Purple-on-white SaaS gradients
-❌ Default Tailwind/ShadCN layouts
-❌ Symmetrical, predictable sections
-❌ Overused AI design tropes
-❌ Decoration without intent
+ Inter/Roboto/system fonts
+ Purple-on-white SaaS gradients
+ Default Tailwind/ShadCN layouts
+ Symmetrical, predictable sections
+ Overused AI design tropes
+ Decoration without intent
 
 If the design could be mistaken for a template → restart.
 

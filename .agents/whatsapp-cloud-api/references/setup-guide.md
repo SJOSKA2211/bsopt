@@ -579,7 +579,7 @@ Com verificacao:
 ### Prazos
 
 | Cenario | Prazo Estimado |
-|---------|---------------|
+|---------|--|
 | Documentacao correta + email corporativo | 1-3 dias uteis |
 | Documentacao correta + verificacao por telefone | 3-5 dias uteis |
 | Documentacao incompleta / rejeicao + reenvio | 5-14 dias uteis |
@@ -606,7 +606,7 @@ Voce deve ter:
 ## Niveis de Limite de Mensagens (Pos-Verificacao)
 
 | Nivel | Conversas Iniciadas (24h) | Como Alcancar |
-|-------|---------------------------|---------------|
+|-------|--|--|
 | Nao verificado | 250 | Padrao inicial |
 | Nivel 1 | 1.000 | Verificacao de negocio completa |
 | Nivel 2 | 10.000 | Enviar 2x o limite atual em 7 dias com qualidade boa |
@@ -620,9 +620,9 @@ Voce deve ter:
 Apos completar todos os 10 passos, voce deve ter os seguintes valores. Preencha e armazene em um arquivo `.env`:
 
 ```bash
-# ===================================
+# ==
 # WhatsApp Cloud API - Variaveis de Ambiente
-# ===================================
+# ==
 
 # Passo 1 - Meta Business Suite
 META_BUSINESS_ID=          # ID da conta Business (15 digitos)

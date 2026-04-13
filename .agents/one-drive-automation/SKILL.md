@@ -215,7 +215,7 @@ Most OneDrive tools accept either paths or IDs:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search files | `ONE_DRIVE_SEARCH_ITEMS` | `q`, `search_scope`, `top` |
 | List root items | `ONE_DRIVE_ONEDRIVE_LIST_ITEMS` | `user_id`, `select`, `top` |
 | Get item details | `ONE_DRIVE_GET_ITEM` | `item_id`, `expand_relations` |

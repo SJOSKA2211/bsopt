@@ -31,7 +31,7 @@ Before implementing a component, page, or feature, assess feasibility.
 ### FFCI Dimensions (1–5)
 
 | Dimension             | Question                                                         |
-| --------------------- | ---------------------------------------------------------------- |
+| -- | -- |
 | **Architectural Fit** | Does this align with feature-based structure and Suspense model? |
 | **Complexity Load**   | How complex is state, data, and interaction logic?               |
 | **Performance Risk**  | Does it introduce rendering, bundle, or CLS risk?                |
@@ -49,7 +49,7 @@ FFCI = (Architectural Fit + Reusability + Performance) − (Complexity + Mainten
 ### Interpretation
 
 | FFCI      | Meaning    | Action            |
-| --------- | ---------- | ----------------- |
+| --------- | -- | -- |
 | **10–15** | Excellent  | Proceed           |
 | **6–9**   | Acceptable | Proceed with care |
 | **3–5**   | Risky      | Simplify or split |
@@ -131,7 +131,7 @@ Use **frontend-dev-guidelines** when:
 ## 5. Import Aliases (Required)
 
 | Alias         | Path             |
-| ------------- | ---------------- |
+| -- | -- |
 | `@/`          | `src/`           |
 | `~types`      | `src/types`      |
 | `~components` | `src/components` |
@@ -172,10 +172,10 @@ Always wrapped in `<SuspenseLoader>`.
 
 ### Forbidden Patterns
 
-❌ `isLoading`
-❌ manual spinners
-❌ fetch logic inside components
-❌ API calls without feature API layer
+ `isLoading`
+ manual spinners
+ fetch logic inside components
+ API calls without feature API layer
 
 ### API Layer Rules
 
@@ -210,8 +210,8 @@ export const Route = createFileRoute('/my-route/')({
 ### Grid Syntax (v7 Only)
 
 ```tsx
-<Grid size={{ xs: 12, md: 6 }} /> // ✅
-<Grid xs={12} md={6} />          // ❌
+<Grid size={{ xs: 12, md: 6 }} /> // 
+<Grid xs={12} md={6} />          // 
 ```
 
 Theme access must always be type-safe.
@@ -222,8 +222,8 @@ Theme access must always be type-safe.
 
 ### Absolute Rule
 
-❌ Never return early loaders
-✅ Always rely on Suspense boundaries
+ Never return early loaders
+ Always rely on Suspense boundaries
 
 ### User Feedback
 
@@ -321,12 +321,12 @@ export default MyComponent;
 
 ## 15. Anti-Patterns (Immediate Rejection)
 
-❌ Early loading returns
-❌ Feature logic in `components/`
-❌ Shared state via prop drilling instead of hooks
-❌ Inline API calls
-❌ Untyped responses
-❌ Multiple responsibilities in one component
+ Early loading returns
+ Feature logic in `components/`
+ Shared state via prop drilling instead of hooks
+ Inline API calls
+ Untyped responses
+ Multiple responsibilities in one component
 
 ---
 

@@ -34,7 +34,7 @@ npm install @emblemvault/agentwallet
 ## Supported Chains
 
 | Chain | Operations |
-|-------|-----------|
+|-------|--|
 | Solana | Balance, swap, transfer, token lookup |
 | Ethereum | Balance, swap, transfer, NFT |
 | Base | Balance, swap, transfer |

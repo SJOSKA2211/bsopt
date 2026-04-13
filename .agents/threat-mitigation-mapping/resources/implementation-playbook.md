@@ -33,7 +33,7 @@ Corrective ────► Respond and recover from attacks
 ### 2. Control Layers
 
 | Layer | Examples |
-|-------|----------|
+|-------|--|
 | **Network** | Firewall, WAF, DDoS protection |
 | **Application** | Input validation, authentication |
 | **Data** | Encryption, access controls |
@@ -573,7 +573,7 @@ class MitigationAnalyzer:
     def _format_layer_coverage(self, coverage: Dict[str, List[str]]) -> str:
         lines = []
         for layer, controls in coverage.items():
-            status = "✓" if controls else "✗"
+            status = "" if controls else ""
             lines.append(f"- {layer}: {status} ({len(controls)} controls)")
         return "\n".join(lines)
 
@@ -713,7 +713,7 @@ class ControlTester:
             score = self.get_effectiveness_score(control_id)
             report += f"\n### {control_id} (Effectiveness: {score:.1f}%)\n"
             for r in results:
-                status = "✓" if r["passed"] else "✗"
+                status = "" if r["passed"] else ""
                 report += f"- {status} {r['test_name']}\n"
                 if r["error"]:
                     report += f"  - Error: {r['error']}\n"

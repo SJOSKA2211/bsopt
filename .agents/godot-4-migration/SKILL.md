@@ -116,10 +116,10 @@ await get_tree().create_timer(1.0).timeout
 
 ## Best Practices
 
-- ✅ **Do:** Use `@export_range`, `@export_file`, etc., for better inspector UI.
-- ✅ **Do:** Type all variables (`var x: int`) for performance gains in GDScript 2.0.
-- ✅ **Do:** Use `super()` to call parent methods instead of `.function_name()`.
-- ❌ **Don't:** Use string names for signals (`emit_signal("name")`) if you can use the signal object (`name.emit()`).
+-  **Do:** Use `@export_range`, `@export_file`, etc., for better inspector UI.
+-  **Do:** Type all variables (`var x: int`) for performance gains in GDScript 2.0.
+-  **Do:** Use `super()` to call parent methods instead of `.function_name()`.
+-  **Don't:** Use string names for signals (`emit_signal("name")`) if you can use the signal object (`name.emit()`).
 
 ## Troubleshooting
 

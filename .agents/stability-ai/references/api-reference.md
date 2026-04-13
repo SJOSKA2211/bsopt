@@ -31,7 +31,7 @@ Formato: Todas as requests usam `multipart/form-data` (nao JSON).
 Gera imagens com Stable Diffusion 3.5.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `prompt` | string | Sim | Prompt de texto (max 10000 chars) |
 | `model` | string | Nao | `sd3.5-large` (default), `sd3.5-large-turbo`, `sd3.5-medium` |
 | `aspect_ratio` | string | Nao | Ratio como `1:1`, `16:9`, etc. Default: `1:1` |
@@ -52,7 +52,7 @@ Gera imagens com Stable Diffusion 3.5.
 Geracao premium com maxima qualidade.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `prompt` | string | Sim | Prompt de texto |
 | `aspect_ratio` | string | Nao | Default: `1:1` |
 | `negative_prompt` | string | Nao | O que evitar |
@@ -66,7 +66,7 @@ Nao aceita `model` (modelo fixo Ultra).
 Geracao rapida e eficiente.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `prompt` | string | Sim | Prompt de texto |
 | `aspect_ratio` | string | Nao | Default: `1:1` |
 | `negative_prompt` | string | Nao | O que evitar |
@@ -81,7 +81,7 @@ Geracao rapida e eficiente.
 Edita parte de uma imagem usando mascara.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem original |
 | `prompt` | string | Sim | O que gerar na area mascarada |
 | `mask` | file | Nao | Mascara (branco = area a editar) |
@@ -96,7 +96,7 @@ Se `mask` nao for enviada, o modelo tenta inferir automaticamente.
 Encontra e substitui objetos na imagem.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem original |
 | `prompt` | string | Sim | O que colocar no lugar |
 | `search_prompt` | string | Sim | O que procurar/substituir |
@@ -109,7 +109,7 @@ Encontra e substitui objetos na imagem.
 Apaga parte de uma imagem (preenche com contexto).
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem original |
 | `mask` | file | Nao | Mascara da area a apagar |
 | `seed` | int | Nao | Seed |
@@ -120,7 +120,7 @@ Apaga parte de uma imagem (preenche com contexto).
 Expande a imagem alem das bordas originais.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem original |
 | `prompt` | string | Nao | Descricao do conteudo a gerar |
 | `left` | int | Nao | Pixels a expandir para esquerda (0-2000) |
@@ -137,7 +137,7 @@ Pelo menos uma direcao deve ser > 0.
 Remove o fundo da imagem.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem para remover fundo |
 | `output_format` | string | Nao | `png` (com transparencia) |
 
@@ -150,7 +150,7 @@ Retorna imagem com fundo transparente (PNG).
 Aumenta resolucao mantendo fidelidade maxima ao original.
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem para upscale |
 | `prompt` | string | Sim | Descricao da imagem |
 | `negative_prompt` | string | Nao | O que evitar |
@@ -167,7 +167,7 @@ Fluxo em 2 etapas:
 2. GET para buscar resultado (pode demorar)
 
 | Campo | Tipo | Obrigatorio | Descricao |
-|-------|------|-------------|-----------|
+|-------|------|--|--|
 | `image` | file | Sim | Imagem para upscale |
 | `prompt` | string | Sim | Descricao da imagem |
 | `negative_prompt` | string | Nao | O que evitar |
@@ -211,7 +211,7 @@ Se `Accept: application/json`:
 ## Erros
 
 | Codigo | Significado | Acao |
-|--------|-------------|------|
+|--------|--|------|
 | 400 | Bad Request | Verificar parametros |
 | 401 | Unauthorized | Verificar API key |
 | 402 | Payment Required | Verificar creditos/plano |

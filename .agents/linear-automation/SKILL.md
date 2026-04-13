@@ -158,7 +158,7 @@ Automate Linear operations through Composio's Linear toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List teams | LINEAR_GET_ALL_LINEAR_TEAMS | (none) |
 | Create issue | LINEAR_CREATE_LINEAR_ISSUE | team_id, title, description |
 | Search issues | LINEAR_SEARCH_ISSUES | query |

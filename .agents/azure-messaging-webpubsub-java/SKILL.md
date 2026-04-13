@@ -279,7 +279,7 @@ WEB_PUBSUB_ACCESS_KEY=<your-access-key>
 ## Client Roles
 
 | Role | Permission |
-|------|------------|
+|------|--|
 | `webpubsub.joinLeaveGroup` | Join/leave any group |
 | `webpubsub.sendToGroup` | Send to any group |
 | `webpubsub.joinLeaveGroup.<group>` | Join/leave specific group |

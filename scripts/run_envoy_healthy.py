@@ -33,7 +33,7 @@ def check_envoy_ready(ready_url: str, health_url: str, timeout: int = 120, inter
             if is_live and is_healthy:
                 console.print(
                     Panel(
-                        "[bold green]✅ ENVOY GATEWAY IS LIVE AND UPSTREAM IS HEALTHY[/bold green]"
+                        "[bold green] ENVOY GATEWAY IS LIVE AND UPSTREAM IS HEALTHY[/bold green]"
                     )
                 )
                 return True
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         if check_envoy_ready(ready_url, health_url):
             console.print(
                 Panel(
-                    "[bold green]🚀 ENVOY API GATEWAY IS FULLY OPTIMIZED AND HEALTHY[/bold green]",
+                    "[bold green] ENVOY API GATEWAY IS FULLY OPTIMIZED AND HEALTHY[/bold green]",
                     title="Success",
                 )
             )
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         else:
             console.print(
                 Panel(
-                    "[bold red]❌ ERROR: Envoy failed to reach healthy state within timeout.[/bold red]",
+                    "[bold red] ERROR: Envoy failed to reach healthy state within timeout.[/bold red]",
                     title="Failure",
                 )
             )

@@ -862,7 +862,7 @@ class Document:
         target_path = Path(destination) if destination else self.original_path
         shutil.copytree(self.unpacked_path, target_path, dirs_exist_ok=True)
 
-    # ==================== Private: Initialization ====================
+    # == Private: Initialization ==
 
     def _get_next_comment_id(self):
         """Get the next available comment ID."""
@@ -907,7 +907,7 @@ class Document:
 
         return existing
 
-    # ==================== Private: Setup Methods ====================
+    # == Private: Setup Methods ==
 
     def _setup_tracking(self, track_revisions=False):
         """Set up comment infrastructure in unpacked directory.
@@ -1036,7 +1036,7 @@ class Document:
                 rsid_xml = f'<{prefix}:rsid {prefix}:val="{self.rsid}"/>'
                 editor.append_to(rsids_elem, rsid_xml)
 
-    # ==================== Private: XML File Creation ====================
+    # == Private: XML File Creation ==
 
     def _add_to_comments_xml(self, comment_id, para_id, text, author, initials, timestamp):
         """Add a single comment to comments.xml."""
@@ -1093,7 +1093,7 @@ class Document:
         xml = f'<w16cex:commentExtensible w16cex:durableId="{durable_id}"/>'
         editor.append_to(root, xml)
 
-    # ==================== Private: XML Fragments ====================
+    # == Private: XML Fragments ==
 
     def _comment_range_start_xml(self, comment_id):
         """Generate XML for comment range start."""
@@ -1120,7 +1120,7 @@ class Document:
   <w:commentReference w:id="{comment_id}"/>
 </w:r>'''
 
-    # ==================== Private: Metadata Updates ====================
+    # == Private: Metadata Updates ==
 
     def _has_relationship(self, editor, target):
         """Check if a relationship with given target exists."""

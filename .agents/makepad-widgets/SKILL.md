@@ -128,7 +128,7 @@ pub trait Widget: WidgetNode {
 ## All Built-in Widgets (84 files in widgets/src/)
 
 | Category | Widgets |
-|----------|---------|
+|--|---------|
 | **Basic** | `View`, `Label`, `Button`, `Icon`, `Image` |
 | **Input** | `TextInput`, `CheckBox`, `RadioButton`, `Slider`, `DropDown`, `ColorPicker` |
 | **Container** | `ScrollBars`, `PortalList`, `FlatList`, `StackNavigation`, `Dock`, `Splitter` |
@@ -142,7 +142,7 @@ pub trait Widget: WidgetNode {
 ## Core Widgets Reference
 
 | Widget | Purpose | Key Properties |
-|--------|---------|----------------|
+|--------|---------|--|
 | `View` | Container | `flow`, `align`, `show_bg`, `draw_bg`, `optimize` |
 | `Button` | Clickable | `text`, `draw_bg`, `draw_text`, `draw_icon` |
 | `Label` | Text display | `text`, `draw_text` |
@@ -159,7 +159,7 @@ pub trait Widget: WidgetNode {
 ## View Variants
 
 | Variant | Description |
-|---------|-------------|
+|---------|--|
 | `SolidView` | Solid background color |
 | `RoundedView` | Rounded corners |
 | `RoundedAllView` | Individual corner control |
@@ -176,7 +176,7 @@ pub trait Widget: WidgetNode {
 ## Button Variants
 
 | Variant | Description |
-|---------|-------------|
+|---------|--|
 | `ButtonFlat` | Flat style |
 | `ButtonFlatIcon` | Flat with icon |
 | `ButtonFlatter` | No background |
@@ -187,7 +187,7 @@ pub trait Widget: WidgetNode {
 ## ImageFit Values
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `Stretch` | Stretch to fill |
 | `Contain` | Fit within, preserve ratio |
 | `Cover` | Cover area, may crop |

@@ -1747,7 +1747,7 @@ describe('UserService', () => {
 ## Quick Reference: Imperative to fp-ts Mapping
 
 | Imperative Pattern | fp-ts Equivalent |
-|-------------------|------------------|
+|--|--|
 | `try { } catch { }` | `E.tryCatch()`, `TE.tryCatch()` |
 | `throw new Error()` | `E.left()`, `TE.left()` |
 | `return value` | `E.right()`, `TE.right()` |

@@ -97,7 +97,7 @@ Use the appropriate CLI command based on the user's language choice. Additional 
 
 ## Best Practices
 
-**✓ Do:**
+** Do:**
 - Use `apify run` to test actors locally (configures Apify environment and storage)
 - Use Apify SDK (`apify`) for code running ON Apify platform
 - Validate input early with proper error handling and fail gracefully
@@ -114,7 +114,7 @@ Use the appropriate CLI command based on the user's language choice. Additional 
 - **Always use `apify/log` package** — censors sensitive data (API keys, tokens, credentials)
 - Implement readiness probe handler (required if your Actor uses standby mode)
 
-**✗ Don't:**
+** Don't:**
 - Use `npm start`, `npm run start`, `npx apify run`, or similar commands to run actors (use `apify run` instead)
 - Assume local storage from `apify run` is pushed to or visible in the Apify Console — it is local-only; deploy with `apify push` and run on the platform to see results in the Console
 - Rely on `Dataset.getInfo()` for final counts on Cloud

@@ -185,7 +185,7 @@ Kit uses cursor-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List subscribers | KIT_LIST_SUBSCRIBERS | status, email_address, per_page |
 | Tag subscriber | KIT_TAG_SUBSCRIBER | tag_id, subscriber_id |
 | List tag subscribers | KIT_LIST_TAG_SUBSCRIBERS | tag_id |

@@ -315,7 +315,7 @@ ${QUICK_START_CODE}
 ### Environment Variables
 
 | Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
+|--|--|---------|--|
 | DATABASE_URL | PostgreSQL connection string | - | Yes |
 | REDIS_URL | Redis connection string | - | Yes |
 | SECRET_KEY | Application secret key | - | Yes |
@@ -443,7 +443,7 @@ def {func.__name__}({", ".join(params)}){return_type}:
 
 #### Deleting ${FEATURE}
 
-> ⚠️ **Warning**: Deletion is permanent and cannot be undone.
+> ️ **Warning**: Deletion is permanent and cannot be undone.
 
 1. Find your ${FEATURE} in the list
 2. Click the "Delete" button
@@ -452,7 +452,7 @@ def {func.__name__}({", ".join(params)}){return_type}:
 ### Troubleshooting
 
 | Error | Meaning | Solution |
-|-------|---------|----------|
+|-------|---------|--|
 | "Name required" | The name field is empty | Enter a name |
 | "Permission denied" | You don't have access | Contact admin |
 | "Server error" | Technical issue | Try again later |

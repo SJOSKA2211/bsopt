@@ -28,12 +28,12 @@ def verify_schema():
     decoded = msgspec.json.decode(encoded, type=MLHealthReport)
     assert decoded.rabbitmq.connected is True
     assert decoded.rabbitmq.queue_depths["market_ticks"] == 10
-    print("✅ Schema Verification Successful")
+    print(" Schema Verification Successful")
 
 
 if __name__ == "__main__":
     try:
         verify_schema()
     except Exception as e:
-        print(f"❌ Schema Verification Failed: {str(e)}")
+        print(f" Schema Verification Failed: {str(e)}")
         exit(1)

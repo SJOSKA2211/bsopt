@@ -46,7 +46,7 @@ In 30 seconds, visitors should know:
 
 ### Essential Sections
 | Section | Purpose | Priority |
-|---------|---------|----------|
+|---------|---------|--|
 | Hero | Hook + identity | Critical |
 | Work/Projects | Prove skills | Critical |
 | About | Personality + story | Important |
@@ -114,7 +114,7 @@ How to present work effectively
 
 ### Showing Impact
 | Instead of | Write |
-|------------|-------|
+|--|-------|
 | "Built a website" | "Increased conversions 40%" |
 | "Designed UI" | "Reduced user drop-off 25%" |
 | "Developed features" | "Shipped to 50K users" |
@@ -175,7 +175,7 @@ What works for dev portfolios
 
 ## Anti-Patterns
 
-### ❌ Template Portfolio
+###  Template Portfolio
 
 **Why bad**: Looks like everyone else.
 No memorable impression.
@@ -187,7 +187,7 @@ Custom design elements.
 Unique project presentations.
 Your voice in the copy.
 
-### ❌ All Style No Substance
+###  All Style No Substance
 
 **Why bad**: Fancy animations, weak projects.
 Style over substance.
@@ -199,7 +199,7 @@ Real work with real impact.
 Quality over quantity.
 Depth over breadth.
 
-### ❌ Resume Website
+###  Resume Website
 
 **Why bad**: Boring, forgettable.
 Doesn't use the medium.
@@ -211,10 +211,10 @@ Visual case studies.
 Interactive elements.
 Personality throughout.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Portfolio more complex than your actual work | medium | ## Right-Sizing Your Portfolio |
 | Portfolio looks great on desktop, broken on mobile | high | ## Mobile-First Portfolio |
 | Visitors don't know what to do next | medium | ## Portfolio CTAs |

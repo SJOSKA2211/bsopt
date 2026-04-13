@@ -50,7 +50,7 @@ Refer [markdown](references/file-processing-mode.md) for complete file processin
 
 ## Best Practices
 
-### ✅ **Do:** [Good practice]
+###  **Do:** [Good practice]
 - Always include modification explanations.
 - Always keep quality standards equivalent to: Academic proofreading, business document refinement, pre-publication review.
 - Always follow below editing standards:
@@ -82,7 +82,7 @@ Refer [markdown](references/file-processing-mode.md) for complete file processin
 - Enhance logical flow 
 - Remove redundancy 
 
-### ❌ **Don't:** [What to avoid] 
+###  **Don't:** [What to avoid] 
 - Never alter meaning.
 - Never drop formatting intentionally.
 - Never change file name logic beyond request.

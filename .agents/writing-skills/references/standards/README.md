@@ -71,10 +71,10 @@ What to avoid and why.
 The `description` field is critical for skill discovery:
 
 ```yaml
-# ❌ BAD: Workflow summary (agent skips reading full skill)
+#  BAD: Workflow summary (agent skips reading full skill)
 description: Analyzes code, finds bugs, suggests fixes
 
-# ✅ GOOD: Trigger conditions only
+#  GOOD: Trigger conditions only
 description: Use when debugging errors or reviewing code quality.
 metadata:
   triggers: bug, error, code review
@@ -91,7 +91,7 @@ metadata:
 Skills load into context on-demand. Optimize for token usage:
 
 | Guideline | Reason |
-|-----------|--------|
+|--|--------|
 | Keep SKILL.md < 500 lines | Reduces context consumption |
 | Put details in supporting files | Agent reads only what's needed |
 | Use tables for reference data | More compact than prose |

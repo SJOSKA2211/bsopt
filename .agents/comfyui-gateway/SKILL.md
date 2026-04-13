@@ -65,7 +65,7 @@ with priorities, webhook callbacks, result caching, and multiple storage backend
 ## Components
 
 | Component | Purpose | File(s) |
-|-----------|---------|---------|
+|--|---------|---------|
 | **API Gateway** | REST endpoints, validation, CORS | `src/api/` |
 | **Worker** | Processes jobs, talks to ComfyUI | `src/worker/` |
 | **ComfyUI Client** | HTTP + WebSocket to ComfyUI | `src/comfyui/` |
@@ -114,7 +114,7 @@ npm run start:worker # Worker only
 All configuration is via `.env` — nothing is hardcoded:
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+|--|---------|--|
 | `PORT` | `3000` | API server port |
 | `HOST` | `0.0.0.0` | API bind address |
 | `COMFYUI_URL` | `http://127.0.0.1:8188` | ComfyUI server URL |
@@ -251,7 +251,7 @@ Each workflow has an `inputSchema` (Zod) that validates what the client sends.
 The gateway communicates with ComfyUI via its native HTTP API:
 
 | ComfyUI Endpoint | Gateway Usage |
-|------------------|---------------|
+|--|--|
 | `POST /prompt` | Submit rendered workflow |
 | `GET /history/{id}` | Poll job completion |
 | `GET /view?filename=...` | Download generated images |
@@ -272,7 +272,7 @@ computation needed. Cache is stored alongside job data in the DB with configurab
 ## Error Classification
 
 | Error Code | Meaning | Retry? |
-|------------|---------|--------|
+|--|---------|--------|
 | `COMFYUI_UNREACHABLE` | Cannot connect to ComfyUI | Yes (with backoff) |
 | `COMFYUI_OOM` | Out of memory on GPU | No (reduce dimensions) |
 | `COMFYUI_TIMEOUT` | Execution exceeded timeout | Maybe (increase timeout) |

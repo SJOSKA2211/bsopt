@@ -211,7 +211,7 @@ Always resolve names to IDs through the hierarchy:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List workspaces | `CLICKUP_GET_AUTHORIZED_TEAMS_WORKSPACES` | (none) |
 | List spaces | `CLICKUP_GET_SPACES` | `team_id` |
 | Get space details | `CLICKUP_GET_SPACE` | `space_id` |

@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# ============================================================================
+# ==
 # Data Models
-# ============================================================================
+# ==
 
 
 @dataclass
@@ -42,9 +42,9 @@ class SynthesisResult:
     get_message_up_to: callable
 
 
-# ============================================================================
+# ==
 # Base Worker Pattern
-# ============================================================================
+# ==
 
 
 class BaseWorker:
@@ -81,9 +81,9 @@ class BaseWorker:
             self._task.cancel()
 
 
-# ============================================================================
+# ==
 # Transcriber Component
-# ============================================================================
+# ==
 
 
 class DeepgramTranscriber(BaseWorker):
@@ -109,12 +109,12 @@ class DeepgramTranscriber(BaseWorker):
     def mute(self):
         """Called when bot starts speaking (prevents echo)"""
         self.is_muted = True
-        logger.info("🔇 [TRANSCRIBER] Muted")
+        logger.info(" [TRANSCRIBER] Muted")
 
     def unmute(self):
         """Called when bot stops speaking"""
         self.is_muted = False
-        logger.info("🔊 [TRANSCRIBER] Unmuted")
+        logger.info(" [TRANSCRIBER] Unmuted")
 
     async def process(self, audio_chunk: bytes):
         """Process audio chunk and generate transcription"""
@@ -129,13 +129,13 @@ class DeepgramTranscriber(BaseWorker):
             message="Hello, how can I help you?", confidence=0.95, is_final=True
         )
 
-        logger.info(f"🎤 [TRANSCRIBER] Received: '{transcription.message}'")
+        logger.info(f" [TRANSCRIBER] Received: '{transcription.message}'")
         self.output_queue.put_nowait(transcription)
 
 
-# ============================================================================
+# ==
 # Agent Component
-# ============================================================================
+# ==
 
 
 class GeminiAgent(BaseWorker):
@@ -178,9 +178,9 @@ class GeminiAgent(BaseWorker):
         yield AgentResponse(message=full_response, is_interruptible=True)
 
 
-# ============================================================================
+# ==
 # Synthesizer Component
-# ============================================================================
+# ==
 
 
 class ElevenLabsSynthesizer:
@@ -201,7 +201,7 @@ class ElevenLabsSynthesizer:
         # In a real implementation, this would call ElevenLabs API
         # For this example, we'll simulate audio generation
 
-        logger.info(f"🔊 [SYNTHESIZER] Synthesizing {len(message)} characters")
+        logger.info(f" [SYNTHESIZER] Synthesizing {len(message)} characters")
 
         async def chunk_generator():
             # Simulate streaming audio chunks
@@ -227,9 +227,9 @@ class ElevenLabsSynthesizer:
         )
 
 
-# ============================================================================
+# ==
 # Output Device
-# ============================================================================
+# ==
 
 
 class WebsocketOutputDevice:
@@ -243,9 +243,9 @@ class WebsocketOutputDevice:
         await self.websocket.send_bytes(chunk)
 
 
-# ============================================================================
+# ==
 # Conversation Orchestrator
-# ============================================================================
+# ==
 
 
 class StreamingConversation:
@@ -267,7 +267,7 @@ class StreamingConversation:
 
     async def start(self):
         """Start all workers"""
-        logger.info("🚀 [CONVERSATION] Starting...")
+        logger.info(" [CONVERSATION] Starting...")
 
         # Start workers
         self.transcriber.start()
@@ -284,7 +284,7 @@ class StreamingConversation:
 
             # Check if this is an interrupt
             if not self.is_human_speaking:
-                logger.info("⚠️ [INTERRUPT] User interrupted bot")
+                logger.info("️ [INTERRUPT] User interrupted bot")
                 self.interrupt_event.set()
                 transcription.is_interrupt = True
 
@@ -325,12 +325,12 @@ class StreamingConversation:
         async for chunk in synthesis_result.chunk_generator:
             # Check for interrupt
             if self.interrupt_event.is_set():
-                logger.info(f"🛑 [INTERRUPT] Stopped after {chunk_idx} chunks")
+                logger.info(f" [INTERRUPT] Stopped after {chunk_idx} chunks")
 
                 # Calculate what was actually spoken
                 seconds_spoken = chunk_idx * seconds_per_chunk
                 partial_message = synthesis_result.get_message_up_to(seconds_spoken)
-                logger.info(f"📝 [INTERRUPT] Partial message: '{partial_message}'")
+                logger.info(f" [INTERRUPT] Partial message: '{partial_message}'")
 
                 # Clear interrupt event
                 self.interrupt_event.clear()
@@ -354,7 +354,7 @@ class StreamingConversation:
 
     async def terminate(self):
         """Gracefully shut down all workers"""
-        logger.info("🛑 [CONVERSATION] Terminating...")
+        logger.info(" [CONVERSATION] Terminating...")
 
         self.transcriber.terminate()
         self.agent.terminate()
@@ -363,16 +363,16 @@ class StreamingConversation:
         await asyncio.sleep(0.5)
 
 
-# ============================================================================
+# ==
 # WebSocket Endpoint
-# ============================================================================
+# ==
 
 
 @app.websocket("/conversation")
 async def conversation_endpoint(websocket: WebSocket):
     """WebSocket endpoint for voice conversations"""
     await websocket.accept()
-    logger.info("✅ [WEBSOCKET] Client connected")
+    logger.info(" [WEBSOCKET] Client connected")
 
     # Configuration
     config = {
@@ -401,19 +401,19 @@ async def conversation_endpoint(websocket: WebSocket):
         async for message in websocket.iter_bytes():
             conversation.receive_audio(message)
     except WebSocketDisconnect:
-        logger.info("❌ [WEBSOCKET] Client disconnected")
+        logger.info(" [WEBSOCKET] Client disconnected")
     except Exception as e:
-        logger.error(f"❌ [WEBSOCKET] Error: {e}", exc_info=True)
+        logger.error(f" [WEBSOCKET] Error: {e}", exc_info=True)
     finally:
         await conversation.terminate()
 
 
-# ============================================================================
+# ==
 # Main Entry Point
-# ============================================================================
+# ==
 
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info("🚀 Starting Voice AI Engine...")
+    logger.info(" Starting Voice AI Engine...")
     uvicorn.run(app, host="0.0.0.0", port=8000)

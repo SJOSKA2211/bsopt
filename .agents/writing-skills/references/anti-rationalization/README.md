@@ -67,7 +67,7 @@ Capture excuses from baseline testing. Every rationalization goes in table:
 
 ```markdown
 | Excuse                           | Reality                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------- |
+| -- | -- |
 | "Too simple to test"             | Simple code breaks. Test takes 30 seconds.                              |
 | "I'll test after"                | Tests passing immediately prove nothing.                                |
 | "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
@@ -99,10 +99,10 @@ Make it easy for agents to self-check when rationalizing:
 Add to description: symptoms of when you're ABOUT to violate:
 
 ```yaml
-# ❌ BAD: Only describes what skill does
+#  BAD: Only describes what skill does
 description: TDD methodology for writing code
 
-# ✅ GOOD: Includes pre-violation symptoms
+#  GOOD: Includes pre-violation symptoms
 description: Use when implementing any feature or bugfix, before writing implementation code
 metadata:
   triggers: new feature, bug fix, code change
@@ -209,7 +209,7 @@ For discipline-enforcing skills:
 
 ```markdown
 | Excuse               | Reality                                                        |
-| -------------------- | -------------------------------------------------------------- |
+| -- | -- |
 | "Too simple to test" | Simple code breaks. Test takes 30 seconds.                     |
 | "I'll test after"    | Tests passing immediately prove nothing.                       |
 | "Spirit not ritual"  | The letter IS the spirit. TDD's value comes from the sequence. |
@@ -234,7 +234,7 @@ All mean: Delete code. Start over.
 ## Common Mistakes
 
 | Mistake                                | Fix                                                            |
-| -------------------------------------- | -------------------------------------------------------------- |
+| -- | -- |
 | Trust agents will "get the spirit"     | Close explicit loopholes. Agents are smart at rationalization. |
 | Use weak language ("should", "better") | Use ALWAYS/NEVER for discipline rules.                         |
 | Skip rationalization table             | Every excuse needs explicit counter.                           |

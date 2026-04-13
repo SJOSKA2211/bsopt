@@ -6,7 +6,7 @@ source: community
 date_added: "2026-02-27"
 ---
 
-# 🔧 GitHub Workflow Automation
+#  GitHub Workflow Automation
 
 > Patterns for automating GitHub workflows with AI assistance, inspired by [Gemini CLI](https://github.com/google-gemini/gemini-cli) and modern DevOps practices.
 
@@ -107,17 +107,17 @@ jobs:
 ````markdown
 # AI Review Structure
 
-## 📋 Summary
+##  Summary
 
 Brief description of what this PR does.
 
-## ✅ What looks good
+##  What looks good
 
 - Well-structured code
 - Good test coverage
 - Clear naming conventions
 
-## ⚠️ Potential Issues
+## ️ Potential Issues
 
 1. **Line 42**: Possible null pointer exception
    ```javascript
@@ -133,12 +133,12 @@ Brief description of what this PR does.
    // Add try-catch or .catch()
    ```
 
-## 💡 Suggestions
+##  Suggestions
 
 - Consider extracting the validation logic into a separate function
 - Add JSDoc comments for public methods
 
-## 🔒 Security Notes
+##  Security Notes
 
 - No sensitive data exposure detected
 - API key handling looks correct
@@ -236,7 +236,7 @@ To help us investigate, could you please provide:
 - Actual behavior
 - Environment (OS, version, etc.)
 
-This will help us resolve your issue faster. 🙏`
+This will help us resolve your issue faster. `
               });
             }
 ```
@@ -288,7 +288,7 @@ jobs:
             - Add a comment with an update
             - Remove the `stale` label
 
-            Thank you for your contributions! 🙏
+            Thank you for your contributions! 
 
           stale-pr-message: |
             This PR has been automatically marked as stale. Please update it or it 
@@ -484,7 +484,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "🔄 Production rolled back to ${{ steps.stable.outputs.version }}",
+              "text": " Production rolled back to ${{ steps.stable.outputs.version }}",
               "blocks": [
                 {
                   "type": "section",
@@ -549,7 +549,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '✅ Successfully rebased onto main!'
+              body: ' Successfully rebased onto main!'
             })
 ```
 
@@ -737,7 +737,7 @@ jobs:
 ## Available Commands
 
 | Command              | Description                 |
-| :------------------- | :-------------------------- |
+| :-- | :-- |
 | `@ai-helper explain` | Explain the code in this PR |
 | `@ai-helper review`  | Request AI code review      |
 | `@ai-helper fix`     | Suggest fixes for issues    |

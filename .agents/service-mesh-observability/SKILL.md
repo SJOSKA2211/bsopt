@@ -51,7 +51,7 @@ Complete guide to observability patterns for Istio, Linkerd, and service mesh de
 ### 2. Golden Signals for Mesh
 
 | Signal | Description | Alert Threshold |
-|--------|-------------|-----------------|
+|--------|--|--|
 | **Latency** | Request duration P50, P99 | P99 > 500ms |
 | **Traffic** | Requests per second | Anomaly detection |
 | **Errors** | 5xx error rate | > 1% |

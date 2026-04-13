@@ -108,8 +108,8 @@ code ví dụ ở đây
 
 ## Thực hành tốt nhất
 
-- ✅ Nên làm điều này
-- ❌ Không nên làm điều này
+-  Nên làm điều này
+-  Không nên làm điều này
 ```
 
 #### Bước 4: Xác thực (BƯỚC V3 QUAN TRỌNG)
@@ -126,10 +126,10 @@ python3 scripts/validate_skills.py --strict
 
 Bước này sẽ kiểm tra:
 
-- ✅ File `SKILL.md` có tồn tại hay không.
-- ✅ Phần Frontmatter có chính xác không.
-- ✅ Tên (Name) có khớp với tên thư mục không.
-- ✅ Có vượt qua các kiểm tra của Quality Bar không.
+-  File `SKILL.md` có tồn tại hay không.
+-  Phần Frontmatter có chính xác không.
+-  Tên (Name) có khớp với tên thư mục không.
+-  Có vượt qua các kiểm tra của Quality Bar không.
 
 #### Bước 5: Gửi Kỹ năng của bạn
 
@@ -178,8 +178,8 @@ description: "Mô tả trong một câu về chức năng của skill và khi n�
 
 ## Thực hành tốt nhất
 
-- ✅ **Nên:** [Thực hành tốt]
-- ❌ **Không nên:** [Điều cần tránh]
+-  **Nên:** [Thực hành tốt]
+-  **Không nên:** [Điều cần tránh]
 
 ## Xử lý Sự cố
 

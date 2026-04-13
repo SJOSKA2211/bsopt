@@ -219,7 +219,7 @@ await foreach (var skuDetails in capacity.Value.GetSkusForCapacityAsync())
 ## SKU Reference
 
 | SKU Name | Capacity Units (CU) | Power BI Equivalent |
-|----------|---------------------|---------------------|
+|--|--|--|
 | F2 | 2 | - |
 | F4 | 4 | - |
 | F8 | 8 | EM1/A1 |

@@ -253,10 +253,10 @@ app = App(
 # OAuth routes are handled a
 ```
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | ## Acknowledge immediately, process later |
 | Issue | critical | ## Proper state validation |
 | Issue | critical | ## Never hardcode or log tokens |

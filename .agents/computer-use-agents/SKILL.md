@@ -304,10 +304,10 @@ class AnthropicComputerUse:
             
 ```
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | ## Defense in depth - no single solution works |
 | Issue | medium | ## Add human-like variance to actions |
 | Issue | high | ## Use keyboard alternatives when possible |

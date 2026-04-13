@@ -61,11 +61,11 @@
   WHY: Documents verification of functionality. Helps catch regressions.
   WHEN: Update as you test features, especially during Phase 4 (Testing & Verification).
   EXAMPLE:
-    | Add task | python todo.py add "Buy milk" | Task added | Task added successfully | ✓ |
-    | List tasks | python todo.py list | Shows all tasks | Shows all tasks | ✓ |
+    | Add task | python todo.py add "Buy milk" | Task added | Task added successfully |  |
+    | List tasks | python todo.py list | Shows all tasks | Shows all tasks |  |
 -->
 | Test | Input | Expected | Actual | Status |
-|------|-------|----------|--------|--------|
+|------|-------|--|--------|--------|
 |      |       |          |        |        |
 
 ## Error Log
@@ -79,7 +79,7 @@
 -->
 <!-- Keep ALL errors - they help avoid repetition -->
 | Timestamp | Error | Attempt | Resolution |
-|-----------|-------|---------|------------|
+|--|-------|---------|--|
 |           |       | 1       |            |
 
 ## 5-Question Reboot Check
@@ -97,7 +97,7 @@
 -->
 <!-- If you can answer these, context is solid -->
 | Question | Answer |
-|----------|--------|
+|--|--------|
 | Where am I? | Phase X |
 | Where am I going? | Remaining phases |
 | What's the goal? | [goal statement] |

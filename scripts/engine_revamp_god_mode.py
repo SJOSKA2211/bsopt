@@ -27,7 +27,7 @@ async def revamp_fully():
     autocommit_engine = engine.execution_options(isolation_level="AUTOCOMMIT")
     
     with autocommit_engine.connect() as conn:
-        print("\n🚀 STARTING GOD-MODE ENGINE REVAMP...")
+        print("\n STARTING GOD-MODE ENGINE REVAMP...")
         
         # 1. Core Extensions
         print("--- Phase 1: Core Extensions ---")
@@ -37,9 +37,9 @@ async def revamp_fully():
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm;"))
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"))
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-            print("✅ Extensions active.")
+            print(" Extensions active.")
         except Exception as e:
-            print(f"  ❌ Phase 1 failed: {e}")
+            print(f"   Phase 1 failed: {e}")
 
         # 2. Engine Runtime Tuning (ALTER SYSTEM)
         print("\n--- Phase 2: Engine Runtime Tuning ---")
@@ -58,10 +58,10 @@ async def revamp_fully():
                 conn.execute(text(f"ALTER SYSTEM SET {param} = '{value}';"))
                 print(f"  SET {param} = {value}")
             except Exception as e:
-                print(f"  ⚠️ Failed to set {param}: {e}")
+                print(f"  ️ Failed to set {param}: {e}")
         
         conn.execute(text("SELECT pg_reload_conf();"))
-        print("✅ Configuration reloaded.")
+        print(" Configuration reloaded.")
 
         # 3. Hypertable Optimization
         print("\n--- Phase 3: Hypertable Optimization ---")
@@ -70,7 +70,7 @@ async def revamp_fully():
                 # Check if table exists
                 res = conn.execute(text(f"SELECT count(*) FROM pg_tables WHERE tablename = '{table}'"))
                 if res.scalar() == 0:
-                    print(f"  ⚠️ Skipping {table} (Table not found)")
+                    print(f"  ️ Skipping {table} (Table not found)")
                     continue
                 
                 # Make hypertable
@@ -88,9 +88,9 @@ async def revamp_fully():
                 # Add retention policy
                 conn.execute(text(f"SELECT add_retention_policy('{table}', INTERVAL '{retention}', if_not_exists => TRUE);"))
                 
-                print(f"  ✅ {table} optimized (Chunk: {chunk_interval}, Retention: {retention})")
+                print(f"   {table} optimized (Chunk: {chunk_interval}, Retention: {retention})")
             except Exception as e:
-                print(f"  ❌ Failed to optimize {table}: {e}")
+                print(f"   Failed to optimize {table}: {e}")
 
         # 4. Multivariate Statistics
         print("\n--- Phase 4: Multivariate Statistics ---")
@@ -101,9 +101,9 @@ async def revamp_fully():
         for sql in stats_queries:
             try:
                 conn.execute(text(sql))
-                print(f"  ✅ {sql.split(' ')[4]} statistics created.")
+                print(f"   {sql.split(' ')[4]} statistics created.")
             except Exception as e:
-                print(f"  ⚠️ Statistics error: {e}")
+                print(f"  ️ Statistics error: {e}")
 
         # 5. Health Dashboard Views
         print("\n--- Phase 5: Health Dashboard ---")
@@ -136,7 +136,7 @@ async def revamp_fully():
         ]
         for sql in views_sql:
             conn.execute(text(sql))
-        print("✅ Monitoring views established.")
+        print(" Monitoring views established.")
 
         # 6. God-Mode Prewarm Procedure
         print("\n--- Phase 6: God-Mode Prewarm ---")
@@ -147,27 +147,27 @@ async def revamp_fully():
         DECLARE
             r RECORD;
         BEGIN
-            RAISE NOTICE '🔥 Warming up database engine...';
+            RAISE NOTICE ' Warming up database engine...';
             FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP
                 RAISE NOTICE '  Prewarming table: %', r.tablename;
                 BEGIN
                     PERFORM pg_prewarm(r.tablename::regclass);
                 EXCEPTION WHEN OTHERS THEN
-                    RAISE NOTICE '  ⚠️ Failed to prewarm %: %', r.tablename, SQLERRM;
+                    RAISE NOTICE '  ️ Failed to prewarm %: %', r.tablename, SQLERRM;
                 END;
             END LOOP;
-            RAISE NOTICE '✅ Engine is HOT and ready for HFT latency targets.';
+            RAISE NOTICE ' Engine is HOT and ready for HFT latency targets.';
         END;
         $$;
         """
         conn.execute(text(prewarm_sql))
         try:
             conn.execute(text("CALL god_mode_prewarm();"))
-            print("✅ Database warmed up successfully.")
+            print(" Database warmed up successfully.")
         except Exception as e:
-            print(f"  ⚠️ Prewarm failed: {e}")
+            print(f"  ️ Prewarm failed: {e}")
 
-        print("\n🏆 REVAMP COMPLETE. DATABASE IS FULLY OPTIMIZED.")
+        print("\n REVAMP COMPLETE. DATABASE IS FULLY OPTIMIZED.")
 
 async def report_health():
     engine = db_manager.engine

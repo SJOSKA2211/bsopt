@@ -60,7 +60,7 @@ Production patterns for Linkerd service mesh - the lightweight, security-first s
 ### 2. Key Resources
 
 | Resource | Purpose |
-|----------|---------|
+|--|---------|
 | **ServiceProfile** | Per-route metrics, retries, timeouts |
 | **TrafficSplit** | Canary deployments, A/B testing |
 | **Server** | Define server-side policies |

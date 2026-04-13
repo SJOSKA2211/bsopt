@@ -199,7 +199,7 @@ new -> open -> pending -> solved -> closed
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List tickets | ZENDESK_LIST_ZENDESK_TICKETS | page, per_page, sort_by |
 | Get ticket | ZENDESK_GET_ZENDESK_TICKET_BY_ID | ticket_id |
 | Create ticket | ZENDESK_CREATE_ZENDESK_TICKET | subject, description, priority |

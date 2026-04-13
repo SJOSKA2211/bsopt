@@ -17,7 +17,7 @@
 
 ---
 
-## ⚠️ Important: Local Claude Code Only
+## ️ Important: Local Claude Code Only
 
 **This skill works ONLY with local [Claude Code](https://github.com/anthropics/claude-code) installations, NOT in the web UI.**
 
@@ -48,8 +48,8 @@ Your Task → Claude asks NotebookLM → Gemini synthesizes answer → Claude wr
 ## Why NotebookLM, Not Local RAG?
 
 | Approach | Token Cost | Setup Time | Hallucinations | Answer Quality |
-|----------|------------|------------|----------------|----------------|
-| **Feed docs to Claude** | 🔴 Very high (multiple file reads) | Instant | Yes - fills gaps | Variable retrieval |
+|--|--|--|--|--|
+| **Feed docs to Claude** |  Very high (multiple file reads) | Instant | Yes - fills gaps | Variable retrieval |
 | **Web search** | 🟡 Medium | Instant | High - unreliable sources | Hit or miss |
 | **Local RAG** | 🟡 Medium-High | Hours (embeddings, chunking) | Medium - retrieval gaps | Depends on setup |
 | **NotebookLM Skill** | 🟢 Minimal | 5 minutes | **Minimal** - source-grounded only | Expert synthesis |
@@ -111,12 +111,12 @@ Claude will list your available skills including NotebookLM.
 ### 3. Create your knowledge base
 
 Go to [notebooklm.google.com](https://notebooklm.google.com) → Create notebook → Upload your docs:
-- 📄 PDFs, Google Docs, markdown files
-- 🔗 Websites, GitHub repos
-- 🎥 YouTube videos
-- 📚 Multiple sources per notebook
+-  PDFs, Google Docs, markdown files
+-  Websites, GitHub repos
+-  YouTube videos
+-  Multiple sources per notebook
 
-Share: **⚙️ Share → Anyone with link → Copy**
+Share: **️ Share → Anyone with link → Copy**
 
 ### 4. Add to your library
 
@@ -149,7 +149,7 @@ This is a **Claude Code Skill** - a local folder containing instructions and scr
 ### Key Differences from MCP Server
 
 | Feature | This Skill | MCP Server |
-|---------|------------|------------|
+|---------|--|--|
 | **Protocol** | Claude Skills | Model Context Protocol |
 | **Installation** | Clone to `~/.claude/skills` | `claude mcp add ...` |
 | **Sessions** | Fresh browser each question | Persistent chat sessions |
@@ -204,7 +204,7 @@ Uses realistic typing speeds and interaction patterns to avoid detection.
 ## Common Commands
 
 | What you say | What happens |
-|--------------|--------------|
+|--|--|
 | *"Set up NotebookLM authentication"* | Opens Chrome for Google login |
 | *"Add [link] to my NotebookLM library"* | Saves notebook with metadata |
 | *"Show my NotebookLM notebooks"* | Lists all saved notebooks |

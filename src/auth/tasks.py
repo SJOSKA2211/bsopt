@@ -13,7 +13,7 @@ logger = logging.getLogger("auth_tasks")
 
 async def flush_api_key_usage_loop():
     """Background task to flush buffered API key usage timestamps to the database."""
-    logger.info("🔄 API Key usage flush loop started")
+    logger.info(" API Key usage flush loop started")
     while True:
         try:
             await asyncio.sleep(60)  # Flush every minute
@@ -26,7 +26,7 @@ async def flush_api_key_usage_loop():
             if not updates:
                 continue
 
-            logger.info(f"💾 Flushing {len(updates)} API key usage updates to database...")
+            logger.info(f" Flushing {len(updates)} API key usage updates to database...")
 
             async with db_manager.async_session_factory() as db:
                 for key_hash_raw, last_used_raw in updates.items():
@@ -52,10 +52,10 @@ async def flush_api_key_usage_loop():
             # Use a transaction-safe approach? For simplicity we just delete the hash
             # but in production we might want to only delete what we processed
             await redis.delete("api_key_last_used")
-            logger.info("✅ API Key usage flush complete")
+            logger.info(" API Key usage flush complete")
 
         except asyncio.CancelledError:
-            logger.info("🛑 API Key usage flush loop stopping...")
+            logger.info(" API Key usage flush loop stopping...")
             break
         except Exception as e:
             logger.error("api_key_usage_flush_failed", error=str(e))

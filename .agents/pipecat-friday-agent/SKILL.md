@@ -60,10 +60,10 @@ Since Google's Gemini API has a different message format than OpenAI's standard 
 
 ## Best Practices
 
-- ✅ **Use Silero VAD**: It is robust for local hardware and prevents background noise from triggering the LLM.
-- ✅ **Concise Prompts**: Tactical agents should give short, data-dense responses to minimize latency.
-- ✅ **Sample Rate Match**: OpenAI TTS outputs at 24kHz; ensure your `audio_out_sample_rate` matches to avoid high-pitched or slowed audio.
-- ❌ **No Polite Fillers**: Avoid "Hello, how can I help you today?" Instead, use "Systems nominal. Ready for commands."
+-  **Use Silero VAD**: It is robust for local hardware and prevents background noise from triggering the LLM.
+-  **Concise Prompts**: Tactical agents should give short, data-dense responses to minimize latency.
+-  **Sample Rate Match**: OpenAI TTS outputs at 24kHz; ensure your `audio_out_sample_rate` matches to avoid high-pitched or slowed audio.
+-  **No Polite Fillers**: Avoid "Hello, how can I help you today?" Instead, use "Systems nominal. Ready for commands."
 
 ## Troubleshooting
 

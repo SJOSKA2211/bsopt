@@ -1,10 +1,10 @@
 #!/bin/sh
-# ==============================================================================
+# ==
 # BSOPT: CI HEARTBEAT SENTINEL
-# ==============================================================================
+# ==
 # This script is designed to run within containers to provide a heartrate 
 # signal for the autonomous deployment loop.
-# ==============================================================================
+# ==
 
 HEARTBEAT_FILE=${1:-/tmp/manifold_heartbeat}
 INTERVAL=${2:-60}

@@ -22,7 +22,7 @@ try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
-    print("⚠️  Installing rich for better UI...")
+    print("️  Installing rich for better UI...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--user", "rich"], check=False)
     from rich.console import Console
     from rich.panel import Panel
@@ -33,7 +33,7 @@ except ImportError:
 try:
     from tqdm import tqdm
 except ImportError:
-    print("⚠️  Installing tqdm for progress bars...")
+    print("️  Installing tqdm for progress bars...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--user", "tqdm"], check=False)
     from tqdm import tqdm
 
@@ -48,7 +48,7 @@ except ImportError:
 
         TRANSCRIBER = "whisper"
     except ImportError:
-        print("❌ Nenhum engine de transcrição encontrado!")
+        print(" Nenhum engine de transcrição encontrado!")
         print("   Instale: pip install faster-whisper")
         sys.exit(1)
 
@@ -115,15 +115,15 @@ def invoke_prompt_engineer(raw_prompt, timeout=90):
             return result.stdout.strip()
         else:
             console.print(
-                "[yellow]⚠️  prompt-engineer não respondeu, usando template padrão[/yellow]"
+                "[yellow]️  prompt-engineer não respondeu, usando template padrão[/yellow]"
             )
             return DEFAULT_MEETING_PROMPT
 
     except subprocess.TimeoutExpired:
-        console.print(f"[red]⚠️  Timeout após {timeout}s, usando template padrão[/red]")
+        console.print(f"[red]️  Timeout após {timeout}s, usando template padrão[/red]")
         return DEFAULT_MEETING_PROMPT
     except Exception as e:
-        console.print(f"[red]⚠️  Erro ao invocar prompt-engineer: {e}[/red]")
+        console.print(f"[red]️  Erro ao invocar prompt-engineer: {e}[/red]")
         return DEFAULT_MEETING_PROMPT
 
 
@@ -141,9 +141,9 @@ def handle_prompt_workflow(user_prompt, transcript):
         os.path.expanduser("~/.copilot/skills/prompt-engineer/SKILL.md")
     )
 
-    # ========== CENÁRIO A: USUÁRIO FORNECEU PROMPT ==========
+    # == CENÁRIO A: USUÁRIO FORNECEU PROMPT ==
     if user_prompt:
-        console.print("\n[cyan]📝 Prompt fornecido pelo usuário[/cyan]")
+        console.print("\n[cyan] Prompt fornecido pelo usuário[/cyan]")
         console.print(
             Panel(
                 user_prompt[:300] + ("..." if len(user_prompt) > 300 else ""),
@@ -154,12 +154,12 @@ def handle_prompt_workflow(user_prompt, transcript):
 
         if prompt_engineer_available:
             # Melhora AUTOMATICAMENTE (sem perguntar)
-            console.print("\n[cyan]🔧 Melhorando prompt com prompt-engineer...[/cyan]")
+            console.print("\n[cyan] Melhorando prompt com prompt-engineer...[/cyan]")
 
             improved_prompt = invoke_prompt_engineer(f"melhore este prompt:\n\n{user_prompt}")
 
             # Mostrar AMBAS versões
-            console.print("\n[green]✨ Versão melhorada:[/green]")
+            console.print("\n[green] Versão melhorada:[/green]")
             console.print(
                 Panel(
                     improved_prompt[:500] + ("..." if len(improved_prompt) > 500 else ""),
@@ -168,7 +168,7 @@ def handle_prompt_workflow(user_prompt, transcript):
                 )
             )
 
-            console.print("\n[dim]📝 Versão original:[/dim]")
+            console.print("\n[dim] Versão original:[/dim]")
             console.print(
                 Panel(
                     user_prompt[:300] + ("..." if len(user_prompt) > 300 else ""),
@@ -178,35 +178,35 @@ def handle_prompt_workflow(user_prompt, transcript):
             )
 
             # Pergunta qual usar
-            confirm = Prompt.ask("\n💡 Usar versão melhorada?", choices=["s", "n"], default="s")
+            confirm = Prompt.ask("\n Usar versão melhorada?", choices=["s", "n"], default="s")
 
             return improved_prompt if confirm == "s" else user_prompt
         else:
             # prompt-engineer não disponível
-            console.print("[yellow]⚠️  prompt-engineer skill não disponível[/yellow]")
-            console.print("[dim]✅ Usando seu prompt original[/dim]")
+            console.print("[yellow]️  prompt-engineer skill não disponível[/yellow]")
+            console.print("[dim] Usando seu prompt original[/dim]")
             return user_prompt
 
-    # ========== CENÁRIO B: SEM PROMPT - AUTO-GERAÇÃO ==========
+    # == CENÁRIO B: SEM PROMPT - AUTO-GERAÇÃO ==
     else:
-        console.print("\n[yellow]⚠️  Nenhum prompt fornecido.[/yellow]")
+        console.print("\n[yellow]️  Nenhum prompt fornecido.[/yellow]")
 
         if not prompt_engineer_available:
-            console.print("[yellow]⚠️  prompt-engineer skill não encontrado[/yellow]")
+            console.print("[yellow]️  prompt-engineer skill não encontrado[/yellow]")
             console.print("[dim]Usando template padrão...[/dim]")
             return DEFAULT_MEETING_PROMPT
 
         # PASSO 1: Perguntar se quer auto-gerar
         console.print("Posso analisar o transcript e sugerir um formato de resumo/ata?")
 
-        generate = Prompt.ask("\n💡 Gerar prompt automaticamente?", choices=["s", "n"], default="s")
+        generate = Prompt.ask("\n Gerar prompt automaticamente?", choices=["s", "n"], default="s")
 
         if generate == "n":
-            console.print("[dim]✅ Ok, gerando apenas transcript.md (sem ata)[/dim]")
+            console.print("[dim] Ok, gerando apenas transcript.md (sem ata)[/dim]")
             return None  # Sinaliza: não processar com LLM
 
         # PASSO 2: Analisar transcript e SUGERIR tipo
-        console.print("\n[cyan]🔍 Analisando transcript...[/cyan]")
+        console.print("\n[cyan] Analisando transcript...[/cyan]")
 
         suggestion_meta_prompt = f"""
 Analise este transcript ({len(transcript)} caracteres) e sugira:
@@ -224,17 +224,17 @@ Responda em 2-3 linhas concisas.
         suggested_type = invoke_prompt_engineer(suggestion_meta_prompt)
 
         # PASSO 3: Mostrar sugestão e CONFIRMAR
-        console.print("\n[green]💡 Sugestão de formato:[/green]")
+        console.print("\n[green] Sugestão de formato:[/green]")
         console.print(Panel(suggested_type, title="Análise do transcript", border_style="green"))
 
-        confirm_type = Prompt.ask("\n💡 Usar este formato?", choices=["s", "n"], default="s")
+        confirm_type = Prompt.ask("\n Usar este formato?", choices=["s", "n"], default="s")
 
         if confirm_type == "n":
             console.print("[dim]Usando template padrão...[/dim]")
             return DEFAULT_MEETING_PROMPT
 
         # PASSO 4: Gerar prompt completo baseado na sugestão
-        console.print("\n[cyan]✨ Gerando prompt estruturado...[/cyan]")
+        console.print("\n[cyan] Gerando prompt estruturado...[/cyan]")
 
         final_meta_prompt = f"""
 Crie um prompt completo e estruturado (usando framework apropriado) para:
@@ -248,7 +248,7 @@ profissional e bem formatado em Markdown.
         generated_prompt = invoke_prompt_engineer(final_meta_prompt)
 
         # PASSO 5: Mostrar prompt gerado e CONFIRMAR
-        console.print("\n[green]✅ Prompt gerado:[/green]")
+        console.print("\n[green] Prompt gerado:[/green]")
         console.print(
             Panel(
                 generated_prompt[:600] + ("..." if len(generated_prompt) > 600 else ""),
@@ -257,7 +257,7 @@ profissional e bem formatado em Markdown.
             )
         )
 
-        confirm_final = Prompt.ask("\n💡 Usar este prompt?", choices=["s", "n"], default="s")
+        confirm_final = Prompt.ask("\n Usar este prompt?", choices=["s", "n"], default="s")
 
         if confirm_final == "s":
             return generated_prompt
@@ -308,15 +308,15 @@ def process_with_llm(transcript, prompt, cli_tool="claude", timeout=300):
         if result.returncode == 0:
             return result.stdout.strip()
         else:
-            console.print(f"[red]❌ Erro ao processar com {cli_tool}[/red]")
+            console.print(f"[red] Erro ao processar com {cli_tool}[/red]")
             console.print(f"[dim]{result.stderr[:200]}[/dim]")
             return None
 
     except subprocess.TimeoutExpired:
-        console.print(f"[red]❌ Timeout após {timeout}s[/red]")
+        console.print(f"[red] Timeout após {timeout}s[/red]")
         return None
     except Exception as e:
-        console.print(f"[red]❌ Erro: {e}[/red]")
+        console.print(f"[red] Erro: {e}[/red]")
         return None
 
 
@@ -327,7 +327,7 @@ def transcribe_audio(audio_file, model="base"):
     Returns:
         dict: {language, duration, segments: [{start, end, text}]}
     """
-    console.print(f"\n[cyan]🎙️  Transcrevendo áudio com {TRANSCRIBER}...[/cyan]")
+    console.print(f"\n[cyan]️  Transcrevendo áudio com {TRANSCRIBER}...[/cyan]")
 
     try:
         if TRANSCRIBER == "faster-whisper":
@@ -366,13 +366,13 @@ def transcribe_audio(audio_file, model="base"):
                 "segments": result["segments"],
             }
 
-        console.print(f"[green]✅ Transcrição completa! Idioma: {data['language'].upper()}[/green]")
+        console.print(f"[green] Transcrição completa! Idioma: {data['language'].upper()}[/green]")
         console.print(f"[dim]   {len(data['segments'])} segmentos processados[/dim]")
 
         return data
 
     except Exception as e:
-        console.print(f"[red]❌ Erro na transcrição: {e}[/red]")
+        console.print(f"[red] Erro na transcrição: {e}[/red]")
         sys.exit(1)
 
 
@@ -393,7 +393,7 @@ def save_outputs(transcript_text, ata_text, audio_file, output_dir="."):
     with open(transcript_path, "w", encoding="utf-8") as f:
         f.write(transcript_text)
 
-    console.print(f"[green]✅ Transcript salvo:[/green] {transcript_filename}")
+    console.print(f"[green] Transcript salvo:[/green] {transcript_filename}")
 
     # Salva ata se existir
     ata_path = None
@@ -404,7 +404,7 @@ def save_outputs(transcript_text, ata_text, audio_file, output_dir="."):
         with open(ata_path, "w", encoding="utf-8") as f:
             f.write(ata_text)
 
-        console.print(f"[green]✅ Ata salva:[/green] {ata_filename}")
+        console.print(f"[green] Ata salva:[/green] {ata_filename}")
 
     return str(transcript_path), str(ata_path) if ata_path else None
 
@@ -425,10 +425,10 @@ def main():
 
     # Verificar arquivo existe
     if not os.path.exists(args.audio_file):
-        console.print(f"[red]❌ Arquivo não encontrado: {args.audio_file}[/red]")
+        console.print(f"[red] Arquivo não encontrado: {args.audio_file}[/red]")
         sys.exit(1)
 
-    console.print("[bold cyan]🎵 Audio Transcriber v1.1.0[/bold cyan]\n")
+    console.print("[bold cyan] Audio Transcriber v1.1.0[/bold cyan]\n")
 
     # Step 1: Transcrever
     transcription_data = transcribe_audio(args.audio_file, model=args.model)
@@ -452,18 +452,18 @@ def main():
 
     if not cli_tool:
         console.print(
-            "\n[yellow]⚠️  Nenhuma CLI de IA detectada (Claude ou GitHub Copilot)[/yellow]"
+            "\n[yellow]️  Nenhuma CLI de IA detectada (Claude ou GitHub Copilot)[/yellow]"
         )
         console.print("[dim]ℹ️  Salvando apenas transcript.md...[/dim]")
 
         save_outputs(transcript_text, None, args.audio_file, args.output_dir)
 
-        console.print("\n[cyan]💡 Para gerar ata/resumo:[/cyan]")
+        console.print("\n[cyan] Para gerar ata/resumo:[/cyan]")
         console.print("  - Instale Claude CLI: pip install claude-cli")
         console.print("  - Ou GitHub Copilot CLI já está instalado (gh copilot)")
         return
 
-    console.print(f"\n[green]✅ CLI detectada: {cli_tool}[/green]")
+    console.print(f"\n[green] CLI detectada: {cli_tool}[/green]")
 
     # Step 3: Workflow de prompt
     final_prompt = handle_prompt_workflow(args.prompt, transcript_text)
@@ -477,15 +477,15 @@ def main():
     ata_text = process_with_llm(transcript_text, final_prompt, cli_tool)
 
     if ata_text:
-        console.print("[green]✅ Ata gerada com sucesso![/green]")
+        console.print("[green] Ata gerada com sucesso![/green]")
     else:
-        console.print("[yellow]⚠️  Falha ao gerar ata, salvando apenas transcript[/yellow]")
+        console.print("[yellow]️  Falha ao gerar ata, salvando apenas transcript[/yellow]")
 
     # Step 5: Salvar arquivos
-    console.print("\n[cyan]💾 Salvando arquivos...[/cyan]")
+    console.print("\n[cyan] Salvando arquivos...[/cyan]")
     save_outputs(transcript_text, ata_text, args.audio_file, args.output_dir)
 
-    console.print("\n[bold green]✅ Concluído![/bold green]")
+    console.print("\n[bold green] Concluído![/bold green]")
 
 
 if __name__ == "__main__":

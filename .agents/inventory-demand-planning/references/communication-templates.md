@@ -180,7 +180,7 @@ Urgent, concise, action-oriented. The audience is internal (planning manager, ca
 
 ### Template
 
-**Subject:** `🔴 STOCKOUT ALERT — {{sku_description}} — {{store_count}} locations at risk`
+**Subject:** ` STOCKOUT ALERT — {{sku_description}} — {{store_count}} locations at risk`
 
 ---
 

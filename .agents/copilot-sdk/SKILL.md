@@ -19,7 +19,7 @@ Build applications that programmatically interact with GitHub Copilot. The SDK w
 ## Installation
 
 | Language | Package | Install |
-|----------|---------|---------|
+|--|---------|---------|
 | Node.js | `@github/copilot-sdk` | `npm install @github/copilot-sdk` |
 | Python | `github-copilot-sdk` | `pip install github-copilot-sdk` |
 | Go | `github.com/github/copilot-sdk/go` | `go get github.com/github/copilot-sdk/go` |
@@ -119,7 +119,7 @@ await session.send_and_wait({"prompt": "Tell me a joke"})
 ### Event Subscription
 
 | Method | Description |
-|--------|-------------|
+|--------|--|
 | `on(handler)` | Subscribe to all events; returns unsubscribe function |
 | `on(eventType, handler)` | Subscribe to specific event type (Node.js only) |
 
@@ -204,7 +204,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig {
 Intercept and customize session behavior at key lifecycle points.
 
 | Hook | Trigger | Use Case |
-|------|---------|----------|
+|------|---------|--|
 | `onPreToolUse` | Before tool executes | Permission control, argument modification |
 | `onPostToolUse` | After tool executes | Result transformation, logging |
 | `onUserPromptSubmitted` | User sends message | Prompt modification, filtering |
@@ -230,7 +230,7 @@ const session = await client.createSession({
 ### Pre-Tool Use Output
 
 | Field | Type | Description |
-|-------|------|-------------|
+|-------|------|--|
 | `permissionDecision` | `"allow"` \| `"deny"` \| `"ask"` | Whether to allow the tool call |
 | `permissionDecisionReason` | string | Explanation for deny/ask |
 | `modifiedArgs` | object | Modified arguments to pass |
@@ -271,7 +271,7 @@ const session = await client.createSession({
 ### MCP Config Fields
 
 | Field | Type | Description |
-|-------|------|-------------|
+|-------|------|--|
 | `type` | `"local"` \| `"http"` | Server transport type |
 | `command` | string | Executable path (local) |
 | `args` | string[] | Command arguments (local) |
@@ -315,7 +315,7 @@ const session = await client.createSession({
 ```
 
 | Provider | Type | Notes |
-|----------|------|-------|
+|--|------|-------|
 | OpenAI | `"openai"` | OpenAI API and compatible endpoints |
 | Azure OpenAI | `"azure"` | Native Azure endpoints (don't include `/openai/v1`) |
 | Azure AI Foundry | `"openai"` | OpenAI-compatible Foundry endpoints |
@@ -449,7 +449,7 @@ const client = new CopilotClient({ cliUrl: "localhost:4321" });
 ## Client Configuration
 
 | Option | Type | Description |
-|--------|------|-------------|
+|--------|------|--|
 | `cliPath` | string | Path to Copilot CLI executable |
 | `cliUrl` | string | URL of external CLI server |
 | `githubToken` | string | GitHub token for auth |
@@ -461,7 +461,7 @@ const client = new CopilotClient({ cliUrl: "localhost:4321" });
 ## Session Configuration
 
 | Option | Type | Description |
-|--------|------|-------------|
+|--------|------|--|
 | `model` | string | Model to use (e.g., `"gpt-4.1"`) |
 | `sessionId` | string | Custom ID for resumable sessions |
 | `streaming` | boolean | Enable streaming responses |
@@ -500,7 +500,7 @@ const client = new CopilotClient({ logLevel: "debug" });
 ## Key API Summary
 
 | Language | Client | Session Create | Send | Stop |
-|----------|--------|---------------|------|------|
+|--|--------|--|------|------|
 | Node.js | `new CopilotClient()` | `client.createSession()` | `session.sendAndWait()` | `client.stop()` |
 | Python | `CopilotClient()` | `client.create_session()` | `session.send_and_wait()` | `client.stop()` |
 | Go | `copilot.NewClient(nil)` | `client.CreateSession()` | `session.SendAndWait()` | `client.Stop()` |

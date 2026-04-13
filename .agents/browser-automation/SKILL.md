@@ -48,16 +48,16 @@ Let Playwright wait automatically, never add manual waits
 
 ## Anti-Patterns
 
-### ❌ Arbitrary Timeouts
+###  Arbitrary Timeouts
 
-### ❌ CSS/XPath First
+###  CSS/XPath First
 
-### ❌ Single Browser Context for Everything
+###  Single Browser Context for Everything
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | # REMOVE all waitForTimeout calls |
 | Issue | high | # Use user-facing locators instead: |
 | Issue | high | # Use stealth plugins: |

@@ -180,7 +180,7 @@ No manual batching needed for large log sets.
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | **DCE** | Data Collection Endpoint — ingestion URL |
 | **DCR** | Data Collection Rule — defines schema, transformations, destination |
 | **Stream** | Named data flow within a DCR |

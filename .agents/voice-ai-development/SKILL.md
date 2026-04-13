@@ -258,7 +258,7 @@ async def tts_websocket(text_stream):
 
 ## Anti-Patterns
 
-### ❌ Non-streaming Pipeline
+###  Non-streaming Pipeline
 
 **Why bad**: Adds seconds of latency.
 User perceives as slow.
@@ -270,7 +270,7 @@ Loses conversation flow.
 - TTS: chunk streaming
 Start TTS before LLM finishes.
 
-### ❌ Ignoring Interruptions
+###  Ignoring Interruptions
 
 **Why bad**: Frustrating user experience.
 Feels like talking to a machine.
@@ -281,7 +281,7 @@ Use VAD to detect user speech.
 Stop TTS immediately.
 Clear audio queue.
 
-### ❌ Single Provider Lock-in
+###  Single Provider Lock-in
 
 **Why bad**: May not be best quality.
 Single point of failure.

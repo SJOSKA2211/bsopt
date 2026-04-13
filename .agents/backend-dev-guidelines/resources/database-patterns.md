@@ -40,13 +40,13 @@ const user = await PrismaService.main.user.findUnique({ where: { id } });
 
 ### Why Use Repositories
 
-✅ **Use repositories when:**
+ **Use repositories when:**
 - Complex queries with joins/includes
 - Query used in multiple places
 - Need caching layer
 - Want to mock for testing
 
-❌ **Skip repositories for:**
+ **Skip repositories for:**
 - Simple one-off queries
 - Prototyping (can refactor later)
 
@@ -115,10 +115,10 @@ const result = await PrismaService.main.$transaction(
 ### Use select to Limit Fields
 
 ```typescript
-// ❌ Fetches all fields
+//  Fetches all fields
 const users = await PrismaService.main.user.findMany();
 
-// ✅ Only fetch needed fields
+//  Only fetch needed fields
 const users = await PrismaService.main.user.findMany({
     select: {
         id: true,
@@ -131,7 +131,7 @@ const users = await PrismaService.main.user.findMany({
 ### Use include Carefully
 
 ```typescript
-// ❌ Excessive includes
+//  Excessive includes
 const user = await PrismaService.main.user.findUnique({
     where: { id },
     include: {
@@ -141,7 +141,7 @@ const user = await PrismaService.main.user.findUnique({
     },
 });
 
-// ✅ Only include what you need
+//  Only include what you need
 const user = await PrismaService.main.user.findUnique({
     where: { id },
     include: { profile: true },
@@ -155,7 +155,7 @@ const user = await PrismaService.main.user.findUnique({
 ### Problem: N+1 Queries
 
 ```typescript
-// ❌ N+1 Query Problem
+//  N+1 Query Problem
 const users = await PrismaService.main.user.findMany(); // 1 query
 
 for (const user of users) {
@@ -169,12 +169,12 @@ for (const user of users) {
 ### Solution: Use include or Batching
 
 ```typescript
-// ✅ Single query with include
+//  Single query with include
 const users = await PrismaService.main.user.findMany({
     include: { profile: true },
 });
 
-// ✅ Or batch query
+//  Or batch query
 const userIds = users.map(u => u.id);
 const profiles = await PrismaService.main.userProfile.findMany({
     where: { userId: { in: userIds } },

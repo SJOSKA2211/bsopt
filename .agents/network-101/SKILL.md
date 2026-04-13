@@ -239,7 +239,7 @@ awk '{print $12}' /var/log/apache2/access.log | sort | uniq -c
 ### Essential Ports
 
 | Service | Port | Protocol |
-|---------|------|----------|
+|---------|------|--|
 | HTTP | 80 | TCP |
 | HTTPS | 443 | TCP |
 | SNMP | 161 | UDP |
@@ -334,7 +334,7 @@ smbclient //localhost/anonymous -N
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | Port not accessible | Check firewall rules (ufw, iptables, Windows Firewall) |
 | Service not starting | Check logs with `journalctl -u service-name` |
 | SNMP timeout | Verify UDP 161 is open, check community string |

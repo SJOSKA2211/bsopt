@@ -5,7 +5,7 @@ The BS-OPT system has been successfully revamped to be more lightweight and Verc
 
 ## 2. Value Delivered
 | Problem | Solution | Function UX Effect | Core Value |
-|---------|----------|-------------------|------------|
+|---------|--|--|--|
 | Legacy Fastify/Kafka Bloat | Migrated to FastAPI & RabbitMQ | Faster startup & lower resource usage | Maintainability |
 | Hardcoded Secrets | Environment variable driven config | Secure deployment capability | Security |
 | Fragmented Scripts | Unified Makefile | Streamlined developer workflow | Efficiency |

@@ -14,9 +14,9 @@ from apify import Actor
 
 async def main() -> None:
     async with Actor:
-        # ============================================
+        # ==
         # Your existing code goes here
-        # ============================================
+        # ==
 
         # Example: Get input from Apify Console or API
         actor_input = await Actor.get_input()
@@ -29,9 +29,9 @@ async def main() -> None:
         # Example: Push results to dataset
         # await Actor.push_data({'result': 'data'})
 
-        # ============================================
+        # ==
         # End of your code
-        # ============================================
+        # ==
 
 if __name__ == '__main__':
     asyncio.run(main())

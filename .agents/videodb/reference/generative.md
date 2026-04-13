@@ -31,7 +31,7 @@ print(image.generate_url())  # returns a signed download URL
 ### generate_image Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `prompt` | `str` | required | Text description of the image to generate |
 | `aspect_ratio` | `str` | `"1:1"` | Aspect ratio: `"1:1"`, `"9:16"`, `"16:9"`, `"4:3"`, or `"3:4"` |
 | `callback_url` | `str\|None` | `None` | URL to receive async callback |
@@ -57,7 +57,7 @@ video.play()
 ### generate_video Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `prompt` | `str` | required | Text description of the video to generate |
 | `duration` | `float` | `5` | Duration in seconds (must be integer value, 5-8) |
 | `callback_url` | `str\|None` | `None` | URL to receive async callback |
@@ -82,7 +82,7 @@ print(music.id)
 ```
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `prompt` | `str` | required | Text description of the music |
 | `duration` | `int` | `5` | Duration in seconds |
 | `callback_url` | `str\|None` | `None` | URL to receive async callback |
@@ -99,7 +99,7 @@ sfx = coll.generate_sound_effect(
 ```
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `prompt` | `str` | required | Text description of the sound effect |
 | `duration` | `int` | `2` | Duration in seconds |
 | `config` | `dict` | `{}` | Additional configuration |
@@ -117,7 +117,7 @@ voice = coll.generate_voice(
 ```
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `text` | `str` | required | Text to convert to speech |
 | `voice_name` | `str` | `"Default"` | Voice to use |
 | `config` | `dict` | `{}` | Additional configuration |
@@ -145,7 +145,7 @@ print(result["output"])
 ### generate_text Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `prompt` | `str` | required | Prompt with context for the LLM |
 | `model_name` | `str` | `"basic"` | Model tier: `"basic"`, `"pro"`, or `"ultra"` |
 | `response_type` | `str` | `"text"` | Response format: `"text"` or `"json"` |
@@ -203,7 +203,7 @@ dubbed_video.play()
 ### dub_video Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `video_id` | `str` | required | ID of the video to dub |
 | `language_code` | `str` | required | Target language code (e.g., `"es"`, `"fr"`, `"de"`) |
 | `callback_url` | `str\|None` | `None` | URL to receive async callback |

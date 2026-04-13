@@ -106,8 +106,8 @@ IEA*1*{isa_control}~"""
 
 ## Best Practices
 
-- ✅ **Do:** Store every raw EDI transaction in an audit log table before processing.
-- ✅ **Do:** Always send a **997 Functional Acknowledgment** within 24 hours of receiving a transaction.
-- ✅ **Do:** Negotiate a test cycle with trading partners before going live — use test ISA qualifier `T`.
-- ❌ **Don't:** Process EDI files synchronously in web requests — queue them for async processing.
-- ❌ **Don't:** Hardcode trading partner qualifiers — store them in a configuration table per partner.
+-  **Do:** Store every raw EDI transaction in an audit log table before processing.
+-  **Do:** Always send a **997 Functional Acknowledgment** within 24 hours of receiving a transaction.
+-  **Do:** Negotiate a test cycle with trading partners before going live — use test ISA qualifier `T`.
+-  **Don't:** Process EDI files synchronously in web requests — queue them for async processing.
+-  **Don't:** Hardcode trading partner qualifiers — store them in a configuration table per partner.

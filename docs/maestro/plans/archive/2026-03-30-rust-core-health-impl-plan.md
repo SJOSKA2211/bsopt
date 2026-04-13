@@ -81,7 +81,7 @@ Phase 3: Validation, Performance & Documentation (tester, performance_engineer)
 ## 6. Risk Classification
 
 | Phase | Risk | Level | Rationale |
-|-------|------|-------|-----------|
+|-------|------|-------|--|
 | 1 | Rust Compilation Error | MEDIUM | New dependencies might conflict or require specific features. |
 | 1 | Performance Overhead | MEDIUM | Histogram collection can be expensive in tight loops. |
 | 2 | Python Scrape Failure | LOW | Simple string concatenation is robust. |
@@ -95,7 +95,7 @@ Phase 3: Validation, Performance & Documentation (tester, performance_engineer)
 ## 8. Cost Summary
 
 | Phase | Agent | Model | Est. Input | Est. Output | Est. Cost |
-|-------|-------|-------|-----------|------------|----------|
+|-------|-------|-------|--|--|--|
 | 1 | coder | Pro | 2000 | 1000 | $0.09 |
 | 2 | backend_specialist | Pro | 1500 | 500 | $0.05 |
 | 3 | tester | Pro | 1000 | 500 | $0.04 |

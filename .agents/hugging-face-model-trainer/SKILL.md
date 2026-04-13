@@ -71,27 +71,27 @@ pip install -r requirements.txt
 
 Before starting any training job, verify:
 
-### ✅ **Account & Authentication**
+###  **Account & Authentication**
 - Hugging Face Account with [Pro](https://hf.co/pro), [Team](https://hf.co/enterprise), or [Enterprise](https://hf.co/enterprise) plan (Jobs require paid plan)
 - Authenticated login: Check with `hf_whoami()`
-- **HF_TOKEN for Hub Push** ⚠️ CRITICAL - Training environment is ephemeral, must push to Hub or ALL training results are lost
+- **HF_TOKEN for Hub Push** ️ CRITICAL - Training environment is ephemeral, must push to Hub or ALL training results are lost
 - Token must have write permissions  
 - **MUST pass `secrets={"HF_TOKEN": "$HF_TOKEN"}` in job config** to make token available (the `$HF_TOKEN` syntax
   references your actual token value)
 
-### ✅ **Dataset Requirements**
+###  **Dataset Requirements**
 - Dataset must exist on Hub or be loadable via `datasets.load_dataset()`
 - Format must match training method (SFT: "messages"/text/prompt-completion; DPO: chosen/rejected; GRPO: prompt-only)
 - **ALWAYS validate unknown datasets** before GPU training to prevent format failures (see Dataset Validation section below)
 - Size appropriate for hardware (Demo: 50-100 examples on t4-small; Production: 1K-10K+ on a10g-large/a100-large)
 
-### ⚠️ **Critical Settings**
+### ️ **Critical Settings**
 - **Timeout must exceed expected training time** - Default 30min is TOO SHORT for most training. Minimum recommended: 1-2 hours. Job fails and loses all progress if timeout is exceeded.
 - **Hub push must be enabled** - Config: `push_to_hub=True`, `hub_model_id="username/model-name"`; Job: `secrets={"HF_TOKEN": "$HF_TOKEN"}`
 
 ## Asynchronous Job Guidelines
 
-**⚠️ IMPORTANT: Training jobs run asynchronously and can take hours**
+**️ IMPORTANT: Training jobs run asynchronously and can take hours**
 
 ### Action Required
 
@@ -110,14 +110,14 @@ Before starting any training job, verify:
 ### After Submission
 
 **Provide to user:**
-- ✅ Job ID and monitoring URL
-- ✅ Expected completion time
-- ✅ Trackio dashboard URL
-- ✅ Note that user can request status checks later
+-  Job ID and monitoring URL
+-  Expected completion time
+-  Trackio dashboard URL
+-  Note that user can request status checks later
 
 **Example Response:**
 ```
-✅ Job submitted successfully!
+ Job submitted successfully!
 
 Job ID: abc123xyz
 Monitor: https://huggingface.co/jobs/username/abc123xyz
@@ -130,18 +130,18 @@ The job is running in the background. Ask me to check status/logs when ready!
 
 ## Quick Start: Three Approaches
 
-**💡 Tip for Demos:** For quick demos on smaller GPUs (t4-small), omit `eval_dataset` and `eval_strategy` to save ~40% memory. You'll still see training loss and learning progress.
+** Tip for Demos:** For quick demos on smaller GPUs (t4-small), omit `eval_dataset` and `eval_strategy` to save ~40% memory. You'll still see training loss and learning progress.
 
 ### Sequence Length Configuration
 
 **TRL config classes use `max_length` (not `max_seq_length`)** to control tokenized sequence length:
 
 ```python
-# ✅ CORRECT - If you need to set sequence length
+#  CORRECT - If you need to set sequence length
 SFTConfig(max_length=512)   # Truncate sequences to 512 tokens
 DPOConfig(max_length=2048)  # Longer context (2048 tokens)
 
-# ❌ WRONG - This parameter doesn't exist
+#  WRONG - This parameter doesn't exist
 SFTConfig(max_seq_length=512)  # TypeError!
 ```
 
@@ -207,7 +207,7 @@ trainer.push_to_hub()
 
 #### Working with Scripts
 
-⚠️ **Important:** The `script` parameter accepts either inline code (as shown above) OR a URL. **Local file paths do NOT work.**
+️ **Important:** The `script` parameter accepts either inline code (as shown above) OR a URL. **Local file paths do NOT work.**
 
 **Why local paths don't work:**
 Jobs run in isolated Docker containers without access to your local filesystem. Scripts must be:
@@ -217,7 +217,7 @@ Jobs run in isolated Docker containers without access to your local filesystem. 
 
 **Common mistakes:**
 ```python
-# ❌ These will all fail
+#  These will all fail
 hf_jobs("uv", {"script": "train.py"})
 hf_jobs("uv", {"script": "./scripts/train.py"})
 hf_jobs("uv", {"script": "/path/to/train.py"})
@@ -225,16 +225,16 @@ hf_jobs("uv", {"script": "/path/to/train.py"})
 
 **Correct approaches:**
 ```python
-# ✅ Inline code (recommended)
+#  Inline code (recommended)
 hf_jobs("uv", {"script": "# /// script\n# dependencies = [...]\n# ///\n\n<your code>"})
 
-# ✅ From Hugging Face Hub
+#  From Hugging Face Hub
 hf_jobs("uv", {"script": "https://huggingface.co/user/repo/resolve/main/train.py"})
 
-# ✅ From GitHub
+#  From GitHub
 hf_jobs("uv", {"script": "https://raw.githubusercontent.com/user/repo/main/train.py"})
 
-# ✅ From Gist
+#  From Gist
 hf_jobs("uv", {"script": "https://gist.githubusercontent.com/user/id/raw/train.py"})
 ```
 
@@ -287,19 +287,19 @@ hub_repo_details(["uv-scripts/classification"], repo_type="dataset", include_rea
 
 When the `hf_jobs()` MCP tool is unavailable, use the `hf jobs` CLI directly.
 
-**⚠️ CRITICAL: CLI Syntax Rules**
+**️ CRITICAL: CLI Syntax Rules**
 
 ```bash
-# ✅ CORRECT syntax - flags BEFORE script URL
+#  CORRECT syntax - flags BEFORE script URL
 hf jobs uv run --flavor a10g-large --timeout 2h --secrets HF_TOKEN "https://example.com/train.py"
 
-# ❌ WRONG - "run uv" instead of "uv run"
+#  WRONG - "run uv" instead of "uv run"
 hf jobs run uv "https://example.com/train.py" --flavor a10g-large
 
-# ❌ WRONG - flags AFTER script URL (will be ignored!)
+#  WRONG - flags AFTER script URL (will be ignored!)
 hf jobs uv run "https://example.com/train.py" --flavor a10g-large
 
-# ❌ WRONG - "--secret" instead of "--secrets" (plural)
+#  WRONG - "--secret" instead of "--secrets" (plural)
 hf jobs uv run --secret HF_TOKEN "https://example.com/train.py"
 ```
 
@@ -344,12 +344,12 @@ trl-jobs sft \
 **When to use:** User working in terminal directly (not Claude Code context), quick local experimentation
 **Repository:** https://github.com/huggingface/trl-jobs
 
-⚠️ **In Claude Code context, prefer using `hf_jobs()` MCP tool (Approach 1) when available.**
+️ **In Claude Code context, prefer using `hf_jobs()` MCP tool (Approach 1) when available.**
 
 ## Hardware Selection
 
 | Model Size | Recommended Hardware | Cost (approx/hr) | Use Case |
-|------------|---------------------|------------------|----------|
+|--|--|--|--|
 | <1B params | `t4-small` | ~$0.75 | Demos, quick tests only without eval steps |
 | 1-3B params | `t4-medium`, `l4x1` | ~$1.50-2.50 | Development |
 | 3-7B params | `a10g-small`, `a10g-large` | ~$3.50-5.00 | Production training |
@@ -367,7 +367,7 @@ trl-jobs sft \
 
 ## Critical: Saving Results to Hub
 
-**⚠️ EPHEMERAL ENVIRONMENT—MUST PUSH TO HUB**
+**️ EPHEMERAL ENVIRONMENT—MUST PUSH TO HUB**
 
 The Jobs environment is temporary. All files are deleted when the job ends. If the model isn't pushed to Hub, **ALL TRAINING IS LOST**.
 
@@ -401,7 +401,7 @@ Before submitting:
 
 ## Timeout Management
 
-**⚠️ DEFAULT: 30 MINUTES—TOO SHORT FOR TRAINING**
+**️ DEFAULT: 30 MINUTES—TOO SHORT FOR TRAINING**
 
 ### Setting Timeouts
 
@@ -414,7 +414,7 @@ Before submitting:
 ### Timeout Guidelines
 
 | Scenario | Recommended | Notes |
-|----------|-------------|-------|
+|--|--|-------|
 | Quick demo (50-100 examples) | 10-30 min | Verify setup |
 | Development training | 1-2 hours | Small datasets |
 | Production (3-7B model) | 4-6 hours | Full datasets |
@@ -529,9 +529,9 @@ The script is fast, and will usually complete synchronously.
 
 The output shows compatibility for each training method:
 
-- **`✓ READY`** - Dataset is compatible, use directly
-- **`✗ NEEDS MAPPING`** - Compatible but needs preprocessing (mapping code provided)
-- **`✗ INCOMPATIBLE`** - Cannot be used for this method
+- **` READY`** - Dataset is compatible, use directly
+- **` NEEDS MAPPING`** - Compatible but needs preprocessing (mapping code provided)
+- **` INCOMPATIBLE`** - Cannot be used for this method
 
 When mapping is needed, the output includes a **"MAPPING CODE"** section with copy-paste ready Python code.
 
@@ -545,9 +545,9 @@ hf_jobs("uv", {
 })
 
 # 2. Check output markers:
-#    ✓ READY → proceed with training
-#    ✗ NEEDS MAPPING → apply mapping code below
-#    ✗ INCOMPATIBLE → choose different method/dataset
+#     READY → proceed with training
+#     NEEDS MAPPING → apply mapping code below
+#     INCOMPATIBLE → choose different method/dataset
 
 # 3. If mapping needed, apply before training:
 def format_for_dpo(example):
@@ -631,7 +631,7 @@ See `references/training_patterns.md` for detailed examples including:
    uv run https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py \
      --dataset name --split train
    ```
-2. Check output for compatibility markers (✓ READY, ✗ NEEDS MAPPING, ✗ INCOMPATIBLE)
+2. Check output for compatibility markers ( READY,  NEEDS MAPPING,  INCOMPATIBLE)
 3. Apply mapping code from inspector output if needed
 
 ### Job Timeout

@@ -27,9 +27,9 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Imports from the 007 config hub (same directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (  # noqa: E402
@@ -45,9 +45,9 @@ from config import (  # noqa: E402
     setup_logging,
 )
 
-# ---------------------------------------------------------------------------
+# --
 # Import scanners
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent / "scanners"))
 
 import dependency_scanner  # noqa: E402
@@ -56,15 +56,15 @@ import quick_scan  # noqa: E402
 import score_calculator  # noqa: E402
 import secrets_scanner  # noqa: E402
 
-# ---------------------------------------------------------------------------
+# --
 # Logger
-# ---------------------------------------------------------------------------
+# --
 logger = setup_logging("007-full-audit")
 
 
-# =========================================================================
+# ==
 # RED TEAM SCENARIO TEMPLATES
-# =========================================================================
+# ==
 # Mapping from finding type/pattern -> attack scenario template.
 
 _RED_TEAM_TEMPLATES: dict[str, dict] = {
@@ -211,9 +211,9 @@ _RED_TEAM_FALLBACK = {
 }
 
 
-# =========================================================================
+# ==
 # BLUE TEAM RECOMMENDATION TEMPLATES
-# =========================================================================
+# ==
 
 _BLUE_TEAM_TEMPLATES: dict[str, dict] = {
     "secret": {
@@ -361,9 +361,9 @@ _BLUE_TEAM_FALLBACK = {
 }
 
 
-# =========================================================================
+# ==
 # PHASE IMPLEMENTATIONS
-# =========================================================================
+# ==
 
 
 def _phase1_surface_mapping(target: Path, verbose: bool = False) -> dict:
@@ -793,9 +793,9 @@ def _phase6_verdict(
     }
 
 
-# =========================================================================
+# ==
 # REPORT GENERATION
-# =========================================================================
+# ==
 
 
 def _generate_markdown_report(
@@ -832,7 +832,7 @@ def _generate_markdown_report(
             lines.append("### File Types")
             lines.append("")
             lines.append("| Extension | Count |")
-            lines.append("|-----------|-------|")
+            lines.append("|--|-------|")
             for ext, count in list(fbt.items())[:20]:
                 lines.append(f"| `{ext}` | {count} |")
             lines.append("")
@@ -1065,9 +1065,9 @@ def _generate_text_summary(
     return "\n".join(lines)
 
 
-# =========================================================================
+# ==
 # MAIN ENTRY POINT
-# =========================================================================
+# ==
 
 
 def run_audit(
@@ -1117,9 +1117,9 @@ def run_audit(
     start_time = time.time()
     target_str = str(target)
 
-    # ------------------------------------------------------------------
+    # --
     # Run scanners if needed (phases 3-6 need scanner data)
-    # ------------------------------------------------------------------
+    # --
     need_scanners = any(p in phases_list for p in [3, 4, 5, 6])
 
     secrets_report: dict = {"findings": [], "score": 100, "total_findings": 0}
@@ -1178,18 +1178,18 @@ def run_audit(
         all_findings = score_calculator._deduplicate_findings(raw)
         report_findings = score_calculator.redact_findings_for_report(all_findings)
 
-    # ------------------------------------------------------------------
+    # --
     # Collect source files if needed for phase 6
-    # ------------------------------------------------------------------
+    # --
     source_files: list[Path] = []
     total_source_files = 0
     if 6 in phases_list:
         source_files = score_calculator._collect_source_files(target)
         total_source_files = len(source_files)
 
-    # ------------------------------------------------------------------
+    # --
     # Execute phases
-    # ------------------------------------------------------------------
+    # --
     phases_data: dict = {}
 
     if 1 in phases_list:
@@ -1246,9 +1246,9 @@ def run_audit(
 
     elapsed = time.time() - start_time
 
-    # ------------------------------------------------------------------
+    # --
     # Generate and save Markdown report
-    # ------------------------------------------------------------------
+    # --
     md_report = _generate_markdown_report(target_str, phases_data, elapsed, phases_list)
 
     ts_file = datetime.now(UTC).strftime("%Y-%m-%d_%H-%M-%S")
@@ -1261,9 +1261,9 @@ def run_audit(
     except OSError as exc:
         logger.warning("Could not save report: %s", exc)
 
-    # ------------------------------------------------------------------
+    # --
     # Audit log
-    # ------------------------------------------------------------------
+    # --
     verdict_data = phases_data.get("phase6", {}).get("verdict", {})
     final_score = phases_data.get("phase6", {}).get("final_score", "N/A")
 
@@ -1279,9 +1279,9 @@ def run_audit(
         },
     )
 
-    # ------------------------------------------------------------------
+    # --
     # Build final report dict
-    # ------------------------------------------------------------------
+    # --
     full_report = {
         "report": "full_audit",
         "target": target_str,
@@ -1294,9 +1294,9 @@ def run_audit(
         "report_path": str(report_path),
     }
 
-    # ------------------------------------------------------------------
+    # --
     # Output
-    # ------------------------------------------------------------------
+    # --
     if output_format == "json":
         print(json.dumps(full_report, indent=2, ensure_ascii=False))
     elif output_format == "markdown":
@@ -1309,9 +1309,9 @@ def run_audit(
     return full_report
 
 
-# =========================================================================
+# ==
 # CLI
-# =========================================================================
+# ==
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

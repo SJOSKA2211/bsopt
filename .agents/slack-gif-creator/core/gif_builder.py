@@ -230,7 +230,7 @@ class GIFBuilder:
         }
 
         # Print info
-        print("\n✓ GIF created successfully!")
+        print("\n GIF created successfully!")
         print(f"  Path: {output_path}")
         print(f"  Size: {file_size_kb:.1f} KB ({file_size_mb:.2f} MB)")
         print(f"  Dimensions: {self.width}x{self.height}")

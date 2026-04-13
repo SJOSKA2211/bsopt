@@ -402,16 +402,16 @@ trpc.notification.onNew.useSubscription(undefined, {
 
 ## Best Practices
 
-- ✅ **Export only `AppRouter` type** from server code — never import `appRouter` on the client
-- ✅ **Use separate context factories** — `createTRPCContext` for the HTTP handler, `createServerContext` for Server Components and callers
-- ✅ **Validate all inputs with Zod** — never trust raw `input` without a schema
-- ✅ **Split routers by domain** (posts, users, billing) and merge in `root.ts`
-- ✅ **Extend context in middleware** rather than querying the DB multiple times per request
-- ✅ **Use `utils.invalidate()`** after mutations to keep the cache fresh
-- ❌ **Don't cast context with `as any`** to silence type errors — the mismatch will surface as a runtime failure when auth or session lookups return undefined
-- ❌ **Don't use `createContext({} as any)`** in Server Components — use `createServerContext()` which calls `auth()` directly
-- ❌ **Don't put business logic in the route handler** — keep it in the procedure or a service layer
-- ❌ **Don't share the tRPC client instance globally** — create it per-provider to avoid stale closures
+-  **Export only `AppRouter` type** from server code — never import `appRouter` on the client
+-  **Use separate context factories** — `createTRPCContext` for the HTTP handler, `createServerContext` for Server Components and callers
+-  **Validate all inputs with Zod** — never trust raw `input` without a schema
+-  **Split routers by domain** (posts, users, billing) and merge in `root.ts`
+-  **Extend context in middleware** rather than querying the DB multiple times per request
+-  **Use `utils.invalidate()`** after mutations to keep the cache fresh
+-  **Don't cast context with `as any`** to silence type errors — the mismatch will surface as a runtime failure when auth or session lookups return undefined
+-  **Don't use `createContext({} as any)`** in Server Components — use `createServerContext()` which calls `auth()` directly
+-  **Don't put business logic in the route handler** — keep it in the procedure or a service layer
+-  **Don't share the tRPC client instance globally** — create it per-provider to avoid stale closures
 
 ---
 

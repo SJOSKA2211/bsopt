@@ -210,7 +210,7 @@ Basecamp uses page-based pagination on list endpoints:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List projects | `BASECAMP_GET_PROJECTS` | `status` |
 | Get project | `BASECAMP_GET_PROJECT` | `project_id` |
 | Get project detail | `BASECAMP_GET_PROJECTS_BY_PROJECT_ID` | `project_id` |

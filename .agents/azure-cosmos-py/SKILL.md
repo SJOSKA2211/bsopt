@@ -39,7 +39,7 @@ client = CosmosClient(url=endpoint, credential=credential)
 ## Client Hierarchy
 
 | Client | Purpose | Get From |
-|--------|---------|----------|
+|--------|---------|--|
 | `CosmosClient` | Account-level operations | Direct instantiation |
 | `DatabaseProxy` | Database operations | `client.get_database_client()` |
 | `ContainerProxy` | Container/item operations | `database.get_container_client()` |
@@ -274,7 +274,7 @@ except CosmosHttpResponseError as e:
 ## Reference Files
 
 | File | Contents |
-|------|----------|
+|------|--|
 | references/partitioning.md | Partition key strategies, hierarchical keys, hot partition detection and mitigation |
 | references/query-patterns.md | Query optimization, aggregations, pagination, transactions, change feed |
 | scripts/setup_cosmos_container.py | CLI tool for creating containers with partitioning, throughput, and indexing |

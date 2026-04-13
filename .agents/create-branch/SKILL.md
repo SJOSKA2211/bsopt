@@ -36,7 +36,7 @@ git status --short
 Pick the type from this table based on the description:
 
 | Type      | Use when                                                              |
-| --------- | --------------------------------------------------------------------- |
+| --------- | -- |
 | `feat`    | New user-facing functionality                                         |
 | `fix`     | Broken behavior now works                                             |
 | `ref`     | Same behavior, different structure                                    |
@@ -68,7 +68,7 @@ Present it to the user and ask if they want to use it, modify it, or change the 
 ### Examples
 
 | Work description                           | Branch name                                 |
-| ------------------------------------------ | ------------------------------------------- |
+| -- | -- |
 | Dropdown menu not closing on outside click | `priscila/fix/dropdown-not-closing-on-blur` |
 | Adding search to conversations page        | `priscila/feat/add-search-to-conversations` |
 | Restructuring drawer components            | `priscila/ref/simplify-drawer-components`   |

@@ -34,17 +34,17 @@ async def run_diagnostic(script_name: str) -> bool:
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            print(f"    ✅ {script_name} PASSED")
+            print(f"     {script_name} PASSED")
             return True
         else:
-            print(f"    ❌ {script_name} FAILED")
+            print(f"     {script_name} FAILED")
             if stderr:
                 print(
                     f"       Error: {stderr.decode().splitlines()[-1] if stderr.decode().splitlines() else 'Unknown'}"
                 )
             return False
     except Exception as e:
-        print(f"    🚨 Error executing {script_name}: {str(e)}")
+        print(f"     Error executing {script_name}: {str(e)}")
         return False
 
 
@@ -65,7 +65,7 @@ async def verify_infrastructure_stack():
     ]
 
     print("\n" + "=" * 60)
-    print("🚀 AIOPS MANIFOLD: PRE-FLIGHT READINESS CHECK")
+    print(" AIOPS MANIFOLD: PRE-FLIGHT READINESS CHECK")
     print("=" * 60)
 
     results = []
@@ -73,29 +73,29 @@ async def verify_infrastructure_stack():
         results.append(await run_diagnostic(diag))
 
     success_rate = sum(results) / len(results)
-    print(f"\n📊 Infrastructure Readiness: {success_rate:.0%}")
+    print(f"\n Infrastructure Readiness: {success_rate:.0%}")
 
     if all(results):
         print("🟢 ALL SYSTEMS GO. Manifold is ready for autonomous operation.")
         return True
     elif success_rate >= 0.7:
-        print("⚠️  SYSTEM DEGRADED. Proceeding with caution (Safe Mode likely).")
+        print("️  SYSTEM DEGRADED. Proceeding with caution (Safe Mode likely).")
         return True
     else:
-        print("🔴 CRITICAL FAILURE. Multi-layer infrastructure loss detected.")
+        print(" CRITICAL FAILURE. Multi-layer infrastructure loss detected.")
         return False
 
 
 async def start_manifold():
     """Main entry point to start the autonomous manifold."""
     print("\n" + "=" * 60)
-    print("🔱 STARTING AUTONOMOUS MANIFOLD CYCLE v5.1")
-    print(f"🕒 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(" STARTING AUTONOMOUS MANIFOLD CYCLE v5.1")
+    print(f" Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
     # 1. Verify Infrastructure
     if not await verify_infrastructure_stack():
-        print("\n❌ ABORTING MANIFOLD START: Infrastructure requirements not met.")
+        print("\n ABORTING MANIFOLD START: Infrastructure requirements not met.")
         sys.exit(1)
 
     # 2. Instantiate Engine
@@ -120,10 +120,10 @@ async def start_manifold():
     except KeyboardInterrupt:
         print("\n[*] Shutdown signal received.")
     except Exception as e:
-        print(f"\n🚨 Engine Loop crashed: {str(e)}")
+        print(f"\n Engine Loop crashed: {str(e)}")
     finally:
         engine.stop()
-        print("🏁 Manifold Loop stopped.")
+        print(" Manifold Loop stopped.")
 
 
 if __name__ == "__main__":

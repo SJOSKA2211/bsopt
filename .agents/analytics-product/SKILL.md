@@ -175,7 +175,7 @@ def calculate_cohort_retention(events_df):
 ## Benchmarks De Retencao (Assistentes De Voz)
 
 | Semana | Pessimo | Ok | Bom | Excelente |
-|--------|---------|-----|-----|-----------|
+|--------|---------|-----|-----|--|
 | W1 | <20% | 20-35% | 35-50% | >50% |
 | W4 | <10% | 10-20% | 20-30% | >30% |
 | W8 | <5% | 5-12% | 12-20% | >20% |

@@ -85,7 +85,7 @@ const TARGET_URL = 'http://localhost:3001'; // <-- Auto-detected or from user
   console.log('Page loaded:', await page.title());
 
   await page.screenshot({ path: '/tmp/screenshot.png', fullPage: true });
-  console.log('📸 Screenshot saved to /tmp/screenshot.png');
+  console.log(' Screenshot saved to /tmp/screenshot.png');
 
   await browser.close();
 })();
@@ -145,7 +145,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
 
   // Wait for redirect
   await page.waitForURL('**/dashboard');
-  console.log('✅ Login successful, redirected to dashboard');
+  console.log(' Login successful, redirected to dashboard');
 
   await browser.close();
 })();
@@ -172,7 +172,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
 
   // Verify submission
   await page.waitForSelector('.success-message');
-  console.log('✅ Form submitted successfully');
+  console.log(' Form submitted successfully');
 
   await browser.close();
 })();
@@ -206,8 +206,8 @@ const { chromium } = require('playwright');
     }
   }
 
-  console.log(`✅ Working links: ${results.working}`);
-  console.log(`❌ Broken links:`, results.broken);
+  console.log(` Working links: ${results.working}`);
+  console.log(` Broken links:`, results.broken);
 
   await browser.close();
 })();
@@ -233,9 +233,9 @@ const { chromium } = require('playwright');
       fullPage: true,
     });
 
-    console.log('📸 Screenshot saved to /tmp/screenshot.png');
+    console.log(' Screenshot saved to /tmp/screenshot.png');
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error(' Error:', error.message);
   } finally {
     await browser.close();
   }
@@ -279,7 +279,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
     });
   }
 
-  console.log('✅ All viewports tested');
+  console.log(' All viewports tested');
   await browser.close();
 })();
 ```
@@ -448,7 +448,7 @@ User: "Use 3001"
 
 [Writes login automation to /tmp/playwright-test-login.js]
 [Runs: cd $SKILL_DIR && node run.js /tmp/playwright-test-login.js]
-[Reports: ✅ Login successful, redirected to /dashboard]
+[Reports:  Login successful, redirected to /dashboard]
 ```
 
 ## Notes

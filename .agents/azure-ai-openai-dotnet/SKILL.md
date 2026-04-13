@@ -448,7 +448,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.AI.OpenAI |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.ai.openai |
 | Migration Guide (1.0→2.0) | https://learn.microsoft.com/azure/ai-services/openai/how-to/dotnet-migration |

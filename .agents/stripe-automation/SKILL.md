@@ -174,7 +174,7 @@ Stripe uses smallest currency unit:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create customer | STRIPE_CREATE_CUSTOMER | email, name |
 | Search customers | STRIPE_SEARCH_CUSTOMERS | query |
 | Update customer | STRIPE_POST_CUSTOMERS_CUSTOMER | customer, fields |

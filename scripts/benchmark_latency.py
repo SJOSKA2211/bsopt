@@ -10,7 +10,7 @@ logger = structlog.get_logger(__name__)
 
 async def benchmark_rust_kernel():
     """Benchmark the Rust-accelerated math kernel."""
-    print("🔹 Benchmarking Rust Math Kernel (CPU Parallel)...")
+    print(" Benchmarking Rust Math Kernel (CPU Parallel)...")
     try:
         import Manifold_core
 
@@ -32,13 +32,13 @@ async def benchmark_rust_kernel():
         print(f"   - Per Opt:    {duration / n * 1_000_000:.4f} μs")
         return duration
     except ImportError:
-        print("   ⚠️  Manifold_core not installed. Skipping.")
+        print("   ️  Manifold_core not installed. Skipping.")
         return None
 
 
 async def benchmark_cupy_kernel():
     """Benchmark the GPU-accelerated math kernel."""
-    print("🔹 Benchmarking CuPy Math Kernel (GPU)...")
+    print(" Benchmarking CuPy Math Kernel (GPU)...")
     try:
         import cupy as cp
 
@@ -65,13 +65,13 @@ async def benchmark_cupy_kernel():
         print(f"   - Per Opt:    {duration / n * 1_000_000:.4f} μs")
         return duration
     except (ImportError, Exception) as e:
-        print(f"   ⚠️  GPU/CuPy not available: {str(e)[:50]}. Skipping.")
+        print(f"   ️  GPU/CuPy not available: {str(e)[:50]}. Skipping.")
         return None
 
 
 async def benchmark_mmap_parser():
     """Benchmark binary tick parsing throughput."""
-    print("🔹 Benchmarking Zero-Copy MMap Tick Parsing...")
+    print(" Benchmarking Zero-Copy MMap Tick Parsing...")
     try:
         import Manifold_core
 
@@ -92,7 +92,7 @@ async def benchmark_mmap_parser():
         os.remove(file_path)
         return duration
     except (ImportError, Exception) as e:
-        print(f"   ⚠️  MMap benchmark failed: {str(e)}. Skipping.")
+        print(f"   ️  MMap benchmark failed: {str(e)}. Skipping.")
         return None
 
 

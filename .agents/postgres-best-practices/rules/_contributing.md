@@ -125,7 +125,7 @@ const posts = await db.query("SELECT * FROM posts WHERE user_id = ANY($1)", [
 ## Impact Level Guidelines
 
 | Level | Improvement | Use When |
-|-------|-------------|----------|
+|-------|--|--|
 | **CRITICAL** | 10-100x | Missing indexes, connection exhaustion, sequential scans on large tables |
 | **HIGH** | 5-20x | Wrong index types, poor partitioning, missing covering indexes |
 | **MEDIUM-HIGH** | 2-5x | N+1 queries, inefficient pagination, RLS optimization |

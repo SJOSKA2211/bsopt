@@ -230,7 +230,7 @@ When using project paths as identifiers:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List projects | `GITLAB_GET_PROJECTS` | `search`, `membership`, `visibility` |
 | Get project details | `GITLAB_GET_PROJECT` | `id` |
 | User's projects | `GITLAB_LIST_USER_PROJECTS` | `id`, `search`, `owned` |

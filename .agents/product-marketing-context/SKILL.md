@@ -162,7 +162,7 @@ After gathering information, create `.agents/product-marketing-context.md` with 
 
 ## Personas
 | Persona | Cares about | Challenge | Value we promise |
-|---------|-------------|-----------|------------------|
+|---------|--|--|--|
 | | | | |
 
 ## Problems & Pain Points
@@ -186,7 +186,7 @@ After gathering information, create `.agents/product-marketing-context.md` with 
 
 ## Objections
 | Objection | Response |
-|-----------|----------|
+|--|--|
 | | |
 
 **Anti-persona:**

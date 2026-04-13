@@ -56,7 +56,7 @@ Comprehensive guide to designing event stores for event-sourced applications.
 ### 2. Event Store Requirements
 
 | Requirement       | Description                        |
-| ----------------- | ---------------------------------- |
+| -- | -- |
 | **Append-only**   | Events are immutable, only appends |
 | **Ordered**       | Per-stream and global ordering     |
 | **Versioned**     | Optimistic concurrency control     |
@@ -66,7 +66,7 @@ Comprehensive guide to designing event stores for event-sourced applications.
 ## Technology Comparison
 
 | Technology       | Best For                  | Limitations                      |
-| ---------------- | ------------------------- | -------------------------------- |
+| -- | -- | -- |
 | **EventStoreDB** | Pure event sourcing       | Single-purpose                   |
 | **PostgreSQL**   | Existing Postgres stack   | Manual implementation            |
 | **Kafka**        | High-throughput streaming | Not ideal for per-stream queries |

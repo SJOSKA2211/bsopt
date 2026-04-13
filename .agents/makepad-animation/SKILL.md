@@ -29,7 +29,7 @@ Refer to the local files for detailed documentation:
 For production-ready animation patterns, see the `_base/` directory:
 
 | Pattern | Description |
-|---------|-------------|
+|---------|--|
 | 06-animator-basics | Animator fundamentals |
 | 07-easing-functions | Easing and timing |
 | 08-keyframe-animation | Complex keyframes |
@@ -169,7 +169,7 @@ For production-ready animation patterns, see the `_base/` directory:
 ## Animator Structure
 
 | Property | Description |
-|----------|-------------|
+|--|--|
 | `animator` | Root animation container |
 | `{state} =` | State definition (hover, pressed, focus, disabled) |
 | `default:` | Initial state value |
@@ -180,7 +180,7 @@ For production-ready animation patterns, see the `_base/` directory:
 ## Timeline Types (Play Enum)
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | `Forward { duration: f64 }` | Linear forward animation |
 | `Snap` | Instant change, no transition |
 | `Reverse { duration: f64, end: f64 }` | Reverse animation |

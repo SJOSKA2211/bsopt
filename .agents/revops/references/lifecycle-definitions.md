@@ -145,7 +145,7 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 **Fit score (40% weight):**
 
 | Attribute | Points |
-|-----------|--------|
+|--|--------|
 | Company size 10-500 | +15 |
 | Company size 500-5000 | +20 |
 | Target industry | +10 |
@@ -172,7 +172,7 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 **Fit score (60% weight) — weight fit heavily:**
 
 | Attribute | Points |
-|-----------|--------|
+|--|--------|
 | Company size 500+ | +20 |
 | Target industry | +15 |
 | VP+ title | +20 |
@@ -198,7 +198,7 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 **Fit score (50% weight):**
 
 | Attribute | Points |
-|-----------|--------|
+|--|--------|
 | Company size 50-1000 | +15 |
 | Target industry | +10 |
 | Manager+ title | +15 |
@@ -224,7 +224,7 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 ### MQL-to-SQL SLA
 
 | Metric | Target | Escalation |
-|--------|--------|------------|
+|--------|--------|--|
 | First contact attempt | Within 4 business hours | Alert to sales manager at 4 hours |
 | Qualification decision | Within 48 hours | Auto-escalate at 48 hours |
 | Meeting scheduled (if qualified) | Within 5 business days | Weekly pipeline review flag |
@@ -232,14 +232,14 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 ### SQL-to-Opportunity SLA
 
 | Metric | Target | Escalation |
-|--------|--------|------------|
+|--------|--------|--|
 | Discovery call completed | Within 3 business days of SQL | Alert to AE manager |
 | Opportunity created | Within 5 business days of SQL | Pipeline review flag |
 
 ### Opportunity-to-Close SLA
 
 | Metric | Target | Escalation |
-|--------|--------|------------|
+|--------|--------|--|
 | Proposal delivered | Within 5 business days of demo | AE manager alert |
 | Deal stale in stage | 2x average days for that stage | Pipeline review flag |
 | Close date pushed 2+ times | Immediate | Forecast review required |
@@ -251,7 +251,7 @@ Complete templates for lead lifecycle stages, MQL criteria by business type, SLA
 ### Rejection Reason Codes
 
 | Code | Reason | Recycle Action |
-|------|--------|----------------|
+|------|--------|--|
 | **FIT-01** | Company too small | Nurture; re-score if company grows |
 | **FIT-02** | Wrong industry | Archive; do not recycle |
 | **FIT-03** | Wrong role / no authority | Nurture; monitor for org changes |

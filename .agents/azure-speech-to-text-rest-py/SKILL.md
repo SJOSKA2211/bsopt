@@ -71,7 +71,7 @@ print(result["DisplayText"])
 ## Audio Requirements
 
 | Format | Codec | Sample Rate | Notes |
-|--------|-------|-------------|-------|
+|--------|-------|--|-------|
 | WAV | PCM | 16 kHz, mono | **Recommended** |
 | OGG | OPUS | 16 kHz, mono | Smaller file size |
 
@@ -217,7 +217,7 @@ headers = {
 ## Query Parameters
 
 | Parameter | Required | Values | Description |
-|-----------|----------|--------|-------------|
+|--|--|--------|--|
 | `language` | **Yes** | `en-US`, `de-DE`, etc. | Language of speech |
 | `format` | No | `simple`, `detailed` | Result format (default: simple) |
 | `profanity` | No | `masked`, `removed`, `raw` | Profanity handling (default: masked) |
@@ -225,7 +225,7 @@ headers = {
 ## Recognition Status Values
 
 | Status | Description |
-|--------|-------------|
+|--------|--|
 | `Success` | Recognition succeeded |
 | `NoMatch` | Speech detected but no words matched |
 | `InitialSilenceTimeout` | Only silence detected |
@@ -333,7 +333,7 @@ print(result["DisplayText"])
 Common language codes (see [full list](https://learn.microsoft.com/azure/ai-services/speech-service/language-support)):
 
 | Code | Language |
-|------|----------|
+|------|--|
 | `en-US` | English (US) |
 | `en-GB` | English (UK) |
 | `de-DE` | German |
@@ -368,7 +368,7 @@ Use the Speech SDK or Batch Transcription API instead when you need:
 ## Reference Files
 
 | File | Contents |
-|------|----------|
+|------|--|
 | references/pronunciation-assessment.md | Pronunciation assessment parameters and scoring |
 
 ## When to Use

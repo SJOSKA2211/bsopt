@@ -20,7 +20,7 @@ Practical implementation guide for GDPR-compliant data processing, consent manag
 ### 1. Personal Data Categories
 
 | Category | Examples | Protection Level |
-|----------|----------|------------------|
+|--|--|--|
 | **Basic** | Name, email, phone | Standard |
 | **Sensitive (Art. 9)** | Health, religion, ethnicity | Explicit consent |
 | **Criminal (Art. 10)** | Convictions, offenses | Official authority |

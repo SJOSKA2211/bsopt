@@ -666,7 +666,7 @@ material.positionNode = add(
 ### Key Differences from GLSL
 
 | GLSL (WebGL only)       | TSL (WebGL + WebGPU)         |
-| ----------------------- | ---------------------------- |
+| -- | -- |
 | `ShaderMaterial`        | `MeshStandardNodeMaterial`   |
 | String-based shaders    | JavaScript node graph        |
 | `onBeforeCompile`       | Node composition             |

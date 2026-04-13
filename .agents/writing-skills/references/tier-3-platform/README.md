@@ -38,7 +38,7 @@ my-platform/
 Each product directory has exactly 5 files:
 
 | File | Purpose | When to Load |
-|------|---------|--------------|
+|------|---------|--|
 | `README.md` | Overview, when to use | Always first |
 | `api.md` | Runtime APIs, methods | Implementing features |
 | `configuration.md` | Config, environment | Setting up |

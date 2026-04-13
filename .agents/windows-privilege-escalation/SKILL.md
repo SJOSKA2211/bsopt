@@ -371,7 +371,7 @@ C:\Windows\System32\Microsoft\Crypto\RSA\MachineKeys
 ### Common Privilege Escalation Vectors
 
 | Vector | Check Command |
-|--------|---------------|
+|--------|--|
 | Unquoted paths | `wmic service get pathname \| findstr /i /v """` |
 | Weak service perms | `accesschk.exe -uwcqv "Everyone" *` |
 | AlwaysInstallElevated | `reg query HKCU\...\Installer /v AlwaysInstallElevated` |
@@ -382,7 +382,7 @@ C:\Windows\System32\Microsoft\Crypto\RSA\MachineKeys
 ### Impersonation Privilege Exploits
 
 | Privilege | Tool | Usage |
-|-----------|------|-------|
+|--|------|-------|
 | SeImpersonatePrivilege | JuicyPotato | CLSID abuse |
 | SeImpersonatePrivilege | PrintSpoofer | Spooler service |
 | SeImpersonatePrivilege | RoguePotato | OXID resolver |
@@ -491,7 +491,7 @@ runas /user:Administrator cmd.exe
 ## Troubleshooting
 
 | Issue | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Exploit fails (AV detected) | AV blocking known exploits | Use obfuscated exploits; living-off-the-land (mshta, certutil); custom compiled binaries |
 | Service won't start | Binary path syntax | Ensure space after `=` in binpath: `binpath= "C:\path\binary.exe"` |
 | Token impersonation fails | Wrong privilege/version | Check `whoami /priv`; verify Windows version compatibility |

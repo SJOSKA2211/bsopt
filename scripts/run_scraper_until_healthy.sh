@@ -20,7 +20,7 @@ load_decrypted_secrets
 COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"
 
 # 2. Start Scraper Services
-echo "🚀 Starting Scraper services using $CONTAINER_ENGINE..."
+echo " Starting Scraper services using $CONTAINER_ENGINE..."
 # We start ingestion-service, nse-scraper, yfinance-scraper, and transformer
 $COMPOSE_ENGINE -f "$COMPOSE_FILE" up -d ingestion-service nse-scraper yfinance-scraper transformer
 

@@ -327,7 +327,7 @@ catch (ServiceBusException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.Messaging.ServiceBus |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/servicebus/Azure.Messaging.ServiceBus |

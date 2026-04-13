@@ -20,21 +20,21 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Import from the 007 config hub (parent directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import config  # noqa: E402
 
-# ---------------------------------------------------------------------------
+# --
 # Logger
-# ---------------------------------------------------------------------------
+# --
 logger = config.setup_logging("007-injection-scanner")
 
-# ---------------------------------------------------------------------------
+# --
 # Context markers: sources of user input
-# ---------------------------------------------------------------------------
+# --
 # If a line (or nearby lines) contain any of these tokens, variables on that
 # line are treated as *tainted* (user-controlled).  When a dangerous pattern
 # uses only a hardcoded literal, severity is reduced.
@@ -70,9 +70,9 @@ _USER_INPUT_MARKERS = re.compile(
     re.IGNORECASE,
 )
 
-# ---------------------------------------------------------------------------
+# --
 # Comment / docstring detection
-# ---------------------------------------------------------------------------
+# --
 
 _COMMENT_LINE_RE = re.compile(r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE)
 
@@ -86,9 +86,9 @@ def _is_comment_line(line: str) -> bool:
     return bool(_COMMENT_LINE_RE.match(line))
 
 
-# ---------------------------------------------------------------------------
+# --
 # Test file detection
-# ---------------------------------------------------------------------------
+# --
 
 _TEST_FILE_RE = re.compile(
     r"""(?i)(?:^test_|_test\.py$|\.test\.[jt]sx?$|\.spec\.[jt]sx?$|"""
@@ -102,9 +102,9 @@ def _is_test_file(filepath: Path) -> bool:
     return bool(_TEST_FILE_RE.search(filepath.name)) or bool(_TEST_FILE_RE.search(str(filepath)))
 
 
-# ---------------------------------------------------------------------------
+# --
 # Severity helpers
-# ---------------------------------------------------------------------------
+# --
 
 
 def _lower_severity(severity: str) -> str:
@@ -156,17 +156,17 @@ def _only_hardcoded_string(line: str) -> bool:
     return False
 
 
-# =========================================================================
+# ==
 # INJECTION PATTERN DEFINITIONS
-# =========================================================================
+# ==
 # Each entry: (pattern_name, compiled_regex, base_severity, injection_type,
 #              description)
 # The scanner applies context analysis on top of base_severity.
 
 _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
-    # -----------------------------------------------------------------
+    # --
     # 1. CODE INJECTION (Python)
-    # -----------------------------------------------------------------
+    # --
     (
         "py_eval_user_input",
         r"""\beval\s*\([^)]*(?:\bvar\b|\bdata\b|\brequest\b|\binput\b|\bargv\b|\bparams?\b|"""
@@ -248,9 +248,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "code_injection",
         ".format() in template rendering context (template injection)",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 2. COMMAND INJECTION
-    # -----------------------------------------------------------------
+    # --
     (
         "subprocess_shell_true",
         r"""\bsubprocess\.(?:call|run|Popen|check_output|check_call)\s*\("""
@@ -287,9 +287,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "command_injection",
         "Backtick execution with variable interpolation",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 3. SQL INJECTION
-    # -----------------------------------------------------------------
+    # --
     (
         "sql_fstring",
         r"""(?i)\bf['\"](?:[^'\"]*?)(?:SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|"""
@@ -328,9 +328,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "sql_injection",
         "f-string in execute() call (SQL injection)",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 4. PROMPT INJECTION
-    # -----------------------------------------------------------------
+    # --
     (
         "prompt_injection_fstring",
         r"""(?i)(?:prompt|system_prompt|user_prompt|message|messages)\s*=\s*f['\"]"""
@@ -371,9 +371,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "prompt_injection",
         "User input passed directly to LLM messages without sanitization",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 5. XSS (Cross-Site Scripting)
-    # -----------------------------------------------------------------
+    # --
     (
         "xss_innerhtml",
         r"""\.innerHTML\s*=\s*(?!['\"]\s*$)[^;]+""",
@@ -416,9 +416,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "xss",
         "jQuery .html() with variable content",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 6. SSRF (Server-Side Request Forgery)
-    # -----------------------------------------------------------------
+    # --
     (
         "ssrf_requests",
         r"""\brequests\.(?:get|post|put|patch|delete|head|options|request)\s*\("""
@@ -460,9 +460,9 @@ _INJECTION_DEFS: list[tuple[str, str, str, str, str]] = [
         "ssrf",
         "HTTP request without visible URL allowlist/blocklist validation",
     ),
-    # -----------------------------------------------------------------
+    # --
     # 7. PATH TRAVERSAL
-    # -----------------------------------------------------------------
+    # --
     (
         "path_traversal_open",
         r"""\bopen\s*\([^)]*(?:\brequest\b|\bparams?\b|\bquery\b|\bform\b|"""
@@ -513,9 +513,9 @@ for _name, _pat, _sev, _itype, _desc in _INJECTION_DEFS:
         logger.warning("Failed to compile pattern %s: %s", _name, exc)
 
 
-# =========================================================================
+# ==
 # File collection
-# =========================================================================
+# ==
 
 
 def _should_scan_file(filepath: Path) -> bool:
@@ -552,9 +552,9 @@ def collect_files(target: Path) -> list[Path]:
     return files
 
 
-# =========================================================================
+# ==
 # Core scanning logic
-# =========================================================================
+# ==
 
 
 def _snippet(line: str, match_start: int, context: int = 80) -> str:
@@ -719,9 +719,9 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
     return findings
 
 
-# =========================================================================
+# ==
 # Aggregation and scoring
-# =========================================================================
+# ==
 
 SCORE_DEDUCTIONS = {
     "CRITICAL": 12,
@@ -769,9 +769,9 @@ def compute_score(findings: list[dict]) -> int:
     return max(0, score)
 
 
-# =========================================================================
+# ==
 # Report formatters
-# =========================================================================
+# ==
 
 _INJECTION_TYPE_LABELS = {
     "code_injection": "Code Injection",
@@ -933,9 +933,9 @@ def build_json_report(
     }
 
 
-# =========================================================================
+# ==
 # Main entry point
-# =========================================================================
+# ==
 
 
 def run_scan(
@@ -1053,9 +1053,9 @@ def run_scan(
     return report
 
 
-# =========================================================================
+# ==
 # CLI
-# =========================================================================
+# ==
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

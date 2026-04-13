@@ -22,7 +22,7 @@ or mid-term restructuring — assemble a comprehensive data package.
 #### Data Assembly Checklist
 
 | Data Point | Source | Purpose |
-|-----------|--------|---------|
+|--|--------|---------|
 | 36 months of 15-minute interval data (kWh and kW) | Utility meter data / MDM system | Load shape analysis, peak identification |
 | Current tariff rate schedule and all applicable riders | Utility tariff book / state PUC | Baseline cost structure |
 | Current supply contract terms, expiration, and auto-renewal provisions | Contract file | Timeline and constraints |
@@ -87,7 +87,7 @@ start date, begin buying tranches in July 2026.
 Standard approaches:
 
 | Tranches | Buying Frequency | Volume per Tranche | Best For |
-|----------|-----------------|-------------------|----------|
+|--|--|--|--|
 | 4 | Quarterly | 25% | Default approach, good balance |
 | 6 | Bimonthly | ~17% | Large portfolios, higher granularity |
 | 8 | Monthly (final 8 months) | 12.5% | Aggressive dollar-cost averaging |
@@ -129,7 +129,7 @@ If locked all-at-once in Jul 2026: $44.50/MWh → layering saved $1.17/MWh = $70
 #### Timeline and Phases
 
 | Phase | Duration | Key Activities |
-|-------|----------|---------------|
+|-------|--|--|
 | Pre-RFP Analysis | 2-3 weeks | Load data assembly, tariff analysis, market benchmarking, sustainability requirements definition |
 | RFP Design | 1-2 weeks | Template creation, supplier longlist development, evaluation criteria weighting |
 | RFP Distribution | 1 week | Issue to 5-8 qualified REPs, respond to clarification questions |
@@ -142,7 +142,7 @@ If locked all-at-once in Jul 2026: $44.50/MWh → layering saved $1.17/MWh = $70
 #### Supplier Evaluation Scoring Matrix
 
 | Criterion | Weight | Scoring Guide |
-|-----------|--------|---------------|
+|--|--------|--|
 | Total cost (energy + adder + shaped premium) | 35-45% | Lowest total cost = 100 pts. Each 1% above lowest = -5 pts. Model across 3 price scenarios. |
 | Credit quality | 15-20% | Investment grade (S&P BBB- or above) = 100 pts. Sub-investment grade = 50 pts. No rating / private = 70 pts with parent guarantee, 30 pts without. |
 | Contract flexibility | 10-15% | Volume tolerance ±15% = 100. Volume tolerance ±5% = 50. No tolerance = 0. Early termination available = +20 pts. Change-of-use provisions = +15 pts. |
@@ -197,7 +197,7 @@ Year N PPA Net Value = (Market Price at Hub - PPA Strike Price) × Expected Gene
 **Step 3: Sensitivity analysis — run these scenarios at minimum:**
 
 | Scenario | Market Price Assumption | Generation Assumption | Basis Assumption |
-|----------|----------------------|----------------------|-----------------|
+|--|--|--|--|
 | Base | Current forward curve + 2.5%/yr escalation | Developer's P50 estimate | 5-year historical average basis |
 | Bull | Forward + 4%/yr escalation | P50 generation | Basis narrows 20% |
 | Bear | Forward + 1%/yr escalation | P75 generation (lower) | Basis widens 30% |
@@ -245,7 +245,7 @@ Curtailment occurs when the ISO orders the generator to reduce output due to
 transmission constraints or oversupply.
 
 | ISO | Technology | Typical Curtailment % | Trend |
-|-----|-----------|----------------------|-------|
+|-----|--|--|-------|
 | ERCOT | Wind (West Texas) | 3-8% | Increasing as more wind is added |
 | ERCOT | Solar | 1-3% | Low but increasing |
 | CAISO | Solar | 5-12% (spring) | Increasing due to duck curve |
@@ -263,7 +263,7 @@ risk" on a VPPA — this transfers a risk the buyer cannot manage or influence.
 #### Credit and Accounting Requirements
 
 | Requirement | Details |
-|-------------|---------|
+|--|---------|
 | ISDA Master Agreement | Required for VPPA. Negotiate credit thresholds, margin call provisions, and termination values. |
 | Credit support | Investment grade: typically no collateral for first $5-10M notional. Sub-IG: letter of credit or parent guarantee for 2-3 years of potential negative settlement. |
 | Accounting treatment | VPPAs may qualify for hedge accounting (ASC 815) if they meet effectiveness testing requirements. Without hedge accounting, mark-to-market gains/losses flow through the P&L, creating earnings volatility. Consult treasury and accounting early. |
@@ -272,7 +272,7 @@ risk" on a VPPA — this transfers a risk the buyer cannot manage or influence.
 ### 2.3 Physical vs. Virtual PPA Decision Matrix
 
 | Factor | Favors Physical PPA | Favors Virtual PPA |
-|--------|-------------------|-------------------|
+|--------|--|--|
 | Load location | Same ISO as available projects | Load in regulated market or no nearby projects |
 | Energy supply | Need the physical energy (replacing utility supply) | Already have a retail supply contract |
 | Sustainability goal | Want bundled energy + RECs from a specific facility | Need RECs only for Scope 2 reporting |
@@ -307,7 +307,7 @@ For each of the top 50 intervals, identify:
 **Typical findings for manufacturing facilities:**
 
 | Peak Driver | Frequency in Top 50 | Root Cause |
-|------------|---------------------|------------|
+|--|--|--|
 | Morning ramp-up (6-9 AM) | 30-50% | Simultaneous startup of HVAC, compressors, and production lines |
 | Hot afternoon (2-5 PM) | 20-35% | HVAC at max coinciding with production peak |
 | Equipment startup after maintenance | 10-20% | Inrush current from large motors starting simultaneously |
@@ -371,7 +371,7 @@ With ITC (30% for standalone storage as of IRA): payback = $770,000 / $149,900 =
 Not all DR programs are equal. Evaluate on these dimensions:
 
 | Dimension | Questions to Answer |
-|-----------|-------------------|
+|--|--|
 | Revenue certainty | Is payment capacity-based (guaranteed $/kW-yr) or performance-based (paid per curtailment event)? |
 | Dispatch frequency | How many events per year? What is the maximum duration? Can you sustain curtailment for the full duration? |
 | Baseline methodology | How is your curtailment measured? Customer Baseline Load (CBL) using 10-of-10 or adjusted methods? A poorly calculated baseline can understate your curtailment and reduce payments. |
@@ -411,7 +411,7 @@ prior system has reached steady state.
 ### 4.1 Regulated vs. Deregulated Strategy Map
 
 | Your Situation | Primary Strategy | Secondary Strategy |
-|---------------|-----------------|-------------------|
+|--|--|--|
 | Regulated market, single rate schedule | Demand charge management, on-site generation, tariff schedule optimization | Lobby for utility green tariff, evaluate community solar |
 | Regulated market, multiple rate options | Tariff analysis to select optimal schedule (TOU vs. flat vs. demand-based) | Load shifting to exploit TOU differentials |
 | Deregulated, single site | Competitive supply procurement (RFP to 5-8 REPs) | Layer procurement to manage timing risk |
@@ -434,7 +434,7 @@ prior system has reached steady state.
 **Using forward curves for procurement decisions:**
 
 | Forward Curve Position | Procurement Action |
-|-----------------------|-------------------|
+|--|--|
 | Bottom 20% of 5-year range | Accelerate buying — lock more volume at favorable prices |
 | 20th-40th percentile | Proceed with scheduled layering — prices are reasonable |
 | 40th-60th percentile | Maintain default layering schedule |
@@ -481,7 +481,7 @@ Savings: $15,512/year from 5 hours of load curtailment
 ### 5.1 Hedging Instruments Available to C&I Buyers
 
 | Instrument | Complexity | Capital Required | Protection |
-|-----------|-----------|-----------------|------------|
+|--|--|--|--|
 | Fixed-price contract (through REP) | Low | None (embedded in price) | Full price certainty for contracted volume |
 | Block purchases (through REP) | Low-Medium | None | Price certainty on base load; variable load exposed |
 | Financial swap (through broker/bank) | Medium | ISDA + possible margin | Converts floating price to fixed on specified volume |
@@ -492,7 +492,7 @@ Savings: $15,512/year from 5 hours of load curtailment
 ### 5.2 Hedging Strategy by Risk Profile
 
 | Risk Profile | Hedge Ratio | Instruments | Monitoring |
-|-------------|-------------|-------------|-----------|
+|--|--|--|--|
 | Conservative (budget certainty paramount) | 80-95% hedged | Fixed-price contracts, financial swaps | Monthly mark-to-market review |
 | Moderate (balanced cost/risk) | 60-80% hedged | Block-and-index, layered procurement | Monthly forward curve review, quarterly hedge adjustment |
 | Aggressive (cost minimization focus) | 30-60% hedged | Index with call options for tail risk | Weekly market monitoring, daily during volatility events |
@@ -551,7 +551,7 @@ Acceptable renewable MWh sources (in order of additionality):
 ### 6.2 Cost-Effective Sustainability Procurement Path
 
 | Target RE% | Least-Cost Strategy |
-|-----------|-------------------|
+|--|--|
 | 0-25% | Unbundled national wind RECs ($1-3/MWh). Cheapest entry point. |
 | 25-50% | Utility green tariff + unbundled RECs. Green tariffs are often $0.005-$0.015/kWh premium. |
 | 50-75% | VPPA with new wind/solar project. Fixed cost, long-term REC supply, additionality. |
@@ -618,7 +618,7 @@ Natural gas procurement for C&I consumers (boilers, CHP, process heat, backup ge
 follows similar principles to electricity but with distinct market mechanics.
 
 | Structure | Description | Best For |
-|-----------|-------------|----------|
+|--|--|--|
 | Firm fixed-price | Locked $/therm or $/MMBtu for contract term | Budget certainty, large heating loads |
 | Index (first-of-month) | Monthly NYMEX Henry Hub settlement + basis + adder | Cost optimization, risk-tolerant buyers |
 | Index (daily) | Daily Gas Daily midpoint + basis + adder | High-flexibility loads, interruptible processes |
@@ -634,7 +634,7 @@ local city gate or utility delivery point.
 **Common basis differentials (approximate):**
 
 | Delivery Point | Typical Basis to Henry Hub | Driver |
-|---------------|--------------------------|--------|
+|--|--|--------|
 | Chicago (NGPL Midcontinent) | -$0.10 to +$0.15/MMBtu | Pipeline capacity from Gulf to Midwest |
 | New York (Transco Zone 6 NY) | +$0.50 to +$3.00/MMBtu | Winter constraint on pipelines into NYC |
 | New England (Algonquin) | +$1.00 to +$8.00/MMBtu (winter) | Severe pipeline constraints, competes with LNG |
@@ -704,7 +704,7 @@ Where:
 **Step 3: Compare annual totals.**
 
 | Rate Schedule | Annual Energy | Annual Demand | Annual Fixed | Annual Total | vs. Current |
-|--------------|--------------|---------------|-------------|-------------|-------------|
+|--|--|--|--|--|--|
 | Current (GS-3) | $580,000 | $312,000 | $24,000 | $916,000 | baseline |
 | TOU (GS-3-TOU) | $545,000 | $298,000 | $24,000 | $867,000 | -$49,000 (-5.3%) |
 | RTP pilot | $510,000 | $312,000 | $36,000 | $858,000 | -$58,000 (-6.3%) |
@@ -720,7 +720,7 @@ Where:
 **When to intervene in a rate case:**
 
 | Impact Level | Annual Cost Increase | Recommended Action |
-|-------------|---------------------|-------------------|
+|--|--|--|
 | <$50K | Negligible for large C&I | Monitor only — track filing through settlement |
 | $50K-$200K | Material but not critical | Join existing intervenor group (OIEC, etc.) |
 | $200K-$500K | Significant | Individual intervention with regulatory counsel |
@@ -785,7 +785,7 @@ your energy supply or operations:
 **Assessment framework:**
 
 | Event Type | Energy Impact | Procurement Response |
-|-----------|--------------|---------------------|
+|--|--|--|
 | Hurricane/severe weather | Physical damage to generation/T&D, price spikes | Activate backup generation, curtail non-essential load, document for insurance |
 | Grid emergency (EEA3) | Rolling blackouts, extreme prices | Maximum load curtailment, DR activation, generator deployment |
 | Supplier force majeure claim | Supplier attempts to suspend contract | Review FM clause narrowly — "market price increase" is NOT force majeure; "physical inability to deliver" may be |
@@ -836,7 +836,7 @@ A disciplined procurement calendar ensures no critical deadlines are missed and
 procurement activities align with market conditions.
 
 | Month | Activity | Deadline |
-|-------|----------|----------|
+|-------|--|--|
 | January | Annual energy budget review, lock natural gas hedges for next winter | Jan 31 for winter gas |
 | February | Q1 forward curve review, PPA pipeline assessment | — |
 | March | Begin RFP preparation for contracts expiring in Q4 or Q1 next year | — |

@@ -92,9 +92,9 @@ Edit copy through seven sequential passes, each focusing on one dimension. After
 **The So What test:**
 For every statement, ask "Okay, so what?" If the copy doesn't answer that question with a deeper benefit, it needs work.
 
-❌ "Our platform uses AI-powered analytics"
+ "Our platform uses AI-powered analytics"
 *So what?*
-✅ "Our AI-powered analytics surface insights you'd miss manually—so you can make better decisions in half the time"
+ "Our AI-powered analytics surface insights you'd miss manually—so you can make better decisions in half the time"
 
 **Common So What failures:**
 - Feature lists without benefit connections
@@ -160,7 +160,7 @@ For every statement, ask "Okay, so what?" If the copy doesn't answer that questi
 **Specificity upgrades:**
 
 | Vague | Specific |
-|-------|----------|
+|-------|--|
 | Save time | Save 4 hours every week |
 | Many customers | 2,847 teams |
 | Fast results | Results in 14 days |
@@ -435,7 +435,7 @@ If you need more context:
 ## When to Use Each Skill
 
 | Task | Skill to Use |
-|------|--------------|
+|------|--|
 | Writing new page copy from scratch | copywriting |
 | Reviewing and improving existing copy | copy-editing (this skill) |
 | Editing copy you just wrote | copy-editing (this skill) |

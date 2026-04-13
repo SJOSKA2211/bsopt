@@ -188,7 +188,7 @@ if (serverEvent is SessionUpdateResponseFunctionCallArgumentsDone functionCall)
 ## Voice Options
 
 | Voice Type | Class | Example |
-|------------|-------|---------|
+|--|-------|---------|
 | Azure Standard | `AzureStandardVoice` | `"en-US-AvaNeural"` |
 | Azure HD | `AzureStandardVoice` | `"en-US-Ava:DragonHDLatestNeural"` |
 | Azure Custom | `AzureCustomVoice` | Custom voice with endpoint ID |
@@ -196,7 +196,7 @@ if (serverEvent is SessionUpdateResponseFunctionCallArgumentsDone functionCall)
 ## Supported Models
 
 | Model | Description |
-|-------|-------------|
+|-------|--|
 | `gpt-4o-realtime-preview` | GPT-4o with real-time audio |
 | `gpt-4o-mini-realtime-preview` | Lightweight, fast interactions |
 | `phi4-mm-realtime` | Cost-effective multimodal |
@@ -259,7 +259,7 @@ if (serverEvent is SessionUpdateError error)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.AI.VoiceLive |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.ai.voicelive |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.VoiceLive |

@@ -58,7 +58,7 @@ Begin capturing packets on network interface:
 
 #### Capture Controls
 | Action | Shortcut | Description |
-|--------|----------|-------------|
+|--------|--|--|
 | Start/Stop Capture | Ctrl+E | Toggle capture on/off |
 | Restart Capture | Ctrl+R | Stop and start new capture |
 | Open PCAP File | Ctrl+O | Load existing capture file |
@@ -181,7 +181,7 @@ View complete TCP conversation:
 
 #### Stream Types
 | Stream | Access | Use Case |
-|--------|--------|----------|
+|--------|--------|--|
 | TCP Stream | Follow > TCP Stream | Web, file transfers, any TCP |
 | UDP Stream | Follow > UDP Stream | DNS, VoIP, streaming |
 | HTTP Stream | Follow > HTTP Stream | Web content, headers |
@@ -363,7 +363,7 @@ Categories:
 
 ### Keyboard Shortcuts
 | Action | Shortcut |
-|--------|----------|
+|--------|--|
 | Open file | Ctrl+O |
 | Save file | Ctrl+S |
 | Start/Stop capture | Ctrl+E |

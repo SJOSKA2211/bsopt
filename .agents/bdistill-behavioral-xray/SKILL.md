@@ -58,7 +58,7 @@ In any tool with MCP:
 ## Probe Dimensions
 
 | Dimension | What it measures |
-|-----------|-----------------|
+|--|--|
 | **tool_use** | When does it call tools vs. answer from knowledge? |
 | **refusal** | Where does it draw safety boundaries? Does it over-refuse? |
 | **formatting** | Lists vs. prose? Code blocks? Length calibration? |

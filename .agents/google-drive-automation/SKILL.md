@@ -102,7 +102,7 @@ python scripts/drive.py trash FILE_ID
 The search command supports multiple query formats:
 
 | Format | Example | Description |
-|--------|---------|-------------|
+|--------|---------|--|
 | Full-text | `"quarterly report"` | Searches file contents and names |
 | Title | `"title:budget"` | Searches file names only |
 | URL | `https://drive.google.com/...` | Extracts and uses file/folder ID |

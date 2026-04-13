@@ -106,13 +106,13 @@ Generates a security report with a score (0-10), platform target identification,
 
 ## Best Practices
 
-- ✅ Perform non-intrusive analysis
-- ✅ Check for privilege escalation patterns
-- ✅ Look for information disclosure vulnerabilities
-- ✅ Analyze cross-platform threats
-- ❌ Don't execute potentially malicious code during audit
-- ❌ Don't modify the code being audited
-- ❌ Don't ignore mobile-specific security concerns
+-  Perform non-intrusive analysis
+-  Check for privilege escalation patterns
+-  Look for information disclosure vulnerabilities
+-  Analyze cross-platform threats
+-  Don't execute potentially malicious code during audit
+-  Don't modify the code being audited
+-  Don't ignore mobile-specific security concerns
 
 ## Common Pitfalls
 

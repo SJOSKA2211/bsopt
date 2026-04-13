@@ -83,7 +83,7 @@ This structure prevents silent loss of file paths or decisions because each sect
 When to trigger compression matters as much as how to compress:
 
 | Strategy | Trigger Point | Trade-off |
-|----------|---------------|-----------|
+|--|--|--|
 | Fixed threshold | 70-80% context utilization | Simple but may compress too early |
 | Sliding window | Keep last N turns + summary | Predictable context size |
 | Importance-based | Compress low-relevance sections first | Complex but preserves signal |
@@ -98,7 +98,7 @@ Traditional metrics like ROUGE or embedding similarity fail to capture functiona
 Probe-based evaluation directly measures functional quality by asking questions after compression:
 
 | Probe Type | What It Tests | Example Question |
-|------------|---------------|------------------|
+|--|--|--|
 | Recall | Factual retention | "What was the original error message?" |
 | Artifact | File tracking | "Which files have we modified?" |
 | Continuation | Task planning | "What should we do next?" |
@@ -165,7 +165,7 @@ This is particularly important when the agent cannot distinguish essential compl
 ### Compression Ratio Considerations
 
 | Method | Compression Ratio | Quality Score | Trade-off |
-|--------|-------------------|---------------|-----------|
+|--------|--|--|--|
 | Anchored Iterative | 98.6% | 3.70 | Best quality, slightly less compression |
 | Regenerative | 98.7% | 3.44 | Good quality, moderate compression |
 | Opaque | 99.3% | 3.35 | Best compression, quality loss |

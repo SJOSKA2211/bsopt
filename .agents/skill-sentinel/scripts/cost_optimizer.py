@@ -21,7 +21,7 @@ def analyze(skill_data: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
     skill_name = skill_data["name"]
     skill_path = Path(skill_data["path"])
 
-    # -- 1. Tamanho do SKILL.md (impacto direto em context window) ---------------
+    # -- 1. Tamanho do SKILL.md (impacto direto em context window) --
     skill_md_lines = skill_data.get("skill_md_lines", 0)
 
     if skill_md_lines > 500:
@@ -59,7 +59,7 @@ def analyze(skill_data: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
             }
         )
 
-    # -- 2. References muito grandes ----------------------------------------------
+    # -- 2. References muito grandes --
     ref_dir = skill_path / "references"
     if ref_dir.exists():
         for ref_file in ref_dir.glob("*.md"):
@@ -86,7 +86,7 @@ def analyze(skill_data: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
                 )
                 score -= 3
 
-    # -- 3. Output verboso dos scripts --------------------------------------------
+    # -- 3. Output verboso dos scripts --
     for rel_path in skill_data.get("python_files", []):
         filepath = skill_path / rel_path
         if not filepath.exists():
@@ -122,7 +122,7 @@ def analyze(skill_data: dict[str, Any]) -> tuple[float, list[dict[str, Any]]]:
             )
             score -= 3
 
-    # -- 4. Verificar se scripts retornam JSON estruturado vs texto livre -----------
+    # -- 4. Verificar se scripts retornam JSON estruturado vs texto livre --
     has_json_output = False
     for rel_path in skill_data.get("python_files", []):
         filepath = skill_path / rel_path

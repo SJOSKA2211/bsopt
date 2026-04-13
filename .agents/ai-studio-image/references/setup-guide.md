@@ -59,7 +59,7 @@ python C:\Users\renat\skills\ai-studio-image\scripts\generate.py \
 ## 5. Modelos Disponiveis
 
 | Modelo | ID | Velocidade | Qualidade | Custo | Melhor Para |
-|--------|-----|-----------|-----------|-------|-------------|
+|--------|-----|--|--|-------|--|
 | imagen-4 | imagen-4.0-generate-001 | Medio | Alta | $0.03 | **Uso geral (recomendado)** |
 | imagen-4-ultra | imagen-4.0-ultra-generate-001 | Lento | Maxima | $0.06 | Alta qualidade, impressao |
 | imagen-4-fast | imagen-4.0-fast-generate-001 | Rapido | Boa | $0.02 | Volume alto, iteracao rapida |
@@ -84,7 +84,7 @@ python C:\Users\renat\skills\ai-studio-image\scripts\generate.py \
 ## 7. Niveis de Humanizacao
 
 | Nivel | Descricao | Quando Usar |
-|-------|-----------|-------------|
+|-------|--|--|
 | ultra | Parece celular amador | Conteudo muito casual, BTS |
 | natural | Celular moderno, equilibrado | **Padrao — maioria dos casos** |
 | polished | Natural mas caprichado | Conteudo profissional |

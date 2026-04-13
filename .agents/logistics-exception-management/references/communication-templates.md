@@ -917,7 +917,7 @@ Neutral and analytical. This is a post-mortem, not a complaint. State what happe
 
 ```
 EXCEPTION POST-RESOLUTION SUMMARY
-====================================
+==
 
 Exception Reference:  {{our_claim_ref}}
 Status:               CLOSED — {{closure_date}}
@@ -979,7 +979,7 @@ Distribution:         {{distribution_list}}
    {{improvement_2}} — Owner: {{owner_2}} — Due: {{due_date_2}}
    {{improvement_3}} — Owner: {{owner_3}} — Due: {{due_date_3}}
 
-====================================
+==
 Filed in: {{document_management_location}}
 ```
 

@@ -197,7 +197,7 @@ Brief templates below. Full versions with variables in [communication-templates.
 ### Automatic Escalation Triggers
 
 | Trigger                                         | Action                                                    | Timeline          |
-| ----------------------------------------------- | --------------------------------------------------------- | ----------------- |
+| -- | -- | -- |
 | CBP detention or seizure                        | Notify VP and legal counsel                               | Within 1 hour     |
 | Restricted party screening true positive        | Halt transaction, notify compliance officer and legal     | Immediately       |
 | Potential penalty exposure > $50,000            | Notify VP Trade Compliance and General Counsel            | Within 2 hours    |
@@ -216,7 +216,7 @@ Level 1 (Analyst) → Level 2 (Trade Compliance Manager, 4 hours) → Level 3 (D
 Track these metrics monthly and trend quarterly:
 
 | Metric                                       | Target       | Red Flag                       |
-| -------------------------------------------- | ------------ | ------------------------------ |
+| -- | -- | -- |
 | Classification accuracy (post-audit)         | > 98%        | < 95%                          |
 | FTA utilisation rate (eligible shipments)    | > 90%        | < 70%                          |
 | Entry rejection rate                         | < 2%         | > 5%                           |

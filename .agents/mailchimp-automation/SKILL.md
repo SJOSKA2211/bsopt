@@ -205,7 +205,7 @@ subscriber_hash = hashlib.md5(email.lower().encode()).hexdigest()
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List audiences | `MAILCHIMP_GET_LISTS_INFO` | `count`, `offset` |
 | Get audience details | `MAILCHIMP_GET_LIST_INFO` | `list_id` |
 | Create campaign | `MAILCHIMP_ADD_CAMPAIGN` | `type`, `recipients__list__id`, `settings__subject__line` |

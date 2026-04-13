@@ -39,7 +39,7 @@ Structure for maintainable Telegram bots
 
 ### Stack Options
 | Language | Library | Best For |
-|----------|---------|----------|
+|--|---------|--|
 | Node.js | telegraf | Most projects |
 | Node.js | grammY | TypeScript, modern |
 | Python | python-telegram-bot | Quick prototypes |
@@ -119,7 +119,7 @@ bot.action('opt_1', (ctx) => {
 
 ### Keyboard Patterns
 | Pattern | Use Case |
-|---------|----------|
+|---------|--|
 | Single column | Simple menus |
 | Multi column | Yes/No, pagination |
 | Grid | Category selection |
@@ -155,7 +155,7 @@ Making money from Telegram bots
 
 ### Revenue Models
 | Model | Example | Complexity |
-|-------|---------|------------|
+|-------|---------|--|
 | Freemium | Free basic, paid premium | Medium |
 | Subscription | Monthly access | Medium |
 | Per-use | Pay per action | Low |
@@ -181,7 +181,7 @@ bot.on('successful_payment', (ctx) => {
   const payment = ctx.message.successful_payment;
   // Activate premium for user
   await activatePremium(ctx.from.id);
-  ctx.reply('🎉 Premium activated!');
+  ctx.reply(' Premium activated!');
 });
 ```
 
@@ -215,7 +215,7 @@ async function checkUsage(userId) {
 
 ## Anti-Patterns
 
-### ❌ Blocking Operations
+###  Blocking Operations
 
 **Why bad**: Telegram has timeout limits.
 Users think bot is dead.
@@ -227,7 +227,7 @@ Process in background.
 Send update when done.
 Use typing indicator.
 
-### ❌ No Error Handling
+###  No Error Handling
 
 **Why bad**: Users get no response.
 Bot appears broken.
@@ -239,7 +239,7 @@ Graceful error messages.
 Log errors for debugging.
 Rate limiting.
 
-### ❌ Spammy Bot
+###  Spammy Bot
 
 **Why bad**: Users block the bot.
 Telegram may ban.

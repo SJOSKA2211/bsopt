@@ -429,7 +429,7 @@ status = "200-299,301,302,307,401,403,405,500"
 ## Quick Reference Card
 
 | Task | Command Template |
-|------|------------------|
+|------|--|
 | Directory Discovery | `ffuf -w wordlist.txt -u https://target.com/FUZZ -ac` |
 | Subdomain Discovery | `ffuf -w subdomains.txt -u https://FUZZ.target.com -ac` |
 | Parameter Fuzzing | `ffuf -w params.txt -u https://target.com/page?FUZZ=value -ac` |

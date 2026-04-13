@@ -11,4 +11,4 @@ echo "Compiling Protobuf schemas..."
 python -m grpc_tools.protoc -I. --python_out=. src.shared/shared/utils/schemas.proto
 
 echo "Setup complete!"
-echo "💡 TIP: Use ./bootstrap.sh for full containerized stack initialization."
+echo " TIP: Use ./bootstrap.sh for full containerized stack initialization."

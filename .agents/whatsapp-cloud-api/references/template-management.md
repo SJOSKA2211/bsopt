@@ -36,7 +36,7 @@ Templates sao mensagens pre-aprovadas pela WhatsApp. Sao a **unica forma** de in
 ## Categorias de Templates
 
 | Categoria      | Uso                                          | Custo              |
-|----------------|----------------------------------------------|---------------------|
+|--|--|--|
 | MARKETING      | Promocoes, campanhas, lancamentos             | $0.025-$0.1365/msg  |
 | UTILITY        | Confirmacoes de pedido, atualizacoes, tracking| $0.004-$0.0456/msg  |
 | AUTHENTICATION | OTP, reset de senha, verificacao em 2 etapas  | $0.004-$0.0456/msg  |
@@ -135,7 +135,7 @@ await create_template(
     components=[
         {
             "type": "BODY",
-            "text": "Ola {{1}}, bem-vindo a nossa loja! 🎉\n\nConfira nossas ofertas exclusivas.",
+            "text": "Ola {{1}}, bem-vindo a nossa loja! \n\nConfira nossas ofertas exclusivas.",
             "example": {"body_text": [["Maria"]]}
         },
         {
@@ -202,7 +202,7 @@ async def list_templates(status: str | None = None) -> list[dict]:
 ### Status de Template
 
 | Status     | Significado                          |
-|------------|--------------------------------------|
+|--|--|
 | APPROVED   | Aprovado e pronto para uso           |
 | PENDING    | Em revisao pela WhatsApp             |
 | REJECTED   | Rejeitado (ver motivo na response)   |

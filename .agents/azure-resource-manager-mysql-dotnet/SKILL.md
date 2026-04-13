@@ -301,7 +301,7 @@ await server.DeleteAsync(WaitUntil.Completed);
 ## SKU Tiers
 
 | Tier | Use Case | SKU Examples |
-|------|----------|--------------|
+|------|--|--|
 | `Burstable` | Dev/test, light workloads | Standard_B1ms, Standard_B2s |
 | `GeneralPurpose` | Production workloads | Standard_D2ds_v4, Standard_D4ds_v4 |
 | `MemoryOptimized` | High memory requirements | Standard_E2ds_v4, Standard_E4ds_v4 |
@@ -309,7 +309,7 @@ await server.DeleteAsync(WaitUntil.Completed);
 ## High Availability Modes
 
 | Mode | Description |
-|------|-------------|
+|------|--|
 | `Disabled` | No HA (single server) |
 | `SameZone` | HA within same availability zone |
 | `ZoneRedundant` | HA across availability zones |
@@ -386,7 +386,7 @@ string connectionString = $"Server={server.Data.FullyQualifiedDomainName};" +
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.ResourceManager.MySql |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.resourcemanager.mysql |
 | Product Documentation | https://learn.microsoft.com/azure/mysql/flexible-server/ |

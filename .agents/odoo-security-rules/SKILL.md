@@ -76,13 +76,13 @@ access_hospital_patient_manager,hospital.patient.manager,model_hospital_patient,
 
 ## Best Practices
 
-- ✅ **Do:** Start with the most restrictive access and open up as needed.
-- ✅ **Do:** Use `company_ids` (plural) in multi-company rules — it includes all companies the user belongs to.
-- ✅ **Do:** Test rules using a non-admin user in debug mode — `sudo()` bypasses all record rules entirely.
-- ✅ **Do:** Create dedicated security groups per module rather than reusing core Odoo groups.
-- ❌ **Don't:** Give `perm_unlink = 1` to regular users unless deletion is explicitly required by the business process.
-- ❌ **Don't:** Leave `group_id` blank in `ir.model.access.csv` unless you intend to grant public (unauthenticated) access.
-- ❌ **Don't:** Use `base.group_system` for module managers — that grants full technical access including server configurations.
+-  **Do:** Start with the most restrictive access and open up as needed.
+-  **Do:** Use `company_ids` (plural) in multi-company rules — it includes all companies the user belongs to.
+-  **Do:** Test rules using a non-admin user in debug mode — `sudo()` bypasses all record rules entirely.
+-  **Do:** Create dedicated security groups per module rather than reusing core Odoo groups.
+-  **Don't:** Give `perm_unlink = 1` to regular users unless deletion is explicitly required by the business process.
+-  **Don't:** Leave `group_id` blank in `ir.model.access.csv` unless you intend to grant public (unauthenticated) access.
+-  **Don't:** Use `base.group_system` for module managers — that grants full technical access including server configurations.
 
 ## Limitations
 

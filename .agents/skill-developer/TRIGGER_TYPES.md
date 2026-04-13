@@ -262,21 +262,21 @@ useState|useEffect              # React hooks
 ## Best Practices Summary
 
 ### DO:
-✅ Use specific, unambiguous keywords
-✅ Test all patterns with real examples
-✅ Include common variations
-✅ Use non-greedy regex: `.*?`
-✅ Escape special characters in content patterns
-✅ Add exclusions for test files
-✅ Make file path patterns narrow and specific
+ Use specific, unambiguous keywords
+ Test all patterns with real examples
+ Include common variations
+ Use non-greedy regex: `.*?`
+ Escape special characters in content patterns
+ Add exclusions for test files
+ Make file path patterns narrow and specific
 
 ### DON'T:
-❌ Use overly generic keywords ("system", "work")
-❌ Make intent patterns too broad (false positives)
-❌ Make patterns too specific (false negatives)
-❌ Forget to test with regex tester (https://regex101.com/)
-❌ Use greedy regex: `.*` instead of `.*?`
-❌ Match too broadly in file paths
+ Use overly generic keywords ("system", "work")
+ Make intent patterns too broad (false positives)
+ Make patterns too specific (false negatives)
+ Forget to test with regex tester (https://regex101.com/)
+ Use greedy regex: `.*` instead of `.*?`
+ Match too broadly in file paths
 
 ### Testing Your Triggers
 

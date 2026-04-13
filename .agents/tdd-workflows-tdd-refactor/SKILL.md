@@ -120,11 +120,11 @@ Prompt: "Refactor this code while keeping all tests green: $ARGUMENTS. Apply TDD
 ## Safety Checklist
 
 Before committing:
-- ✓ All tests pass (100% green)
-- ✓ No functionality regression
-- ✓ Performance metrics acceptable
-- ✓ Code coverage maintained/improved
-- ✓ Documentation updated
+-  All tests pass (100% green)
+-  No functionality regression
+-  Performance metrics acceptable
+-  Code coverage maintained/improved
+-  Documentation updated
 
 ## Recovery Protocol
 

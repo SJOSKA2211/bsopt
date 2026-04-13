@@ -49,7 +49,7 @@ set -e
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$' || true)
 
 if [ -n "$STAGED_FILES" ]; then
-  echo "🔍 Linting staged files..."
+  echo " Linting staged files..."
   echo "$STAGED_FILES" | xargs npx eslint --fix
   echo "$STAGED_FILES" | xargs git add  # Re-stage after fixes
 fi
@@ -229,13 +229,13 @@ echo "=== Pre-Commit Checks ==="
 # 1. Prevent commits to main/master
 BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
 if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-  echo "❌ Direct commits to $BRANCH are not allowed. Use a feature branch."
+  echo " Direct commits to $BRANCH are not allowed. Use a feature branch."
   exit 1
 fi
 
 # 2. Check for debugging artifacts
 if git diff --cached --diff-filter=ACM | grep -nE '(console\.log|debugger|binding\.pry|import pdb)' > /dev/null 2>&1; then
-  echo "⚠️  Debug statements found in staged files:"
+  echo "️  Debug statements found in staged files:"
   git diff --cached --diff-filter=ACM | grep -nE '(console\.log|debugger|binding\.pry|import pdb)'
   echo "Remove them or use git commit --no-verify to bypass."
   exit 1
@@ -247,18 +247,18 @@ LARGE_FILES=$(git diff --cached --name-only --diff-filter=ACM | while read f; do
   if [ "$size" -gt 1048576 ]; then echo "$f ($((size/1024))KB)"; fi
 done)
 if [ -n "$LARGE_FILES" ]; then
-  echo "❌ Large files detected:"
+  echo " Large files detected:"
   echo "$LARGE_FILES"
   exit 1
 fi
 
 # 4. Check for secrets patterns
 if git diff --cached --diff-filter=ACM | grep -nEi '(AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{48}|ghp_[a-zA-Z0-9]{36}|password\s*=\s*["\x27][^"\x27]+["\x27])' > /dev/null 2>&1; then
-  echo "🚨 Potential secrets detected in staged changes! Review before committing."
+  echo " Potential secrets detected in staged changes! Review before committing."
   exit 1
 fi
 
-echo "✅ All pre-commit checks passed"
+echo " All pre-commit checks passed"
 ```
 
 ### Share Custom Hooks via `core.hooksPath`
@@ -328,14 +328,14 @@ jobs:
 ### Performance Issues
 
 ```json
-// ❌ Slow: runs on ALL files every commit
+//  Slow: runs on ALL files every commit
 {
   "scripts": {
     "precommit": "eslint src/ && prettier --write src/"
   }
 }
 
-// ✅ Fast: lint-staged runs ONLY on staged files
+//  Fast: lint-staged runs ONLY on staged files
 {
   "lint-staged": {
     "*.{js,ts}": ["eslint --fix", "prettier --write"]

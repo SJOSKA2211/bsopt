@@ -216,7 +216,7 @@ Automate Supabase operations including database queries, table schema inspection
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List organizations | `SUPABASE_LIST_ALL_ORGANIZATIONS` | (none) |
 | Get org info | `SUPABASE_GETS_INFORMATION_ABOUT_THE_ORGANIZATION` | `slug` |
 | List org members | `SUPABASE_LIST_MEMBERS_OF_AN_ORGANIZATION` | `slug` |

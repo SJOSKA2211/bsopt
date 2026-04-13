@@ -25,7 +25,7 @@ Include:
 ## Pagination Types
 
 | Type | Best For | Trade-offs |
-|------|----------|------------|
+|------|--|--|
 | **Offset** | Simple, jumpable | Performance on large datasets |
 | **Cursor** | Large datasets | Can't jump to page |
 | **Keyset** | Performance critical | Requires sortable key |

@@ -8,13 +8,13 @@ cd "$PROJECT_ROOT"
 source scripts/utils_env.sh
 detect_container_engine
 
-echo "🚀 Launching BSOPT Production Ecosystem..."
+echo " Launching BSOPT Production Ecosystem..."
 
 # 1. Base PKI
 bash scripts/setup_pki.sh
 
 # 2. Core Infrastructure (Sequential health check)
-echo "📦 Starting Core Infrastructure..."
+echo " Starting Core Infrastructure..."
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio otel-collector
 
 check_docker_health() {
@@ -26,11 +26,11 @@ check_docker_health() {
         ((retries--))
     done
     if [ $retries -eq 0 ]; then
-        echo "❌ Fatal: $service failed to reach healthy state."
+        echo " Fatal: $service failed to reach healthy state."
         $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml logs "$service" | tail -n 20
         exit 1
     fi
-    echo "✅ $service is Stable."
+    echo " $service is Stable."
 }
 
 # Core components with built-in healthchecks
@@ -44,7 +44,7 @@ bash scripts/run_ray_head.sh
 
 # 4. Domain Services (Python based)
 # Inject BSOPT_ALLOW_WEAK_SECRETS=True to bypass 32-char restriction in this environment
-echo "🛠️ Starting Domain Services..."
+echo "️ Starting Domain Services..."
 export BSOPT_ALLOW_WEAK_SECRETS=True
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml up -d auth-service api ml-inference neural-pricing mlflow
 
@@ -55,7 +55,7 @@ RETRY_COUNT=0
 export PYTHONPATH=$(pwd):$(pwd)/src
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if python3 scripts/verify_readiness.py; then
-        echo "🎉 SYSTEM GREEN - ALL SYSTEMS OPERATIONAL."
+        echo " SYSTEM GREEN - ALL SYSTEMS OPERATIONAL."
         exit 0
     fi
     echo "🟠 Waiting for service mesh stabilization... ($RETRY_COUNT/$MAX_RETRIES)"
@@ -63,5 +63,5 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     ((RETRY_COUNT++))
 done
 
-echo "❌ Fatal: Stack failed readiness audit."
+echo " Fatal: Stack failed readiness audit."
 exit 1

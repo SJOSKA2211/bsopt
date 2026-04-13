@@ -95,7 +95,7 @@ MOAT:
 ```
 
 **Real proof:** This specific technique fixed a test case that failed 5 consecutive times
-across all models. The label `new-api:` raised Codex T5 from ❌→✅ on first try.
+across all models. The label `new-api:` raised Codex T5 from → on first try.
 
 ---
 
@@ -159,7 +159,7 @@ Every atomic rule gets a label that declares its function.
 I use a standard vocabulary of ~12 label types:
 
 | Label | What It Declares | When to Use |
-|-------|-----------------|-------------|
+|-------|--|--|
 | `trigger:` | What input activates this | Every gate/rule needs one |
 | `action:` | What the AI must do | The core behavior |
 | `exception:` | When NOT to do it | Override cases |
@@ -273,7 +273,7 @@ The whole point of AI.MD is that it works ACROSS models.
 3. Include "negative" tests where a rule should NOT trigger
 4. DO NOT hint which rules are being tested (the AI shouldn't know)
 5. Run each model independently
-6. Score each answer: ✅ full compliance, ⚠️ partial, ❌ miss
+6. Score each answer:  full compliance, ️ partial,  miss
 7. If ANY model's score drops after conversion → revert that specific change
 
 **The 8-question template we used:**
@@ -484,7 +484,7 @@ how system evolves over time
 ## Anti-Patterns
 
 | Don't | Do Instead | Why |
-|-------|------------|-----|
+|-------|--|-----|
 | Human prose in CLAUDE.md | Structured labels | Prose requires inference; labels are direct |
 | Multiple rules on one line | One concept per line | Attention splits across dense lines |
 | Parenthetical explanations | Remove them | AI needs "what" not "why" |
@@ -502,7 +502,7 @@ how system evolves over time
 Tested 2026-03, washinmura.jp CLAUDE.md, 5 rounds, 4 models:
 
 | Round | Change | Codex (GPT-5.3) | Gemini 2.5 Pro | Claude Opus 4.6 |
-|-------|--------|-----------------|----------------|-----------------|
+|-------|--------|--|--|--|
 | R1 (baseline prose) | — | 8/8 | 7/8 | 8/8 |
 | R2 (added rules) | +gates +examples | 7/8 | 6/8 | — |
 | R3 (refined prose) | +exceptions +non-triggers | 6/8 | 6.5/8 | — |

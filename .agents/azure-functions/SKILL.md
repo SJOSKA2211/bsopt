@@ -24,16 +24,16 @@ Decorator-based approach for Python functions
 
 ## Anti-Patterns
 
-### ❌ Blocking Async Calls
+###  Blocking Async Calls
 
-### ❌ New HttpClient Per Request
+###  New HttpClient Per Request
 
-### ❌ In-Process Model for New Projects
+###  In-Process Model for New Projects
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | high | ## Use async pattern with Durable Functions |
 | Issue | high | ## Use IHttpClientFactory (Recommended) |
 | Issue | high | ## Always use async/await |

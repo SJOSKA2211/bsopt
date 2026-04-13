@@ -293,12 +293,12 @@ Stitch provides multiple export formats:
 
 ## Anti-Patterns to Avoid
 
-### ❌ Vague Prompts
+###  Vague Prompts
 ```
 Make a nice website
 ```
 
-### ✅ Specific Prompts
+###  Specific Prompts
 ```
 Portfolio website for photographer with full-screen image gallery, 
 project case studies, and contact form. Minimalist black and white 
@@ -307,12 +307,12 @@ aesthetic with serif typography.
 
 ---
 
-### ❌ Missing Context
+###  Missing Context
 ```
 Create a login page
 ```
 
-### ✅ Context-Rich Prompts
+###  Context-Rich Prompts
 ```
 Login page for healthcare portal with email/password fields, 
 "Remember me" checkbox, "Forgot password" link, and SSO options 
@@ -322,12 +322,12 @@ blue medical theme.
 
 ---
 
-### ❌ No Visual Direction
+###  No Visual Direction
 ```
 Design an app for task management
 ```
 
-### ✅ Clear Visual Direction
+###  Clear Visual Direction
 ```
 Task management app with kanban board layout, drag-and-drop cards, 
 priority labels, and due date indicators. Modern, productivity-focused 

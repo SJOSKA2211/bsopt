@@ -214,7 +214,7 @@ logs("service:web status:error").index("main").rollup("count").last("5m") > 10
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Query metrics | DATADOG_QUERY_METRICS | query, from, to |
 | List metrics | DATADOG_LIST_METRICS | q |
 | Search logs | DATADOG_SEARCH_LOGS | query, from, to, limit |

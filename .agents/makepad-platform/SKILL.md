@@ -38,7 +38,7 @@ Refer to the local files for detailed documentation:
 ## Supported Platforms
 
 | Platform | Graphics Backend | OS Module |
-|----------|------------------|-----------|
+|--|--|--|
 | macOS | Metal | `apple/metal_*.rs`, `apple/cocoa_*.rs` |
 | iOS | Metal | `apple/metal_*.rs`, `apple/ios_*.rs` |
 | Windows | D3D11 | `mswindows/d3d11_*.rs`, `mswindows/win32_*.rs` |

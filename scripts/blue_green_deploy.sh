@@ -10,11 +10,11 @@ COLOR_GREEN="green"
 CURRENT_COLOR=$(curl -s http://localhost:8080/health | jq -r .env_color || echo "blue")
 NEW_COLOR=$([[ "$CURRENT_COLOR" == "blue" ]] && echo "green" || echo "blue")
 
-echo "🚀 Starting Blue-Green Deployment: [Current: $CURRENT_COLOR] -> [Target: $NEW_COLOR]"
+echo " Starting Blue-Green Deployment: [Current: $CURRENT_COLOR] -> [Target: $NEW_COLOR]"
 
 # 2. Spin up the NEW stack
 # We use a suffix for src in the compose file or manage multiple projects
-echo "🏗️ Building and starting $NEW_COLOR stack..."
+echo "️ Building and starting $NEW_COLOR stack..."
 export ENV_COLOR=$NEW_COLOR
 docker compose -p "bsopt-$NEW_COLOR" up -d --build
 
@@ -35,16 +35,16 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 
 if [ "$HEALTHY" = false ]; then
-    echo "❌ $NEW_COLOR stack health check FAILED. Rolling back..."
+    echo " $NEW_COLOR stack health check FAILED. Rolling back..."
     docker compose -p "bsopt-$NEW_COLOR" down
     exit 1
 fi
 
 # 4. Traffic Switch (Envoy Hot-Reload)
-echo "🔄 Switching traffic to $NEW_COLOR stack..."
+echo " Switching traffic to $NEW_COLOR stack..."
 # Ensure health checks are solid before switch
 if ! curl -s "http://localhost:$( [[ $NEW_COLOR == "green" ]] && echo "5002" || echo "5001" )/ready" | grep -q "ready"; then
-    echo "❌ $NEW_COLOR stack is NOT ready for traffic. Aborting."
+    echo " $NEW_COLOR stack is NOT ready for traffic. Aborting."
     exit 1
 fi
 
@@ -57,4 +57,4 @@ echo "🧹 Deployment successful. $NEW_COLOR is now LIVE."
 echo "Blue stack (bsopt-$CURRENT_COLOR) will be retained for 300s for emergency rollback."
 sleep 300
 docker compose -p "bsopt-$CURRENT_COLOR" down
-echo "✅ Finished. $CURRENT_COLOR stack decommissioned."
+echo " Finished. $CURRENT_COLOR stack decommissioned."

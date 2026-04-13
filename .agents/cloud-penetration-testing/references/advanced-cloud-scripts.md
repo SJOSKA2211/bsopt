@@ -311,7 +311,7 @@ az rest --method POST --uri https://graph.microsoft.com/v1.0/roleManagement/dire
 ## Vulnerable Training Environments
 
 | Platform | URL | Purpose |
-|----------|-----|---------|
+|--|-----|---------|
 | CloudGoat | github.com/RhinoSecurityLabs/cloudgoat | AWS vulnerable lab |
 | SadCloud | github.com/nccgroup/sadcloud | Terraform misconfigs |
 | Flaws Cloud | flaws.cloud | AWS CTF challenges |

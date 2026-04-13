@@ -43,7 +43,7 @@ def generate_report(
     now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     lines: list[str] = []
 
-    # -- Header ----------------------------------------------------------------
+    # -- Header --
     lines.append("# Relatorio Sentinel - Auditoria do Ecossistema de Skills")
     lines.append("")
     lines.append(f"**Data:** {now}")
@@ -53,14 +53,14 @@ def generate_report(
     lines.append("---")
     lines.append("")
 
-    # -- Resumo Executivo (tabela) ---------------------------------------------
+    # -- Resumo Executivo (tabela) --
     lines.append("## Resumo Executivo")
     lines.append("")
     lines.append(
         "| Skill | Score | Qualidade | Seguranca | Performance | Governanca | Docs | Deps |"
     )
     lines.append(
-        "|-------|-------|-----------|-----------|-------------|------------|------|------|"
+        "|-------|-------|--|--|--|--|------|------|"
     )
 
     for snap in sorted(snapshots, key=lambda s: -(s.get("overall_score") or 0)):
@@ -76,7 +76,7 @@ def generate_report(
 
     lines.append("")
 
-    # -- Tendencias (se houver dados anteriores) --------------------------------
+    # -- Tendencias (se houver dados anteriores) --
     if previous_snapshots:
         lines.append("## Tendencias")
         lines.append("")
@@ -97,7 +97,7 @@ def generate_report(
                 lines.append(f"- **{name}**: {prev_score:.0f} -> {curr_score:.0f} ({trend})")
         lines.append("")
 
-    # -- Findings por Severidade ------------------------------------------------
+    # -- Findings por Severidade --
     lines.append("## Findings por Severidade")
     lines.append("")
 
@@ -137,7 +137,7 @@ def generate_report(
                 lines.append(f"  - Local: `{loc}`")
         lines.append("")
 
-    # -- Analise por Skill -----------------------------------------------------
+    # -- Analise por Skill --
     lines.append("## Analise por Skill")
     lines.append("")
 
@@ -173,7 +173,7 @@ def generate_report(
             lines.append("  Nenhum finding significativo.")
         lines.append("")
 
-    # -- Recomendacoes de Novas Skills -----------------------------------------
+    # -- Recomendacoes de Novas Skills --
     if recommendations:
         lines.append("## Recomendacoes de Novas Skills")
         lines.append("")
@@ -192,7 +192,7 @@ def generate_report(
                 lines.append(f"**Capacidades:** {', '.join(caps)}")
                 lines.append("")
 
-    # -- Plano de Acao Priorizado ----------------------------------------------
+    # -- Plano de Acao Priorizado --
     lines.append("## Plano de Acao Priorizado")
     lines.append("")
 
@@ -210,7 +210,7 @@ def generate_report(
 
     if actionable:
         lines.append("| # | Severidade | Skill | Acao | Esforco |")
-        lines.append("|---|-----------|-------|------|---------|")
+        lines.append("|---|--|-------|------|---------|")
         for i, f in enumerate(actionable[:20], 1):
             sev = f.get("severity", "?")
             skill = f.get("skill_name", "?")

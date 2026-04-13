@@ -136,7 +136,7 @@ Assign these Key Vault roles:
 ## Reference Links
 
 | Resource | Link |
-|----------|------|
+|--|------|
 | API Reference | https://docs.rs/azure_security_keyvault_secrets |
 | Source Code | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/keyvault/azure_security_keyvault_secrets |
 | crates.io | https://crates.io/crates/azure_security_keyvault_secrets |

@@ -5,7 +5,7 @@ Infrastructure provisioning and deployment instructions for all supported platfo
 ## Deployment Decision Matrix
 
 | Criteria | Vercel/Netlify | Railway/Render | AWS | GCP | Azure |
-|----------|----------------|----------------|-----|-----|-------|
+|--|--|--|-----|-----|-------|
 | Static/JAMstack | Best | Good | Overkill | Overkill | Overkill |
 | Simple full-stack | Good | Best | Overkill | Overkill | Overkill |
 | Scale to millions | No | Limited | Best | Best | Best |

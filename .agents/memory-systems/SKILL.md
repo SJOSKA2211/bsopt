@@ -55,7 +55,7 @@ Temporal knowledge graphs add validity periods to facts. Each fact has a "valid 
 The Deep Memory Retrieval (DMR) benchmark provides concrete performance data across memory architectures:
 
 | Memory System | DMR Accuracy | Retrieval Latency | Notes |
-|---------------|--------------|-------------------|-------|
+|--|--|--|-------|
 | Zep (Temporal KG) | 94.8% | 2.58s | Best accuracy, fast retrieval |
 | MemGPT | 93.4% | Variable | Good general performance |
 | GraphRAG | ~75-85% | Variable | 20-35% gains over baseline RAG |

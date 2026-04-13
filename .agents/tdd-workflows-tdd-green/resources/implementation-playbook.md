@@ -83,12 +83,12 @@ Prompt: "Implement MINIMAL code to make these failing tests pass: $ARGUMENTS. Fo
    - Synchronous before asynchronous implementation
 
 7. **Success Criteria**
-   ✓ All tests pass (green)
-   ✓ No extra functionality beyond test requirements
-   ✓ Code is readable even if not optimal
-   ✓ No broken existing functionality
-   ✓ Implementation time is minimized
-   ✓ Clear path to refactoring identified
+    All tests pass (green)
+    No extra functionality beyond test requirements
+    Code is readable even if not optimal
+    No broken existing functionality
+    Implementation time is minimized
+    Clear path to refactoring identified
 
 8. **Anti-Patterns to Avoid**
    - Gold plating or adding unrequested features
@@ -478,13 +478,13 @@ function calculateShipping(weight: number, distance: number, express: boolean): 
 
 **Green Phase: Focus on Correctness**
 ```
-❌ Avoid:
+ Avoid:
 - Caching strategies
 - Database query optimization
 - Algorithmic complexity improvements
 - Premature memory optimization
 
-✓ Accept:
+ Accept:
 - O(n²) if it makes code simpler
 - Multiple database queries
 - Synchronous operations
@@ -725,11 +725,11 @@ def calculate_discount(price, customer_type):
 ```
 
 **Safe Refactoring Checklist:**
-- ✓ Tests green before refactoring
-- ✓ Change one thing at a time
-- ✓ Run tests after each change
-- ✓ Commit after each successful refactor
-- ✓ No behavior changes, only structure
+-  Tests green before refactoring
+-  Change one thing at a time
+-  Run tests after each change
+-  Commit after each successful refactor
+-  No behavior changes, only structure
 
 ## Modern Development Practices (2024/2025)
 

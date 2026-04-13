@@ -29,7 +29,7 @@ Specific, timely observations about that person connected to the problem you sol
 ## Research Signal Stack
 
 | Signal            | Where to find it                   | How to use it                                                                |
-| ----------------- | ---------------------------------- | ---------------------------------------------------------------------------- |
+| -- | -- | -- |
 | Recent funding    | Crunchbase, LinkedIn, press        | "Congrats on Series B — scaling teams fast usually creates X challenge"      |
 | Job postings      | LinkedIn Jobs, careers page        | "Noticed you're hiring 3 SDRs — sounds like you're scaling outbound"         |
 | Tech stack        | BuiltWith, Wappalyzer, HG Insights | "I see you're using HubSpot — most teams at your stage hit a ceiling with X" |

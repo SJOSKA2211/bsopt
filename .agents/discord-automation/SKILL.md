@@ -165,7 +165,7 @@ Permissions are combined using bitwise OR:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List guilds | DISCORD_LIST_MY_GUILDS | (none) |
 | List channels | DISCORDBOT_LIST_GUILD_CHANNELS | guild_id |
 | Send message | DISCORDBOT_CREATE_MESSAGE | channel_id, content |

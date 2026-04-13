@@ -105,7 +105,7 @@ def rag_query(query, top_k=5, system=None):
 ## Escolha Do Vector Db
 
 | DB | Melhor Para | Hosting | Custo |
-|----|------------|---------|-------|
+|----|--|---------|-------|
 | Chroma | Desenvolvimento, local | Self-hosted | Gratis |
 | pgvector | Ja usa PostgreSQL | Self/Cloud | Gratis |
 | Pinecone | Producao gerenciada | Cloud | USD 70+/mes |

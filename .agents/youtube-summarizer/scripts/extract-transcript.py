@@ -20,13 +20,13 @@ def extract_transcript(video_id, language="en"):
         return full_text
 
     except TranscriptsDisabled:
-        print(f"❌ Transcripts are disabled for video {video_id}", file=sys.stderr)
+        print(f" Transcripts are disabled for video {video_id}", file=sys.stderr)
         sys.exit(1)
     except NoTranscriptFound:
-        print(f"❌ No transcript found for video {video_id}", file=sys.stderr)
+        print(f" No transcript found for video {video_id}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error: {e}", file=sys.stderr)
+        print(f" Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -34,7 +34,7 @@ def list_available_transcripts(video_id):
     """List all available transcripts for a video"""
     try:
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        print(f"✅ Available transcripts for {video_id}:")
+        print(f" Available transcripts for {video_id}:")
 
         for transcript in transcript_list:
             generated = "[Auto-generated]" if transcript.is_generated else "[Manual]"
@@ -45,7 +45,7 @@ def list_available_transcripts(video_id):
 
         return True
     except Exception as e:
-        print(f"❌ Error listing transcripts: {e}", file=sys.stderr)
+        print(f" Error listing transcripts: {e}", file=sys.stderr)
         return False
 
 

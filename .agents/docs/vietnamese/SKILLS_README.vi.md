@@ -10,7 +10,7 @@ Kỹ năng là các bộ hướng dẫn chuyên biệt dạy trợ lý AI cách 
 
 ---
 
-## 📂 Cấu trúc Thư mục
+##  Cấu trúc Thư mục
 
 Mỗi kỹ năng nằm trong thư mục riêng với cấu trúc sau:
 
@@ -67,7 +67,7 @@ Xem [README chính](../README.vi.md) để biết danh sách đầy đủ tất 
 
 ---
 
-## 💡 Các Kỹ năng Phổ biến để Thử nghiệm
+##  Các Kỹ năng Phổ biến để Thử nghiệm
 
 **Cho người mới bắt đầu:**
 - `@brainstorming` - Thiết kế trước khi code

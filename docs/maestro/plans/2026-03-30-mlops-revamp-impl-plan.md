@@ -99,7 +99,7 @@ graph TD
 
 ## 5. Cost Estimation
 | Phase | Agent | Model | Est. Input | Est. Output | Est. Cost |
-|-------|-------|-------|-----------|------------|----------|
+|-------|-------|-------|--|--|--|
 | 1 | `refactor` | Pro | 5K | 1K | $0.09 |
 | 2 | `coder` | Pro | 10K | 3K | $0.22 |
 | 3 | `coder` | Pro | 15K | 5K | $0.35 |

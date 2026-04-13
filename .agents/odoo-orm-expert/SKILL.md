@@ -62,24 +62,24 @@ def _compute_total_order_count(self):
 ### Example 3: Safe Bulk Write (avoid N+1)
 
 ```python
-# ✅ GOOD: One query for all records
+#  GOOD: One query for all records
 partners = self.env['res.partner'].search([('country_id', '=', False)])
 partners.write({'country_id': self.env.ref('base.us').id})
 
-# ❌ BAD: Triggers a separate query per record
+#  BAD: Triggers a separate query per record
 for partner in partners:
     partner.country_id = self.env.ref('base.us').id
 ```
 
 ## Best Practices
 
-- ✅ **Do:** Use `mapped()`, `filtered()`, and `sorted()` on recordsets instead of Python loops.
-- ✅ **Do:** Use `sudo()` sparingly and only when you understand the security implications.
-- ✅ **Do:** Prefer `search_count()` over `len(search(...))` when you only need a count.
-- ✅ **Do:** Use `with_context(...)` to pass context values cleanly rather than modifying `self.env.context` directly.
-- ❌ **Don't:** Call `search()` inside a loop — this is the #1 Odoo performance killer.
-- ❌ **Don't:** Use raw SQL unless absolutely necessary; use ORM for all standard operations.
-- ❌ **Don't:** Pass Python `datetime`/`date` objects directly into domain tuples — always stringify them as `'YYYY-MM-DD'`.
+-  **Do:** Use `mapped()`, `filtered()`, and `sorted()` on recordsets instead of Python loops.
+-  **Do:** Use `sudo()` sparingly and only when you understand the security implications.
+-  **Do:** Prefer `search_count()` over `len(search(...))` when you only need a count.
+-  **Do:** Use `with_context(...)` to pass context values cleanly rather than modifying `self.env.context` directly.
+-  **Don't:** Call `search()` inside a loop — this is the #1 Odoo performance killer.
+-  **Don't:** Use raw SQL unless absolutely necessary; use ORM for all standard operations.
+-  **Don't:** Pass Python `datetime`/`date` objects directly into domain tuples — always stringify them as `'YYYY-MM-DD'`.
 
 ## Limitations
 

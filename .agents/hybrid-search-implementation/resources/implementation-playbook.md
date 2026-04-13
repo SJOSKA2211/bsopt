@@ -27,7 +27,7 @@ Query → ┬─► Vector Search ──► Candidates ─┐
 ### 2. Fusion Methods
 
 | Method | Description | Best For |
-|--------|-------------|----------|
+|--------|--|--|
 | **RRF** | Reciprocal Rank Fusion | General purpose |
 | **Linear** | Weighted sum of scores | Tunable balance |
 | **Cross-encoder** | Rerank with neural model | Highest quality |

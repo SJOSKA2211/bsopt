@@ -305,7 +305,7 @@ Tamanho minimo: 24px (icone), 120px (lockup completo)
 ## Stack De Design
 
 | Ferramenta | Uso |
-|-----------|-----|
+|--|-----|
 | Figma | Design de UI, prototipagem, handoff |
 | FigJam | User journeys, workshops, ideacao |
 | Zeroheight | Documentacao do design system |

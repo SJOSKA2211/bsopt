@@ -33,11 +33,11 @@ Convex is a **document-relational** database with a fully managed backend. Key d
 ### Function Types
 
 | Type            | Purpose                   | Can Read DB    | Can Write DB      | Can Call External APIs | Cached/Reactive |
-| :-------------- | :------------------------ | :------------- | :---------------- | :--------------------- | :-------------- |
-| **Query**       | Read data                 | ✅             | ❌                | ❌                     | ✅              |
-| **Mutation**    | Write data                | ✅             | ✅                | ❌                     | ❌              |
-| **Action**      | Side effects              | via `runQuery` | via `runMutation` | ✅                     | ❌              |
-| **HTTP Action** | Webhooks/custom endpoints | via `runQuery` | via `runMutation` | ✅                     | ❌              |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| **Query**       | Read data                 |              |                 |                      |               |
+| **Mutation**    | Write data                |              |                 |                      |               |
+| **Action**      | Side effects              | via `runQuery` | via `runMutation` |                      |               |
+| **HTTP Action** | Webhooks/custom endpoints | via `runQuery` | via `runMutation` |                      |               |
 
 ## Project Setup
 
@@ -118,7 +118,7 @@ export default defineSchema({
 ### Validator Types
 
 | Validator                         | TypeScript Type       | Notes                                          |
-| :-------------------------------- | :-------------------- | :--------------------------------------------- |
+| :-- | :-- | :-- |
 | `v.string()`                      | `string`              |                                                |
 | `v.number()`                      | `number`              | IEEE 754 float                                 |
 | `v.bigint()`                      | `bigint`              |                                                |
@@ -730,26 +730,26 @@ npx convex logs
 
 ## Best Practices
 
-- ✅ Define schemas — adds type safety across your entire stack
-- ✅ Use indexes for queries — avoids full table scans
-- ✅ Use compound indexes with equality filters first, range filter last
-- ✅ Rely on native determinism — `Date.now()` and `Math.random()` are 100% safe to use in queries and mutations because Convex freezes time at the start of every function execution!
-- ✅ Use `v.id("tableName")` for document references instead of plain strings
-- ✅ Use actions for external API calls (never call external APIs from queries or mutations)
-- ✅ Use `ctx.runQuery` / `ctx.runMutation` from actions — never access `ctx.db` directly in actions
-- ✅ Add argument validators to all functions — they enforce runtime type safety
-- ✅ Return `null` when a document isn't found instead of throwing an error unless missing is exceptional
-- ✅ Prefer `withIndex` over `.filter()` for query performance
+-  Define schemas — adds type safety across your entire stack
+-  Use indexes for queries — avoids full table scans
+-  Use compound indexes with equality filters first, range filter last
+-  Rely on native determinism — `Date.now()` and `Math.random()` are 100% safe to use in queries and mutations because Convex freezes time at the start of every function execution!
+-  Use `v.id("tableName")` for document references instead of plain strings
+-  Use actions for external API calls (never call external APIs from queries or mutations)
+-  Use `ctx.runQuery` / `ctx.runMutation` from actions — never access `ctx.db` directly in actions
+-  Add argument validators to all functions — they enforce runtime type safety
+-  Return `null` when a document isn't found instead of throwing an error unless missing is exceptional
+-  Prefer `withIndex` over `.filter()` for query performance
 
 ## Anti-Patterns to Avoid
 
-1. **❌ External API calls in queries/mutations**: Only actions can call external services. Queries and mutations run in the Convex transaction engine.
-2. **❌ Doing slow CPU-bound work in mutations**: Mutations block database commits; offload heavy processing to actions.
-3. **❌ Using `.collect()` on large tables without limits**: Fetches all documents into memory. Use `.take(N)` or `.paginate()`.
-4. **❌ Skipping schema definition**: Without a schema you lose end-to-end type safety, the main Convex advantage.
-5. **❌ Using `.filter()` instead of indexes**: `.filter()` does a full table scan. Define an index and use `.withIndex()`.
-6. **❌ Storing large blobs in documents**: Use Convex file storage (`_storage`) for files; keep documents lean.
-7. **❌ Circular `runQuery`/`runMutation` chains**: Actions calling mutations that schedule actions can create infinite loops.
+1. ** External API calls in queries/mutations**: Only actions can call external services. Queries and mutations run in the Convex transaction engine.
+2. ** Doing slow CPU-bound work in mutations**: Mutations block database commits; offload heavy processing to actions.
+3. ** Using `.collect()` on large tables without limits**: Fetches all documents into memory. Use `.take(N)` or `.paginate()`.
+4. ** Skipping schema definition**: Without a schema you lose end-to-end type safety, the main Convex advantage.
+5. ** Using `.filter()` instead of indexes**: `.filter()` does a full table scan. Define an index and use `.withIndex()`.
+6. ** Storing large blobs in documents**: Use Convex file storage (`_storage`) for files; keep documents lean.
+7. ** Circular `runQuery`/`runMutation` chains**: Actions calling mutations that schedule actions can create infinite loops.
 
 ## Common Pitfalls
 

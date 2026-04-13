@@ -36,7 +36,7 @@ If you want a bundle to behave like a focused active subset instead of a full in
 
 ## Essentials & Core
 
-### 🚀 The "Essentials" Starter Pack
+###  The "Essentials" Starter Pack
 
 _For everyone. Install these first._
 
@@ -53,7 +53,7 @@ _For everyone. Install these first._
 
 ## Security & Compliance
 
-### 🛡️ The "Security Engineer" Pack
+### ️ The "Security Engineer" Pack
 
 _For pentesting, auditing, and hardening._
 
@@ -67,7 +67,7 @@ _For pentesting, auditing, and hardening._
 - [`security-auditor`](../../skills/security-auditor/): Comprehensive security audits.
 - [`vulnerability-scanner`](../../skills/vulnerability-scanner/): Advanced vulnerability analysis.
 
-### 🔐 The "Security Developer" Pack
+###  The "Security Developer" Pack
 
 _For building secure applications._
 
@@ -83,9 +83,9 @@ _For building secure applications._
 
 ---
 
-## 🌐 Web Development
+##  Web Development
 
-### 🌐 The "Web Wizard" Pack
+###  The "Web Wizard" Pack
 
 _For building modern, high-performance web apps._
 
@@ -99,7 +99,7 @@ _For building modern, high-performance web apps._
 - [`form-cro`](../../skills/form-cro/): Optimize your forms for conversion.
 - [`seo-audit`](../../skills/seo-audit/): Get found on Google.
 
-### 🖌️ The "Web Designer" Pack
+### ️ The "Web Designer" Pack
 
 _For pixel-perfect experiences._
 
@@ -112,7 +112,7 @@ _For pixel-perfect experiences._
 - [`mobile-design`](../../skills/mobile-design/): Mobile-first design principles.
 - [`scroll-experience`](../../skills/scroll-experience/): Immersive scroll-driven experiences.
 
-### ⚡ The "Full-Stack Developer" Pack
+###  The "Full-Stack Developer" Pack
 
 _For end-to-end web application development._
 
@@ -158,9 +158,9 @@ _For building production LLM applications._
 
 ---
 
-## 🎮 Game Development
+##  Game Development
 
-### 🎮 The "Indie Game Dev" Pack
+###  The "Indie Game Dev" Pack
 
 _For building games with AI assistants._
 
@@ -176,9 +176,9 @@ _For building games with AI assistants._
 
 ---
 
-## 🐍 Backend & Languages
+##  Backend & Languages
 
-### 🐍 The "Python Pro" Pack
+###  The "Python Pro" Pack
 
 _For backend heavyweights and data scientists._
 
@@ -234,7 +234,7 @@ _For building products, not just code._
 - [`copywriting`](../../skills/copywriting/): Marketing copy that converts.
 - [`stripe-integration`](../../skills/stripe-integration/): Get paid from day one.
 
-### 📊 The "Business Analyst" Pack
+###  The "Business Analyst" Pack
 
 _For data-driven decision making._
 
@@ -246,7 +246,7 @@ _For data-driven decision making._
 - [`market-sizing-analysis`](../../skills/market-sizing-analysis/): TAM/SAM/SOM calculations.
 - [`kpi-dashboard-design`](../../skills/kpi-dashboard-design/): Effective KPI dashboards.
 
-### 📈 The "Marketing & Growth" Pack
+###  The "Marketing & Growth" Pack
 
 _For driving user acquisition and retention._
 
@@ -264,7 +264,7 @@ _For driving user acquisition and retention._
 
 ## DevOps & Infrastructure
 
-### 🌧️ The "DevOps & Cloud" Pack
+### ️ The "DevOps & Cloud" Pack
 
 _For infrastructure and scaling._
 
@@ -278,7 +278,7 @@ _For infrastructure and scaling._
 - [`deployment-procedures`](../../skills/deployment-procedures/): Safe rollout strategies.
 - [`bash-linux`](../../skills/bash-linux/): Terminal wizardry.
 
-### 📊 The "Observability & Monitoring" Pack
+###  The "Observability & Monitoring" Pack
 
 _For production reliability._
 
@@ -294,9 +294,9 @@ _For production reliability._
 
 ---
 
-## 📊 Data & Analytics
+##  Data & Analytics
 
-### 📊 The "Data & Analytics" Pack
+###  The "Data & Analytics" Pack
 
 _For making sense of the numbers._
 
@@ -309,7 +309,7 @@ _For making sense of the numbers._
 - [`ab-test-setup`](../../skills/ab-test-setup/): Validated learning.
 - [`database-architect`](../../skills/database-architect/): Database design from scratch.
 
-### 🔄 The "Data Engineering" Pack
+###  The "Data Engineering" Pack
 
 _For building data pipelines._
 
@@ -324,9 +324,9 @@ _For building data pipelines._
 
 ---
 
-## 🎨 Creative & Content
+##  Creative & Content
 
-### 🎨 The "Creative Director" Pack
+###  The "Creative Director" Pack
 
 _For visuals, content, and branding._
 
@@ -342,9 +342,9 @@ _For visuals, content, and branding._
 
 ---
 
-## 🐞 Quality Assurance
+##  Quality Assurance
 
-### 🐞 The "QA & Testing" Pack
+###  The "QA & Testing" Pack
 
 _For breaking things before users do._
 
@@ -361,9 +361,9 @@ _For breaking things before users do._
 
 ---
 
-## 🔧 Specialized Packs
+##  Specialized Packs
 
-### 📱 The "Mobile Developer" Pack
+###  The "Mobile Developer" Pack
 
 _For iOS, Android, and cross-platform apps._
 
@@ -375,7 +375,7 @@ _For iOS, Android, and cross-platform apps._
 - [`ios-developer`](../../skills/ios-developer/): iOS development with Swift.
 - [`app-store-optimization`](../../skills/app-store-optimization/): ASO for App Store and Play Store.
 
-### 🔗 The "Integration & APIs" Pack
+###  The "Integration & APIs" Pack
 
 _For connecting services and building integrations._
 
@@ -387,7 +387,7 @@ _For connecting services and building integrations._
 - [`plaid-fintech`](../../skills/plaid-fintech/): Bank account linking and ACH.
 - [`algolia-search`](../../skills/algolia-search/): Search implementation.
 
-### 🎯 The "Architecture & Design" Pack
+###  The "Architecture & Design" Pack
 
 _For system design and technical decisions._
 
@@ -428,7 +428,7 @@ _For connecting tools and building repeatable automated workflows._
 - [`slack-automation`](../../skills/slack-automation/): Automate Slack messaging and channel workflows.
 - [`googlesheets-automation`](../../skills/googlesheets-automation/): Automate spreadsheet updates and data operations.
 
-### 💼 The "RevOps & CRM Automation" Pack
+###  The "RevOps & CRM Automation" Pack
 
 _For revenue operations, support handoffs, and CRM-heavy automation._
 
@@ -442,7 +442,7 @@ _For revenue operations, support handoffs, and CRM-heavy automation._
 - [`stripe-automation`](../../skills/stripe-automation/): Automate billing, invoices, and subscriptions.
 - [`shopify-automation`](../../skills/shopify-automation/): Automate products, orders, customers, and inventory.
 
-### 💳 The "Commerce & Payments" Pack
+###  The "Commerce & Payments" Pack
 
 _For monetization, payments, and commerce workflows._
 
@@ -455,7 +455,7 @@ _For monetization, payments, and commerce workflows._
 - [`algolia-search`](../../skills/algolia-search/): Add search and discovery to commerce experiences.
 - [`monetization`](../../skills/monetization/): Design pricing and monetization systems deliberately.
 
-### 🏢 The "Odoo ERP" Pack
+###  The "Odoo ERP" Pack
 
 _For teams building or operating around Odoo-based business systems._
 
@@ -469,7 +469,7 @@ _For teams building or operating around Odoo-based business systems._
 - [`odoo-security-rules`](../../skills/odoo-security-rules/): Apply secure access controls and rule design.
 - [`odoo-docker-deployment`](../../skills/odoo-docker-deployment/): Deploy and run Odoo in Docker-based environments.
 
-### ☁️ The "Azure AI & Cloud" Pack
+### ️ The "Azure AI & Cloud" Pack
 
 _For building on Azure across cloud, AI, and platform services._
 
@@ -482,7 +482,7 @@ _For building on Azure across cloud, AI, and platform services._
 - [`azure-identity-py`](../../skills/azure-identity-py/): Handle Azure authentication flows in Python services.
 - [`azure-monitor-opentelemetry-ts`](../../skills/azure-monitor-opentelemetry-ts/): Add telemetry and tracing from TypeScript apps.
 
-### 📲 The "Expo & React Native" Pack
+###  The "Expo & React Native" Pack
 
 _For shipping mobile apps with Expo and React Native._
 
@@ -496,7 +496,7 @@ _For shipping mobile apps with Expo and React Native._
 - [`expo-deployment`](../../skills/expo-deployment/): Deploy Expo apps and manage release flow.
 - [`app-store-optimization`](../../skills/app-store-optimization/): Improve App Store and Play Store discoverability.
 
-### 🍎 The "Apple Platform Design" Pack
+###  The "Apple Platform Design" Pack
 
 _For teams designing native-feeling Apple platform experiences._
 
@@ -522,7 +522,7 @@ _For building UI-heavy apps with the Makepad ecosystem._
 - [`makepad-shaders`](../../skills/makepad-shaders/): Create GPU-driven visual effects and custom drawing.
 - [`makepad-deployment`](../../skills/makepad-deployment/): Package and ship Makepad projects.
 
-### 🔎 The "SEO Specialist" Pack
+###  The "SEO Specialist" Pack
 
 _For technical SEO, content structure, and search growth._
 
@@ -536,7 +536,7 @@ _For technical SEO, content structure, and search growth._
 - [`seo-content-auditor`](../../skills/seo-content-auditor/): Audit existing content quality and optimization gaps.
 - [`schema-markup`](../../skills/schema-markup/): Add structured data to support richer search results.
 
-### 📄 The "Documents & Presentations" Pack
+###  The "Documents & Presentations" Pack
 
 _For document-heavy workflows, spreadsheets, PDFs, and presentations._
 
@@ -555,7 +555,7 @@ _For document-heavy workflows, spreadsheets, PDFs, and presentations._
 
 ## 🧰 Maintainer & OSS
 
-### 🛠️ The "OSS Maintainer" Pack
+### ️ The "OSS Maintainer" Pack
 
 _For shipping clean changes in public repositories._
 
@@ -582,7 +582,7 @@ _For creating and maintaining high-quality SKILL.md assets._
 - [`lint-and-validate`](../../skills/lint-and-validate/): Validate quality after edits.
 - [`verification-before-completion`](../../skills/verification-before-completion/): Confirm changes before claiming done.
 
-## 📚 How to Use Bundles
+##  How to Use Bundles
 
 ### 1) Pick by immediate goal
 

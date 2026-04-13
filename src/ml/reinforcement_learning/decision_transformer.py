@@ -72,7 +72,7 @@ class AttentionBlock(nn.Module):  # type: ignore
         self.ln_1 = nn.LayerNorm(n_inner)
         self.ln_2 = nn.LayerNorm(n_inner)
 
-        # ⚡ GATED MLP (SwiGLU)
+        #  GATED MLP (SwiGLU)
         self.mlp = GatedMLP(n_inner, dropout)
 
         self.dropout = nn.Dropout(dropout)
@@ -156,7 +156,7 @@ class DecisionTransformer(nn.Module):  # type: ignore
         self.embed_state = nn.Linear(state_dim, n_inner)
         self.embed_action = nn.Linear(action_dim, n_inner)
 
-        # 🌀 RoPE Positional Embedding
+        #  RoPE Positional Embedding
         self.rotary_emb = RotaryEmbedding(self.head_dim)
 
         self.embed_ln = nn.LayerNorm(n_inner)

@@ -1,5 +1,5 @@
 #!/bin/bash
-#===============================================================================
+#==
 # Record Full Loki Mode End-to-End Demo
 #
 # This script:
@@ -12,7 +12,7 @@
 #
 # Usage:
 #   ./demo/record-full-demo.sh [simple-todo|static-landing]
-#===============================================================================
+#==
 
 set -uo pipefail
 
@@ -65,9 +65,9 @@ esac
 mkdir -p "$OUTPUT_DIR"
 
 echo ""
-echo -e "${CYAN}========================================${NC}"
+echo -e "${CYAN}==${NC}"
 echo -e "${CYAN}  LOKI MODE FULL DEMO RECORDING${NC}"
-echo -e "${CYAN}========================================${NC}"
+echo -e "${CYAN}==${NC}"
 echo ""
 echo "Demo:             $DEMO_NAME"
 echo "PRD:              $PRD_SOURCE"
@@ -98,18 +98,18 @@ log_info "All prerequisites met"
 
 # Setup instructions
 echo ""
-echo -e "${YELLOW}========================================${NC}"
+echo -e "${YELLOW}==${NC}"
 echo -e "${YELLOW}  SETUP INSTRUCTIONS${NC}"
-echo -e "${YELLOW}========================================${NC}"
+echo -e "${YELLOW}==${NC}"
 echo ""
 echo "For the best demo video, arrange your screen:"
 echo ""
-echo "  +------------------+------------------+"
+echo "  +--+--+"
 echo "  |                  |                  |"
 echo "  |   TERMINAL       |   BROWSER        |"
 echo "  |   (this window)  |   (dashboard)    |"
 echo "  |                  |                  |"
-echo "  +------------------+------------------+"
+echo "  +--+--+"
 echo ""
 echo "The dashboard will open at: http://127.0.0.1:57374/dashboard/index.html"
 echo ""

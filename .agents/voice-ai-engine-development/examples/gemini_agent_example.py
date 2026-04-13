@@ -85,7 +85,7 @@ class GeminiAgent:
                     logger.debug(f"🤖 [AGENT] Buffered {len(full_response)} chars...")
 
         except Exception as e:
-            logger.error(f"❌ [AGENT] Error generating response: {e}")
+            logger.error(f" [AGENT] Error generating response: {e}")
             full_response = "I apologize, but I encountered an error. Could you please try again?"
 
         # CRITICAL: Only yield after buffering the ENTIRE response
@@ -94,7 +94,7 @@ class GeminiAgent:
             # Add to conversation history
             self.conversation_history.append(Message(role="assistant", content=full_response))
 
-            logger.info(f"✅ [AGENT] Generated complete response ({len(full_response)} chars)")
+            logger.info(f" [AGENT] Generated complete response ({len(full_response)} chars)")
 
             yield GeneratedResponse(message=full_response.strip(), is_interruptible=True)
 
@@ -165,13 +165,13 @@ class GeminiAgent:
         if self.conversation_history and self.conversation_history[-1].role == "assistant":
             # Update the last bot message with the partial message
             self.conversation_history[-1].content = partial_message
-            logger.info(f"📝 [AGENT] Updated history with partial message: '{partial_message}'")
+            logger.info(f" [AGENT] Updated history with partial message: '{partial_message}'")
 
     def cancel_current_task(self):
         """Cancel the current generation task (for interrupts)"""
         if self.current_task and not self.current_task.done():
             self.current_task.cancel()
-            logger.info("🛑 [AGENT] Cancelled current generation task")
+            logger.info(" [AGENT] Cancelled current generation task")
 
     def get_conversation_history(self) -> list[Message]:
         """Get the full conversation history"""
@@ -180,12 +180,12 @@ class GeminiAgent:
     def clear_conversation_history(self):
         """Clear the conversation history"""
         self.conversation_history.clear()
-        logger.info("🗑️ [AGENT] Cleared conversation history")
+        logger.info("️ [AGENT] Cleared conversation history")
 
 
-# ============================================================================
+# ==
 # Example Usage
-# ============================================================================
+# ==
 
 
 async def example_usage():
@@ -204,14 +204,14 @@ async def example_usage():
     user_messages = ["Hello, how are you?", "What's the weather like today?", "Thank you!"]
 
     for user_message in user_messages:
-        print(f"\n👤 User: {user_message}")
+        print(f"\n User: {user_message}")
 
         # Generate response
         async for response in agent.generate_response(user_message):
             print(f"🤖 Bot: {response.message}")
 
     # Print conversation history
-    print("\n📜 Conversation History:")
+    print("\n Conversation History:")
     for i, message in enumerate(agent.get_conversation_history(), 1):
         print(f"{i}. {message.role}: {message.content}")
 

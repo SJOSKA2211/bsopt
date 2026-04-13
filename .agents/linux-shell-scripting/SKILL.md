@@ -139,7 +139,7 @@ output_file="system_health_check.txt"
 # Perform system health check and save results to a file
 {
     echo "System Health Check - $(date)"
-    echo "================================"
+    echo "=="
     echo ""
     echo "Uptime:"
     uptime
@@ -186,7 +186,7 @@ output_file="password_expiry_report.txt"
 
 # Check password expiry for users with bash shell
 echo "Password Expiry Report - $(date)" > "$output_file"
-echo "=================================" >> "$output_file"
+echo "==" >> "$output_file"
 
 IFS=$'\n'
 for user in $(grep "/bin/bash" /etc/passwd | cut -d: -f1); do
@@ -253,7 +253,7 @@ echo "Total errors found: $(wc -l < "$output_file")"
 log_file="${1:-/var/log/apache2/access.log}"
 
 echo "Web Server Log Analysis"
-echo "========================"
+echo "=="
 echo ""
 echo "Top 10 IP Addresses:"
 awk '{print $1}' "$log_file" | sort | uniq -c | sort -rn | head -10
@@ -273,7 +273,7 @@ awk '{print $9}' "$log_file" | sort | uniq -c | sort -rn
 hosts=("8.8.8.8" "1.1.1.1" "google.com")
 
 echo "Network Connectivity Check"
-echo "=========================="
+echo "=="
 
 for host in "${hosts[@]}"; do
     if ping -c 1 -W 2 "$host" &>/dev/null; then
@@ -307,7 +307,7 @@ done
 interface="${1:-eth0}"
 
 echo "Network Interface Information: $interface"
-echo "========================================="
+echo "=="
 ip addr show "$interface" 2>/dev/null || ifconfig "$interface" 2>/dev/null
 echo ""
 echo "Routing Table:"
@@ -395,7 +395,7 @@ echo "Cleanup completed."
 folder_path="${1:-.}"
 
 echo "Folder Size Analysis: $folder_path"
-echo "===================================="
+echo "=="
 
 # Display sizes of subdirectories sorted by size
 du -sh "$folder_path"/* 2>/dev/null | sort -rh | head -20
@@ -414,7 +414,7 @@ output_file="system_info_$(hostname)_$(date +%Y%m%d).txt"
 {
     echo "System Information Report"
     echo "Generated: $(date)"
-    echo "========================="
+    echo "=="
     echo ""
     echo "Hostname: $(hostname)"
     echo "OS: $(uname -a)"

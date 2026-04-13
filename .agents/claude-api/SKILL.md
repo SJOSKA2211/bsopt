@@ -62,7 +62,7 @@ Before reading code examples, determine which language the user is working in:
 ### Language-Specific Feature Support
 
 | Language   | Tool Runner | Agent SDK | Notes                                 |
-| ---------- | ----------- | --------- | ------------------------------------- |
+| -- | -- | --------- | -- |
 | Python     | Yes (beta)  | Yes       | Full support — `@beta_tool` decorator |
 | TypeScript | Yes (beta)  | Yes       | Full support — `betaZodTool` + Zod    |
 | Java       | Yes (beta)  | No        | Beta tool use with annotated classes  |
@@ -79,7 +79,7 @@ Before reading code examples, determine which language the user is working in:
 > **Start simple.** Default to the simplest tier that meets your needs. Single API calls and workflows handle most use cases — only reach for agents when the task genuinely requires open-ended, model-driven exploration.
 
 | Use Case                                        | Tier            | Recommended Surface       | Why                                     |
-| ----------------------------------------------- | --------------- | ------------------------- | --------------------------------------- |
+| -- | -- | -- | -- |
 | Classification, summarization, extraction, Q&A  | Single LLM call | **Claude API**            | One request, one response               |
 | Batch processing or embeddings                  | Single LLM call | **Claude API**            | Specialized endpoints                   |
 | Multi-step pipelines with code-controlled logic | Workflow        | **Claude API + tool use** | You orchestrate the loop                |
@@ -142,7 +142,7 @@ Everything goes through `POST /v1/messages`. Tools and output constraints are fe
 ## Current Models (cached: 2026-02-17)
 
 | Model             | Model ID            | Context        | Input $/1M | Output $/1M |
-| ----------------- | ------------------- | -------------- | ---------- | ----------- |
+| -- | -- | -- | -- | -- |
 | Claude Opus 4.6   | `claude-opus-4-6`   | 200K (1M beta) | $5.00      | $25.00      |
 | Claude Sonnet 4.6 | `claude-sonnet-4-6` | 200K (1M beta) | $3.00      | $15.00      |
 | Claude Haiku 4.5  | `claude-haiku-4-5`  | 200K           | $1.00      | $5.00       |

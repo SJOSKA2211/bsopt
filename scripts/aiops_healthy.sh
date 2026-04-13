@@ -37,14 +37,14 @@ export PYTHONPATH="."
 export BSOPT_ALLOW_WEAK_SECRETS=True
 
 # 2. Start Core Infrastructure
-echo "🚀 Ensuring Core Infrastructure is running..."
+echo " Ensuring Core Infrastructure is running..."
 docker compose -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis envoy nginx
 
 # 3. Parallel Initialization (Revamp & SHM)
-echo "🔧 Parallelizing AIops Revamp..."
+echo " Parallelizing AIops Revamp..."
 source .venv/bin/activate
-(python3 scripts/initialize_shm.py --force > /dev/null 2>&1 && echo "✅ SHM Initialized") &
-(python3 scripts/revamp_db_views.py > /dev/null 2>&1 && echo "✅ DB Views Revamped") &
+(python3 scripts/initialize_shm.py --force > /dev/null 2>&1 && echo " SHM Initialized") &
+(python3 scripts/revamp_db_views.py > /dev/null 2>&1 && echo " DB Views Revamped") &
 wait
 
 # 4. Autonomous Health Loop (Run until Healthy)
@@ -52,19 +52,19 @@ MAX_RETRIES=12
 RETRY_COUNT=0
 SLEEP_INTERVAL=10
 
-echo "🔍 Entering Sentinel Health Loop (Max $((MAX_RETRIES * SLEEP_INTERVAL))s)..."
+echo " Entering Sentinel Health Loop (Max $((MAX_RETRIES * SLEEP_INTERVAL))s)..."
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    echo "📊 Health Probe $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+    echo " Health Probe $((RETRY_COUNT + 1))/$MAX_RETRIES..."
     if python3 scripts/system_sentinel.py; then
-        echo "✅ AIops HEALTHY: All systems pressurized and operational."
+        echo " AIops HEALTHY: All systems pressurized and operational."
         exit 0
     fi
     
-    echo "⚠️ Systems unstable. Retrying in ${SLEEP_INTERVAL}s..."
+    echo "️ Systems unstable. Retrying in ${SLEEP_INTERVAL}s..."
     RETRY_COUNT=$((RETRY_COUNT + 1))
     sleep $SLEEP_INTERVAL
 done
 
-echo "❌ AIops TIMEOUT: System failed to stabilize within the allotted window."
+echo " AIops TIMEOUT: System failed to stabilize within the allotted window."
 exit 1

@@ -4,7 +4,7 @@
 ## Current Metrics
 
 | Metric | Good | Needs Improvement | Poor |
-|--------|------|-------------------|------|
+|--------|------|--|------|
 | LCP (Largest Contentful Paint) | ≤2.5s | 2.5s–4.0s | >4.0s |
 | INP (Interaction to Next Paint) | ≤200ms | 200ms–500ms | >500ms |
 | CLS (Cumulative Layout Shift) | ≤0.1 | 0.1–0.25 | >0.25 |
@@ -23,7 +23,7 @@
 LCP can now be broken into diagnostic subparts:
 
 | Subpart | What It Measures | Target |
-|---------|------------------|--------|
+|---------|--|--------|
 | **TTFB** | Time to First Byte (server response) | <800ms |
 | **Resource Load Delay** | Time from TTFB to resource request start | Minimize |
 | **Resource Load Time** | Time to download the LCP resource | Depends on size |

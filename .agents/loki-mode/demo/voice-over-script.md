@@ -225,7 +225,7 @@ Complete narration for Loki Mode demo video.
 ## Timing Summary
 
 | Section | Start | Duration |
-|---------|-------|----------|
+|---------|-------|--|
 | Introduction | 0:00 | 30s |
 | Setup | 0:30 | 30s |
 | Invocation | 1:00 | 30s |

@@ -123,7 +123,7 @@ The action that correlates most strongly with retention:
 
 Example:
 ```
-☐ Connect your first data source (2 min)
+ Connect your first data source (2 min)
   Get real-time insights from your existing tools
   [Connect Now]
 ```

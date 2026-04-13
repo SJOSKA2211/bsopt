@@ -39,7 +39,7 @@ As of 2025-2026, AI companies actively crawl the web to train models and power A
 **Known AI crawlers:**
 
 | Crawler | Company | robots.txt token | Purpose |
-|---------|---------|-----------------|---------|
+|---------|---------|--|---------|
 | GPTBot | OpenAI | `GPTBot` | Model training |
 | ChatGPT-User | OpenAI | `ChatGPT-User` | Real-time browsing |
 | ClaudeBot | Anthropic | `ClaudeBot` | Model training |
@@ -145,7 +145,7 @@ Google updated its JavaScript SEO documentation in December 2025 with critical c
 
 ### Category Breakdown
 | Category | Status | Score |
-|----------|--------|-------|
+|--|--------|-------|
 | Crawlability | pass/warn/fail | XX/100 |
 | Indexability | pass/warn/fail | XX/100 |
 | Security | pass/warn/fail | XX/100 |
@@ -168,7 +168,7 @@ If DataForSEO MCP tools are available, use `on_page_instant_pages` for real page
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable | Report connection error with status code. Suggest verifying URL, checking DNS resolution, and confirming the site is publicly accessible. |
 | robots.txt not found | Note that no robots.txt was detected at the root domain. Recommend creating one with appropriate directives. Continue audit on remaining categories. |
 | HTTPS not configured | Flag as a critical issue. Report whether HTTP is served without redirect, mixed content exists, or SSL certificate is missing/expired. |

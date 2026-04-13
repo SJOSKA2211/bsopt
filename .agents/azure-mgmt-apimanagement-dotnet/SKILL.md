@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Azure API Management resources via Azure Resource Manager.
 
-> **⚠️ Management vs Data Plane**
+> **️ Management vs Data Plane**
 > - **This SDK (Azure.ResourceManager.ApiManagement)**: Create services, APIs, products, subscriptions, policies, users, groups
 > - **Data Plane**: Direct API calls to your APIM gateway endpoints
 
@@ -251,7 +251,7 @@ await service.RestoreAsync(WaitUntil.Completed, backupParams);
 ## SKU Types
 
 | SKU | Purpose | Capacity |
-|-----|---------|----------|
+|-----|---------|--|
 | `Developer` | Development/testing (no SLA) | 1 |
 | `Basic` | Entry-level production | 1-2 |
 | `Standard` | Medium workloads | 1-4 |
@@ -296,7 +296,7 @@ catch (RequestFailedException ex)
 ## Reference Files
 
 | File | When to Read |
-|------|--------------|
+|------|--|
 | references/service-management.md | Service CRUD, SKUs, networking, backup/restore |
 | references/apis-operations.md | APIs, operations, schemas, versioning |
 | references/products-subscriptions.md | Products, subscriptions, access control |
@@ -305,7 +305,7 @@ catch (RequestFailedException ex)
 ## Related Resources
 
 | Resource | Purpose |
-|----------|---------|
+|--|---------|
 | [API Management Documentation](https://learn.microsoft.com/en-us/azure/api-management/) | Official Azure docs |
 | [Policy Reference](https://learn.microsoft.com/en-us/azure/api-management/api-management-policies) | Complete policy reference |
 | [SDK Reference](https://learn.microsoft.com/en-us/dotnet/api/azure.resourcemanager.apimanagement) | .NET API reference |

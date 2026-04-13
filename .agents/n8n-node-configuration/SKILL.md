@@ -191,7 +191,7 @@ validate_node({...});
 **Step 8**: Final validation
 ```javascript
 validate_node({...});
-// → Valid! ✅
+// → Valid! 
 ```
 
 ---
@@ -200,7 +200,7 @@ validate_node({...});
 
 ### Standard Detail (DEFAULT - Use This!)
 
-**✅ Starting configuration**
+** Starting configuration**
 ```javascript
 get_node({
   nodeType: "nodes-base.slack"
@@ -218,7 +218,7 @@ get_node({
 
 ### Full Detail (Use Sparingly)
 
-**✅ When standard isn't enough**
+** When standard isn't enough**
 ```javascript
 get_node({
   nodeType: "nodes-base.slack",
@@ -235,7 +235,7 @@ get_node({
 
 ### Search Properties Mode
 
-**✅ Looking for specific field**
+** Looking for specific field**
 ```javascript
 get_node({
   nodeType: "nodes-base.httpRequest",
@@ -623,7 +623,7 @@ get_node({
 
 ## Configuration Anti-Patterns
 
-### ❌ Don't: Over-configure Upfront
+###  Don't: Over-configure Upfront
 
 **Bad**:
 ```javascript
@@ -651,7 +651,7 @@ get_node({
 // Add fields only when needed
 ```
 
-### ❌ Don't: Skip Validation
+###  Don't: Skip Validation
 
 **Bad**:
 ```javascript
@@ -670,7 +670,7 @@ if (result.valid) {
 }
 ```
 
-### ❌ Don't: Ignore Operation Context
+###  Don't: Ignore Operation Context
 
 **Bad**:
 ```javascript
@@ -704,7 +704,7 @@ get_node({
 
 ## Best Practices
 
-### ✅ Do
+###  Do
 
 1. **Start with get_node (standard detail)**
    - ~1-2K tokens response
@@ -731,7 +731,7 @@ get_node({
    - Don't manually add/remove singleValue
    - IF/Switch metadata added on save
 
-### ❌ Don't
+###  Don't
 
 1. **Jump to detail="full" immediately**
    - Try standard detail first

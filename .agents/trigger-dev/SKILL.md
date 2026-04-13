@@ -45,16 +45,16 @@ Tasks that run on a schedule
 
 ## Anti-Patterns
 
-### ❌ Giant Monolithic Tasks
+###  Giant Monolithic Tasks
 
-### ❌ Ignoring Built-in Integrations
+###  Ignoring Built-in Integrations
 
-### ❌ No Logging
+###  No Logging
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Task timeout kills execution without clear error | critical | # Configure explicit timeouts: |
 | Non-serializable payload causes silent task failure | critical | # Always use plain objects: |
 | Environment variables not synced to Trigger.dev cloud | critical | # Sync env vars to Trigger.dev: |

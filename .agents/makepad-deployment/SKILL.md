@@ -17,7 +17,7 @@ This skill covers packaging Makepad applications for all supported platforms.
 ## Quick Navigation
 
 | Platform | Tool | Output |
-|----------|------|--------|
+|--|------|--------|
 | [Desktop](#desktop-packaging) | `cargo-packager` | .deb, .nsis, .dmg |
 | [Android](#android) | `cargo-makepad` | .apk |
 | [iOS](#ios) | `cargo-makepad` | .app, .ipa |

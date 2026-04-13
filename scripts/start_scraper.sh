@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🕷️ Launching Production Manifold Scraper Substrate..."
+echo "️ Launching Production Manifold Scraper Substrate..."
 
 # Load Production environment
 source scripts/utils_env.sh

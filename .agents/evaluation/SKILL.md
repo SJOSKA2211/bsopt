@@ -35,7 +35,7 @@ The key insight is that agents may find alternative paths to goals—the evaluat
 Research on the BrowseComp evaluation (which tests browsing agents' ability to locate hard-to-find information) found that three factors explain 95% of performance variance:
 
 | Factor | Variance Explained | Implication |
-|--------|-------------------|-------------|
+|--------|--|--|
 | Token usage | 80% | More tokens = better performance |
 | Number of tool calls | ~10% | More exploration helps |
 | Model choice | ~5% | Better models multiply efficiency |

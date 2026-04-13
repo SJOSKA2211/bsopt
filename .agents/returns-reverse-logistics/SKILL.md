@@ -85,7 +85,7 @@ Warranty claims are distinct from returns and follow a different workflow:
 ### Disposition Routing by Category and Condition
 
 | Category             | Grade A              | Grade B                | Grade C                             | Grade D                      |
-| -------------------- | -------------------- | ---------------------- | ----------------------------------- | ---------------------------- |
+| -- | -- | -- | -- | -- |
 | Consumer Electronics | Restock (test first) | Open box / Renewed     | Refurb if ROI > 40%, else liquidate | Parts harvest or e-waste     |
 | Apparel              | Restock if tags on   | Repackage / outlet     | Liquidate by weight                 | Textile recycling            |
 | Home & Furniture     | Restock              | Open box with discount | Liquidate (local, avoid shipping)   | Donate or destroy            |
@@ -99,7 +99,7 @@ Warranty claims are distinct from returns and follow a different workflow:
 Score each return 0-100. Flag for review at 65+, hold refund at 80+:
 
 | Signal                                               | Points | Notes                                    |
-| ---------------------------------------------------- | ------ | ---------------------------------------- |
+| -- | ------ | -- |
 | Return rate > 30% (rolling 12 mo)                    | +15    | Adjusted for category norms              |
 | Item returned within 48 hours of delivery            | +5     | Could be legitimate bracket shopping     |
 | High-value electronics, serial number mismatch       | +40    | Near-certain swap fraud                  |
@@ -175,7 +175,7 @@ Brief templates below. Full versions with variables in [communication-templates.
 ### Automatic Escalation Triggers
 
 | Trigger                                                            | Action                                                           | Timeline          |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------- | ----------------- |
+| -- | -- | -- |
 | Return value > $5,000 (single item)                                | Supervisor approval required before refund                       | Before processing |
 | Fraud score ≥ 80                                                   | Hold refund, route to fraud review team                          | Immediately       |
 | Customer has filed chargeback simultaneously                       | Halt return processing, coordinate with payments team            | Within 1 hour     |
@@ -192,7 +192,7 @@ Level 1 (Returns Associate) → Level 2 (Team Lead, 2 hours) → Level 3 (Return
 ## Performance Indicators
 
 | Metric                                                | Target     | Red Flag   |
-| ----------------------------------------------------- | ---------- | ---------- |
+| -- | -- | -- |
 | Return processing time (receipt to refund)            | < 48 hours | > 96 hours |
 | Inspection accuracy (grade agreement on audit)        | > 95%      | < 88%      |
 | Restock rate (% of returns restocked as new/open box) | > 45%      | < 30%      |

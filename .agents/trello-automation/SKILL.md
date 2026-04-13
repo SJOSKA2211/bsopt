@@ -166,7 +166,7 @@ Most list endpoints return all items. For boards with 1000+ cards, use `limit` a
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List user's boards | TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER | idMember='me', filter='open' |
 | Get board details | TRELLO_GET_BOARDS_BY_ID_BOARD | idBoard (24-char hex) |
 | List board lists | TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD | idBoard |

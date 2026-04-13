@@ -86,7 +86,7 @@ Always exhaust free data before paying. Target: $0/day for 90% of intelligence.
 ### Recommended Source Categories
 
 | Category | What to Track | Example Sources |
-|----------|--------------|-----------------|
+|--|--|--|
 | DEX Data | Prices, liquidity, pairs, chain coverage | DexScreener, GeckoTerminal |
 | AI Momentum | Trending tokens, catalysts | AIXBT or similar trackers |
 | Smart Money | VC follows, KOL accumulation | leak.me, Nansen free, Arkham |

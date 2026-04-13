@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🔐 Launching Production Manifold Auth Service..."
+echo " Launching Production Manifold Auth Service..."
 
 # Load Production environment
 source scripts/utils_env.sh
@@ -25,9 +25,9 @@ echo "DEBUG: REDIS_PASSWORD=$REDIS_PASSWORD"
 echo "DEBUG: RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD"
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
-    echo "🏗️ Running in PRODUCTION mode..."
+    echo "️ Running in PRODUCTION mode..."
     exec .venv/bin/python3 -u -m src.auth.auth_server 2>&1 | tee -a auth_service.log
 else
-    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    echo "️ Running in DEVELOPMENT mode with hot-reload..."
     exec .venv/bin/python3 -u -m src.auth.auth_server 2>&1 | tee -a auth_service.log
 fi

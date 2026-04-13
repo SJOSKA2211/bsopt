@@ -660,7 +660,7 @@ export function ChatWidget() {
         </div>
       ) : (
         <button onClick={() => setIsOpen(true)} className="w-14 h-14 bg-blue-500 rounded-full text-white relative">
-          💬
+          
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -875,7 +875,7 @@ Job: SendSupportReplyNotification
 ## Real-Time Technology Options
 
 | Technology | Best For | Serverless? |
-|------------|----------|-------------|
+|--|--|--|
 | ActionCable (Rails) | Rails apps | No |
 | Socket.IO | Node.js apps | No |
 | Pusher | Any stack | Yes |

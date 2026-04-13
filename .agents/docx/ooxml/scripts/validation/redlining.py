@@ -124,7 +124,7 @@ class RedliningValidator:
         # Show git word diff
         git_diff = self._get_git_word_diff(original_text, modified_text)
         if git_diff:
-            error_parts.extend(["Differences:", "============", git_diff])
+            error_parts.extend(["Differences:", "==", git_diff])
         else:
             error_parts.append("Unable to generate word diff (git not available)")
 

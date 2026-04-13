@@ -126,7 +126,7 @@ def save_active_context(ctx: ActiveContext, projects: list[ProjectInfo] = None):
     if projects:
         lines.append("## Projetos Ativos")
         lines.append("| Projeto | Status | Última Sessão | Próxima Ação |")
-        lines.append("|---------|--------|---------------|--------------|")
+        lines.append("|---------|--------|--|--|")
         for p in projects:
             session_ref = f"session-{p.last_session:03d}" if p.last_session else "—"
             action = p.next_actions[0] if p.next_actions else "—"

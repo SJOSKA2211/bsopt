@@ -6,11 +6,11 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # 0. Autonomous Script Management
-echo "📂 Enforcing executable permissions for system scripts..."
+echo " Enforcing executable permissions for system scripts..."
 chmod +x scripts/*.sh scripts/*.py
 
 # 0.1 Dependency Verification
-command -v openssl >/dev/null 2>&1 || { echo >&2 "❌ Error: openssl is required but not installed."; exit 1; }
+command -v openssl >/dev/null 2>&1 || { echo >&2 " Error: openssl is required but not installed."; exit 1; }
 
 # 1. Detect Container Engine
 if command -v docker &> /dev/null; then
@@ -21,19 +21,19 @@ if command -v docker &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "❌ Error: Docker is required but not installed."
+    echo " Error: Docker is required but not installed."
     exit 1
 fi
 
-echo "🚀 Using container orchestrator: $COMPOSE_CMD"
+echo " Using container orchestrator: $COMPOSE_CMD"
 
 # 2. PKI & Secret Generation
-echo "🔐 Initializing Security Substrate..."
+echo " Initializing Security Substrate..."
 bash scripts/setup_pki.sh
 
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
-    echo "📝 Generating Secrets..."
+    echo " Generating Secrets..."
     
     # High-Entropy Database Secrets
     DB_USER="Manifold_admin"
@@ -77,13 +77,13 @@ IBM_QUANTUM_TOKEN=
 # Testing & CI
 BSOPT_ALLOW_WEAK_SECRETS=false
 EOF
-    echo "✅ Secrets generated and secured in $ENV_FILE"
+    echo " Secrets generated and secured in $ENV_FILE"
 else
     echo "ℹ️ $ENV_FILE already exists. Preserving existing secure state."
 fi
 
 # 3. Microservices Lifecycle Management
-echo "📦 Spinning up Core Stack..."
+echo " Spinning up Core Stack..."
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio
 
 # 4. Robust Healthcheck Polling
@@ -96,11 +96,11 @@ check_health() {
         ((retries--))
     done
     if [ $retries -eq 0 ]; then
-        echo "❌ Fatal: $service failed to reach readiness."
+        echo " Fatal: $service failed to reach readiness."
         $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml logs "$service"
         exit 1
     fi
-    echo "✅ $service is Healthy."
+    echo " $service is Healthy."
 }
 
 check_health "postgres"
@@ -109,4 +109,4 @@ check_health "redis"
 check_health "rabbitmq"
 check_health "minio"
 
-echo "🏁 Phase 0 Bootstrapping Complete. Stack is Operational."
+echo " Phase 0 Bootstrapping Complete. Stack is Operational."

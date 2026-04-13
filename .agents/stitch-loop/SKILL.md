@@ -217,7 +217,7 @@ This file persists all Stitch identifiers so future iterations can reference the
 ```
 
 | Field | Description |
-|-------|-------------|
+|-------|--|
 | `name` | Full resource name (`projects/{id}`) |
 | `projectId` | Stitch project ID (from `create_project` or `get_project`) |
 | `title` | Human-readable project title |
@@ -231,7 +231,7 @@ This file persists all Stitch identifiers so future iterations can reference the
 The loop can be driven by different orchestration layers:
 
 | Method | How it works |
-|--------|--------------|
+|--------|--|
 | **CI/CD** | GitHub Actions triggers on `.stitch/next-prompt.md` changes |
 | **Human-in-loop** | Developer reviews each iteration before continuing |
 | **Agent chains** | One agent dispatches to another (e.g., Jules API) |
@@ -249,16 +249,16 @@ This skill works best with the `design-md` skill:
 
 ## Common Pitfalls
 
-- ❌ Forgetting to update `.stitch/next-prompt.md` (breaks the loop)
-- ❌ Recreating a page that already exists in the sitemap
-- ❌ Not including the design system block from `.stitch/DESIGN.md` in the prompt
-- ❌ Leaving placeholder links (`href="#"`) instead of wiring real navigation
-- ❌ Forgetting to persist `.stitch/metadata.json` after creating a new project
+-  Forgetting to update `.stitch/next-prompt.md` (breaks the loop)
+-  Recreating a page that already exists in the sitemap
+-  Not including the design system block from `.stitch/DESIGN.md` in the prompt
+-  Leaving placeholder links (`href="#"`) instead of wiring real navigation
+-  Forgetting to persist `.stitch/metadata.json` after creating a new project
 
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | Stitch generation fails | Check that the prompt includes the design system block |
 | Inconsistent styles | Ensure `.stitch/DESIGN.md` is up-to-date and copied correctly |
 | Loop stalls | Verify `.stitch/next-prompt.md` was updated with valid frontmatter |

@@ -386,7 +386,7 @@ obj->~Data();  // Manual destruction needed
 ## Quick Reference
 
 | Technique | Use Case | Benefit |
-|-----------|----------|---------|
+|--|--|---------|
 | Smart Pointers | Ownership management | Memory safety |
 | Move Semantics | Avoid copies | Performance |
 | Custom Allocators | Specialized allocation | Speed + control |

@@ -250,7 +250,7 @@ copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\System32\config\SYS
 ## Quick Reference
 
 | Technique | OS | Domain Required | Tool |
-|-----------|-----|-----------------|------|
+|--|-----|--|------|
 | Sudo Binary Abuse | Linux | No | GTFOBins |
 | Cron Job Exploit | Linux | No | Manual |
 | Capability Abuse | Linux | No | getcap |
@@ -316,7 +316,7 @@ $ hashcat -m 13100 hashes.txt rockyou.txt
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | sudo -l requires password | Try other enumeration (SUID, cron, capabilities) |
 | Mimikatz blocked by AV | Use Invoke-Mimikatz or SafetyKatz |
 | Kerberoasting returns no hashes | Check for service accounts with SPNs |

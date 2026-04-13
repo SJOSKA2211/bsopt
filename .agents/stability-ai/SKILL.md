@@ -47,7 +47,7 @@ Skill para gerar imagens artisticas e fotorrealistas usando a Stability AI API.
 ## Quando Usar Esta Skill Vs Ai-Studio-Image
 
 | Cenario | Skill recomendada |
-|---------|-------------------|
+|---------|--|
 | Foto humanizada para Instagram/redes sociais | ai-studio-image |
 | Arte digital, ilustracao, concept art | **stability-ai** |
 | Foto com camera de celular (realismo casual) | ai-studio-image |
@@ -72,7 +72,7 @@ Detalhes completos em `references/setup-guide.md`.
 ## 1. Modos De Operacao
 
 | Comando | O que faz | Endpoint |
-|---------|-----------|----------|
+|---------|--|--|
 | `--mode generate` | Texto para imagem (SD3.5) | `/generate/sd3` |
 | `--mode ultra` | Texto para imagem premium | `/generate/ultra` |
 | `--mode core` | Texto para imagem rapido | `/generate/core` |
@@ -140,7 +140,7 @@ python scripts/generate.py --prompt "anime warrior girl, widescreen" --analyze -
 ## 3. Aspect Ratios
 
 | Nome | Ratio | Aliases | Uso tipico |
-|------|-------|---------|-----------|
+|------|-------|---------|--|
 | square | 1:1 | ig, instagram, quadrado | Feed Instagram |
 | portrait | 2:3 | retrato, pinterest | Retrato, poster |
 | landscape | 3:2 | paisagem, horizontal | Paisagem, banner |
@@ -155,7 +155,7 @@ python scripts/generate.py --prompt "anime warrior girl, widescreen" --analyze -
 Cada estilo adiciona qualificadores automaticamente ao prompt:
 
 | Estilo | Descricao | Ideal para |
-|--------|-----------|-----------|
+|--------|--|--|
 | photorealistic | Fotorrealismo cinematografico | Retratos, cenas |
 | anime | Anime/Manga japones | Personagens, cenas |
 | digital-art | Arte digital detalhada | Ilustracoes gerais |
@@ -194,7 +194,7 @@ Metadados salvos em `.meta.json` com: prompt original, prompt final, modelo, asp
 ## Referencia De Arquivos
 
 | Arquivo | Quando consultar |
-|---------|-----------------|
+|---------|--|
 | `references/setup-guide.md` | Setup inicial, API key, troubleshooting |
 | `references/prompt-engineering.md` | Tecnicas avancadas de prompt |
 | `references/api-reference.md` | Endpoints, parametros, respostas, erros |

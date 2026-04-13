@@ -46,7 +46,7 @@ pg_dump -U $DB_USER -Fc $DB_NAME > "$BACKUP_DIR/db_$DATE.dump"
 # Step 2: Archive the filestore
 tar -czf "$BACKUP_DIR/filestore_$DATE.tar.gz" -C "$FILESTORE_PATH" .
 
-echo "✅ Backup complete: db_$DATE.dump + filestore_$DATE.tar.gz"
+echo " Backup complete: db_$DATE.dump + filestore_$DATE.tar.gz"
 ```
 
 ### Example 2: Automate with Cron (daily at 2 AM)
@@ -96,13 +96,13 @@ docker compose start odoo
 
 ## Best Practices
 
-- ✅ **Do:** Test restores monthly in a staging environment — a backup you've never restored is not a backup.
-- ✅ **Do:** Follow the **3-2-1 rule**: 3 copies, 2 different media types, 1 offsite copy (e.g., S3 or a remote server).
-- ✅ **Do:** Back up **immediately before every Odoo upgrade** — this is your rollback point.
-- ✅ **Do:** Verify backup integrity: `pg_restore --list backup.dump` should complete without errors.
-- ❌ **Don't:** Back up only the database without the filestore — all attachments and images will be missing after a restore.
-- ❌ **Don't:** Store backups on the same disk or same server as Odoo — a disk or server failure destroys both.
-- ❌ **Don't:** Run `pg_restore --clean` against a non-existent database — always create the database first.
+-  **Do:** Test restores monthly in a staging environment — a backup you've never restored is not a backup.
+-  **Do:** Follow the **3-2-1 rule**: 3 copies, 2 different media types, 1 offsite copy (e.g., S3 or a remote server).
+-  **Do:** Back up **immediately before every Odoo upgrade** — this is your rollback point.
+-  **Do:** Verify backup integrity: `pg_restore --list backup.dump` should complete without errors.
+-  **Don't:** Back up only the database without the filestore — all attachments and images will be missing after a restore.
+-  **Don't:** Store backups on the same disk or same server as Odoo — a disk or server failure destroys both.
+-  **Don't:** Run `pg_restore --clean` against a non-existent database — always create the database first.
 
 ## Limitations
 

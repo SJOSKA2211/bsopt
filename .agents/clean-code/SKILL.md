@@ -85,7 +85,7 @@ Use this skill when:
 - **Viscosity**: Hard to do the right thing.
 - **Needless Complexity/Repetition**.
 
-## 🛠️ Implementation Checklist
+## ️ Implementation Checklist
 - [ ] Is this function smaller than 20 lines?
 - [ ] Does this function do exactly one thing?
 - [ ] Are all names searchable and intention-revealing?

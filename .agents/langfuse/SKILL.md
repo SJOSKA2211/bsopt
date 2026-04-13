@@ -198,7 +198,7 @@ result = agent_executor.invoke(
 
 ## Anti-Patterns
 
-### ❌ Not Flushing in Serverless
+###  Not Flushing in Serverless
 
 **Why bad**: Traces are batched.
 Serverless may exit before flush.
@@ -208,7 +208,7 @@ Data is lost.
 Use context managers where available.
 Consider sync mode for critical traces.
 
-### ❌ Tracing Everything
+###  Tracing Everything
 
 **Why bad**: Noisy traces.
 Performance overhead.
@@ -218,7 +218,7 @@ Hard to find important info.
 Group related operations.
 Use meaningful span names.
 
-### ❌ No User/Session IDs
+###  No User/Session IDs
 
 **Why bad**: Can't debug specific users.
 Can't track sessions.

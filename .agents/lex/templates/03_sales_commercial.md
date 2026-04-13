@@ -16,7 +16,7 @@ These templates dictate the parameters of sales, services, and online privacy. N
 ## Contract Types & Nuances
 
 | Contract Type | USA Context | Canada Context | EU Context |
-|---------------|-------------|----------------|------------|
+|--|--|--|--|
 | **Master Service Agreements (MSA)** | The "umbrella" contract. Governed generally by state common law. Limits of liability are crucial. | Similar structure. Often defaults to Ontario or BC jurisdiction. | Governed by B2B commercial regulations of specific member states. |
 | **Statements of Work (SOW)** | Sits beneath an MSA. Defines explicitly *what* is delivered. Highly standardized. | Same as US. | Same as US. |
 | **Sales Contracts / Bills of Sale** | Heavily governed by the Uniform Commercial Code (UCC) regarding "implied warranties of merchantability". | Governed by provincial Sale of Goods Acts. Similar implied warranties exist. | Heavily governed by the EU Consumer Rights Directive, establishing strict rules on right of withdrawal and implied guarantees (minimum 2 years). |

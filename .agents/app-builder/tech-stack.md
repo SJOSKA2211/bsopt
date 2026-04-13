@@ -32,7 +32,7 @@ Monorepo:
 ## Alternative Options
 
 | Need | Default | Alternative |
-|------|---------|-------------|
+|------|---------|--|
 | Real-time | - | Supabase Realtime, Socket.io |
 | File storage | - | Cloudinary, S3 |
 | Payment | Stripe | LemonSqueezy, Paddle |

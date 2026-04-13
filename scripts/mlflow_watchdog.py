@@ -127,7 +127,7 @@ class MLflowWatchdog:
         if not webhook_url: return
         
         try:
-            payload = json.dumps({"text": f"🚨 *MLOps Watchdog*: {message}"}).encode("utf-8")
+            payload = json.dumps({"text": f" *MLOps Watchdog*: {message}"}).encode("utf-8")
             req = urllib.request.Request(webhook_url, data=payload, method="POST")
             req.add_header("Content-Type", "application/json")
             urllib.request.urlopen(req, timeout=5)

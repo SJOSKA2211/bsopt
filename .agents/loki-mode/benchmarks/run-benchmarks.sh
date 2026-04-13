@@ -1,5 +1,5 @@
 #!/bin/bash
-#===============================================================================
+#==
 # Loki Mode Benchmark Runner
 # Run HumanEval and SWE-bench benchmarks to validate multi-agent performance
 #
@@ -28,7 +28,7 @@
 #
 # Results are saved to:
 #   ./benchmarks/results/YYYY-MM-DD-HH-MM-SS/
-#===============================================================================
+#==
 
 set -uo pipefail
 
@@ -60,9 +60,9 @@ log_warning() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[FAIL]${NC} $1"; }
 log_progress() { echo -e "${BLUE}[PROG]${NC} $1"; }
 
-#===============================================================================
+#==
 # Argument Parsing
-#===============================================================================
+#==
 
 parse_args() {
     local positional=()
@@ -113,9 +113,9 @@ parse_args() {
     BENCHMARK="${1:-all}"
 }
 
-#===============================================================================
+#==
 # Setup
-#===============================================================================
+#==
 
 setup_environment() {
     log_info "Setting up benchmark environment..."
@@ -147,9 +147,9 @@ setup_environment() {
     log_success "Environment ready"
 }
 
-#===============================================================================
+#==
 # HumanEval Benchmark
-#===============================================================================
+#==
 
 download_humaneval() {
     local dataset_file="$SCRIPT_DIR/datasets/humaneval.jsonl"
@@ -499,10 +499,10 @@ HUMANEVAL_EXECUTE
     log_info "Solutions: $solutions_dir/"
 }
 
-#===============================================================================
+#==
 # Loki Mode Multi-Agent HumanEval Benchmark
 # Uses: Architect -> Engineer -> QA -> Reviewer with RARV cycle
-#===============================================================================
+#==
 
 run_humaneval_loki() {
     local dataset_file="$SCRIPT_DIR/datasets/humaneval.jsonl"
@@ -913,9 +913,9 @@ HUMANEVAL_LOKI
     log_info "Solutions: $solutions_dir/"
 }
 
-#===============================================================================
+#==
 # SWE-bench Benchmark
-#===============================================================================
+#==
 
 download_swebench() {
     local dataset_file="$SCRIPT_DIR/datasets/swebench-lite.json"
@@ -1203,10 +1203,10 @@ SWEBENCH_EXECUTE
     log_info "Predictions: $RESULTS_DIR/swebench-predictions.json"
 }
 
-#===============================================================================
+#==
 # Loki Mode Multi-Agent SWE-bench Benchmark
 # Uses: Architect -> Engineer -> QA -> Reviewer with RARV cycle
-#===============================================================================
+#==
 
 run_swebench_loki() {
     log_info "Executing SWE-bench Lite with Loki Mode Multi-Agent System..."
@@ -1765,9 +1765,9 @@ SWEBENCH_LOKI
     log_info "Predictions: $RESULTS_DIR/swebench-loki-predictions.json"
 }
 
-#===============================================================================
+#==
 # Summary Report
-#===============================================================================
+#==
 
 generate_summary() {
     log_info "Generating benchmark summary..."
@@ -1897,22 +1897,22 @@ SUMMARY_GEN
     log_success "Summary generated: $RESULTS_DIR/SUMMARY.md"
 }
 
-#===============================================================================
+#==
 # Main
-#===============================================================================
+#==
 
 main() {
     parse_args "$@"
 
     echo ""
-    echo "========================================"
+    echo "=="
     echo "  Loki Mode Benchmark Runner"
     if [ "$EXECUTE_MODE" = true ]; then
         echo "  Mode: EXECUTE"
     else
         echo "  Mode: SETUP"
     fi
-    echo "========================================"
+    echo "=="
     echo ""
 
     export SCRIPT_DIR RESULTS_DIR PROJECT_DIR

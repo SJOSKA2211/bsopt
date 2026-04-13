@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==
 # Manifold: ENVOY API GATEWAY CONFIGURATION (v2.0)
-# ==============================================================================
+# ==
 
 # - Rate limiting (100 req/s per IP)
 # - Circuit breaker (5xx threshold: 50%)
@@ -9,7 +9,7 @@
 # - Health check endpoints (/health, /ready)
 # - gRPC-Web transcoding
 # - Distributed tracing
-# ==============================================================================
+# ==
 
 admin:
   access_log_path: /tmp/envoy_access.log
@@ -20,9 +20,9 @@ admin:
 
 static_resources:
   listeners:
-  # ============================================================================
+  # ==
   # HTTP Listener (Port 8080)
-  # ============================================================================
+  # ==
   - name: listener_http
     address:
       socket_address:
@@ -271,9 +271,9 @@ static_resources:
               start_child_span: true
               emit_dynamic_stats: true
   
-  # ============================================================================
+  # ==
   # HTTPS Listener with TLS Termination (Port 443)
-  # ============================================================================
+  # ==
   - name: listener_https
     address:
       socket_address:
@@ -332,9 +332,9 @@ static_resources:
               start_child_span: true
 
   clusters:
-  # ============================================================================
+  # ==
   # Service Clusters with Circuit Breaker & Health Checks
-  # ============================================================================
+  # ==
   
   # API Service Cluster
   - name: api_service
@@ -517,9 +517,9 @@ static_resources:
                 address: ray-head
                 port_value: 8265
 
-# ============================================================================
+# ==
 # Runtime Configuration
-# ============================================================================
+# ==
 layered_runtime:
   layers:
   - name: static_layer

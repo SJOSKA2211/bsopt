@@ -67,12 +67,12 @@ return [{
 ```
 
 **When to use:**
-- ✅ Comparing items across the dataset
-- ✅ Calculating totals, averages, or statistics
-- ✅ Sorting or ranking items
-- ✅ Deduplication
-- ✅ Building aggregated reports
-- ✅ Combining data from multiple items
+-  Comparing items across the dataset
+-  Calculating totals, averages, or statistics
+-  Sorting or ranking items
+-  Deduplication
+-  Building aggregated reports
+-  Combining data from multiple items
 
 ### Run Once for Each Item
 
@@ -97,10 +97,10 @@ return [{
 ```
 
 **When to use:**
-- ✅ Each item needs independent API call
-- ✅ Per-item validation with different error handling
-- ✅ Item-specific transformations based on item properties
-- ✅ When items must be processed separately for business logic
+-  Each item needs independent API call
+-  Per-item validation with different error handling
+-  Item-specific transformations based on item properties
+-  When items must be processed separately for business logic
 
 **Decision Shortcut:**
 - **Need to look at multiple items?** → Use "All Items" mode
@@ -192,11 +192,11 @@ return [{
 **MOST COMMON MISTAKE**: Webhook data is nested under `.body`
 
 ```javascript
-// ❌ WRONG - Will return undefined
+//  WRONG - Will return undefined
 const name = $json.name;
 const email = $json.email;
 
-// ✅ CORRECT - Webhook data is under .body
+//  CORRECT - Webhook data is under .body
 const name = $json.body.name;
 const email = $json.body.email;
 
@@ -218,7 +218,7 @@ const name = webhookData.name;
 ### Correct Return Formats
 
 ```javascript
-// ✅ Single result
+//  Single result
 return [{
   json: {
     field1: value1,
@@ -226,13 +226,13 @@ return [{
   }
 }];
 
-// ✅ Multiple results
+//  Multiple results
 return [
   {json: {id: 1, data: 'first'}},
   {json: {id: 2, data: 'second'}}
 ];
 
-// ✅ Transformed array
+//  Transformed array
 const transformed = $input.all()
   .filter(item => item.json.valid)
   .map(item => ({
@@ -243,10 +243,10 @@ const transformed = $input.all()
   }));
 return transformed;
 
-// ✅ Empty result (when no data to return)
+//  Empty result (when no data to return)
 return [];
 
-// ✅ Conditional return
+//  Conditional return
 if (shouldProcess) {
   return [{json: processedData}];
 } else {
@@ -257,21 +257,21 @@ if (shouldProcess) {
 ### Incorrect Return Formats
 
 ```javascript
-// ❌ WRONG: Object without array wrapper
+//  WRONG: Object without array wrapper
 return {
   json: {field: value}
 };
 
-// ❌ WRONG: Array without json wrapper
+//  WRONG: Array without json wrapper
 return [{field: value}];
 
-// ❌ WRONG: Plain string
+//  WRONG: Plain string
 return "processed";
 
-// ❌ WRONG: Raw data without mapping
+//  WRONG: Raw data without mapping
 return $input.all();  // Missing .map()
 
-// ❌ WRONG: Incomplete structure
+//  WRONG: Incomplete structure
 return [{data: value}];  // Should be {json: value}
 ```
 
@@ -389,12 +389,12 @@ return [{
 ### #1: Empty Code or Missing Return (Most Common)
 
 ```javascript
-// ❌ WRONG: No return statement
+//  WRONG: No return statement
 const items = $input.all();
 // ... processing code ...
 // Forgot to return!
 
-// ✅ CORRECT: Always return data
+//  CORRECT: Always return data
 const items = $input.all();
 // ... processing ...
 return items.map(item => ({json: item.json}));
@@ -403,36 +403,36 @@ return items.map(item => ({json: item.json}));
 ### #2: Expression Syntax Confusion
 
 ```javascript
-// ❌ WRONG: Using n8n expression syntax in code
+//  WRONG: Using n8n expression syntax in code
 const value = "{{ $json.field }}";
 
-// ✅ CORRECT: Use JavaScript template literals
+//  CORRECT: Use JavaScript template literals
 const value = `${$json.field}`;
 
-// ✅ CORRECT: Direct access
+//  CORRECT: Direct access
 const value = $input.first().json.field;
 ```
 
 ### #3: Incorrect Return Wrapper
 
 ```javascript
-// ❌ WRONG: Returning object instead of array
+//  WRONG: Returning object instead of array
 return {json: {result: 'success'}};
 
-// ✅ CORRECT: Array wrapper required
+//  CORRECT: Array wrapper required
 return [{json: {result: 'success'}}];
 ```
 
 ### #4: Missing Null Checks
 
 ```javascript
-// ❌ WRONG: Crashes if field doesn't exist
+//  WRONG: Crashes if field doesn't exist
 const value = item.json.user.email;
 
-// ✅ CORRECT: Safe access with optional chaining
+//  CORRECT: Safe access with optional chaining
 const value = item.json?.user?.email || 'no-email@example.com';
 
-// ✅ CORRECT: Guard clause
+//  CORRECT: Guard clause
 if (!item.json.user) {
   return [];
 }
@@ -442,10 +442,10 @@ const value = item.json.user.email;
 ### #5: Webhook Body Nesting
 
 ```javascript
-// ❌ WRONG: Direct access to webhook data
+//  WRONG: Direct access to webhook data
 const email = $json.email;
 
-// ✅ CORRECT: Webhook data under .body
+//  CORRECT: Webhook data under .body
 const email = $json.body.email;
 ```
 
@@ -558,12 +558,12 @@ try {
 ### 3. Prefer Array Methods Over Loops
 
 ```javascript
-// ✅ GOOD: Functional approach
+//  GOOD: Functional approach
 const processed = $input.all()
   .filter(item => item.json.valid)
   .map(item => ({json: {id: item.json.id}}));
 
-// ❌ SLOWER: Manual loop
+//  SLOWER: Manual loop
 const processed = [];
 for (const item of $input.all()) {
   if (item.json.valid) {
@@ -575,12 +575,12 @@ for (const item of $input.all()) {
 ### 4. Filter Early, Process Late
 
 ```javascript
-// ✅ GOOD: Filter first to reduce processing
+//  GOOD: Filter first to reduce processing
 const processed = $input.all()
   .filter(item => item.json.status === 'active')  // Reduce dataset first
   .map(item => expensiveTransformation(item));  // Then transform
 
-// ❌ WASTEFUL: Transform everything, then filter
+//  WASTEFUL: Transform everything, then filter
 const processed = $input.all()
   .map(item => expensiveTransformation(item))  // Wastes CPU
   .filter(item => item.json.status === 'active');
@@ -589,11 +589,11 @@ const processed = $input.all()
 ### 5. Use Descriptive Variable Names
 
 ```javascript
-// ✅ GOOD: Clear intent
+//  GOOD: Clear intent
 const activeUsers = $input.all().filter(item => item.json.active);
 const totalRevenue = activeUsers.reduce((sum, user) => sum + user.json.revenue, 0);
 
-// ❌ BAD: Unclear purpose
+//  BAD: Unclear purpose
 const a = $input.all().filter(item => item.json.active);
 const t = a.reduce((s, u) => s + u.json.revenue, 0);
 ```
@@ -618,18 +618,18 @@ return result;
 ## When to Use Code Node
 
 Use Code node when:
-- ✅ Complex transformations requiring multiple steps
-- ✅ Custom calculations or business logic
-- ✅ Recursive operations
-- ✅ API response parsing with complex structure
-- ✅ Multi-step conditionals
-- ✅ Data aggregation across items
+-  Complex transformations requiring multiple steps
+-  Custom calculations or business logic
+-  Recursive operations
+-  API response parsing with complex structure
+-  Multi-step conditionals
+-  Data aggregation across items
 
 Consider other nodes when:
-- ❌ Simple field mapping → Use **Set** node
-- ❌ Basic filtering → Use **Filter** node
-- ❌ Simple conditionals → Use **IF** or **Switch** node
-- ❌ HTTP requests only → Use **HTTP Request** node
+-  Simple field mapping → Use **Set** node
+-  Basic filtering → Use **Filter** node
+-  Simple conditionals → Use **IF** or **Switch** node
+-  HTTP requests only → Use **HTTP Request** node
 
 **Code node excels at**: Complex logic that would require chaining many simple nodes
 

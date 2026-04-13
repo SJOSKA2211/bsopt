@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Azure Cosmos DB resources via Azure Resource Manager.
 
-> **⚠️ Management vs Data Plane**
+> **️ Management vs Data Plane**
 > - **This SDK (Azure.ResourceManager.CosmosDB)**: Create accounts, databases, containers, configure throughput, manage RBAC
 > - **Data Plane SDK (Microsoft.Azure.Cosmos)**: CRUD operations on documents, queries, stored procedures execution
 
@@ -238,7 +238,7 @@ catch (RequestFailedException ex)
 ## Reference Files
 
 | File | When to Read |
-|------|--------------|
+|------|--|
 | references/account-management.md | Account CRUD, failover, keys, connection strings, networking |
 | references/sql-resources.md | SQL databases, containers, stored procedures, triggers, UDFs |
 | references/throughput.md | Manual/autoscale throughput, migration between modes |

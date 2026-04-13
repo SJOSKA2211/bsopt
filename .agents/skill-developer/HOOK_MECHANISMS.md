@@ -65,10 +65,10 @@ Claude sees: [skill suggestion] + user's prompt
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 SKILL ACTIVATION CHECK
+ SKILL ACTIVATION CHECK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📚 RECOMMENDED SKILLS:
+ RECOMMENDED SKILLS:
   → project-catalog-developer
 
 ACTION: Use Skill tool BEFORE responding
@@ -149,9 +149,9 @@ IF ALLOWED:
 ### Output Format (to stderr when blocked)
 
 ```
-⚠️ BLOCKED - Database Operation Detected
+️ BLOCKED - Database Operation Detected
 
-📋 REQUIRED ACTION:
+ REQUIRED ACTION:
 1. Use Skill tool: 'database-verification'
 2. Verify ALL table and column names against schema
 3. Check database structure with DESCRIBE commands
@@ -160,7 +160,7 @@ IF ALLOWED:
 Reason: Prevent column name errors in Prisma queries
 File: form/src/services/user.ts
 
-💡 TIP: Add '// @skip-validation' comment to skip future checks
+ TIP: Add '// @skip-validation' comment to skip future checks
 ```
 
 Claude receives this message and understands it needs to use the skill before retrying the edit.
@@ -172,7 +172,7 @@ Claude receives this message and understands it needs to use the skill before re
 ### Exit Code Reference Table
 
 | Exit Code | stdout | stderr | Tool Execution | Claude Sees |
-|-----------|--------|--------|----------------|-------------|
+|--|--------|--------|--|--|
 | 0 (UserPromptSubmit) | → Context | → User only | N/A | stdout content |
 | 0 (PreToolUse) | → User only | → User only | **Proceeds** | Nothing |
 | 2 (PreToolUse) | → User only | → **CLAUDE** | **BLOCKED** | stderr content |
@@ -197,7 +197,7 @@ Claude: "I'll create the user service..."
     [Attempts to Edit form/src/services/user.ts]
 
 PreToolUse Hook: [Exit code 2]
-    stderr: "⚠️ BLOCKED - Use database-verification"
+    stderr: "️ BLOCKED - Use database-verification"
 
 Claude sees error, responds:
     "I need to verify the database schema first."

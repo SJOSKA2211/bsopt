@@ -235,7 +235,7 @@ await bot.DeleteAsync(WaitUntil.Completed);
 ## Supported Channel Types
 
 | Channel | Constant | Class |
-|---------|----------|-------|
+|---------|--|-------|
 | Direct Line | `BotChannelName.DirectLineChannel` | `DirectLineChannel` |
 | Direct Line Speech | `BotChannelName.DirectLineSpeechChannel` | `DirectLineSpeechChannel` |
 | Microsoft Teams | `BotChannelName.MsTeamsChannel` | `MsTeamsChannel` |
@@ -263,7 +263,7 @@ await bot.DeleteAsync(WaitUntil.Completed);
 ## BotServiceKind Values
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `BotServiceKind.Azurebot` | Azure Bot (recommended) |
 | `BotServiceKind.Bot` | Legacy Bot Framework bot |
 | `BotServiceKind.Designer` | Composer bot |
@@ -273,14 +273,14 @@ await bot.DeleteAsync(WaitUntil.Completed);
 ## BotServiceSkuName Values
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `BotServiceSkuName.F0` | Free tier |
 | `BotServiceSkuName.S1` | Standard tier |
 
 ## BotMsaAppType Values
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `BotMsaAppType.MultiTenant` | Multi-tenant app |
 | `BotMsaAppType.SingleTenant` | Single-tenant app |
 | `BotMsaAppType.UserAssignedMSI` | User-assigned managed identity |
@@ -328,7 +328,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.ResourceManager.BotService |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.resourcemanager.botservice |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/botservice/Azure.ResourceManager.BotService |

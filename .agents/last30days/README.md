@@ -114,7 +114,7 @@ This example shows /last30days learning **domain-specific prompting techniques**
 
 **Most mentioned use cases:**
 
-🏆 Top 5 by engagement:
+ Top 5 by engagement:
 
 1. **Email/Calendar automation** - mentioned 8x+ (r/selfhosted, @dreetje, @danpeguine, MacStories)
    - Morning briefings, spam filtering, auto-replies, recruiter declines
@@ -147,10 +147,10 @@ This example shows /last30days as a **product research tool** - discovering real
 **Research Output:**
 > ClawdBot setup varies by deployment style - Docker is the most recommended path, but users are also deploying via bare metal and cloud VMs. The community has converged on key best practices: use the setup wizard for initial config, start with conservative hardware (you can scale up), and configure authentication before exposing any endpoints.
 
-**🛠️ Setup patterns by engagement:**
+**️ Setup patterns by engagement:**
 
 | Pattern | Mentions | Key Sources |
-|---------|----------|-------------|
+|---------|--|--|
 | Docker Compose deployment | 6x | r/selfhosted, r/LocalLLaMA |
 | Setup wizard (interactive config) | 5x | @dreetje, documentation |
 | API key management | 4x | r/selfhosted, security threads |
@@ -266,10 +266,10 @@ This example shows /last30days learning **AI image generation prompting patterns
 **Research Output:**
 > The Claude Code skills ecosystem has exploded with marketplaces, curated lists, and viral skill announcements. The Remotion video skill got 17.3K likes on X. SkillsMP emerged as a marketplace with 60-87K+ skills. Multiple GitHub repos (awesome-claude-skills, Superpowers) are actively curated.
 
-**🏆 Most mentioned skills/resources:**
+** Most mentioned skills/resources:**
 
 | Rank | Skill/Resource | Mentions | Sources | Engagement |
-|------|----------------|----------|---------|------------|
+|------|--|--|---------|--|
 | 1 | Remotion skill | 4x | X (@Remotion, @joshua_xu_), web | 17.3K likes, video creation |
 | 2 | SkillsMP marketplace | 5x | X (@milesdeutscher, @rexan_wong), web | 60-87K+ skills directory |
 | 3 | awesome-claude-skills (GitHub) | 4x | Web (travisvn, ComposioHQ repos) | Multiple curated lists |
@@ -622,7 +622,7 @@ Or am I wide awake and in too deep
 [Outro: fade with glitchy effects]
 ```
 
-**The Result:** 🎵 [Listen to the track](assets/claude-code-rap.mp3)
+**The Result:**  [Listen to the track](assets/claude-code-rap.mp3)
 
 This example shows /last30days learning **music AI prompting patterns** (bracket structure, conversational style descriptions) and generating a complete song prompt that Suno turned into an actual banger.
 
@@ -692,7 +692,7 @@ This example shows /last30days discovering **emerging developer workflows** - re
 ## Options
 
 | Flag | Description |
-|------|-------------|
+|------|--|
 | `--quick` | Faster research, fewer sources (8-12 each) |
 | `--deep` | Comprehensive research (50-70 Reddit, 40-60 X) |
 | `--debug` | Verbose logging for troubleshooting |

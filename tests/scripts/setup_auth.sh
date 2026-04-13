@@ -5,9 +5,9 @@
 
 set -e  # Exit on error
 
-echo "=========================================="
+echo "=="
 echo "  JWT Authentication System Setup"
-echo "=========================================="
+echo "=="
 echo ""
 
 # Color codes for output
@@ -23,7 +23,7 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 PYTHON_VERSION=$(python3 --version)
-echo -e "${GREEN}✓ $PYTHON_VERSION found${NC}"
+echo -e "${GREEN} $PYTHON_VERSION found${NC}"
 echo ""
 
 # Check if PostgreSQL is installed
@@ -33,7 +33,7 @@ if ! command -v psql &> /dev/null; then
     echo "Install with: sudo apt-get install postgresql"
 else
     PG_VERSION=$(psql --version)
-    echo -e "${GREEN}✓ $PG_VERSION found${NC}"
+    echo -e "${GREEN} $PG_VERSION found${NC}"
 fi
 echo ""
 
@@ -44,11 +44,11 @@ if ! command -v redis-cli &> /dev/null; then
     echo "Install with: sudo apt-get install redis-server"
 else
     REDIS_VERSION=$(redis-cli --version)
-    echo -e "${GREEN}✓ $REDIS_VERSION found${NC}"
+    echo -e "${GREEN} $REDIS_VERSION found${NC}"
 
     # Test Redis connection
     if redis-cli ping &> /dev/null; then
-        echo -e "${GREEN}✓ Redis is running${NC}"
+        echo -e "${GREEN} Redis is running${NC}"
     else
         echo -e "${YELLOW}Warning: Redis is installed but not running${NC}"
         echo "Start with: sudo systemctl start redis"
@@ -61,7 +61,7 @@ echo "Installing Python dependencies..."
 if [ -f "requirements-auth.txt" ]; then
     pip install --upgrade pip > /dev/null
     pip install -r requirements-auth.txt
-    echo -e "${GREEN}✓ Dependencies installed${NC}"
+    echo -e "${GREEN} Dependencies installed${NC}"
 else
     echo -e "${RED}Error: requirements-auth.txt not found${NC}"
     exit 1
@@ -114,10 +114,10 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:8000
 API_PREFIX=/api/v1
 EOF
 
-    echo -e "${GREEN}✓ .env file created with secure JWT secret${NC}"
-    echo -e "${YELLOW}⚠ Please update DATABASE_URL if needed${NC}"
+    echo -e "${GREEN} .env file created with secure JWT secret${NC}"
+    echo -e "${YELLOW} Please update DATABASE_URL if needed${NC}"
 else
-    echo -e "${GREEN}✓ .env file already exists${NC}"
+    echo -e "${GREEN} .env file already exists${NC}"
 fi
 echo ""
 
@@ -131,15 +131,15 @@ if command -v psql &> /dev/null; then
 
         # Check if database exists
         if psql -lqt | cut -d \| -f 1 | grep -qw options_db; then
-            echo -e "${GREEN}✓ Database 'options_db' already exists${NC}"
+            echo -e "${GREEN} Database 'options_db' already exists${NC}"
         else
-            createdb options_db 2>/dev/null && echo -e "${GREEN}✓ Database 'options_db' created${NC}" || echo -e "${YELLOW}Warning: Could not create database (may need superuser access)${NC}"
+            createdb options_db 2>/dev/null && echo -e "${GREEN} Database 'options_db' created${NC}" || echo -e "${YELLOW}Warning: Could not create database (may need superuser access)${NC}"
         fi
 
         # Apply schema
         if [ -f "src/database/schema.sql" ]; then
             echo "Applying database schema..."
-            psql options_db < src/database/schema.sql && echo -e "${GREEN}✓ Database schema applied${NC}" || echo -e "${YELLOW}Warning: Could not apply schema${NC}"
+            psql options_db < src/database/schema.sql && echo -e "${GREEN} Database schema applied${NC}" || echo -e "${YELLOW}Warning: Could not apply schema${NC}"
         fi
     fi
 else
@@ -148,9 +148,9 @@ fi
 echo ""
 
 # Summary
-echo "=========================================="
+echo "=="
 echo "  Setup Complete!"
-echo "=========================================="
+echo "=="
 echo ""
 echo "Next steps:"
 echo ""
@@ -169,4 +169,4 @@ echo ""
 echo "For detailed documentation, see:"
 echo "   - AUTH_SETUP.md"
 echo ""
-echo "=========================================="
+echo "=="

@@ -66,7 +66,7 @@ técnica.
 ## Llama Como Caso De Estudo
 
 | Versão | Data | Parâmetros | Resultado |
-|--------|------|-----------|---------|
+|--------|------|--|---------|
 | LLaMA 1 | Fev 2023 | 7B-65B | Primeiro modelo open competindo com GPT-3.5 |
 | LLaMA 2 | Jul 2023 | 7B-70B | Melhor modelo open; permitiu pesquisa independente massiva |
 | LLaMA 3 | Abr 2024 | 8B-70B | Competia com GPT-4 em muitas tarefas |

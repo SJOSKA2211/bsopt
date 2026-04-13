@@ -24,7 +24,7 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=xxx;IngestionEndpoint=h
 
 ## When to Use
 | Scenario | Use |
-|----------|-----|
+|--|-----|
 | Quick setup, auto-instrumentation | `azure-monitor-opentelemetry` (distro) |
 | Custom OpenTelemetry pipeline | `azure-monitor-opentelemetry-exporter` (this) |
 | Fine-grained control over telemetry | `azure-monitor-opentelemetry-exporter` (this) |
@@ -182,7 +182,7 @@ exporter = AzureMonitorTraceExporter(
 ## Exporter Types
 
 | Exporter | Telemetry Type | Application Insights Table |
-|----------|---------------|---------------------------|
+|--|--|--|
 | `AzureMonitorTraceExporter` | Traces/Spans | requests, dependencies, exceptions |
 | `AzureMonitorMetricExporter` | Metrics | customMetrics, performanceCounters |
 | `AzureMonitorLogExporter` | Logs | traces, customEvents |
@@ -190,7 +190,7 @@ exporter = AzureMonitorTraceExporter(
 ## Configuration Options
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
+|--|--|---------|
 | `connection_string` | Application Insights connection string | From env var |
 | `credential` | Azure credential for AAD auth | None |
 | `disable_offline_storage` | Disable retry storage | False |

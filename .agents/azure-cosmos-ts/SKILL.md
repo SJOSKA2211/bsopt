@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Data plane SDK for Azure Cosmos DB NoSQL API operations — CRUD on documents, queries, bulk operations.
 
-> **⚠️ Data vs Management Plane**
+> **️ Data vs Management Plane**
 > - **This SDK (@azure/cosmos)**: CRUD operations on documents, queries, stored procedures
 > - **Management SDK (@azure/arm-cosmosdb)**: Create accounts, databases, containers via ARM
 

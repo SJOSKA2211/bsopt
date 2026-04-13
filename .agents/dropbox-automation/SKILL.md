@@ -204,7 +204,7 @@ Several Dropbox operations run asynchronously:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search files | `DROPBOX_SEARCH_FILE_OR_FOLDER` | `query`, `options.path` |
 | Continue search | `DROPBOX_SEARCH_CONTINUE` | `cursor` |
 | List folder | `DROPBOX_LIST_FILES_IN_FOLDER` | `path`, `recursive`, `limit` |

@@ -23,7 +23,7 @@ Authenticate Java applications with Azure services using Microsoft Entra ID (Azu
 ## Key Concepts
 
 | Credential | Use Case |
-|------------|----------|
+|--|--|
 | `DefaultAzureCredential` | **Recommended** - Works in dev and production |
 | `ManagedIdentityCredential` | Azure-hosted apps (App Service, Functions, VMs) |
 | `EnvironmentCredential` | CI/CD pipelines with env vars |
@@ -350,7 +350,7 @@ AZURE_AUTHORITY_HOST=https://login.microsoftonline.com/
 ## Credential Selection Matrix
 
 | Environment | Recommended Credential |
-|-------------|----------------------|
+|--|--|
 | Local Development | `DefaultAzureCredential` (uses Azure CLI) |
 | Azure App Service | `DefaultAzureCredential` (uses Managed Identity) |
 | Azure Functions | `DefaultAzureCredential` (uses Managed Identity) |

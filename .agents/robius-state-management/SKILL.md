@@ -31,7 +31,7 @@ Use this skill when:
 For production-ready state management patterns, see the `_base/` directory:
 
 | Pattern | Description |
-|---------|-------------|
+|---------|--|
 | 06-global-registry | Global widget registry with Cx::set_global |
 | 07-radio-navigation | Tab-style navigation with radio buttons |
 | 10-state-machine | Enum-based state machine widgets |

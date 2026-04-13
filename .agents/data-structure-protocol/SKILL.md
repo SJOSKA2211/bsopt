@@ -113,7 +113,7 @@ If `.dsp/` is empty, traverse the project from root entrypoint(s) via DFS on imp
 ### Key Commands
 
 | Category | Commands |
-|----------|----------|
+|--|--|
 | **Create** | `init`, `create-object`, `create-function`, `create-shared`, `add-import` |
 | **Update** | `update-description`, `update-import-why`, `move-entity` |
 | **Delete** | `remove-import`, `remove-shared`, `remove-entity` |
@@ -175,14 +175,14 @@ python dsp-cli.py --root . get-recipients obj-11223344
 
 ## Best Practices
 
-- ✅ **Do:** Update DSP immediately when creating new files, adding imports, or changing public APIs
-- ✅ **Do:** Always add a meaningful `why` reason when recording an import — this is where most of DSP's value lives
-- ✅ **Do:** Use `kind: external` for third-party libraries without analyzing their internals
-- ✅ **Do:** Keep descriptions minimal (1-3 sentences about purpose, not implementation)
-- ✅ **Do:** Treat `.dsp/` diffs like code diffs — review them, keep them accurate
-- ❌ **Don't:** Touch `.dsp/` for internal-only changes that don't affect purpose or dependencies
-- ❌ **Don't:** Change an entity's UID on rename/move (use `move-entity` instead)
-- ❌ **Don't:** Create UIDs for every local variable or helper — only file-level Objects and public/shared entities
+-  **Do:** Update DSP immediately when creating new files, adding imports, or changing public APIs
+-  **Do:** Always add a meaningful `why` reason when recording an import — this is where most of DSP's value lives
+-  **Do:** Use `kind: external` for third-party libraries without analyzing their internals
+-  **Do:** Keep descriptions minimal (1-3 sentences about purpose, not implementation)
+-  **Do:** Treat `.dsp/` diffs like code diffs — review them, keep them accurate
+-  **Don't:** Touch `.dsp/` for internal-only changes that don't affect purpose or dependencies
+-  **Don't:** Change an entity's UID on rename/move (use `move-entity` instead)
+-  **Don't:** Create UIDs for every local variable or helper — only file-level Objects and public/shared entities
 
 ## Integration
 

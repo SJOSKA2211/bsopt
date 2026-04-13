@@ -37,12 +37,12 @@
 ## Quality Gates
 
 ### Location Page Limits
-- ⚠️ **WARNING** at 30+ location pages
-- 🛑 **HARD STOP** at 50+ location pages
+- ️ **WARNING** at 30+ location pages
+-  **HARD STOP** at 50+ location pages
 
 ### Unique Content Requirements
 | Page Type | Min Words | Unique % |
-|-----------|-----------|----------|
+|--|--|--|
 | Primary Location | 600 | 60%+ |
 | Service Area | 500 | 40%+ |
 | Service Page | 800 | 100% |
@@ -58,7 +58,7 @@
 ## Schema Recommendations
 
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Homepage | LocalBusiness, Organization |
 | Service Pages | Service, LocalBusiness |
 | Location Pages | LocalBusiness (with geo) |

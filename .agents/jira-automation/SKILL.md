@@ -164,7 +164,7 @@ Automate Jira operations through Composio's Jira toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search issues (JQL) | JIRA_SEARCH_FOR_ISSUES_USING_JQL_POST | jql, maxResults |
 | Get issue | JIRA_GET_ISSUE | issueIdOrKey |
 | Create issue | JIRA_CREATE_ISSUE | project, issuetype, summary |

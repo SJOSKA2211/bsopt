@@ -52,7 +52,7 @@ Gather this context (ask if not provided):
 ### The AI Search Landscape
 
 | Platform | How It Works | Source Selection |
-|----------|-------------|----------------|
+|--|--|--|
 | **Google AI Overviews** | Summarizes top-ranking pages | Strong correlation with traditional rankings |
 | **ChatGPT (with search)** | Searches web, cites sources | Draws from wider range, not just top-ranked |
 | **Perplexity** | Always cites sources with links | Favors authoritative, recent, well-structured content |
@@ -86,7 +86,7 @@ Before optimizing, assess your current AI search presence.
 Test 10-20 of your most important queries across platforms:
 
 | Query | Google AI Overview | ChatGPT | Perplexity | You Cited? | Competitors Cited? |
-|-------|:-----------------:|:-------:|:----------:|:----------:|:-----------------:|
+|-------|:--:|:-------:|:--:|:--:|:--:|
 | [query 1] | Yes/No | Yes/No | Yes/No | Yes/No | [who] |
 | [query 2] | Yes/No | Yes/No | Yes/No | Yes/No | [who] |
 
@@ -111,7 +111,7 @@ When your competitors get cited and you don't, examine:
 For each priority page, verify:
 
 | Check | Pass/Fail |
-|-------|-----------|
+|-------|--|
 | Clear definition in first paragraph? | |
 | Self-contained answer blocks (work without surrounding context)? | |
 | Statistics with sources cited? | |
@@ -178,7 +178,7 @@ AI systems prefer sources they can trust. Build citation-worthiness.
 **The Princeton GEO research** (KDD 2024, studied across Perplexity.ai) ranked 9 optimization methods:
 
 | Method | Visibility Boost | How to Apply |
-|--------|:---------------:|--------------|
+|--------|:--:|--|
 | **Cite sources** | +40% | Add authoritative references with links |
 | **Add statistics** | +37% | Include specific numbers with sources |
 | **Add quotations** | +30% | Expert quotes with name and title |
@@ -240,7 +240,7 @@ AI systems don't just cite your website — they cite where you appear.
 Structured data helps AI systems understand your content. Key schemas:
 
 | Content Type | Schema | Why It Helps |
-|-------------|--------|-------------|
+|--|--------|--|
 | Articles/Blog posts | `Article`, `BlogPosting` | Author, date, topic identification |
 | How-to content | `HowTo` | Step extraction for process queries |
 | FAQs | `FAQPage` | Direct Q&A extraction |
@@ -258,7 +258,7 @@ Content with proper schema shows 30-40% higher AI visibility. For implementation
 Not all content is equally citable. Prioritize these formats:
 
 | Content Type | Citation Share | Why AI Cites It |
-|-------------|:------------:|----------------|
+|--|:--:|--|
 | **Comparison articles** | ~33% | Structured, balanced, high-intent |
 | **Definitive guides** | ~15% | Comprehensive, authoritative |
 | **Original research/data** | ~12% | Unique, citable statistics |
@@ -281,7 +281,7 @@ Not all content is equally citable. Prioritize these formats:
 ### What to Track
 
 | Metric | What It Measures | How to Check |
-|--------|-----------------|-------------|
+|--------|--|--|
 | AI Overview presence | Do AI Overviews appear for your queries? | Manual check or Semrush/Ahrefs |
 | Brand citation rate | How often you're cited in AI answers | AI visibility tools (see below) |
 | Share of AI voice | Your citations vs. competitors | Peec AI, Otterly, ZipTie |
@@ -291,7 +291,7 @@ Not all content is equally citable. Prioritize these formats:
 ### AI Visibility Monitoring Tools
 
 | Tool | Coverage | Best For |
-|------|----------|----------|
+|------|--|--|
 | **Otterly AI** | ChatGPT, Perplexity, Google AI Overviews | Share of AI voice tracking |
 | **Peec AI** | ChatGPT, Gemini, Perplexity, Claude, Copilot+ | Multi-platform monitoring at scale |
 | **ZipTie** | Google AI Overviews, ChatGPT, Perplexity | Brand mention + sentiment tracking |

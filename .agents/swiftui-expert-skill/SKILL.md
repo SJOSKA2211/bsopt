@@ -112,7 +112,7 @@ Use this skill to build, review, or improve SwiftUI features with correct state 
 
 ### Property Wrapper Selection
 | Wrapper | Use When |
-|---------|----------|
+|---------|--|
 | `@State` | Internal view state (must be `private`) |
 | `@Binding` | Child modifies parent's state |
 | `@StateObject` | View owns an `ObservableObject` |

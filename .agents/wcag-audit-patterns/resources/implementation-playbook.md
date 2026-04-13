@@ -7,7 +7,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 1. WCAG Conformance Levels
 
 | Level   | Description            | Required For      |
-| ------- | ---------------------- | ----------------- |
+| ------- | -- | -- |
 | **A**   | Minimum accessibility  | Legal baseline    |
 | **AA**  | Standard conformance   | Most regulations  |
 | **AAA** | Enhanced accessibility | Specialized needs |

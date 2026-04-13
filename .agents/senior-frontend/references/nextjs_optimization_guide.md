@@ -687,7 +687,7 @@ export function PerformanceMonitor() {
 ### Performance Checklist
 
 | Area | Optimization | Impact |
-|------|-------------|--------|
+|------|--|--------|
 | Images | Use next/image with priority for LCP | High |
 | Fonts | Use next/font with display: swap | Medium |
 | Code | Dynamic imports for heavy components | High |

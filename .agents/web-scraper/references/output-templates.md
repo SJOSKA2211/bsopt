@@ -39,7 +39,7 @@ regardless of output format:
 
 ```markdown
 | Name           | Price    | Rating | Availability |
-|:---------------|---------:|:------:|:-------------|
+|:--|---------:|:------:|:--|
 | Product Alpha  |   $29.99 |  4.5   | In Stock     |
 | Product Beta   |   $49.99 |  4.2   | In Stock     |
 | Product Gamma  |  $119.00 |  4.8   | Pre-order    |
@@ -49,7 +49,7 @@ regardless of output format:
 ### Alignment Rules
 
 | Data Type    | Alignment | Markdown Syntax |
-|:-------------|:----------|:----------------|
+|:--|:--|:--|
 | Text         | Left      | `:---`          |
 | Numbers      | Right     | `---:`          |
 | Centered     | Center    | `:---:`         |
@@ -59,7 +59,7 @@ regardless of output format:
 
 ```markdown
 | Product        | Units Sold | Revenue    |
-|:---------------|----------:|-----------:|
+|:--|--:|--:|
 | Widget A       |     1,234 |  $12,340   |
 | Widget B       |       567 |   $8,505   |
 | Widget C       |     2,890 |  $57,800   |
@@ -80,7 +80,7 @@ When data has more than 10 columns, split into logical groups:
 ### Pricing and Availability
 
 | Name    | Price   | Sale Price | Stock | Ships In |
-|:--------|--------:|-----------:|:------|:---------|
+|:--------|--------:|--:|:------|:---------|
 | Item A  | $49.99  |    $39.99  | 142   | 2 days   |
 ```
 
@@ -88,7 +88,7 @@ When data has more than 10 columns, split into logical groups:
 
 ```markdown
 | Source       | Product    | Price   | Rating |
-|:-------------|:-----------|--------:|:------:|
+|:--|:--|--------:|:------:|
 | store-a.com  | Laptop X   | $999    |  4.3   |
 | store-b.com  | Laptop X   | $949    |  4.5   |
 | store-c.com  | Laptop X   | $1,029  |  4.1   |
@@ -99,7 +99,7 @@ When data has more than 10 columns, split into logical groups:
 For values exceeding 60 characters:
 ```markdown
 | Title                                                       | Author  |
-|:------------------------------------------------------------|:--------|
+|:--|:--------|
 | Introduction to Advanced Machine Learning Techni...         | J. Smith|
 ```
 
@@ -149,7 +149,7 @@ For values exceeding 60 characters:
 ### JSON Key Naming
 
 | Rule                   | Example                           |
-|:-----------------------|:----------------------------------|
+|:--|:--|
 | camelCase              | `productName`, `unitPrice`        |
 | Numbers stay numeric   | `29.99` not `"29.99"`             |
 | Booleans stay boolean  | `true` not `"true"`               |
@@ -242,7 +242,7 @@ name,price,currency,rating,availability
 ### CSV Rules
 
 | Rule                                 | Example                        |
-|:-------------------------------------|:-------------------------------|
+|:--|:--|
 | Always include header row            | `name,price,rating`            |
 | Quote fields with commas             | `"Smith, John"`                |
 | Quote fields with quotes (escape)    | `"He said ""hello"""`          |
@@ -272,7 +272,7 @@ When extracted data contains numeric fields, include a summary block:
 ### Summary Statistics
 
 | Metric    | Price     | Rating |
-|:----------|----------:|-------:|
+|:--|--:|-------:|
 | Count     |        47 |     47 |
 | Min       |    $12.99 |    2.1 |
 | Max       |   $299.99 |    5.0 |
@@ -291,7 +291,7 @@ Include only when:
 
 ```markdown
 | Name           | Title              | Email                | Phone          |
-|:---------------|:-------------------|:---------------------|:---------------|
+|:--|:--|:--|:--|
 | Jane Smith     | CEO                | jane@example.com     | +1-555-0101    |
 | John Doe       | CTO                | john@example.com     | +1-555-0102    |
 | Alice Johnson  | VP Engineering     | alice@example.com    | N/A            |
@@ -334,7 +334,7 @@ due to copyright.
 **Items:** 12 questions
 
 | # | Question | Answer (excerpt) |
-|--:|:---------|:-----------------|
+|--:|:---------|:--|
 | 1 | How do I reset my password? | Navigate to Settings > Security and click "Reset..." |
 | 2 | What payment methods do you accept? | We accept Visa, Mastercard, PayPal, and bank transfer... |
 ```
@@ -361,7 +361,7 @@ Or as JSON (default for FAQ mode):
 **Plans:** 3 tiers
 
 | Plan        | Monthly   | Annual    | Highlighted |
-|:------------|----------:|----------:|:-----------:|
+|:--|--:|--:|:--:|
 | Starter     |    $9/mo  |   $7/mo   |             |
 | Pro         |   $29/mo  |  $24/mo   |     *       |
 | Enterprise  |  Custom   |  Custom   |             |
@@ -369,7 +369,7 @@ Or as JSON (default for FAQ mode):
 #### Feature Comparison
 
 | Feature               | Starter | Pro | Enterprise |
-|:----------------------|:-------:|:---:|:----------:|
+|:--|:-------:|:---:|:--:|
 | Users                 | 1       | 10  | Unlimited  |
 | Storage               | 5 GB    | 50 GB | Unlimited |
 | API Access            | N/A     | Yes | Yes        |
@@ -382,7 +382,7 @@ Or as JSON (default for FAQ mode):
 
 ```markdown
 | Title              | Company     | Location       | Salary          | Type      | Posted     |
-|:-------------------|:------------|:---------------|:----------------|:----------|:-----------|
+|:--|:--|:--|:--|:--|:--|
 | Senior Engineer    | TechCo      | Remote, US     | $150k - $200k   | Full-time | 2026-02-20 |
 | Product Manager    | StartupXYZ  | San Francisco  | $130k - $160k   | Full-time | 2026-02-18 |
 | Data Analyst       | DataCorp    | London, UK     | GBP 55k - 70k   | Contract  | 2026-02-22 |
@@ -394,7 +394,7 @@ Or as JSON (default for FAQ mode):
 
 ```markdown
 | Event                  | Date       | Time    | Location          | Speakers       |
-|:-----------------------|:-----------|:--------|:------------------|:---------------|
+|:--|:--|:--------|:--|:--|
 | Opening Keynote        | 2026-03-15 | 09:00   | Main Hall         | J. Smith       |
 | Workshop: AI Basics    | 2026-03-15 | 14:00   | Room 201          | A. Johnson     |
 | Networking Reception   | 2026-03-15 | 18:00   | Rooftop Lounge    | N/A            |
@@ -419,7 +419,7 @@ When comparing current extraction with a previous run:
 ### New Items (+5)
 
 | Name           | Price    | Rating |
-|:---------------|--------:|:------:|
+|:--|--------:|:------:|
 | Product Eta    |  $39.99 |  4.6   |
 | Product Theta  |  $24.99 |  4.1   |
 | ...            |         |        |
@@ -427,14 +427,14 @@ When comparing current extraction with a previous run:
 ### Removed Items (-2)
 
 | Name           | Price    | Rating |
-|:---------------|--------:|:------:|
+|:--|--------:|:------:|
 | ~~Product Alpha~~ | ~~$29.99~~ | ~~4.5~~ |
 | ~~Product Beta~~  | ~~$49.99~~ | ~~4.2~~ |
 
 ### Modified Items (3)
 
 | Name           | Field   | Was        | Now        |
-|:---------------|:--------|:-----------|:-----------|
+|:--|:--------|:--|:--|
 | Product Gamma  | Price   | $119.00    | $109.00    |
 | Product Gamma  | Rating  | 4.8        | 4.9        |
 | Product Delta  | Stock   | Out of Stock | In Stock |

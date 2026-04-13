@@ -8,7 +8,7 @@ description: Next.js static site template principles. Landing pages, portfolios,
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | Next.js 14 (Static Export) |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
@@ -90,7 +90,7 @@ const nextConfig = {
 ## Deployment
 
 | Platform | Method |
-|----------|--------|
+|--|--------|
 | Vercel | Auto |
 | Netlify | Auto |
 | GitHub Pages | gh-pages branch |

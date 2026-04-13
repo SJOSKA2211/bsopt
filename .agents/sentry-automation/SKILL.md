@@ -215,7 +215,7 @@ Automate Sentry error tracking and monitoring operations through Composio's Sent
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List org issues | SENTRY_LIST_AN_ORGANIZATIONS_ISSUES | organization_id_or_slug, query |
 | Get issue details | SENTRY_GET_ORGANIZATION_ISSUE_DETAILS | organization_id_or_slug, issue_id |
 | List issue events | SENTRY_LIST_AN_ISSUES_EVENTS | issue_id |

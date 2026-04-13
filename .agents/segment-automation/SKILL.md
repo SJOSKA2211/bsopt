@@ -214,7 +214,7 @@ Segment recommends consistent event naming:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Track event | SEGMENT_TRACK | userId, event, properties |
 | Identify user | SEGMENT_IDENTIFY | userId, traits |
 | Batch calls | SEGMENT_BATCH | batch (array of messages) |

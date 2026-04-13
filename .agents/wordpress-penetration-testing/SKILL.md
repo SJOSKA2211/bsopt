@@ -443,7 +443,7 @@ wpscan --url https://target.com --disable-tls-checks
 ### WPScan Enumeration Flags
 
 | Flag | Description |
-|------|-------------|
+|------|--|
 | `-e at` | All themes |
 | `-e vt` | Vulnerable themes |
 | `-e ap` | All plugins |

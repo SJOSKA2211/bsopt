@@ -7,7 +7,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 1. Backtesting Biases
 
 | Bias | Description | Mitigation |
-|------|-------------|------------|
+|------|--|--|
 | **Look-ahead** | Using future information | Point-in-time data |
 | **Survivorship** | Only testing on survivors | Use delisted securities |
 | **Overfitting** | Curve-fitting to history | Out-of-sample testing |

@@ -16,7 +16,7 @@ These templates act as the "birth certificates" of a business entity. When draft
 ## Contract Types & Nuances
 
 | Contract Type | USA Context | Canada Context | EU Context |
-|---------------|-------------|----------------|------------|
+|--|--|--|--|
 | **Operating Agreements (LLC)** | Essential document. Governs internal logic of LLCs. Highly variable by state (e.g., Delaware vs. California). | LLCs do not exist inherently in Canada; use Shareholder/Partnership agreements or ULCs depending on province. | "LLC" equivalents (e.g., GmbH in Germany, SARL in France, s.r.o. for Czech Republic) require highly formalized AoA/Statutes. |
 | **Shareholders’ Agreements** | Common in C-Corps and S-Corps. Governs equity boundaries, Board seating, and vesting. | Very common under CBCA/OBCA. Often explicitly addresses unanimous shareholder agreements (USA) stripping director powers. | Strictly governed by local corporate codes. Often intersects heavily with statutory pre-emption rights. |
 | **Partnership Agreements** | Standard for General (GP), Limited (LP), or Limited Liability Partnerships (LLP). | Similar to US. Governed by provincial Partnership Acts. | Variable. In some states, partnerships possess separate legal personality; in others, they do not. |

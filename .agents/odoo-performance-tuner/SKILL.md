@@ -89,13 +89,13 @@ What to look for:
 
 ## Best Practices
 
-- ✅ **Do:** Use `mapped()`, `filtered()`, and `sorted()` on in-memory recordsets — they don't trigger additional SQL.
-- ✅ **Do:** Add PostgreSQL B-tree indexes on columns frequently used in domain filters (`partner_id`, `state`, `date_order`).
-- ✅ **Do:** Enable Odoo's HTTP caching for static assets and put a CDN (Cloudflare, AWS CloudFront) in front of the website.
-- ✅ **Do:** Use `@tools.ormcache` decorator on methods pulled repeatedly with the same arguments.
-- ❌ **Don't:** Set `workers = 0` in production — single-threaded mode serializes all requests and blocks all users on any slow operation.
-- ❌ **Don't:** Ignore `limit_memory_soft` — workers exceeding it are recycled between requests; without the limit they grow unbounded and crash.
-- ❌ **Don't:** Directly manipulate `prefetch_ids` on recordsets — rely on Odoo's automatic batch prefetching, which activates by default.
+-  **Do:** Use `mapped()`, `filtered()`, and `sorted()` on in-memory recordsets — they don't trigger additional SQL.
+-  **Do:** Add PostgreSQL B-tree indexes on columns frequently used in domain filters (`partner_id`, `state`, `date_order`).
+-  **Do:** Enable Odoo's HTTP caching for static assets and put a CDN (Cloudflare, AWS CloudFront) in front of the website.
+-  **Do:** Use `@tools.ormcache` decorator on methods pulled repeatedly with the same arguments.
+-  **Don't:** Set `workers = 0` in production — single-threaded mode serializes all requests and blocks all users on any slow operation.
+-  **Don't:** Ignore `limit_memory_soft` — workers exceeding it are recycled between requests; without the limit they grow unbounded and crash.
+-  **Don't:** Directly manipulate `prefetch_ids` on recordsets — rely on Odoo's automatic batch prefetching, which activates by default.
 
 ## Limitations
 

@@ -75,7 +75,7 @@ Generate `.claude/apple-design-context.md` using this structure:
 
 ## Platforms
 | Platform | Supported | Min OS | Notes |
-|----------|-----------|--------|-------|
+|--|--|--------|-------|
 | iOS      | Yes/No    |        |       |
 | iPadOS   | Yes/No    |        |       |
 | macOS    | Yes/No    |        |       |

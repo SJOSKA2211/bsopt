@@ -19,16 +19,16 @@ async def main():
     rmq = get_rabbitmq()
     try:
         await rmq.connect()
-        print("✅ RabbitMQ Connection Successful!")
+        print(" RabbitMQ Connection Successful!")
         
         # Check queue stats
         stats = await rmq.get_queue_stats("market_ticks")
-        print(f"📊 Queue 'market_ticks' stats: {stats}")
+        print(f" Queue 'market_ticks' stats: {stats}")
         
         await rmq.close()
-        print("🔌 Connection closed.")
+        print(" Connection closed.")
     except Exception as e:
-        print(f"❌ RabbitMQ Connection Failed: {e}")
+        print(f" RabbitMQ Connection Failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

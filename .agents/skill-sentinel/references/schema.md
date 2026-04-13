@@ -8,7 +8,7 @@ Banco: `data/sentinel.db` (SQLite, WAL mode)
 Cada execucao de auditoria.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | started_at | TEXT | Timestamp ISO 8601 |
 | completed_at | TEXT | Timestamp conclusao |
@@ -22,7 +22,7 @@ Cada execucao de auditoria.
 Estado de cada skill em cada auditoria.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | audit_run_id | INTEGER FK | Ref audit_runs |
 | skill_name | TEXT | Nome da skill |
@@ -43,7 +43,7 @@ Estado de cada skill em cada auditoria.
 Problemas e recomendacoes individuais.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | audit_run_id | INTEGER FK | Ref audit_runs |
 | skill_name | TEXT | Skill afetada |
@@ -62,7 +62,7 @@ Problemas e recomendacoes individuais.
 Sugestoes de novas skills.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | audit_run_id | INTEGER FK | Ref audit_runs |
 | suggested_name | TEXT | Nome sugerido |
@@ -75,7 +75,7 @@ Sugestoes de novas skills.
 Historico de scores para analise de tendencias.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | audit_run_id | INTEGER FK | Ref audit_runs |
 | skill_name | TEXT | Nome da skill |
@@ -87,7 +87,7 @@ Historico de scores para analise de tendencias.
 Auto-governanca do sentinel.
 
 | Coluna | Tipo | Descricao |
-|--------|------|-----------|
+|--------|------|--|
 | id | INTEGER PK | Auto-increment |
 | action | TEXT | Tipo de acao |
 | params | TEXT | JSON com parametros |

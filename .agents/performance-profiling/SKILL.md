@@ -10,7 +10,7 @@ date_added: "2026-02-27"
 
 > Measure, analyze, optimize - in that order.
 
-## 🔧 Runtime Scripts
+##  Runtime Scripts
 
 **Execute these for automated profiling:**
 
@@ -25,7 +25,7 @@ date_added: "2026-02-27"
 ### Targets
 
 | Metric | Good | Poor | Measures |
-|--------|------|------|----------|
+|--------|------|------|--|
 | **LCP** | < 2.5s | > 4.0s | Loading |
 | **INP** | < 200ms | > 500ms | Interactivity |
 | **CLS** | < 0.1 | > 0.25 | Stability |
@@ -68,7 +68,7 @@ date_added: "2026-02-27"
 ### What to Look For
 
 | Issue | Indicator |
-|-------|-----------|
+|-------|--|
 | Large dependencies | Top of bundle |
 | Duplicate code | Multiple chunks |
 | Unused code | Low coverage |
@@ -111,7 +111,7 @@ date_added: "2026-02-27"
 ### By Symptom
 
 | Symptom | Likely Cause |
-|---------|--------------|
+|---------|--|
 | Slow initial load | Large JS, render blocking |
 | Slow interactions | Heavy event handlers |
 | Jank during scroll | Layout thrashing |
@@ -122,7 +122,7 @@ date_added: "2026-02-27"
 ## 6. Quick Win Priorities
 
 | Priority | Action | Impact |
-|----------|--------|--------|
+|--|--------|--------|
 | 1 | Enable compression | High |
 | 2 | Lazy load images | High |
 | 3 | Code split routes | High |
@@ -133,8 +133,8 @@ date_added: "2026-02-27"
 
 ## 7. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Guess at problems | Profile first |
 | Micro-optimize | Fix biggest issue |
 | Optimize early | Optimize when needed |

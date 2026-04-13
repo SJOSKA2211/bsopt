@@ -187,7 +187,7 @@ cp .env.example .env
 Configure the following variables:
 
 | Variable           | Description                  | Example                                    |
-| ------------------ | ---------------------------- | ------------------------------------------ |
+| -- | -- | -- |
 | `DATABASE_URL`     | PostgreSQL connection string | `postgresql://localhost/myapp_development` |
 | `REDIS_URL`        | Redis connection (if used)   | `redis://localhost:6379/0`                 |
 | `SECRET_KEY_BASE`  | Rails secret key             | `bin/rails secret`                         |
@@ -361,7 +361,7 @@ Complete reference for all env vars:
 ### Required
 
 | Variable           | Description                       | How to Get                             |
-| ------------------ | --------------------------------- | -------------------------------------- |
+| -- | -- | -- |
 | `DATABASE_URL`     | PostgreSQL connection string      | Your database provider                 |
 | `SECRET_KEY_BASE`  | Rails secret for sessions/cookies | Run `bin/rails secret`                 |
 | `RAILS_MASTER_KEY` | Decrypts credentials file         | Check `config/master.key` (not in git) |
@@ -369,7 +369,7 @@ Complete reference for all env vars:
 ### Optional
 
 | Variable            | Description                                       | Default                      |
-| ------------------- | ------------------------------------------------- | ---------------------------- |
+| -- | -- | -- |
 | `REDIS_URL`         | Redis connection string (for caching/ActionCable) | -                            |
 | `RAILS_LOG_LEVEL`   | Logging verbosity                                 | `debug` (dev), `info` (prod) |
 | `RAILS_MAX_THREADS` | Puma thread count                                 | `5`                          |
@@ -427,7 +427,7 @@ RAILS_SERVE_STATIC_FILES=true
 ## Available Scripts
 
 | Command                       | Description                                         |
-| ----------------------------- | --------------------------------------------------- |
+| -- | -- |
 | `bin/dev`                     | Start development server (Rails + Vite via Foreman) |
 | `bin/rails server`            | Start Rails server only                             |
 | `bin/vite dev`                | Start Vite dev server only                          |

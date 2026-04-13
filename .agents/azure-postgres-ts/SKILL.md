@@ -422,7 +422,7 @@ pool.on("error", (err, client) => {
 ## Azure-Specific Configuration
 
 | Setting | Value | Description |
-|---------|-------|-------------|
+|---------|-------|--|
 | `ssl.rejectUnauthorized` | `true` | Always use SSL for Azure |
 | Default port | `5432` | Standard PostgreSQL port |
 | PgBouncer port | `6432` | Use when PgBouncer enabled |
@@ -432,7 +432,7 @@ pool.on("error", (err, client) => {
 ## Pool Sizing Guidelines
 
 | Workload | `max` | `idleTimeoutMillis` |
-|----------|-------|---------------------|
+|--|-------|--|
 | Light (dev/test) | 5-10 | 30000 |
 | Medium (production) | 20-30 | 30000 |
 | Heavy (high concurrency) | 50-100 | 10000 |
@@ -470,7 +470,7 @@ import {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | node-postgres Docs | https://node-postgres.com |
 | npm Package | https://www.npmjs.com/package/pg |
 | GitHub Repository | https://github.com/brianc/node-postgres |

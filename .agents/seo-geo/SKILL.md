@@ -38,7 +38,7 @@ allowed-tools:
 (Ahrefs December 2025 study of 75,000 brands)
 
 | Signal | Correlation with AI Citations |
-|--------|------------------------------|
+|--------|--|
 | YouTube mentions | ~0.737 (strongest) |
 | Reddit mentions | High |
 | Wikipedia presence | High |
@@ -188,7 +188,7 @@ New standard (December 2025) for machine-readable AI licensing terms.
 ## Platform-Specific Optimization
 
 | Platform | Key Citation Sources | Optimization Focus |
-|----------|---------------------|-------------------|
+|--|--|--|
 | **Google AI Overviews** | Top-10 ranking pages (92%) | Traditional SEO + passage optimization |
 | **ChatGPT** | Wikipedia (47.9%), Reddit (11.3%) | Entity presence, authoritative sources |
 | **Perplexity** | Reddit (46.7%), Wikipedia | Community validation, discussions |
@@ -247,7 +247,7 @@ If DataForSEO MCP tools are available, use `ai_optimization_chat_gpt_scraper` to
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess site content. Suggest the user verify the URL and try again. |
 | AI crawlers blocked by robots.txt | Report exactly which crawlers are blocked and which are allowed. Provide specific robots.txt directives to add for enabling AI search visibility. |
 | No llms.txt found | Note the absence and provide a ready-to-use llms.txt template based on the site's content structure. |

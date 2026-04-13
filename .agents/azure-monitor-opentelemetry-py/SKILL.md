@@ -189,7 +189,7 @@ configure_azure_monitor(
 ## Auto-Instrumentations Included
 
 | Library | Telemetry Type |
-|---------|---------------|
+|---------|--|
 | Flask | Traces |
 | Django | Traces |
 | FastAPI | Traces |
@@ -205,7 +205,7 @@ configure_azure_monitor(
 ## Configuration Options
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
+|--|--|---------|
 | `connection_string` | Application Insights connection string | From env var |
 | `credential` | Azure credential for AAD auth | None |
 | `sampling_ratio` | Sampling rate (0.0 to 1.0) | 1.0 |

@@ -198,7 +198,7 @@ Automate WhatsApp Business operations through Composio's WhatsApp toolkit via Ru
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Send message | WHATSAPP_SEND_MESSAGE | to, body |
 | Send template | WHATSAPP_SEND_TEMPLATE_MESSAGE | template_name, to, language_code |
 | Upload media | WHATSAPP_UPLOAD_MEDIA | (file params) |

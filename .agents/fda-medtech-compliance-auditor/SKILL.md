@@ -56,7 +56,7 @@ Required Actions:
 
 ## Best Practices
 
-- ✅ **Do:** Provide exact wording from SOPs, risk tables, or validation plans for the most accurate review.
-- ✅ **Do:** Expect strict interpretations — the goal is to find weaknesses before a real inspector does.
-- ❌ **Don't:** Forget to link every software defect to a clinical risk item in your ISO 14971 risk file.
-- ❌ **Don't:** Assume "we tested it and it works" satisfies IEC 62304 software verification requirements.
+-  **Do:** Provide exact wording from SOPs, risk tables, or validation plans for the most accurate review.
+-  **Do:** Expect strict interpretations — the goal is to find weaknesses before a real inspector does.
+-  **Don't:** Forget to link every software defect to a clinical risk item in your ISO 14971 risk file.
+-  **Don't:** Assume "we tested it and it works" satisfies IEC 62304 software verification requirements.

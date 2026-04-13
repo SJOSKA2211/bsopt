@@ -28,7 +28,7 @@
 
 #### Individual EU Member State Databases
 | Country | Official Legal Portal / Gazette | URL |
-|---------|--------------------------------|-----|
+|---------|--|-----|
 | Austria | RIS (Rechtsinformationssystem) | [ris.bka.gv.at](https://www.ris.bka.gv.at/) |
 | Belgium | Moniteur belge / Belgisch Staatsblad | [belgiquelex.be](https://www.belgiquelex.be/) |
 | Bulgaria | State Gazette (Държавен вестник) | [dv.parliament.bg](http://dv.parliament.bg/) |

@@ -195,7 +195,7 @@ Payload: Numbers 1-1000
 ### IDOR Testing Checklist
 
 | Test | Method | Indicator of Vulnerability |
-|------|--------|---------------------------|
+|------|--------|--|
 | Increment/Decrement ID | Change `id=5` to `id=4` | Returns different user's data |
 | Use Victim's ID | Replace with known victim ID | Access granted to victim's resources |
 | Enumerate Range | Test IDs 1-1000 | Find valid records of other users |
@@ -207,7 +207,7 @@ Payload: Numbers 1-1000
 ### Response Analysis
 
 | Status Code | Interpretation |
-|-------------|----------------|
+|--|--|
 | 200 OK | Potential IDOR - verify data ownership |
 | 403 Forbidden | Access control working |
 | 404 Not Found | Resource doesn't exist |
@@ -217,7 +217,7 @@ Payload: Numbers 1-1000
 ### Common Vulnerable Parameters
 
 | Parameter Type | Examples |
-|----------------|----------|
+|--|--|
 | User identifiers | `userId`, `uid`, `user_id`, `account` |
 | Resource identifiers | `id`, `pid`, `docId`, `fileId` |
 | Order/Transaction | `orderId`, `transactionId`, `invoiceId` |

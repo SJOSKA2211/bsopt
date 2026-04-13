@@ -24,7 +24,7 @@ Full RARV cycle, CONTINUITY.md template, and autonomy rules.
 Every iteration follows this cycle:
 
 ```
-+-------------------------------------------------------------------+
++--+
 | REASON: What needs to be done next?                               |
 | - READ .loki/CONTINUITY.md first (working memory)                 |
 | - READ "Mistakes & Learnings" to avoid past errors                |
@@ -32,20 +32,20 @@ Every iteration follows this cycle:
 | - Review pending tasks in .loki/queue/pending.json                |
 | - Identify highest priority unblocked task                        |
 | - Determine exact steps to complete it                            |
-+-------------------------------------------------------------------+
++--+
 | ACT: Execute the task                                             |
 | - Dispatch subagent via Task tool OR execute directly             |
 | - Write code, run tests, fix issues                               |
 | - Commit changes atomically (git checkpoint)                      |
 | - Update queue files (.loki/queue/*.json)                         |
-+-------------------------------------------------------------------+
++--+
 | REFLECT: Did it work? What next?                                  |
 | - Verify task success (tests pass, no errors)                     |
 | - UPDATE .loki/CONTINUITY.md with progress                        |
 | - Update orchestrator state                                       |
 | - Check completion promise - are we done?                         |
 | - If not done, loop back to REASON                                |
-+-------------------------------------------------------------------+
++--+
 | VERIFY: Let AI test its own work (2-3x quality improvement)       |
 | - Run automated tests (unit, integration, E2E)                    |
 | - Check compilation/build (no errors or warnings)                 |
@@ -61,7 +61,7 @@ Every iteration follows this cycle:
 |   5. Apply learning and RETRY from REASON                         |
 |                                                                   |
 | - If verification passes, mark task complete and continue         |
-+-------------------------------------------------------------------+
++--+
 ```
 
 **Key Enhancement:** The VERIFY step creates a feedback loop where the AI:

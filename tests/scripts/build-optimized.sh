@@ -1,17 +1,17 @@
 #!/bin/bash
-# =====================================================================
+# ==
 # BUILDKIT-ENABLED DOCKER BUILD SCRIPT
-# =====================================================================
+# ==
 # Purpose: Build all optimized Docker images with BuildKit features
 # Features: Parallel builds, cache optimization, build metrics
 # Usage: ./scripts/build-optimized.sh [OPTIONS]
-# =====================================================================
+# ==
 
 set -euo pipefail
 
-# =====================================================================
+# ==
 # Configuration
-# =====================================================================
+# ==
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 VERSION="${VERSION:-latest}"
@@ -25,9 +25,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# =====================================================================
+# ==
 # Functions
-# =====================================================================
+# ==
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -47,9 +47,9 @@ log_error() {
 
 print_header() {
     echo ""
-    echo "====================================================================="
+    echo "=="
     echo "$1"
-    echo "====================================================================="
+    echo "=="
     echo ""
 }
 
@@ -145,9 +145,9 @@ tag_and_push() {
     fi
 }
 
-# =====================================================================
+# ==
 # Main Script
-# =====================================================================
+# ==
 
 print_header "Docker BuildKit Optimized Build Script"
 
@@ -165,9 +165,9 @@ echo "image,build_time_seconds,size" > "$PROJECT_ROOT/build-metrics.csv"
 # Change to project root
 cd "$PROJECT_ROOT"
 
-# =====================================================================
+# ==
 # Build Images
-# =====================================================================
+# ==
 
 # Build API (FastAPI)
 build_with_cache_export \
@@ -199,9 +199,9 @@ if [ "${BUILD_JUPYTER:-false}" = "true" ]; then
         "bsopt-jupyter"
 fi
 
-# =====================================================================
+# ==
 # Post-Build Actions
-# =====================================================================
+# ==
 
 print_header "Build Summary"
 
@@ -249,9 +249,9 @@ else
     log_info "Install Trivy: https://github.com/aquasecurity/trivy"
 fi
 
-# =====================================================================
+# ==
 # Cleanup
-# =====================================================================
+# ==
 
 print_header "Cleanup"
 

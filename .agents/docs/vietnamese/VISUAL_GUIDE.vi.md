@@ -25,39 +25,39 @@
 
 ---
 
-## 📦 Cấu trúc Repository (Trực quan)
+##  Cấu trúc Repository (Trực quan)
 
 ```
 antigravity-awesome-skills/
 │
-├── 📄 README.md                    ← Tổng quan & danh sách skill
-├── 📄 CONTRIBUTING.md              ← Cách thức đóng góp
+├──  README.md                    ← Tổng quan & danh sách skill
+├──  CONTRIBUTING.md              ← Cách thức đóng góp
 │
-├── 📁 skills/                      ← Nơi chứa tất cả hơn 250 skills
+├──  skills/                      ← Nơi chứa tất cả hơn 250 skills
 │   │
-│   ├── 📁 brainstorming/
-│   │   └── 📄 SKILL.md             ← Định nghĩa skill
+│   ├──  brainstorming/
+│   │   └──  SKILL.md             ← Định nghĩa skill
 │   │
-│   ├── 📁 stripe-integration/
-│   │   ├── 📄 SKILL.md
-│   │   └── 📁 examples/            ← Các phần bổ sung tùy chọn
+│   ├──  stripe-integration/
+│   │   ├──  SKILL.md
+│   │   └──  examples/            ← Các phần bổ sung tùy chọn
 │   │
 │   └── ... (Hơn 250 skills khác)
 │
-├── 📁 scripts/                     ← Quản lý & Xác thực
+├──  scripts/                     ← Quản lý & Xác thực
 │   ├── validate_skills.py          ← Công cụ kiểm soát chất lượng
 │   └── generate_index.py           ← Công cụ tạo danh mục (registry)
 │
-├── 📁 .github/
-│   └── 📄 MAINTENANCE.md           ← Hướng dẫn cho người duy trì
+├──  .github/
+│   └──  MAINTENANCE.md           ← Hướng dẫn cho người duy trì
 │
-└── 📁 docs/                        ← Tài liệu hướng dẫn
-    ├── 📄 GETTING_STARTED.md       ← Bắt đầu tại đây! (MỚI)
-    ├── 📄 FAQ.md                   ← Giải đáp thắc mắc
-    ├── 📄 BUNDLES.md               ← Gói khởi đầu (MỚI)
-    ├── 📄 QUALITY_BAR.md           ← Tiêu chuẩn chất lượng
-    ├── 📄 SKILL_ANATOMY.md         ← Cách thức skill hoạt động
-    └── 📄 VISUAL_GUIDE.md          ← Chính là file này!
+└──  docs/                        ← Tài liệu hướng dẫn
+    ├──  GETTING_STARTED.md       ← Bắt đầu tại đây! (MỚI)
+    ├──  FAQ.md                   ← Giải đáp thắc mắc
+    ├──  BUNDLES.md               ← Gói khởi đầu (MỚI)
+    ├──  QUALITY_BAR.md           ← Tiêu chuẩn chất lượng
+    ├──  SKILL_ANATOMY.md         ← Cách thức skill hoạt động
+    └──  VISUAL_GUIDE.md          ← Chính là file này!
 ```
 
 ---
@@ -92,7 +92,7 @@ antigravity-awesome-skills/
 
 ---
 
-## 🎯 Phân loại Skills (Bản đồ Trực quan)
+##  Phân loại Skills (Bản đồ Trực quan)
 
 ```
                     ┌─────────────────────────┐
@@ -184,8 +184,8 @@ antigravity-awesome-skills/
 │   sickn33/antigravity-awesome-skills    │
 │   .agent/skills                         │
 │                                         │
-│ ✓ Đang sao chép vào '.agent/skills'... │
-│ ✓ Hoàn tất!                             │
+│  Đang sao chép vào '.agent/skills'... │
+│  Hoàn tất!                             │
 └─────────────────────────────────────────┘
 ```
 
@@ -195,11 +195,11 @@ antigravity-awesome-skills/
 ┌─────────────────────────────────────────┐
 │ File Explorer                           │
 ├─────────────────────────────────────────┤
-│ 📁 .agent/                              │
-│   └── 📁 skills/                        │
-│       ├── 📁 brainstorming/             │
-│       ├── 📁 stripe-integration/        │
-│       ├── 📁 react-best-practices/      │
+│  .agent/                              │
+│   └──  skills/                        │
+│       ├──  brainstorming/             │
+│       ├──  stripe-integration/        │
+│       ├──  react-best-practices/      │
 │       └── ... (Thêm 176 mục nữa)        │
 └─────────────────────────────────────────┘
 ```
@@ -353,7 +353,7 @@ Mở file skills_index.json → Tìm từ khóa → Tìm đường dẫn đến 
 
 ---
 
-## 🎯 Tác động của việc Đóng góp (Trực quan)
+##  Tác động của việc Đóng góp (Trực quan)
 
 ```
 Sự đóng góp của bạn
@@ -424,31 +424,31 @@ BẮT ĐẦU TẠI ĐÂY
 └────────┬────────┘
          │
          ↓
- TRỞ THÀNH CONTRIBUTOR! 🎉
+ TRỞ THÀNH CONTRIBUTOR! 
 ```
 
 ---
 
-## 💡 Mẹo Nhanh (Bản ghi chú Trực quan)
+##  Mẹo Nhanh (Bản ghi chú Trực quan)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      THAM KHẢO NHANH                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  📥 CÀI ĐẶT                                                 │
+│   CÀI ĐẶT                                                 │
 │  git clone [repo] .agent/skills                             │
 │                                                             │
-│  🎯 SỬ DỤNG                                                 │
+│   SỬ DỤNG                                                 │
 │  @ten-skill [yêu cầu của bạn]                               │
 │                                                             │
-│  🔍 TÌM KIẾM                                                │
+│   TÌM KIẾM                                                │
 │  ls skills/ | grep "từ-khóa"                                │
 │                                                             │
-│  ✅ XÁC THỰC                                                │
+│   XÁC THỰC                                                │
 │  python3 scripts/validate_skills.py                         │
 │                                                             │
-│  📝 TẠO SKILL                                               │
+│   TẠO SKILL                                               │
 │  1. mkdir skills/ten-skill-cua-ban                          │
 │  2. Tạo SKILL.md với frontmatter                            │
 │  3. Thêm nội dung                                           │
@@ -483,7 +483,7 @@ Tuần 1: Tạo skill đầu tiên
 
 Tuần 2: Skill được gộp (merge) vào máy chủ
   │
-  └─→ "Kỹ năng của mình đang giúp đỡ người khác! 🎉"
+  └─→ "Kỹ năng của mình đang giúp đỡ người khác! "
 
 Tháng 1: Trở thành người đóng góp thường xuyên
   │
@@ -494,12 +494,12 @@ Tháng 1: Trở thành người đóng góp thường xuyên
 
 ## Các Bước Tiếp theo
 
-1. ✅ **Hiểu** cấu trúc trực quan.
-2. ✅ **Cài đặt** skills vào công cụ AI của bạn.
-3. ✅ **Thử dùng** 2-3 skills từ các danh mục khác nhau.
-4. ✅ **Đọc** file CONTRIBUTING.md.
-5. ✅ **Tạo** skill đầu tiên của bạn.
-6. ✅ **Chia sẻ** với cộng đồng.
+1.  **Hiểu** cấu trúc trực quan.
+2.  **Cài đặt** skills vào công cụ AI của bạn.
+3.  **Thử dùng** 2-3 skills từ các danh mục khác nhau.
+4.  **Đọc** file CONTRIBUTING.md.
+5.  **Tạo** skill đầu tiên của bạn.
+6.  **Chia sẻ** với cộng đồng.
 
 ---
 
@@ -509,4 +509,4 @@ Tháng 1: Trở thành người đóng góp thường xuyên
 - [SKILL_ANATOMY.md](SKILL_ANATOMY.vi.md) - Phân tích chi tiết.
 - [CONTRIBUTING.md](../CONTRIBUTING.vi.md) - Cách thức đóng góp.
 
-**Sẵn sàng đóng góp?** Bạn làm được mà! 💪
+**Sẵn sàng đóng góp?** Bạn làm được mà! 

@@ -126,7 +126,7 @@ MetricsQueryClient metricsClient = new MetricsQueryClientBuilder()
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Logs | Log and performance data from Azure resources via Kusto Query Language |
 | Metrics | Numeric time-series data collected at regular intervals |
 | Workspace ID | Log Analytics workspace identifier |
@@ -407,7 +407,7 @@ try {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-monitor-query |
 | GitHub | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/monitor/azure-monitor-query |
 | API Reference | https://learn.microsoft.com/java/api/com.azure.monitor.query |

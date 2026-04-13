@@ -704,7 +704,7 @@ class SlackAlertChannel:
         payload = {
             "attachments": [{
                 "color": color,
-                "title": f"🚨 {alert_data['rule']}",
+                "title": f" {alert_data['rule']}",
                 "fields": [
                     {
                         "title": "Severity",

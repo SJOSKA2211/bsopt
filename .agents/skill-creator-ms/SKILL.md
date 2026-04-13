@@ -86,7 +86,7 @@ skill-name/
 ### Bundled Resources
 
 | Type | Purpose | When to Include |
-|------|---------|-----------------|
+|------|---------|--|
 | `scripts/` | Deterministic operations | Same code rewritten repeatedly |
 | `references/` | Detailed patterns | API docs, schemas, detailed guides |
 | `assets/` | Output resources | Templates, images, boilerplate |
@@ -152,7 +152,7 @@ const client = new ServiceClient(endpoint, credential);
 Azure SDKs use consistent verbs across all languages:
 
 | Verb | Behavior |
-|------|----------|
+|------|--|
 | `create` | Create new; fail if exists |
 | `upsert` | Create or update |
 | `get` | Retrieve; error if missing |
@@ -227,7 +227,7 @@ client.delete_item(item_id)
 ## Reference Files
 
 | File | Contents |
-|------|----------|
+|------|--|
 | references/tools.md | Tool integrations |
 | references/streaming.md | Event streaming patterns |
 ```
@@ -250,7 +250,7 @@ client.delete_item(item_id)
 **Before creating any SDK skill, the user MUST provide:**
 
 | Required | Example | Purpose |
-|----------|---------|---------|
+|--|---------|---------|
 | **SDK Package** | `azure-ai-agents`, `Azure.AI.OpenAI` | Identifies the exact SDK |
 | **Documentation URL** | `https://learn.microsoft.com/en-us/azure/ai-services/...` | Primary source of truth |
 | **Repository** (optional) | `Azure/azure-sdk-for-python` | For code patterns |
@@ -279,7 +279,7 @@ Gather concrete examples:
 - "What errors do developers commonly encounter?"
 
 | Example Task | Reusable Resource |
-|--------------|-------------------|
+|--|--|
 | Same auth code each time | Code example in SKILL.md |
 | Complex streaming patterns | `references/streaming.md` |
 | Tool configurations | `references/tools.md` |
@@ -292,7 +292,7 @@ Skills are organized by **language** and **product area** in the `skills/` direc
 **Product Area Categories:**
 
 | Category | Description | Examples |
-|----------|-------------|----------|
+|--|--|--|
 | `foundry` | AI Foundry, agents, projects, inference | `azure-ai-agents-py`, `azure-ai-projects-py` |
 | `data` | Storage, Cosmos DB, Tables, Data Lake | `azure-cosmos-py`, `azure-storage-blob-py` |
 | `messaging` | Event Hubs, Service Bus, Event Grid | `azure-eventhub-py`, `azure-servicebus-py` |
@@ -391,26 +391,26 @@ ls -la skills/python/foundry/agents
 
 ### 1.1 Client Imports
 
-#### ✅ CORRECT: Main Client
+####  CORRECT: Main Client
 \`\`\`python
 from azure.ai.mymodule import MyClient
 from azure.identity import DefaultAzureCredential
 \`\`\`
 
-#### ❌ INCORRECT: Wrong Module Path
+####  INCORRECT: Wrong Module Path
 \`\`\`python
 from azure.ai.mymodule.models import MyClient  # Wrong - Client is not in models
 \`\`\`
 
 ## 2. Authentication Patterns
 
-#### ✅ CORRECT: DefaultAzureCredential
+####  CORRECT: DefaultAzureCredential
 \`\`\`python
 credential = DefaultAzureCredential()
 client = MyClient(endpoint, credential)
 \`\`\`
 
-#### ❌ INCORRECT: Hardcoded Credentials
+####  INCORRECT: Hardcoded Credentials
 \`\`\`python
 client = MyClient(endpoint, api_key="hardcoded")  # Security risk
 \`\`\`
@@ -561,7 +561,7 @@ azure-ai-agents/
 ## Design Pattern References
 
 | Reference | Contents |
-|-----------|----------|
+|--|--|
 | `references/workflows.md` | Sequential and conditional workflows |
 | `references/output-patterns.md` | Templates and examples |
 | `references/azure-sdk-patterns.md` | Language-specific Azure SDK patterns |

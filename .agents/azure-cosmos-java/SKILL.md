@@ -200,7 +200,7 @@ Choose a partition key with:
 ### Consistency Levels
 
 | Level | Guarantee |
-|-------|-----------|
+|-------|--|
 | Strong | Linearizability |
 | Bounded Staleness | Consistent prefix with bounded lag |
 | Session | Consistent prefix within session |
@@ -249,7 +249,7 @@ try {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-cosmos |
 | API Documentation | https://azuresdkdocs.z19.web.core.windows.net/java/azure-cosmos/latest/index.html |
 | Product Docs | https://learn.microsoft.com/azure/cosmos-db/ |

@@ -211,7 +211,7 @@ Different column types require different value formats:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List workspaces | `MONDAY_GET_WORKSPACES` | `kind`, `state`, `limit` |
 | Create workspace | `MONDAY_CREATE_WORKSPACE` | `name`, `kind` |
 | List boards | `MONDAY_LIST_BOARDS` | `limit`, `page`, `state` |

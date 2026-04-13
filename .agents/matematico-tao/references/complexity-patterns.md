@@ -141,10 +141,10 @@ Regra: módulos devem depender apenas de módulos mais estáveis que eles
 I(dependente) > I(dependência) para cada aresta
 
 Verificação Auri:
-app(I=1) → bluetooth(I≈0.5) ✅ (1 > 0.5)
-app(I=1) → core-logging(I=0) ✅ (1 > 0)
-voice(I≈0.5) → audio(I≈0.3) ✅ (0.5 > 0.3)
-voice(I≈0.5) → core-logging(I=0) ✅ (0.5 > 0)
+app(I=1) → bluetooth(I≈0.5)  (1 > 0.5)
+app(I=1) → core-logging(I=0)  (1 > 0)
+voice(I≈0.5) → audio(I≈0.3)  (0.5 > 0.3)
+voice(I≈0.5) → core-logging(I=0)  (0.5 > 0)
 ```
 
 ---

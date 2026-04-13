@@ -199,7 +199,7 @@ print(crew.plan)
 
 ## Anti-Patterns
 
-### ❌ Vague Agent Roles
+###  Vague Agent Roles
 
 **Why bad**: Agent doesn't know its specialty.
 Overlapping responsibilities.
@@ -210,7 +210,7 @@ Poor task delegation.
 - "Financial Analyst specializing in crypto" not "Analyst"
 Include specific skills in backstory.
 
-### ❌ Missing Expected Outputs
+###  Missing Expected Outputs
 
 **Why bad**: Agent doesn't know done criteria.
 Inconsistent outputs.
@@ -223,7 +223,7 @@ expected_output: |
   - key_points: list of strings
   - confidence: float 0-1
 
-### ❌ Too Many Agents
+###  Too Many Agents
 
 **Why bad**: Coordination overhead.
 Inconsistent communication.

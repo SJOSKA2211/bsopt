@@ -33,7 +33,7 @@ async def run_dashboard():
     try:
         from src.ml.aiops.health_reporter import HealthReporter
     except ImportError as e:
-        print(f"\n{RED}🚨 ERROR: Could not import HealthReporter (likely missing ML dependencies or CUDA error): {e}{RESET}")
+        print(f"\n{RED} ERROR: Could not import HealthReporter (likely missing ML dependencies or CUDA error): {e}{RESET}")
         return
 
     reporter = HealthReporter(prometheus_url=os.environ.get("PROMETHEUS_URL", settings.PROMETHEUS_URL))
@@ -41,20 +41,20 @@ async def run_dashboard():
     # In a real environment, we'd poll the running engine.
     # Here we simulate a snapshort of the Manifold state.
     print_section("AIOPS MANIFOLD TERMINAL DASHBOARD", color=MAGENTA)
-    print(f"🕒 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f" Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     try:
         # Fetch actual health (will fail if DB/Redis not reachable, but we show the degraded state)
         report = await reporter.get_health_report()
 
-        print(f"🌐 Overall Status: {format_status(report.status)}")
+        print(f" Overall Status: {format_status(report.status)}")
 
         # 1. Infrastructure Layer
         print_section("INFRASTRUCTURE LAYER")
 
         # Postgres
         pg = report.postgres
-        pg_icon = "✅" if pg.connected else "❌"
+        pg_icon = "" if pg.connected else ""
         print(f"{pg_icon}  POSTGRES/TIMESCALE:")
         print(f"   - Connected: {pg.connected}")
         print(f"   - Active Connections: {pg.active_connections}")
@@ -63,7 +63,7 @@ async def run_dashboard():
 
         # RabbitMQ
         rmq = report.rabbitmq
-        rmq_icon = "✅" if rmq.connected else "❌"
+        rmq_icon = "" if rmq.connected else ""
         print(f"\n{rmq_icon}  RABBITMQ:")
         print(f"   - Connected: {rmq.connected}")
         print(f"   - Total Queues: {len(rmq.queue_depths)}")
@@ -75,7 +75,7 @@ async def run_dashboard():
 
         # Redis
         rd = report.redis
-        rd_icon = "✅" if rd.connected else "❌"
+        rd_icon = "" if rd.connected else ""
         print(f"\n{rd_icon}  REDIS:")
         print(f"   - Connected: {rd.connected}")
         print(f"   - Memory Usage: {rd.memory_usage_bytes / (1024 * 1024):.2f} MB")
@@ -83,7 +83,7 @@ async def run_dashboard():
 
         # API (REST Gateway)
         api = report.api
-        api_icon = "✅" if api.reachable else "❌"
+        api_icon = "" if api.reachable else ""
         print(f"\n{api_icon}  REST API GATEWAY:")
         print(f"   - Reachable: {api.reachable}")
         print(f"   - P95 Latency: {api.p95_latency:.4f}s")
@@ -92,7 +92,7 @@ async def run_dashboard():
 
         # Auth (Security Gateway)
         auth = report.auth
-        auth_icon = "🔐" if auth.reachable else "❌"
+        auth_icon = "" if auth.reachable else ""
         print(f"\n{auth_icon}  AUTHENTICATION GATEWAY:")
         print(f"   - Reachable: {auth.reachable}")
         print(f"   - P95 Latency: {auth.p95_latency:.4f}s")
@@ -101,7 +101,7 @@ async def run_dashboard():
 
         # Ingestion (Data Pipeline)
         ing = report.ingestion
-        ing_icon = "📥" if ing.reachable else "⚠️"
+        ing_icon = "" if ing.reachable else "️"
         print(f"\n{ing_icon}  DATA INGESTION LAYER:")
         print(f"   - Heartbeat Age: {ing.heartbeat_age:.1f}s")
         print(f"   - Throughput (TPS): {ing.ticks_per_second:.2f}")
@@ -109,7 +109,7 @@ async def run_dashboard():
 
         # Portfolio (Risk & Exposure)
         port = report.portfolio
-        port_icon = "💼" if port.reachable else "⚠️"
+        port_icon = "" if port.reachable else "️"
         print(f"\n{port_icon}  PORTFOLIO & RISK LAYER:")
         print(f"   - Reachable: {port.reachable}")
         print(f"   - Position Count: {port.positions_count}")
@@ -119,7 +119,7 @@ async def run_dashboard():
 
         # Quant (Math Kernel)
         quant = report.quant
-        quant_icon = "🧮" if quant.reachable else "⚠️"
+        quant_icon = "🧮" if quant.reachable else "️"
         print(f"\n{quant_icon}  QUANT & MATH KERNEL LAYER:")
         print(f"   - Reachable: {quant.reachable}")
         print(f"   - Avg Latency: {quant.avg_latency_ms:.2f}ms")
@@ -128,8 +128,8 @@ async def run_dashboard():
 
         # ML Inference (Neural Pricing)
         inf = report.inference
-        inf_icon = "🧠" if inf.reachable and inf.model_loaded else "⚠️"
-        model_status = "LOADED ✓" if inf.model_loaded else "NOT LOADED ✗"
+        inf_icon = "🧠" if inf.reachable and inf.model_loaded else "️"
+        model_status = "LOADED " if inf.model_loaded else "NOT LOADED "
         print(f"\n{inf_icon}  ML INFERENCE LAYER:")
         print(f"   - Reachable: {inf.reachable}")
         print(f"   - Model State: {model_status}")
@@ -138,7 +138,7 @@ async def run_dashboard():
 
         # Worker Cluster (Celery)
         wrk = report.workers
-        wrk_icon = "⚙️ " if wrk.reachable and wrk.active_workers > 0 else "❌"
+        wrk_icon = "️ " if wrk.reachable and wrk.active_workers > 0 else ""
         print(f"\n{wrk_icon}  WORKER CLUSTER (CELERY):")
         print(f"   - Reachable: {wrk.reachable}")
         print(f"   - Active Workers: {wrk.active_workers}")
@@ -150,7 +150,7 @@ async def run_dashboard():
 
         # Ray Cluster (Distributed Actors)
         ray_s = report.ray
-        ray_icon = "☄️ " if ray_s.reachable and ray_s.nodes_alive > 0 else "⚠️"
+        ray_icon = "️ " if ray_s.reachable and ray_s.nodes_alive > 0 else "️"
         print(f"\n{ray_icon}  RAY CLUSTER (DISTRIBUTED):")
         print(f"   - Reachable: {ray_s.reachable}")
         print(f"   - Nodes Alive: {ray_s.nodes_alive}")
@@ -159,10 +159,10 @@ async def run_dashboard():
         # 2. Autonomous Oversight
         print_section("AUTONOMOUS OVERSIGHT", color=YELLOW)
         guard = report.guardian
-        guard_icon = "🛡️ " if guard.active else "⚠️ "
+        guard_icon = "️ " if guard.active else "️ "
         print(f"{guard_icon}  GUARDIAN STATUS:")
         print(f"   - Active: {guard.active}")
-        print(f"   - Safe Mode: {'🔴 ENABLED' if guard.safe_mode else '🟢 DISABLED'}")
+        print(f"   - Safe Mode: {' ENABLED' if guard.safe_mode else '🟢 DISABLED'}")
         if guard.paused_features:
             print(f"   - Paused Features: {', '.join(guard.paused_features)}")
 
@@ -186,9 +186,9 @@ async def run_dashboard():
     except Exception as e:
         import traceback
         if "No module named 'ray'" in str(e):
-             print(f"\n{YELLOW}⚠️  RAY NOT AVAILABLE (Incompatible Python version or not installed){RESET}")
+             print(f"\n{YELLOW}️  RAY NOT AVAILABLE (Incompatible Python version or not installed){RESET}")
         else:
-             print(f"\n{RED}🚨 ERROR FETCHING MANIFOLD STATE: {str(e)}{RESET}")
+             print(f"\n{RED} ERROR FETCHING MANIFOLD STATE: {str(e)}{RESET}")
              traceback.print_exc()
 
 

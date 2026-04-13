@@ -1,6 +1,6 @@
 """
 Concurrent Data Ingestion Pipeline (NSE + Yahoo Finance)
-========================================================
+==
 Executes high-volume asynchronous data ingestion with resilience,
 rate-limiting, dynamic batching, and Pydantic normalization.
 """

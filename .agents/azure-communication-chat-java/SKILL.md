@@ -282,7 +282,7 @@ try {
 ## Message Types
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | `TEXT` | Regular chat message |
 | `HTML` | HTML-formatted message |
 | `TOPIC_UPDATED` | System message - topic changed |

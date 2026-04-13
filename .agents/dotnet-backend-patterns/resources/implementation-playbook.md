@@ -87,13 +87,13 @@ public class CheckoutService
 ### 3. Async/Await Patterns
 
 ```csharp
-// ✅ CORRECT: Async all the way down
+//  CORRECT: Async all the way down
 public async Task<Product> GetProductAsync(string id, CancellationToken ct = default)
 {
     return await _repository.GetByIdAsync(id, ct);
 }
 
-// ✅ CORRECT: Parallel execution with WhenAll
+//  CORRECT: Parallel execution with WhenAll
 public async Task<(Stock, Price)> GetStockAndPriceAsync(
     string productId, 
     CancellationToken ct = default)
@@ -106,14 +106,14 @@ public async Task<(Stock, Price)> GetStockAndPriceAsync(
     return (await stockTask, await priceTask);
 }
 
-// ✅ CORRECT: ConfigureAwait in libraries
+//  CORRECT: ConfigureAwait in libraries
 public async Task<T> LibraryMethodAsync<T>(CancellationToken ct = default)
 {
     var result = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
     return await result.Content.ReadFromJsonAsync<T>(ct).ConfigureAwait(false);
 }
 
-// ✅ CORRECT: ValueTask for hot paths with caching
+//  CORRECT: ValueTask for hot paths with caching
 public ValueTask<Product?> GetCachedProductAsync(string id)
 {
     if (_cache.TryGetValue(id, out Product? product))
@@ -122,14 +122,14 @@ public ValueTask<Product?> GetCachedProductAsync(string id)
     return new ValueTask<Product?>(GetFromDatabaseAsync(id));
 }
 
-// ❌ WRONG: Blocking on async (deadlock risk)
+//  WRONG: Blocking on async (deadlock risk)
 var result = GetProductAsync(id).Result;  // NEVER do this
 var result2 = GetProductAsync(id).GetAwaiter().GetResult(); // Also bad
 
-// ❌ WRONG: async void (except event handlers)
+//  WRONG: async void (except event handlers)
 public async void ProcessOrder() { }  // Exceptions are lost
 
-// ❌ WRONG: Unnecessary Task.Run for already async code
+//  WRONG: Unnecessary Task.Run for already async code
 await Task.Run(async () => await GetDataAsync());  // Wastes thread
 ```
 

@@ -256,7 +256,7 @@ Best for: web apps, PWAs, mobile-first products.
 │                                      │
 ├──────────────────────────────────────┤
 │  Home    Search    Create    Profile │
-│   🏠       🔍        ➕       👤    │
+│                             │
 └──────────────────────────────────────┘
 ```
 

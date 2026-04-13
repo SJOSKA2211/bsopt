@@ -224,7 +224,7 @@ Automate PagerDuty incident management and operations through Composio's PagerDu
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List incidents | PAGERDUTY_FETCH_INCIDENT_LIST | statuses[], service_ids[] |
 | Get incident | PAGERDUTY_RETRIEVE_INCIDENT_BY_INCIDENT_ID | incident_id |
 | Create incident | PAGERDUTY_CREATE_INCIDENT_RECORD | title, service |

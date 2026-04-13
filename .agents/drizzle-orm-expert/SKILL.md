@@ -340,16 +340,16 @@ export async function createUser(formData: FormData) {
 
 ## Best Practices
 
-- ✅ **Do:** Keep all schema definitions in a single `db/schema.ts` or split by domain (`db/schema/users.ts`, `db/schema/posts.ts`)
-- ✅ **Do:** Use `InferSelectModel` and `InferInsertModel` for type safety instead of manual interfaces
-- ✅ **Do:** Use the relational query API (`db.query.*`) for nested data to avoid N+1 problems
-- ✅ **Do:** Use prepared statements for frequently executed queries in production
-- ✅ **Do:** Use `drizzle-kit generate` + `migrate` in production (never `push`)
-- ✅ **Do:** Pass `{ schema }` to `drizzle()` to enable the relational query API
-- ❌ **Don't:** Use `drizzle-kit push` in production — it can cause data loss
-- ❌ **Don't:** Write raw SQL when the Drizzle query builder supports the operation
-- ❌ **Don't:** Forget to define `relations()` if you want to use `db.query.*` with `with`
-- ❌ **Don't:** Create a new database connection per request in serverless — use connection pooling
+-  **Do:** Keep all schema definitions in a single `db/schema.ts` or split by domain (`db/schema/users.ts`, `db/schema/posts.ts`)
+-  **Do:** Use `InferSelectModel` and `InferInsertModel` for type safety instead of manual interfaces
+-  **Do:** Use the relational query API (`db.query.*`) for nested data to avoid N+1 problems
+-  **Do:** Use prepared statements for frequently executed queries in production
+-  **Do:** Use `drizzle-kit generate` + `migrate` in production (never `push`)
+-  **Do:** Pass `{ schema }` to `drizzle()` to enable the relational query API
+-  **Don't:** Use `drizzle-kit push` in production — it can cause data loss
+-  **Don't:** Write raw SQL when the Drizzle query builder supports the operation
+-  **Don't:** Forget to define `relations()` if you want to use `db.query.*` with `with`
+-  **Don't:** Create a new database connection per request in serverless — use connection pooling
 
 ## Troubleshooting
 

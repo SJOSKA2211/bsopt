@@ -71,11 +71,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 ## Best Practices
 
-- ✅ **Do:** Use `chrome.runtime.onInstalled` for extension initialization.
-- ✅ **Do:** Use modern ES modules in scripts if configured in manifest.
-- ✅ **Do:** Validate external input in content scripts before acting on it.
-- ❌ **Don't:** Use `innerHTML` or `eval()` - prefer `textContent` and safe DOM APIs.
-- ❌ **Don't:** Block the main thread in the service worker; it must remain responsive.
+-  **Do:** Use `chrome.runtime.onInstalled` for extension initialization.
+-  **Do:** Use modern ES modules in scripts if configured in manifest.
+-  **Do:** Validate external input in content scripts before acting on it.
+-  **Don't:** Use `innerHTML` or `eval()` - prefer `textContent` and safe DOM APIs.
+-  **Don't:** Block the main thread in the service worker; it must remain responsive.
 
 ## Troubleshooting
 

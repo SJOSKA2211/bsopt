@@ -28,14 +28,14 @@ Odoo provides localization modules (`l10n_*`) for 80+ countries that configure t
 
 | Country | Module | Key Features |
 |---|---|---|
-| 🇺🇸 USA | `l10n_us` | GAAP CoA, Payroll (ADP bridge), 1099 reporting |
-| 🇲🇽 Mexico | `l10n_mx_edi` | CFDI 4.0 e-invoicing, SAT integration, IEPS tax |
-| 🇪🇸 Spain | `l10n_es` | SII real-time VAT, Modelo 303/390, AEAT |
-| 🇮🇹 Italy | `l10n_it_edi` | FatturaPA XML, SDI submission, reverse charge |
-| 🇵🇱 Poland | `l10n_pl` | SAF-T JPK_FA, VAT-7 return |
-| 🇧🇷 Brazil | `l10n_br` | NF-e, NFS-e, SPED, ICMS/PIS/COFINS |
-| 🇩🇪 Germany | `l10n_de` | SKR03/SKR04 CoA, DATEV export, UStVA |
-| 🇨🇴 Colombia | `l10n_co_edi` | DIAN e-invoicing, UBL 2.1 |
+|  USA | `l10n_us` | GAAP CoA, Payroll (ADP bridge), 1099 reporting |
+|  Mexico | `l10n_mx_edi` | CFDI 4.0 e-invoicing, SAT integration, IEPS tax |
+|  Spain | `l10n_es` | SII real-time VAT, Modelo 303/390, AEAT |
+|  Italy | `l10n_it_edi` | FatturaPA XML, SDI submission, reverse charge |
+|  Poland | `l10n_pl` | SAF-T JPK_FA, VAT-7 return |
+|  Brazil | `l10n_br` | NF-e, NFS-e, SPED, ICMS/PIS/COFINS |
+|  Germany | `l10n_de` | SKR03/SKR04 CoA, DATEV export, UStVA |
+|  Colombia | `l10n_co_edi` | DIAN e-invoicing, UBL 2.1 |
 
 ## Examples
 
@@ -96,8 +96,8 @@ Fiscal Position (created separately):
 
 ## Best Practices
 
-- ✅ **Do:** Install the localization module **before** creating any accounting entries — it sets up the correct accounts.
-- ✅ **Do:** Use **Fiscal Positions** to automate tax switching for international customers (B2B vs B2C, domestic vs export).
-- ✅ **Do:** Test e-invoicing in the **SAT/tax authority test environment** before going live.
-- ❌ **Don't:** Manually create a chart of accounts if a localization module exists for your country.
-- ❌ **Don't:** Mix localization tax accounts with custom accounts — it breaks fiscal reports.
+-  **Do:** Install the localization module **before** creating any accounting entries — it sets up the correct accounts.
+-  **Do:** Use **Fiscal Positions** to automate tax switching for international customers (B2B vs B2C, domestic vs export).
+-  **Do:** Test e-invoicing in the **SAT/tax authority test environment** before going live.
+-  **Don't:** Manually create a chart of accounts if a localization module exists for your country.
+-  **Don't:** Mix localization tax accounts with custom accounts — it breaks fiscal reports.

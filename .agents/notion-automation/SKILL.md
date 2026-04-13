@@ -192,7 +192,7 @@ Automate Notion operations through Composio's Notion toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search pages/databases | NOTION_SEARCH_NOTION_PAGE | query |
 | Create page | NOTION_CREATE_NOTION_PAGE | parent_id, properties |
 | Get page metadata | NOTION_RETRIEVE_PAGE | page_id |

@@ -70,7 +70,7 @@ Only if merging via GitHub is not possible (e.g. contributor unreachable and you
 ## Summary
 
 | Goal                         | Action                                                                 |
-|-----------------------------|------------------------------------------------------------------------|
+|--|--|
 | Give contributors credit   | Always use **Squash and merge** on GitHub so the PR shows **Merged**.  |
 | PR has conflicts           | Resolve on the PR branch (you or the contributor), then **Squash and merge**. |
 | Never                      | Integrate locally and then **Close** the PR without merging.          |

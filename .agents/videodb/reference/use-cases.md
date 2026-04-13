@@ -108,7 +108,7 @@ Every operation produces playable stream URLs. Embed in web players, share direc
 ## Workflow Summary
 
 | Goal | VideoDB Approach |
-|------|------------------|
+|------|--|
 | Find moments in video | Index spoken words/scenes → Search → Compile clips |
 | Create highlights | Search multiple topics → Build timeline → Generate stream |
 | Add subtitles | Index spoken words → Add subtitle overlay |

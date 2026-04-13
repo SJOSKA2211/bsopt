@@ -5,7 +5,7 @@ Loki Mode can optionally integrate with [Vibe Kanban](https://github.com/BloopAI
 ## Why Use Vibe Kanban with Loki Mode?
 
 | Feature | Loki Mode Alone | + Vibe Kanban |
-|---------|-----------------|---------------|
+|---------|--|--|
 | Task visualization | File-based queues | Visual kanban board |
 | Progress monitoring | Log files | Real-time dashboard |
 | Manual intervention | Edit queue files | Drag-and-drop tasks |
@@ -80,7 +80,7 @@ Loki Mode exports tasks in Vibe Kanban compatible format:
 ### Mapping Loki Phases to Kanban Columns
 
 | Loki Phase | Kanban Column |
-|------------|---------------|
+|--|--|
 | BOOTSTRAP | Backlog |
 | DISCOVERY | Planning |
 | ARCHITECTURE | Planning |
@@ -179,7 +179,7 @@ If running Loki Mode on multiple projects, see all in one Vibe Kanban instance.
 ## Comparison: When to Use What
 
 | Scenario | Recommendation |
-|----------|----------------|
+|--|--|
 | Fully autonomous, no monitoring | Loki Mode + Wrapper only |
 | Need visual progress dashboard | Add Vibe Kanban |
 | Want manual task prioritization | Use Vibe Kanban to reorder |

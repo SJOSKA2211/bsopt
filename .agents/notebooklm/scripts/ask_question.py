@@ -52,11 +52,11 @@ def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> s
     auth = AuthManager()
 
     if not auth.is_authenticated():
-        print("⚠️ Not authenticated. Run: python auth_manager.py setup")
+        print("️ Not authenticated. Run: python auth_manager.py setup")
         return None
 
-    print(f"💬 Asking: {question}")
-    print(f"📚 Notebook: {notebook_url}")
+    print(f" Asking: {question}")
+    print(f" Notebook: {notebook_url}")
 
     playwright = None
     context = None
@@ -70,7 +70,7 @@ def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> s
 
         # Navigate to notebook
         page = context.new_page()
-        print("  🌐 Opening notebook...")
+        print("   Opening notebook...")
         page.goto(notebook_url, wait_until="domcontentloaded")
 
         # Wait for NotebookLM
@@ -88,13 +88,13 @@ def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> s
                     state="visible",  # Only check visibility, not disabled!
                 )
                 if query_element:
-                    print(f"  ✓ Found input: {selector}")
+                    print(f"   Found input: {selector}")
                     break
             except:
                 continue
 
         if not query_element:
-            print("  ❌ Could not find query input")
+            print("   Could not find query input")
             return None
 
         # Type question (human-like, fast)
@@ -105,7 +105,7 @@ def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> s
         StealthUtils.human_type(page, input_selector, question)
 
         # Submit
-        print("  📤 Submitting...")
+        print("   Submitting...")
         page.keyboard.press("Enter")
 
         # Small pause
@@ -156,15 +156,15 @@ def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> s
             time.sleep(1)
 
         if not answer:
-            print("  ❌ Timeout waiting for answer")
+            print("   Timeout waiting for answer")
             return None
 
-        print("  ✅ Got answer!")
+        print("   Got answer!")
         # Add follow-up reminder to encourage Claude to ask more questions
         return answer + FOLLOW_UP_REMINDER
 
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        print(f"   Error: {e}")
         import traceback
 
         traceback.print_exc()
@@ -204,7 +204,7 @@ def main():
         if notebook:
             notebook_url = notebook["url"]
         else:
-            print(f"❌ Notebook '{args.notebook_id}' not found")
+            print(f" Notebook '{args.notebook_id}' not found")
             return 1
 
     if not notebook_url:
@@ -213,19 +213,19 @@ def main():
         active = library.get_active_notebook()
         if active:
             notebook_url = active["url"]
-            print(f"📚 Using active notebook: {active['name']}")
+            print(f" Using active notebook: {active['name']}")
         else:
             # Show available notebooks
             notebooks = library.list_notebooks()
             if notebooks:
-                print("\n📚 Available notebooks:")
+                print("\n Available notebooks:")
                 for nb in notebooks:
                     mark = " [ACTIVE]" if nb.get("id") == library.active_notebook_id else ""
                     print(f"  {nb['id']}: {nb['name']}{mark}")
                 print("\nSpecify with --notebook-id or set active:")
                 print("python scripts/run.py notebook_manager.py activate --id ID")
             else:
-                print("❌ No notebooks in library. Add one first:")
+                print(" No notebooks in library. Add one first:")
                 print(
                     "python scripts/run.py notebook_manager.py add --url URL --name NAME --description DESC --topics TOPICS"
                 )
@@ -246,7 +246,7 @@ def main():
         print("=" * 60)
         return 0
     else:
-        print("\n❌ Failed to get answer")
+        print("\n Failed to get answer")
         return 1
 
 

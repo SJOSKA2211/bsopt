@@ -41,7 +41,7 @@ Descricao breve do que a skill faz.
 ## Resumo Rapido
 
 | Area | Script | O que faz |
-|------|--------|-----------|
+|------|--------|--|
 | Core | config.py | Configuracao central |
 | Core | db.py | Persistencia SQLite |
 | Core | governance.py | Governanca |

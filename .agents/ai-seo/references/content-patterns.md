@@ -72,7 +72,7 @@ Use for "[X] vs [Y]" queries. Optimal for table snippets.
 ## [Option A] vs [Option B]: [Brief Descriptor]
 
 | Feature | [Option A] | [Option B] |
-|---------|------------|------------|
+|---------|--|--|
 | [Criteria 1] | [Value/Description] | [Value/Description] |
 | [Criteria 2] | [Value/Description] | [Value/Description] |
 | [Criteria 3] | [Value/Description] | [Value/Description] |

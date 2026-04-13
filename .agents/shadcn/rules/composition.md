@@ -99,7 +99,7 @@ toast("File deleted.", {
 ## Choosing between overlay components
 
 | Use case | Component |
-|----------|-----------|
+|--|--|
 | Focused task that requires input | `Dialog` |
 | Destructive action confirmation | `AlertDialog` |
 | Side panel with details or filters | `Sheet` |

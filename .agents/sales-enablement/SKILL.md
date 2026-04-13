@@ -88,7 +88,7 @@ Every claim connects to revenue, efficiency, or risk reduction. Features mean no
 ### Customization by Buyer Type
 
 | Buyer | Emphasize | De-emphasize |
-|-------|-----------|--------------|
+|-------|--|--|
 | Technical buyer | Architecture, security, integrations, API | ROI calculations, business metrics |
 | Economic buyer | ROI, payback period, total cost, risk | Technical details, implementation specifics |
 | Champion | Internal selling points, quick wins, peer proof | Deep technical or financial detail |
@@ -129,7 +129,7 @@ Every claim connects to revenue, efficiency, or risk reduction. Features mean no
 ### Objection Categories
 
 | Category | Examples |
-|----------|----------|
+|--|--|
 | Price | "Too expensive," "No budget this quarter," "Competitor is cheaper" |
 | Timing | "Not the right time," "Maybe next quarter," "Too busy to implement" |
 | Competition | "We already use X," "What makes you different?" |
@@ -179,7 +179,7 @@ For each objection, document:
 ### Value Prop by Persona
 
 | Persona | Cares About | Lead With |
-|---------|-------------|-----------|
+|---------|--|--|
 | CTO / VP Eng | Architecture, scale, security, team velocity | Technical superiority, integration depth |
 | VP Sales | Pipeline, quota attainment, rep productivity | Revenue impact, time savings per rep |
 | CFO | Total cost, payback period, risk | ROI, cost reduction, financial predictability |
@@ -206,7 +206,7 @@ For each objection, document:
 ### Talk Track Types
 
 | Type | Duration | Focus |
-|------|----------|-------|
+|------|--|-------|
 | Discovery call | 30 min | Qualify, understand pain, map buying process |
 | First demo | 30-45 min | Show 3-4 workflows tied to their pain |
 | Technical deep-dive | 45-60 min | Architecture, security, integrations, API |
@@ -300,7 +300,7 @@ Playbooks die when they're not updated. Review quarterly, get input from top rep
 ### Card Structure
 
 | Field | Description |
-|-------|-------------|
+|-------|--|
 | Role / title | Common titles and reporting structure |
 | Goals | What success looks like for them |
 | Pains | What frustrates them daily |
@@ -324,7 +324,7 @@ Playbooks die when they're not updated. Review quarterly, get input from top rep
 Deliver the right format for each asset type:
 
 | Asset | Deliverable |
-|-------|-------------|
+|-------|--|
 | Sales deck | Slide-by-slide outline with headline, body copy, and speaker notes |
 | One-pager | Full copy with layout guidance (visual hierarchy, sections) |
 | Objection doc | Table format: objection, response, proof point, follow-up |

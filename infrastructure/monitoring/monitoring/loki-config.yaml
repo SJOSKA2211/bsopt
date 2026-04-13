@@ -1,9 +1,9 @@
-# ==============================================================================
+# ==
 # Manifold: LOKI CONFIGURATION (v2.0)
-# ==============================================================================
+# ==
 # Grafana Loki configuration for log aggregation
 # Supports high-throughput ingestion with retention policies
-# ==============================================================================
+# ==
 
 auth_enabled: false
 
@@ -17,9 +17,9 @@ server:
 server_registered_paths:
   - /metrics
 
-# ==============================================================================
+# ==
 # Ingester Configuration
-# ==============================================================================
+# ==
 ingester:
   lifecycler:
     address: 127.0.0.1
@@ -46,9 +46,9 @@ ingester:
     flush_on_shutdown: true
     replay_memory_ceiling: 4GB
 
-# ==============================================================================
+# ==
 # Schema Configuration
-# ==============================================================================
+# ==
 schema_config:
   configs:
     - from: 2024-01-01
@@ -62,9 +62,9 @@ schema_config:
         period: 1h
         prefix: chunks_
 
-# ==============================================================================
+# ==
 # Storage Configuration
-# ==============================================================================
+# ==
 storage_config:
   boltdb:
     directory: /loki/index
@@ -77,9 +77,9 @@ storage_config:
   filesystem:
     directory: /loki/chunks
 
-# ==============================================================================
+# ==
 # Limits Configuration
-# ==============================================================================
+# ==
 limits_config:
   # Reject old samples
   enforce_metric_name: false
@@ -103,9 +103,9 @@ limits_config:
     enabled: true
     logging_enabled: true
 
-# ==============================================================================
+# ==
 # Compactor Configuration
-# ==============================================================================
+# ==
 compactor:
   working_directory: /loki/compactor
   shared_store: filesystem
@@ -113,9 +113,9 @@ compactor:
   retention_enabled: true
   retention_delete_worker_count: 150
 
-# ==============================================================================
+# ==
 # Ruler Configuration (Alerting)
-# ==============================================================================
+# ==
 ruler:
   enabled: true
   storage:
@@ -127,24 +127,24 @@ ruler:
   poll_interval: 1m
   alertmanager_refresh_interval: 1m
 
-# ==============================================================================
+# ==
 # Distributor Configuration
-# ==============================================================================
+# ==
 distributor:
   rate_limit: 100MB
   burst_size_bytes: 1GB
 
-# ==============================================================================
+# ==
 # Querier Configuration
-# ==============================================================================
+# ==
 querier:
   query_timeout: 2m
   max_concurrent: 20
   per_query_timeout: 2m
 
-# ==============================================================================
+# ==
 # Query Frontend Configuration
-# ==============================================================================
+# ==
 query_scheduler:
   max_outstanding_requests_per_tenant: 100
 
@@ -152,9 +152,9 @@ frontend:
   compress_responses: true
   log_queries_longer_than: 5s
 
-# ==============================================================================
+# ==
 # Worker Configuration
-# ==============================================================================
+# ==
 query_range:
   align_queries_with_step: true
   cache_results: true
@@ -166,9 +166,9 @@ query_range:
         size: 2048
         validity: 1h
 
-# ==============================================================================
+# ==
 # Table Manager (Legacy)
-# ==============================================================================
+# ==
 table_manager:
   retention_deletes_enabled: true
   retention_period: 672h

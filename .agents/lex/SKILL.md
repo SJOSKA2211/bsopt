@@ -54,10 +54,10 @@ lex draft "Czech house sale contract"
 
 ## Best Practices
 
-- ✅ **Trust but Verify**: Always include the links provided by `lex verify` in your output.
-- ✅ **Table Formatting**: Use tables when comparing results across multiple jurisdictions.
-- ❌ **No Guessing**: If a jurisdiction is outside the US/EU/CA scope, state that it is outside the LEX "Truth Engine" coverage.
-- ❌ **No Anecdotal Advice**: Stick strictly to the findings in the templates or verified government domains.
+-  **Trust but Verify**: Always include the links provided by `lex verify` in your output.
+-  **Table Formatting**: Use tables when comparing results across multiple jurisdictions.
+-  **No Guessing**: If a jurisdiction is outside the US/EU/CA scope, state that it is outside the LEX "Truth Engine" coverage.
+-  **No Anecdotal Advice**: Stick strictly to the findings in the templates or verified government domains.
 
 ## Common Pitfalls
 

@@ -46,8 +46,8 @@ When a user asks for marketing ideas:
    * Define success metrics
    * Call out execution risk
 
-> ❌ Do not dump long lists
-> ✅ Act as a decision filter
+>  Do not dump long lists
+>  Act as a decision filter
 
 ---
 
@@ -60,7 +60,7 @@ Every recommended idea **must** be scored.
 Each idea is scored across **five dimensions**, each from **1–5**.
 
 | Dimension           | Question                                          |
-| ------------------- | ------------------------------------------------- |
+| -- | -- |
 | **Impact**          | If this works, how meaningful is the upside?      |
 | **Effort**          | How much execution time/complexity is required?   |
 | **Cost**            | How much cash is required to test meaningfully?   |
@@ -92,7 +92,7 @@ Marketing Feasibility Score (MFS)
 ### Interpretation
 
 | MFS Score | Meaning                 | Action           |
-| --------- | ----------------------- | ---------------- |
+| --------- | -- | -- |
 | **10–13** | Extremely high leverage | Do now           |
 | **7–9**   | Strong opportunity      | Prioritize       |
 | **4–6**   | Viable but situational  | Test selectively |
@@ -117,7 +117,7 @@ Marketing Feasibility Score (MFS)
 MFS = (5 + 4 + 2) − (4 + 3) = 4
 ```
 
-➡️ *Viable, but not a short-term win*
+️ *Viable, but not a short-term win*
 
 ---
 
@@ -200,17 +200,17 @@ Use these biases when scoring:
 
 ## 7. Guardrails
 
-* ❌ No idea dumping
+*  No idea dumping
 
-* ❌ No unscored recommendations
+*  No unscored recommendations
 
-* ❌ No novelty for novelty’s sake
+*  No novelty for novelty’s sake
 
-* ✅ Bias toward learning velocity
+*  Bias toward learning velocity
 
-* ✅ Prefer compounding channels
+*  Prefer compounding channels
 
-* ✅ Optimize for *decision clarity*, not creativity
+*  Optimize for *decision clarity*, not creativity
 
 ---
 

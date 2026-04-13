@@ -225,7 +225,7 @@ Automate Intercom operations through Composio's Intercom toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List conversations | INTERCOM_LIST_CONVERSATIONS | (pagination) |
 | Search conversations | INTERCOM_SEARCH_CONVERSATIONS | query |
 | Get conversation | INTERCOM_GET_CONVERSATION | id |

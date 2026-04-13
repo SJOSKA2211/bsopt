@@ -50,11 +50,11 @@ Phase 1
 
 ## Decisions Made
 | Decision | Rationale |
-|----------|-----------|
+|--|--|
 
 ## Errors Encountered
 | Error | Resolution |
-|-------|------------|
+|-------|--|
 EOF
     echo "Created task_plan.md"
 else
@@ -74,11 +74,11 @@ if [ ! -f "findings.md" ]; then
 
 ## Technical Decisions
 | Decision | Rationale |
-|----------|-----------|
+|--|--|
 
 ## Issues Encountered
 | Issue | Resolution |
-|-------|------------|
+|-------|--|
 
 ## Resources
 -
@@ -104,11 +104,11 @@ if [ ! -f "progress.md" ]; then
 
 ### Test Results
 | Test | Expected | Actual | Status |
-|------|----------|--------|--------|
+|------|--|--------|--------|
 
 ### Errors
 | Error | Resolution |
-|-------|------------|
+|-------|--|
 EOF
     echo "Created progress.md"
 else

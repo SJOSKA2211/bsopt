@@ -215,7 +215,7 @@ Automate Wrike project management operations through Composio's Wrike toolkit vi
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create task | WRIKE_CREATE_TASK | folderId, title, responsibles, status |
 | Modify task | WRIKE_MODIFY_TASK | taskId, title, status, addResponsibles |
 | Get task by ID | WRIKE_GET_TASK_BY_ID | taskId |

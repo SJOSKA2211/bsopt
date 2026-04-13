@@ -168,7 +168,7 @@ Manus operates in a continuous 7-step loop:
 ## File Types Manus Creates
 
 | File | Purpose | When Created | When Updated |
-|------|---------|--------------|--------------|
+|------|---------|--|--|
 | `task_plan.md` | Phase tracking, progress | Task start | After completing phases |
 | `findings.md` | Discoveries, decisions | After ANY discovery | After viewing images/PDFs |
 | `progress.md` | Session log, what's done | At breakpoints | Throughout session |

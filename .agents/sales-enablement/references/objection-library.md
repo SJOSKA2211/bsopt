@@ -7,7 +7,7 @@ Common B2B SaaS objections with response frameworks. Organized by category for q
 For live calls. Find the objection, scan the response, reference the proof.
 
 | Objection | Response (1-line) | Proof Point |
-|-----------|--------------------|-------------|
+|--|--|--|
 | "Too expensive" | "Compared to what? Let's look at what the problem costs you today." | ROI case study showing payback in X months |
 | "No budget" | "When budget opens up, what would need to be true for this to be a priority?" | Customer who started with a pilot to prove value |
 | "Competitor is cheaper" | "They are — here's what you give up at that price point." | Feature comparison + customer who switched |

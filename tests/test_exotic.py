@@ -2,7 +2,7 @@
 Comprehensive Unit Tests for Exotic Options Pricing Module
 
 Test Coverage:
---------------
+--
 1. Asian Options:
    - Geometric Asian analytical pricing
    - Arithmetic Asian Monte Carlo pricing

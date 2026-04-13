@@ -1,6 +1,6 @@
 """
 007 Security Skill - Central Configuration Hub
-================================================
+==
 
 Central configuration for all 007 security scanners, analyzers, and reporting
 tools. Every script in the 007 ecosystem imports from here to ensure consistent
@@ -23,9 +23,9 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Directory Layout
-# ---------------------------------------------------------------------------
+# --
 # All paths use pathlib for Windows / Linux portability.
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # 007/
@@ -45,9 +45,9 @@ AUDIT_LOG_PATH = DATA_DIR / "audit_log.json"
 SCORE_HISTORY_PATH = DATA_DIR / "score_history.json"
 
 
-# ---------------------------------------------------------------------------
+# --
 # Ensure required directories exist (safe to call repeatedly)
-# ---------------------------------------------------------------------------
+# --
 
 
 def ensure_directories() -> None:
@@ -56,9 +56,9 @@ def ensure_directories() -> None:
         directory.mkdir(parents=True, exist_ok=True)
 
 
-# ---------------------------------------------------------------------------
+# --
 # Severity Levels
-# ---------------------------------------------------------------------------
+# --
 # Numeric weights enable arithmetic comparison and sorting.
 # Higher weight = more severe.
 
@@ -74,9 +74,9 @@ SEVERITY = {
 SEVERITY_LABEL = {v: k for k, v in SEVERITY.items()}
 
 
-# ---------------------------------------------------------------------------
+# --
 # Scoring Weights by Security Domain (sum = 1.0)
-# ---------------------------------------------------------------------------
+# --
 # Weights mirror the SKILL.md Phase 6 scoring table exactly.
 
 SCORING_WEIGHTS = {
@@ -103,9 +103,9 @@ SCORING_LABELS = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Verdict Thresholds
-# ---------------------------------------------------------------------------
+# --
 # Applied to the weighted final score (0-100).
 
 VERDICT_THRESHOLDS = {
@@ -157,9 +157,9 @@ def get_verdict(score: float) -> dict:
     return VERDICT_THRESHOLDS["total_block"]
 
 
-# ---------------------------------------------------------------------------
+# --
 # Secret Detection Patterns
-# ---------------------------------------------------------------------------
+# --
 # Compiled regexes for high-speed scanning of source files.
 # Each entry: (pattern_name, compiled_regex, severity)
 
@@ -238,9 +238,9 @@ SECRET_PATTERNS = [
 """List of (name: str, regex: re.Pattern, severity: str) tuples for secret detection."""
 
 
-# ---------------------------------------------------------------------------
+# --
 # Dangerous Code Patterns
-# ---------------------------------------------------------------------------
+# --
 # Patterns that indicate risky constructs. Each scanner may apply its own
 # context-aware filtering on top of these to reduce false positives.
 
@@ -283,9 +283,9 @@ DANGEROUS_PATTERNS = [
 """List of (name: str, regex: re.Pattern, severity: str) tuples for dangerous code detection."""
 
 
-# ---------------------------------------------------------------------------
+# --
 # File Extension Filters
-# ---------------------------------------------------------------------------
+# --
 # Which files to scan by default. Others are ignored unless explicitly included.
 
 SCANNABLE_EXTENSIONS = {
@@ -355,9 +355,9 @@ SKIP_DIRECTORIES = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Default Timeouts & Limits
-# ---------------------------------------------------------------------------
+# --
 
 TIMEOUTS = {
     "file_read_seconds": 10,  # Max time to read a single file
@@ -373,9 +373,9 @@ LIMITS = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Logging Configuration
-# ---------------------------------------------------------------------------
+# --
 
 LOG_FORMAT = "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -403,9 +403,9 @@ def setup_logging(name: str = "007", level: int = logging.INFO) -> logging.Logge
     return logger
 
 
-# ---------------------------------------------------------------------------
+# --
 # Audit Log Utilities
-# ---------------------------------------------------------------------------
+# --
 
 
 def get_timestamp() -> str:
@@ -448,9 +448,9 @@ def log_audit_event(
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")
 
 
-# ---------------------------------------------------------------------------
+# --
 # Score Calculation Helpers
-# ---------------------------------------------------------------------------
+# --
 
 
 def calculate_weighted_score(domain_scores: dict[str, float]) -> float:
@@ -471,9 +471,9 @@ def calculate_weighted_score(domain_scores: dict[str, float]) -> float:
     return round(total, 2)
 
 
-# ---------------------------------------------------------------------------
+# --
 # Module Self-Test
-# ---------------------------------------------------------------------------
+# --
 
 if __name__ == "__main__":
     # Quick sanity check when run directly

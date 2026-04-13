@@ -8,7 +8,7 @@ description: Electron desktop app template principles. Cross-platform, React, Ty
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | Electron 28+ |
 | UI | React 18 |
 | Language | TypeScript |
@@ -72,7 +72,7 @@ project-name/
 ## Build Targets
 
 | Platform | Output |
-|----------|--------|
+|--|--------|
 | Windows | NSIS, Portable |
 | macOS | DMG, ZIP |
 | Linux | AppImage, DEB |

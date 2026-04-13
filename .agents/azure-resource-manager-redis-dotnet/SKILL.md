@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Azure Cache for Redis resources via Azure Resource Manager.
 
-> **⚠️ Management vs Data Plane**
+> **️ Management vs Data Plane**
 > - **This SDK (Azure.ResourceManager.Redis)**: Create caches, configure firewall rules, manage access keys, set up geo-replication
 > - **Data Plane SDK (StackExchange.Redis)**: Get/set keys, pub/sub, streams, Lua scripts
 
@@ -241,7 +241,7 @@ await cache.Value.ForceRebootAsync(rebootContent);
 ## SKU Reference
 
 | SKU | Family | Capacity | Features |
-|-----|--------|----------|----------|
+|-----|--------|--|--|
 | Basic | C | 0-6 | Single node, no SLA, dev/test only |
 | Standard | C | 0-6 | Two nodes (primary/replica), SLA |
 | Premium | P | 1-5 | Clustering, geo-replication, VNet, persistence |

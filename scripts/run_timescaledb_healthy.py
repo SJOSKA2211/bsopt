@@ -36,15 +36,15 @@ async def run_until_healthy(max_retries: int = 30, retry_interval: int = 5):
     Ensures TimescaleDB is up and running.
     Attempts to start it via docker-compose if connection fails initially.
     """
-    print("🔍 Checking TimescaleDB Health...")
+    print(" Checking TimescaleDB Health...")
 
     for i in range(max_retries):
         if await check_db_health():
-            print("✅ TimescaleDB is HEALTHY and READY.")
+            print(" TimescaleDB is HEALTHY and READY.")
             return True
 
         if i == 0:
-            print("⚠️ TimescaleDB not reachable. Attempting to start via docker-compose...")
+            print("️ TimescaleDB not reachable. Attempting to start via docker-compose...")
             try:
                 # Determine the correct compose file
                 compose_path = "infrastructure/orchestration/docker-compose.yml"
@@ -57,14 +57,14 @@ async def run_until_healthy(max_retries: int = 30, retry_interval: int = 5):
                     check=True,
                     capture_output=True,
                 )
-                print("🚀 started_via_docker_compose")
+                print(" started_via_docker_compose")
             except Exception as e:
-                print(f"🚨 Failed to run docker-compose: {str(e)}")
+                print(f" Failed to run docker-compose: {str(e)}")
 
         print(f"⏳ Waiting for TimescaleDB... (Attempt {i + 1}/{max_retries})")
         await asyncio.sleep(retry_interval)
 
-    print("❌ TimescaleDB failed to become healthy within the timeout.")
+    print(" TimescaleDB failed to become healthy within the timeout.")
     return False
 
 

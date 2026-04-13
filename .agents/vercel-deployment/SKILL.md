@@ -56,16 +56,16 @@ Optimize build for faster deployments and smaller bundles
 
 ## Anti-Patterns
 
-### ❌ Secrets in NEXT_PUBLIC_
+###  Secrets in NEXT_PUBLIC_
 
-### ❌ Same Database for Preview
+###  Same Database for Preview
 
-### ❌ No Build Cache
+###  No Build Cache
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | NEXT_PUBLIC_ exposes secrets to the browser | critical | Only use NEXT_PUBLIC_ for truly public values: |
 | Preview deployments using production database | high | Set up separate databases for each environment: |
 | Serverless function too large, slow cold starts | high | Reduce function size: |

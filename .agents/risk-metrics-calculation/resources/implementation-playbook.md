@@ -20,7 +20,7 @@ Comprehensive risk measurement toolkit for portfolio management, including Value
 ### 1. Risk Metric Categories
 
 | Category | Metrics | Use Case |
-|----------|---------|----------|
+|--|---------|--|
 | **Volatility** | Std Dev, Beta | General risk |
 | **Tail Risk** | VaR, CVaR | Extreme losses |
 | **Drawdown** | Max DD, Calmar | Capital preservation |

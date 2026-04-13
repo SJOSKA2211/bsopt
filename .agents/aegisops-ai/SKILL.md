@@ -52,25 +52,25 @@ AegisOps-AI leverages the **Google GenAI SDK** to implement a "Reasoning Path" f
 
 ## 🧭 Core Modules
 
-### 1. 🐧 Kernel Patch Reviewer (`patch_analyzer.py`)
+### 1.  Kernel Patch Reviewer (`patch_analyzer.py`)
 
 * **Problem:** Manual review of Linux Kernel memory safety is time-consuming and prone to human error.
 * **Solution:** Gemini 3 performs a "Deep Reasoning" audit on raw Git diffs to detect critical memory corruption vulnerabilities (UAF, Stale State) in seconds.
 * **Key Output:** `analysis_results.json`
 
-### 2. 💰 FinOps & Cloud Auditor (`cost_auditor.py`)
+### 2.  FinOps & Cloud Auditor (`cost_auditor.py`)
 
 * **Problem:** Infrastructure-as-Code (IaC) changes can lead to accidental "Silent Disasters" and massive cloud bill spikes.
 * **Solution:** Analyzes `terraform plan` output to identify cost anomalies—such as accidental upgrades from `t3.micro` to high-performance GPU instances.
 * **Key Output:** `infrastructure_audit_report.json`
 
-### 3. ☸️ K8s Policy Hardener (`k8s_policy_generator.py`)
+### 3. ️ K8s Policy Hardener (`k8s_policy_generator.py`)
 
 * **Problem:** Implementing "Least Privilege" security contexts in Kubernetes is complex and often neglected.
 * **Solution:** Translates natural language security requirements into production-ready, hardened YAML manifests (Read-only root FS, Non-root enforcement, etc.).
 * **Key Output:** `hardened_deployment.yaml`
 
-## 🛠️ Setup & Environment
+## ️ Setup & Environment
 
 ### 1. Clone the Repository
 
@@ -93,7 +93,7 @@ store your credentials:
 ```bash
 echo "GEMINI_API_KEY='your_api_key_here'" > .env
 ```
-## 🏁 Operational Dashboard
+##  Operational Dashboard
 
 To execute the full suite of agents in sequence and generate all security reports:
 
@@ -107,7 +107,7 @@ python3 main.py
 
 ---
 
-## 💡 Best Practices
+##  Best Practices
 
 * **Context is King:** Provide at least 5 lines of context around Git diffs for more accurate neural reasoning.
 * **Continuous Gating:** Run the FinOps auditor before every infrastructure change, not after.
@@ -115,7 +115,7 @@ python3 main.py
 
 ---
 
-## 🔒 Security & Safety Notes
+##  Security & Safety Notes
 
 * **Key Management:** Use CI/CD secrets for `GEMINI_API_KEY` in production.
 * **Least Privilege:** Test "Hardened" manifests in staging first to ensure no functional regressions.

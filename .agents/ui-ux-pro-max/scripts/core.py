@@ -9,7 +9,7 @@ from collections import defaultdict
 from math import log
 from pathlib import Path
 
-# ============ CONFIGURATION ============
+# == CONFIGURATION ==
 DATA_DIR = Path(__file__).parent.parent / "data"
 MAX_RESULTS = 3
 
@@ -220,7 +220,7 @@ _STACK_COLS = {
 AVAILABLE_STACKS = list(STACK_CONFIG.keys())
 
 
-# ============ BM25 IMPLEMENTATION ============
+# == BM25 IMPLEMENTATION ==
 class BM25:
     """BM25 ranking algorithm for text search"""
 
@@ -283,7 +283,7 @@ class BM25:
         return sorted(scores, key=lambda x: x[1], reverse=True)
 
 
-# ============ SEARCH FUNCTIONS ============
+# == SEARCH FUNCTIONS ==
 def _load_csv(filepath):
     """Load CSV and return list of dicts"""
     with open(filepath, encoding="utf-8") as f:

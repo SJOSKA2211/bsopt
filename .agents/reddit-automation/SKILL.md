@@ -197,7 +197,7 @@ t5_ = Subreddit
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search Reddit | REDDIT_SEARCH_ACROSS_SUBREDDITS | query, subreddit, sort, time_filter |
 | Create post | REDDIT_CREATE_REDDIT_POST | subreddit, title, text/url |
 | Get post comments | REDDIT_RETRIEVE_POST_COMMENTS | post_id |

@@ -21,7 +21,7 @@ When to denormalize (embed/duplicate):
 ## Primary Key Selection
 
 | Type | Use When |
-|------|----------|
+|------|--|
 | **UUID** | Distributed systems, security |
 | **ULID** | UUID + sortable by time |
 | **Auto-increment** | Simple apps, single database |
@@ -41,7 +41,7 @@ Use TIMESTAMPTZ (with timezone) not TIMESTAMP
 ## Relationship Types
 
 | Type | When | Implementation |
-|------|------|----------------|
+|------|------|--|
 | **One-to-One** | Extension data | Separate table with FK |
 | **One-to-Many** | Parent-children | FK on child table |
 | **Many-to-Many** | Both sides have many | Junction table |

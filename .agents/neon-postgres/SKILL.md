@@ -41,10 +41,10 @@ Key limits:
 
 Use pooled endpoint for application, direct for migrations.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | high | See docs |
 | Issue | high | See docs |
 | Issue | high | See docs |

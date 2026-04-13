@@ -49,7 +49,7 @@ e experiência em laudos periciais judiciais e extrajudiciais para leilões.
 ## Tipos De Valor (Abnt Nbr 14653-1)
 
 | Conceito | Definição | Uso em Leilão |
-|----------|-----------|--------------|
+|--|--|--|
 | **Valor de Mercado** | Quantia mais provável de transação livre, entre partes conscientes e sem coerção | Base do edital (avaliação judicial) |
 | **Valor de Liquidação Forçada** | Quantia em venda compulsória em prazo curto | Estima o preço real de arrematação |
 | **Valor de Uso** | Valor para um uso ou usuário específico | Análise do comprador final |
@@ -160,7 +160,7 @@ Valor de Mercado = Renda Líquida / Cap Rate
 **Cap Rates Típicos no Brasil (2024):**
 
 | Segmento | Cap Rate |
-|----------|---------|
+|--|---------|
 | Residencial alto padrão SP/RJ | 4% - 6% |
 | Residencial padrão médio | 5% - 8% |
 | Salas comerciais | 7% - 10% |
@@ -192,7 +192,7 @@ Valor das Benfeitorias = Custo de Reprodução × (1 - Depreciação)
 **Custo de Reprodução (CUB — SINDUSCON, atualizado mensalmente por estado):**
 
 | Padrão | CUB aproximado (R$/m²) — Referência SP 2024 |
-|--------|----------------------------------------------|
+|--------|--|
 | Residencial Baixo (R1-B) | R$ 1.800 - 2.200 |
 | Residencial Normal (R1-N) | R$ 2.200 - 2.800 |
 | Residencial Alto (R1-A) | R$ 2.800 - 3.800 |
@@ -204,7 +204,7 @@ Valor das Benfeitorias = Custo de Reprodução × (1 - Depreciação)
 **Depreciação (Ross-Heidecke):**
 
 | Idade / Estado | Novo | Bom | Regular | Mau |
-|---------------|------|-----|---------|-----|
+|--|------|-----|---------|-----|
 | 0-10 anos | 100% | 85% | 70% | 55% |
 | 11-20 anos | 85% | 72% | 59% | 46% |
 | 21-30 anos | 70% | 59% | 49% | 38% |
@@ -235,12 +235,12 @@ Quando receber um laudo de avaliação para análise, verificar:
 - [ ] Cálculo final claro
 
 **Sinais de laudo fraco/suspeito:**
-- ⚠️ Menos de 3 amostras (Grau I insuficiente para leilão relevante)
-- ⚠️ Amostras de bairros muito distantes ou diferentes
-- ⚠️ Sem data de vistoria (quando foi o imóvel visitado?)
-- ⚠️ Valor muito distante do mercado sem justificativa
-- ⚠️ Laudo copiado de processo anterior sem atualização
-- ⚠️ Avaliador sem CREA/CAU válido no estado do imóvel
+- ️ Menos de 3 amostras (Grau I insuficiente para leilão relevante)
+- ️ Amostras de bairros muito distantes ou diferentes
+- ️ Sem data de vistoria (quando foi o imóvel visitado?)
+- ️ Valor muito distante do mercado sem justificativa
+- ️ Laudo copiado de processo anterior sem atualização
+- ️ Avaliador sem CREA/CAU válido no estado do imóvel
 
 ---
 
@@ -363,7 +363,7 @@ Quando precisar estimar o VMP de um imóvel sem laudo disponível:
 ## Cub Referência 2025 (Sinduscon/Sp — Atualizar Mensalmente)
 
 | Padrão | CUB R$/m² (ref. Jan/2025) |
-|--------|--------------------------|
+|--------|--|
 | R1-B (Residencial Baixo) | R$ 2.000 - 2.400 |
 | R1-N (Residencial Normal) | R$ 2.400 - 3.100 |
 | R1-A (Residencial Alto) | R$ 3.100 - 4.200 |
@@ -411,7 +411,7 @@ Quando precisar estimar o VMP de um imóvel sem laudo disponível:
 ## Quando É Possível Financiar Imóvel De Leilão?
 
 | Modalidade | Financiamento Possível? | Obs |
-|-----------|------------------------|-----|
+|--|--|-----|
 | Venda Direta CEF | SIM — pelo próprio banco | Até 80% VMAV, FGTS permitido |
 | Venda Direta BB/Santander | SIM — pelo próprio banco | Condições variam |
 | Leilão Extrajudicial (banco) | DEPENDE — consultar edital | Alguns aceitam financiamento |

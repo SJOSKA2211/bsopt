@@ -154,7 +154,7 @@ Automate Airtable operations through Composio's Airtable toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List bases | AIRTABLE_LIST_BASES | (none) |
 | Get schema | AIRTABLE_GET_BASE_SCHEMA | baseId |
 | List records | AIRTABLE_LIST_RECORDS | baseId, tableIdOrName |

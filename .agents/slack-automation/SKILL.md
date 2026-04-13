@@ -172,7 +172,7 @@ Most list endpoints use cursor-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Find channels | `SLACK_FIND_CHANNELS` | `query` |
 | List all channels | `SLACK_LIST_ALL_CHANNELS` | `limit`, `cursor`, `types` |
 | Send message | `SLACK_SEND_MESSAGE` | `channel`, `markdown_text` |

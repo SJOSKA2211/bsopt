@@ -15,7 +15,7 @@ Master guide for embedding interactive 3D scenes from [Spline.design](https://sp
 ## Quick Reference
 
 | Task                              | Guide                                                          |
-| --------------------------------- | -------------------------------------------------------------- |
+| -- | -- |
 | Vanilla HTML/JS embed             | [guides/VANILLA_INTEGRATION.md](guides/VANILLA_INTEGRATION.md) |
 | React / Next.js / Vue embed       | [guides/REACT_INTEGRATION.md](guides/REACT_INTEGRATION.md)     |
 | Performance & mobile optimization | [guides/PERFORMANCE.md](guides/PERFORMANCE.md)                 |
@@ -24,7 +24,7 @@ Master guide for embedding interactive 3D scenes from [Spline.design](https://sp
 ## Working Examples
 
 | File                                                                   | What it shows                                            |
-| ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| -- | -- |
 | [examples/vanilla-embed.html](examples/vanilla-embed.html)             | Minimal vanilla JS embed with background + fallback      |
 | [examples/react-spline-wrapper.tsx](examples/react-spline-wrapper.tsx) | Production-ready lazy-loaded React wrapper with fallback |
 | [examples/interactive-scene.tsx](examples/interactive-scene.tsx)       | Full interactive example: events, object control, camera |
@@ -42,7 +42,7 @@ Spline is a browser-based 3D design tool — think Figma, but for 3D. Designers 
 Before writing any code, check the existing project files to determine the framework.
 
 | Stack                          | Method                                                   |
-| ------------------------------ | -------------------------------------------------------- |
+| -- | -- |
 | Vanilla HTML/JS                | `<spline-viewer>` web component OR `@splinetool/runtime` |
 | React / Vite                   | `@splinetool/react-spline`                               |
 | Next.js                        | `@splinetool/react-spline/next`                          |
@@ -61,11 +61,11 @@ https://prod.spline.design/XXXXXXXXXXXXXXXX/scene.splinecode
 
 **Before copying the URL, tell the user to check Play Settings:**
 
-- ✅ Toggle **Hide Background** ON if the site has a dark or custom background
-- ✅ Toggle **Hide Spline Logo** ON if they have a paid plan
-- ✅ Set **Geometry Quality** to Performance for faster load
-- ✅ Disable **Page Scroll**, **Zoom**, **Pan** if those aren't needed (reduces hijacking risk)
-- ✅ Click **Generate Draft** or **Promote to Production** after any settings change — the URL does NOT auto-update
+-  Toggle **Hide Background** ON if the site has a dark or custom background
+-  Toggle **Hide Spline Logo** ON if they have a paid plan
+-  Set **Geometry Quality** to Performance for faster load
+-  Disable **Page Scroll**, **Zoom**, **Pan** if those aren't needed (reduces hijacking risk)
+-  Click **Generate Draft** or **Promote to Production** after any settings change — the URL does NOT auto-update
 
 ---
 

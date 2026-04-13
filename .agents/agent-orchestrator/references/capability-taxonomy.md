@@ -62,7 +62,7 @@ Cada skill pode ter multiplas categorias.
 As categorias se agrupam em papeis para orquestracao:
 
 | Papel      | Categorias                                      | Descricao                        |
-|:-----------|:------------------------------------------------|:---------------------------------|
+|:--|:--|:--|
 | Producer   | data-extraction, government-data, analytics     | Gera/coleta dados                |
 | Consumer   | messaging, social-media, content-management     | Atua sobre dados (envia, publica)|
 | Hybrid     | api-integration, web-automation                 | Pode produzir e consumir dados   |

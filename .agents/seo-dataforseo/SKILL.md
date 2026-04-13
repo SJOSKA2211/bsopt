@@ -51,7 +51,7 @@ DataForSEO charges per API call. Be efficient:
 ## Quick Reference
 
 | Command | What it does |
-|---------|-------------|
+|---------|--|
 | `/seo dataforseo serp <keyword>` | Google organic SERP results |
 | `/seo dataforseo serp-youtube <keyword>` | YouTube search results |
 | `/seo dataforseo youtube <video_id>` | YouTube video deep analysis |

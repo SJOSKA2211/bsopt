@@ -160,7 +160,7 @@ Backward pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List tickets | HELPDESK_LIST_TICKETS | silo, sortBy, order, pageSize |
 | List views | HELPDESK_LIST_VIEWS | (none) |
 | List canned responses | HELPDESK_LIST_CANNED_RESPONSES | (none) |

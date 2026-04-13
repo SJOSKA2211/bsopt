@@ -95,13 +95,13 @@ Operations created automatically:
 
 ## Best Practices
 
-- ✅ **Do:** Use **Lots/Serial Numbers** for high-value or regulated items (medical devices, electronics).
-- ✅ **Do:** Run a **physical inventory adjustment** at least quarterly (Inventory → Operations → Physical Inventory) to correct drift.
-- ✅ **Do:** Set reordering rules on fast-moving items so purchase orders are generated automatically.
-- ✅ **Do:** Enable **Putaway Rules** on warehouses with multiple storage zones — it eliminates manual location selection errors.
-- ❌ **Don't:** Switch stock valuation method (FIFO ↔ AVCO) after recording transactions — it produces incorrect historical cost data.
-- ❌ **Don't:** Use "Update Quantity" to fix stock errors — always use Inventory Adjustments to maintain a proper audit trail.
-- ❌ **Don't:** Mix product categories with different costing methods in the same storage location without understanding the valuation impact.
+-  **Do:** Use **Lots/Serial Numbers** for high-value or regulated items (medical devices, electronics).
+-  **Do:** Run a **physical inventory adjustment** at least quarterly (Inventory → Operations → Physical Inventory) to correct drift.
+-  **Do:** Set reordering rules on fast-moving items so purchase orders are generated automatically.
+-  **Do:** Enable **Putaway Rules** on warehouses with multiple storage zones — it eliminates manual location selection errors.
+-  **Don't:** Switch stock valuation method (FIFO ↔ AVCO) after recording transactions — it produces incorrect historical cost data.
+-  **Don't:** Use "Update Quantity" to fix stock errors — always use Inventory Adjustments to maintain a proper audit trail.
+-  **Don't:** Mix product categories with different costing methods in the same storage location without understanding the valuation impact.
 
 ## Limitations
 

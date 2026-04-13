@@ -48,7 +48,7 @@ Skip this skill
 Based on the file extension or language context, refer to the appropriate guide:
 
 | Language   | File Extensions                   | Guide                                                    |
-| ---------- | --------------------------------- | -------------------------------------------------------- |
+| -- | -- | -- |
 | C, C++     | `.c`, `.h`, `.cpp`, `.cc`, `.hpp` | references/compiled.md         |
 | Go         | `.go`                             | references/compiled.md         |
 | Rust       | `.rs`                             | references/compiled.md         |
@@ -123,7 +123,7 @@ Note: Swift compiles to native code like C/C++/Go/Rust, so it uses assembly-leve
 ### Prerequisites
 
 | Language               | Requirements                                              |
-| ---------------------- | --------------------------------------------------------- |
+| -- | -- |
 | C, C++, Go, Rust       | Compiler in PATH (`gcc`/`clang`, `go`, `rustc`)           |
 | Swift                  | Xcode or Swift toolchain (`swiftc` in PATH)               |
 | Java                   | JDK with `javac` and `javap` in PATH                      |
@@ -149,7 +149,7 @@ See references/vm-compiled.md for detailed setup instructions and troubleshootin
 ## Quick Reference
 
 | Problem                | Detection                       | Fix                                          |
-| ---------------------- | ------------------------------- | -------------------------------------------- |
+| -- | -- | -- |
 | Division on secrets    | DIV, IDIV, SDIV, UDIV           | Barrett reduction or multiply-by-inverse     |
 | Branch on secrets      | JE, JNE, BEQ, BNE               | Constant-time selection (cmov, bit masking)  |
 | Secret comparison      | Early-exit memcmp               | Use `crypto/subtle` or constant-time compare |
@@ -193,7 +193,7 @@ For each flagged violation, ask: **Does this operation's input depend on secret 
 ### Quick Triage Questions
 
 | Question                                          | If Yes                | If No                 |
-| ------------------------------------------------- | --------------------- | --------------------- |
+| -- | -- | -- |
 | Is the operand a compile-time constant?           | Likely false positive | Continue              |
 | Is the operand a public parameter (length, count)?| Likely false positive | Continue              |
 | Is the operand derived from key/plaintext/secret? | **TRUE POSITIVE**     | Likely false positive |

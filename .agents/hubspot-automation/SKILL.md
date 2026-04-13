@@ -163,7 +163,7 @@ Automate HubSpot CRM workflows including contact/company management, deal pipeli
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create contact | `HUBSPOT_CREATE_CONTACT` | `properties: {email, firstname, lastname}` |
 | Batch create contacts | `HUBSPOT_CREATE_CONTACTS` | `inputs: [{properties}]` (max 100) |
 | Search contacts | `HUBSPOT_SEARCH_CONTACTS_BY_CRITERIA` | `filterGroups, properties, limit, after` |

@@ -144,7 +144,7 @@ Example assessments:
 ## Confidence Levels
 
 | Level | Criteria | Action |
-|-------|----------|--------|
+|-------|--|--------|
 | **HIGH** | Pattern confirmed + malicious intent evident | Report with severity |
 | **MEDIUM** | Suspicious pattern, intent unclear | Note as "Needs verification" |
 | **LOW** | Theoretical, best practice only | Do not report |

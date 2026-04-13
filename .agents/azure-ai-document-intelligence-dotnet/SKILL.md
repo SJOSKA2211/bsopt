@@ -60,7 +60,7 @@ var client = new DocumentIntelligenceClient(new Uri(endpoint), new AzureKeyCrede
 ## Prebuilt Models
 
 | Model ID | Description |
-|----------|-------------|
+|--|--|
 | `prebuilt-read` | Extract text, languages, handwriting |
 | `prebuilt-layout` | Extract text, tables, selection marks, structure |
 | `prebuilt-invoice` | Extract invoice fields (vendor, items, totals) |
@@ -274,7 +274,7 @@ await adminClient.DeleteModelAsync("my-model-id");
 ## Key Types Reference
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | `DocumentIntelligenceClient` | Main client for analysis |
 | `DocumentIntelligenceAdministrationClient` | Model management |
 | `AnalyzeResult` | Result of document analysis |
@@ -289,7 +289,7 @@ await adminClient.DeleteModelAsync("my-model-id");
 ## Build Modes
 
 | Mode | Use Case |
-|------|----------|
+|------|--|
 | `DocumentBuildMode.Template` | Fixed layout documents (forms) |
 | `DocumentBuildMode.Neural` | Variable layout documents |
 
@@ -330,7 +330,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.AI.DocumentIntelligence |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.ai.documentintelligence |
 | GitHub Samples | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/documentintelligence/Azure.AI.DocumentIntelligence/samples |

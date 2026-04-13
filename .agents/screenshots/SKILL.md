@@ -100,7 +100,7 @@ Thoroughly explore the codebase to understand the app and identify screenshot op
 Read the routing configuration to discover all available pages:
 
 | Framework | File to Read | What to Look For |
-|-----------|--------------|------------------|
+|--|--|--|
 | **Next.js App Router** | `app/` directory structure | Each folder with `page.tsx` is a route |
 | **Next.js Pages Router** | `pages/` directory | Each file is a route |
 | **Rails** | `config/routes.rb` | Read the entire file for all routes |
@@ -348,7 +348,7 @@ const context = await browser.newContext({
 Use descriptive, kebab-case filenames with numeric prefixes for ordering:
 
 | Feature | Filename |
-|---------|----------|
+|---------|--|
 | Dashboard overview | `01-dashboard-overview.png` |
 | Link management | `02-link-inbox.png` |
 | Edition editor | `03-edition-editor.png` |

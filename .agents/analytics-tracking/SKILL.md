@@ -36,7 +36,7 @@ It prevents:
 
 ---
 
-## 🔢 Measurement Readiness & Signal Quality Index
+##  Measurement Readiness & Signal Quality Index
 
 ### Total Score: **0–100**
 
@@ -47,7 +47,7 @@ This is a **diagnostic score**, not a performance KPI.
 ### Scoring Categories & Weights
 
 | Category                      | Weight  |
-| ----------------------------- | ------- |
+| -- | ------- |
 | Decision Alignment            | 25      |
 | Event Model Clarity           | 20      |
 | Data Accuracy & Integrity     | 20      |
@@ -112,7 +112,7 @@ This is a **diagnostic score**, not a performance KPI.
 ### Readiness Bands (Required)
 
 | Score  | Verdict               | Interpretation                    |
-| ------ | --------------------- | --------------------------------- |
+| ------ | -- | -- |
 | 85–100 | **Measurement-Ready** | Safe to optimize and experiment   |
 | 70–84  | **Usable with Gaps**  | Fix issues before major decisions |
 | 55–69  | **Unreliable**        | Data cannot be trusted yet        |
@@ -363,14 +363,14 @@ Analytics that violate trust undermine optimization.
 ### Tracking Plan
 
 | Event | Description | Properties | Trigger | Decision Supported |
-| ----- | ----------- | ---------- | ------- | ------------------ |
+| ----- | -- | -- | ------- | -- |
 
 ---
 
 ### Conversions
 
 | Conversion | Event | Counting | Used By |
-| ---------- | ----- | -------- | ------- |
+| -- | ----- | -------- | ------- |
 
 ---
 

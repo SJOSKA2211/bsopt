@@ -8,7 +8,7 @@ description: Chrome Extension template principles. Manifest V3, React, TypeScrip
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Manifest | V3 |
 | UI | React 18 |
 | Language | TypeScript |
@@ -43,7 +43,7 @@ project-name/
 ## Manifest V3 Concepts
 
 | Component | Purpose |
-|-----------|---------|
+|--|---------|
 | Service Worker | Background processing |
 | Content Scripts | Page injection |
 | Popup | User interface |
@@ -54,7 +54,7 @@ project-name/
 ## Permissions
 
 | Permission | Use |
-|------------|-----|
+|--|-----|
 | storage | Save user data |
 | activeTab | Current tab access |
 | scripting | Inject scripts |

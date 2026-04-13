@@ -76,7 +76,7 @@ load_dotenv()
 
 async def main():
     print("\n" + "=" * 60)
-    print("🛡️  F.R.I.D.A.Y. — FULL OPENAI EDITION")
+    print("️  F.R.I.D.A.Y. — FULL OPENAI EDITION")
     print(f"   STT: OpenAI {WHISPER_MODEL}")
     print("   LLM: Gemini 2.5 Flash")
     print(f"   TTS: OpenAI TTS ({TTS_VOICE})")
@@ -87,12 +87,12 @@ async def main():
     google_key = os.getenv("GOOGLE_API_KEY")
 
     if not openai_key:
-        print("❌ OPENAI_API_KEY missing in .env")
+        print(" OPENAI_API_KEY missing in .env")
         sys.exit(1)
     if not google_key:
-        print("❌ GOOGLE_API_KEY missing in .env")
+        print(" GOOGLE_API_KEY missing in .env")
         sys.exit(1)
-    print("✅ All API keys loaded\n")
+    print(" All API keys loaded\n")
 
     # ── 1. Transport ──────────────────────────────────────────────────────────
     transport = LocalAudioTransport(
@@ -160,7 +160,7 @@ async def main():
     task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
     runner = PipelineRunner()
 
-    print("🎤 Ready. Speak after silence — Whisper transcribes on each pause.")
+    print(" Ready. Speak after silence — Whisper transcribes on each pause.")
     print("   Press Ctrl+C to stop.\n")
     await runner.run(task)
 
@@ -169,4 +169,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n👋 Systems offline.")
+        print("\n Systems offline.")

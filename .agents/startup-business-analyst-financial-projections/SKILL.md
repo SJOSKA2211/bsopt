@@ -239,13 +239,13 @@ Create comprehensive markdown report with tables:
 Monthly/quarterly tables showing:
 ```
 | Month | New Customers | Total Customers | MRR | ARR | Growth % |
-|-------|---------------|-----------------|-----|-----|----------|
+|-------|--|--|-----|-----|--|
 ```
 
 **Section 4: Cost Breakdown**
 ```
 | Department | Year 1 | Year 2 | Year 3 | % Revenue |
-|------------|--------|--------|--------|-----------|
+|--|--------|--------|--------|--|
 | COGS       | $X     | $Y     | $Z     | XX%       |
 | S&M        | $X     | $Y     | $Z     | XX%       |
 | R&D        | $X     | $Y     | $Z     | XX%       |
@@ -255,14 +255,14 @@ Monthly/quarterly tables showing:
 **Section 5: Headcount Plan**
 ```
 | Department | Current | Year 1 | Year 2 | Year 3 |
-|------------|---------|--------|--------|--------|
+|--|---------|--------|--------|--------|
 | Engineering| X       | Y      | Z      | W      |
 ```
 
 **Section 6: Cash Flow Analysis**
 ```
 | Quarter | Revenue | Expenses | Net Burn | Cash Balance | Runway |
-|---------|---------|----------|----------|--------------|--------|
+|---------|---------|--|--|--|--------|
 ```
 
 **Section 7: Key Metrics**
@@ -277,7 +277,7 @@ Monthly/quarterly tables showing:
 **Section 8: Scenario Analysis**
 ```
 | Scenario | Year 3 ARR | Customers | Burn | Runway |
-|----------|------------|-----------|------|--------|
+|--|--|--|------|--------|
 | Conservative | $Xم | Y | $Z | W mo |
 | Base | $X | Y | $Z | W mo |
 | Optimistic | $X | Y | $Z | W mo |

@@ -214,7 +214,7 @@ Feature flags support sophisticated targeting:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Capture event | POSTHOG_CAPTURE_EVENT | event, distinct_id, properties |
 | List events | POSTHOG_LIST_AND_FILTER_PROJECT_EVENTS | project_id, event, after, before |
 | List feature flags | POSTHOG_LIST_AND_MANAGE_PROJECT_FEATURE_FLAGS | project_id |

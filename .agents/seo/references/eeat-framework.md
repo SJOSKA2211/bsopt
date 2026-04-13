@@ -21,7 +21,7 @@ The December 2025 core update was described as a "watershed moment" that:
 
 **Impact by industry:**
 | Industry | Traffic Drops |
-|----------|--------------|
+|--|--|
 | Affiliate sites | 71% average decline |
 | Health/YMYL | 67% average decline |
 | E-commerce | 52% average decline |
@@ -173,7 +173,7 @@ The December 2025 update elevated the "Experience" dimension as a key differenti
 ## Overall Scoring Guide
 
 | Score | Description |
-|-------|-------------|
+|-------|--|
 | 90-100 | Exceptional E-E-A-T, authority site, recognized expert, full transparency |
 | 70-89 | Strong E-E-A-T, demonstrated expertise, good trust signals |
 | 50-69 | Moderate E-E-A-T, some signals, room for improvement |

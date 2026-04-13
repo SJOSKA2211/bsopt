@@ -13,7 +13,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Engineering Swarm (8 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `eng-frontend` | React/Vue/Svelte, TypeScript, Tailwind, accessibility, responsive design, state management |
 | `eng-backend` | Node/Python/Go, REST/GraphQL, auth, business logic, middleware, validation |
 | `eng-database` | PostgreSQL/MySQL/MongoDB, migrations, query optimization, indexing, backups |
@@ -28,7 +28,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Operations Swarm (8 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `ops-devops` | CI/CD pipelines, GitHub Actions, GitLab CI, Jenkins, build optimization |
 | `ops-sre` | Reliability, SLOs/SLIs, capacity planning, on-call, runbooks |
 | `ops-security` | SAST/DAST, pen testing, vulnerability management, security reviews |
@@ -43,7 +43,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Business Swarm (8 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `biz-marketing` | Landing pages, SEO, content, email campaigns, social media |
 | `biz-sales` | CRM setup, outreach, demos, proposals, pipeline management |
 | `biz-finance` | Billing (Stripe), invoicing, metrics, runway, pricing strategy |
@@ -58,7 +58,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Data Swarm (3 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `data-ml` | Model training, MLOps, feature engineering, inference, model monitoring |
 | `data-eng` | ETL pipelines, data warehousing, dbt, Airflow, data quality |
 | `data-analytics` | Product analytics, A/B tests, dashboards, insights, reporting |
@@ -68,7 +68,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Product Swarm (3 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `prod-pm` | Backlog grooming, prioritization, roadmap, specs, stakeholder management |
 | `prod-design` | Design system, Figma, UX patterns, prototypes, user research |
 | `prod-techwriter` | API docs, guides, tutorials, release notes, developer experience |
@@ -78,7 +78,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Growth Swarm (4 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `growth-hacker` | Growth experiments, viral loops, referral programs, acquisition |
 | `growth-community` | Community building, Discord/Slack, ambassador programs, events |
 | `growth-success` | Customer success, health scoring, churn prevention, expansion |
@@ -89,7 +89,7 @@ Loki Mode has 37 predefined agent types organized into 7 specialized swarms. The
 ## Review Swarm (3 types)
 
 | Agent | Capabilities |
-|-------|-------------|
+|-------|--|
 | `review-code` | Code quality, design patterns, SOLID, maintainability, best practices |
 | `review-business` | Requirements alignment, business logic, edge cases, UX flows |
 | `review-security` | Vulnerabilities, auth/authz, OWASP Top 10, data protection |
@@ -126,7 +126,7 @@ done
 ## Model Selection by Agent Type
 
 | Task Type | Model | Reason |
-|-----------|-------|--------|
+|--|-------|--------|
 | Implementation | Sonnet | Fast, good enough for coding |
 | Code Review | Opus | Deep analysis, catches subtle issues |
 | Security Review | Opus | Critical, needs thoroughness |
@@ -161,7 +161,7 @@ SPAWN -> INITIALIZE -> POLL_QUEUE -> CLAIM_TASK -> EXECUTE -> REPORT -> POLL_QUE
 ## Dynamic Scaling Rules
 
 | Condition | Action | Cooldown |
-|-----------|--------|----------|
+|--|--------|--|
 | Queue depth > 20 | Spawn 2 agents of bottleneck type | 5min |
 | Queue depth > 50 | Spawn 5 agents, alert orchestrator | 2min |
 | Agent idle > 30min | Terminate agent | - |

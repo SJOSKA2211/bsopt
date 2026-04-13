@@ -182,7 +182,7 @@ Goal: CLI is self-describing, well-named, and pipe-friendly. Agent discovers cap
 #### Reserved Flags
 
 | Flag | Semantics | Notes |
-|------|-----------|-------|
+|------|--|-------|
 | `--agent` | JSON output (default) | Explicit override |
 | `--human` | Human-friendly output | Colors, tables, formatted |
 | `--brief` | One-paragraph identity | For sync into agent config |

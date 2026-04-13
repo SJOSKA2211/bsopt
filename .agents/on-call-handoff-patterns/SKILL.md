@@ -36,7 +36,7 @@ Effective patterns for on-call shift transitions, ensuring continuity, context t
 ### 1. Handoff Components
 
 | Component | Purpose |
-|-----------|---------|
+|--|---------|
 | **Active Incidents** | What's currently broken |
 | **Ongoing Investigations** | Issues being debugged |
 | **Recent Changes** | Deployments, configs |
@@ -71,7 +71,7 @@ Incoming:
 
 ---
 
-## 🔴 Active Incidents
+##  Active Incidents
 
 ### None currently active
 No active incidents at handoff time.
@@ -131,7 +131,7 @@ No active incidents at handoff time.
 
 ---
 
-## 📋 Recent Changes
+##  Recent Changes
 
 ### Deployments
 | Service | Version | Time | Notes |
@@ -150,7 +150,7 @@ No active incidents at handoff time.
 
 ---
 
-## ⚠️ Known Issues & Workarounds
+## ️ Known Issues & Workarounds
 
 ### 1. Slow Dashboard Loading
 **Issue**: Grafana dashboards slow on Monday mornings
@@ -164,7 +164,7 @@ No active incidents at handoff time.
 
 ---
 
-## 📅 Upcoming Events
+##  Upcoming Events
 
 | Date | Event | Impact | Contact |
 |------|-------|--------|---------|
@@ -174,10 +174,10 @@ No active incidents at handoff time.
 
 ---
 
-## 📞 Escalation Reminders
+##  Escalation Reminders
 
 | Issue Type | First Escalation | Second Escalation |
-|------------|------------------|-------------------|
+|--|--|--|
 | Payment issues | @payments-oncall | @payments-manager |
 | Auth issues | @auth-oncall | @security-team |
 | Database issues | @dba-team | @infra-manager |
@@ -185,7 +185,7 @@ No active incidents at handoff time.
 
 ---
 
-## 🔧 Quick Reference
+##  Quick Reference
 
 ### Common Commands
 ```bash

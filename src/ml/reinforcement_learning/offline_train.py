@@ -89,7 +89,7 @@ def train_offline(
     """
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
-    # 1. ⚡ DATA LOADING OPTIMIZATION
+    # 1.  DATA LOADING OPTIMIZATION
     if dataset_path.endswith(".parquet"):
         import pandas as pd
 
@@ -188,7 +188,7 @@ def train_offline(
 
                 loss.backward()
 
-                # 📊 Gradient Flow Monitoring (Periodic)
+                #  Gradient Flow Monitoring (Periodic)
                 if global_step % 100 == 0:
                     _log_gradient_flow(model, global_step)
 

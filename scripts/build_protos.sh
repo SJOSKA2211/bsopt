@@ -12,7 +12,7 @@ TS_DIR="src/frontend/src/generated"
 echo "🧬 Executing Protocol Generation..."
 
 # 1. Python gRPC
-echo "🐍 Generating Python gRPC code..."
+echo " Generating Python gRPC code..."
 mkdir -p "$GEN_DIR"
 uv run python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" ./protos/*.proto
 touch "$GEN_DIR/__init__.py"
@@ -24,19 +24,19 @@ sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/d
 echo "🧪 Generating TypeScript gRPC definitions..."
 mkdir -p "$TS_DIR"
 if command -v protoc &> /dev/null && [ -f "./protos/market_data.proto" ]; then
-    npx protoc --proto_path=./protos --ts_out="$TS_DIR" ./protos/*.proto 2>/dev/null || echo "⚠️ protoc-gen-ts execution failed."
+    npx protoc --proto_path=./protos --ts_out="$TS_DIR" ./protos/*.proto 2>/dev/null || echo "️ protoc-gen-ts execution failed."
 else
-    echo "⚠️ protoc not found, skipping TS generation."
+    echo "️ protoc not found, skipping TS generation."
 fi
 
 # 3. FlatBuffers
-echo "📦 Generating FlatBuffers code..."
+echo " Generating FlatBuffers code..."
 mkdir -p "$FBS_DIR"
 if command -v flatc &> /dev/null; then
     flatc --python -o "$FBS_DIR" protos/market_tick.fbs
 else
-    echo "⚠️ flatc not found, skipping FlatBuffers generation."
+    echo "️ flatc not found, skipping FlatBuffers generation."
 fi
 touch "$FBS_DIR/__init__.py"
 
-echo "✅ Production Protocol Synchronized."
+echo " Production Protocol Synchronized."

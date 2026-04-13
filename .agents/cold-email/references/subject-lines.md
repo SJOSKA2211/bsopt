@@ -34,7 +34,7 @@ Data conflicts: Belkins says questions perform well (46% open rate). Lavender sa
 ## What to Avoid
 
 | Anti-pattern                                   | Impact                      |
-| ---------------------------------------------- | --------------------------- |
+| -- | -- |
 | Salesy language ("increase," "boost," "ROI")   | -17.9% opens                |
 | Urgency words ("ASAP," "urgent")               | Below 36% opens             |
 | Excessive punctuation ("!!!" or "??")          | -36% opens                  |

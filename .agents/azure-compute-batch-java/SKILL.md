@@ -78,7 +78,7 @@ BatchClient batchClient = new BatchClientBuilder()
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Pool | Collection of compute nodes that run tasks |
 | Job | Logical grouping of tasks |
 | Task | Unit of computation (command/script) |
@@ -371,7 +371,7 @@ try {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-compute-batch |
 | GitHub | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/batch/azure-compute-batch |
 | API Documentation | https://learn.microsoft.com/java/api/com.azure.compute.batch |

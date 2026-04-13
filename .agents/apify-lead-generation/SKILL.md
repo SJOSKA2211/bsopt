@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on user needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Local businesses | `compass/crawler-google-places` | Restaurants, gyms, shops |
 | Contact enrichment | `vdrmota/contact-info-scraper` | Emails, phones from URLs |
 | Instagram profiles | `apify/instagram-profile-scraper` | Influencer discovery |

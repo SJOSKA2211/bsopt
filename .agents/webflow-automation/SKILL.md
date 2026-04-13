@@ -217,7 +217,7 @@ Typical CMS content creation flow:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List sites | `WEBFLOW_LIST_WEBFLOW_SITES` | (none) |
 | Get site info | `WEBFLOW_GET_SITE_INFO` | `site_id` |
 | Publish site | `WEBFLOW_PUBLISH_SITE` | `site_id`, `custom_domains` or `publish_to_webflow_subdomain` |

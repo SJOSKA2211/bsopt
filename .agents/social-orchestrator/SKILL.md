@@ -65,7 +65,7 @@ tags   keyboard
 ## 2. Skills Integradas
 
 | Canal | Skill Base | O que usa |
-|-------|-----------|-----------|
+|-------|--|--|
 | Instagram | `instagram` | Publicacao de fotos, videos, reels, stories, metricas |
 | Telegram | `telegram` | Mensagens, canais, inline keyboards, grupos |
 | WhatsApp | `whatsapp-cloud-api` | Templates aprovados, mensagens, links |
@@ -154,7 +154,7 @@ Gera plano semanal/mensal com:
 ## Instagram
 
 | Tipo | Dimensao | Duracao | Ideal Para |
-|------|----------|---------|------------|
+|------|--|---------|--|
 | Feed Foto | 1080x1080 ou 1080x1350 | — | Produto, retrato |
 | Feed Video | 1080x1080 ou 4:5 | < 60s | Demos, bastidores |
 | Reels | 1080x1920 | 15-90s | Viralizacao |
@@ -164,7 +164,7 @@ Gera plano semanal/mensal com:
 ## Telegram
 
 | Tipo | Limite | Ideal Para |
-|------|--------|-----------|
+|------|--------|--|
 | Mensagem texto | 4.096 chars | Updates longos |
 | Foto + caption | 1.024 chars | Anuncios visuais |
 | Video | 2GB | Demos, tutoriais |
@@ -175,7 +175,7 @@ Gera plano semanal/mensal com:
 ## Whatsapp Business
 
 | Tipo | Regra | Ideal Para |
-|------|-------|-----------|
+|------|-------|--|
 | Template | Pre-aprovado Meta | Proativo |
 | Texto livre | So para contatos ja engajados | Resposta |
 | Media | Imagem/video/doc | Catalogo |
@@ -197,21 +197,21 @@ CONTEUDO CENTRAL:
 "Conhece a Auri? 🤖
 A Alexa ficou mais inteligente.
 Claude + Alexa = seu assistente ideal.
-👉 Link na bio.
+ Link na bio.
 #IA #Alexa #Auri #AssistenteDeVoz"
 
 ↓ Telegram:
-"🚀 Auri chegou!
+" Auri chegou!
 
 A gente integrou Claude na Alexa e o resultado é incrivel.
 
-[▶️ Ver demo] [📲 Testar agora] [❓ Saber mais]"
+[▶️ Ver demo] [ Testar agora] [ Saber mais]"
 
 ↓ WhatsApp:
 "Oi! A Auri acaba de ser lançada.
 Alexa + Claude = assistente ultra-inteligente.
 Acesse: auri.com.br
-Responda para saber mais 😊"
+Responda para saber mais "
 ```
 
 ---
@@ -219,7 +219,7 @@ Responda para saber mais 😊"
 ## 6. Horarios Otimizados
 
 | Canal | Horarios de Pico | Dias Melhores |
-|-------|-----------------|---------------|
+|-------|--|--|
 | Instagram | 11h, 14h, 20h | Ter, Qua, Sex |
 | Telegram | 9h, 13h, 18h | Seg-Sex |
 | WhatsApp | 8h, 12h, 19h | Seg, Ter, Qui |
@@ -234,19 +234,19 @@ Para cada operacao cross-canal, reportar:
 SOCIAL-ORCHESTRATOR — [acao]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ Instagram: [status + url/id do post]
-✅ Telegram: [status + message_id]
-✅ WhatsApp: [status + message_id]
+ Instagram: [status + url/id do post]
+ Telegram: [status + message_id]
+ WhatsApp: [status + message_id]
 
-📊 Preview de Alcance Estimado:
+ Preview de Alcance Estimado:
    Instagram: ~X seguidores
    Telegram: ~Y membros
    WhatsApp: ~Z contatos
 
-⚠️ Alertas:
+️ Alertas:
    [qualquer problema ou adaptacao necessaria]
 
-🎯 Proxima Acao Recomendada:
+ Proxima Acao Recomendada:
    [quando/como engajar com respostas]
 ```
 
@@ -270,7 +270,7 @@ Estrategia: Publish-or-Skip (nao cancela toda campanha)
 ## 9. Integracao Com Ecossistema
 
 | Skill | Quando usar |
-|-------|------------|
+|-------|--|
 | `ai-studio-image` | Gerar imagem humanizada para Instagram |
 | `stability-ai` | Gerar arte/ilustracao para posts |
 | `image-studio` | Routing inteligente entre geradores de imagem |

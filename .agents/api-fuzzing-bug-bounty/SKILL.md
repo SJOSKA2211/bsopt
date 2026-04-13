@@ -36,7 +36,7 @@ Provide comprehensive techniques for testing REST, SOAP, and GraphQL APIs during
 ## API Types Overview
 
 | Type | Protocol | Data Format | Structure |
-|------|----------|-------------|-----------|
+|------|--|--|--|
 | SOAP | HTTP | XML | Header + Body |
 | REST | HTTP | JSON/XML/URL | Defined endpoints |
 | GraphQL | HTTP | Custom Query | Single endpoint |
@@ -323,7 +323,7 @@ When receiving 403/401, try these bypasses:
 ## Common API Vulnerabilities Checklist
 
 | Vulnerability | Description |
-|---------------|-------------|
+|--|--|
 | API Exposure | Unprotected endpoints exposed publicly |
 | Misconfigured Caching | Sensitive data cached incorrectly |
 | Exposed Tokens | API keys/tokens in responses or URLs |
@@ -342,7 +342,7 @@ When receiving 403/401, try these bypasses:
 ## Quick Reference
 
 | Vulnerability | Test Payload | Risk |
-|---------------|--------------|------|
+|--|--|------|
 | IDOR | Change user_id parameter | High |
 | SQLi | `' OR 1=1--` in JSON | Critical |
 | Command Injection | `; ls /` | Critical |
@@ -356,7 +356,7 @@ When receiving 403/401, try these bypasses:
 ## Tools Reference
 
 | Category | Tool | URL |
-|----------|------|-----|
+|--|------|-----|
 | API Fuzzing | Fuzzapi | github.com/Fuzzapi/fuzzapi |
 | API Fuzzing | API-fuzzer | github.com/Fuzzapi/API-fuzzer |
 | API Fuzzing | Astra | github.com/flipkart-incubator/Astra |
@@ -428,7 +428,7 @@ curl -X POST https://target.com/graphql \
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | API returns nothing | Add `X-Requested-With: XMLHttpRequest` header |
 | 401 on all endpoints | Try adding `?user_id=1` parameter |
 | GraphQL introspection disabled | Use clairvoyance for schema reconstruction |

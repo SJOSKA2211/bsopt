@@ -36,7 +36,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### Instagram Actors (12)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `apify/instagram-profile-scraper` | Profile data, follower counts, bio info |
 | `apify/instagram-post-scraper` | Individual post details, engagement metrics |
 | `apify/instagram-comment-scraper` | Comment extraction, sentiment analysis |
@@ -53,7 +53,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### Facebook Actors (14)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `apify/facebook-pages-scraper` | Page data, metrics, contact info |
 | `apify/facebook-page-contact-information` | Emails, phones, addresses from pages |
 | `apify/facebook-posts-scraper` | Post content and engagement |
@@ -72,7 +72,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### TikTok Actors (14)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `clockworks/tiktok-scraper` | Comprehensive TikTok data |
 | `clockworks/free-tiktok-scraper` | Free TikTok extraction |
 | `clockworks/tiktok-profile-scraper` | Profile data |
@@ -91,7 +91,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### YouTube Actors (5)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `streamers/youtube-scraper` | Video data and metrics |
 | `streamers/youtube-channel-scraper` | Channel information |
 | `streamers/youtube-comments-scraper` | Comment extraction |
@@ -101,7 +101,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### Google Maps Actors (4)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `compass/crawler-google-places` | Business listings, ratings, contact info |
 | `compass/google-maps-extractor` | Detailed business data |
 | `compass/Google-Maps-Reviews-Scraper` | Review extraction |
@@ -110,7 +110,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### Other Actors (6)
 
 | Actor ID | Best For |
-|----------|----------|
+|--|--|
 | `apify/google-search-scraper` | Google search results |
 | `apify/google-trends-scraper` | Google Trends data |
 | `voyager/booking-scraper` | Booking.com hotel data |
@@ -123,7 +123,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 #### Actor Selection by Use Case
 
 | Use Case | Primary Actors |
-|----------|---------------|
+|--|--|
 | **Lead Generation** | `compass/crawler-google-places`, `poidata/google-maps-email-extractor`, `vdrmota/contact-info-scraper` |
 | **Influencer Discovery** | `apify/instagram-profile-scraper`, `clockworks/tiktok-profile-scraper`, `streamers/youtube-channel-scraper` |
 | **Brand Monitoring** | `apify/instagram-tagged-scraper`, `apify/instagram-hashtag-scraper`, `compass/Google-Maps-Reviews-Scraper` |
@@ -140,7 +140,7 @@ First, understand what the user wants to achieve. Then select the best Actor fro
 For complex tasks, chain multiple Actors:
 
 | Workflow | Step 1 | Step 2 |
-|----------|--------|--------|
+|--|--------|--------|
 | **Lead enrichment** | `compass/crawler-google-places` → | `vdrmota/contact-info-scraper` |
 | **Influencer vetting** | `apify/instagram-profile-scraper` → | `apify/instagram-comment-scraper` |
 | **Competitor deep-dive** | `apify/facebook-pages-scraper` → | `apify/facebook-posts-scraper` |
@@ -216,7 +216,7 @@ After completion, report:
 - **Suggested follow-up workflows** based on results:
 
 | If User Got | Suggest Next |
-|-------------|--------------|
+|--|--|
 | Business listings | Enrich with `vdrmota/contact-info-scraper` or get reviews |
 | Influencer profiles | Analyze engagement with comment scrapers |
 | Competitor pages | Deep-dive with post/ad scrapers |

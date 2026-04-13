@@ -437,11 +437,11 @@ async def websocket_endpoint(websocket: WebSocket):
 **Solution**: Buffer the entire LLM response before sending to synthesizer:
 
 ```python
-# ❌ Bad: Yields sentence-by-sentence
+#  Bad: Yields sentence-by-sentence
 async for sentence in llm_stream:
     yield GeneratedResponse(message=BaseMessage(text=sentence))
 
-# ✅ Good: Buffer entire response
+#  Good: Buffer entire response
 full_response = ""
 async for chunk in llm_stream:
     full_response += chunk
@@ -541,10 +541,10 @@ async def terminate(self):
 
 ```python
 # Log key events
-logger.info(f"🎤 [TRANSCRIBER] Received: '{transcription.message}'")
+logger.info(f" [TRANSCRIBER] Received: '{transcription.message}'")
 logger.info(f"🤖 [AGENT] Generating response...")
-logger.info(f"🔊 [SYNTHESIZER] Synthesizing {len(text)} characters")
-logger.info(f"⚠️ [INTERRUPT] User interrupted bot")
+logger.info(f" [SYNTHESIZER] Synthesizing {len(text)} characters")
+logger.info(f"️ [INTERRUPT] User interrupted bot")
 
 # Track metrics
 metrics.increment("transcriptions.count")
@@ -588,12 +588,12 @@ async def consumer(queue):
 Instead of returning complete results:
 
 ```python
-# ❌ Bad: Wait for entire response
+#  Bad: Wait for entire response
 async def generate_response(prompt):
     response = await openai.complete(prompt)  # 5 seconds
     return response
 
-# ✅ Good: Stream chunks as they arrive
+#  Good: Stream chunks as they arrive
 async def generate_response(prompt):
     async for chunk in openai.complete(prompt, stream=True):
         yield chunk  # Yield after 0.1s, 0.2s, etc.
@@ -713,12 +713,12 @@ When implementing a voice AI engine:
 ## Summary
 
 Building a voice AI engine requires:
-- ✅ Async worker pipeline for concurrent processing
-- ✅ Queue-based communication between components
-- ✅ Streaming at every stage (transcription, LLM, synthesis)
-- ✅ Interrupt system for natural conversations
-- ✅ Rate limiting for real-time audio playback
-- ✅ Multi-provider support for flexibility
-- ✅ Proper error handling and graceful shutdown
+-  Async worker pipeline for concurrent processing
+-  Queue-based communication between components
+-  Streaming at every stage (transcription, LLM, synthesis)
+-  Interrupt system for natural conversations
+-  Rate limiting for real-time audio playback
+-  Multi-provider support for flexibility
+-  Proper error handling and graceful shutdown
 
 **The key insight**: Everything must stream and everything must be interruptible for natural, real-time conversations.

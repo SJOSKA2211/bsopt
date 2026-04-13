@@ -16,12 +16,12 @@ This skill provides a systematic approach to testing React Native applications o
 - Ensuring feature functionality when manual testing is too slow.
 - Capturing automated screenshots for PR documentation.
 
-## 🛠 Prerequisites
+##  Prerequisites
 - Android Emulator running.
 - `adb` installed and in PATH.
 - Application in debug mode for logcat access.
 
-## 🚀 Workflow
+##  Workflow
 
 ### 1. Device Calibration
 Before interacting, always verify the screen resolution to ensure tap coordinates are accurate.
@@ -59,8 +59,8 @@ adb logcat -d | grep "ReactNativeJS" | tail -n 20
 #### Cleanup
 Always store generated files in the `artifacts/` folder to satisfy project organization rules.
 
-## 💡 Best Practices
+##  Best Practices
 - **Wait for Animations**: Always add a short sleep (e.g., 1-2s) between interaction and verification.
 - **Center Taps**: Calculate the arithmetic mean of `[x1,y1][x2,y2]` for the most reliable tap target.
-- **Log Markers**: Use distinct log messages in the code (e.g., `✅ Action Successful`) to make `grep` verification easy.
+- **Log Markers**: Use distinct log messages in the code (e.g., ` Action Successful`) to make `grep` verification easy.
 - **Fail Fast**: If a `uiautomator dump` fails or doesn't find the expected text, stop and troubleshoot rather than blind-tapping.

@@ -258,7 +258,7 @@ theta_bar <- m * theta_bar + (1-m) * theta   # m ~ 0.996
 **Por que isso e melhor que geracao de pixels/tokens**:
 
 | Abordagem | Preve | Capacidade gasta em | Capta semantica |
-|-----------|-------|---------------------|-----------------|
+|--|-------|--|--|
 | MAE (masking+reconstrucao) | Pixels exatos | Texturas, ruidos, detalhes irrelevantes | Sim, mas custosamente |
 | BERT-like | Tokens exatos | Detalhes lexicais irrelevantes | Sim, mas custosamente |
 | Contrastiva | Invariancias | Negativos (custo de batch grande) | Sim |
@@ -394,26 +394,26 @@ arquitetura de sistema completa, nao apenas um modulo.
 ## Os 6 Modulos Do Ami
 
 ```
-+----------------------------------------------------------+
++--+
 |                 SISTEMA AMI COMPLETO                      |
 |                                                          |
-|  +-----------+    +------------------+                  |
+|  +--+    +--+                  |
 |  | Perceptor |    | World Model      |                  |
 |  | (encoders)|    | (JEPA hierarquico)|                 |
-|  +-----------+    +------------------+                  |
+|  +--+    +--+                  |
 |        |                  |                             |
 |        v                  v                             |
-|  +----------+    +------------------+                   |
+|  +--+    +--+                   |
 |  | Memory   |<-->| Cost Module      |                   |
 |  | (epis,   |    | (intrinsic +     |                   |
 |  |  semant) |    |  configuravel)   |                   |
-|  +----------+    +------------------+                   |
+|  +--+    +--+                   |
 |                           |                             |
-|                  +------------------+                   |
+|                  +--+                   |
 |                  | Actor (planner   |                   |
 |                  | + executor)      |                   |
-|                  +------------------+                   |
-+----------------------------------------------------------+
+|                  +--+                   |
++--+
 ```
 
 **Modulo 1: Configurator**
@@ -750,7 +750,7 @@ americanas privadas sem accountability democratica real:
 **LLaMA como caso de estudo**:
 
 | Versao | Data | Parametros | Resultado |
-|--------|------|-----------|---------|
+|--------|------|--|---------|
 | LLaMA 1 | Fev 2023 | 7B-65B | Primeiro modelo open que competia com GPT-3.5 |
 | LLaMA 2 | Jul 2023 | 7B-70B | Melhor modelo open disponivel; permitiu pesquisa independente massiva |
 | LLaMA 3 | Abr 2024 | 8B-70B | Competia com GPT-4 em muitas tarefas |
@@ -1069,7 +1069,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 
-## ================================================================
+## ==
 
 class EnergyBasedModel(nn.Module):
     """

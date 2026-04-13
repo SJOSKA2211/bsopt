@@ -6,11 +6,11 @@ Advanced patterns for using the NotebookLM skill effectively.
 
 **Every command must use the run.py wrapper:**
 ```bash
-# ✅ CORRECT:
+#  CORRECT:
 python scripts/run.py auth_manager.py status
 python scripts/run.py ask_question.py --question "..."
 
-# ❌ WRONG:
+#  WRONG:
 python scripts/auth_manager.py status  # Will fail!
 ```
 

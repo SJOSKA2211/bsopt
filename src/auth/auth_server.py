@@ -67,7 +67,7 @@ async def run_servers():
     grpc_port = os.getenv("GRPC_PORT", "50051")
     http_port = int(os.getenv("HTTP_PORT", 3001))
 
-    logger.info("🚀 Starting Auth Service Mesh with uvloop...")
+    logger.info(" Starting Auth Service Mesh with uvloop...")
 
     # Start background tasks
     from src.auth.tasks import flush_api_key_usage_loop
@@ -77,8 +77,8 @@ async def run_servers():
         asyncio.create_task(flush_api_key_usage_loop()),
     ]
 
-    logger.info(f"📡 gRPC Server listening on port {grpc_port}")
-    logger.info(f"🌐 HTTP Server (healthcheck) listening on port {http_port}")
+    logger.info(f" gRPC Server listening on port {grpc_port}")
+    logger.info(f" HTTP Server (healthcheck) listening on port {http_port}")
     config = uvicorn.Config(
         app,
         host="0.0.0.0",
@@ -92,7 +92,7 @@ async def run_servers():
     try:
         await server.serve()
     finally:
-        logger.info("🛑 Shutting down servers and background tasks...")
+        logger.info(" Shutting down servers and background tasks...")
         for task in tasks:
             task.cancel()
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(run_servers())
     except KeyboardInterrupt:
-        logger.info("👋 Exiting...")
+        logger.info(" Exiting...")
     except Exception:
         logger.exception("CRITICAL_STARTUP_FAILURE")
         sys.exit(1)

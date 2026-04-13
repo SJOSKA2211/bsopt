@@ -61,7 +61,7 @@ def train_func(config: dict[str, Any]):
     )
     criterion = nn.MSELoss()
 
-    # ⚡ AMP and GradScaler removed for CPU-only architecture
+    #  AMP and GradScaler removed for CPU-only architecture
     # 3. Setup Data
     import ray.data
 

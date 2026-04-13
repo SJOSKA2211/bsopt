@@ -3,7 +3,7 @@
 ## Comparação
 
 | Feature | Personal | Creator | Business |
-|---------|----------|---------|----------|
+|---------|--|---------|--|
 | Graph API | Sem acesso | Acesso completo | Acesso completo |
 | Publicar via API | Proibido | Sim | Sim |
 | Insights de mídia | Proibido | Sim | Sim |

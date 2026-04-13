@@ -37,7 +37,7 @@ components:
 ### 2. Design Approaches
 
 | Approach | Description | Best For |
-|----------|-------------|----------|
+|--|--|--|
 | **Design-First** | Write spec before code | New APIs, contracts |
 | **Code-First** | Generate spec from code | Existing APIs |
 | **Hybrid** | Annotate code, generate spec | Evolving APIs |

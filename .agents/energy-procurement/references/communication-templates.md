@@ -267,7 +267,7 @@ We are available for an enrollment verification test during the week of {{test_w
 The {{budget_year}} total energy spend is forecast at **${{base_case_total}}** under base case assumptions, representing a {{yoy_change_pct}}% [increase/decrease] from {{prior_year}} actuals of ${{prior_year_total}}. The forecast range under stress scenarios is **${{low_case_total}}** to **${{high_case_total}}**.
 
 | Component | {{prior_year}} Actual | {{budget_year}} Base Case | Change |
-|-----------|---------------------|--------------------------|--------|
+|--|--|--|--------|
 | Electricity — supply | ${{elec_supply_prior}} | ${{elec_supply_forecast}} | {{elec_supply_change}} |
 | Electricity — delivery (T&D) | ${{elec_delivery_prior}} | ${{elec_delivery_forecast}} | {{elec_delivery_change}} |
 | Electricity — demand charges | ${{demand_charges_prior}} | ${{demand_charges_forecast}} | {{demand_change}} |
@@ -286,7 +286,7 @@ The {{budget_year}} total energy spend is forecast at **${{base_case_total}}** u
 **Scenario Analysis:**
 
 | Scenario | Electricity Cost | Gas Cost | Total | vs. Base Case |
-|----------|-----------------|----------|-------|---------------|
+|--|--|--|-------|--|
 | Base case | ${{elec_base}} | ${{gas_base}} | ${{base_case_total}} | — |
 | Mild winter / cool summer | ${{elec_low}} | ${{gas_low}} | ${{low_case_total}} | {{low_delta}} |
 | Severe winter / hot summer | ${{elec_high}} | ${{gas_high}} | ${{high_case_total}} | {{high_delta}} |
@@ -312,7 +312,7 @@ The {{budget_year}} total energy spend is forecast at **${{base_case_total}}** u
 **Scope 2 Emissions:**
 
 | Metric | {{prior_year}} | {{report_year}} | Change |
-|--------|---------------|-----------------|--------|
+|--------|--|--|--------|
 | Total electricity consumed (MWh) | {{elec_prior_mwh}} | {{elec_current_mwh}} | {{elec_change_pct}} |
 | Scope 2 — Location-based (MT CO₂e) | {{scope2_loc_prior}} | {{scope2_loc_current}} | {{scope2_loc_change}} |
 | Scope 2 — Market-based (MT CO₂e) | {{scope2_mkt_prior}} | {{scope2_mkt_current}} | {{scope2_mkt_change}} |
@@ -321,7 +321,7 @@ The {{budget_year}} total energy spend is forecast at **${{base_case_total}}** u
 **Renewable Energy Procurement:**
 
 | Instrument | Volume (MWh) | Source | Additionality |
-|-----------|-------------|--------|---------------|
+|--|--|--------|--|
 | Physical PPA | {{phys_ppa_mwh}} | {{phys_ppa_project}} | New project, operational {{ppa_cod}} |
 | Virtual PPA (RECs) | {{vppa_rec_mwh}} | {{vppa_project}} | New project, {{vppa_location}} |
 | Utility green tariff | {{green_tariff_mwh}} | {{green_tariff_utility}} | Program-dependent |
@@ -352,7 +352,7 @@ The {{budget_year}} total energy spend is forecast at **${{base_case_total}}** u
 **Variance Decomposition:**
 
 | Driver | Impact | Explanation |
-|--------|--------|-------------|
+|--------|--------|--|
 | Weather (HDD/CDD vs. normal) | ${{weather_impact}} | {{month}} was {{weather_description}} — {{hdd_cdd_actual}} vs. {{hdd_cdd_budget}} budgeted HDD/CDD |
 | Market price (index exposure) | ${{market_impact}} | Day-ahead LMP averaged ${{actual_lmp}}/MWh vs. budget assumption of ${{budget_lmp}}/MWh |
 | Demand charges | ${{demand_impact}} | Peak demand of {{actual_peak_kw}} kW vs. budget of {{budget_peak_kw}} kW at {{facility_name}} |

@@ -129,7 +129,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 ## Component Selection
 
 | Need                       | Use                                                                                                 |
-| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| -- | -- |
 | Button/action              | `Button` with appropriate variant                                                                   |
 | Form inputs                | `Input`, `Select`, `Combobox`, `Switch`, `Checkbox`, `RadioGroup`, `Textarea`, `InputOTP`, `Slider` |
 | Toggle between 2–5 options | `ToggleGroup` + `ToggleGroupItem`                                                                   |

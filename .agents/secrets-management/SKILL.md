@@ -339,7 +339,7 @@ docker run --rm -v "$(pwd):/repo" \
   filesystem --directory=/repo
 
 if [ $? -ne 0 ]; then
-  echo "❌ Secret detected! Commit blocked."
+  echo " Secret detected! Commit blocked."
   exit 1
 fi
 ```

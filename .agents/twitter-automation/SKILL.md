@@ -207,7 +207,7 @@ Automate Twitter/X operations through Composio's Twitter toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create post | TWITTER_CREATION_OF_A_POST | text |
 | Delete post | TWITTER_POST_DELETE_BY_POST_ID | id |
 | Look up post | TWITTER_POST_LOOKUP_BY_POST_ID | id |

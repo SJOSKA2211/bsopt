@@ -45,7 +45,7 @@ Constructor parameters:
 Beyond `enqueue`, DBOSClient mirrors the DBOS API. Use the same patterns from other reference files:
 
 | DBOSClient method | Same as DBOS method |
-|-------------------|---------------------|
+|--|--|
 | `client.send()` | `DBOS.send()` - add `idempotency_key` for exactly-once |
 | `client.get_event()` | `DBOS.get_event()` |
 | `client.read_stream()` | `DBOS.read_stream()` |

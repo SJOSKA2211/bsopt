@@ -7,7 +7,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 1. Employment Document Types
 
 | Document | Purpose | When Used |
-|----------|---------|-----------|
+|--|---------|--|
 | **Offer Letter** | Initial job offer | Pre-hire |
 | **Employment Contract** | Formal agreement | Hire |
 | **Employee Handbook** | Policies & procedures | Onboarding |
@@ -376,7 +376,7 @@ action up to termination.
 
 **PTO Accrual:**
 | Years of Service | Annual PTO Days |
-|------------------|-----------------|
+|--|--|
 | 0-2 years        | 15 days         |
 | 3-5 years        | 20 days         |
 | 6+ years         | 25 days         |

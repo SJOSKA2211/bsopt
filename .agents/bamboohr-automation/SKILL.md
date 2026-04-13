@@ -207,7 +207,7 @@ For keeping external systems in sync with BambooHR:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List all employees | BAMBOOHR_GET_ALL_EMPLOYEES | (none) |
 | Get employee details | BAMBOOHR_GET_EMPLOYEE | id, fields |
 | Track changes | BAMBOOHR_EMPLOYEE_GET_CHANGED | since, type |

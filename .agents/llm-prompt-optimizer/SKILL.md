@@ -147,14 +147,14 @@ what it does, how it works, and any potential issues you might find."
 
 ## Best Practices
 
-- ✅ **Do:** Always specify the output format (JSON, markdown, plain text, bullet list)
-- ✅ **Do:** Use delimiters (```, ---) to separate instructions from content
-- ✅ **Do:** Test prompts with edge cases (empty input, unusual data)
-- ✅ **Do:** Version your system prompts in source control
-- ✅ **Do:** Add "think step by step" for math, logic, or multi-step tasks
-- ❌ **Don't:** Use negative-only instructions ("don't be verbose") — add positive alternatives
-- ❌ **Don't:** Assume the model knows your codebase context — always include it
-- ❌ **Don't:** Use the same prompt across different models without testing — they behave differently
+-  **Do:** Always specify the output format (JSON, markdown, plain text, bullet list)
+-  **Do:** Use delimiters (```, ---) to separate instructions from content
+-  **Do:** Test prompts with edge cases (empty input, unusual data)
+-  **Do:** Version your system prompts in source control
+-  **Do:** Add "think step by step" for math, logic, or multi-step tasks
+-  **Don't:** Use negative-only instructions ("don't be verbose") — add positive alternatives
+-  **Don't:** Assume the model knows your codebase context — always include it
+-  **Don't:** Use the same prompt across different models without testing — they behave differently
 
 ## Prompt Audit Checklist
 

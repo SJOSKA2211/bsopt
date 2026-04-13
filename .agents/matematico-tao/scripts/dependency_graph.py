@@ -456,23 +456,23 @@ class ProjectAnalyzer:
         print("=" * 70)
 
         gs = report["graph_summary"]
-        print(f"\n📊 RESUMO DO GRAFO G = (V={gs['nodes']}, E={gs['edges']}):")
-        print(f"  É DAG (sem ciclos):          {'✅ SIM' if gs['is_dag'] else '❌ NÃO'}")
+        print(f"\n RESUMO DO GRAFO G = (V={gs['nodes']}, E={gs['edges']}):")
+        print(f"  É DAG (sem ciclos):          {' SIM' if gs['is_dag'] else ' NÃO'}")
         print(f"  Ciclos detectados:           {gs['cycles_found']}")
         print(f"  SCCs com mais de 1 nó:       {gs['strongly_connected_components']}")
 
         if report["cycles"]:
-            print("\n❌ CICLOS DE DEPENDÊNCIA (devem ser eliminados):")
+            print("\n CICLOS DE DEPENDÊNCIA (devem ser eliminados):")
             for i, cycle in enumerate(report["cycles"][:5], 1):
                 print(f"  {i}. {' → '.join(c.split('.')[-1] for c in cycle)}")
 
         if report["top_betweenness_centrality"]:
-            print("\n⚠️  TOP NÓDULOS CRÍTICOS (single points of failure — alto betweenness):")
+            print("\n️  TOP NÓDULOS CRÍTICOS (single points of failure — alto betweenness):")
             for item in report["top_betweenness_centrality"][:5]:
                 short = item["node"].split(".")[-1]
                 print(f"  {short:<35} betweenness={item['betweenness']:.4f}")
 
-        print("\n📦 ACOPLAMENTO DE MÓDULOS (Princípio de Martin):")
+        print("\n ACOPLAMENTO DE MÓDULOS (Princípio de Martin):")
         print(f"  {'Módulo':<20} {'Ca':>5} {'Ce':>5} {'I':>8} {'A':>8} {'D':>8}  Status")
         print(f"  {'-' * 20} {'-' * 5} {'-' * 5} {'-' * 8} {'-' * 8} {'-' * 8}  {'-' * 20}")
         for mod, data in sorted(report["module_coupling"].items()):
@@ -480,7 +480,7 @@ class ProjectAnalyzer:
             a = data["abstraction"]
             d = data["distance_from_main_sequence"]
             status = (
-                "✅ OK" if d < 0.3 else ("⚠️  ZONA DE PROBLEMA" if d < 0.5 else "❌ FORA DA SEQ.")
+                " OK" if d < 0.3 else ("️  ZONA DE PROBLEMA" if d < 0.5 else " FORA DA SEQ.")
             )
             print(
                 f"  {mod:<20} {data['Ca']:>5} {data['Ce']:>5} {i:>8.3f} {a:>8.3f} {d:>8.3f}  {status}"
@@ -503,7 +503,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"🔬 Prof. Euler analisando grafos: {args.path}")
+    print(f" Prof. Euler analisando grafos: {args.path}")
 
     analyzer = ProjectAnalyzer(args.path)
     analyzer.analyze()
@@ -517,7 +517,7 @@ def main():
         print(output)
         if args.output:
             Path(args.output).write_text(output)
-            print(f"\n✅ Arquivo DOT salvo: {args.output}")
+            print(f"\n Arquivo DOT salvo: {args.output}")
             print("  Para visualizar: dot -Tpng deps.dot -o deps.png")
     else:
         analyzer.print_report(report)
@@ -526,7 +526,7 @@ def main():
         Path(args.output).write_text(
             json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-        print(f"✅ Relatório salvo: {args.output}")
+        print(f" Relatório salvo: {args.output}")
 
     return report
 

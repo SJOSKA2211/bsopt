@@ -47,15 +47,15 @@ async def run_until_healthy(max_retries: int = 60, retry_interval: int = 5):
     """
     Ensures Frontend is up and running.
     """
-    print("🔍 Checking Frontend Health...")
+    print(" Checking Frontend Health...")
 
     for i in range(max_retries):
         if await check_frontend_health():
-            print("✅ Frontend is HEALTHY and READY.")
+            print(" Frontend is HEALTHY and READY.")
             return True
 
         if i == 0:
-            print("⚠️ Frontend not reachable. Attempting to start via docker compose...")
+            print("️ Frontend not reachable. Attempting to start via docker compose...")
             try:
                 compose_path = "infrastructure/orchestration/docker-compose.yml"
                 subprocess.run(
@@ -63,14 +63,14 @@ async def run_until_healthy(max_retries: int = 60, retry_interval: int = 5):
                     check=True,
                     capture_output=True,
                 )
-                print("🚀 started_via_docker_compose")
+                print(" started_via_docker_compose")
             except Exception as e:
-                print(f"🚨 Failed to run docker compose: {str(e)}")
+                print(f" Failed to run docker compose: {str(e)}")
 
         print(f"⏳ Waiting for Frontend... (Attempt {i + 1}/{max_retries})")
         await asyncio.sleep(retry_interval)
 
-    print("❌ Frontend failed to become healthy within the timeout.")
+    print(" Frontend failed to become healthy within the timeout.")
     return False
 
 if __name__ == "__main__":

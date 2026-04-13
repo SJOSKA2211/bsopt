@@ -30,7 +30,7 @@ Use this skill when:
 For production-ready async patterns, see the `_base/` directory:
 
 | Pattern | Description |
-|---------|-------------|
+|---------|--|
 | 08-async-loading | Async data loading with loading states |
 | 09-streaming-results | Incremental results with SignalToUI |
 | 13-tokio-integration | Full tokio runtime integration |

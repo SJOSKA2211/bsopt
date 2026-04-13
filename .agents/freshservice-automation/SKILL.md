@@ -159,7 +159,7 @@ Automate Freshservice IT Service Management operations through Composio's Freshs
 ### Priority Code Reference
 
 | Code | Priority |
-|------|----------|
+|------|--|
 | 1 | Low |
 | 2 | Medium |
 | 3 | High |
@@ -205,7 +205,7 @@ Automate Freshservice IT Service Management operations through Composio's Freshs
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List tickets | FRESHSERVICE_LIST_TICKETS | filter, updated_since, page, per_page |
 | Get ticket | FRESHSERVICE_GET_TICKET | ticket_id, include |
 | Create ticket | FRESHSERVICE_CREATE_TICKET | subject, description, status, priority, email |

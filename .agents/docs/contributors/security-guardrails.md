@@ -1,8 +1,8 @@
-# 🛡️ Security Guardrails & Policy
+# ️ Security Guardrails & Policy
 
 Antigravity Awesome Skills is a powerful toolkit. With great power comes great responsibility. This document defines the **Rules of Engagement** for all security and offensive capabilities in this repository.
 
-## 🔴 Offensive Skills Policy (The "Red Line")
+##  Offensive Skills Policy (The "Red Line")
 
 **What is an Offensive Skill?**
 Any skill designed to penetrate, exploit, disrupt, or simulate attacks against systems.
@@ -12,7 +12,7 @@ _Examples: Pentesting, SQL Injection, Phishing Simulation, Red Teaming._
 
 Every offensive skill **MUST** begin with this exact disclaimer in its `SKILL.md`:
 
-> **⚠️ AUTHORIZED USE ONLY**
+> **️ AUTHORIZED USE ONLY**
 > This skill is for educational purposes or authorized security assessments only.
 > You must have explicit, written permission from the system owner before using this tool.
 > Misuse of this tool is illegal and strictly prohibited.
@@ -31,7 +31,7 @@ Offensive skills must **NEVER** run fully autonomously.
 
 ---
 
-## 🔵 Defensive Skills Policy
+##  Defensive Skills Policy
 
 **What is a Defensive Skill?**
 Tools for hardening, auditing, monitoring, or protecting systems.
@@ -44,7 +44,7 @@ _Examples: Linting, Log Analysis, Configuration Auditing._
 
 ---
 
-## ⚖️ Legal Disclaimer
+## ️ Legal Disclaimer
 
 By using this repository, you agree that:
 

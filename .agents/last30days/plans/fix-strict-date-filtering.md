@@ -23,7 +23,7 @@ The skill's name is "last30days" - users expect ONLY content from the last 30 da
 Instead of penalizing old content, **exclude it entirely**. If it's not from the last 30 days, it shouldn't appear.
 
 | Source | Current Behavior | New Behavior |
-|--------|------------------|--------------|
+|--------|--|--|
 | Reddit | Weak "prefer recent" | Explicit date range + hard filter |
 | X | Explicit date range (working) | No change needed |
 | WebSearch | No date awareness | Require recent markers OR exclude |
@@ -291,7 +291,7 @@ Run same query before and after fix:
 ### Edge Case Tests
 
 | Scenario | Expected Behavior |
-|----------|-------------------|
+|--|--|
 | Topic with no recent content | Return 0 results + helpful message |
 | Topic with 5 recent results | Return 5 results (not pad with old ones) |
 | Mixed old/new results | Only return new ones |
@@ -299,7 +299,7 @@ Run same query before and after fix:
 ### WebSearch Date Extraction Tests
 
 | URL/Snippet | Expected Date | Confidence |
-|-------------|---------------|------------|
+|--|--|--|
 | `medium.com/blog/2026/01/15/title` | 2026-01-15 | high |
 | `github.com/repo` + "Released Jan 20, 2026" | 2026-01-20 | med |
 | `docs.example.com/guide` (no date signals) | None | low |
@@ -309,7 +309,7 @@ Run same query before and after fix:
 ## Risk Analysis
 
 | Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
+|------|--|--------|--|
 | Fewer results for niche topics | High | Medium | Explain why in output |
 | User confusion about reduced results | Medium | Low | Clear messaging |
 | Date parsing errors exclude valid content | Low | Medium | Keep items with unknown dates, just label clearly |

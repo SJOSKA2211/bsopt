@@ -374,7 +374,7 @@ class CalibrationEngine:
         atm_quote = min(quotes, key=lambda q: abs(float(q.strike) - float(forward)))
         initial_a = atm_quote.implied_vol**2 * t_m
 
-        # 🛡️ HIGH-PERFORMANCE: RUST-ACCELERATED MULTI-START CALIBRATION
+        # ️ HIGH-PERFORMANCE: RUST-ACCELERATED MULTI-START CALIBRATION
         if CORE_AVAILABLE:
             try:
                 start_time = time.time()

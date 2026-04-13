@@ -229,7 +229,7 @@ async def main():
 ## Client Operations
 
 | Operation | Description |
-|-----------|-------------|
+|--|--|
 | `get_configuration_setting` | Get single setting |
 | `set_configuration_setting` | Create or update setting |
 | `delete_configuration_setting` | Delete setting |

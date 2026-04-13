@@ -320,7 +320,7 @@ await client.UpdateKeyRotationPolicyAsync("my-rsa-key", policy);
 
 ### Encryption Algorithms
 | Algorithm | Key Type | Description |
-|-----------|----------|-------------|
+|--|--|--|
 | `RsaOaep` | RSA | RSA-OAEP |
 | `RsaOaep256` | RSA | RSA-OAEP-256 |
 | `Rsa15` | RSA | RSA 1.5 (legacy) |
@@ -329,7 +329,7 @@ await client.UpdateKeyRotationPolicyAsync("my-rsa-key", policy);
 
 ### Signature Algorithms
 | Algorithm | Key Type | Description |
-|-----------|----------|-------------|
+|--|--|--|
 | `RS256` | RSA | RSASSA-PKCS1-v1_5 SHA-256 |
 | `RS384` | RSA | RSASSA-PKCS1-v1_5 SHA-384 |
 | `RS512` | RSA | RSASSA-PKCS1-v1_5 SHA-512 |
@@ -340,7 +340,7 @@ await client.UpdateKeyRotationPolicyAsync("my-rsa-key", policy);
 
 ### Key Wrap Algorithms
 | Algorithm | Key Type | Description |
-|-----------|----------|-------------|
+|--|--|--|
 | `RsaOaep` | RSA | RSA-OAEP |
 | `RsaOaep256` | RSA | RSA-OAEP-256 |
 | `A128KW` | Oct | AES-128 Key Wrap |
@@ -383,7 +383,7 @@ catch (RequestFailedException ex)
 ## Required RBAC Roles
 
 | Role | Permissions |
-|------|-------------|
+|------|--|
 | Key Vault Crypto Officer | Full key management |
 | Key Vault Crypto User | Use keys for crypto operations |
 | Key Vault Reader | Read key metadata |
@@ -400,7 +400,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.Security.KeyVault.Keys |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.security.keyvault.keys |
 | Quickstart | https://learn.microsoft.com/azure/key-vault/keys/quick-create-net |

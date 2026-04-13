@@ -37,7 +37,7 @@ What are you building?
 ### Comparison
 
 | Factor | Unity 6 | Godot 4 | Unreal 5 |
-|--------|---------|---------|----------|
+|--------|---------|---------|--|
 | 2D | Good | Excellent | Limited |
 | 3D | Good | Good | Excellent |
 | Learning | Medium | Easy | Hard |
@@ -61,7 +61,7 @@ What are you building?
 ### Console Requirements
 
 | Platform | Certification |
-|----------|--------------|
+|--|--|
 | PlayStation | TRC compliance |
 | Xbox | XR compliance |
 | Nintendo | Lotcheck |
@@ -81,7 +81,7 @@ Map ACTIONS, not buttons:
 ### Haptic Feedback
 
 | Intensity | Use |
-|-----------|-----|
+|--|-----|
 | Light | UI feedback |
 | Medium | Impacts |
 | Heavy | Major events |
@@ -101,7 +101,7 @@ Map ACTIONS, not buttons:
 ### Common Bottlenecks
 
 | Bottleneck | Solution |
-|------------|----------|
+|--|--|
 | Draw calls | Batching, atlases |
 | GC spikes | Object pooling |
 | Physics | Simpler colliders |
@@ -134,8 +134,8 @@ Map ACTIONS, not buttons:
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Choose engine by hype | Choose by project needs |
 | Ignore platform guidelines | Study certification requirements |
 | Hardcode input buttons | Abstract to actions |

@@ -6,10 +6,10 @@ def check_if_last_char_is_a_letter(txt):
     Note: "word" is a group of characters separated by space.
 
     Examples:
-    check_if_last_char_is_a_letter("apple pie") ➞ False
-    check_if_last_char_is_a_letter("apple pi e") ➞ True
-    check_if_last_char_is_a_letter("apple pi e ") ➞ False
-    check_if_last_char_is_a_letter("") ➞ False
+    check_if_last_char_is_a_letter("apple pie")  False
+    check_if_last_char_is_a_letter("apple pi e")  True
+    check_if_last_char_is_a_letter("apple pi e ")  False
+    check_if_last_char_is_a_letter("")  False
     """
     if len(txt) == 0:
         return False

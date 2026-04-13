@@ -18,7 +18,7 @@ export PYTHONPATH=${PYTHONPATH:-}:$(pwd):$(pwd)/src
 PORT=8081
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
-    echo "🏗️ Running in PRODUCTION mode..."
+    echo "️ Running in PRODUCTION mode..."
     exec python3 -m uvicorn src.math_kernel.main:app \
         --host 0.0.0.0 \
         --port $PORT \
@@ -26,6 +26,6 @@ if [ "${ENVIRONMENT:-development}" == "production" ]; then
         --loop uvloop \
         --no-access-log
 else
-    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    echo "️ Running in DEVELOPMENT mode with hot-reload..."
     exec python3 -m uvicorn src.math_kernel.main:app --reload --reload-dir src/math_kernel --port $PORT --host 0.0.0.0 --loop uvloop
 fi

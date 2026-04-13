@@ -147,7 +147,7 @@ def _extract_completed_tasks(messages: list[str]) -> list[str]:
     completed = []
     patterns = [
         r"- \[x\]\s+(.+)",
-        r"✅\s+(.+)",
+        r"\s+(.+)",
         r"(?:concluí|completei|terminei|finalizei|done|completed|finished)\s+(.+)",
     ]
     for msg in messages:

@@ -62,8 +62,8 @@ Lines:
   4. Extra User License | Qty: 0 | Price: $120/user  | Optional
 
 Signature & Payment:
-  ☑ Online Signature required before order confirmation
-  ☑ Online Payment (deposit) — 50% upfront
+   Online Signature required before order confirmation
+   Online Payment (deposit) — 50% upfront
 
 Notes section:
   "Prices valid until expiration date. Subject to Schedule A terms."
@@ -73,7 +73,7 @@ Notes section:
 
 ```text
 Menu: Sales → Configuration → Settings
-  ☑ Enable Pricelists
+   Enable Pricelists
 
 Menu: Sales → Configuration → Pricelists → New
 
@@ -93,13 +93,13 @@ Assign to a customer:
 
 ## Best Practices
 
-- ✅ **Do:** Use **Lost Reasons** (CRM → Configuration → Lost Reasons) to build a dataset of why deals are lost — invaluable for sales coaching.
-- ✅ **Do:** Enable **Sales Teams** with revenue targets so pipeline forecasting is meaningful per team.
-- ✅ **Do:** Set **Expected Revenue** and **Closing Date** on every opportunity — these feed the revenue forecast dashboard.
-- ✅ **Do:** Use **Quotation Templates** to standardize offers and reduce quoting time across the team.
-- ❌ **Don't:** Skip the CRM opportunity when selling — going directly from lead to invoice breaks pipeline analytics.
-- ❌ **Don't:** Manually edit prices on quotation lines as a workaround — set up proper pricelists instead.
-- ❌ **Don't:** Ignore the **Predictive Lead Scoring** feature in v16+ — configure it with historical data for accurate forecasting.
+-  **Do:** Use **Lost Reasons** (CRM → Configuration → Lost Reasons) to build a dataset of why deals are lost — invaluable for sales coaching.
+-  **Do:** Enable **Sales Teams** with revenue targets so pipeline forecasting is meaningful per team.
+-  **Do:** Set **Expected Revenue** and **Closing Date** on every opportunity — these feed the revenue forecast dashboard.
+-  **Do:** Use **Quotation Templates** to standardize offers and reduce quoting time across the team.
+-  **Don't:** Skip the CRM opportunity when selling — going directly from lead to invoice breaks pipeline analytics.
+-  **Don't:** Manually edit prices on quotation lines as a workaround — set up proper pricelists instead.
+-  **Don't:** Ignore the **Predictive Lead Scoring** feature in v16+ — configure it with historical data for accurate forecasting.
 
 ## Limitations
 

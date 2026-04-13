@@ -47,11 +47,11 @@ Design Firestore data structure around query patterns
 
 ## Anti-Patterns
 
-### ❌ No Security Rules
+###  No Security Rules
 
-### ❌ Client-Side Admin Operations
+###  Client-Side Admin Operations
 
-### ❌ Listener on Large Collections
+###  Listener on Large Collections
 
 ## Related Skills
 

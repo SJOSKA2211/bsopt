@@ -824,7 +824,7 @@ const deleteUsers = (userIds: string[]) =>
 ## Quick Reference
 
 | Pattern | Use When | Example |
-|---------|----------|---------|
+|---------|--|---------|
 | `E.right(value)` | Creating a success | `E.right(42)` |
 | `E.left(error)` | Creating a failure | `E.left('not found')` |
 | `E.tryCatch(fn, onError)` | Wrapping throwing code | `E.tryCatch(() => JSON.parse(s), toError)` |

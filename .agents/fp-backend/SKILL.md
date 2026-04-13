@@ -1290,7 +1290,7 @@ import { pipe, flow } from 'fp-ts/function'
 ### RTE Cheat Sheet
 
 | Operation | Description |
-|-----------|-------------|
+|--|--|
 | `RTE.right(a)` | Lift value into success |
 | `RTE.left(e)` | Create error |
 | `RTE.ask<R>()` | Get dependencies |

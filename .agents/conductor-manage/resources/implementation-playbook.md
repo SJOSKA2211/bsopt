@@ -19,7 +19,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 Parse arguments to determine operation mode:
 
 | Argument               | Mode         | Description                                             |
-| ---------------------- | ------------ | ------------------------------------------------------- |
+| -- | -- | -- |
 | `--list [filter]`      | List         | Show all tracks (optional: active, completed, archived) |
 | `--archive <id>`       | Archive      | Move completed track to archive                         |
 | `--archive --bulk`     | Bulk Archive | Multi-select completed tracks                           |
@@ -46,9 +46,9 @@ Read `conductor/tracks.md` and scan directories:
 ### 2. Display Main Menu
 
 ```
-================================================================================
+==
                           TRACK MANAGER
-================================================================================
+==
 
 What would you like to do?
 
@@ -109,29 +109,29 @@ Display comprehensive track overview with optional filtering.
 **Full list (no filter):**
 
 ```
-================================================================================
+==
                           TRACK MANAGER
-================================================================================
+==
 
 ACTIVE TRACKS ({count})
 | Status | Track ID           | Type    | Progress    | Updated    |
-|--------|-------------------|---------|-------------|------------|
+|--------|--|---------|--|--|
 | [~]    | dashboard_20250112| feature | 7/15 (47%)  | 2025-01-15 |
 | [ ]    | nav-fix_20250114  | bug     | 0/4 (0%)    | 2025-01-14 |
 
 COMPLETED TRACKS ({count})
 | Track ID           | Type    | Completed  | Duration |
-|-------------------|---------|------------|----------|
+|--|---------|--|--|
 | auth_20250110     | feature | 2025-01-12 | 2 days   |
 
 ARCHIVED TRACKS ({count})
 | Track ID              | Type    | Reason     | Archived   |
-|-----------------------|---------|------------|------------|
+|--|---------|--|--|
 | old-feature_20241201  | feature | Superseded | 2025-01-05 |
 
-================================================================================
+==
 Commands: /conductor:manage --archive | --restore | --delete | --rename | --cleanup
-================================================================================
+==
 ```
 
 **Filtered list (`--list active`, `--list completed`, `--list archived`):**
@@ -143,27 +143,27 @@ Show only the requested section with the same format.
 **No tracks at all:**
 
 ```
-================================================================================
+==
                           TRACK MANAGER
-================================================================================
+==
 
 No tracks found.
 
 To create your first track: /conductor:new-track
 
-================================================================================
+==
 ```
 
 **No tracks in filter:**
 
 ```
-================================================================================
+==
                           TRACK MANAGER
-================================================================================
+==
 
 No {filter} tracks found.
 
-================================================================================
+==
 ```
 
 ---
@@ -243,9 +243,9 @@ If "Other" selected, prompt for custom reason.
 #### 4. Display Confirmation
 
 ```
-================================================================================
+==
                           ARCHIVE CONFIRMATION
-================================================================================
+==
 
 Track:    {track-id} - {title}
 Type:     {type}
@@ -259,7 +259,7 @@ Actions:
 - Update metadata.json with archive info
 - Create git commit: chore(conductor): Archive track '{title}'
 
-================================================================================
+==
 
 Type 'YES' to proceed, or anything else to cancel:
 ```
@@ -311,9 +311,9 @@ Type 'YES' to proceed, or anything else to cancel:
 #### 6. Success Output
 
 ```
-================================================================================
+==
                           ARCHIVE COMPLETE
-================================================================================
+==
 
 Track archived: {track-id} - {title}
 
@@ -324,7 +324,7 @@ Commit:    {sha}
 To restore: /conductor:manage --restore {track-id}
 To list:    /conductor:manage --list archived
 
-================================================================================
+==
 ```
 
 ### Without Argument (`--archive`)
@@ -339,9 +339,9 @@ Scan for completed tracks not yet archived:
 #### 2. Display Selection Menu
 
 ```
-================================================================================
+==
                           ARCHIVE TRACKS
-================================================================================
+==
 
 Completed tracks available for archiving:
 
@@ -350,7 +350,7 @@ Completed tracks available for archiving:
 
 Already archived: {N} tracks
 
---------------------------------------------------------------------------------
+--
 
 Options:
 1-{N}. Select a track to archive
@@ -367,9 +367,9 @@ Select option:
 #### 3. No Archivable Tracks
 
 ```
-================================================================================
+==
                           ARCHIVE TRACKS
-================================================================================
+==
 
 No completed tracks available for archiving.
 
@@ -379,7 +379,7 @@ Current tracks:
 
 Already archived: {N} tracks (use --list archived to view)
 
-================================================================================
+==
 ```
 
 ### Bulk Archive (`--archive --bulk`)
@@ -387,9 +387,9 @@ Already archived: {N} tracks (use --list archived to view)
 #### 1. Display Multi-Select
 
 ```
-================================================================================
+==
                        BULK ARCHIVE SELECTION
-================================================================================
+==
 
 Select tracks to archive (comma-separated numbers, or 'all'):
 
@@ -404,9 +404,9 @@ Enter selection (e.g., "1,3" or "all"):
 #### 2. Confirm Selection
 
 ```
-================================================================================
+==
                        BULK ARCHIVE CONFIRMATION
-================================================================================
+==
 
 Tracks to archive:
 
@@ -420,7 +420,7 @@ Actions:
 - Update conductor/tracks.md
 - Create git commit: chore(conductor): Archive 2 completed tracks
 
-================================================================================
+==
 
 Type 'YES' to proceed, or anything else to cancel:
 ```
@@ -477,9 +477,9 @@ Restore archived tracks back to active status.
 #### 3. Display Confirmation
 
 ```
-================================================================================
+==
                           RESTORE CONFIRMATION
-================================================================================
+==
 
 Restoring archived track:
 
@@ -497,7 +497,7 @@ Actions:
 Note: Track will be restored with status 'completed'. Use /conductor:implement
 to resume work if needed.
 
-================================================================================
+==
 
 Type 'YES' to proceed, or anything else to cancel:
 ```
@@ -533,9 +533,9 @@ Type 'YES' to proceed, or anything else to cancel:
 #### 5. Success Output
 
 ```
-================================================================================
+==
                           RESTORE COMPLETE
-================================================================================
+==
 
 Track restored: {track-id} - {title}
 
@@ -546,7 +546,7 @@ Next steps:
 - Run /conductor:status {track-id} to see track details
 - Run /conductor:implement {track-id} to resume work (if needed)
 
-================================================================================
+==
 ```
 
 ### Without Argument (`--restore`)
@@ -554,16 +554,16 @@ Next steps:
 Display menu of archived tracks for selection:
 
 ```
-================================================================================
+==
                           RESTORE TRACKS
-================================================================================
+==
 
 Archived tracks available for restoration:
 
 1. old-feature_20241201 - Old Feature (archived 2025-01-05, reason: Superseded)
 2. cleanup-api_20241215 - API Cleanup (archived 2025-01-10, reason: Completed)
 
---------------------------------------------------------------------------------
+--
 
 Options:
 1-{N}. Select a track to restore
@@ -607,9 +607,9 @@ Usage: /conductor:manage --delete <track-id>
 If track status is `[~]` (in progress):
 
 ```
-================================================================================
+==
                           !! WARNING !!
-================================================================================
+==
 
 Track '{track-id}' is currently IN PROGRESS.
 
@@ -631,9 +631,9 @@ Without `--force` flag, require explicit selection.
 #### 3. Display Full Warning
 
 ```
-================================================================================
+==
                      !! PERMANENT DELETION WARNING !!
-================================================================================
+==
 
 Track:    {track-id} - {title}
 Type:     {type}
@@ -648,7 +648,7 @@ will be permanently removed.
 
 Consider archiving instead: /conductor:manage --archive {track-id}
 
-================================================================================
+==
 
 Type 'DELETE' to permanently remove, or anything else to cancel:
 ```
@@ -679,16 +679,16 @@ Note: The git commit records the deletion but does not remove historical commits
 #### 5. Success Output
 
 ```
-================================================================================
+==
                           DELETE COMPLETE
-================================================================================
+==
 
 Track permanently deleted: {track-id} - {title}
 
 Note: Git history still contains commits referencing this track.
       The track directory and registry entry have been removed.
 
-================================================================================
+==
 ```
 
 ### Without Argument (`--delete`)
@@ -696,9 +696,9 @@ Note: Git history still contains commits referencing this track.
 Display menu of all tracks for selection:
 
 ```
-================================================================================
+==
                           DELETE TRACKS
-================================================================================
+==
 
 !! This will PERMANENTLY delete a track !!
 
@@ -711,7 +711,7 @@ Active/Completed:
 Archived:
 3. old-feature_20241201 - Old Feature
 
---------------------------------------------------------------------------------
+--
 
 Options:
 1-{N}. Select a track to delete
@@ -772,9 +772,9 @@ Choose a different ID or delete the existing track first.
 #### 3. Display Confirmation
 
 ```
-================================================================================
+==
                           RENAME TRACK
-================================================================================
+==
 
 Current:  {old-id} - {title}
 New ID:   {new-id}
@@ -788,7 +788,7 @@ Changes:
 Note: Git commit history will retain original track ID references.
       Related commits cannot be renamed.
 
-================================================================================
+==
 
 Type 'YES' to proceed, or anything else to cancel:
 ```
@@ -831,9 +831,9 @@ Type 'YES' to proceed, or anything else to cancel:
 #### 5. Success Output
 
 ```
-================================================================================
+==
                           RENAME COMPLETE
-================================================================================
+==
 
 Track renamed: {old-id} → {new-id}
 
@@ -841,7 +841,7 @@ New location: conductor/tracks/{new-id}/
 
 Note: Historical git commits still reference '{old-id}'.
 
-================================================================================
+==
 ```
 
 ### Without Arguments (`--rename`)
@@ -849,9 +849,9 @@ Note: Historical git commits still reference '{old-id}'.
 Interactive mode:
 
 ```
-================================================================================
+==
                           RENAME TRACK
-================================================================================
+==
 
 Select a track to rename:
 
@@ -859,7 +859,7 @@ Select a track to rename:
 2. dashboard_20250112 - Dashboard Feature
 3. nav-fix_20250114 - Navigation Bug Fix
 
---------------------------------------------------------------------------------
+--
 
 Options:
 1-{N}. Select a track
@@ -916,9 +916,9 @@ Detect and fix orphaned track artifacts.
 ### 2. Display Results
 
 ```
-================================================================================
+==
                           TRACK CLEANUP
-================================================================================
+==
 
 Scanning for issues...
 
@@ -935,7 +935,7 @@ INCOMPLETE TRACKS (missing files):
 STALE IN-PROGRESS (untouched >7 days):
   5. old-work_20250101 - last updated: 2025-01-02
 
-================================================================================
+==
 
 Found {N} issues.
 
@@ -954,9 +954,9 @@ Select action:
 ### 3. Handle No Issues
 
 ```
-================================================================================
+==
                           TRACK CLEANUP
-================================================================================
+==
 
 Scanning for issues...
 
@@ -964,7 +964,7 @@ No issues found.
 
 All tracks are properly registered and complete.
 
-================================================================================
+==
 ```
 
 ### 4. Execute Fixes
@@ -1031,9 +1031,9 @@ git commit -m "chore(conductor): Clean up {N} orphaned track artifacts"
 ### 5. Completion Output
 
 ```
-================================================================================
+==
                           CLEANUP COMPLETE
-================================================================================
+==
 
 Fixed {N} issues:
 - Added {X} orphaned directories to tracks.md
@@ -1043,7 +1043,7 @@ Fixed {N} issues:
 
 Commit: {sha}
 
-================================================================================
+==
 ```
 
 ---

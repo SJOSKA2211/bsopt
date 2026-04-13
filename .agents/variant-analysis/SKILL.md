@@ -45,7 +45,7 @@ Verify: Does it match exactly ONE location (the original)?
 ### Step 3: Identify Abstraction Points
 
 | Element | Keep Specific | Can Abstract |
-|---------|---------------|--------------|
+|---------|--|--|
 | Function name | If unique to bug | If pattern applies to family |
 | Variable names | Never | Always use metavariables |
 | Literal values | If value matters | If any value triggers bug |
@@ -75,7 +75,7 @@ For deeper strategic guidance, see METHODOLOGY.md.
 ## Tool Selection
 
 | Scenario | Tool | Why |
-|----------|------|-----|
+|--|------|-----|
 | Quick surface search | ripgrep | Fast, zero setup |
 | Simple pattern matching | Semgrep | Easy syntax, no build needed |
 | Data flow tracking | Semgrep taint / CodeQL | Follows values across functions |

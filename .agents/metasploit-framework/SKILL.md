@@ -1,6 +1,6 @@
 ---
 name: metasploit-framework
-description: "⚠️ AUTHORIZED USE ONLY > This skill is for educational purposes or authorized security assessments only. > You must have explicit, written permission from the system owner before using this tool. > Misuse of this tool is illegal and strictly prohibited."
+description: "️ AUTHORIZED USE ONLY > This skill is for educational purposes or authorized security assessments only. > You must have explicit, written permission from the system owner before using this tool. > Misuse of this tool is illegal and strictly prohibited."
 risk: offensive
 source: community
 author: zebbern
@@ -9,7 +9,7 @@ date_added: "2026-02-27"
 
 # Metasploit Framework
 
-> **⚠️ AUTHORIZED USE ONLY**
+> **️ AUTHORIZED USE ONLY**
 > This skill is for educational purposes or authorized security assessments only.
 > You must have explicit, written permission from the system owner before using this tool.
 > Misuse of this tool is illegal and strictly prohibited.
@@ -403,7 +403,7 @@ msf6 > sessions -i 1
 ### Essential MSFConsole Commands
 
 | Command | Description |
-|---------|-------------|
+|---------|--|
 | `search [term]` | Search for modules |
 | `use [module]` | Select a module |
 | `info` | Display module information |
@@ -421,7 +421,7 @@ msf6 > sessions -i 1
 ### Meterpreter Essential Commands
 
 | Command | Description |
-|---------|-------------|
+|---------|--|
 | `sysinfo` | System information |
 | `getuid` | Current user |
 | `getsystem` | Attempt privilege escalation |
@@ -477,7 +477,7 @@ exploit/multi/http/jenkins_script_console
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Database not connected | Run `sudo msfdb init`, start PostgreSQL, then `db_connect` |
 | Exploit fails/no session | Run `check`; verify payload architecture; check firewall; try different payloads |
 | Session dies immediately | Migrate to stable process; use stageless payload; check AV; use AutoRunScript |

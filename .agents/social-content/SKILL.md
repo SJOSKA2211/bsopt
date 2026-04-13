@@ -179,7 +179,7 @@ Build your content around 3-5 pillars that align with your expertise and audienc
 ### Example for a SaaS Founder
 
 | Pillar | % of Content | Topics |
-|--------|--------------|--------|
+|--------|--|--------|
 | Industry insights | 30% | Trends, data, predictions |
 | Behind-the-scenes | 25% | Building the company, lessons learned |
 | Educational | 25% | How-tos, frameworks, tips |
@@ -372,7 +372,7 @@ Turn one piece of content into many:
 ### Blog Post → Social Content
 
 | Original | Platform | Format |
-|----------|----------|--------|
+|--|--|--------|
 | Blog post | LinkedIn | Key insight + link in comments |
 | Blog post | LinkedIn | Carousel of main points |
 | Blog post | Twitter/X | Thread of key takeaways |
@@ -383,7 +383,7 @@ Turn one piece of content into many:
 ### Podcast/Video → Social Content
 
 | Original | Platform | Format |
-|----------|----------|--------|
+|--|--|--------|
 | Interview | LinkedIn | Quote graphic + insight |
 | Interview | Twitter/X | Thread of best quotes |
 | Interview | Instagram | Clip as Reel |
@@ -405,7 +405,7 @@ Turn one piece of content into many:
 ### Weekly Planning Template
 
 | Day | LinkedIn | Twitter/X | Instagram |
-|-----|----------|-----------|-----------|
+|-----|--|--|--|
 | Mon | Industry insight | Thread | Carousel |
 | Tue | Behind-scenes | Engagement | Story |
 | Wed | Educational | Tips tweet | Reel |
@@ -705,14 +705,14 @@ Take proven patterns and make them yours with these voice principles:
 
 **Specific > Vague**
 ```
-❌ "I made good revenue"
-✅ "I made $47,329"
+ "I made good revenue"
+ "I made $47,329"
 
-❌ "It took a while"
-✅ "It took 47 days"
+ "It took a while"
+ "It took 47 days"
 
-❌ "A lot of people"
-✅ "2,847 people"
+ "A lot of people"
+ "2,847 people"
 ```
 
 **Short. Breathe. Land.**
@@ -722,9 +722,9 @@ Take proven patterns and make them yours with these voice principles:
 - Create rhythm: short, short, longer explanation
 
 ```
-❌ "I spent three years building my business the wrong way before I finally realized that the key to success was focusing on fewer things and doing them exceptionally well."
+ "I spent three years building my business the wrong way before I finally realized that the key to success was focusing on fewer things and doing them exceptionally well."
 
-✅ "I built wrong for 3 years.
+ "I built wrong for 3 years.
 
 Then I figured it out.
 
@@ -741,9 +741,9 @@ Everything changed."
 - Connect the feeling to the lesson
 
 ```
-❌ "Here's what I learned about pricing"
+ "Here's what I learned about pricing"
 
-✅ "I was terrified to raise my prices.
+ "I was terrified to raise my prices.
 
 My hands were shaking when I sent the email.
 

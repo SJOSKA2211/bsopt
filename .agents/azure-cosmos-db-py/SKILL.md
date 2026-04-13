@@ -198,7 +198,7 @@ async def test_get_project_by_id_returns_project(mock_cosmos_container):
 ## Reference Files
 
 | File | When to Read |
-|------|--------------|
+|------|--|
 | references/client-setup.md | Setting up Cosmos client with dual auth, SSL config, singleton pattern |
 | references/service-layer.md | Implementing full service class with CRUD, conversions, graceful degradation |
 | references/testing.md | Writing pytest tests, mocking Cosmos, integration test setup |

@@ -244,7 +244,7 @@ public void handleDeliveryReport(String eventJson) {
 ## SmsSendResult Properties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `getMessageId()` | String | Unique message identifier |
 | `getTo()` | String | Recipient phone number |
 | `isSuccessful()` | boolean | Whether send succeeded |

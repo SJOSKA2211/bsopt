@@ -171,7 +171,7 @@ Brief templates above. Full versions with variables in [communication-templates.
 ### Automatic Escalation Triggers
 
 | Trigger                                                                   | Action                                                                     | Timeline                          |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------- |
+| -- | -- | -- |
 | Constraint work centre down > 30 minutes unplanned                        | Alert production manager + maintenance manager                             | Immediate                         |
 | Plan adherence drops below 80% for a shift                                | Root cause analysis with shift supervisor                                  | Within 4 hours                    |
 | Customer order projected to miss committed ship date                      | Notify sales and customer service with revised ETA                         | Within 2 hours of detection       |
@@ -189,7 +189,7 @@ Level 1 (Production Scheduler) → Level 2 (Production Manager / Shift Superinte
 Track per shift and trend weekly:
 
 | Metric                                                | Target             | Red Flag       |
-| ----------------------------------------------------- | ------------------ | -------------- |
+| -- | -- | -- |
 | Schedule adherence (jobs started within ±1 hour)      | > 90%              | < 80%          |
 | On-time delivery (to customer commit date)            | > 95%              | < 90%          |
 | OEE at constraint                                     | > 75%              | < 65%          |

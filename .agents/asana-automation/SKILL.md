@@ -149,7 +149,7 @@ Automate Asana operations through Composio's Asana toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List workspaces | ASANA_GET_MULTIPLE_WORKSPACES | (none) |
 | Search tasks | ASANA_SEARCH_TASKS_IN_WORKSPACE | workspace, text |
 | Create task | ASANA_CREATE_A_TASK | workspace, name, projects |

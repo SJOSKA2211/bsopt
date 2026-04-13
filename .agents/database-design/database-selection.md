@@ -27,7 +27,7 @@ What are your requirements?
 ## Comparison
 
 | Database | Best For | Trade-offs |
-|----------|----------|------------|
+|--|--|--|
 | **PostgreSQL** | Full features, complex queries | Needs hosting |
 | **Neon** | Serverless PG, branching | PG complexity |
 | **Turso** | Edge, low latency | SQLite limitations |

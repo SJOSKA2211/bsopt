@@ -147,7 +147,7 @@ Ready to implement <feature-name>
 ## Quick Reference
 
 | Situation | Action |
-|-----------|--------|
+|--|--------|
 | `.worktrees/` exists | Use it (verify ignored) |
 | `worktrees/` exists | Use it (verify ignored) |
 | Both exist | Use `.worktrees/` |

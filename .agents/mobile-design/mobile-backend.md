@@ -22,12 +22,12 @@ Mobile clients are DIFFERENT from web clients:
 
 ---
 
-## 🚫 AI MOBILE BACKEND ANTI-PATTERNS
+##  AI MOBILE BACKEND ANTI-PATTERNS
 
 ### These are common AI mistakes when building mobile backends:
 
-| ❌ AI Default | Why It's Wrong | ✅ Mobile-Correct |
-|---------------|----------------|-------------------|
+|  AI Default | Why It's Wrong |  Mobile-Correct |
+|--|--|--|
 | Same API for web and mobile | Mobile needs compact responses | Separate mobile endpoints OR field selection |
 | Full object responses | Wastes bandwidth, battery | Partial responses, pagination |
 | No offline consideration | App crashes without network | Offline-first design, sync queues |
@@ -65,15 +65,15 @@ Mobile clients are DIFFERENT from web clients:
 ### Push Types
 
 | Type | Use Case | User Sees |
-|------|----------|-----------|
+|------|--|--|
 | **Display** | New message, order update | Notification banner |
 | **Silent** | Background sync, content update | Nothing (background) |
 | **Data** | Custom handling by app | Depends on app logic |
 
 ### Anti-Patterns
 
-| ❌ NEVER | ✅ ALWAYS |
-|----------|----------|
+|  NEVER |  ALWAYS |
+|--|--|
 | Send sensitive data in push | Push says "New message", app fetches content |
 | Overload with pushes | Batch, dedupe, respect quiet hours |
 | Same message to all | Segment by user preference, timezone |
@@ -120,7 +120,7 @@ WHAT TYPE OF DATA?
 ### Conflict Resolution Strategies
 
 | Strategy | How It Works | Best For |
-|----------|--------------|----------|
+|--|--|--|
 | **Last-write-wins** | Latest timestamp overwrites | Simple data, single user |
 | **Server-wins** | Server always authoritative | Critical transactions |
 | **Client-wins** | Offline changes prioritized | Offline-heavy apps |
@@ -153,7 +153,7 @@ SERVER SIDE:
 ### Response Size Reduction
 
 | Technique | Savings | Implementation |
-|-----------|---------|----------------|
+|--|---------|--|
 | **Field selection** | 30-70% | `?fields=id,name,thumbnail` |
 | **Compression** | 60-80% | gzip/brotli (automatic) |
 | **Pagination** | Varies | Cursor-based for mobile |
@@ -308,7 +308,7 @@ REQUEST FLOW:
 ### Error Categories
 
 | Code Range | Category | Mobile Handling |
-|------------|----------|-----------------|
+|--|--|--|
 | 400-499 | Client error | Show message, user action needed |
 | 401 | Auth expired | Silent refresh or re-login |
 | 403 | Forbidden | Show upgrade/permission screen |
@@ -454,7 +454,7 @@ ALERTS:
 
 ---
 
-## 📝 MOBILE BACKEND CHECKLIST
+##  MOBILE BACKEND CHECKLIST
 
 ### Before API Design
 - [ ] Identified mobile-specific requirements?

@@ -16,15 +16,15 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}${NC} $1"
 }
 
 warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo -e "${YELLOW}${NC} $1"
 }
 
 error() {
-    echo -e "${RED}✗${NC} $1"
+    echo -e "${RED}${NC} $1"
 }
 
 # Check if Helm is installed
@@ -33,7 +33,7 @@ if ! command -v helm &> /dev/null; then
     exit 1
 fi
 
-echo "📦 Chart directory: $CHART_DIR"
+echo " Chart directory: $CHART_DIR"
 echo ""
 
 # 1. Check chart structure
@@ -192,7 +192,7 @@ echo ""
 
 # 10. Check dependencies
 if [ -f "$CHART_DIR/Chart.yaml" ] && grep -q "^dependencies:" "$CHART_DIR/Chart.yaml"; then
-    echo "🔟 Checking dependencies..."
+    echo " Checking dependencies..."
     if helm dependency list "$CHART_DIR" > /dev/null 2>&1; then
         success "Dependencies valid"
 

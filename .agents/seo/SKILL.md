@@ -23,7 +23,7 @@ e-commerce, publishers, agencies). Orchestrates 12 specialized sub-skills and 7 
 ## Quick Reference
 
 | Command | What it does |
-|---------|-------------|
+|---------|--|
 | `/seo audit <url>` | Full website audit with parallel subagent delegation |
 | `/seo page <url>` | Deep single-page analysis |
 | `/seo sitemap <url or generate>` | Analyze or generate XML sitemaps |
@@ -82,7 +82,7 @@ Load these on-demand as needed (do NOT load all at startup):
 Weighted aggregate of all categories:
 
 | Category | Weight |
-|----------|--------|
+|--|--------|
 | Technical SEO | 22% |
 | Content Quality | 23% |
 | On-Page SEO | 20% |
@@ -132,7 +132,7 @@ For parallel analysis during audits:
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | Unrecognized command | List available commands from the Quick Reference table. Suggest the closest matching command. |
 | URL unreachable | Report the error and suggest the user verify the URL. Do not attempt to guess site content. |
 | Sub-skill fails during audit | Report partial results from successful sub-skills. Clearly note which sub-skill failed and why. Suggest re-running the failed sub-skill individually. |

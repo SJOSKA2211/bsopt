@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🚀 Launching Unified API..."
+echo " Launching Unified API..."
 
 # Load shared environment utilities for secret derivation
 source scripts/utils_env.sh
@@ -17,7 +17,7 @@ export PYTHONWARNINGS="ignore::FutureWarning:ray"
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
-    echo "🏗️ Running in PRODUCTION mode with multi-worker Granian substrate..."
+    echo "️ Running in PRODUCTION mode with multi-worker Granian substrate..."
     exec python3 -m uvicorn api.index:app \
         --host 0.0.0.0 \
         --port 8000 \
@@ -27,7 +27,7 @@ if [ "${ENVIRONMENT:-development}" == "production" ]; then
         --no-access-log \
         --timeout-keep-alive 65
 else
-    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    echo "️ Running in DEVELOPMENT mode with hot-reload..."
     exec python3 -m uvicorn api.index:app --reload --reload-dir api --port 8000 --host 0.0.0.0 --loop uvloop
 fi
 

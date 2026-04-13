@@ -26,7 +26,7 @@ CREATE TABLE leiloeiros (
 ## Campos
 
 | Campo | Tipo | Obrigatório | Valores |
-|-------|------|-------------|---------|
+|-------|------|--|---------|
 | `id` | int | auto | PK auto-incremento |
 | `estado` | text | sim | UF 2 letras maiúsculas |
 | `junta` | text | sim | Nome da junta ex: JUCESP |
@@ -48,7 +48,7 @@ CREATE TABLE leiloeiros (
 Os textos das juntas são normalizados para valores padrão:
 
 | Texto Original (exemplos) | Valor Normalizado |
-|--------------------------|-------------------|
+|--|--|
 | Ativo, Regular, Habilitado, Regularizado | `ATIVO` |
 | Cancelado, Baixado, Extinto | `CANCELADO` |
 | Suspenso | `SUSPENSO` |

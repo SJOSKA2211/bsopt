@@ -1,9 +1,9 @@
-# 🎥 youtube-summarizer
+#  youtube-summarizer
 
 > Extract transcripts from YouTube videos and generate comprehensive, detailed summaries
 
 **Version:** 1.2.0
-**Status:** ✨ Zero-Config | 🌍 Universal
+**Status:**  Zero-Config |  Universal
 **Platforms:** GitHub Copilot CLI, Claude Code
 
 ---
@@ -16,16 +16,16 @@ The **youtube-summarizer** skill automates the extraction of YouTube video trans
 
 ## Features
 
-- 🎯 **Automatic transcript extraction** using `youtube-transcript-api`
-- ✅ **Video validation** - Checks if video is accessible and has transcripts
-- 🌍 **Multi-language support** - Prefers Portuguese, falls back to English
-- 📊 **Comprehensive summaries** - Prioritizes detail and completeness
-- 📝 **Structured output** - Markdown with headers, sections, insights
-- 🔍 **Metadata included** - Video title, channel, duration, URL
-- ⚡ **Error handling** - Clear messages for all failure scenarios
-- 🛠️ **Dependency management** - Offers to install requirements automatically
-- 📊 **Progress gauge** - Visual processing tracker across all steps
-- 💾 **Flexible save options** - Summary-only, summary+transcript, or transcript-only (NEW v1.2.0)
+-  **Automatic transcript extraction** using `youtube-transcript-api`
+-  **Video validation** - Checks if video is accessible and has transcripts
+-  **Multi-language support** - Prefers Portuguese, falls back to English
+-  **Comprehensive summaries** - Prioritizes detail and completeness
+-  **Structured output** - Markdown with headers, sections, insights
+-  **Metadata included** - Video title, channel, duration, URL
+-  **Error handling** - Clear messages for all failure scenarios
+- ️ **Dependency management** - Offers to install requirements automatically
+-  **Progress gauge** - Visual processing tracker across all steps
+-  **Flexible save options** - Summary-only, summary+transcript, or transcript-only (NEW v1.2.0)
 
 ---
 
@@ -50,7 +50,7 @@ copilot> resume este video: https://www.youtube.com/watch?v=VIDEO_ID
 The skill will automatically check for dependencies and offer to install them:
 
 ```bash
-⚠️  youtube-transcript-api not installed
+️  youtube-transcript-api not installed
 
 Would you like me to install it now?
 - [x] Yes - Install with pip
@@ -139,12 +139,12 @@ Every summary follows this comprehensive structure:
 
 ---
 
-## 📊 Síntese Executiva
+##  Síntese Executiva
 [High-level overview, 2-3 paragraphs]
 
 ---
 
-## 📝 Resumo Detalhado
+##  Resumo Detalhado
 ### [Topic 1]
 [Detailed analysis with examples, data, quotes]
 
@@ -153,25 +153,25 @@ Every summary follows this comprehensive structure:
 
 ---
 
-## 💡 Principais Insights
+##  Principais Insights
 - **Insight 1:** [Explanation]
 - **Insight 2:** [Explanation]
 
 ---
 
-## 📚 Conceitos e Terminologia
+##  Conceitos e Terminologia
 - **Term 1:** [Definition]
 - **Term 2:** [Definition]
 
 ---
 
-## 🔗 Recursos Mencionados
+##  Recursos Mencionados
 - [Resource 1]
 - [Resource 2]
 
 ---
 
-## 📌 Conclusão
+##  Conclusão
 [Final synthesis and key takeaways]
 ```
 
@@ -208,16 +208,16 @@ The skill recognizes these YouTube URL formats:
 
 ### Videos That Work
 
-✅ Public videos with auto-generated captions  
-✅ Videos with manual subtitles/captions  
-✅ Videos with transcripts in any supported language
+ Public videos with auto-generated captions  
+ Videos with manual subtitles/captions  
+ Videos with transcripts in any supported language
 
 ### Videos That Don't Work
 
-❌ Private or unlisted videos  
-❌ Videos with transcripts disabled  
-❌ Age-restricted videos (may require authentication)  
-❌ Videos without any captions/subtitles
+ Private or unlisted videos  
+ Videos with transcripts disabled  
+ Age-restricted videos (may require authentication)  
+ Videos without any captions/subtitles
 
 ---
 
@@ -226,7 +226,7 @@ The skill recognizes these YouTube URL formats:
 ### No Transcript Available
 
 ```
-❌ No transcript available for this video
+ No transcript available for this video
 
 This skill requires videos with auto-generated captions or manual subtitles.
 Unfortunately, transcripts are not enabled for this video.
@@ -237,7 +237,7 @@ Unfortunately, transcripts are not enabled for this video.
 ### Invalid URL
 
 ```
-❌ Invalid YouTube URL format
+ Invalid YouTube URL format
 
 Expected format examples:
 - https://www.youtube.com/watch?v=VIDEO_ID
@@ -249,7 +249,7 @@ Expected format examples:
 ### Video Not Accessible
 
 ```
-❌ Unable to access video
+ Unable to access video
 
 Possible reasons:
 1. Video is private or unlisted
@@ -360,6 +360,6 @@ MIT License - see LICENSE for details.
 
 ---
 
-**Built with ❤️ by Eric Andrade**
+**Built with ️ by Eric Andrade**
 
 *Version 1.1.0 | Last updated: February 2026*

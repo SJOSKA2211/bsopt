@@ -66,13 +66,13 @@ message GetUserResponse {
 
 ## Best Practices
 
-- ✅ **Do:** Use Buf to standardize your toolchain and linting with `buf.yaml` and `buf.gen.yaml`.
-- ✅ **Do:** Always use semantic versioning in package paths (e.g., `package api.v1`).
-- ✅ **Do:** Enforce mTLS for all internal service-to-service communication.
-- ✅ **Do:** Handle `ctx.Done()` in all streaming handlers to prevent resource leaks.
-- ✅ **Do:** Map domain errors to standard gRPC status codes (e.g., `codes.NotFound`).
-- ❌ **Don't:** Return raw internal error strings or stack traces to gRPC clients.
-- ❌ **Don't:** Create a new `grpc.ClientConn` per request; always reuse connections.
+-  **Do:** Use Buf to standardize your toolchain and linting with `buf.yaml` and `buf.gen.yaml`.
+-  **Do:** Always use semantic versioning in package paths (e.g., `package api.v1`).
+-  **Do:** Enforce mTLS for all internal service-to-service communication.
+-  **Do:** Handle `ctx.Done()` in all streaming handlers to prevent resource leaks.
+-  **Do:** Map domain errors to standard gRPC status codes (e.g., `codes.NotFound`).
+-  **Don't:** Return raw internal error strings or stack traces to gRPC clients.
+-  **Don't:** Create a new `grpc.ClientConn` per request; always reuse connections.
 
 ## Troubleshooting
 

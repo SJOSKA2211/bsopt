@@ -5,7 +5,7 @@
 ## Decision Factors
 
 | Strategy | Implementation | Trade-offs |
-|----------|---------------|------------|
+|--|--|--|
 | **URI** | /v1/users | Clear, easy caching |
 | **Header** | Accept-Version: 1 | Cleaner URLs, harder discovery |
 | **Query** | ?version=1 | Easy to add, messy |

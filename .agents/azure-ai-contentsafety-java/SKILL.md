@@ -60,7 +60,7 @@ ContentSafetyClient client = new ContentSafetyClientBuilder()
 
 ### Harm Categories
 | Category | Description |
-|----------|-------------|
+|--|--|
 | Hate | Discriminatory language based on identity groups |
 | Sexual | Sexual content, relationships, acts |
 | Violence | Physical harm, weapons, injury |

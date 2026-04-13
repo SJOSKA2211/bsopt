@@ -17,7 +17,7 @@ date_added: "2026-02-27"
 ### Key Constraints
 
 | Constraint | Strategy |
-|------------|----------|
+|--|--|
 | **Touch input** | Large hit areas, gestures |
 | **Battery** | Limit CPU/GPU usage |
 | **Thermal** | Throttle when hot |
@@ -31,7 +31,7 @@ date_added: "2026-02-27"
 ### Touch vs Controller
 
 | Touch | Desktop/Console |
-|-------|-----------------|
+|-------|--|
 | Imprecise | Precise |
 | Occludes screen | No occlusion |
 | Limited buttons | Many buttons |
@@ -70,7 +70,7 @@ date_added: "2026-02-27"
 ### iOS (App Store)
 
 | Requirement | Note |
-|-------------|------|
+|--|------|
 | Privacy labels | Required |
 | Account deletion | If account creation exists |
 | Screenshots | For all device sizes |
@@ -78,7 +78,7 @@ date_added: "2026-02-27"
 ### Android (Google Play)
 
 | Requirement | Note |
-|-------------|------|
+|--|------|
 | Target API | Current year's SDK |
 | 64-bit | Required |
 | App bundles | Recommended |
@@ -88,7 +88,7 @@ date_added: "2026-02-27"
 ## 5. Monetization Models
 
 | Model | Best For |
-|-------|----------|
+|-------|--|
 | **Premium** | Quality games, loyal audience |
 | **Free + IAP** | Casual, progression-based |
 | **Ads** | Hyper-casual, high volume |
@@ -98,8 +98,8 @@ date_added: "2026-02-27"
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Desktop controls on mobile | Design for touch |
 | Ignore battery drain | Monitor thermals |
 | Force landscape | Support player preference |

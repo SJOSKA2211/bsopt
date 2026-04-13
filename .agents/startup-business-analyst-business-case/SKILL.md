@@ -183,9 +183,9 @@ Create a comprehensive document with these sections:
 **Competitive Matrix:**
 ```
 | Feature/Factor | Us | Comp A | Comp B | Comp C |
-|----------------|----|---------| -------|--------|
-| Feature 1 | ✓ | ✓ | ✗ | ✓ |
-| Feature 2 | ✓ | ✗ | ✓ | ✗ |
+|--|----|---------| -------|--------|
+| Feature 1 |  |  |  |  |
+| Feature 2 |  |  |  |  |
 | Pricing | $X | $Y | $Z | $W |
 ```
 

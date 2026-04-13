@@ -46,7 +46,7 @@ def notion_request(method: str, endpoint: str, data: dict = None) -> dict:
     url = f"{NOTION_API}/{endpoint}"
     resp = getattr(requests, method)(url, headers=HEADERS, json=data)
     if resp.status_code >= 400:
-        print(f"❌ Notion API Error ({resp.status_code}): {resp.json().get('message', resp.text)}")
+        print(f" Notion API Error ({resp.status_code}): {resp.json().get('message', resp.text)}")
         sys.exit(1)
     return resp.json()
 
@@ -153,7 +153,7 @@ def make_todo(text: str, checked: bool = False) -> dict:
     }
 
 
-def make_callout(text: str, emoji: str = "💡") -> dict:
+def make_callout(text: str, emoji: str = "") -> dict:
     return {
         "object": "block",
         "type": "callout",
@@ -184,7 +184,7 @@ def diary_to_business_blocks(md_content: str) -> list:
         # H3 sections become sub-headings (e.g. ### 1. 跨平台混合雲自動化)
         if line.startswith("### "):
             heading_text = line[4:].strip()
-            # Remove leading numbers (e.g. "1. " or "📁 ")
+            # Remove leading numbers (e.g. "1. " or " ")
             heading_text = re.sub(r"^\d+\.\s*", "", heading_text)
             blocks.append(make_heading3(heading_text))
             continue
@@ -195,18 +195,18 @@ def diary_to_business_blocks(md_content: str) -> list:
             # Keep the improvement section as a callout
             if "改善" in section or "學習" in section:
                 blocks.append(make_divider())
-                blocks.append(make_heading3(f"💡 {section}"))
+                blocks.append(make_heading3(f" {section}"))
             continue
 
         # Dividers
         if line.strip() == "---":
             continue
 
-        # Callouts (e.g. > 🌟 **今日亮點 (Daily Highlight)**)
+        # Callouts (e.g. >  **今日亮點 (Daily Highlight)**)
         if line.startswith("> "):
             text = line[2:].strip()
             # Extract emoji if present
-            emoji = "💡"
+            emoji = ""
             if text and len(text) > 0:
                 first_char = text[0]
                 # A simple heuristic to check if the first character is an emoji
@@ -252,7 +252,7 @@ def diary_to_business_blocks(md_content: str) -> list:
 def build_business_only_blocks(business_blocks: list) -> list:
     """Build page blocks with only Business section (GAS Agent handles the rest)."""
     blocks = []
-    blocks.append(make_heading2("💼 Business (YT/AI 網紅 / 自動化開發)"))
+    blocks.append(make_heading2(" Business (YT/AI 網紅 / 自動化開發)"))
     blocks.extend(business_blocks)
     blocks.append(make_divider())
     return blocks
@@ -264,13 +264,13 @@ def extract_metadata(md_content: str, filename: str) -> dict:
     date_str = date_match.group(1) if date_match else datetime.now().strftime("%Y-%m-%d")
 
     # Build title
-    title = f"📊 {date_str} 每日複盤"
+    title = f" {date_str} 每日複盤"
 
     # Extract project names
-    # Matches old format `### 📁 ` and new format e.g., `### 🔵 ` or `### 🟢 `
-    projects = re.findall(r"###\s+[\U00010000-\U0010ffff📁]\s+(\S+)", md_content)
+    # Matches old format `###  ` and new format e.g., `###  ` or `### 🟢 `
+    projects = re.findall(r"###\s+[\U00010000-\U0010ffff]\s+(\S+)", md_content)
     if not projects:
-        projects = re.findall(r"###\s+\d+\.\s+(.+?)[\s🚀🛠️🧪☁️🔧🧩]*(?:\n|$)", md_content)
+        projects = re.findall(r"###\s+\d+\.\s+(.+?)[\s️🧪️🧩]*(?:\n|$)", md_content)
         projects = [p.strip()[:20] for p in projects]
 
     # Auto-tag
@@ -300,7 +300,7 @@ def create_diary_page(metadata: dict, blocks: list) -> str:
     children = blocks[:100]
     data = {
         "parent": {"database_id": NOTION_DIARY_DB},
-        "icon": {"emoji": "📊"},
+        "icon": {"emoji": ""},
         "properties": {
             "標題": {"title": [{"text": {"content": metadata["title"]}}]},
             "日期": {"date": {"start": metadata["date"]}},
@@ -367,7 +367,7 @@ def update_business_section(page_id: str, metadata: dict, business_blocks: list)
                 break
 
     if business_start is None:
-        print("⚠️ 找不到 Business 區塊，將覆蓋整頁內容")
+        print("️ 找不到 Business 區塊，將覆蓋整頁內容")
         blocks_to_delete = all_blocks
         after_block_id = None
     else:
@@ -415,15 +415,15 @@ def update_business_section(page_id: str, metadata: dict, business_blocks: list)
     else:
         notion_request("patch", f"blocks/{page_id}/children", {"children": [make_divider()]})
 
-    print("✅ Business 區塊已更新（其他區塊未受影響）")
+    print(" Business 區塊已更新（其他區塊未受影響）")
 
 
 def create_database(parent_page_id: str) -> str:
     """Create the Diary database under a parent page."""
     data = {
         "parent": {"type": "page_id", "page_id": parent_page_id},
-        "title": [{"type": "text", "text": {"content": "📔 AI 日記"}}],
-        "icon": {"emoji": "📊"},
+        "title": [{"type": "text", "text": {"content": " AI 日記"}}],
+        "icon": {"emoji": ""},
         "is_inline": False,
         "properties": {
             "標題": {"title": {}},
@@ -434,7 +434,7 @@ def create_database(parent_page_id: str) -> str:
     }
     result = notion_request("post", "databases", data)
     db_id = result["id"]
-    print(f"✅ Created Notion Diary Database: {db_id}")
+    print(f" Created Notion Diary Database: {db_id}")
     print("   請將此 ID 設為環境變數：")
     print(f'   $env:NOTION_DIARY_DB = "{db_id}"')
     return db_id
@@ -448,7 +448,7 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
 
     if not NOTION_TOKEN:
-        print("❌ 請設定環境變數 NOTION_TOKEN")
+        print(" 請設定環境變數 NOTION_TOKEN")
         print('   $env:NOTION_TOKEN = "ntn_xxx"')
         sys.exit(1)
 
@@ -459,7 +459,7 @@ def main():
         return
 
     if not NOTION_DIARY_DB:
-        print("❌ 請設定環境變數 NOTION_DIARY_DB")
+        print(" 請設定環境變數 NOTION_DIARY_DB")
         print('   $env:NOTION_DIARY_DB = "abc123..."')
         print("")
         print("如需建立新 Database：")
@@ -473,14 +473,14 @@ def main():
 
     diary_path = Path(sys.argv[1])
     if not diary_path.exists():
-        print(f"❌ 找不到日記文件：{diary_path}")
+        print(f" 找不到日記文件：{diary_path}")
         sys.exit(1)
 
     # Read diary
     md_content = diary_path.read_text(encoding="utf-8")
     filename = diary_path.name
 
-    print(f"📖 讀取日記：{diary_path}")
+    print(f" 讀取日記：{diary_path}")
 
     # Extract metadata
     metadata = extract_metadata(md_content, filename)
@@ -497,13 +497,13 @@ def main():
     existing_page = search_diary_by_date(metadata["date"])
 
     if existing_page:
-        print(f"🔄 更新已有頁面的 Business 區塊 (page: {existing_page})")
+        print(f" 更新已有頁面的 Business 區塊 (page: {existing_page})")
         update_business_section(existing_page, metadata, business_blocks)
     else:
-        print("📝 建立新頁面（僅 Business 區塊）...")
+        print(" 建立新頁面（僅 Business 區塊）...")
         biz_blocks = build_business_only_blocks(business_blocks)
         page_id = create_diary_page(metadata, biz_blocks)
-        print(f"✅ 已同步到 Notion！(page: {page_id})")
+        print(f" 已同步到 Notion！(page: {page_id})")
 
 
 if __name__ == "__main__":

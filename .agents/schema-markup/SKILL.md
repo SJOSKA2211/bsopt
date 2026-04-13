@@ -38,7 +38,7 @@ The index answers:
 
 ---
 
-## 🔢 Schema Eligibility & Impact Index
+##  Schema Eligibility & Impact Index
 
 ### Total Score: **0–100**
 
@@ -49,7 +49,7 @@ This is a **diagnostic score**, not a promise of rich results.
 ### Scoring Categories & Weights
 
 | Category                         | Weight  |
-| -------------------------------- | ------- |
+| -- | ------- |
 | Content–Schema Alignment         | 25      |
 | Rich Result Eligibility (Google) | 25      |
 | Data Completeness & Accuracy     | 20      |
@@ -115,7 +115,7 @@ This is a **diagnostic score**, not a promise of rich results.
 ### Eligibility Bands (Required)
 
 | Score  | Verdict               | Interpretation                        |
-| ------ | --------------------- | ------------------------------------- |
+| ------ | -- | -- |
 | 85–100 | **Strong Candidate**  | Schema is appropriate and low risk    |
 | 70–84  | **Valid but Limited** | Use selectively, expect modest impact |
 | 55–69  | **High Risk**         | Implement only with strict controls   |

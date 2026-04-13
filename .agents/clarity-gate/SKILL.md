@@ -46,7 +46,7 @@ spec_version: "2.1"
 ## What's New in v2.1
 
 | Feature | Description |
-|---------|-------------|
+|---------|--|
 | **Claim Completion Status** | PENDING/VERIFIED determined by field presence (no explicit status field) |
 | **Source Field Semantics** | Actionable source (PENDING) vs. what-was-found (VERIFIED) |
 | **Claim ID Format Guidance** | Hash-based IDs preferred, collision analysis for scale |
@@ -61,7 +61,7 @@ spec_version: "2.1"
 This skill implements and references:
 
 | Specification | Version | Location |
-|---------------|---------|----------|
+|--|---------|--|
 | Clarity Gate Format (Unified) | v2.1 | docs/CLARITY_GATE_FORMAT_SPEC.md |
 
 **Note:** v2.0 unifies CGD and SOT into a single `.cgd.md` format. SOT is now a CGD with an optional `tier:` block.
@@ -74,20 +74,20 @@ Clarity Gate defines validation codes for structural and semantic checks per FOR
 
 ### HITL Claim Validation (§1.3.2-1.3.3)
 | Code | Check | Severity |
-|------|-------|----------|
+|------|-------|--|
 | **W-HC01** | Partial `confirmed-by`/`confirmed-date` fields | WARNING |
 | **W-HC02** | Vague source (e.g., "industry reports", "TBD") | WARNING |
 | **E-SC06** | Schema error in `hitl-claims` structure | ERROR |
 
 ### Body Structure (§1.2.1)
 | Code | Check | Severity |
-|------|-------|----------|
+|------|-------|--|
 | **E-ST10** | Missing `## HITL Verification Record` when claims exist | ERROR |
 | **W-ST11** | Table rows don't match `hitl-claims` count | WARNING |
 
 ### SOT Table Validation (§3.1)
 | Code | Check | Severity |
-|------|-------|----------|
+|------|-------|--|
 | **E-TB01** | No `## Verified Claims` section | ERROR |
 | **E-TB02** | Table has no data rows | ERROR |
 | **E-TB03** | Required columns missing | ERROR |
@@ -170,7 +170,7 @@ Existing tools like UnScientify and HedgeHunter (CoNLL-2010) **detect** uncertai
 Clarity Gate **enforces** their presence where epistemically required ("Should uncertainty be expressed but isn't?").
 
 | Tool Type | Question | Example |
-|-----------|----------|---------|
+|--|--|---------|
 | **Detection** | "Does this text contain hedges?" | UnScientify/HedgeHunter find "may", "possibly" |
 | **Enforcement** | "Should this claim be hedged but isn't?" | Clarity Gate flags "Revenue will be $50M" |
 
@@ -333,7 +333,7 @@ Specific numbers that could be fact-checked should be flagged for verification.
 ```
 Claim Extracted --> Does Source of Truth Exist?
                            |
-           +---------------+---------------+
+           +--+--+
            YES                             NO
            |                               |
    Tier 1: Automated              Tier 2: HITL
@@ -403,13 +403,13 @@ Claims like "Revenue will be $50M" become "Revenue is **projected** to be $50M *
 ## HITL Verification Record
 
 ### Round A: Derived Data Confirmation
-- Claim 1 (source) ✓
-- Claim 2 (source) ✓
+- Claim 1 (source) 
+- Claim 2 (source) 
 
 ### Round B: True HITL Verification
 | # | Claim | Status | Verified By | Date |
-|---|-------|--------|-------------|------|
-| 1 | [claim] | ✓ Confirmed | [name] | [date] |
+|---|-------|--------|--|------|
+| 1 | [claim] |  Confirmed | [name] | [date] |
 
 <!-- CLARITY_GATE_END -->
 Clarity Gate: CLEAR | REVIEWED
@@ -444,7 +444,7 @@ Clarity Gate: CLEAR | REVIEWED
 Claim verification status is determined by field **presence**, not an explicit status field:
 
 | State | `confirmed-by` | `confirmed-date` | Meaning |
-|-------|----------------|------------------|----------|
+|-------|--|--|--|
 | **PENDING** | absent | absent | Awaiting human verification |
 | **VERIFIED** | present | present | Human has confirmed |
 | *(invalid)* | present | absent | W-HC01: partial fields |
@@ -457,7 +457,7 @@ Claim verification status is determined by field **presence**, not an explicit s
 The `source` field meaning changes based on claim state:
 
 | State | `source` Contains | Example |
-|-------|-------------------|----------|
+|-------|--|--|
 | **PENDING** | Where to verify (actionable) | `"Check Q3 planning doc"` |
 | **VERIFIED** | What was found (evidence) | `"Q3 planning doc, page 12"` |
 
@@ -468,7 +468,7 @@ The `source` field meaning changes based on claim state:
 **General pattern:** `claim-[a-z0-9._-]{1,64}` (alphanumeric, dots, underscores, hyphens)
 
 | Approach | Pattern | Example | Use Case |
-|----------|---------|---------|----------|
+|--|---------|---------|--|
 | **Hash-based** (preferred) | `claim-[a-f0-9]{8,}` | `claim-75fb137a` | Deterministic, collision-resistant |
 | **Sequential** | `claim-[0-9]+` | `claim-1`, `claim-2` | Simple documents |
 | **Semantic** | `claim-[a-z0-9-]+` | `claim-revenue-q3` | Human-friendly |
@@ -511,7 +511,7 @@ When validating a Source of Truth file, the skill checks both **format complianc
 SOT documents are CGDs with a `tier:` block. They require a `## Verified Claims` section with a valid table.
 
 | Code | Check | Severity |
-|------|-------|----------|
+|------|-------|--|
 | E-TB01 | No `## Verified Claims` section | ERROR |
 | E-TB02 | Table has no data rows | ERROR |
 | E-TB03 | Required columns missing (Claim, Value, Source, Verified) | ERROR |
@@ -525,7 +525,7 @@ SOT documents are CGDs with a `tier:` block. They require a `## Verified Claims`
 The 9 Verification Points apply to SOT content:
 
 | Point | SOT Application |
-|-------|-----------------|
+|-------|--|
 | 1-4 | Check claims in `## Verified Claims` are actually verified |
 | 5 | Check for conflicting values across tables |
 | 6 | Check claims don't imply unsupported causation |
@@ -567,7 +567,7 @@ After running Clarity Gate, report:
 
 ### Externally Verifiable Claims
 | # | Claim | Type | Suggested Verification |
-|---|-------|------|------------------------|
+|---|-------|------|--|
 | 1 | [claim] | Pricing | [where to verify] |
 
 ---
@@ -583,7 +583,7 @@ Reply "confirmed" or flag any I misread.
 ## Round B: HITL Verification Required
 
 | # | Claim | Why HITL Needed | Human Confirms |
-|---|-------|-----------------|----------------|
+|---|-------|--|--|
 | 1 | [claim] | [reason] | [ ] True / [ ] False |
 
 ---
@@ -600,7 +600,7 @@ Reply "confirmed" or flag any I misread.
 ## Severity Levels
 
 | Level | Definition | Action |
-|-------|------------|--------|
+|-------|--|--------|
 | **CRITICAL** | LLM will likely treat hypothesis as fact | Must fix before use |
 | **WARNING** | LLM might misinterpret | Should fix |
 | **TEMPORAL** | Date/time inconsistency detected | Verify and update |

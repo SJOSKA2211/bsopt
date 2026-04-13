@@ -45,7 +45,7 @@ Brief one-line description.
 ## Configuration
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+|--|--|---------|
 | PORT | Server port | 3000 |
 
 ## Documentation
@@ -71,7 +71,7 @@ Get a user by ID.
 
 **Parameters:**
 | Name | Type | Required | Description |
-|------|------|----------|-------------|
+|------|------|--|--|
 | id | string | Yes | User ID |
 
 **Response:**
@@ -103,8 +103,8 @@ Get a user by ID.
 
 ### When to Comment
 
-| ✅ Comment | ❌ Don't Comment |
-|-----------|-----------------|
+|  Comment |  Don't Comment |
+|--|--|
 | Why (business logic) | What (obvious) |
 | Complex algorithms | Every line |
 | Non-obvious behavior | Self-explanatory code |
@@ -185,7 +185,7 @@ For RAG indexing:
 ## 7. Structure Principles
 
 | Principle | Why |
-|-----------|-----|
+|--|-----|
 | **Scannable** | Headers, lists, tables |
 | **Examples first** | Show, don't just tell |
 | **Progressive detail** | Simple → Complex |

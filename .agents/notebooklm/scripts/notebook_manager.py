@@ -37,9 +37,9 @@ class NotebookLibrary:
                     data = json.load(f)
                     self.notebooks = data.get("notebooks", {})
                     self.active_notebook_id = data.get("active_notebook_id")
-                    print(f"📚 Loaded library with {len(self.notebooks)} notebooks")
+                    print(f" Loaded library with {len(self.notebooks)} notebooks")
             except Exception as e:
-                print(f"⚠️ Error loading library: {e}")
+                print(f"️ Error loading library: {e}")
                 self.notebooks = {}
                 self.active_notebook_id = None
         else:
@@ -56,7 +56,7 @@ class NotebookLibrary:
             with open(self.library_file, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
-            print(f"❌ Error saving library: {e}")
+            print(f" Error saving library: {e}")
 
     def add_notebook(
         self,
@@ -115,7 +115,7 @@ class NotebookLibrary:
 
         self._save_library()
 
-        print(f"✅ Added notebook: {name} ({notebook_id})")
+        print(f" Added notebook: {name} ({notebook_id})")
         return notebook
 
     def remove_notebook(self, notebook_id: str) -> bool:
@@ -139,10 +139,10 @@ class NotebookLibrary:
                     self.active_notebook_id = list(self.notebooks.keys())[0]
 
             self._save_library()
-            print(f"✅ Removed notebook: {notebook_id}")
+            print(f" Removed notebook: {notebook_id}")
             return True
 
-        print(f"⚠️ Notebook not found: {notebook_id}")
+        print(f"️ Notebook not found: {notebook_id}")
         return False
 
     def update_notebook(
@@ -190,7 +190,7 @@ class NotebookLibrary:
         notebook["updated_at"] = datetime.now().isoformat()
 
         self._save_library()
-        print(f"✅ Updated notebook: {notebook['name']}")
+        print(f" Updated notebook: {notebook['name']}")
         return notebook
 
     def get_notebook(self, notebook_id: str) -> dict[str, Any] | None:
@@ -246,7 +246,7 @@ class NotebookLibrary:
         self._save_library()
 
         notebook = self.notebooks[notebook_id]
-        print(f"✅ Activated notebook: {notebook['name']}")
+        print(f" Activated notebook: {notebook['name']}")
         return notebook
 
     def get_active_notebook(self) -> dict[str, Any] | None:
@@ -357,25 +357,25 @@ def main():
     elif args.command == "list":
         notebooks = library.list_notebooks()
         if notebooks:
-            print("\n📚 Notebook Library:")
+            print("\n Notebook Library:")
             for notebook in notebooks:
                 active = " [ACTIVE]" if notebook["id"] == library.active_notebook_id else ""
-                print(f"\n  📓 {notebook['name']}{active}")
+                print(f"\n   {notebook['name']}{active}")
                 print(f"     ID: {notebook['id']}")
                 print(f"     Topics: {', '.join(notebook['topics'])}")
                 print(f"     Uses: {notebook['use_count']}")
         else:
-            print("📚 Library is empty. Add notebooks with: notebook_manager.py add")
+            print(" Library is empty. Add notebooks with: notebook_manager.py add")
 
     elif args.command == "search":
         results = library.search_notebooks(args.query)
         if results:
-            print(f"\n🔍 Found {len(results)} notebooks:")
+            print(f"\n Found {len(results)} notebooks:")
             for notebook in results:
-                print(f"\n  📓 {notebook['name']} ({notebook['id']})")
+                print(f"\n   {notebook['name']} ({notebook['id']})")
                 print(f"     {notebook['description']}")
         else:
-            print(f"🔍 No notebooks found for: {args.query}")
+            print(f" No notebooks found for: {args.query}")
 
     elif args.command == "activate":
         notebook = library.select_notebook(args.id)
@@ -387,7 +387,7 @@ def main():
 
     elif args.command == "stats":
         stats = library.get_stats()
-        print("\n📊 Library Statistics:")
+        print("\n Library Statistics:")
         print(f"  Total notebooks: {stats['total_notebooks']}")
         print(f"  Total topics: {stats['total_topics']}")
         print(f"  Total uses: {stats['total_use_count']}")

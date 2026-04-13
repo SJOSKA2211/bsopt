@@ -20,7 +20,7 @@ Comprehensive patterns for Next.js 14+ App Router architecture, Server Component
 ### 1. Rendering Modes
 
 | Mode | Where | When to Use |
-|------|-------|-------------|
+|------|-------|--|
 | **Server Components** | Server only | Data fetching, heavy computation, secrets |
 | **Client Components** | Browser | Interactivity, hooks, browser APIs |
 | **Static** | Build time | Content that rarely changes |

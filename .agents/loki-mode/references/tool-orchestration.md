@@ -241,19 +241,19 @@ efficiency_factors:
 ### Three Reward Types (ToolOrchestra Pattern)
 
 ```
-+------------------------------------------------------------------+
++--+
 | 1. OUTCOME REWARD                                                 |
 |    - Did the task succeed? Binary + quality grade                 |
 |    - Signal: +1.0 (success), 0.0 (partial), -1.0 (failure)       |
-+------------------------------------------------------------------+
++--+
 | 2. EFFICIENCY REWARD                                              |
 |    - Did we use resources wisely?                                 |
 |    - Signal: 0.0 to 1.0 based on efficiency score                |
-+------------------------------------------------------------------+
++--+
 | 3. PREFERENCE REWARD                                              |
 |    - Did the user like the approach/result?                       |
 |    - Signal: Inferred from user actions (accept/reject/modify)   |
-+------------------------------------------------------------------+
++--+
 ```
 
 ### Outcome Reward Implementation
@@ -539,33 +539,33 @@ def get_agent_performance_score(agent, task_type, complexity):
 ### Continuous Improvement Loop
 
 ```
-+------------------------------------------------------------------+
++--+
 | 1. COLLECT                                                        |
 |    Record every task: agents used, tools called, outcome          |
-+------------------------------------------------------------------+
++--+
           |
           v
-+------------------------------------------------------------------+
++--+
 | 2. ANALYZE                                                        |
 |    Weekly aggregation: What worked? What didn't?                  |
 |    Identify patterns in high-reward vs low-reward tasks           |
-+------------------------------------------------------------------+
++--+
           |
           v
-+------------------------------------------------------------------+
++--+
 | 3. ADAPT                                                          |
 |    Update selection algorithms based on analytics                 |
 |    Store successful patterns in semantic memory                   |
-+------------------------------------------------------------------+
++--+
           |
           v
-+------------------------------------------------------------------+
++--+
 | 4. VALIDATE                                                       |
 |    A/B test new selection strategies                              |
 |    Measure efficiency improvement                                 |
-+------------------------------------------------------------------+
++--+
           |
-          +-----------> Loop back to COLLECT
+          +--> Loop back to COLLECT
 ```
 
 ---
@@ -653,7 +653,7 @@ Based on [Measurement Imbalance research (arXiv 2506.02064)](https://arxiv.org/a
 **Loki Mode tracks four evaluation axes:**
 
 | Axis | Metrics | Current Coverage |
-|------|---------|------------------|
+|------|---------|--|
 | **Technical** | success_rate, efficiency_score, recovery_rate | Full |
 | **Human-Centered** | preference_reward, goal_adherence | Partial |
 | **Safety** | policy_adherence, quality_gates_passed | Full (via review system) |

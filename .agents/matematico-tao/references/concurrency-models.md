@@ -221,19 +221,19 @@ EventuallyIdle == <>(state = "IDLE")
 
 ### Variáveis que precisam de proteção
 ```kotlin
-// ❌ INSEGURO: var compartilhado entre coroutines sem sincronização
+//  INSEGURO: var compartilhado entre coroutines sem sincronização
 var isConnected: Boolean = false
 launch(Dispatchers.IO) { isConnected = true }
 launch(Dispatchers.Default) { if (isConnected) ... }  // race!
 
-// ✅ SEGURO: @Volatile para leituras/escritas simples
+//  SEGURO: @Volatile para leituras/escritas simples
 @Volatile var isConnected: Boolean = false
 
-// ✅ SEGURO: AtomicBoolean para CAS operations
+//  SEGURO: AtomicBoolean para CAS operations
 val isConnected = AtomicBoolean(false)
 isConnected.compareAndSet(false, true)
 
-// ✅ SEGURO: StateFlow para estado observável
+//  SEGURO: StateFlow para estado observável
 private val _isConnected = MutableStateFlow(false)
 val isConnected = _isConnected.asStateFlow()
 ```
@@ -260,12 +260,12 @@ state.update { it.copy(...) }  // atômico via CAS
 
 ### Context Leaks (mais comum)
 ```kotlin
-// ❌ LEAK: Activity context capturada em objeto de longa vida
+//  LEAK: Activity context capturada em objeto de longa vida
 class LlmClient(val context: Context) {  // se context = Activity → leak
     // cliente pode sobreviver à Activity
 }
 
-// ✅ CORRETO: Application context para objetos de longa vida
+//  CORRETO: Application context para objetos de longa vida
 class LlmClient(val context: Context) {
     init {
         // usar context.applicationContext para operações longas
@@ -275,14 +275,14 @@ class LlmClient(val context: Context) {
 
 ### Coroutine Leaks
 ```kotlin
-// ❌ LEAK: coroutine lançada sem scope adequado
+//  LEAK: coroutine lançada sem scope adequado
 fun startRecording() {
     GlobalScope.launch {  // nunca cancelado!
         // ...
     }
 }
 
-// ✅ CORRETO: scope vinculado ao ciclo de vida
+//  CORRETO: scope vinculado ao ciclo de vida
 class EarLlmService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -294,11 +294,11 @@ class EarLlmService : Service() {
 
 ### Listener Leaks (Bluetooth)
 ```kotlin
-// ❌ LEAK: listener registrado mas nunca removido
+//  LEAK: listener registrado mas nunca removido
 audioManager.registerAudioDeviceCallback(callback, null)
 // onDestroy esquece de chamar unregisterAudioDeviceCallback
 
-// ✅ CORRETO: registro/desregistro simétrico
+//  CORRETO: registro/desregistro simétrico
 override fun onStart() { register(callback) }
 override fun onStop() { unregister(callback) }
 ```

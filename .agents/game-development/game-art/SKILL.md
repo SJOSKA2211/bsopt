@@ -38,7 +38,7 @@ What feeling should the game evoke?
 ### Style Comparison Matrix
 
 | Style | Production Speed | Skill Floor | Scalability | Best For |
-|-------|------------------|-------------|-------------|----------|
+|-------|--|--|--|--|
 | **Pixel Art** | Medium | Medium | Hard to hire | Indie, retro |
 | **Vector/Flat** | Fast | Low | Easy | Mobile, casual |
 | **Hand-painted** | Slow | High | Medium | Fantasy, stylized |
@@ -53,7 +53,7 @@ What feeling should the game evoke?
 ### 2D Pipeline
 
 | Phase | Tool Options | Output |
-|-------|--------------|--------|
+|-------|--|--------|
 | **Concept** | Paper, Procreate, Photoshop | Reference sheet |
 | **Creation** | Aseprite, Photoshop, Krita | Individual sprites |
 | **Atlas** | TexturePacker, Aseprite | Spritesheet |
@@ -63,7 +63,7 @@ What feeling should the game evoke?
 ### 3D Pipeline
 
 | Phase | Tool Options | Output |
-|-------|--------------|--------|
+|-------|--|--------|
 | **Concept** | 2D art, Blockout | Reference |
 | **Modeling** | Blender, Maya, 3ds Max | High-poly mesh |
 | **Retopology** | Blender, ZBrush | Game-ready mesh |
@@ -79,7 +79,7 @@ What feeling should the game evoke?
 ### Palette Selection
 
 | Goal | Strategy | Example |
-|------|----------|---------|
+|------|--|---------|
 | **Harmony** | Complementary or analogous | Nature games |
 | **Contrast** | High saturation differences | Action games |
 | **Mood** | Warm/cool temperature | Horror, cozy |
@@ -99,7 +99,7 @@ What feeling should the game evoke?
 ### The 12 Principles (Applied to Games)
 
 | Principle | Game Application |
-|-----------|------------------|
+|--|--|
 | **Squash & Stretch** | Jump arcs, impacts |
 | **Anticipation** | Wind-up before attack |
 | **Staging** | Clear silhouettes |
@@ -114,7 +114,7 @@ What feeling should the game evoke?
 ### Frame Count Guidelines
 
 | Action Type | Typical Frames | Feel |
-|-------------|----------------|------|
+|--|--|------|
 | Idle breathing | 4-8 | Subtle |
 | Walk cycle | 6-12 | Smooth |
 | Run cycle | 4-8 | Energetic |
@@ -128,7 +128,7 @@ What feeling should the game evoke?
 ### 2D Resolution by Platform
 
 | Platform | Base Resolution | Sprite Scale |
-|----------|-----------------|--------------|
+|--|--|--|
 | Mobile | 1080p | 64-128px characters |
 | Desktop | 1080p-4K | 128-256px characters |
 | Pixel art | 320x180 to 640x360 | 16-32px characters |

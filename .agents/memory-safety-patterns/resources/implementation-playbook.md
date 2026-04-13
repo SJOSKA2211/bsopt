@@ -20,7 +20,7 @@ Cross-language patterns for memory-safe programming including RAII, ownership, s
 ### 1. Memory Bug Categories
 
 | Bug Type | Description | Prevention |
-|----------|-------------|------------|
+|--|--|--|
 | **Use-after-free** | Access freed memory | Ownership, RAII |
 | **Double-free** | Free same memory twice | Smart pointers |
 | **Memory leak** | Never free memory | RAII, GC |

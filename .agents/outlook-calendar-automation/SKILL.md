@@ -223,7 +223,7 @@ filter: "contains(subject, 'Review') and categories/any(c:c eq 'Work')"
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create event | OUTLOOK_CALENDAR_CREATE_EVENT | subject, start_datetime, end_datetime, time_zone |
 | List events | OUTLOOK_LIST_EVENTS | filter, select, top, timezone |
 | Get event details | OUTLOOK_GET_EVENT | event_id |

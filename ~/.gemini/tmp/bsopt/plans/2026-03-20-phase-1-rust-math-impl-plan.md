@@ -18,7 +18,7 @@ graph TD
 
 ## 3. Execution Strategy
 | Phase | Objective | Agent | Validation |
-|-------|-----------|-------|------------|
+|-------|--|-------|--|
 | 1 | Define & Implement Hardened 32-byte Binary Standard | `data_engineer` | Magic byte & header check |
 | 2 | Refactor Rust Core: Zero-Copy Views & Exact GBM | `coder` | `cargo test` & `PyArray` check |
 | 3 | EngineArbiter 2.0: Multi-Hardware Routing | `api_designer` | GPU/CPU routing logic tests |
@@ -92,7 +92,7 @@ graph TD
 
 ## 7. Cost Estimation
 | Phase | Agent | Model | Est. Input | Est. Output | Est. Cost |
-|-------|-------|-------|-----------|------------|----------|
+|-------|-------|-------|--|--|--|
 | 1 | `data_engineer` | Flash | 15,000 | 800 | $0.02 |
 | 2 | `coder` | Pro | 30,000 | 2,000 | $0.38 |
 | 3 | `api_designer` | Flash | 15,000 | 500 | $0.02 |

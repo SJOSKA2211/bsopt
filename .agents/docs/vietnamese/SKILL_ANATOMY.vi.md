@@ -4,7 +4,7 @@
 
 ---
 
-## 📁 Cấu trúc Thư mục Cơ bản
+##  Cấu trúc Thư mục Cơ bản
 
 ```
 skills/
@@ -158,10 +158,10 @@ Hướng dẫn thêm...
 ```markdown
 ## Thực hành Tốt nhất
  
-- ✅ Nên làm điều này
-- ✅ Cũng nên làm điều này
-- ❌ Không nên làm điều này
-- ❌ Tránh điều này
+-  Nên làm điều này
+-  Cũng nên làm điều này
+-  Không nên làm điều này
+-  Tránh điều này
 ```
 
 #### 7. Các lỗi thường gặp (Common Pitfalls)
@@ -188,13 +188,13 @@ Hướng dẫn thêm...
 
 ### Sử dụng Ngôn ngữ Rõ ràng, Trực tiếp
 
-**❌ Không tốt:**
+** Không tốt:**
 
 ```markdown
 Bạn có lẽ nên cân nhắc việc kiểm tra xem người dùng đã xác thực hay chưa.
 ```
 
-**✅ Tốt:**
+** Tốt:**
 
 ```markdown
 Kiểm tra xem người dùng đã được xác thực chưa trước khi tiếp tục.
@@ -202,13 +202,13 @@ Kiểm tra xem người dùng đã được xác thực chưa trước khi tiế
 
 ### Sử dụng Động từ Hành động
 
-**❌ Không tốt:**
+** Không tốt:**
 
 ```markdown
 File nên được tạo ra...
 ```
 
-**✅ Tốt:**
+** Tốt:**
 
 ```markdown
 Tạo file...
@@ -216,13 +216,13 @@ Tạo file...
 
 ### Cụ thể và Chi tiết
 
-**❌ Không tốt:**
+** Không tốt:**
 
 ```markdown
 Thiết lập cơ sở dữ liệu một cách chính xác.
 ```
 
-**✅ Tốt:**
+** Tốt:**
 
 ```markdown
 1. Tạo cơ sở dữ liệu PostgreSQL
@@ -364,7 +364,7 @@ Sử dụng định dạng nhất quán:
 
 ---
 
-## ✅ Danh mục Kiểm tra Chất lượng (Quality Checklist)
+##  Danh mục Kiểm tra Chất lượng (Quality Checklist)
 
 Trước khi hoàn tất skill của bạn:
 
@@ -398,7 +398,7 @@ Trước khi hoàn tất skill của bạn:
 
 ---
 
-## 🔍 Phân tích Ví dụ Thực tế
+##  Phân tích Ví dụ Thực tế
 
 Hãy phân tích một skill thực tế: `brainstorming`
 
@@ -411,9 +411,9 @@ description: "Bạn PHẢI sử dụng skill này trước bất kỳ công vi�
 
 **Phân tích:**
 
-- ✅ Tên rõ ràng.
-- ✅ Mô tả mạnh mẽ với tính cấp bách ("PHẢI sử dụng").
-- ✅ Giải thích khi nào nên dùng.
+-  Tên rõ ràng.
+-  Mô tả mạnh mẽ với tính cấp bách ("PHẢI sử dụng").
+-  Giải thích khi nào nên dùng.
 
 ```markdown
 # Brainstorming Ý tưởng thành Thiết kế
@@ -425,9 +425,9 @@ Giúp chuyển đổi ý tưởng thành các thiết kế hoàn chỉnh...
 
 **Phân tích:**
 
-- ✅ Tiêu đề rõ ràng.
-- ✅ Tổng quan súc tích.
-- ✅ Giải thích giá trị mang lại.
+-  Tiêu đề rõ ràng.
+-  Tổng quan súc tích.
+-  Giải thích giá trị mang lại.
 
 ```markdown
 ## Quy trình
@@ -440,9 +440,9 @@ Giúp chuyển đổi ý tưởng thành các thiết kế hoàn chỉnh...
 
 **Phân tích:**
 
-- ✅ Được chia thành các giai đoạn rõ ràng.
-- ✅ Các bước cụ thể, có thể hành động.
-- ✅ Dễ dàng thực hiện theo.
+-  Được chia thành các giai đoạn rõ ràng.
+-  Các bước cụ thể, có thể hành động.
+-  Dễ dàng thực hiện theo.
 
 ---
 
@@ -529,7 +529,7 @@ Cách để biết skill của bạn có tốt hay không:
 
 ---
 
-## 💡 Mẹo Chuyên nghiệp
+##  Mẹo Chuyên nghiệp
 
 1. **Bắt đầu với phần "Khi nào sử dụng"** - Điều này làm rõ mục đích của skill.
 2. **Viết ví dụ trước** - Chúng giúp bạn hiểu những gì bạn đang dạy.
@@ -541,7 +541,7 @@ Cách để biết skill của bạn có tốt hay không:
 
 ## Các lỗi Thường gặp cần Tránh
 
-### ❌ Lỗi 1: Quá mơ hồ
+###  Lỗi 1: Quá mơ hồ
 
 ```markdown
 ## Hướng dẫn
@@ -549,7 +549,7 @@ Cách để biết skill của bạn có tốt hay không:
 Làm cho code tốt hơn.
 ```
 
-**✅ Khắc phục:**
+** Khắc phục:**
 
 ```markdown
 ## Hướng dẫn
@@ -559,7 +559,7 @@ Làm cho code tốt hơn.
 3. Viết unit tests cho các chức năng cốt lõi.
 ```
 
-### ❌ Lỗi 2: Quá phức tạp
+###  Lỗi 2: Quá phức tạp
 
 ```markdown
 ## Hướng dẫn
@@ -567,10 +567,10 @@ Làm cho code tốt hơn.
 [5000 từ chứa đầy thuật ngữ kỹ thuật dày đặc]
 ```
 
-**✅ Khắc phục:**
+** Khắc phục:**
 Chia nhỏ thành nhiều skill hoặc sử dụng phương pháp tiết lộ lũy tiến.
 
-### ❌ Lỗi 3: Không có ví dụ
+###  Lỗi 3: Không có ví dụ
 
 ```markdown
 ## Hướng dẫn
@@ -578,21 +578,21 @@ Chia nhỏ thành nhiều skill hoặc sử dụng phương pháp tiết lộ l�
 [Hướng dẫn mà không có bất kỳ ví dụ code nào]
 ```
 
-**✅ Khắc phục:**
+** Khắc phục:**
 Thêm ít nhất 2-3 ví dụ thực tế.
 
-### ❌ Lỗi 4: Thông tin lỗi thời
+###  Lỗi 4: Thông tin lỗi thời
 
 ```markdown
 Sử dụng React class components...
 ```
 
-**✅ Khắc phục:**
+** Khắc phục:**
 Luôn cập nhật skill với các thực hành tốt nhất hiện tại.
 
 ---
 
-## 🎯 Các bước Tiếp theo
+##  Các bước Tiếp theo
 
 1. **Đọc 3-5 skill hiện có** để thấy các phong cách khác nhau.
 2. **Thử dùng bản mẫu skill** từ file `CONTRIBUTING.md`.
@@ -602,4 +602,4 @@ Luôn cập nhật skill với các thực hành tốt nhất hiện tại.
 
 ---
 
-**Hãy nhớ rằng:** Mọi chuyên gia đều từng là người mới bắt đầu. Hãy bắt đầu đơn giản, học hỏi từ phản hồi và cải thiện theo thời gian! 🚀
+**Hãy nhớ rằng:** Mọi chuyên gia đều từng là người mới bắt đầu. Hãy bắt đầu đơn giản, học hỏi từ phản hồi và cải thiện theo thời gian! 

@@ -86,13 +86,13 @@ record.is_published = True
 
 ## Best Practices
 
-- ✅ **Do:** Test with `--update=your_module` on each version before pushing to production.
-- ✅ **Do:** Use the official [Odoo Upgrade Guide](https://upgrade.odoo.com/) to get an automated pre-upgrade analysis report.
-- ✅ **Do:** Check OCA migration notes and the module's `HISTORY.rst` for community modules.
-- ✅ **Do:** Run `npm run validate` after migration to catch manifest or frontmatter issues early.
-- ❌ **Don't:** Skip intermediate versions — go v14→v15→v16→v17 sequentially; never jump.
-- ❌ **Don't:** Forget to update `version` in `__manifest__.py` (e.g., `17.0.1.0.0`).
-- ❌ **Don't:** Assume OCA modules are migration-ready; check their GitHub branch for the target version.
+-  **Do:** Test with `--update=your_module` on each version before pushing to production.
+-  **Do:** Use the official [Odoo Upgrade Guide](https://upgrade.odoo.com/) to get an automated pre-upgrade analysis report.
+-  **Do:** Check OCA migration notes and the module's `HISTORY.rst` for community modules.
+-  **Do:** Run `npm run validate` after migration to catch manifest or frontmatter issues early.
+-  **Don't:** Skip intermediate versions — go v14→v15→v16→v17 sequentially; never jump.
+-  **Don't:** Forget to update `version` in `__manifest__.py` (e.g., `17.0.1.0.0`).
+-  **Don't:** Assume OCA modules are migration-ready; check their GitHub branch for the target version.
 
 ## Limitations
 

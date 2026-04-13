@@ -115,6 +115,6 @@ Co-Authored-By: (the agent model's name and attribution byline)
 
 ## CLI
 | Command | Description |
-|---------|-------------|
+|---------|--|
 | `pnpm cli sync` | Sync data |
 ```

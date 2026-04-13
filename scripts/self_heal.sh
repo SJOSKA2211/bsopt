@@ -1,7 +1,7 @@
 #!/bin/bash
-# ==============================================================================
+# ==
 # BSOPT SELF-HEALING MONITOR (v1.0)
-# ==============================================================================
+# ==
 # Monitors the containerized ecosystem and autonomously patches/recovers
 # from gRPC drops, Auth failures, and database deadlocks.
 

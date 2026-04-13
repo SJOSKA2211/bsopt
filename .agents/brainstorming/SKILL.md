@@ -171,7 +171,7 @@ This log should be preserved for documentation.
 
 ## After the Design
 
-### 📄 Documentation
+###  Documentation
 
 Once the design is validated:
 
@@ -186,7 +186,7 @@ Persist the document according to the project’s standard workflow.
 
 ---
 
-### 🛠️ Implementation Handoff (Optional)
+### ️ Implementation Handoff (Optional)
 
 Only after documentation is complete, ask:
 

@@ -19,12 +19,12 @@ NC='\033[0m' # No Color
 
 # Helper functions
 error() {
-    echo -e "${RED}❌ Error: $1${NC}" >&2
+    echo -e "${RED} Error: $1${NC}" >&2
     exit 1
 }
 
 success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN} $1${NC}"
 }
 
 info() {
@@ -32,7 +32,7 @@ info() {
 }
 
 warn() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}️  $1${NC}"
 }
 
 # Check if audio file is provided
@@ -158,11 +158,11 @@ try:
     with open(temp_json, "w", encoding="utf-8") as f:
         json.dump(data, f)
     
-    print(f"✅ Language detected: {data['language']}")
-    print(f"📝 Transcribed {len(data['segments'])} segments")
+    print(f" Language detected: {data['language']}")
+    print(f" Transcribed {len(data['segments'])} segments")
     
 except Exception as e:
-    print(f"❌ Error: {e}", file=sys.stderr)
+    print(f" Error: {e}", file=sys.stderr)
     sys.exit(1)
 EOF
 
@@ -196,7 +196,7 @@ model_name = os.environ["MODEL_ENV"]
 # Generate Markdown
 markdown = f"""# Audio Transcription Report
 
-## 📊 Metadata
+##  Metadata
 
 | Field | Value |
 |-------|-------|
@@ -210,7 +210,7 @@ markdown = f"""# Audio Transcription Report
 
 ---
 
-## 🎙️ Full Transcription
+## ️ Full Transcription
 
 """
 
@@ -222,7 +222,7 @@ for seg in data["segments"]:
 
 markdown += """---
 
-## 📝 Summary
+##  Summary
 
 *Automatic summary generation requires AI integration (Claude/GPT).*  
 *For now, review the full transcription above.*
@@ -237,7 +237,7 @@ markdown += """---
 with open(os.environ["OUTPUT_FILE_ENV"], "w", encoding="utf-8") as f:
     f.write(markdown)
 
-print(f"✅ Markdown report saved: {os.environ['OUTPUT_FILE_ENV']}")
+print(f" Markdown report saved: {os.environ['OUTPUT_FILE_ENV']}")
 EOF
 
 # Clean up
@@ -246,7 +246,7 @@ rm -f "$TEMP_JSON"
 # Step 4: Display summary
 success "Transcription complete!"
 echo ""
-echo "📊 Results:"
+echo " Results:"
 echo "  Output file: $OUTPUT_FILE"
 echo "  Transcription engine: $TRANSCRIBER"
 echo "  Model: $MODEL"

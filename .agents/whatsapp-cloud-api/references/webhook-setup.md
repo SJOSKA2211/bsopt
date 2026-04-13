@@ -13,7 +13,7 @@ confirmacoes de entrega nem atualizacoes de status em tempo real.
 **Requisitos obrigatorios:**
 
 | Requisito | Detalhe |
-|-----------|---------|
+|--|---------|
 | Protocolo | HTTPS com certificado SSL valido (nao aceita auto-assinado) |
 | Resposta | HTTP 200 OK em ate **5 segundos** |
 | Disponibilidade | Endpoint deve estar acessivel publicamente na internet |
@@ -37,7 +37,7 @@ automaticamente.
 ### Campos obrigatorios
 
 | Campo | Descricao |
-|-------|-----------|
+|-------|--|
 | **Callback URL** | URL HTTPS do seu servidor (ex: `https://api.seudominio.com/webhook`) |
 | **Verify Token** | String secreta que voce define (ex: `meu_token_secreto_2024`) |
 
@@ -71,10 +71,10 @@ Meta                            Seu Servidor
   |    hub.mode=subscribe            |
   |    hub.verify_token=SEU_TOKEN    |
   |    hub.challenge=RANDOM_STRING   |
-  |  ---------------------------->>  |
+  |  -->>  |
   |                                  |  1. Verifica hub.verify_token
   |                                  |  2. Se valido, retorna hub.challenge
-  |  <<----------------------------  |
+  |  <<--  |
   |  HTTP 200 + challenge como body  |
 ```
 
@@ -505,7 +505,7 @@ app.post('/webhook', (req, res) => {
 A Meta reenvia eventos com backoff exponencial quando nao recebe HTTP 200:
 
 | Tentativa | Intervalo aproximado |
-|-----------|---------------------|
+|--|--|
 | 1a | Imediato |
 | 2a | ~1 minuto |
 | 3a | ~5 minutos |
@@ -540,7 +540,7 @@ if (!isNewMessage(message.id)) {
 A Meta recomenda que o seu servidor suporte:
 
 | Metrica | Recomendacao |
-|---------|-------------|
+|---------|--|
 | Capacidade de entrada | **3x** o volume de mensagens enviadas + **1x** mensagens recebidas |
 | Tempo de resposta | < 5 segundos (idealmente < 1 segundo) |
 | Disponibilidade | 99.9% uptime minimo |
@@ -580,7 +580,7 @@ app.get('/health', (req, res) => {
 **Alertas recomendados:**
 
 | Alerta | Threshold | Acao |
-|--------|-----------|------|
+|--------|--|------|
 | Latencia alta | > 3 segundos | Investigar gargalos, escalar workers |
 | Taxa de erro | > 1% | Verificar logs, possivel bug no handler |
 | Falha HMAC | > 0 por hora | Possivel ataque; verificar APP_SECRET |

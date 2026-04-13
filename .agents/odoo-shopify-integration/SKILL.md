@@ -94,8 +94,8 @@ def shopify_order_webhook():
 
 ## Best Practices
 
-- ✅ **Do:** Use Shopify's **webhook system** for real-time order sync instead of polling.
-- ✅ **Do:** Match products using **SKU / Internal Reference** as the unique key between both systems.
-- ✅ **Do:** Validate Shopify webhook HMAC signatures before processing any payload.
-- ❌ **Don't:** Sync inventory from both systems simultaneously without a "master system" — pick one as the source of truth.
-- ❌ **Don't:** Use Shopify product IDs as the key — use SKUs which are stable across platforms.
+-  **Do:** Use Shopify's **webhook system** for real-time order sync instead of polling.
+-  **Do:** Match products using **SKU / Internal Reference** as the unique key between both systems.
+-  **Do:** Validate Shopify webhook HMAC signatures before processing any payload.
+-  **Don't:** Sync inventory from both systems simultaneously without a "master system" — pick one as the source of truth.
+-  **Don't:** Use Shopify product IDs as the key — use SKUs which are stable across platforms.

@@ -315,7 +315,7 @@ export default MyComponent;
 **Example:**
 
 ```typescript
-// ❌ AVOID - Monolithic
+//  AVOID - Monolithic
 function MassiveComponent() {
     // 500+ lines
     // Search logic
@@ -324,7 +324,7 @@ function MassiveComponent() {
     // Action panel logic
 }
 
-// ✅ PREFERRED - Modular
+//  PREFERRED - Modular
 function ParentContainer() {
     return (
         <Box>
@@ -411,7 +411,7 @@ export const Child: React.FC<ChildProps> = ({ data, onSelect }) => {
 
 **Use context for deep nesting:**
 ```typescript
-// ❌ AVOID - Prop drilling 5+ levels
+//  AVOID - Prop drilling 5+ levels
 <A prop={x}>
   <B prop={x}>
     <C prop={x}>
@@ -422,7 +422,7 @@ export const Child: React.FC<ChildProps> = ({ data, onSelect }) => {
   </B>
 </A>
 
-// ✅ PREFERRED - Context or TanStack Query
+//  PREFERRED - Context or TanStack Query
 const MyContext = createContext<MyData | null>(null);
 
 function Provider({ children }) {

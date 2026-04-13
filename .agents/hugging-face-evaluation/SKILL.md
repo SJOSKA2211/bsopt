@@ -49,7 +49,7 @@ Note: vLLM dependencies are installed automatically via PEP 723 script headers w
 
 # IMPORTANT: Using This Skill
 
-## ⚠️ CRITICAL: Check for Existing PRs Before Creating New Ones
+## ️ CRITICAL: Check for Existing PRs Before Creating New Ones
 
 **Before creating ANY pull request with `--create-pr`, you MUST check for existing open PRs:**
 
@@ -117,7 +117,7 @@ Key workflow (matches CLI help):
 
 ## 5. Run Custom Model Evaluations with vLLM (NEW)
 
-⚠️ **Important:** This approach is only possible on devices with `uv` installed and sufficient GPU memory.
+️ **Important:** This approach is only possible on devices with `uv` installed and sufficient GPU memory.
 **Benefits:** No need to use `hf_jobs()` MCP tool, can run scripts directly in terminal
 **When to use:** User working in local device directly  when GPU is available
 
@@ -254,7 +254,7 @@ Evaluate custom HuggingFace models directly on GPU using vLLM or accelerate back
 #### When to Use vLLM Evaluation (vs Inference Providers)
 
 | Feature | vLLM Scripts | Inference Provider Scripts |
-|---------|-------------|---------------------------|
+|---------|--|--|
 | Model access | Any HF model | Models with API endpoints |
 | Hardware | Your GPU (or HF Jobs GPU) | Provider's infrastructure |
 | Cost | HF Jobs compute cost | API usage fees |
@@ -394,7 +394,7 @@ uv run scripts/run_vllm_eval_job.py \
 
 **Hardware Recommendations:**
 | Model Size | Recommended Hardware |
-|------------|---------------------|
+|--|--|
 | < 3B params | `t4-small` |
 | 3B - 13B | `a10g-small` |
 | 13B - 34B | `a10g-large` |

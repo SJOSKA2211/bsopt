@@ -217,7 +217,7 @@ Description of the non-functional requirement (performance, security, etc.)
 ## Risks and Mitigations
 
 | Risk             | Impact          | Mitigation          |
-| ---------------- | --------------- | ------------------- |
+| -- | -- | -- |
 | Risk description | High/Medium/Low | Mitigation strategy |
 
 ## Open Questions
@@ -278,7 +278,7 @@ Brief description of implementation approach.
 ## Checkpoints
 
 | Phase   | Checkpoint SHA | Date | Status  |
-| ------- | -------------- | ---- | ------- |
+| ------- | -- | ---- | ------- |
 | Phase 1 |                |      | pending |
 | Phase 2 |                |      | pending |
 | Phase 3 |                |      | pending |
@@ -289,7 +289,7 @@ Brief description of implementation approach.
 Use consistent markers in plan.md:
 
 | Marker | Meaning     | Usage                       |
-| ------ | ----------- | --------------------------- |
+| ------ | -- | -- |
 | `[ ]`  | Pending     | Task not started            |
 | `[~]`  | In Progress | Currently being worked      |
 | `[x]`  | Complete    | Task finished (include SHA) |
@@ -314,20 +314,20 @@ Example:
 ## Active Tracks
 
 | Track ID                                         | Type    | Status      | Phase | Started    | Assignee   |
-| ------------------------------------------------ | ------- | ----------- | ----- | ---------- | ---------- |
+| -- | ------- | -- | ----- | -- | -- |
 | user-auth_20250115 | feature | in-progress | 2/3   | 2025-01-15 | @developer |
 | fix-login_20250114 | bug     | pending     | 0/2   | 2025-01-14 | -          |
 
 ## Completed Tracks
 
 | Track ID                                       | Type  | Completed  | Duration |
-| ---------------------------------------------- | ----- | ---------- | -------- |
+| -- | ----- | -- | -------- |
 | setup-ci_20250110 | chore | 2025-01-12 | 2 days   |
 
 ## Archived Tracks
 
 | Track ID                                             | Reason     | Archived   |
-| ---------------------------------------------------- | ---------- | ---------- |
+| -- | -- | -- |
 | old-feature_20241201 | Superseded | 2025-01-05 |
 ```
 

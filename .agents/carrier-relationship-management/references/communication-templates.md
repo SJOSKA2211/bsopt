@@ -186,7 +186,7 @@ I want to formally recognize {{carrier_name}}'s performance during {{review_peri
 **Performance Summary — {{review_period}}:**
 
 | Metric | Target | Your Performance | Portfolio Average |
-|--------|--------|-----------------|-------------------|
+|--------|--------|--|--|
 | On-Time Delivery | ≥95% | {{otd_percentage}} | {{portfolio_avg_otd}} |
 | Tender Acceptance | ≥90% | {{tender_acceptance}} | {{portfolio_avg_tender}} |
 | Claims Ratio | <0.5% | {{claims_ratio}} | {{portfolio_avg_claims}} |
@@ -229,7 +229,7 @@ I'm reaching out regarding {{carrier_name}}'s performance during {{review_period
 **Performance Summary — {{review_period}}:**
 
 | Metric | Our Standard | Your Performance | Gap |
-|--------|-------------|-----------------|-----|
+|--------|--|--|-----|
 | On-Time Delivery | ≥95% | {{otd_percentage}} | {{otd_gap}} below standard |
 | Tender Acceptance | ≥90% | {{tender_acceptance}} | {{tender_gap}} below standard |
 | Claims Ratio | <0.5% | {{claims_ratio}} | {{claims_gap}} above standard |
@@ -243,7 +243,7 @@ I'm reaching out regarding {{carrier_name}}'s performance during {{review_period
 We value our relationship with {{carrier_name}} and want to find a path forward. We're requesting a Corrective Action Plan that addresses the following within the timelines indicated:
 
 | Metric | Target | 30-Day Checkpoint | 60-Day Checkpoint |
-|--------|--------|-------------------|-------------------|
+|--------|--------|--|--|
 | OTD | ≥{{otd_target}}% | ≥{{otd_30day}}% | ≥{{otd_60day}}% |
 | Tender Acceptance | ≥{{tender_target}}% | ≥{{tender_30day}}% | ≥{{tender_60day}}% |
 
@@ -280,7 +280,7 @@ This email contains everything you need to get started. Please review carefully 
 **Your Awarded Lanes:**
 
 | Lane | Volume | Equipment | Transit Requirement |
-|------|--------|-----------|-------------------|
+|------|--------|--|--|
 | {{lane_1_origin}} → {{lane_1_dest}} | {{lane_1_volume}}/week | {{lane_1_equip}} | {{lane_1_transit}} |
 | {{lane_2_origin}} → {{lane_2_dest}} | {{lane_2_volume}}/week | {{lane_2_equip}} | {{lane_2_transit}} |
 
@@ -301,7 +301,7 @@ This email contains everything you need to get started. Please review carefully 
 **Our Facilities — Key Operational Notes:**
 
 | Facility | Dock Hours | Appointment Required? | Avg Load/Unload Time | Detention Policy |
-|----------|-----------|----------------------|---------------------|-----------------|
+|--|--|--|--|--|
 | {{facility_1}} | {{hours_1}} | {{appt_1}} | {{avg_time_1}} | {{detention_1}} |
 | {{facility_2}} | {{hours_2}} | {{appt_2}} | {{avg_time_2}} | {{detention_2}} |
 
@@ -336,7 +336,7 @@ This letter serves as formal notice that {{carrier_name}}'s performance on {{our
 Per Section {{contract_section}} of our Transportation Agreement dated {{agreement_date}}, the following minimum standards apply:
 
 | Metric | Contractual Minimum | {{carrier_name}}'s Performance ({{deficiency_period}}) |
-|--------|--------------------|----------------------------------------------------|
+|--------|--|--|
 | {{metric_1}} | {{standard_1}} | {{actual_1}} |
 | {{metric_2}} | {{standard_2}} | {{actual_2}} |
 
@@ -564,7 +564,7 @@ Best regards,
 ### Tone Calibration by Relationship Status
 
 | Relationship Status | Appropriate Templates | Tone Adjustment |
-|--------------------|----------------------|-----------------|
+|--|--|--|
 | New carrier (< 6 months) | Onboarding welcome, rate negotiation opening, market rate discussion | More formal, set clear expectations, be specific about standards |
 | Established carrier (6-24 months) | All templates | Standard professional tone, data-driven, collaborative |
 | Strategic partner (2+ years, top tier) | Performance review positive, partnership proposal, market rate discussion | More collegial, emphasize growth opportunity, share more operational context |
@@ -574,7 +574,7 @@ Best regards,
 ### Communication Channel Selection
 
 | Situation | Primary Channel | When to Escalate Channel |
-|-----------|----------------|------------------------|
+|--|--|--|
 | Rate discussion (routine) | Email → phone follow-up | If email exchange exceeds 3 rounds without resolution |
 | Performance review (positive) | Email + QBR meeting | N/A — always share good news broadly |
 | Performance review (corrective) | Email first (documentation), then phone/meeting | If carrier doesn't respond within 5 business days |

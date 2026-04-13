@@ -50,7 +50,7 @@ Inclui auto-repair, rollback, dry-run, dashboard, e diagnostico avancado.
 Seis camadas de validacao garantem que nenhuma skill fique mal-instalada:
 
 | Camada | Script | O que valida |
-|--------|--------|-------------|
+|--------|--------|--|
 | 1 | detect_skills.py | SKILL.md existe + tem frontmatter |
 | 2 | validate_skill.py | 10 checks profundos |
 | 3 | install_skill.py (pre) | Conflitos, permissoes, espaco, versao |
@@ -219,7 +219,7 @@ python C:\Users\renat\skills\skill-installer\scripts\package_skill.py --verify -
 ## Install_Skill.Py
 
 | Comando | Descricao |
-|---------|-----------|
+|---------|--|
 | `--source <path>` | Instalar skill de caminho |
 | `--source <path> --force` | Sobrescrever se existir |
 | `--source <path> --name <nome>` | Nome customizado |

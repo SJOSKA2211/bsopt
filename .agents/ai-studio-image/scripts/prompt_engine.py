@@ -28,9 +28,9 @@ from config import (
     SHOT_TYPES,
 )
 
-# =============================================================================
+# ==
 # CAMADAS DE HUMANIZACAO — Sistema de 5 camadas
-# =============================================================================
+# ==
 
 LAYER_DEVICE = {
     "core": [
@@ -196,9 +196,9 @@ def _detect_shot_type(prompt: str) -> str | None:
     return "medium"  # default equilibrado
 
 
-# =============================================================================
+# ==
 # FUNCAO PRINCIPAL DE HUMANIZACAO
-# =============================================================================
+# ==
 
 
 def humanize_prompt(
@@ -291,9 +291,9 @@ def humanize_prompt(
     return prompt
 
 
-# =============================================================================
+# ==
 # ANALISADOR INTELIGENTE DE PROMPT
-# =============================================================================
+# ==
 
 
 def analyze_prompt(user_prompt: str) -> dict:
@@ -493,9 +493,9 @@ def analyze_prompt(user_prompt: str) -> dict:
     }
 
 
-# =============================================================================
+# ==
 # HELPER: Resolver aliases de formato
-# =============================================================================
+# ==
 
 
 def resolve_format(user_input: str) -> str:
@@ -503,9 +503,9 @@ def resolve_format(user_input: str) -> str:
     return FORMAT_ALIASES.get(user_input.lower().strip(), user_input)
 
 
-# =============================================================================
+# ==
 # CLI
-# =============================================================================
+# ==
 
 
 def main():

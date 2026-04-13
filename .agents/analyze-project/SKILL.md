@@ -325,7 +325,7 @@ Examples of strong findings:
 
 Create `session_analysis_report.md` with this structure:
 
-# 📊 Session Analysis Report — [Project Name]
+#  Session Analysis Report — [Project Name]
 
 **Generated**: [timestamp]  
 **Conversations Analyzed**: [N]  
@@ -335,23 +335,23 @@ Create `session_analysis_report.md` with this structure:
 
 | Metric | Value | Rating |
 |:---|:---|:---|
-| First-Shot Success Rate | X% | 🟢/🟡/🔴 |
-| Completion Rate | X% | 🟢/🟡/🔴 |
-| Avg Scope Growth | X% | 🟢/🟡/🔴 |
-| Replan Rate | X% | 🟢/🟡/🔴 |
+| First-Shot Success Rate | X% | 🟢/🟡/ |
+| Completion Rate | X% | 🟢/🟡/ |
+| Avg Scope Growth | X% | 🟢/🟡/ |
+| Replan Rate | X% | 🟢/🟡/ |
 | Median Duration | Xm | — |
-| Avg Session Severity | X | 🟢/🟡/🔴 |
-| High-Severity Sessions | X / N | 🟢/🟡/🔴 |
+| Avg Session Severity | X | 🟢/🟡/ |
+| High-Severity Sessions | X / N | 🟢/🟡/ |
 
 Thresholds:
-- First-shot: 🟢 >70 / 🟡 40–70 / 🔴 <40
-- Scope growth: 🟢 <15 / 🟡 15–40 / 🔴 >40
-- Replan rate: 🟢 <20 / 🟡 20–50 / 🔴 >50
+- First-shot: 🟢 >70 / 🟡 40–70 /  <40
+- Scope growth: 🟢 <15 / 🟡 15–40 /  >40
+- Replan rate: 🟢 <20 / 🟡 20–50 /  >50
 
 Avg severity guidance:
 - 🟢 <25
 - 🟡 25–50
-- 🔴 >50
+-  >50
 
 Note: avg severity is an aggregate health signal, not the same as per-session severity bands.
 

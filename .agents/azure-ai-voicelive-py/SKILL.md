@@ -93,7 +93,7 @@ asyncio.run(main())
 The `VoiceLiveConnection` exposes these resources:
 
 | Resource | Purpose | Key Methods |
-|----------|---------|-------------|
+|--|---------|--|
 | `conn.session` | Session configuration | `update(session=...)` |
 | `conn.response` | Model responses | `create()`, `cancel()` |
 | `conn.input_audio_buffer` | Audio input | `append()`, `commit()`, `clear()` |
@@ -254,7 +254,7 @@ await conn.response.create()
 ## Voice Options
 
 | Voice | Description |
-|-------|-------------|
+|-------|--|
 | `alloy` | Neutral, balanced |
 | `echo` | Warm, conversational |
 | `shimmer` | Clear, professional |
@@ -269,7 +269,7 @@ Azure voices: Use `AzureStandardVoice`, `AzureCustomVoice`, or `AzurePersonalVoi
 ## Audio Formats
 
 | Format | Sample Rate | Use Case |
-|--------|-------------|----------|
+|--------|--|--|
 | `pcm16` | 24kHz | Default, high quality |
 | `pcm16-8000hz` | 8kHz | Telephony |
 | `pcm16-16000hz` | 16kHz | Voice assistants |

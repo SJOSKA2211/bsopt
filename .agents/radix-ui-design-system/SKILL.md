@@ -57,10 +57,10 @@ Every Radix primitive is built with accessibility as the foundation:
 Radix provides **behavior**, you provide **appearance**:
 
 ```tsx
-// ❌ Don't fight pre-styled components
+//  Don't fight pre-styled components
 <Button className="override-everything" />
 
-// ✅ Radix gives you behavior, you add styling
+//  Radix gives you behavior, you add styling
 <Dialog.Root>
   <Dialog.Trigger className="your-button-styles" />
   <Dialog.Content className="your-modal-styles" />
@@ -296,12 +296,12 @@ export function CustomSelect({ items, placeholder, onValueChange }) {
 **Use case**: Render as different elements without losing behavior
 
 ```tsx
-// ✅ Render as Next.js Link but keep Radix behavior
+//  Render as Next.js Link but keep Radix behavior
 <Dialog.Trigger asChild>
   <Link href="/settings">Open Settings</Link>
 </Dialog.Trigger>
 
-// ✅ Render as custom component
+//  Render as custom component
 <DropdownMenu.Item asChild>
   <YourCustomButton icon={<Icon />}>Action</YourCustomButton>
 </DropdownMenu.Item>
@@ -484,7 +484,7 @@ export function AnimatedDialog({ open, onOpenChange }) {
 
 ## Best Practices
 
-### ✅ Do This
+###  Do This
 
 1. **Always use `asChild` to avoid wrapper divs**
    ```tsx
@@ -523,11 +523,11 @@ export function AnimatedDialog({ open, onOpenChange }) {
    }
    ```
 
-### ❌ Don't Do This
+###  Don't Do This
 
 1. **Don't skip accessibility parts**
    ```tsx
-   // ❌ Missing Title and Description
+   //  Missing Title and Description
    <Dialog.Content>
      <div>Content</div>
    </Dialog.Content>
@@ -535,19 +535,19 @@ export function AnimatedDialog({ open, onOpenChange }) {
 
 2. **Don't fight the primitives**
    ```tsx
-   // ❌ Overriding internal behavior
+   //  Overriding internal behavior
    <Dialog.Content onClick={(e) => e.stopPropagation()}>
    ```
 
 3. **Don't mix controlled and uncontrolled**
    ```tsx
-   // ❌ Inconsistent state management
+   //  Inconsistent state management
    <Tabs.Root defaultValue="tab1" value={activeTab}>
    ```
 
 4. **Don't ignore keyboard navigation**
    ```tsx
-   // ❌ Disabling keyboard behavior
+   //  Disabling keyboard behavior
    <DropdownMenu.Item onKeyDown={(e) => e.preventDefault()}>
    ```
 

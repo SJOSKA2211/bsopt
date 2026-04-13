@@ -115,7 +115,7 @@ P2 = perda toleravel).
 **P0 — Perda Fatal (preservar com redundancia tripla)**
 
 | Categoria | O que extrair | Exemplo |
-|-----------|--------------|---------|
+|--|--|---------|
 | Decisoes tecnicas | Escolhas de arquitetura, padrao, tecnologia E motivo | "Usamos parameterized queries porque f-strings causam SQL injection" |
 | Estado de tarefas | O que foi feito, o que falta, dependencias | "18/18 match OK, falta ZIP" |
 | Correcoes aplicadas | Bug, causa raiz, solucao exata, arquivos afetados | "instagram/db.py: SQL injection via f-string → ? placeholders" |
@@ -126,7 +126,7 @@ P2 = perda toleravel).
 **P1 — Perda Grave (preservar com verificacao)**
 
 | Categoria | O que extrair |
-|-----------|--------------|
+|--|--|
 | Padroes descobertos | Convencoes, patterns de codigo observados |
 | Dependencias entre componentes | "scan_registry.py E match_skills.py devem ter categorias identicas" |
 | Preferencias do usuario | Idioma, estilo, nivel de detalhe, workflow preferido |
@@ -136,7 +136,7 @@ P2 = perda toleravel).
 **P2 — Perda Toleravel (resumo compacto)**
 
 | Categoria | O que extrair |
-|-----------|--------------|
+|--|--|
 | Historico de tentativas | "Tentei X, nao funcionou por Y, entao Z" |
 | Metricas de progresso | Contadores, tempos, tamanhos |
 | Discussoes exploratórias | Brainstorm, opcoes consideradas e descartadas |

@@ -222,19 +222,19 @@ extra fingers, bad anatomy, worst quality"
 IMAGE-STUDIO — [tipo de geracao]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🎨 Modelo: [ai-studio-image / stability-ai]
-📋 Modo: [template / generate / inpaint / etc]
+ Modelo: [ai-studio-image / stability-ai]
+ Modo: [template / generate / inpaint / etc]
 ⏱️ Tempo: ~Xs
 
-✅ Imagem gerada!
-   📁 Salva em: [caminho]
-   📐 Dimensao: XxY px
-   💾 Tamanho: X KB
+ Imagem gerada!
+    Salva em: [caminho]
+    Dimensao: XxY px
+    Tamanho: X KB
 
-🔧 Prompt usado:
+ Prompt usado:
    "[prompt otimizado]"
 
-💡 Variacoes disponiveis:
+ Variacoes disponiveis:
    1. stability-ai versao arte
    2. ai-studio-image versao humanizada
    3. Ajuste de estilo/iluminacao

@@ -60,7 +60,7 @@ Generate a new Next.js or React project with TypeScript, Tailwind CSS, and best 
 ### Scaffolder Options
 
 | Option               | Description                                       |
-| -------------------- | ------------------------------------------------- |
+| -- | -- |
 | `--template nextjs`  | Next.js 14+ with App Router and Server Components |
 | `--template react`   | React + Vite with TypeScript                      |
 | `--features auth`    | Add NextAuth.js authentication                    |
@@ -123,7 +123,7 @@ Generate React components with TypeScript, tests, and Storybook stories.
 ### Generator Options
 
 | Option          | Description                                  |
-| --------------- | -------------------------------------------- |
+| -- | -- |
 | `--type client` | Client component with 'use client' (default) |
 | `--type server` | Async server component                       |
 | `--type hook`   | Custom React hook                            |
@@ -187,7 +187,7 @@ Analyze package.json and project structure for bundle optimization opportunities
 ### Bundle Score Interpretation
 
 | Score  | Grade | Action                         |
-| ------ | ----- | ------------------------------ |
+| ------ | ----- | -- |
 | 90-100 | A     | Bundle is well-optimized       |
 | 80-89  | B     | Minor optimizations available  |
 | 70-79  | C     | Replace heavy dependencies     |
@@ -199,7 +199,7 @@ Analyze package.json and project structure for bundle optimization opportunities
 The analyzer identifies these common heavy packages:
 
 | Package       | Size  | Alternative                    |
-| ------------- | ----- | ------------------------------ |
+| -- | ----- | -- |
 | moment        | 290KB | date-fns (12KB) or dayjs (2KB) |
 | lodash        | 71KB  | lodash-es with tree-shaking    |
 | axios         | 14KB  | Native fetch or ky (3KB)       |

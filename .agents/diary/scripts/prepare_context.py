@@ -163,7 +163,7 @@ def extract_latest_diary_todos(root):
 def prepare_context(root_path):
     root = Path(root_path).resolve()
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    print(f"📋 Preparing context for: {root}")
+    print(f" Preparing context for: {root}")
 
     context_file = root / "AGENT_CONTEXT.md"
 
@@ -175,7 +175,7 @@ def prepare_context(root_path):
         f.write("---\n\n")
 
         # Section 1: 專案目標
-        f.write("## 🎯 1. 專案目標 (Project Goal)\n")
+        f.write("##  1. 專案目標 (Project Goal)\n")
         readme_summary = extract_readme_summary(root)
         if readme_summary:
             f.write(f"* **核心目的**：{readme_summary}\n")
@@ -187,7 +187,7 @@ def prepare_context(root_path):
         f.write("\n")
 
         # Section 2: 技術棧與環境
-        f.write("## 🛠️ 2. 技術棧與環境 (Tech Stack & Environment)\n")
+        f.write("## ️ 2. 技術棧與環境 (Tech Stack & Environment)\n")
         stack_info = extract_tech_stack(root)
         if stack_info:
             f.write("\n".join(stack_info))
@@ -223,15 +223,15 @@ def prepare_context(root_path):
         f.write("\n")
 
         # Section 3: 核心目錄結構
-        f.write("## 📂 3. 核心目錄結構 (Core Structure)\n")
-        f.write("_(💡 AI 讀取守則：請依據此結構尋找對應檔案，勿盲目猜測路徑)_\n")
+        f.write("##  3. 核心目錄結構 (Core Structure)\n")
+        f.write("_( AI 讀取守則：請依據此結構尋找對應檔案，勿盲目猜測路徑)_\n")
         f.write("```text\n")
         f.write(f"{root.name}/\n")
         f.write("\n".join(get_tree(root)))
         f.write("\n```\n\n")
 
         # Section 4: 架構與設計約定
-        f.write("## 🏛️ 4. 架構與設計約定 (Architecture & Conventions)\n")
+        f.write("## ️ 4. 架構與設計約定 (Architecture & Conventions)\n")
         local_exp = root / ".auto-skill-local.md"
         if local_exp.exists():
             f.write("_(來自專案 L1 快取 `.auto-skill-local.md`)_\n\n")
@@ -241,18 +241,18 @@ def prepare_context(root_path):
             f.write("* _（尚無 `.auto-skill-local.md`，專案踩坑經驗將在開發過程中自動累積）_\n\n")
 
         # Section 5: 目前進度與待辦
-        f.write("## 🚦 5. 目前進度與待辦 (Current Status & TODO)\n")
+        f.write("##  5. 目前進度與待辦 (Current Status & TODO)\n")
         latest_date, todos = extract_latest_diary_todos(root)
         if todos:
             f.write(f"_(自動提取自最近日記 {latest_date})_\n\n")
-            f.write("### 🚧 待辦事項\n")
+            f.write("###  待辦事項\n")
             for todo in todos:
                 f.write(f"{todo}\n")
             f.write("\n")
         else:
             f.write("* _（尚無日記記錄，或日記中無「下一步」區塊）_\n\n")
 
-    print(f"✅ Created: {context_file}")
+    print(f" Created: {context_file}")
 
 
 if __name__ == "__main__":

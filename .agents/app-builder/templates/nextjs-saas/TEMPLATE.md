@@ -8,7 +8,7 @@ description: Next.js SaaS template principles. Auth, payments, email.
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | Next.js 14 (App Router) |
 | Auth | NextAuth.js v5 |
 | Payments | Stripe |
@@ -49,7 +49,7 @@ project-name/
 ## SaaS Features
 
 | Feature | Implementation |
-|---------|---------------|
+|---------|--|
 | Auth | NextAuth + OAuth |
 | Subscriptions | Stripe Checkout |
 | Billing Portal | Stripe Portal |
@@ -71,7 +71,7 @@ project-name/
 ## Environment Variables
 
 | Variable | Purpose |
-|----------|---------|
+|--|---------|
 | DATABASE_URL | Prisma |
 | NEXTAUTH_SECRET | Auth |
 | STRIPE_SECRET_KEY | Payments |

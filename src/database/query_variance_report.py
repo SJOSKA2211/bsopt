@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 def run_variance_audit(iterations: int = 100):
     engine = get_engine()
     print("  BSOpt Query Jitter Audit (High-Performance)")
-    print("---------------------------------------")
+    print("--")
 
     queries = {
         "latest_options_prices": "SELECT * FROM options_prices ORDER BY time DESC LIMIT 100",
@@ -50,7 +50,7 @@ def run_variance_audit(iterations: int = 100):
         print(f"  StdDev: {std:.4f}ms")
 
         if p99 > 10.0:  # Arbitrary threshold for "high jitter"
-            print(f"  ⚠️ ALERT: High P99 jitter detected for {name}!")
+            print(f"  ️ ALERT: High P99 jitter detected for {name}!")
         else:
             print("   Stability: EXCELLENT")
         print("")

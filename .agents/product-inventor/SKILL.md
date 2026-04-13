@@ -151,11 +151,11 @@ Passo 5: Pergunte: "E se o usuario nao precisasse clicar em nada?"
 - Zero-state inteligente (estado vazio que ja ensina e convida)
 
 **Teste da Killer Interaction:**
-- O usuario entende em 3 segundos sem instrucao? ✓
-- Resolve um problema real que outros produtos ignoram? ✓
-- Cria momento "uau util" (nao apenas "uau bonito")? ✓
-- Pode virar demo de 10 segundos que impressiona? ✓
-- E difícil de copiar sem entender a logica por tras? ✓
+- O usuario entende em 3 segundos sem instrucao? 
+- Resolve um problema real que outros produtos ignoram? 
+- Cria momento "uau util" (nao apenas "uau bonito")? 
+- Pode virar demo de 10 segundos que impressiona? 
+- E difícil de copiar sem entender a logica por tras? 
 
 ## 2.3 Motor 3 — "Design System Proprietario"
 
@@ -442,7 +442,7 @@ Crie proprios para os componentes que carregam a identidade (Card, Navigation, F
 ## Secao 5: Comandos De Ativacao
 
 | Comando | O que faz |
-|---------|-----------|
+|---------|--|
 | `/invent [ideia/produto]` | Cria 3 conceitos novos com nome, por que e novo, killer interaction, flow e riscos. Escolhe 1 e executa |
 | `/blueprint [produto/conceito]` | Sitemap, componentes, estados, microinteracoes, acessibilidade |
 | `/build [produto/conceito]` | Codigo completo: tokens, componentes, paginas, mocks, validacoes, README |
@@ -525,33 +525,33 @@ Para qualquer entrega substantiva, use esta estrutura:
 ## 7.2 Anti-Patterns Que Este Agente Nunca Produz
 
 ```
-❌ Modal com 3+ acoes sem hierarquia clara
-❌ Botao "Salvar" sem feedback de loading/sucesso
-❌ Formulario com 10+ campos em uma tela
-❌ Spinner girando em tela cheia por mais de 300ms
-❌ Mensagem de erro generica ("Algo deu errado")
-❌ Empty state em branco sem convite a acao
-❌ Tipografia com menos de 16px em body (mobile)
-❌ Icone sem label em acao critica
-❌ Hover state sem transicao (mudanca instantanea)
-❌ Z-index arbitrario (9999, 99999, 999999)
-❌ Cores hardcoded no componente (sempre via token)
-❌ onClick em elemento nao-semantico sem role
+ Modal com 3+ acoes sem hierarquia clara
+ Botao "Salvar" sem feedback de loading/sucesso
+ Formulario com 10+ campos em uma tela
+ Spinner girando em tela cheia por mais de 300ms
+ Mensagem de erro generica ("Algo deu errado")
+ Empty state em branco sem convite a acao
+ Tipografia com menos de 16px em body (mobile)
+ Icone sem label em acao critica
+ Hover state sem transicao (mudanca instantanea)
+ Z-index arbitrario (9999, 99999, 999999)
+ Cores hardcoded no componente (sempre via token)
+ onClick em elemento nao-semantico sem role
 ```
 
 ## 7.3 Patterns Que Este Agente Sempre Produz
 
 ```
-✅ Skeleton screens em vez de spinners
-✅ Optimistic UI em acoes previsivelmente bem-sucedidas
-✅ Undo toast em vez de confirmacao de delecao (mais elegante)
-✅ Progressive disclosure (mostrar mais conforme o usuario precisa)
-✅ Inline validation em forms (nao so no submit)
-✅ Placeholder content em zero-states (ajuda o usuario a entender o que vera)
-✅ Keyboard shortcut em acoes frequentes (com tooltip que mostra o atalho)
-✅ Focus management apos acoes (foco vai para o elemento relevante)
-✅ Scroll restoration ao navegar de volta
-✅ Persist scroll position em listas paginadas
+ Skeleton screens em vez de spinners
+ Optimistic UI em acoes previsivelmente bem-sucedidas
+ Undo toast em vez de confirmacao de delecao (mais elegante)
+ Progressive disclosure (mostrar mais conforme o usuario precisa)
+ Inline validation em forms (nao so no submit)
+ Placeholder content em zero-states (ajuda o usuario a entender o que vera)
+ Keyboard shortcut em acoes frequentes (com tooltip que mostra o atalho)
+ Focus management apos acoes (foco vai para o elemento relevante)
+ Scroll restoration ao navegar de volta
+ Persist scroll position em listas paginadas
 ```
 
 ---

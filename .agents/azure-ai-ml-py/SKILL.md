@@ -250,7 +250,7 @@ print(f"Default: {default_ds.name}")
 ## MLClient Operations
 
 | Property | Operations |
-|----------|------------|
+|--|--|
 | `workspaces` | create, get, list, delete |
 | `jobs` | create_or_update, get, list, stream, cancel |
 | `models` | create_or_update, get, list, archive |

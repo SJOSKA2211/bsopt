@@ -63,7 +63,7 @@ If the user provides a GitHub repository URL or `owner/repo` identifier, use rem
 Extract `owner/repo` and optional `ref` from the user's input:
 
 | Input Format | Extract |
-|-------------|---------|
+|--|---------|
 | `owner/repo` | owner, repo; ref = default branch |
 | `owner/repo@ref` | owner, repo, ref (branch, tag, or SHA) |
 | `https://github.com/owner/repo` | owner, repo; ref = default branch |
@@ -135,7 +135,7 @@ For each workflow file, examine every job and every step within each job. Check 
 **Known AI Action References:**
 
 | Action Reference | Action Type |
-|-----------------|-------------|
+|--|--|
 | `anthropics/claude-code-action` | Claude Code Action |
 | `google-github-actions/run-gemini-cli` | Gemini CLI |
 | `google-gemini/gemini-cli-action` | Gemini CLI (legacy/archived) |
@@ -239,7 +239,7 @@ First, read {baseDir}/references/foundations.md to understand the attacker-contr
 Then check each vector against the security context captured in Step 3:
 
 | Vector | Name | Quick Check | Reference |
-|--------|------|-------------|-----------|
+|--------|------|--|--|
 | A | Env Var Intermediary | `env:` block with `${{ github.event.* }}` value + prompt reads that env var name | {baseDir}/references/vector-a-env-var-intermediary.md |
 | B | Direct Expression Injection | `${{ github.event.* }}` inside prompt or system-prompt field | {baseDir}/references/vector-b-direct-expression-injection.md |
 | C | CLI Data Fetch | `gh issue view`, `gh pr view`, or `gh api` commands in prompt text | {baseDir}/references/vector-c-cli-data-fetch.md |

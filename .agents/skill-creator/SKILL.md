@@ -60,7 +60,7 @@ SKILLS_REPO="$REPO_ROOT"
 
 # Check if in cli-ai-skills repository
 if [[ ! -d "$SKILLS_REPO/.github/skills" ]]; then
-    echo "⚠️  Not in cli-ai-skills repository. Creating standalone skill."
+    echo "️  Not in cli-ai-skills repository. Creating standalone skill."
     STANDALONE=true
 fi
 
@@ -106,7 +106,7 @@ echo "[████░░░░░░░░░░░░░░] 20% - Step 1/5: B
 Display progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║     🛠️  SKILL CREATOR - Creating New Skill                  ║
+║     ️  SKILL CREATOR - Creating New Skill                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ → Phase 1: Brainstorming                 [10%]               ║
 ║ ○ Phase 2: Prompt Refinement                                 ║
@@ -153,7 +153,7 @@ echo "[████████░░░░░░░░░░] 40% - Step 2/5: P
 Update progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║ ✓ Phase 1: Brainstorming                                     ║
+║  Phase 1: Brainstorming                                     ║
 ║ → Phase 2: Prompt Refinement             [30%]               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Progress: █████████░░░░░░░░░░░░░░░░░░░░░  30%              ║
@@ -184,8 +184,8 @@ echo "[████████████░░░░░░] 60% - Step 3/5: F
 Update progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║ ✓ Phase 1: Brainstorming                                     ║
-║ ✓ Phase 2: Prompt Refinement                                 ║
+║  Phase 1: Brainstorming                                     ║
+║  Phase 2: Prompt Refinement                                 ║
 ║ → Phase 3: File Generation               [50%]               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Progress: ███████████████░░░░░░░░░░░░░░░  50%              ║
@@ -267,7 +267,7 @@ fi
 
 **Display created structure:**
 ```
-✅ Created:
+ Created:
    .github/skills/your-skill-name/ (if Copilot selected)
    .claude/skills/your-skill-name/ (if Claude selected)
    .codex/skills/your-skill-name/ (if Codex selected)
@@ -288,7 +288,7 @@ echo "[████████████████░░] 80% - Step 4/5: V
 Update progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║ ✓ Phase 3: File Generation                                   ║
+║  Phase 3: File Generation                                   ║
 ║ → Phase 4: Validation                    [70%]               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Progress: █████████████████████░░░░░░░░░  70%              ║
@@ -307,12 +307,12 @@ scripts/validate-skill-content.sh ".github/skills/$SKILL_NAME"
 
 **Expected output:**
 ```
-🔍 Validating YAML frontmatter...
-✅ YAML frontmatter valid!
+ Validating YAML frontmatter...
+ YAML frontmatter valid!
 
-🔍 Validating content...
-✅ Word count excellent: 1847 words
-✅ Content validation complete!
+ Validating content...
+ Word count excellent: 1847 words
+ Content validation complete!
 ```
 
 **If validation fails:**
@@ -335,7 +335,7 @@ echo "[████████████████████] 100% - Step
 Update progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║ ✓ Phase 4: Validation                                        ║
+║  Phase 4: Validation                                        ║
 ║ → Phase 5: Installation                  [90%]               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Progress: ██████████████████████████░░░░░  90%              ║
@@ -380,21 +380,21 @@ echo "Install for these platforms? [Y/n]"
 if [[ " ${INSTALL_TARGETS[*]} " =~ " copilot " ]]; then
     ln -sf "$SKILLS_REPO/.github/skills/$SKILL_NAME" \
            "$HOME/.copilot/skills/$SKILL_NAME"
-    echo "✅ Installed for GitHub Copilot CLI"
+    echo " Installed for GitHub Copilot CLI"
 fi
 
 # Claude Code
 if [[ " ${INSTALL_TARGETS[*]} " =~ " claude " ]]; then
     ln -sf "$SKILLS_REPO/.claude/skills/$SKILL_NAME" \
            "$HOME/.claude/skills/$SKILL_NAME"
-    echo "✅ Installed for Claude Code"
+    echo " Installed for Claude Code"
 fi
 
 # Codex
 if [[ " ${INSTALL_TARGETS[*]} " =~ " codex " ]]; then
     ln -sf "$SKILLS_REPO/.codex/skills/$SKILL_NAME" \
            "$HOME/.codex/skills/$SKILL_NAME"
-    echo "✅ Installed for Codex"
+    echo " Installed for Codex"
 fi
 ```
 
@@ -411,14 +411,14 @@ ls -la ~/.codex/skills/$SKILL_NAME 2>/dev/null
 
 **Progress:** Display completion message:
 ```bash
-echo "[████████████████████] 100% - ✓ Skill created successfully!"
+echo "[████████████████████] 100% -  Skill created successfully!"
 ```
 
 Update progress:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║ ✓ Phase 5: Installation                                      ║
-║ ✅ SKILL CREATION COMPLETE!                                  ║
+║  Phase 5: Installation                                      ║
+║  SKILL CREATION COMPLETE!                                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Progress: ██████████████████████████████  100%              ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -427,27 +427,27 @@ Update progress:
 **Display summary:**
 
 ```
-🎉 Skill created successfully!
+ Skill created successfully!
 
-📦 Skill Name: your-skill-name
-📁 Location: .github/skills/your-skill-name/
-🔗 Installed: Global (Copilot + Claude)
+ Skill Name: your-skill-name
+ Location: .github/skills/your-skill-name/
+ Installed: Global (Copilot + Claude)
 
-📋 Files Created:
-   ✅ SKILL.md (1,847 words)
-   ✅ README.md (423 words)
-   ✅ references/ (empty, ready for extended docs)
-   ✅ examples/ (empty, ready for code samples)
-   ✅ scripts/ (empty, ready for utilities)
+ Files Created:
+    SKILL.md (1,847 words)
+    README.md (423 words)
+    references/ (empty, ready for extended docs)
+    examples/ (empty, ready for code samples)
+    scripts/ (empty, ready for utilities)
 
-🚀 Next Steps:
+ Next Steps:
    1. Test the skill: Try trigger phrases in CLI
    2. Add examples: Create working code samples in examples/
    3. Extend docs: Add detailed guides to references/
    4. Commit changes: git add .github/skills/your-skill-name && git commit
    5. Share: Push to repository for team use
 
-💡 Pro Tips:
+ Pro Tips:
    - Keep SKILL.md under 2,000 words (currently: 1,847)
    - Move detailed content to references/ folder
    - Add executable scripts to scripts/ folder
@@ -461,7 +461,7 @@ Update progress:
 
 If platforms cannot be detected:
 ```
-⚠️  Unable to detect GitHub Copilot CLI or Claude Code
+️  Unable to detect GitHub Copilot CLI or Claude Code
     
 Would you like to:
 1. Install for repository only (works when in repo)
@@ -473,7 +473,7 @@ Would you like to:
 
 If templates are missing:
 ```
-❌ Error: Template not found at resources/templates/
+ Error: Template not found at resources/templates/
 
 This skill requires the cli-ai-skills repository structure.
 
@@ -487,7 +487,7 @@ Options:
 
 If content doesn't meet standards:
 ```
-⚠️  Validation Issues Found:
+️  Validation Issues Found:
 
 1. YAML: Description not in third-person format
    Expected: "This skill should be used when..."
@@ -503,7 +503,7 @@ Fix automatically? [Y/n]
 
 If symlink already exists:
 ```
-⚠️  Skill already installed at ~/.copilot/skills/your-skill-name
+️  Skill already installed at ~/.copilot/skills/your-skill-name
 
 Options:
 1. Overwrite existing installation

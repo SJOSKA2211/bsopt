@@ -32,7 +32,7 @@ Comprehensive Terraform and OpenTofu guidance covering testing, modules, CI/CD, 
 **Module Hierarchy:**
 
 | Type | When to Use | Scope |
-|------|-------------|-------|
+|------|--|-------|
 | **Resource Module** | Single logical group of connected resources | VPC + subnets, Security group + rules |
 | **Infrastructure Module** | Collection of resource modules for a purpose | Multiple resource modules in one region/account |
 | **Composition** | Complete infrastructure | Spans multiple regions/accounts |
@@ -84,13 +84,13 @@ resource "aws_s3_bucket" "bucket" { }
 
 Use `"this"` when your module creates only one resource of that type:
 
-✅ DO:
+ DO:
 ```hcl
 resource "aws_vpc" "this" {}           # Module creates one VPC
 resource "aws_security_group" "this" {}  # Module creates one SG
 ```
 
-❌ DON'T use "this" for multiple resources:
+ DON'T use "this" for multiple resources:
 ```hcl
 resource "aws_subnet" "this" {}  # If creating multiple subnets
 ```
@@ -116,7 +116,7 @@ var.database_instance_class # Not just "instance_class"
 ### Decision Matrix: Which Testing Approach?
 
 | Your Situation | Recommended Approach | Tools | Cost |
-|----------------|---------------------|-------|------|
+|--|--|-------|------|
 | **Quick syntax check** | Static analysis | `terraform validate`, `fmt` | Free |
 | **Pre-commit validation** | Static + lint | `validate`, `tflint`, `trivy`, `checkov` | Free |
 | **Terraform 1.6+, simple logic** | Native test framework | Built-in `terraform test` | Free-Low |
@@ -180,7 +180,7 @@ var.database_instance_class # Not just "instance_class"
 5. `lifecycle` at the very end (if needed)
 
 ```hcl
-# ✅ GOOD - Correct ordering
+#  GOOD - Correct ordering
 resource "aws_nat_gateway" "this" {
   count = var.create_nat_gateway ? 1 : 0
 
@@ -229,7 +229,7 @@ variable "environment" {
 ### Quick Decision Guide
 
 | Scenario | Use | Why |
-|----------|-----|-----|
+|--|-----|-----|
 | Boolean condition (create or don't) | `count = condition ? 1 : 0` | Simple on/off toggle |
 | Simple numeric replication | `count = 3` | Fixed number of identical resources |
 | Items may be reordered/removed | `for_each = toset(list)` | Stable resource addresses |
@@ -240,7 +240,7 @@ variable "environment" {
 
 **Boolean conditions:**
 ```hcl
-# ✅ GOOD - Boolean condition
+#  GOOD - Boolean condition
 resource "aws_nat_gateway" "this" {
   count = var.create_nat_gateway ? 1 : 0
   # ...
@@ -249,7 +249,7 @@ resource "aws_nat_gateway" "this" {
 
 **Stable addressing with for_each:**
 ```hcl
-# ✅ GOOD - Removing "us-east-1b" only affects that subnet
+#  GOOD - Removing "us-east-1b" only affects that subnet
 resource "aws_subnet" "private" {
   for_each = toset(var.availability_zones)
 
@@ -257,7 +257,7 @@ resource "aws_subnet" "private" {
   # ...
 }
 
-# ❌ BAD - Removing middle AZ recreates all subsequent subnets
+#  BAD - Removing middle AZ recreates all subsequent subnets
 resource "aws_subnet" "private" {
   count = length(var.availability_zones)
 
@@ -331,20 +331,20 @@ my-module/
 ### Best Practices Summary
 
 **Variables:**
-- ✅ Always include `description`
-- ✅ Use explicit `type` constraints
-- ✅ Provide sensible `default` values where appropriate
-- ✅ Add `validation` blocks for complex constraints
-- ✅ Use `sensitive = true` for secrets
+-  Always include `description`
+-  Use explicit `type` constraints
+-  Provide sensible `default` values where appropriate
+-  Add `validation` blocks for complex constraints
+-  Use `sensitive = true` for secrets
 
 **Outputs:**
-- ✅ Always include `description`
-- ✅ Mark sensitive outputs with `sensitive = true`
-- ✅ Consider returning objects for related values
-- ✅ Document what consumers should do with each output
+-  Always include `description`
+-  Mark sensitive outputs with `sensitive = true`
+-  Consider returning objects for related values
+-  Document what consumers should do with each output
 
 **For detailed module patterns, see:**
-- **Module Patterns Guide** - Variable best practices, output design, ✅ DO vs ❌ DON'T patterns
+- **Module Patterns Guide** - Variable best practices, output design,  DO vs  DON'T patterns
 - **Quick Reference** - Resource naming, variable naming, file organization
 
 ## CI/CD Integration
@@ -379,13 +379,13 @@ checkov -d .
 
 ### Common Issues to Avoid
 
-❌ **Don't:**
+ **Don't:**
 - Store secrets in variables
 - Use default VPC
 - Skip encryption
 - Open security groups to 0.0.0.0/0
 
-✅ **Do:**
+ **Do:**
 - Use AWS Secrets Manager / Parameter Store
 - Create dedicated VPCs
 - Enable encryption at rest
@@ -407,7 +407,7 @@ version = ">= 5.0"     # Minimum (risky - breaking changes)
 ### Strategy by Component
 
 | Component | Strategy | Example |
-|-----------|----------|---------|
+|--|--|---------|
 | **Terraform** | Pin minor version | `required_version = "~> 1.9"` |
 | **Providers** | Pin major version | `version = "~> 5.0"` |
 | **Modules (prod)** | Pin exact version | `version = "5.1.2"` |
@@ -433,7 +433,7 @@ terraform plan
 ### Feature Availability by Version
 
 | Feature | Version | Use Case |
-|---------|---------|----------|
+|---------|---------|--|
 | `try()` function | 0.13+ | Safe fallbacks, replaces `element(concat())` |
 | `nullable = false` | 1.1+ | Prevent null values in variables |
 | `moved` blocks | 1.1+ | Refactor without destroy/recreate |
@@ -498,9 +498,9 @@ Both are fully supported by this skill. For licensing, governance, and feature c
 
 This skill uses **progressive disclosure** - essential information is in this main file, detailed guides are available when needed:
 
-📚 **Reference Files:**
+ **Reference Files:**
 - **Testing Frameworks** - In-depth guide to static analysis, native tests, and Terratest
-- **Module Patterns** - Module structure, variable/output best practices, ✅ DO vs ❌ DON'T patterns
+- **Module Patterns** - Module structure, variable/output best practices,  DO vs  DON'T patterns
 - **CI/CD Workflows** - GitHub Actions, GitLab CI templates, cost optimization, automated cleanup
 - **Security & Compliance** - Trivy/Checkov integration, secrets management, compliance testing
 - **Quick Reference** - Command cheat sheets, decision flowcharts, troubleshooting guide

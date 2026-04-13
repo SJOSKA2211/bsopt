@@ -56,7 +56,7 @@ VoiceLiveAsyncClient client = new VoiceLiveClientBuilder()
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | `VoiceLiveAsyncClient` | Main entry point for voice sessions |
 | `VoiceLiveSessionAsyncClient` | Active WebSocket connection for streaming |
 | `VoiceLiveSessionOptions` | Configuration for session behavior |
@@ -220,7 +220,7 @@ session.receiveEvents()
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | GitHub Source | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/ai/azure-ai-voicelive |
 | Samples | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/ai/azure-ai-voicelive/src/samples |
 

@@ -295,27 +295,27 @@ def handler(event, context):
 
 ## Anti-Patterns
 
-### ❌ Monolithic Lambda
+###  Monolithic Lambda
 
 **Why bad**: Large deployment packages cause slow cold starts.
 Hard to scale individual operations.
 Updates affect entire system.
 
-### ❌ Large Dependencies
+###  Large Dependencies
 
 **Why bad**: Increases deployment package size.
 Slows down cold starts significantly.
 Most of SDK/library may be unused.
 
-### ❌ Synchronous Calls in VPC
+###  Synchronous Calls in VPC
 
 **Why bad**: VPC-attached Lambdas have ENI setup overhead.
 Blocking DNS lookups or connections worsen cold starts.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | high | ## Measure your INIT phase |
 | Issue | high | ## Set appropriate timeout |
 | Issue | high | ## Increase memory allocation |

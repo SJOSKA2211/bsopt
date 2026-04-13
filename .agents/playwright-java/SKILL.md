@@ -339,18 +339,18 @@ junit.jupiter.execution.parallel.config.fixed.parallelism=4
 
 ## Best Practices
 
-- ✅ Use `ThreadLocal<Page>` for every parallel-safe test suite
-- ✅ Declare all `Locator` fields at the top of the Page Object class
-- ✅ Return the next Page Object from navigation methods (fluent chaining)
-- ✅ Use `assertThat(locator)` — it auto-retries until timeout
-- ✅ Use `getByRole`, `getByLabel`, `getByTestId` as first-choice locators
-- ✅ Start tracing in `@BeforeEach` and stop with a file path in `@AfterEach`
-- ✅ Use `SoftAssertions` when validating multiple fields on a single page
-- ✅ Set up saved auth state (`storageState`) to skip login across test classes
-- ❌ Never use `Thread.sleep()` — replace with `waitFor()` or `waitForResponse()`
-- ❌ Never hardcode base URLs — always use `ConfigReader.getBaseUrl()`
-- ❌ Never create a `Playwright` instance inside a Page Object
-- ❌ Never use XPath for dynamic or frequently changing elements
+-  Use `ThreadLocal<Page>` for every parallel-safe test suite
+-  Declare all `Locator` fields at the top of the Page Object class
+-  Return the next Page Object from navigation methods (fluent chaining)
+-  Use `assertThat(locator)` — it auto-retries until timeout
+-  Use `getByRole`, `getByLabel`, `getByTestId` as first-choice locators
+-  Start tracing in `@BeforeEach` and stop with a file path in `@AfterEach`
+-  Use `SoftAssertions` when validating multiple fields on a single page
+-  Set up saved auth state (`storageState`) to skip login across test classes
+-  Never use `Thread.sleep()` — replace with `waitFor()` or `waitForResponse()`
+-  Never hardcode base URLs — always use `ConfigReader.getBaseUrl()`
+-  Never create a `Playwright` instance inside a Page Object
+-  Never use XPath for dynamic or frequently changing elements
 
 ---
 

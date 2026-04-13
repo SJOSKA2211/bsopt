@@ -16,4 +16,4 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 # Push to remote, setting upstream if needed
 git push -u origin "$BRANCH"
 
-echo "✅ Successfully pushed to $BRANCH"
+echo " Successfully pushed to $BRANCH"

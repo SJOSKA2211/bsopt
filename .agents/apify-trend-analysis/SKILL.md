@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on research needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Search trends | `apify/google-trends-scraper` | Google Trends data |
 | Hashtag tracking | `apify/instagram-hashtag-scraper` | Hashtag content |
 | Hashtag metrics | `apify/instagram-hashtag-stats` | Performance stats |

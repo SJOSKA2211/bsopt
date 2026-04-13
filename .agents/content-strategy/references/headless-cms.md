@@ -30,7 +30,7 @@ A headless CMS separates content management from presentation. Content is stored
 ### Decision Checklist
 
 | Factor | Headless | Traditional |
-|--------|----------|-------------|
+|--------|--|--|
 | Multi-channel delivery | Yes | Limited |
 | Developer control | Full | Constrained |
 | Non-technical editing | Requires setup | Built-in |
@@ -52,7 +52,7 @@ A headless CMS separates content management from presentation. Content is stored
 ### Common Marketing Content Types
 
 | Type | Key Fields | Notes |
-|------|-----------|-------|
+|------|--|-------|
 | **Landing Page** | title, slug, hero, sections[], seo | Modular sections for flexibility |
 | **Blog Post** | title, slug, body, author, category, tags, publishedAt, seo | Rich text or Portable Text body |
 | **Case Study** | title, customer, challenge, solution, results, metrics[], logo | Link to related products/features |
@@ -98,7 +98,7 @@ Set up a preview route in your frontend (e.g., `/api/preview`) that authenticate
 ### Roles and Permissions
 
 | Role | Can Create | Can Edit | Can Publish | Can Delete |
-|------|:----------:|:--------:|:-----------:|:----------:|
+|------|:--:|:--------:|:--:|:--:|
 | Author | Yes | Own | No | Own drafts |
 | Editor | Yes | All | Yes | Drafts |
 | Admin | Yes | All | Yes | All |
@@ -110,7 +110,7 @@ Exact permission models vary by platform. Sanity uses role-based access. Content
 ## Platform Comparison
 
 | Feature | Sanity | Contentful | Strapi |
-|---------|--------|------------|--------|
+|---------|--------|--|--------|
 | Hosting | Cloud (managed) | Cloud (managed) | Self-hosted or Cloud |
 | Query Language | GROQ | REST / GraphQL | REST / GraphQL |
 | Free Tier | Generous | Limited | Open source (free) |

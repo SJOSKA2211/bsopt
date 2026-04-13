@@ -33,20 +33,20 @@ python tools/scripts/manage_skill_dates.py list
 
 Output example:
 ```
-📅 Skills with Date Added (example):
-============================================================
+ Skills with Date Added (example):
+==
   2025-02-26  │  recent-skill
   2025-02-20  │  another-new-skill
   2024-12-15  │  older-skill
   ...
 
 ⏳ Skills without Date Added (example):
-============================================================
+==
   some-legacy-skill
   undated-skill
   ...
 
-📊 Coverage: example output only
+ Coverage: example output only
 ```
 
 ### 2. Add Missing Dates
@@ -202,8 +202,8 @@ python tools/scripts/generate_skills_report.py --output reports/skills_report.js
 ### "Invalid date_added format"
 
 Make sure the date is in `YYYY-MM-DD` format:
-- ✅ Correct: `2024-01-15`
-- ❌ Wrong: `01/15/2024` or `2024-1-15`
+-  Correct: `2024-01-15`
+-  Wrong: `01/15/2024` or `2024-1-15`
 
 ### Script not found
 

@@ -8,7 +8,7 @@ description: React Native mobile app template principles. Expo, TypeScript, navi
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | React Native + Expo |
 | Language | TypeScript |
 | Navigation | Expo Router |

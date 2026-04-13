@@ -14,8 +14,8 @@ This skill uses a **hybrid authentication approach** that combines the best of b
 Playwright/Patchright has a known bug ([#36139](https://github.com/microsoft/playwright/issues/36139)) where **session cookies** (cookies without an `Expires` attribute) do not persist correctly when using `launch_persistent_context()` with `user_data_dir`.
 
 **What happens:**
-- ✅ Persistent cookies (with `Expires` date) → Saved correctly to browser profile
-- ❌ Session cookies (without `Expires`) → **Lost after browser restarts**
+-  Persistent cookies (with `Expires` date) → Saved correctly to browser profile
+-  Session cookies (without `Expires`) → **Lost after browser restarts**
 
 **Impact:**
 - Some Google auth cookies are session cookies
@@ -87,13 +87,13 @@ with open("state.json", 'r') as f:
 ## Benefits
 
 | Feature | Our Approach | Pure `user_data_dir` | Pure `storage_state` |
-|---------|--------------|----------------------|----------------------|
-| **Browser Fingerprint Consistency** | ✅ Same across restarts | ✅ Same | ❌ Changes each time |
-| **Session Cookie Persistence** | ✅ Manual injection | ❌ Lost (bug) | ✅ Native support |
-| **Persistent Cookie Persistence** | ✅ Automatic | ✅ Automatic | ✅ Native support |
-| **Google Trust** | ✅ High (same browser) | ✅ High | ❌ Low (new browser) |
-| **Cross-platform Reliability** | ✅ Chrome required | ⚠️ Chromium issues | ✅ Portable |
-| **Cache Performance** | ✅ Keeps cache | ✅ Keeps cache | ❌ No cache |
+|---------|--|--|--|
+| **Browser Fingerprint Consistency** |  Same across restarts |  Same |  Changes each time |
+| **Session Cookie Persistence** |  Manual injection |  Lost (bug) |  Native support |
+| **Persistent Cookie Persistence** |  Automatic |  Automatic |  Native support |
+| **Google Trust** |  High (same browser) |  High |  Low (new browser) |
+| **Cross-platform Reliability** |  Chrome required | ️ Chromium issues |  Portable |
+| **Cache Performance** |  Keeps cache |  Keeps cache |  No cache |
 
 ## File Structure
 

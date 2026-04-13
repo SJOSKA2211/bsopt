@@ -205,7 +205,7 @@ For cohort membership updates:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Send events | AMPLITUDE_SEND_EVENTS | events (array) |
 | Find user | AMPLITUDE_FIND_USER | user |
 | Get user activity | AMPLITUDE_GET_USER_ACTIVITY | user, offset, limit |

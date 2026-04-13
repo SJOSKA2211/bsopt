@@ -60,7 +60,7 @@ LLM judges exhibit systematic biases that must be actively mitigated:
 Choose metrics based on the evaluation task structure:
 
 | Task Type | Primary Metrics | Secondary Metrics |
-|-----------|-----------------|-------------------|
+|--|--|--|
 | Binary classification (pass/fail) | Recall, Precision, F1 | Cohen's κ |
 | Ordinal scale (1-5 rating) | Spearman's ρ, Kendall's τ | Cohen's κ (weighted) |
 | Pairwise preference | Agreement rate, Position consistency | Confidence calibration |

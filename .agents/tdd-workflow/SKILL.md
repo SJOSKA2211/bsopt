@@ -15,11 +15,11 @@ date_added: "2026-02-27"
 ## 1. The TDD Cycle
 
 ```
-🔴 RED → Write failing test
+ RED → Write failing test
     ↓
 🟢 GREEN → Write minimal code to pass
     ↓
-🔵 REFACTOR → Improve code quality
+ REFACTOR → Improve code quality
     ↓
    Repeat...
 ```
@@ -57,7 +57,7 @@ date_added: "2026-02-27"
 ### Minimum Code
 
 | Principle | Meaning |
-|-----------|---------|
+|--|---------|
 | **YAGNI** | You Aren't Gonna Need It |
 | **Simplest thing** | Write the minimum to pass |
 | **No optimization** | Just make it work |
@@ -104,7 +104,7 @@ Every test follows:
 ## 7. When to Use TDD
 
 | Scenario | TDD Value |
-|----------|-----------|
+|--|--|
 | New feature | High |
 | Bug fix | High (write test first) |
 | Complex logic | High |
@@ -116,7 +116,7 @@ Every test follows:
 ## 8. Test Prioritization
 
 | Priority | Test Type |
-|----------|-----------|
+|--|--|
 | 1 | Happy path |
 | 2 | Error cases |
 | 3 | Edge cases |
@@ -126,8 +126,8 @@ Every test follows:
 
 ## 9. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Skip the RED phase | Watch test fail first |
 | Write tests after | Write tests before |
 | Over-engineer initial | Keep it simple |

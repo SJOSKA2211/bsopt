@@ -13,13 +13,13 @@ async def check_health():
         try:
             response = await client.get(f"{API_URL}/health")
             if response.status_code == 200:
-                print("✅ API is healthy!")
+                print(" API is healthy!")
                 return True
             else:
-                print(f"❌ API health check failed with status {response.status_code}")
+                print(f" API health check failed with status {response.status_code}")
                 return False
         except Exception as e:
-            print(f"❌ API connection failed: {e}")
+            print(f" API connection failed: {e}")
             return False
 
 
@@ -39,13 +39,13 @@ async def test_pricing():
             response = await client.post(f"{API_V1_URL}/pricing/price", json=payload)
             if response.status_code == 200:
                 data = response.json()
-                print(f"✅ Pricing successful: {data['price']}")
+                print(f" Pricing successful: {data['price']}")
                 return True
             else:
-                print(f"❌ Pricing failed with status {response.status_code}: {response.text}")
+                print(f" Pricing failed with status {response.status_code}: {response.text}")
                 return False
         except Exception as e:
-            print(f"❌ Pricing request failed: {e}")
+            print(f" Pricing request failed: {e}")
             return False
 
 
@@ -78,15 +78,15 @@ async def test_batch_pricing():
             response = await client.post(f"{API_V1_URL}/pricing/batch", json=payload)
             if response.status_code == 200:
                 data = response.json()
-                print(f"✅ Batch pricing successful: {len(data['results'])} results")
+                print(f" Batch pricing successful: {len(data['results'])} results")
                 return True
             else:
                 print(
-                    f"❌ Batch pricing failed with status {response.status_code}: {response.text}"
+                    f" Batch pricing failed with status {response.status_code}: {response.text}"
                 )
                 return False
         except Exception as e:
-            print(f"❌ Batch pricing request failed: {e}")
+            print(f" Batch pricing request failed: {e}")
             return False
 
 
@@ -104,16 +104,16 @@ async def main():
         await asyncio.sleep(5)
 
     if not ready:
-        print("❌ API did not become ready in time.")
+        print(" API did not become ready in time.")
         sys.exit(1)
 
     results = await asyncio.gather(test_pricing(), test_batch_pricing())
 
     if all(results):
-        print("\n🎉 All tests passed!")
+        print("\n All tests passed!")
         sys.exit(0)
     else:
-        print("\n❌ Some tests failed.")
+        print("\n Some tests failed.")
         sys.exit(1)
 
 

@@ -16,10 +16,10 @@ Reference architecture for generating slide presentations. Every presentation fo
     <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=...">
 
     <style>
-        /* ===========================================
+        /* ==
            CSS CUSTOM PROPERTIES (THEME)
            Change these to change the whole look
-           =========================================== */
+           == */
         :root {
             /* Colors — from chosen style preset */
             --bg-primary: #0a0f1c;
@@ -45,17 +45,17 @@ Reference architecture for generating slide presentations. Every presentation fo
             --duration-normal: 0.6s;
         }
 
-        /* ===========================================
+        /* ==
            BASE STYLES
-           =========================================== */
+           == */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         /* --- PASTE viewport-base.css CONTENTS HERE --- */
 
-        /* ===========================================
+        /* ==
            ANIMATIONS
            Trigger via .visible class (added by JS on scroll)
-           =========================================== */
+           == */
         .reveal {
             opacity: 0;
             transform: translateY(30px);
@@ -100,9 +100,9 @@ Reference architecture for generating slide presentations. Every presentation fo
     <!-- More slides... -->
 
     <script>
-        /* ===========================================
+        /* ==
            SLIDE PRESENTATION CONTROLLER
-           =========================================== */
+           == */
         class SlidePresentation {
             constructor() {
                 this.slides = document.querySelectorAll('.slide');
@@ -182,7 +182,7 @@ Every presentation must include:
 HTML:
 ```html
 <div class="edit-hotzone"></div>
-<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">️</button>
 ```
 
 CSS (visibility controlled by JS classes only):
@@ -283,7 +283,7 @@ def resize_max(input_path, output_path, max_dim=1200):
 ```
 
 | Situation | Operation |
-|-----------|-----------|
+|--|--|
 | Square logo on rounded aesthetic | `crop_circle()` |
 | Image > 1MB | `resize_max(max_dim=1200)` |
 | Wrong aspect ratio | Manual crop with `img.crop()` |

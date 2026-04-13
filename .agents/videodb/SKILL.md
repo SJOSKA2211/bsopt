@@ -293,7 +293,7 @@ except InvalidRequestError as e:
 ### Common pitfalls
 
 | Scenario | Error message | Solution |
-|----------|--------------|----------|
+|--|--|--|
 | Indexing an already-indexed video | `Spoken word index for video already exists` | Use `video.index_spoken_words(force=True)` to skip if already indexed |
 | Scene index already exists | `Scene index with id XXXX already exists` | Extract the existing `scene_index_id` from the error with `re.search(r"id\s+([a-f0-9]+)", str(e))` |
 | Search finds no matches | `InvalidRequestError: No results found` | Catch the exception and treat as empty results (`shots = []`) |
@@ -354,7 +354,7 @@ For complete capture workflow, see [reference/capture.md](reference/capture.md).
 ### When to use what
 
 | Problem | VideoDB solution |
-|---------|-----------------|
+|---------|--|
 | Platform rejects video aspect ratio or resolution | `video.reframe()` or `conn.transcode()` with `VideoConfig` |
 | Need to resize video for Twitter/Instagram/TikTok | `video.reframe(target="vertical")` or `target="square"` |
 | Need to change resolution (e.g. 1080p → 720p) | `conn.transcode()` with `VideoConfig(resolution=720)` |

@@ -17,7 +17,7 @@ Practical patterns for React apps. No jargon, just code that works.
 ## Quick Reference
 
 | Pattern | Use When |
-|---------|----------|
+|---------|--|
 | `Option` | Value might be missing (user not loaded yet) |
 | `Either` | Operation might fail (form validation) |
 | `TaskEither` | Async operation might fail (API calls) |
@@ -411,7 +411,7 @@ function UserProfile({ userId }: { userId: string }) {
 ### Why RemoteData Beats Booleans
 
 ```typescript
-// ❌ BAD: Impossible states are possible
+//  BAD: Impossible states are possible
 interface BadState {
   data: User | null
   loading: boolean
@@ -419,7 +419,7 @@ interface BadState {
 }
 // Can have: { data: user, loading: true, error: someError } - what does that mean?!
 
-// ✅ GOOD: Only valid states exist
+//  GOOD: Only valid states exist
 type GoodState = RemoteData<Error, User>
 // Can only be: NotAsked | Loading | Failure | Success
 ```
@@ -433,7 +433,7 @@ fp-ts values like `O.some(1)` create new objects each render. React sees them as
 ### The Problem
 
 ```typescript
-// ❌ BAD: Creates new Option every render
+//  BAD: Creates new Option every render
 function BadComponent() {
   const [value, setValue] = useState(O.some(1))
 
@@ -447,7 +447,7 @@ function BadComponent() {
 ### Solution 1: useMemo
 
 ```typescript
-// ✅ GOOD: Memoize Option creation
+//  GOOD: Memoize Option creation
 function GoodComponent() {
   const [rawValue, setRawValue] = useState<number | null>(1)
 
@@ -772,7 +772,7 @@ const modalProps = {
 ## When to Use What
 
 | Situation | Use |
-|-----------|-----|
+|--|-----|
 | Value might not exist | `Option<T>` |
 | Operation might fail (sync) | `Either<E, A>` |
 | Async operation might fail | `TaskEither<E, A>` |

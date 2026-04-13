@@ -289,7 +289,7 @@ Polars offers significant performance improvements over pandas with a cleaner AP
 ### Common Operation Mappings
 
 | Operation | Pandas | Polars |
-|-----------|--------|--------|
+|--|--------|--------|
 | Select column | `df["col"]` | `df.select("col")` |
 | Filter | `df[df["col"] > 10]` | `df.filter(pl.col("col") > 10)` |
 | Add column | `df.assign(x=...)` | `df.with_columns(x=...)` |

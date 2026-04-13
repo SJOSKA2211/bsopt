@@ -342,7 +342,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.AI.Projects |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.ai.projects |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Projects |

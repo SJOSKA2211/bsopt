@@ -157,7 +157,7 @@ curl https://api.anthropic.com/v1/messages \
 ## Required Headers
 
 | Header              | Value              | Description                |
-| ------------------- | ------------------ | -------------------------- |
+| -- | -- | -- |
 | `Content-Type`      | `application/json` | Required                   |
 | `x-api-key`         | Your API key       | Authentication             |
 | `anthropic-version` | `2023-06-01`       | API version                |

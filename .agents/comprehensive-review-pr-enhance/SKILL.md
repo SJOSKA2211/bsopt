@@ -27,7 +27,7 @@ source: community
 
 ## Changes
 | Category | Files | Key change |
-|----------|-------|------------|
+|--|-------|--|
 | source   | `src/auth.ts` | added OAuth2 PKCE flow |
 | test     | `tests/auth.test.ts` | covers token refresh edge case |
 | config   | `.env.example` | new `OAUTH_CLIENT_ID` var |
@@ -51,7 +51,7 @@ source: community
 Add checklist sections only when the matching file category appears in the diff:
 
 | File category | Checklist items |
-|---------------|----------------|
+|--|--|
 | source | no debug statements, functions <50 lines, descriptive names, error handling |
 | test | meaningful assertions, edge cases, no flaky tests, AAA pattern |
 | config | no hardcoded secrets, env vars documented, backwards compatible |

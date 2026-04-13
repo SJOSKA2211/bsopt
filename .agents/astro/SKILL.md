@@ -321,14 +321,14 @@ import SearchBox from '../components/SearchBox.tsx';
 
 ## Best Practices
 
-- ✅ Keep most components as static `.astro` files — only hydrate what must be interactive
-- ✅ Use content collections for all Markdown/MDX content — you get type safety and auto-validation
-- ✅ Prefer `client:visible` over `client:load` for below-the-fold components to reduce initial JS
-- ✅ Use `import.meta.env` for environment variables — prefix public vars with `PUBLIC_`
-- ✅ Add `<ViewTransitions />` from `astro:transitions` for smooth page navigation without a full SPA
-- ❌ Don't use `client:load` on every component — this defeats Astro's performance advantage
-- ❌ Don't put secrets in `.astro` frontmatter that gets used in client-facing templates
-- ❌ Don't skip `getStaticPaths` for dynamic routes in static mode — builds will fail
+-  Keep most components as static `.astro` files — only hydrate what must be interactive
+-  Use content collections for all Markdown/MDX content — you get type safety and auto-validation
+-  Prefer `client:visible` over `client:load` for below-the-fold components to reduce initial JS
+-  Use `import.meta.env` for environment variables — prefix public vars with `PUBLIC_`
+-  Add `<ViewTransitions />` from `astro:transitions` for smooth page navigation without a full SPA
+-  Don't use `client:load` on every component — this defeats Astro's performance advantage
+-  Don't put secrets in `.astro` frontmatter that gets used in client-facing templates
+-  Don't skip `getStaticPaths` for dynamic routes in static mode — builds will fail
 
 ## Security & Safety Notes
 

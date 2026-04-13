@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Azure Durable Task Scheduler resources via Azure Resource Manager.
 
-> **⚠️ Management vs Data Plane**
+> **️ Management vs Data Plane**
 > - **This SDK (Azure.ResourceManager.DurableTask)**: Create schedulers, task hubs, configure retention policies
 > - **Data Plane SDK (Microsoft.DurableTask.Client.AzureManaged)**: Start orchestrations, query instances, send events
 
@@ -253,7 +253,7 @@ var retentionOperation = await retentionPolicies.CreateOrUpdateAsync(
 ## SKU Options
 
 | SKU | Description | Use Case |
-|-----|-------------|----------|
+|-----|--|--|
 | `Dedicated` | Fixed capacity with configurable instances | Production workloads, predictable performance |
 | `Consumption` | Serverless, auto-scaling | Development, variable workloads |
 

@@ -61,7 +61,7 @@ Your work must be:
 ## Rationalizations (Do Not Skip)
 
 | Rationalization | Why It's Wrong | Required Action |
-|-----------------|----------------|-----------------|
+|--|--|--|
 | "Spec is clear enough" | Ambiguity hides in plain sight | Extract to IR, classify ambiguity explicitly |
 | "Code obviously matches" | Obvious matches have subtle divergences | Document match_type with evidence |
 | "I'll note this as partial match" | Partial = potential vulnerability | Investigate until full_match or mismatch |

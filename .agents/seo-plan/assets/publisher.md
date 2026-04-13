@@ -39,7 +39,7 @@
 ## Schema Recommendations
 
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Article | NewsArticle or Article, Person (author), Organization (publisher) |
 | Author Page | Person, ProfilePage |
 | Topic Page | CollectionPage, ItemList |

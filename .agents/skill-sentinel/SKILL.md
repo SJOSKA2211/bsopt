@@ -48,7 +48,7 @@ e recomenda novas skills especialistas.
 ## Resumo Rapido
 
 | Area | Script | O que faz |
-|------|--------|-----------|
+|------|--------|--|
 | **Discovery** | `scanner.py` | Descobre todas as skills automaticamente |
 | **Qualidade** | `analyzers/code_quality.py` | Complexidade, docstrings, error handling |
 | **Seguranca** | `analyzers/security.py` | Secrets, SQL injection, HTTPS |

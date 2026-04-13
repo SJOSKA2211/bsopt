@@ -7,7 +7,7 @@ Reference for using AI image generators, video generators, and code-based video 
 ## When to Use Generative Tools
 
 | Need | Tool Category | Best Fit |
-|------|---------------|----------|
+|------|--|--|
 | Static ad images (banners, social) | Image generation | Nano Banana Pro, Flux, Ideogram |
 | Ad images with text overlays | Image generation (text-capable) | Ideogram, Nano Banana Pro |
 | Short video ads (6-30 sec) | Video generation | Veo, Kling, Runway, Sora, Seedance |
@@ -70,7 +70,7 @@ Open-weight image generation models with API access through Replicate and BFL's 
 
 **Model variants:**
 | Model | Speed | Quality | Cost | Best For |
-|-------|-------|---------|------|----------|
+|-------|-------|---------|------|--|
 | Flux 2 Pro | ~6 sec | Highest | $0.015/MP | Final production assets |
 | Flux 2 Flex | ~22 sec | High + editing | $0.06/MP | Iterative editing |
 | Flux 2 Dev | ~2.5 sec | Good | $0.012/MP | Rapid prototyping |
@@ -119,7 +119,7 @@ Specialized in typography and text rendering within images.
 ### Other Image Tools
 
 | Tool | Best For | API Status | Notes |
-|------|----------|------------|-------|
+|------|--|--|-------|
 | **DALL-E 3** (OpenAI) | General image generation | Official API | Integrated with ChatGPT, good text rendering |
 | **Midjourney** | Artistic, high-aesthetic images | No official public API | Discord-based; unofficial APIs exist but risk bans |
 | **Stable Diffusion** | Self-hosted, customizable | Open source | Best for teams with GPU infrastructure |
@@ -270,7 +270,7 @@ Full-stack video creation platform with cinematic camera controls.
 ### Video Tool Comparison
 
 | Tool | Max Length | Audio | Resolution | API | Best For |
-|------|-----------|-------|------------|-----|----------|
+|------|--|-------|--|-----|--|
 | **Veo 3.1** | 60 sec | Native | 1080p/4K | Gemini | Vertical social video |
 | **Kling 2.6** | 3 min | Native | 1080p | Third-party | Longer cinematic |
 | **Runway Gen-4** | 10 sec | No | 1080p | Official | Controlled, consistent |
@@ -424,7 +424,7 @@ cd voicebox && make setup && make dev
 ### Other Voice Tools
 
 | Tool | Best For | Differentiator | API |
-|------|----------|---------------|-----|
+|------|--|--|-----|
 | **PlayHT** | Large voice library, low latency | 900+ voices, <300ms latency, ultra-realistic | [play.ht](https://play.ht/) |
 | **Resemble AI** | Enterprise voice cloning | On-premise deployment, real-time speech-to-speech | [resemble.ai](https://www.resemble.ai/) |
 | **WellSaid Labs** | Ethical, commercial-safe voices | Voices from compensated actors, safe for commercial use | [wellsaid.io](https://www.wellsaid.io/) |
@@ -438,7 +438,7 @@ cd voicebox && make setup && make dev
 ### Voice Tool Comparison
 
 | Tool | Quality | Cloning | Languages | Latency | Price/1K chars |
-|------|---------|---------|-----------|---------|----------------|
+|------|---------|---------|--|---------|--|
 | **ElevenLabs** | Best | Yes (instant + pro) | 29+ | ~200ms | $0.12-0.30 |
 | **OpenAI TTS** | Good | No | 13+ | ~300ms | $0.015-0.030 |
 | **Cartesia Sonic** | Very good | No | 15+ | ~40ms | ~$0.03/min |
@@ -495,7 +495,7 @@ For templated, data-driven video ads at scale, Remotion is the best option. Unli
 ### Why Remotion for Ads
 
 | AI Video Generators | Remotion |
-|---------------------|----------|
+|--|--|
 | Unique output each time | Deterministic, pixel-perfect |
 | Prompt-based, less control | Full code control over every frame |
 | Hard to match brand exactly | Exact brand colors, fonts, spacing |
@@ -598,7 +598,7 @@ Need image ads?
 ### Cost Comparison for 100 Ad Variations
 
 | Approach | Tool | Approximate Cost |
-|----------|------|-----------------|
+|--|------|--|
 | 100 static images | Nano Banana Pro | ~$4-24 |
 | 100 static images | Flux Dev | ~$1-2 |
 | 100 static images | Ideogram API | ~$6 |
@@ -622,7 +622,7 @@ This hybrid approach gives you the creative exploration of AI generators and the
 When generating images for ads, request the correct dimensions:
 
 | Platform | Placement | Aspect Ratio | Recommended Size |
-|----------|-----------|-------------|-----------------|
+|--|--|--|--|
 | Meta Feed | Single image | 1:1 | 1080x1080 |
 | Meta Stories/Reels | Vertical | 9:16 | 1080x1920 |
 | Meta Carousel | Square | 1:1 | 1080x1080 |

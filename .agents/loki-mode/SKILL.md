@@ -27,7 +27,7 @@ date_added: "2026-02-27"
 
 ### Key Files (Priority Order)
 | File | Purpose | Update When |
-|------|---------|-------------|
+|------|---------|--|
 | `.loki/CONTINUITY.md` | Working memory - what am I doing NOW? | Every turn |
 | `.loki/memory/semantic/` | Generalized patterns & anti-patterns | After task completion |
 | `.loki/memory/episodic/` | Specific interaction traces | After each action |
@@ -41,7 +41,7 @@ date_added: "2026-02-27"
 ```
 START
   |
-  +-- Read CONTINUITY.md ----------+
+  +-- Read CONTINUITY.md --+
   |                                |
   +-- Task in-progress?            |
   |   +-- YES: Resume              |
@@ -55,7 +55,7 @@ START
   |   +-- YES: Advance to next phase
   |   +-- NO: Generate tasks for phase
   |                                |
-LOOP <-----------------------------+
+LOOP <--+
 ```
 
 ### SDLC Phase Flow
@@ -130,23 +130,23 @@ If bugs are found in these files, document them in `.loki/CONTINUITY.md` under "
 ## RARV Cycle (Every Iteration)
 
 ```
-+-------------------------------------------------------------------+
++--+
 | REASON: What needs to be done next?                               |
 | - READ .loki/CONTINUITY.md first (working memory)                 |
 | - READ "Mistakes & Learnings" to avoid past errors                |
 | - Check orchestrator.json, review pending.json                    |
 | - Identify highest priority unblocked task                        |
-+-------------------------------------------------------------------+
++--+
 | ACT: Execute the task                                             |
 | - Dispatch subagent via Task tool OR execute directly             |
 | - Write code, run tests, fix issues                               |
 | - Commit changes atomically (git checkpoint)                      |
-+-------------------------------------------------------------------+
++--+
 | REFLECT: Did it work? What next?                                  |
 | - Verify task success (tests pass, no errors)                     |
 | - UPDATE .loki/CONTINUITY.md with progress                        |
 | - Check completion promise - are we done?                         |
-+-------------------------------------------------------------------+
++--+
 | VERIFY: Let AI test its own work (2-3x quality improvement)       |
 | - Run automated tests (unit, integration, E2E)                    |
 | - Check compilation/build (no errors or warnings)                 |
@@ -158,7 +158,7 @@ If bugs are found in these files, document them in `.loki/CONTINUITY.md` under "
 |   3. UPDATE CONTINUITY.md "Mistakes & Learnings"                  |
 |   4. Rollback to last good git checkpoint (if needed)             |
 |   5. Apply learning and RETRY from REASON                         |
-+-------------------------------------------------------------------+
++--+
 ```
 
 ---
@@ -168,7 +168,7 @@ If bugs are found in these files, document them in `.loki/CONTINUITY.md` under "
 **CRITICAL: Use the right model for each task type. Opus is ONLY for planning/architecture.**
 
 | Model | Use For | Examples |
-|-------|---------|----------|
+|-------|---------|--|
 | **Opus 4.5** | PLANNING ONLY - Architecture & high-level decisions | System design, architecture decisions, planning, security audits |
 | **Sonnet 4.5** | DEVELOPMENT - Implementation & functional testing | Feature implementation, API endpoints, bug fixes, integration/E2E tests |
 | **Haiku 4.5** | OPERATIONS - Simple tasks & monitoring | Unit tests, docs, bash commands, linting, monitoring, file operations |
@@ -248,7 +248,7 @@ Task(resume="agent-abc123", prompt="Continue from where you left off")
 **Two dispatch modes based on task complexity - reduces latency for simple tasks:**
 
 | Mode | When to Use | Behavior |
-|------|-------------|----------|
+|------|--|--|
 | **Direct Routing** | Simple, single-domain tasks | Route directly to specialist agent, skip orchestration |
 | **Supervisor Mode** | Complex, multi-step tasks | Full decomposition, coordination, result synthesis |
 
@@ -324,7 +324,7 @@ mcp_servers = {
 ### Efficiency Metrics (Track Every Task)
 
 | Metric | What to Track | Store In |
-|--------|---------------|----------|
+|--------|--|--|
 | Wall time | Seconds from start to completion | `.loki/metrics/efficiency/` |
 | Agent count | Number of subagents spawned | `.loki/metrics/efficiency/` |
 | Retry count | Attempts before success | `.loki/metrics/efficiency/` |
@@ -341,7 +341,7 @@ PREFERENCE REWARD: Inferred from user actions (commit/revert/edit)
 ### Dynamic Agent Selection by Complexity
 
 | Complexity | Max Agents | Planning | Development | Testing | Review |
-|------------|------------|----------|-------------|---------|--------|
+|--|--|--|--|---------|--------|
 | Trivial | 1 | - | haiku | haiku | skip |
 | Simple | 2 | - | haiku | haiku | single |
 | Moderate | 4 | sonnet | sonnet | haiku | standard (3 parallel) |
@@ -413,7 +413,7 @@ See `references/quality-control.md` and `references/openai-patterns.md` for deta
 Loki Mode has 37 specialized agent types across 7 swarms. The orchestrator spawns only agents needed for your project.
 
 | Swarm | Agent Count | Examples |
-|-------|-------------|----------|
+|-------|--|--|
 | Engineering | 8 | frontend, backend, database, mobile, api, qa, perf, infra |
 | Operations | 8 | devops, sre, security, monitor, incident, release, cost, compliance |
 | Business | 8 | marketing, sales, finance, legal, support, hr, investor, partnerships |
@@ -429,7 +429,7 @@ See `references/agent-types.md` for complete definitions and capabilities.
 ## Common Issues & Solutions
 
 | Issue | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Agent stuck/no progress | Lost context | Read `.loki/CONTINUITY.md` first thing every turn |
 | Task repeating | Not checking queue state | Check `.loki/queue/*.json` before claiming |
 | Code review failing | Skipped static analysis | Run static analysis BEFORE AI reviewers |
@@ -636,7 +636,7 @@ See `references/production-patterns.md` for full practitioner patterns.
 ## Exit Conditions
 
 | Condition | Action |
-|-----------|--------|
+|--|--------|
 | Product launched, stable 24h | Enter growth loop mode |
 | Unrecoverable failure | Save state, halt, request human |
 | PRD updated | Diff, create delta tasks, continue |
@@ -700,7 +700,7 @@ Loki Mode with PRD at path/to/prd   # Start with PRD
 Detailed documentation is split into reference files for progressive loading:
 
 | Reference | Content |
-|-----------|---------|
+|--|---------|
 | `references/core-workflow.md` | Full RARV cycle, CONTINUITY.md template, autonomy rules |
 | `references/quality-control.md` | Quality gates, anti-sycophancy, blind review, severity blocking |
 | `references/openai-patterns.md` | OpenAI Agents SDK: guardrails, tripwires, handoffs, fallbacks |

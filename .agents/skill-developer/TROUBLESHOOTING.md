@@ -32,10 +32,10 @@ Complete debugging guide for skill activation problems.
 ```json
 "keywords": ["layout", "grid"]
 ```
-- "how does the layout work?" → ✅ Matches "layout"
-- "how does the grid system work?" → ✅ Matches "grid"
-- "how do layouts work?" → ✅ Matches "layout"
-- "how does it work?" → ❌ No match
+- "how does the layout work?" →  Matches "layout"
+- "how does the grid system work?" →  Matches "grid"
+- "how do layouts work?" →  Matches "layout"
+- "how does it work?" →  No match
 
 **Fix:** Add more keyword variations to skill-rules.json
 
@@ -52,8 +52,8 @@ Complete debugging guide for skill activation problems.
   "(create|add).*?(database.*?table)"  // Too specific
 ]
 ```
-- "create a database table" → ✅ Matches
-- "add new table" → ❌ Doesn't match (missing "database")
+- "create a database table" →  Matches
+- "add new table" →  Doesn't match (missing "database")
 
 **Fix:** Broaden the pattern:
 ```json
@@ -76,7 +76,7 @@ name: project-catalog-developer
 ```
 ```json
 // skill-rules.json
-"project-catalogue-developer": {  // ❌ Typo: catalogue vs catalog
+"project-catalogue-developer": {  //  Typo: catalogue vs catalog
   ...
 }
 ```
@@ -132,9 +132,9 @@ Expected: Your skill should appear in the output.
   "frontend/src/**/*.tsx"
 ]
 ```
-- Editing: `frontend/src/components/Dashboard.tsx` → ✅ Matches
-- Editing: `frontend/tests/Dashboard.test.tsx` → ✅ Matches (add exclusion!)
-- Editing: `backend/src/app.ts` → ❌ Doesn't match
+- Editing: `frontend/src/components/Dashboard.tsx` →  Matches
+- Editing: `frontend/tests/Dashboard.test.tsx` →  Matches (add exclusion!)
+- Editing: `backend/src/app.ts` →  Doesn't match
 
 **Fix:** Adjust glob patterns or add the missing path
 
@@ -151,8 +151,8 @@ Expected: Your skill should appear in the output.
   "**/*.spec.ts"
 ]
 ```
-- Editing: `services/user.test.ts` → ❌ Excluded
-- Editing: `services/user.ts` → ✅ Not excluded
+- Editing: `services/user.test.ts` →  Excluded
+- Editing: `services/user.ts` →  Not excluded
 
 **Fix:** If test exclusion too broad, narrow it or remove
 
@@ -169,8 +169,8 @@ Expected: Your skill should appear in the output.
   "import.*[Pp]risma"
 ]
 ```
-- File has: `import { PrismaService } from './prisma'` → ✅ Matches
-- File has: `import { Database } from './db'` → ❌ Doesn't match
+- File has: `import { PrismaService } from './prisma'` →  Matches
+- File has: `import { Database } from './db'` →  Doesn't match
 
 **Debug:**
 ```bash

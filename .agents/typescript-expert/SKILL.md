@@ -204,7 +204,7 @@ command -v typesync >/dev/null 2>&1 && npx typesync  # Install missing @types pa
 **Tool Migration Decisions**
 
 | From | To | When | Migration Effort |
-|------|-----|------|-----------------|
+|------|-----|------|--|
 | ESLint + Prettier | Biome | Need much faster speed, okay with fewer rules | Low (1 day) |
 | TSC for linting | Type-check only | Have 100+ files, need faster feedback | Medium (2-3 days) |
 | Lerna | Nx/Turborepo | Need caching, parallel builds | High (1 week) |

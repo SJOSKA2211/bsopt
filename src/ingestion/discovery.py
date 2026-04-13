@@ -1,6 +1,6 @@
 """
 Universe Discovery Utility
-==========================
+==
 Dynamically discovers symbols from various sources (NSE, S&P 500, etc.)
 to populate the symbol universe for the ingestion pipeline.
 """

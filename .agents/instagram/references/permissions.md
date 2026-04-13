@@ -3,7 +3,7 @@
 ## Scopes Necessários
 
 | Scope | Descrição | Features |
-|-------|-----------|----------|
+|-------|--|--|
 | `instagram_basic` | Ler perfil e mídia | Perfil, listar posts, mídia |
 | `instagram_content_publish` | Publicar conteúdo | Publicar fotos, vídeos, reels, stories, carrossel |
 | `instagram_manage_comments` | Gerenciar comentários | Ler, responder, deletar, ocultar comentários |

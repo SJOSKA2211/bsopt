@@ -16,7 +16,7 @@ Write task_plan.md
 Create a research summary on the benefits of morning exercise.
 
 ## Phases
-- [ ] Phase 1: Create this plan ✓
+- [ ] Phase 1: Create this plan 
 - [ ] Phase 2: Search and gather sources
 - [ ] Phase 3: Synthesize findings
 - [ ] Phase 4: Deliver summary
@@ -66,8 +66,8 @@ Deliver morning_exercise_summary.md
 Identify and fix the bug preventing successful login.
 
 ## Phases
-- [x] Phase 1: Understand the bug report ✓
-- [x] Phase 2: Locate relevant code ✓
+- [x] Phase 1: Understand the bug report 
+- [x] Phase 2: Locate relevant code 
 - [ ] Phase 3: Identify root cause (CURRENT)
 - [ ] Phase 4: Implement fix
 - [ ] Phase 5: Test and verify
@@ -105,8 +105,8 @@ Identify and fix the bug preventing successful login.
 Add functional dark mode toggle to settings.
 
 ## Phases
-- [x] Phase 1: Research existing theme system ✓
-- [x] Phase 2: Design implementation approach ✓
+- [x] Phase 1: Research existing theme system 
+- [x] Phase 2: Design implementation approach 
 - [ ] Phase 3: Implement toggle component (CURRENT)
 - [ ] Phase 4: Add theme switching logic
 - [ ] Phase 5: Test and polish

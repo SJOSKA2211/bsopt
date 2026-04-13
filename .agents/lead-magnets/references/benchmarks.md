@@ -9,7 +9,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### By Format Type
 
 | Format | Landing Page Conversion | Notes |
-|--------|------------------------|-------|
+|--------|--|-------|
 | Checklist | 30-50% | High because low commitment |
 | Cheat sheet | 25-40% | Quick reference appeal |
 | Template | 25-45% | Immediate utility drives conversion |
@@ -22,7 +22,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### By Traffic Source
 
 | Source | Expected Conversion | Why |
-|--------|-------------------|-----|
+|--------|--|-----|
 | Blog content upgrade | 3-8% of post readers | Contextually relevant |
 | Dedicated landing page (organic) | 20-40% | High intent |
 | Dedicated landing page (paid) | 10-25% | Cold traffic |
@@ -33,7 +33,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### By Industry (Landing Page)
 
 | Industry | Average Conversion |
-|----------|-------------------|
+|--|--|
 | SaaS/Tech | 15-25% |
 | Marketing/Agency | 20-35% |
 | Finance | 10-20% |
@@ -62,7 +62,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### Quality vs. Quantity by Format
 
 | Format | Lead Volume | Lead Quality | Net Value |
-|--------|-------------|-------------|-----------|
+|--------|--|--|--|
 | Generic ebook | High | Low-Medium | Medium |
 | Specific template | Medium | High | High |
 | Industry report | Medium | Medium-High | High |
@@ -78,7 +78,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### Cost Per Lead by Channel
 
 | Channel | Typical CPL | Notes |
-|---------|-------------|-------|
+|---------|--|-------|
 | Organic search | $0-5 | Lowest, but slow to build |
 | Blog content upgrade | $0-2 | Nearly free if you have traffic |
 | Facebook/Instagram Ads | $3-15 | B2C lower, B2B higher |
@@ -89,7 +89,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### Creation Cost by Format
 
 | Format | DIY Cost | With Designer/Freelancer |
-|--------|----------|-------------------------|
+|--------|--|--|
 | Checklist | Free | $100-300 |
 | Cheat sheet | Free | $200-500 |
 | Template | Free | $100-500 |
@@ -106,7 +106,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### Time to Create
 
 | Format | Solo Creator | With Team |
-|--------|-------------|-----------|
+|--------|--|--|
 | Checklist | 1-2 hours | Same day |
 | Cheat sheet | 2-4 hours | Same day |
 | Template | 2-8 hours | 1-2 days |
@@ -119,7 +119,7 @@ Reference data for planning and evaluating lead magnet performance.
 ### Time to See Results
 
 | Phase | Timeline |
-|-------|----------|
+|-------|--|
 | First leads | Immediately with existing traffic or paid |
 | Organic traffic growth | 2-6 months (SEO) |
 | Meaningful lead volume | 1-3 months |

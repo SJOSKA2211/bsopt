@@ -37,7 +37,7 @@ Business Requirements → Security Requirements → Technical Controls
 ### 3. Requirement Attributes
 
 | Attribute | Description |
-|-----------|-------------|
+|--|--|
 | **Traceability** | Links to threats/compliance |
 | **Testability** | Can be verified |
 | **Priority** | Business importance |

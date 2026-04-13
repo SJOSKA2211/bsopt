@@ -3,7 +3,7 @@
 ## Quick Fix Table
 
 | Error | Solution |
-|-------|----------|
+|-------|--|
 | ModuleNotFoundError | Use `python scripts/run.py [script].py` |
 | Authentication failed | Browser must be visible for setup |
 | Browser crash | `python scripts/run.py cleanup_manager.py --preserve-library` |
@@ -16,11 +16,11 @@
 Most issues are solved by using the run.py wrapper:
 
 ```bash
-# ✅ CORRECT - Always:
+#  CORRECT - Always:
 python scripts/run.py auth_manager.py status
 python scripts/run.py ask_question.py --question "..."
 
-# ❌ WRONG - Never:
+#  WRONG - Never:
 python scripts/auth_manager.py status  # ModuleNotFoundError!
 ```
 
@@ -314,7 +314,7 @@ python scripts/run.py auth_manager.py status
 
 ### Authentication Errors
 | Error | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Not authenticated | No valid auth | `run.py auth_manager.py setup` |
 | Authentication expired | Session old | `run.py auth_manager.py reauth` |
 | Invalid credentials | Wrong account | Check Google account |
@@ -322,7 +322,7 @@ python scripts/run.py auth_manager.py status
 
 ### Browser Errors
 | Error | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Browser not found | Chromium missing | Use run.py (auto-installs) |
 | Connection refused | Browser crashed | Kill processes, restart |
 | Timeout waiting | Page slow | Increase timeout |
@@ -330,7 +330,7 @@ python scripts/run.py auth_manager.py status
 
 ### Notebook Errors
 | Error | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | Notebook not found | Invalid ID | `run.py notebook_manager.py list` |
 | Access denied | Not shared | Re-share in NotebookLM |
 | Invalid URL | Wrong format | Use full NotebookLM URL |

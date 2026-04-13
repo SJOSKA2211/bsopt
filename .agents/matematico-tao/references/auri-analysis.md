@@ -40,7 +40,7 @@ E = {
 }
 
 Propriedades:
-- Acíclico: SIM (DAG) ✅
+- Acíclico: SIM (DAG) 
 - core-logging: nó sink (grau de saída = 0)
 - app: nó source (grau de entrada = 0 de outros módulos)
 - Componentes fortemente conectados: cada módulo é seu próprio SCC (DAG)
@@ -68,10 +68,10 @@ ERROR + timeout(3s) → IDLE
 ERROR + userReset → IDLE
 
 Propriedades verificadas:
-✅ Sem estados inalcançáveis (todos estados têm caminho de IDLE)
-✅ Sem deadlocks (todos estados têm transição de saída)
-✅ Auto-healing: ERROR sempre resolve para IDLE
-⚠️  SPEAKING não tem cancel — bloqueio possível se TTS travar
+ Sem estados inalcançáveis (todos estados têm caminho de IDLE)
+ Sem deadlocks (todos estados têm transição de saída)
+ Auto-healing: ERROR sempre resolve para IDLE
+️  SPEAKING não tem cancel — bloqueio possível se TTS travar
 ```
 
 ### BluetoothController States
@@ -171,10 +171,10 @@ Total com Ollama local: ~850MB → crítico em dispositivos 2GB RAM
 
 ### Superfície de Ataque
 ```
-1. API Keys: EncryptedSharedPreferences (AES-256-GCM) ✅
-2. Bluetooth SCO: comunicação de voz sem criptografia (design limitation) ⚠️
-3. HTTP cleartext (Ollama localhost): permitido explicitamente via network_security_config ⚠️
-4. LAN access: cleartext permitido para 192.168.*.* — risco em redes públicas ❌
+1. API Keys: EncryptedSharedPreferences (AES-256-GCM) 
+2. Bluetooth SCO: comunicação de voz sem criptografia (design limitation) ️
+3. HTTP cleartext (Ollama localhost): permitido explicitamente via network_security_config ️
+4. LAN access: cleartext permitido para 192.168.*.* — risco em redes públicas 
 5. Gmail OAuth2 tokens: persistidos em token store — verificar criptografia
 6. Audio recording: exige permissão RECORD_AUDIO — verificar escopo temporal
 ```

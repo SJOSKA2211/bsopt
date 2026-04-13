@@ -11,7 +11,7 @@ Loki Mode stands on the shoulders of giants. This project incorporates research,
 Loki Mode is built for Claude and incorporates Anthropic's cutting-edge research on AI safety and agent development.
 
 | Paper/Resource | Contribution to Loki Mode |
-|----------------|---------------------------|
+|--|--|
 | [Constitutional AI: Harmlessness from AI Feedback](https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback) | Self-critique against principles, revision workflow |
 | [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) | Evaluator-optimizer pattern, parallelization, routing |
 | [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) | Explore-Plan-Code workflow, context management |
@@ -28,7 +28,7 @@ Loki Mode is built for Claude and incorporates Anthropic's cutting-edge research
 DeepMind's research on world models, hierarchical reasoning, and scalable oversight informs Loki Mode's architecture.
 
 | Paper/Resource | Contribution to Loki Mode |
-|----------------|---------------------------|
+|--|--|
 | [SIMA 2: Generalist AI Agent](https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/) | Self-improvement loop, reward model training |
 | [Gemini Robotics 1.5](https://deepmind.google/blog/gemini-robotics-15-brings-ai-agents-into-the-physical-world/) | Hierarchical reasoning (planner + executor) |
 | [Dreamer 4: World Model Training](https://danijar.com/project/dreamer4/) | Simulation-first testing, safe exploration |
@@ -42,7 +42,7 @@ DeepMind's research on world models, hierarchical reasoning, and scalable oversi
 OpenAI's Agents SDK and deep research patterns provide foundational patterns for agent orchestration.
 
 | Paper/Resource | Contribution to Loki Mode |
-|----------------|---------------------------|
+|--|--|
 | [Agents SDK Documentation](https://openai.github.io/openai-agents-python/) | Tracing spans, guardrails, tripwires |
 | [A Practical Guide to Building Agents](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) | Agent architecture best practices |
 | [Building Agents Track](https://developers.openai.com/tracks/building-agents/) | Development patterns, handoff callbacks |
@@ -61,7 +61,7 @@ OpenAI's Agents SDK and deep research patterns provide foundational patterns for
 AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and dispatch strategies.
 
 | Paper/Resource | Contribution to Loki Mode |
-|----------------|---------------------------|
+|--|--|
 | [Multi-Agent Orchestration Guidance](https://aws.amazon.com/solutions/guidance/multi-agent-orchestration-on-aws/) | Three coordination mechanisms, architectural patterns |
 | [Bedrock Multi-Agent Collaboration](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-multi-agent-collaboration.html) | Supervisor mode, routing mode, 10-agent limit |
 | [Multi-Agent Collaboration Announcement](https://aws.amazon.com/blogs/aws/introducing-multi-agent-collaboration-capability-for-amazon-bedrock/) | Intent classification, selective context sharing |
@@ -76,7 +76,7 @@ AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and 
 ### Multi-Agent Systems
 
 | Paper | Authors/Source | Contribution |
-|-------|----------------|--------------|
+|-------|--|--|
 | [Multi-Agent Collaboration Mechanisms Survey](https://arxiv.org/abs/2501.06322) | arXiv 2501.06322 | Collaboration structures, coopetition |
 | [CONSENSAGENT: Anti-Sycophancy Framework](https://aclanthology.org/2025.findings-acl.1141/) | ACL 2025 Findings | Blind review, devil's advocate |
 | [GoalAct: Hierarchical Execution](https://arxiv.org/abs/2504.16563) | arXiv 2504.16563 | Global planning, skill decomposition |
@@ -87,7 +87,7 @@ AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and 
 ### Evaluation & Safety
 
 | Paper | Authors/Source | Contribution |
-|-------|----------------|--------------|
+|-------|--|--|
 | [Assessment Framework for Agentic AI](https://arxiv.org/html/2512.12791v1) | arXiv 2512.12791 | Four-pillar evaluation framework |
 | [Measurement Imbalance in Agentic AI](https://arxiv.org/abs/2506.02064) | arXiv 2506.02064 | Multi-dimensional evaluation axes |
 | [Demo-to-Deployment Gap](https://www.marktechpost.com/2025/12/24/) | Stanford/Harvard | Tool reliability vs tool selection |
@@ -99,7 +99,7 @@ AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and 
 ### Tools & Frameworks
 
 | Resource | Contribution |
-|----------|--------------|
+|--|--|
 | [NVIDIA ToolOrchestra](https://github.com/NVlabs/ToolOrchestra) | Efficiency metrics, three-reward signal framework, dynamic agent selection |
 | [LerianStudio/ring](https://github.com/LerianStudio/ring) | Subagent-driven-development pattern |
 | [Awesome Agentic Patterns](https://github.com/nibzard/awesome-agentic-patterns) | 105+ production patterns catalog |
@@ -107,7 +107,7 @@ AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and 
 ### Best Practices Guides
 
 | Resource | Contribution |
-|----------|--------------|
+|--|--|
 | [Maxim AI: Production Multi-Agent Systems](https://www.getmaxim.ai/articles/best-practices-for-building-production-ready-multi-agent-systems/) | Correlation IDs, failure handling |
 | [UiPath: Agent Builder Best Practices](https://www.uipath.com/blog/ai/agent-builder-best-practices) | Single-responsibility agents |
 | [GitHub: Speed Without Control](https://github.blog/) | Static analysis + AI review, guardrails |
@@ -121,7 +121,7 @@ Battle-tested insights from practitioners deploying agents in production.
 ### Discussions
 
 | Thread | Key Insight |
-|--------|-------------|
+|--------|--|
 | [What Actually Works in Production for Autonomous Agents](https://news.ycombinator.com/item?id=44623207) | "Zero companies without human in the loop" |
 | [Coding with LLMs in Summer 2025](https://news.ycombinator.com/item?id=44623953) | Context curation beats automatic RAG |
 | [Superpowers: How I'm Using Coding Agents](https://news.ycombinator.com/item?id=45547344) | Sub-agents for context isolation (Simon Willison) |
@@ -133,7 +133,7 @@ Battle-tested insights from practitioners deploying agents in production.
 ### Show HN Projects
 
 | Project | Contribution |
-|---------|--------------|
+|---------|--|
 | [Self-Evolving Agents Repository](https://news.ycombinator.com/item?id=45099226) | Self-improvement patterns |
 | [Package Manager for Agent Skills](https://news.ycombinator.com/item?id=46422264) | Skills architecture |
 | [Wispbit - AI Code Review Agent](https://news.ycombinator.com/item?id=44722603) | Code review patterns |
@@ -146,7 +146,7 @@ Battle-tested insights from practitioners deploying agents in production.
 Special thanks to thought leaders whose patterns and insights shaped Loki Mode:
 
 | Contributor | Contribution |
-|-------------|--------------|
+|--|--|
 | **Boris Cherny** (Creator of Claude Code) | Self-verification loop (2-3x quality improvement), extended thinking mode, "Less prompting, more systems" philosophy |
 | **Ivan Steshov** | Centralized constitution, agent lineage tracking, structured artifacts as contracts |
 | **Addy Osmani** | Git checkpoint system, specification-first approach, visual aids (Mermaid diagrams) |
@@ -159,7 +159,7 @@ Special thanks to thought leaders whose patterns and insights shaped Loki Mode:
 Key patterns incorporated from practitioner experience:
 
 | Pattern | Source | Implementation |
-|---------|--------|----------------|
+|---------|--------|--|
 | Human-in-the-Loop (HITL) | HN Production Discussions | Confidence-based escalation thresholds |
 | Narrow Scope (3-5 steps) | Multiple Practitioners | Task scope constraints |
 | Deterministic Validation | Production Teams | Rule-based outer loops (not LLM-judged) |

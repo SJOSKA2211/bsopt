@@ -60,7 +60,7 @@ Content-Type: application/json
 ### IDs Necessarios
 
 | ID                  | Onde encontrar                           | Formato          |
-|---------------------|------------------------------------------|------------------|
+|--|--|--|
 | Phone Number ID     | WhatsApp > API Setup no dashboard        | Numerico         |
 | WABA ID             | WhatsApp > API Setup no dashboard        | Numerico         |
 | App Secret          | App Settings > Basic                      | String hex       |
@@ -181,7 +181,7 @@ DELETE /{media-id}
 ### Limites de Midia
 
 | Tipo      | Formatos Aceitos                    | Tamanho Max |
-|-----------|-------------------------------------|-------------|
+|--|--|--|
 | Image     | JPEG, PNG                           | 5 MB        |
 | Document  | PDF, DOC, DOCX, XLS, XLSX, PPT, TXT| 100 MB      |
 | Video     | MP4, 3GP                            | 16 MB       |
@@ -380,7 +380,7 @@ POST /{phone-number-id}/whatsapp_business_profile
 ### Tipos de Mensagem Recebida
 
 | Campo `type`     | Conteudo                    | Campos relevantes               |
-|------------------|-----------------------------|----------------------------------|
+|--|--|--|
 | `text`           | Mensagem de texto           | `text.body`                      |
 | `image`          | Imagem                      | `image.id`, `image.mime_type`    |
 | `document`       | Documento                   | `document.id`, `document.filename`|
@@ -416,7 +416,7 @@ Valores de `status`: `sent` → `delivered` → `read` → `failed`
 ### Erros Comuns
 
 | Codigo | Mensagem                          | Causa                            | Solucao                              |
-|--------|-----------------------------------|----------------------------------|--------------------------------------|
+|--------|--|--|--|
 | 0      | AuthException                     | Token invalido ou expirado        | Gerar novo token                     |
 | 3      | API Method                        | Metodo HTTP incorreto             | Verificar POST vs GET                |
 | 4      | Too many calls                    | Rate limit excedido               | Implementar retry com backoff        |
@@ -473,14 +473,14 @@ async function sendWithRetry(payload: any, maxRetries = 3): Promise<any> {
 ### Throughput (Mensagens por Segundo)
 
 | Tier              | Limite          |
-|-------------------|-----------------|
+|--|--|
 | Standard          | 80 msg/s        |
 | Unlimited tier    | 1,000 msg/s     |
 
 ### Conversas por 24 Horas
 
 | Tier         | Limite/24h | Como alcancar                         |
-|--------------|-----------|----------------------------------------|
+|--|--|--|
 | Inicial      | 250       | Conta nova ou nao verificada           |
 | Tier 1       | 1,000     | 50%+ do limite por 7 dias + quality ok |
 | Tier 2       | 10,000    | 50%+ do limite por 7 dias + quality ok |
@@ -507,7 +507,7 @@ Desde julho 2025, o modelo e **por mensagem** (nao mais por conversa).
 ### Custos por Categoria
 
 | Categoria      | Faixa de Preco      | Desconto Volume | Janela 24h    |
-|----------------|---------------------|-----------------|---------------|
+|--|--|--|--|
 | Marketing      | $0.025 - $0.1365    | Nao             | Cobrado       |
 | Utility        | $0.004 - $0.0456    | Sim             | GRATIS        |
 | Authentication | $0.004 - $0.0456    | Sim             | Cobrado       |
@@ -516,7 +516,7 @@ Desde julho 2025, o modelo e **por mensagem** (nao mais por conversa).
 ### Exemplos por Regiao (Marketing)
 
 | Regiao          | Custo/msg |
-|-----------------|-----------|
+|--|--|
 | Brasil          | ~$0.05    |
 | India           | ~$0.01    |
 | EUA/Canada      | ~$0.025   |
@@ -552,7 +552,7 @@ Desde julho 2025, o modelo e **por mensagem** (nao mais por conversa).
 ### Mudancas Planejadas 2026
 
 | Feature                   | Timeline | Descricao                                      |
-|---------------------------|----------|-------------------------------------------------|
+|--|--|--|
 | BSUID                     | 2026     | Business-Scoped User ID substitui phone numbers |
 | Usernames                 | 2026     | WhatsApp introduz usernames para privacidade     |
 | Tier removal (2K/10K)     | Q2 2026  | Limite imediato de 100K apos verificacao         |

@@ -116,7 +116,7 @@ cat package.json | grep -E '"@hotwired/|"@rails/|"stimulus"|"turbo-rails"' || ec
 **Key packages to check:**
 
 | Package | Purpose | Version Alignment |
-|---------|---------|-------------------|
+|---------|---------|--|
 | `@hotwired/turbo-rails` | Turbo Drive/Frames/Streams | Should match Rails version era |
 | `@hotwired/stimulus` | Stimulus JS framework | Generally stable across Rails versions |
 | `@rails/actioncable` | WebSocket support | Should match Rails version |
@@ -256,7 +256,7 @@ Create a mental list of files in these categories:
 Based on the railsdiff output from Step 6, categorize each changed file:
 
 | Category | Action | Example |
-|----------|--------|---------|
+|--|--------|---------|
 | **New files** | Create directly | `config/initializers/new_framework_defaults_X_Y.rb` |
 | **Unchanged locally** | Safe to overwrite | `public/404.html` (if not customized) |
 | **Customized locally** | Manual merge needed | `config/application.rb`, `bin/dev` |

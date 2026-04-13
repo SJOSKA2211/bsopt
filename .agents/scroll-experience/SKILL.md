@@ -39,7 +39,7 @@ Tools and techniques for scroll animations
 
 ### Library Options
 | Library | Best For | Learning Curve |
-|---------|----------|----------------|
+|---------|--|--|
 | GSAP ScrollTrigger | Complex animations | Medium |
 | Framer Motion | React projects | Low |
 | Locomotive Scroll | Smooth scroll + parallax | Medium |
@@ -215,7 +215,7 @@ gsap.to(sections, {
 
 ## Anti-Patterns
 
-### ❌ Scroll Hijacking
+###  Scroll Hijacking
 
 **Why bad**: Users hate losing scroll control.
 Accessibility nightmare.
@@ -227,7 +227,7 @@ Keep natural scroll speed.
 Use scrub animations.
 Allow users to scroll normally.
 
-### ❌ Animation Overload
+###  Animation Overload
 
 **Why bad**: Distracting, not delightful.
 Performance tanks.
@@ -239,7 +239,7 @@ Animate key moments.
 Static content is okay.
 Guide attention, don't overwhelm.
 
-### ❌ Desktop-Only Experience
+###  Desktop-Only Experience
 
 **Why bad**: Mobile is majority of traffic.
 Touch scroll is different.
@@ -251,10 +251,10 @@ Simpler effects on mobile.
 Test on real devices.
 Graceful degradation.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Animations stutter during scroll | high | ## Fixing Scroll Jank |
 | Parallax breaks on mobile devices | high | ## Mobile-Safe Parallax |
 | Scroll experience is inaccessible | medium | ## Accessible Scroll Experiences |

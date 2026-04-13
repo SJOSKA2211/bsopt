@@ -35,7 +35,7 @@ def revamp_diagnostics():
         conn.execute(text(view_sql))
         conn.execute(text(perf_view_sql))
         # conn.commit() is not always available on Connection depending on how it was created
-        print("✅ Database diagnostics views 'db_health_overview' and 'db_performance_stats' REVAMPED.")
+        print(" Database diagnostics views 'db_health_overview' and 'db_performance_stats' REVAMPED.")
 
 if __name__ == "__main__":
     revamp_diagnostics()

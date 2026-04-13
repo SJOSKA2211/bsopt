@@ -45,7 +45,7 @@ Input (minimal) → Magic (your algorithm) → Result (shareable)
 
 ### Input Design
 | Type | Example | Virality |
-|------|---------|----------|
+|------|---------|--|
 | Name only | "Enter your name" | High (low friction) |
 | Birthday | "Enter your birth date" | High (personal) |
 | Quiz answers | "Answer 5 questions" | Medium (more investment) |
@@ -81,7 +81,7 @@ Building personality quizzes that spread
 
 ### Question Design
 | Type | Engagement |
-|------|------------|
+|------|--|
 | Image choice | Highest |
 | This or that | High |
 | Slider scale | Medium |
@@ -127,7 +127,7 @@ Building name generators that people love
 
 ### Generator Types
 | Type | Example | Algorithm |
-|------|---------|-----------|
+|------|---------|--|
 | Deterministic | "Your Star Wars name" | Hash of input |
 | Random + seed | "Your rapper name" | Seeded random |
 | AI-powered | "Your brand name" | LLM generation |
@@ -160,7 +160,7 @@ function generateName(input) {
 
 ## Anti-Patterns
 
-### ❌ Forgettable Results
+###  Forgettable Results
 
 **Why bad**: Generic results don't get shared.
 "You are creative" - so what?
@@ -172,7 +172,7 @@ Nothing to screenshot.
 Add visual flair.
 Make it screenshot-worthy.
 
-### ❌ Too Much Input
+###  Too Much Input
 
 **Why bad**: Every field is a dropout point.
 People want instant gratification.
@@ -184,7 +184,7 @@ Start with just name or one question.
 Progressive disclosure if needed.
 Show progress if longer.
 
-### ❌ Boring Share Cards
+###  Boring Share Cards
 
 **Why bad**: Social feeds are competitive.
 Bland cards get scrolled past.

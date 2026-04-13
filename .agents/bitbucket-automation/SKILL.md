@@ -203,7 +203,7 @@ Bitbucket Query Language is available on list endpoints:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List workspaces | `BITBUCKET_LIST_WORKSPACES` | `q`, `sort` |
 | List repos | `BITBUCKET_LIST_REPOSITORIES_IN_WORKSPACE` | `workspace`, `q`, `role` |
 | Create repo | `BITBUCKET_CREATE_REPOSITORY` | `workspace`, `repo_slug`, `is_private` |

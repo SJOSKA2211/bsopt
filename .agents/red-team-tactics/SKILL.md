@@ -29,7 +29,7 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Phase Objectives
 
 | Phase | Objective |
-|-------|-----------|
+|-------|--|
 | **Recon** | Map attack surface |
 | **Initial Access** | Get first foothold |
 | **Execution** | Run code on target |
@@ -50,14 +50,14 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Passive vs Active
 
 | Type | Trade-off |
-|------|-----------|
+|------|--|
 | **Passive** | No target contact, limited info |
 | **Active** | Direct contact, more detection risk |
 
 ### Information Targets
 
 | Category | Value |
-|----------|-------|
+|--|-------|
 | Technology stack | Attack vector selection |
 | Employee info | Social engineering |
 | Network ranges | Scanning scope |
@@ -70,7 +70,7 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Selection Criteria
 
 | Vector | When to Use |
-|--------|-------------|
+|--------|--|
 | **Phishing** | Human target, email access |
 | **Public exploits** | Vulnerable services exposed |
 | **Valid credentials** | Leaked or cracked |
@@ -83,7 +83,7 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Windows Targets
 
 | Check | Opportunity |
-|-------|-------------|
+|-------|--|
 | Unquoted service paths | Write to path |
 | Weak service permissions | Modify service |
 | Token privileges | Abuse SeDebug, etc. |
@@ -92,7 +92,7 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Linux Targets
 
 | Check | Opportunity |
-|-------|-------------|
+|-------|--|
 | SUID binaries | Execute as owner |
 | Sudo misconfiguration | Command execution |
 | Kernel vulnerabilities | Kernel exploits |
@@ -105,7 +105,7 @@ LATERAL MOVEMENT → COLLECTION → C2 → EXFILTRATION → IMPACT
 ### Key Techniques
 
 | Technique | Purpose |
-|-----------|---------|
+|--|---------|
 | LOLBins | Use legitimate tools |
 | Obfuscation | Hide malicious code |
 | Timestomping | Hide file modifications |
@@ -191,8 +191,8 @@ For each successful technique:
 
 ## 10. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Rush to exploitation | Follow methodology |
 | Cause damage | Minimize impact |
 | Skip reporting | Document everything |

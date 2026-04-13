@@ -196,15 +196,15 @@ test('user can update profile', async ({ page, testUser }) => {
 ### Pattern 3: Waiting Strategies
 
 ```typescript
-// ❌ Bad: Fixed timeouts
+//  Bad: Fixed timeouts
 await page.waitForTimeout(3000);  // Flaky!
 
-// ✅ Good: Wait for specific conditions
+//  Good: Wait for specific conditions
 await page.waitForLoadState('networkidle');
 await page.waitForURL('/dashboard');
 await page.waitForSelector('[data-testid="user-profile"]');
 
-// ✅ Better: Auto-waiting with assertions
+//  Better: Auto-waiting with assertions
 await expect(page.getByText('Welcome')).toBeVisible();
 await expect(page.getByRole('button', { name: 'Submit' }))
     .toBeEnabled();
@@ -470,11 +470,11 @@ test('form is accessible', async ({ page }) => {
 8. **Optimize for Speed**: Mock when possible, parallel execution
 
 ```typescript
-// ❌ Bad selectors
+//  Bad selectors
 cy.get('.btn.btn-primary.submit-button').click();
 cy.get('div > form > div:nth-child(2) > input').type('text');
 
-// ✅ Good selectors
+//  Good selectors
 cy.getByRole('button', { name: 'Submit' }).click();
 cy.getByLabel('Email address').type('user@example.com');
 cy.get('[data-testid="email-input"]').type('user@example.com');

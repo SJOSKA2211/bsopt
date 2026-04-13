@@ -80,7 +80,7 @@ sum(storage_writes_total)
 ### Availability SLO Examples
 
 | SLO % | Downtime/Month | Downtime/Year |
-|-------|----------------|---------------|
+|-------|--|--|
 | 99%   | 7.2 hours      | 3.65 days     |
 | 99.9% | 43.2 minutes   | 8.76 hours    |
 | 99.95%| 21.6 minutes   | 4.38 hours    |
@@ -247,7 +247,7 @@ groups:
 ```
 ┌────────────────────────────────────┐
 │ SLO Compliance (Current)           │
-│ ✓ 99.95% (Target: 99.9%)          │
+│  99.95% (Target: 99.9%)          │
 ├────────────────────────────────────┤
 │ Error Budget Remaining: 65%        │
 │ ████████░░ 65%                     │

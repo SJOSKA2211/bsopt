@@ -311,14 +311,14 @@ async def research_and_write(topic: str) -> BlogPost:
 
 ## Best Practices
 
-- ✅ Always define `result_type` with a Pydantic model — avoid returning raw strings in production
-- ✅ Use `deps_type` with a dataclass for dependency injection — makes agents testable
-- ✅ Use `TestModel` in unit tests — never hit a real LLM in CI
-- ✅ Add `@agent.result_validator` for business-logic checks beyond Pydantic validation
-- ✅ Use `run_stream` for long outputs in user-facing applications to show progressive results
-- ❌ Don't put secrets (API keys) in `Agent()` arguments — use environment variables
-- ❌ Don't share a single `Agent` instance across async tasks if deps differ — create per-request instances or use `agent.run()` with per-call `deps`
-- ❌ Don't catch `ValidationError` broadly — let PydanticAI retry with `ModelRetry` for recoverable LLM output errors
+-  Always define `result_type` with a Pydantic model — avoid returning raw strings in production
+-  Use `deps_type` with a dataclass for dependency injection — makes agents testable
+-  Use `TestModel` in unit tests — never hit a real LLM in CI
+-  Add `@agent.result_validator` for business-logic checks beyond Pydantic validation
+-  Use `run_stream` for long outputs in user-facing applications to show progressive results
+-  Don't put secrets (API keys) in `Agent()` arguments — use environment variables
+-  Don't share a single `Agent` instance across async tasks if deps differ — create per-request instances or use `agent.run()` with per-call `deps`
+-  Don't catch `ValidationError` broadly — let PydanticAI retry with `ModelRetry` for recoverable LLM output errors
 
 ## Security & Safety Notes
 

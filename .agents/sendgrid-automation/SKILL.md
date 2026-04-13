@@ -200,7 +200,7 @@ Contact operations (`ADD_OR_UPDATE_A_CONTACT`, `IMPORT_CONTACTS`) are asynchrono
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List marketing lists | `SENDGRID_RETRIEVE_ALL_LISTS` | `page_size`, `page_token` |
 | Create list | `SENDGRID_CREATE_A_LIST` | `name` |
 | Get list by ID | `SENDGRID_GET_A_LIST_BY_ID` | `id` |

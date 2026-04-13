@@ -283,7 +283,7 @@ for conn in connections:
 ## Client Operations
 
 | Operation | Method |
-|-----------|--------|
+|--|--------|
 | `client.bots` | Bot CRUD operations |
 | `client.channels` | Channel configuration |
 | `client.bot_connection` | OAuth connection settings |
@@ -295,7 +295,7 @@ for conn in connections:
 ## SKU Options
 
 | SKU | Description |
-|-----|-------------|
+|-----|--|
 | `F0` | Free tier (limited messages) |
 | `S1` | Standard tier (unlimited messages) |
 

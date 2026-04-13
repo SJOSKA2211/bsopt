@@ -8,12 +8,12 @@ The skill-creator automates the entire workflow of creating new CLI skills for G
 
 ## Key Features
 
-- **🎯 Interactive Brainstorming** - Collaborative session to define skill purpose and scope
-- **✨ Template Automation** - Automatic file generation with zero manual configuration
-- **🔍 Quality Validation** - Built-in checks for YAML, content quality, and writing style
-- **📦 Flexible Installation** - Choose repository-only, global, or hybrid installation
-- **📊 Visual Progress Bar** - Real-time progress indicator showing completion status (e.g., `[████████████░░░░░░] 60% - Step 3/5`)
-- **🔗 Prompt Engineer Integration** - Optional enhancement using prompt-engineer skill
+- ** Interactive Brainstorming** - Collaborative session to define skill purpose and scope
+- ** Template Automation** - Automatic file generation with zero manual configuration
+- ** Quality Validation** - Built-in checks for YAML, content quality, and writing style
+- ** Flexible Installation** - Choose repository-only, global, or hybrid installation
+- ** Visual Progress Bar** - Real-time progress indicator showing completion status (e.g., `[████████████░░░░░░] 60% - Step 3/5`)
+- ** Prompt Engineer Integration** - Optional enhancement using prompt-engineer skill
 
 ## When to Use
 
@@ -141,11 +141,11 @@ Which platforms?
 
 [... continues through all phases ...]
 
-🎉 Skill created successfully!
+ Skill created successfully!
 
-📦 Skill Name: database-migration
-📁 Location: .github/skills/database-migration/
-🔗 Installed: Global (Copilot + Claude)
+ Skill Name: database-migration
+ Location: .github/skills/database-migration/
+ Installed: Global (Copilot + Claude)
 ```
 
 ## File Structure
@@ -175,11 +175,11 @@ When you create a skill, this structure is generated:
 ## Validation
 
 Every skill created is automatically validated for:
-- ✅ **YAML Frontmatter** - Required fields and format
-- ✅ **Description Format** - Third-person, trigger phrases
-- ✅ **Word Count** - 1,500-2,000 ideal, under 5,000 max
-- ✅ **Writing Style** - Imperative form, no second-person
-- ✅ **Progressive Disclosure** - Proper content organization
+-  **YAML Frontmatter** - Required fields and format
+-  **Description Format** - Third-person, trigger phrases
+-  **Word Count** - 1,500-2,000 ideal, under 5,000 max
+-  **Writing Style** - Imperative form, no second-person
+-  **Progressive Disclosure** - Proper content organization
 
 ## Frameworks Used
 

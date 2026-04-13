@@ -45,7 +45,7 @@ This template applies to businesses that don't fit neatly into SaaS, local servi
 
 ### Schema for All Sites
 | Page Type | Schema Types |
-|-----------|-------------|
+|--|--|
 | Homepage | Organization, WebSite |
 | About | Organization, AboutPage |
 | Contact | ContactPage |
@@ -57,7 +57,7 @@ This template applies to businesses that don't fit neatly into SaaS, local servi
 
 ### Minimum Word Counts
 | Page Type | Min Words |
-|-----------|-----------|
+|--|--|
 | Homepage | 500 |
 | Product/Service | 800 |
 | Blog Post | 1,500 |

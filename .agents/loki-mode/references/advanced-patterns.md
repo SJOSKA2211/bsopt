@@ -9,22 +9,22 @@ Research-backed patterns from 2025-2026 literature for enhanced multi-agent orch
 ### Three-Layer Memory System
 
 ```
-+------------------------------------------------------------------+
++--+
 | EPISODIC MEMORY (Specific Events)                                 |
 | - What happened, when, where                                      |
 | - Full interaction traces with timestamps                         |
 | - Stored in: .loki/memory/episodic/                              |
-+------------------------------------------------------------------+
++--+
 | SEMANTIC MEMORY (Generalized Knowledge)                           |
 | - Abstracted patterns and facts                                   |
 | - Context-independent knowledge                                   |
 | - Stored in: .loki/memory/semantic/                              |
-+------------------------------------------------------------------+
++--+
 | PROCEDURAL MEMORY (Learned Skills)                                |
 | - How to do things                                                |
 | - Successful action sequences                                     |
 | - Stored in: .loki/memory/skills/                                |
-+------------------------------------------------------------------+
++--+
 ```
 
 ### Episodic-to-Semantic Consolidation
@@ -102,18 +102,18 @@ Single-agent self-critique leads to repeating the same flawed reasoning across i
 ### Solution: Structured Debate Among Persona-Based Critics
 
 ```
-+------------------+     +------------------+     +------------------+
++--+     +--+     +--+
 | IMPLEMENTER      |     | SKEPTIC          |     | ADVOCATE         |
 | (Creates work)   | --> | (Challenges it)  | --> | (Defends merits) |
-+------------------+     +------------------+     +------------------+
++--+     +--+     +--+
         |                        |                        |
         v                        v                        v
-+------------------------------------------------------------------+
++--+
 | SYNTHESIZER                                                       |
 | - Weighs all perspectives                                         |
 | - Identifies valid concerns vs. false negatives                   |
 | - Produces final verdict with evidence                            |
-+------------------------------------------------------------------+
++--+
 ```
 
 ### Anti-Sycophancy Protocol (CONSENSAGENT)
@@ -205,28 +205,28 @@ review_team:
 **Research:** GoalAct achieved 12.22% improvement in success rate using this pattern.
 
 ```
-+------------------------------------------------------------------+
++--+
 | GLOBAL PLANNER                                                    |
 | - Maintains overall goal and strategy                             |
 | - Continuously updates plan based on progress                     |
 | - Decomposes into high-level skills                               |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | HIGH-LEVEL SKILLS                                                 |
 | - searching, coding, testing, writing, deploying                  |
 | - Each skill has defined entry/exit conditions                    |
 | - Reduces planning complexity at execution level                  |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | LOCAL EXECUTORS                                                   |
 | - Execute specific actions within skill context                   |
 | - Report progress back to global planner                          |
 | - Can request skill escalation if blocked                         |
-+------------------------------------------------------------------+
++--+
 ```
 
 ### Thought Management System (TMS)
@@ -341,7 +341,7 @@ def iterative_verify_first(task, max_iterations=3):
 ### When to Use Each Structure
 
 | Structure | Use When | Loki Mode Application |
-|-----------|----------|----------------------|
+|--|--|--|
 | **Centralized** | Need consistency, single source of truth | Orchestrator for phase management |
 | **Decentralized** | Need fault tolerance, parallel execution | Agent swarms for implementation |
 | **Hierarchical** | Complex tasks with clear decomposition | Global planner -> Skill -> Executor |

@@ -83,23 +83,23 @@ class SelfImprovementLoop:
 **Key Insight:** Separate high-level planning from low-level execution.
 
 ```
-+------------------------------------------------------------------+
++--+
 | EMBODIED REASONING MODEL (Gemini Robotics-ER)                     |
 | - Orchestrates activities like a "high-level brain"               |
 | - Spatial understanding, planning, logical decisions              |
 | - Natively calls tools (search, user functions)                   |
 | - Does NOT directly control actions                               |
-+------------------------------------------------------------------+
++--+
         |
         | High-level insights
         v
-+------------------------------------------------------------------+
++--+
 | VISION-LANGUAGE-ACTION MODEL (Gemini Robotics)                    |
 | - "Thinks before taking action"                                   |
 | - Generates internal reasoning in natural language                |
 | - Decomposes long tasks into simpler segments                     |
 | - Directly outputs actions/commands                               |
-+------------------------------------------------------------------+
++--+
 ```
 
 **Loki Mode Application:**
@@ -363,32 +363,32 @@ loki_mode_mapping:
 **Key Insight:** Research before planning, plan before coding.
 
 ```
-+------------------------------------------------------------------+
++--+
 | PHASE 1: EXPLORE                                                  |
 | - Research relevant files                                         |
 | - Understand existing patterns                                    |
 | - Identify dependencies and constraints                           |
 | - NO CODE CHANGES YET                                             |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | PHASE 2: PLAN                                                     |
 | - Create detailed implementation plan                             |
 | - List all files to modify                                        |
 | - Define success criteria                                         |
 | - Get checkpoint approval if needed                               |
 | - STILL NO CODE CHANGES                                           |
-+------------------------------------------------------------------+
++--+
         |
         v
-+------------------------------------------------------------------+
++--+
 | PHASE 3: CODE                                                     |
 | - Execute plan systematically                                     |
 | - Test after each file change                                     |
 | - Update plan if discoveries require it                           |
 | - Verify against success criteria                                 |
-+------------------------------------------------------------------+
++--+
 ```
 
 ### Context Reset Strategy

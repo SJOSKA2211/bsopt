@@ -58,7 +58,7 @@ def save_snapshot(project: str = "", phase: str = "", summary: str = "") -> str:
 
 ## Arquivos Tocados
 | Arquivo | Acao | Detalhes |
-|---------|------|----------|
+|---------|------|--|
 | | | |
 
 ## Decisoes

@@ -28,11 +28,11 @@ Upgrading Odoo between major versions (e.g., v15 → v16 → v17) requires caref
 
 | From | To | Supported? | Tool |
 |---|---|---|---|
-| v16 | v17 | ✅ Direct | Odoo Upgrade Service / OpenUpgrade |
-| v15 | v16 | ✅ Direct | Odoo Upgrade Service / OpenUpgrade |
-| v14 | v15 | ✅ Direct | Odoo Upgrade Service / OpenUpgrade |
-| v14 | v17 | ⚠️ Multi-hop | v14→v15→v16→v17 (cannot skip) |
-| v13 or older | any | ❌ Not supported | Manual migration required |
+| v16 | v17 |  Direct | Odoo Upgrade Service / OpenUpgrade |
+| v15 | v16 |  Direct | Odoo Upgrade Service / OpenUpgrade |
+| v14 | v15 |  Direct | Odoo Upgrade Service / OpenUpgrade |
+| v14 | v17 | ️ Multi-hop | v14→v15→v16→v17 (cannot skip) |
+| v13 or older | any |  Not supported | Manual migration required |
 
 ## Examples
 
@@ -40,20 +40,20 @@ Upgrading Odoo between major versions (e.g., v15 → v16 → v17) requires caref
 
 ```text
 BEFORE YOU START:
-  ☑ 1. List all installed modules (Settings → Technical → Modules)
+   1. List all installed modules (Settings → Technical → Modules)
         Export to CSV and review for custom/OCA modules
-  ☑ 2. Check OCA compatibility matrix for each community module
+   2. Check OCA compatibility matrix for each community module
         https://github.com/OCA/maintainer-tools/wiki/Migration-Status
-  ☑ 3. Take a full backup (database + filestore) — your restore point
-  ☑ 4. Clone production to a staging environment
-  ☑ 5. Run the Odoo Upgrade pre-analysis:
+   3. Take a full backup (database + filestore) — your restore point
+   4. Clone production to a staging environment
+   5. Run the Odoo Upgrade pre-analysis:
         https://upgrade.odoo.com/ → Upload DB → Review breaking changes report
-  ☑ 6. Review custom modules against migration notes
+   6. Review custom modules against migration notes
         (use @odoo-migration-helper for per-module analysis)
-  ☑ 7. Upgrade and test in staging → Fix all errors → Re-test
-  ☑ 8. Schedule a production maintenance window
-  ☑ 9. Notify users of scheduled downtime
-  ☑ 10. Perform production upgrade → Validate → Go/No-Go decision
+   7. Upgrade and test in staging → Fix all errors → Re-test
+   8. Schedule a production maintenance window
+   9. Notify users of scheduled downtime
+   10. Perform production upgrade → Validate → Go/No-Go decision
 ```
 
 ### Example 2: Community Upgrade with OpenUpgrade
@@ -83,37 +83,37 @@ tail -200 /var/log/odoo/odoo.log | grep -E "ERROR|WARNING|Traceback"
 After upgrading, validate these critical areas before going live:
 
 Accounting:
-  ☑ Trial Balance totals match the pre-upgrade snapshot
-  ☑ Open invoices, bills, and payments are accessible
-  ☑ Bank reconciliation can be performed on a test statement
+   Trial Balance totals match the pre-upgrade snapshot
+   Open invoices, bills, and payments are accessible
+   Bank reconciliation can be performed on a test statement
 
 Inventory:
-  ☑ Stock valuation report matches pre-upgrade (run Inventory Valuation)
-  ☑ Open Purchase Orders and Sale Orders are visible
+   Stock valuation report matches pre-upgrade (run Inventory Valuation)
+   Open Purchase Orders and Sale Orders are visible
 
 HR / Payroll:
-  ☑ All employee records are intact
-  ☑ Payslips from the last 3 months are accessible and correct
+   All employee records are intact
+   Payslips from the last 3 months are accessible and correct
 
 Custom Modules:
-  ☑ Every custom module loaded without ImportError or XML error
-  ☑ Run the critical business workflows end-to-end:
+   Every custom module loaded without ImportError or XML error
+   Run the critical business workflows end-to-end:
       Create sale order → confirm → deliver → invoice → payment
 
 Users & Security:
-  ☑ User logins work correctly
-  ☑ Access rights are preserved (spot-check 3-5 users)
+   User logins work correctly
+   Access rights are preserved (spot-check 3-5 users)
 ```
 
 ## Best Practices
 
-- ✅ **Do:** Always upgrade on a **copy of production** (staging) first — never the live instance.
-- ✅ **Do:** Keep the old version running until the new version is **fully validated and signed off**.
-- ✅ **Do:** Check OCA's migration status page: [OCA Migration Status](https://github.com/OCA/maintainer-tools/wiki/Migration-Status)
-- ✅ **Do:** Use the [Odoo Upgrade Service](https://upgrade.odoo.com/) pre-analysis report to get a list of breaking changes **before writing any code**.
-- ❌ **Don't:** Skip intermediate versions — Odoo requires sequential upgrades (v14→v15→v16→v17).
-- ❌ **Don't:** Upgrade custom modules and Odoo core simultaneously — adapt Odoo core first, then fix custom modules.
-- ❌ **Don't:** Run OpenUpgrade against production directly — always test on a staging copy first.
+-  **Do:** Always upgrade on a **copy of production** (staging) first — never the live instance.
+-  **Do:** Keep the old version running until the new version is **fully validated and signed off**.
+-  **Do:** Check OCA's migration status page: [OCA Migration Status](https://github.com/OCA/maintainer-tools/wiki/Migration-Status)
+-  **Do:** Use the [Odoo Upgrade Service](https://upgrade.odoo.com/) pre-analysis report to get a list of breaking changes **before writing any code**.
+-  **Don't:** Skip intermediate versions — Odoo requires sequential upgrades (v14→v15→v16→v17).
+-  **Don't:** Upgrade custom modules and Odoo core simultaneously — adapt Odoo core first, then fix custom modules.
+-  **Don't:** Run OpenUpgrade against production directly — always test on a staging copy first.
 
 ## Limitations
 

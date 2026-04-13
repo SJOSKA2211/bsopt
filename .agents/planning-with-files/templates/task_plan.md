@@ -103,7 +103,7 @@ Phase 1
     | Use JSON for storage | Simple, human-readable, built-in Python support |
 -->
 | Decision | Rationale |
-|----------|-----------|
+|--|--|
 |          |           |
 
 ## Errors Encountered
@@ -116,7 +116,7 @@ Phase 1
     | JSONDecodeError | 2 | Handle empty file case explicitly |
 -->
 | Error | Attempt | Resolution |
-|-------|---------|------------|
+|-------|---------|--|
 |       | 1       |            |
 
 ## Notes

@@ -1,5 +1,5 @@
 #!/bin/bash
-#===============================================================================
+#==
 # Loki Mode - Autonomous Runner
 # Single script that handles prerequisites, setup, and autonomous execution
 #
@@ -49,18 +49,18 @@
 #   LOKI_MAX_ITERATIONS        - Max loop iterations before exit (default: 1000)
 #   LOKI_PERPETUAL_MODE        - Ignore ALL completion signals (default: false)
 #                                Set to 'true' for truly infinite operation
-#===============================================================================
+#==
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-#===============================================================================
+#==
 # Self-Copy Protection
 # Bash reads scripts incrementally, so editing a running script corrupts execution.
 # Solution: Copy ourselves to /tmp and run from there. The original can be safely edited.
-#===============================================================================
+#==
 if [[ -z "${LOKI_RUNNING_FROM_TEMP:-}" ]]; then
     TEMP_SCRIPT="/tmp/loki-run-$$.sh"
     cp "${BASH_SOURCE[0]}" "$TEMP_SCRIPT"
@@ -131,9 +131,9 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-#===============================================================================
+#==
 # Logging Functions
-#===============================================================================
+#==
 
 log_header() {
     echo ""
@@ -148,9 +148,9 @@ log_warning() { log_warn "$@"; }  # Alias for backwards compatibility
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
 log_step() { echo -e "${CYAN}[STEP]${NC} $*"; }
 
-#===============================================================================
+#==
 # Prerequisites Check
-#===============================================================================
+#==
 
 check_prerequisites() {
     log_header "Checking Prerequisites"
@@ -232,9 +232,9 @@ check_prerequisites() {
     fi
 }
 
-#===============================================================================
+#==
 # Skill Installation Check
-#===============================================================================
+#==
 
 check_skill_installed() {
     log_header "Checking Loki Mode Skill"
@@ -264,9 +264,9 @@ check_skill_installed() {
     fi
 }
 
-#===============================================================================
+#==
 # Initialize Loki Directory
-#===============================================================================
+#==
 
 init_loki_dir() {
     log_header "Initializing Loki Mode Directory"
@@ -307,9 +307,9 @@ EOF
     log_info "Loki directory initialized: .loki/"
 }
 
-#===============================================================================
+#==
 # Task Status Monitor
-#===============================================================================
+#==
 
 update_status_file() {
     # Create a human-readable status file
@@ -376,9 +376,9 @@ stop_status_monitor() {
     stop_resource_monitor
 }
 
-#===============================================================================
+#==
 # Web Dashboard
-#===============================================================================
+#==
 
 generate_dashboard() {
     # Generate HTML dashboard with Anthropic design language + Agent Monitoring
@@ -733,7 +733,7 @@ generate_dashboard() {
                     <div class="agent-work">${currentTask}</div>
                     <div class="agent-meta">
                         <span>⏱ ${duration}</span>
-                        <span>✓ ${tasksCount} tasks</span>
+                        <span> ${tasksCount} tasks</span>
                     </div>
                 </div>
             `;
@@ -825,9 +825,9 @@ update_agents_state() {
     echo "$agents_json" > "$output_file"
 }
 
-#===============================================================================
+#==
 # Resource Monitoring
-#===============================================================================
+#==
 
 check_system_resources() {
     # Check CPU and memory usage and write status to .loki/state/resources.json
@@ -941,9 +941,9 @@ stop_resource_monitor() {
     fi
 }
 
-#===============================================================================
+#==
 # Audit Logging (Enterprise Security)
-#===============================================================================
+#==
 
 audit_log() {
     # Log security-relevant events for enterprise compliance
@@ -1004,9 +1004,9 @@ check_command_allowed() {
     return 0
 }
 
-#===============================================================================
+#==
 # Cross-Project Learnings Database
-#===============================================================================
+#==
 
 init_learnings_db() {
     # Initialize the cross-project learnings database
@@ -1213,9 +1213,9 @@ stop_dashboard() {
     fi
 }
 
-#===============================================================================
+#==
 # Calculate Exponential Backoff
-#===============================================================================
+#==
 
 calculate_wait() {
     local retry="$1"
@@ -1233,9 +1233,9 @@ calculate_wait() {
     echo $wait_time
 }
 
-#===============================================================================
+#==
 # Rate Limit Detection
-#===============================================================================
+#==
 
 # Detect rate limit from log and calculate wait time until reset
 # Returns: seconds to wait, or 0 if no rate limit detected
@@ -1296,9 +1296,9 @@ format_duration() {
     fi
 }
 
-#===============================================================================
+#==
 # Check Completion
-#===============================================================================
+#==
 
 is_completed() {
     # Check orchestrator state
@@ -1394,9 +1394,9 @@ load_learnings_context() {
     echo -e "$learnings"
 }
 
-#===============================================================================
+#==
 # Save/Load Wrapper State
-#===============================================================================
+#==
 
 save_state() {
     local retry_count="$1"
@@ -1429,9 +1429,9 @@ load_state() {
     fi
 }
 
-#===============================================================================
+#==
 # Build Resume Prompt
-#===============================================================================
+#==
 
 build_prompt() {
     local retry="$1"
@@ -1504,9 +1504,9 @@ build_prompt() {
     fi
 }
 
-#===============================================================================
+#==
 # Main Autonomous Loop
-#===============================================================================
+#==
 
 run_autonomous() {
     local prd_path="$1"
@@ -1884,9 +1884,9 @@ if __name__ == "__main__":
     return 1
 }
 
-#===============================================================================
+#==
 # Cleanup Handler
-#===============================================================================
+#==
 
 cleanup() {
     echo ""
@@ -1898,9 +1898,9 @@ cleanup() {
     exit 130
 }
 
-#===============================================================================
+#==
 # Main Entry Point
-#===============================================================================
+#==
 
 main() {
     trap cleanup INT TERM

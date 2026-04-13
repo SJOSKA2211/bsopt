@@ -106,7 +106,7 @@ const result = (await poller.pollUntilDone()).body as AnalyzeOperationOutput;
 ## Prebuilt Models
 
 | Model ID | Description |
-|----------|-------------|
+|--|--|
 | `prebuilt-read` | OCR - text and language extraction |
 | `prebuilt-layout` | Text, tables, selection marks, structure |
 | `prebuilt-invoice` | Invoice fields |

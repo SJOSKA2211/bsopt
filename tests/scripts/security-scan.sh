@@ -1,17 +1,17 @@
 #!/bin/bash
-# =====================================================================
+# ==
 # DOCKER SECURITY SCANNING SCRIPT
-# =====================================================================
+# ==
 # Purpose: Run Trivy security scans on all Docker images
 # Features: Vulnerability scanning, compliance checks, report generation
 # Usage: ./scripts/security-scan.sh
-# =====================================================================
+# ==
 
 set -euo pipefail
 
-# =====================================================================
+# ==
 # Configuration
-# =====================================================================
+# ==
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 REPORT_DIR="$PROJECT_ROOT/security-reports"
@@ -24,9 +24,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# =====================================================================
+# ==
 # Functions
-# =====================================================================
+# ==
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -46,9 +46,9 @@ log_error() {
 
 print_header() {
     echo ""
-    echo "====================================================================="
+    echo "=="
     echo "$1"
-    echo "====================================================================="
+    echo "=="
     echo ""
 }
 
@@ -145,7 +145,7 @@ generate_summary_report() {
 ## Vulnerability Summary
 
 | Image | Critical | High | Medium | Low |
-|-------|----------|------|--------|-----|
+|-------|--|------|--------|-----|
 EOF
 
     # Read metrics and generate table
@@ -157,20 +157,20 @@ EOF
 
 ## Production Readiness Criteria
 
-✅ = Pass | ⚠️ = Warning | ❌ = Fail
+ = Pass | ️ = Warning |  = Fail
 
 | Image | Critical CVEs | High CVEs | Status |
-|-------|---------------|-----------|--------|
+|-------|--|--|--------|
 EOF
 
     # Generate status table
     tail -n +2 "$REPORT_DIR/vulnerability-metrics.csv" | while IFS=',' read -r image critical high medium low; do
         if [ "$critical" -eq 0 ] && [ "$high" -eq 0 ]; then
-            status="✅ PASS"
+            status=" PASS"
         elif [ "$critical" -eq 0 ]; then
-            status="⚠️ WARNING"
+            status="️ WARNING"
         else
-            status="❌ FAIL"
+            status=" FAIL"
         fi
         echo "| $image | $critical | $high | $status |" >> "$REPORT_DIR/SECURITY_SUMMARY.md"
     done
@@ -205,9 +205,9 @@ EOF
     log_success "Summary report generated: $REPORT_DIR/SECURITY_SUMMARY.md"
 }
 
-# =====================================================================
+# ==
 # Main Script
-# =====================================================================
+# ==
 
 print_header "Docker Security Scanning Script"
 

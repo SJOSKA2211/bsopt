@@ -63,7 +63,7 @@ To provide expert guidance on designing, implementing, and optimizing state-of-t
 ## Sharp Edges (2026)
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | SAM 3 VRAM Usage | Medium | Use quantized/distilled versions for local GPU inference. |
 | Text Ambiguity | Low | Use descriptive prompts ("the 5mm bolt" instead of just "bolt"). |
 | Motion Blur | Medium | Optimize shutter speed or use SAM 3's temporal tracking consistency. |

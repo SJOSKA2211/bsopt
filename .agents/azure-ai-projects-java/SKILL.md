@@ -145,7 +145,7 @@ try {
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Product Docs | https://learn.microsoft.com/azure/ai-studio/ |
 | API Reference | https://learn.microsoft.com/rest/api/aifoundry/aiprojects/ |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/ai/azure-ai-projects |

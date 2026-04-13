@@ -114,7 +114,7 @@ Triples-to-Beliefs-to-Triples implements bidirectional flow between RDF knowledg
 ## Notation Selection by Level
 
 | C4 Level | Notation | Mental State Representation |
-|----------|----------|----------------------------|
+|--|--|--|
 | L1 Context | ArchiMate | Agent boundaries, external perception sources |
 | L2 Container | ArchiMate | BDI reasoning engine, belief store, plan executor |
 | L3 Component | UML | Mental state managers, process handlers |

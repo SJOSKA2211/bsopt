@@ -18,7 +18,7 @@ Generate structured changelogs from git history.
 
 1. Examine git log (commits, dates, authors, messages)
 2. Group by time period: daily (last 7 days), weekly (older)
-3. Classify each commit: Features (🆕), Fixes (🐛), Refactoring (🔄), Docs (📝), Config (🔧), Dependencies (📦), Breaking (⚠️)
+3. Classify each commit: Features (🆕), Fixes (), Refactoring (), Docs (), Config (), Dependencies (), Breaking (️)
 4. Generate concise user-facing descriptions using project terminology
 
 ## Constraints

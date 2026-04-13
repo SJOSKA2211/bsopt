@@ -32,7 +32,7 @@ def generate_tests():
     test_dir = "tests/generated"
     os.makedirs(test_dir, exist_ok=True)
 
-    print(f"🛠️ Starting Bulk Test Generation in {test_dir}...")
+    print(f"️ Starting Bulk Test Generation in {test_dir}...")
 
     for root, dirs, files in os.walk(src_dir):
         for file in files:
@@ -52,7 +52,7 @@ def generate_tests():
                 with open(test_path, "w") as f:
                     f.write(content)
 
-    print("🏁 Bulk Test Generation Complete.")
+    print(" Bulk Test Generation Complete.")
 
 
 if __name__ == "__main__":

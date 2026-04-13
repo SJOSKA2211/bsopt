@@ -69,7 +69,7 @@ WHEN NOT MATCHED THEN INSERT (id, name, updated_at) VALUES (s.id, s.name, CURREN
 ### Choosing Your Approach
 
 | Approach | When to Use |
-|----------|-------------|
+|--|--|
 | Dynamic Tables | Declarative transformations. **Default choice.** Define the query, Snowflake handles refresh. |
 | Streams + Tasks | Imperative CDC. Use for procedural logic, stored procedure calls. |
 | Snowpipe | Continuous file loading from S3/GCS/Azure. |
@@ -113,7 +113,7 @@ ALTER TASK process_events RESUME;
 ### Function Reference
 
 | Function | Purpose |
-|----------|---------|
+|--|---------|
 | `AI_COMPLETE` | LLM completion (text, images, documents) |
 | `AI_CLASSIFY` | Classify into categories (up to 500 labels) |
 | `AI_FILTER` | Boolean filter on text/images |

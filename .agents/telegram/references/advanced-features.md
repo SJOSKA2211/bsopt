@@ -244,7 +244,7 @@ await bot.create_new_sticker_set(
     title="Meu Sticker Pack",
     stickers=[InputSticker(
         sticker=open("sticker.webp", "rb"),
-        emoji_list=["😀"],
+        emoji_list=[""],
         format="static"
     )]
 )
@@ -255,7 +255,7 @@ await bot.add_sticker_to_set(
     name="meupack_by_meubot",
     sticker=InputSticker(
         sticker=open("sticker2.webp", "rb"),
-        emoji_list=["😎"],
+        emoji_list=[""],
         format="static"
     )
 )

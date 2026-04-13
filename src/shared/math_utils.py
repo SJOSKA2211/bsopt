@@ -1,6 +1,6 @@
 """
 Unified Mathematical Utilities - CPU-Optimized Kernels
-======================================================
+==
 Consolidates critical numerical logic for cross-module consistency.
 Utilizes Rust (Manifold_core) and Numba (CPU) for extreme performance.
 Includes memory profiling to prevent memory leaks.
@@ -81,9 +81,9 @@ def profile_memory():
     return stats
 
 
-# -------------------------------------------------------------------------
+# --
 # Kernels
-# -------------------------------------------------------------------------
+# --
 
 def calculate_price(
     s: float | np.ndarray,

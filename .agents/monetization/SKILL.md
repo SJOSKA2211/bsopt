@@ -239,7 +239,7 @@ Badge Mais popular no plano middle
 ## Estrutura De Planos (3 E O Numero Certo)
 
 | Feature             | Free    | Pro        | Business   |
-|---------------------|---------|------------|------------|
+|--|---------|--|--|
 | Preco               | Gratis  | R$ 29/mes  | R$ 99/mes  |
 | Conversas/mes       | 50      | Ilimitado  | Ilimitado  |
 | Memoria             | 7 dias  | 1 ano      | Permanente |
@@ -338,7 +338,7 @@ def calculate_unit_economics(
 ## Benchmarks Saas B2C Brasil
 
 | Metrica               | Ruim  | Ok     | Bom    | Excelente |
-|-----------------------|-------|--------|--------|-----------|
+|--|-------|--------|--------|--|
 | Churn Mensal          | >7%   | 5-7%   | 2-5%   | <2%       |
 | LTV/CAC               | <1x   | 1-3x   | 3-5x   | >5x       |
 | Payback               | >18m  | 12-18m | 6-12m  | <6m       |
@@ -379,7 +379,7 @@ async def check_usage_and_upsell(user_id: str, usage: dict):
 ## 7. Comandos Rapidos
 
 | Comando              | Acao                                     |
-|----------------------|------------------------------------------|
+|--|--|
 | /stripe-setup        | Configura Stripe do zero                 |
 | /pricing-analysis    | Analisa estrategia de pricing atual      |
 | /churn-playbook      | Sequencia anti-churn personalizada       |

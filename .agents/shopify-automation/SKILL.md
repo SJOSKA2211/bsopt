@@ -149,7 +149,7 @@ For advanced operations:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List products | SHOPIFY_GET_PRODUCTS | (filters) |
 | Get product | SHOPIFY_GET_PRODUCT | product_id |
 | Products paginated | SHOPIFY_GET_PRODUCTS_PAGINATED | limit, page_info |

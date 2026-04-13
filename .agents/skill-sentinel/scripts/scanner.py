@@ -265,7 +265,7 @@ class SkillScanner:
         }
 
 
-# -- CLI -----------------------------------------------------------------------
+# -- CLI --
 if __name__ == "__main__":
     scanner = SkillScanner()
     skills = scanner.discover_all()

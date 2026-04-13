@@ -24,7 +24,7 @@ scene.add(directionalLight);
 ## Light Types Overview
 
 | Light            | Description            | Shadow Support | Cost     |
-| ---------------- | ---------------------- | -------------- | -------- |
+| -- | -- | -- | -------- |
 | AmbientLight     | Uniform everywhere     | No             | Very Low |
 | HemisphereLight  | Sky/ground gradient    | No             | Very Low |
 | DirectionalLight | Parallel rays (sun)    | Yes            | Low      |

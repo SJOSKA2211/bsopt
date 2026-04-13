@@ -60,7 +60,7 @@ function goodCode() {
 ## Quick Reference
 
 | Scenario | Approach |
-|----------|----------|
+|--|--|
 | Case A | Solution A |
 | Case B | Solution B |
 
@@ -266,11 +266,11 @@ Replace `sleep(ms)` with `waitFor(() => condition)`.
 ## The Fix
 
 ```typescript
-// ❌ Bad
+//  Bad
 await sleep(2000);
 expect(element).toBeVisible();
 
-// ✅ Good
+//  Good
 await waitFor(() => element.isVisible(), { timeout: 5000 });
 expect(element).toBeVisible();
 ```

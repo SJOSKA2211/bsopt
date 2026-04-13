@@ -745,7 +745,7 @@ llm_client = LLMWithFallback(
 ## Architecture Decision Matrix
 
 | Pattern              | Use When         | Complexity | Cost      |
-| :------------------- | :--------------- | :--------- | :-------- |
+| :-- | :-- | :--------- | :-------- |
 | **Simple RAG**       | FAQ, docs search | Low        | Low       |
 | **Hybrid RAG**       | Mixed queries    | Medium     | Medium    |
 | **ReAct Agent**      | Multi-step tasks | Medium     | Medium    |

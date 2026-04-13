@@ -20,12 +20,12 @@ async def verify_pgbouncer():
         async with engine.connect() as conn:
             result = await conn.execute(text("SELECT version();"))
             version = result.scalar()
-            print(f"✅ PgBouncer Connection Successful! DB Version: {version}")
+            print(f" PgBouncer Connection Successful! DB Version: {version}")
             
         await engine.dispose()
-        print("🔌 Connection closed.")
+        print(" Connection closed.")
     except Exception as e:
-        print(f"❌ PgBouncer Connection Failed: {e}")
+        print(f" PgBouncer Connection Failed: {e}")
 
 async def main():
     await verify_pgbouncer()

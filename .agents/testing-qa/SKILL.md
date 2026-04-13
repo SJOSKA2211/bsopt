@@ -210,7 +210,7 @@ Use @verification-before-completion to verify changes
         /       /  \    E2E Tests (10%)
       /----     /      \  Integration Tests (20%)
     /--------   /          \ Unit Tests (70%)
-  /------------```
+  /--```
 
 ## Quality Gates Checklist
 

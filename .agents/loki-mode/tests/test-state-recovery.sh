@@ -26,9 +26,9 @@ trap cleanup EXIT
 
 cd "$TEST_DIR"
 
-echo "========================================"
+echo "=="
 echo "Loki Mode State Recovery Tests"
-echo "========================================"
+echo "=="
 echo ""
 
 # Initialize structure
@@ -377,9 +377,9 @@ EOF
 log_pass "Full system recovery works"
 
 echo ""
-echo "========================================"
+echo "=="
 echo "Test Summary"
-echo "========================================"
+echo "=="
 echo -e "${GREEN}Passed: $PASSED${NC}"
 echo -e "${RED}Failed: $FAILED${NC}"
 echo ""

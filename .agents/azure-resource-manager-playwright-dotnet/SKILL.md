@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Microsoft Playwright Testing workspaces via Azure Resource Manager.
 
-> **⚠️ Management vs Test Execution**
+> **️ Management vs Test Execution**
 > - **This SDK (Azure.ResourceManager.Playwright)**: Create workspaces, manage quotas, check name availability
 > - **Test Execution SDK (Azure.Developer.MicrosoftPlaywrightTesting.NUnit)**: Run Playwright tests at scale on cloud browsers
 
@@ -217,7 +217,7 @@ await workspace.Value.DeleteAsync(WaitUntil.Completed);
 ## Workspace Properties
 
 | Property | Description |
-|----------|-------------|
+|--|--|
 | `DataplaneUri` | URI for running tests (e.g., `https://api.dataplane.{guid}.domain.com`) |
 | `WorkspaceId` | Unique workspace identifier (GUID) |
 | `RegionalAffinity` | Enable/disable regional affinity for test execution |

@@ -26,7 +26,7 @@ The companion library [go-rod/stealth](https://github.com/go-rod/stealth) inject
 
 ## Safety & Risk
 
-**Risk Level: 🔵 Safe**
+**Risk Level:  Safe**
 
 - **Read-Only by Default:** Default behavior is navigating and reading page content (scraping/testing).
 - **Isolated Contexts:** Browser contexts are sandboxed; cookies and storage do not persist unless explicitly saved.
@@ -489,20 +489,20 @@ See the `examples/` directory for complete, runnable Go files:
 
 ## Best Practices
 
-- ✅ **ALWAYS use `stealth.MustPage(browser)`** instead of `browser.MustPage()` for real-world sites.
-- ✅ **ALWAYS `defer browser.MustClose()`** immediately after connecting.
-- ✅ Use the error-returning API (not `Must*`) in production code.
-- ✅ Set explicit timeouts with `.Timeout()` — never rely on defaults for production.
-- ✅ Use `browser.MustIncognito().MustPage()` for isolated sessions.
-- ✅ Use `PagePool` for concurrent scraping instead of spawning unlimited pages.
-- ✅ Use `MustWaitStable()` before clicking elements that might be animating.
-- ✅ Use `MustWaitRequestIdle()` after actions that trigger AJAX calls.
-- ✅ Use `launcher.New().Headless(false).Devtools(true)` for debugging.
-- ❌ **NEVER** use `time.Sleep()` for waiting — use Rod's built-in wait methods.
-- ❌ **NEVER** create a new `Browser` per task — create one Browser, use multiple `Page` instances.
-- ❌ **NEVER** use `browser.MustPage()` for production scraping — use `stealth.MustPage()`.
-- ❌ **NEVER** ignore errors in production — always handle them explicitly.
-- ❌ **NEVER** forget to defer-close browsers, pages, and hijack routers.
+-  **ALWAYS use `stealth.MustPage(browser)`** instead of `browser.MustPage()` for real-world sites.
+-  **ALWAYS `defer browser.MustClose()`** immediately after connecting.
+-  Use the error-returning API (not `Must*`) in production code.
+-  Set explicit timeouts with `.Timeout()` — never rely on defaults for production.
+-  Use `browser.MustIncognito().MustPage()` for isolated sessions.
+-  Use `PagePool` for concurrent scraping instead of spawning unlimited pages.
+-  Use `MustWaitStable()` before clicking elements that might be animating.
+-  Use `MustWaitRequestIdle()` after actions that trigger AJAX calls.
+-  Use `launcher.New().Headless(false).Devtools(true)` for debugging.
+-  **NEVER** use `time.Sleep()` for waiting — use Rod's built-in wait methods.
+-  **NEVER** create a new `Browser` per task — create one Browser, use multiple `Page` instances.
+-  **NEVER** use `browser.MustPage()` for production scraping — use `stealth.MustPage()`.
+-  **NEVER** ignore errors in production — always handle them explicitly.
+-  **NEVER** forget to defer-close browsers, pages, and hijack routers.
 
 ## Common Pitfalls
 

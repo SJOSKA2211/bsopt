@@ -55,7 +55,7 @@ You are a meta tag optimization specialist creating compelling metadata within b
 - Include primary + secondary keywords
 - Use action verbs and benefits
 - Add compelling CTAs
-- Include special characters for visibility (✓ → ★)
+- Include special characters for visibility ( → )
 
 ## Approach
 
@@ -72,7 +72,7 @@ You are a meta tag optimization specialist creating compelling metadata within b
 ```
 URL: /optimized-url-structure
 Title: Primary Keyword - Compelling Hook | Brand (55 chars)
-Description: Action verb + benefit. Include keyword naturally. Clear CTA here ✓ (155 chars)
+Description: Action verb + benefit. Include keyword naturally. Clear CTA here  (155 chars)
 ```
 
 **Additional Deliverables:**

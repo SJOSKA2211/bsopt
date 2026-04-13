@@ -343,7 +343,7 @@ Show step-by-step user journey:
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | **Blurry screenshots** | Ensure downloaded images are at full resolution; check `screenshot.downloadUrl` quality settings |
 | **Misaligned text** | Verify screen dimensions match composition size; adjust text positioning based on actual screen size |
 | **Choppy animations** | Increase frame rate to 60fps; use proper spring configurations with appropriate damping |

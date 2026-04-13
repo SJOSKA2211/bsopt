@@ -24,7 +24,7 @@ Before designing or implementing **any mobile feature or screen**, assess feasib
 ### MFRI Dimensions (1–5)
 
 | Dimension                  | Question                                                          |
-| -------------------------- | ----------------------------------------------------------------- |
+| -- | -- |
 | **Platform Clarity**       | Is the target platform (iOS / Android / both) explicitly defined? |
 | **Interaction Complexity** | How complex are gestures, flows, or navigation?                   |
 | **Performance Risk**       | Does this involve lists, animations, heavy state, or media?       |
@@ -43,7 +43,7 @@ MFRI = (Platform Clarity + Accessibility Readiness)
 ### Interpretation
 
 | MFRI     | Meaning   | Required Action                       |
-| -------- | --------- | ------------------------------------- |
+| -------- | --------- | -- |
 | **6–10** | Safe      | Proceed normally                      |
 | **3–5**  | Moderate  | Add performance + UX validation       |
 | **0–2**  | Risky     | Simplify interactions or architecture |
@@ -53,12 +53,12 @@ MFRI = (Platform Clarity + Accessibility Readiness)
 
 ## 2. Mandatory Thinking Before Any Work
 
-### ⛔ STOP: Ask Before Assuming (Required)
+###  STOP: Ask Before Assuming (Required)
 
 If **any of the following are not explicitly stated**, you MUST ask before proceeding:
 
 | Aspect     | Question                                   | Why                                      |
-| ---------- | ------------------------------------------ | ---------------------------------------- |
+| -- | -- | -- |
 | Platform   | iOS, Android, or both?                     | Affects navigation, gestures, typography |
 | Framework  | React Native, Flutter, or native?          | Determines performance and patterns      |
 | Navigation | Tabs, stack, drawer?                       | Core UX architecture                     |
@@ -66,7 +66,7 @@ If **any of the following are not explicitly stated**, you MUST ask before proce
 | Devices    | Phone only or tablet too?                  | Layout & density rules                   |
 | Audience   | Consumer, enterprise, accessibility needs? | Touch & readability                      |
 
-🚫 **Never default to your favorite stack or pattern.**
+ **Never default to your favorite stack or pattern.**
 
 ---
 
@@ -75,32 +75,32 @@ If **any of the following are not explicitly stated**, you MUST ask before proce
 ### Universal (Always Read First)
 
 | File                          | Purpose                            | Status            |
-| ----------------------------- | ---------------------------------- | ----------------- |
-| **mobile-design-thinking.md** | Anti-memorization, context-forcing | 🔴 REQUIRED FIRST |
-| **touch-psychology.md**       | Fitts’ Law, thumb zones, gestures  | 🔴 REQUIRED       |
-| **mobile-performance.md**     | 60fps, memory, battery             | 🔴 REQUIRED       |
-| **mobile-backend.md**         | Offline sync, push, APIs           | 🔴 REQUIRED       |
-| **mobile-testing.md**         | Device & E2E testing               | 🔴 REQUIRED       |
-| **mobile-debugging.md**       | Native vs JS debugging             | 🔴 REQUIRED       |
+| -- | -- | -- |
+| **mobile-design-thinking.md** | Anti-memorization, context-forcing |  REQUIRED FIRST |
+| **touch-psychology.md**       | Fitts’ Law, thumb zones, gestures  |  REQUIRED       |
+| **mobile-performance.md**     | 60fps, memory, battery             |  REQUIRED       |
+| **mobile-backend.md**         | Offline sync, push, APIs           |  REQUIRED       |
+| **mobile-testing.md**         | Device & E2E testing               |  REQUIRED       |
+| **mobile-debugging.md**       | Native vs JS debugging             |  REQUIRED       |
 
 ### Platform-Specific (Conditional)
 
 | Platform       | File                |
-| -------------- | ------------------- |
+| -- | -- |
 | iOS            | platform-ios.md     |
 | Android        | platform-android.md |
 | Cross-platform | BOTH above          |
 
-> ❌ If you haven’t read the platform file, you are not allowed to design UI.
+>  If you haven’t read the platform file, you are not allowed to design UI.
 
 ---
 
 ## 4. AI Mobile Anti-Patterns (Hard Bans)
 
-### 🚫 Performance Sins (Non-Negotiable)
+###  Performance Sins (Non-Negotiable)
 
-| ❌ Never                   | Why                  | ✅ Always                                |
-| ------------------------- | -------------------- | --------------------------------------- |
+|  Never                   | Why                  |  Always                                |
+| -- | -- | -- |
 | ScrollView for long lists | Memory explosion     | FlatList / FlashList / ListView.builder |
 | Inline renderItem         | Re-renders all rows  | useCallback + memo                      |
 | Index as key              | Reorder bugs         | Stable ID                               |
@@ -110,10 +110,10 @@ If **any of the following are not explicitly stated**, you MUST ask before proce
 
 ---
 
-### 🚫 Touch & UX Sins
+###  Touch & UX Sins
 
-| ❌ Never               | Why                  | ✅ Always          |
-| --------------------- | -------------------- | ----------------- |
+|  Never               | Why                  |  Always          |
+| -- | -- | -- |
 | Touch <44–48px        | Miss taps            | Min touch target  |
 | Gesture-only action   | Excludes users       | Button fallback   |
 | No loading state      | Feels broken         | Explicit feedback |
@@ -122,10 +122,10 @@ If **any of the following are not explicitly stated**, you MUST ask before proce
 
 ---
 
-### 🚫 Security Sins
+###  Security Sins
 
-| ❌ Never                | Why                | ✅ Always               |
-| ---------------------- | ------------------ | ---------------------- |
+|  Never                | Why                |  Always               |
+| -- | -- | -- |
 | Tokens in AsyncStorage | Easily stolen      | SecureStore / Keychain |
 | Hardcoded secrets      | Reverse engineered | Env + secure storage   |
 | No SSL pinning         | MITM risk          | Cert pinning           |
@@ -148,7 +148,7 @@ Error semantics                Pickers / dialogs
 ### Platform Defaults
 
 | Element   | iOS          | Android        |
-| --------- | ------------ | -------------- |
+| --------- | -- | -- |
 | Font      | SF Pro       | Roboto         |
 | Min touch | 44pt         | 48dp           |
 | Back      | Edge swipe   | System back    |
@@ -238,7 +238,7 @@ Anti-Patterns I Will Avoid:
 2.
 ```
 
-❌ Cannot complete → go back and read.
+ Cannot complete → go back and read.
 
 ---
 

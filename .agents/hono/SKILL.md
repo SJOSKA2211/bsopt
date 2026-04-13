@@ -309,14 +309,14 @@ app.get('/stream', c =>
 
 ## Best Practices
 
-- ✅ Use route groups (sub-apps) to keep handlers in separate files — `app.route('/users', usersRouter)`
-- ✅ Use `zValidator` for all request body, query, and param validation
-- ✅ Type Cloudflare Workers bindings with the `Bindings` generic: `new Hono<{ Bindings: Env }>()`
-- ✅ Use the RPC client (`hc`) when your frontend and backend share the same repo
-- ✅ Prefer returning `c.json()`/`c.text()` over `new Response()` for cleaner code
-- ❌ Don't use Node.js-specific APIs (`fs`, `path`, `process`) if you want edge portability
-- ❌ Don't add heavy dependencies — Hono's value is its tiny footprint on edge runtimes
-- ❌ Don't skip middleware typing — use generics (`Variables`, `Bindings`) to keep `c.get()` type-safe
+-  Use route groups (sub-apps) to keep handlers in separate files — `app.route('/users', usersRouter)`
+-  Use `zValidator` for all request body, query, and param validation
+-  Type Cloudflare Workers bindings with the `Bindings` generic: `new Hono<{ Bindings: Env }>()`
+-  Use the RPC client (`hc`) when your frontend and backend share the same repo
+-  Prefer returning `c.json()`/`c.text()` over `new Response()` for cleaner code
+-  Don't use Node.js-specific APIs (`fs`, `path`, `process`) if you want edge portability
+-  Don't add heavy dependencies — Hono's value is its tiny footprint on edge runtimes
+-  Don't skip middleware typing — use generics (`Variables`, `Bindings`) to keep `c.get()` type-safe
 
 ## Security & Safety Notes
 

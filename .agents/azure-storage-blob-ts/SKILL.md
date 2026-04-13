@@ -472,15 +472,15 @@ import {
 
 | Feature | Node.js | Browser |
 |---------|---------|---------|
-| `StorageSharedKeyCredential` | ✅ | ❌ |
-| `uploadFile()` | ✅ | ❌ |
-| `uploadStream()` | ✅ | ❌ |
-| `downloadToFile()` | ✅ | ❌ |
-| `downloadToBuffer()` | ✅ | ❌ |
-| `uploadData()` | ✅ | ✅ |
-| SAS generation | ✅ | ❌ |
-| DefaultAzureCredential | ✅ | ❌ |
-| Anonymous/SAS access | ✅ | ✅ |
+| `StorageSharedKeyCredential` |  |  |
+| `uploadFile()` |  |  |
+| `uploadStream()` |  |  |
+| `downloadToFile()` |  |  |
+| `downloadToBuffer()` |  |  |
+| `uploadData()` |  |  |
+| SAS generation |  |  |
+| DefaultAzureCredential |  |  |
+| Anonymous/SAS access |  |  |
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

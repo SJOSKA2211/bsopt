@@ -60,7 +60,7 @@ These invariants apply to EVERY slide in EVERY presentation:
 ### Content Density Limits Per Slide
 
 | Slide Type    | Maximum Content                                           |
-| ------------- | --------------------------------------------------------- |
+| -- | -- |
 | Title slide   | 1 heading + 1 subtitle + optional tagline                 |
 | Content slide | 1 heading + 4-6 bullet points OR 1 heading + 2 paragraphs |
 | Feature grid  | 1 heading + 6 cards maximum (2x3 or 3x2)                  |
@@ -161,7 +161,7 @@ What feeling should the audience have? Options:
 Based on mood, generate 3 distinct single-slide HTML previews showing typography, colors, animation, and overall aesthetic. Read [STYLE_PRESETS.md](STYLE_PRESETS.md) for available presets and their specifications.
 
 | Mood                | Suggested Presets                                  |
-| ------------------- | -------------------------------------------------- |
+| -- | -- |
 | Impressed/Confident | Bold Signal, Electric Studio, Dark Botanical       |
 | Excited/Energized   | Creative Voltage, Neon Cyber, Split Pastel         |
 | Calm/Focused        | Notebook Tabs, Paper & Ink, Swiss Modern           |
@@ -228,7 +228,7 @@ When converting PowerPoint files:
 ## Supporting Files
 
 | File                                               | Purpose                                                              | When to Read              |
-| -------------------------------------------------- | -------------------------------------------------------------------- | ------------------------- |
+| -- | -- | -- |
 | [STYLE_PRESETS.md](STYLE_PRESETS.md)               | 12 curated visual presets with colors, fonts, and signature elements | Phase 2 (style selection) |
 | [viewport-base.css](viewport-base.css)             | Mandatory responsive CSS — copy into every presentation              | Phase 3 (generation)      |
 | [html-template.md](html-template.md)               | HTML structure, JS features, code quality standards                  | Phase 3 (generation)      |

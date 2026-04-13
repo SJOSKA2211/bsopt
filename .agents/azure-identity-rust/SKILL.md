@@ -47,14 +47,14 @@ let client = SecretClient::new(
 ### Credential Chain Order
 
 | Order | Credential | Environment |
-|-------|-----------|-------------|
+|-------|--|--|
 | 1 | AzureCliCredential | `az login` |
 | 2 | AzureDeveloperCliCredential | `azd auth login` |
 
 ## Credential Types
 
 | Credential | Usage |
-|------------|-------|
+|--|-------|
 | `DeveloperToolsCredential` | Local development - tries CLI tools |
 | `ManagedIdentityCredential` | Azure VMs, App Service, Functions, AKS |
 | `WorkloadIdentityCredential` | Kubernetes workload identity |
@@ -109,7 +109,7 @@ let credential = ClientSecretCredential::new(
 ## Reference Links
 
 | Resource | Link |
-|----------|------|
+|--|------|
 | API Reference | https://docs.rs/azure_identity |
 | Source Code | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/identity/azure_identity |
 | crates.io | https://crates.io/crates/azure_identity |

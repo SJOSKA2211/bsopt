@@ -24,9 +24,9 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Imports from the 007 config hub (same directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (  # noqa: E402
@@ -44,9 +44,9 @@ from config import (  # noqa: E402
     setup_logging,
 )
 
-# ---------------------------------------------------------------------------
+# --
 # Import scanners (each lives in scanners/ sub-package or sibling script)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent / "scanners"))
 
 import dependency_scanner  # noqa: E402
@@ -56,9 +56,9 @@ import injection_scanner  # noqa: E402
 import quick_scan  # noqa: E402
 import secrets_scanner  # noqa: E402
 
-# ---------------------------------------------------------------------------
+# --
 # Logger
-# ---------------------------------------------------------------------------
+# --
 logger = setup_logging("007-score-calculator")
 
 _SENSITIVE_FINDING_KEYS = {
@@ -73,9 +73,9 @@ _SENSITIVE_FINDING_KEYS = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Positive-signal patterns (auth, encryption, resilience, monitoring)
-# ---------------------------------------------------------------------------
+# --
 # These patterns indicate GOOD practices. Their presence raises the score
 # in the relevant domain.
 
@@ -131,9 +131,9 @@ _INPUT_VALIDATION_PATTERNS = [
 ]
 
 
-# ---------------------------------------------------------------------------
+# --
 # File collection (lightweight, only for positive-signal detection)
-# ---------------------------------------------------------------------------
+# --
 
 
 def _collect_source_files(target: Path) -> list[Path]:
@@ -177,9 +177,9 @@ def _count_pattern_matches(files: list[Path], patterns: list[re.Pattern]) -> int
     return count
 
 
-# ---------------------------------------------------------------------------
+# --
 # Deduplication
-# ---------------------------------------------------------------------------
+# --
 
 
 def _deduplicate_findings(findings: list[dict]) -> list[dict]:
@@ -196,9 +196,9 @@ def _deduplicate_findings(findings: list[dict]) -> list[dict]:
     return unique
 
 
-# ---------------------------------------------------------------------------
+# --
 # Per-domain score calculators
-# ---------------------------------------------------------------------------
+# --
 
 
 def _score_from_findings(findings: list[dict], max_deduction: int = 100) -> int:
@@ -339,9 +339,9 @@ def compute_domain_scores(
     return scores
 
 
-# ---------------------------------------------------------------------------
+# --
 # Score history persistence
-# ---------------------------------------------------------------------------
+# --
 
 
 def _save_score_history(
@@ -385,9 +385,9 @@ def _save_score_history(
     )
 
 
-# ---------------------------------------------------------------------------
+# --
 # Report formatters
-# ---------------------------------------------------------------------------
+# --
 
 
 def _bar(score: float, width: int = 20) -> str:
@@ -528,9 +528,9 @@ def build_json_report(
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Main entry point
-# ---------------------------------------------------------------------------
+# --
 
 
 def run_score(
@@ -565,9 +565,9 @@ def run_score(
     start_time = time.time()
     target_str = str(target)
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 1: Run all scanners (suppress stdout by capturing reports)
-    # ------------------------------------------------------------------
+    # --
 
     scanner_summaries: dict[str, dict] = {}
 
@@ -639,9 +639,9 @@ def run_score(
         "score": quick_report.get("score", 50),
     }
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 2: Aggregate and deduplicate findings
-    # ------------------------------------------------------------------
+    # --
     all_findings_raw = secrets_findings + dep_findings + inj_findings + quick_findings
     all_findings = _deduplicate_findings(all_findings_raw)
     total_findings = len(all_findings)
@@ -655,17 +655,17 @@ def run_score(
         total_findings,
     )
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 3: Collect source files for positive-signal analysis
-    # ------------------------------------------------------------------
+    # --
     logger.info("Scanning for positive security signals...")
     source_files = _collect_source_files(target)
     total_source_files = len(source_files)
     logger.info("Collected %d source files for positive-signal analysis", total_source_files)
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 4: Compute per-domain scores
-    # ------------------------------------------------------------------
+    # --
     domain_scores = compute_domain_scores(
         secrets_findings=secrets_findings,
         injection_findings=inj_findings,
@@ -675,9 +675,9 @@ def run_score(
         total_source_files=total_source_files,
     )
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 5: Compute weighted final score and verdict
-    # ------------------------------------------------------------------
+    # --
     final_score = calculate_weighted_score(domain_scores)
     verdict = get_verdict(final_score)
 
@@ -689,9 +689,9 @@ def run_score(
         verdict["label"],
     )
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 6: Save history and audit log
-    # ------------------------------------------------------------------
+    # --
     _save_score_history(target_str, domain_scores, final_score, verdict)
 
     log_audit_event(
@@ -706,9 +706,9 @@ def run_score(
         },
     )
 
-    # ------------------------------------------------------------------
+    # --
     # Phase 7: Build and output report
-    # ------------------------------------------------------------------
+    # --
     report = build_json_report(
         target=target_str,
         domain_scores=domain_scores,
@@ -738,9 +738,9 @@ def run_score(
     return report
 
 
-# ---------------------------------------------------------------------------
+# --
 # CLI
-# ---------------------------------------------------------------------------
+# --
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

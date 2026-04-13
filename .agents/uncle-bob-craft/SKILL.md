@@ -31,7 +31,7 @@ This skill aggregates principles from Uncle Bob's body of work for **reviewing**
 ## Aggregators by Source
 
 | Source | Focus | Where to go |
-|--------|--------|-------------|
+|--------|--------|--|
 | **Clean Code** | Names, functions, comments, formatting, tests, classes, smells | Use `@clean-code` for detail; this skill references it for review/production. |
 | **Clean Architecture** | Dependency Rule, layers, boundaries, SOLID in architecture | See [reference.md](./reference.md) and [references/clean-architecture.md](./references/clean-architecture.md). |
 | **The Clean Coder** | Professionalism, estimation, saying no, sustainable pace | See [reference.md](./reference.md) and [references/clean-coder.md](./references/clean-coder.md). |
@@ -48,7 +48,7 @@ This skill aggregates principles from Uncle Bob's body of work for **reviewing**
 ## Smells and Heuristics (Summary)
 
 | Smell / Heuristic | Meaning |
-|-------------------|--------|
+|--|--------|
 | **Rigidity** | Small change forces many edits. |
 | **Fragility** | Changes break unrelated areas. |
 | **Immobility** | Hard to reuse in another context. |
@@ -129,12 +129,12 @@ def process(order: dict) -> dict:
 
 ## Best Practices
 
-- ✅ Use `@clean-code` for naming, functions, comments, and formatting; use this skill for architecture, boundaries, SOLID, smells, and process.
-- ✅ In review, name the smell or principle (e.g., "Dependency Rule violation: use case imports from the web framework").
-- ✅ Suggest at least one concrete refactor per review (extract, rename, invert dependency).
-- ✅ Run the project linter and formatter separately; this skill does not replace them.
-- ❌ Do not use this skill to enforce syntax or style; that is the linter's job.
-- ❌ Do not add design patterns without a clear duplication or variation reason.
+-  Use `@clean-code` for naming, functions, comments, and formatting; use this skill for architecture, boundaries, SOLID, smells, and process.
+-  In review, name the smell or principle (e.g., "Dependency Rule violation: use case imports from the web framework").
+-  Suggest at least one concrete refactor per review (extract, rename, invert dependency).
+-  Run the project linter and formatter separately; this skill does not replace them.
+-  Do not use this skill to enforce syntax or style; that is the linter's job.
+-  Do not add design patterns without a clear duplication or variation reason.
 
 ## Common Pitfalls
 

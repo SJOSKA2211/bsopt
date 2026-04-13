@@ -66,11 +66,11 @@ Common variables used across templates:
 
 **Schedule published by:** {{scheduler_name}} at {{date}} {{time}}
 
-**Priority Legend:** 🔴 Past-due or critical | 🟡 At risk (CR < 1.0) | 🟢 On schedule
+**Priority Legend:**  Past-due or critical | 🟡 At risk (CR < 1.0) | 🟢 On schedule
 
 | Seq | Work Order | Product | Qty | Start Time | End Time | Work Centre | Operator | Priority | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | {{work_order}} | {{product}} | {{qty}} | 06:00 | 08:30 | {{line_id}} | {{operator_name}} | 🔴 | Rush — customer line-down |
+| 1 | {{work_order}} | {{product}} | {{qty}} | 06:00 | 08:30 | {{line_id}} | {{operator_name}} |  | Rush — customer line-down |
 | 2 | WO-2025-04824 | Housing H-340 | 200 | 08:45 | 11:15 | {{line_id}} | {{operator_name}} | 🟢 | Std changeover at 08:30 |
 | 3 | WO-2025-04826 | Bracket BR-110 | 350 | 11:30 | 14:00 | {{line_id}} | {{operator_name}} | 🟡 | Material confirm by 10:00 |
 
@@ -79,9 +79,9 @@ Common variables used across templates:
 - 11:15–11:30: Changeover WO-04824 → WO-04826 (fixture change, 15 min)
 
 **Material Status:**
-- WO-04823: All material staged ✅
-- WO-04824: All material staged ✅
-- WO-04826: Bracket raw material pending — confirm with stores by 10:00 ⚠️
+- WO-04823: All material staged 
+- WO-04824: All material staged 
+- WO-04826: Bracket raw material pending — confirm with stores by 10:00 ️
 
 **Labour Notes:**
 - {{operator_name}} certified on all three jobs
@@ -105,7 +105,7 @@ Common variables used across templates:
 
 ---
 
-**Subject:** ⚠️ SCHEDULE CHANGE — {{line_id}} — Effective {{effective_time}}
+**Subject:** ️ SCHEDULE CHANGE — {{line_id}} — Effective {{effective_time}}
 
 **Change issued by:** {{scheduler_name}} at {{date}} {{time}}
 **Approved by:** {{supervisor_name}} (Production Manager approval required for frozen-zone changes)
@@ -145,7 +145,7 @@ Common variables used across templates:
 
 ---
 
-**Subject:** 🔴 DISRUPTION ALERT — {{disruption_type}} at {{line_id}} — {{date}} {{time}}
+**Subject:**  DISRUPTION ALERT — {{disruption_type}} at {{line_id}} — {{date}} {{time}}
 
 **Reported by:** {{scheduler_name}}
 **Severity:** {{severity}} (Critical / Major / Minor)
@@ -207,7 +207,7 @@ Example: "Constraint work centre (CNC Boring, WC 420) lost 20 hours due to unpla
 | Personnel required | {{personnel_count}} (e.g., 2 CNC operators + 1 setup tech) |
 | Personnel names | {{personnel_names}} (voluntary — confirmed availability) |
 | Estimated cost | ${{overtime_cost}} ({{hours}} hrs × ${{rate}}/hr × {{multiplier}} OT premium) |
-| Union compliance | ✅ Voluntary. Offered by seniority per CBA Article 14.3. 8-hour rest observed. |
+| Union compliance |  Voluntary. Offered by seniority per CBA Article 14.3. 8-hour rest observed. |
 
 **Revenue at risk without overtime:** ${{revenue_at_risk}}
 **Cost-to-benefit ratio:** {{ratio}} (e.g., "$1,200 OT cost to protect $220,000 revenue = 183:1 ROI")
@@ -345,7 +345,7 @@ Example: "Saturday window avoids impacting the Week 39 production plan, which is
 
 ---
 
-**Subject:** 🔴 QUALITY HOLD — {{product}} — Batch {{batch_id}} — {{qty_affected}} units
+**Subject:**  QUALITY HOLD — {{product}} — Batch {{batch_id}} — {{qty_affected}} units
 
 **Issued by:** {{scheduler_name}} in coordination with {{quality_lead}}
 **Date/Time:** {{date}} {{time}}
@@ -414,10 +414,10 @@ MRP-generated load for {{constraint_wc}} in Week {{week_number}} exceeds availab
 
 | Option | Capacity Recovered | Cost | Risk | Recommendation |
 |---|---|---|---|---|
-| Saturday overtime (1 shift) | {{ot_hours}} hrs | ${{ot_cost}} | Low — voluntary OT available | ✅ Recommended |
+| Saturday overtime (1 shift) | {{ot_hours}} hrs | ${{ot_cost}} | Low — voluntary OT available |  Recommended |
 | Defer {{defer_count}} lower-priority orders to Week {{week_number + 1}} | {{defer_hours}} hrs | $0 | Medium — delivery impact on deferred orders | Acceptable if customers agree |
 | Subcontract {{subcontract_ops}} | {{subcontract_hours}} hrs | ${{subcontract_cost}} | Medium — quality and lead time | Last resort |
-| Reduce constraint changeovers (campaign scheduling) | {{co_hours}} hrs | $0 | Low — requires schedule restructuring | ✅ Recommended in combination |
+| Reduce constraint changeovers (campaign scheduling) | {{co_hours}} hrs | $0 | Low — requires schedule restructuring |  Recommended in combination |
 
 **Recommended plan:** Combine overtime ({{ot_hours}} hrs) + changeover reduction ({{co_hours}} hrs) to close the gap. Total gap closed: {{total_recovered}} hrs. Remaining gap: {{remaining_gap}} hrs — address by deferring {{defer_count}} Tier-3 orders with customer agreement.
 

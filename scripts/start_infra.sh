@@ -13,11 +13,11 @@ if command -v docker &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "❌ Error: Docker is required but not installed."
+    echo " Error: Docker is required but not installed."
     exit 1
 fi
 
-echo "🚀 Launching Production Infrastructure Core..."
+echo " Launching Production Infrastructure Core..."
 
 # 2. Deployment
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer redis rabbitmq minio
@@ -32,10 +32,10 @@ check_health() {
         ((retries--))
     done
     if [ $retries -eq 0 ]; then
-        echo "❌ Fatal: $service failed to reach stable state."
+        echo " Fatal: $service failed to reach stable state."
         exit 1
     fi
-    echo "✅ $service is Stable."
+    echo " $service is Stable."
 }
 
 check_health "postgres"
@@ -44,4 +44,4 @@ check_health "redis"
 check_health "rabbitmq"
 check_health "minio"
 
-echo "🏁 Production Core is Online and Guarded."
+echo " Production Core is Online and Guarded."

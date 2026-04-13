@@ -20,7 +20,7 @@ Patterns for implementing efficient similarity search in production systems.
 ### 1. Distance Metrics
 
 | Metric | Formula | Best For |
-|--------|---------|----------|
+|--------|---------|--|
 | **Cosine** | 1 - (A·B)/(‖A‖‖B‖) | Normalized embeddings |
 | **Euclidean (L2)** | √Σ(a-b)² | Raw embeddings |
 | **Dot Product** | A·B | Magnitude matters |

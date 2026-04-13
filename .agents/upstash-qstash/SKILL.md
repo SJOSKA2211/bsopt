@@ -46,16 +46,16 @@ Verifying QStash message signatures in your endpoint
 
 ## Anti-Patterns
 
-### ❌ Skipping Signature Verification
+###  Skipping Signature Verification
 
-### ❌ Using Private Endpoints
+###  Using Private Endpoints
 
-### ❌ No Error Handling in Endpoints
+###  No Error Handling in Endpoints
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Not verifying QStash webhook signatures | critical | # Always verify signatures with both keys: |
 | Callback endpoint taking too long to respond | high | # Design for fast acknowledgment: |
 | Hitting QStash rate limits unexpectedly | high | # Check your plan limits: |

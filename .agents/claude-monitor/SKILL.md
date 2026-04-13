@@ -138,7 +138,7 @@ Compara com tempos típicos e indica se está dentro do esperado.
 ## Thresholds De Referência
 
 | Métrica | OK | Warning | Critical |
-|---------|-----|---------|----------|
+|---------|-----|---------|--|
 | CPU % | <60% | 60-85% | >85% |
 | RAM usada % | <70% | 70-85% | >85% |
 | RAM browsers | <3 GB | 3-6 GB | >6 GB |

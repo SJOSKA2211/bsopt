@@ -34,9 +34,9 @@ def revamp_timescale():
             conn.execute(text("SELECT set_chunk_time_interval('model_predictions', INTERVAL '1 day');"))
             conn.execute(text("ALTER TABLE model_predictions SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol', timescaledb.compress_orderby = 'timestamp DESC');"))
             conn.execute(text("SELECT add_compression_policy('model_predictions', INTERVAL '7 days', if_not_exists => TRUE);"))
-            print("✅ model_predictions is now a compressed hypertable.")
+            print(" model_predictions is now a compressed hypertable.")
         except Exception as e:
-            print(f"❌ Failed to revamp model_predictions: {e}")
+            print(f" Failed to revamp model_predictions: {e}")
 
         # 2. Ensure other tables exist and are hypertables
         tables = [
@@ -85,9 +85,9 @@ def revamp_timescale():
                 conn.execute(text(f"SELECT create_hypertable('{table}', '{time_col}', if_not_exists => TRUE);"))
                 conn.execute(text(f"ALTER TABLE {table} SET (timescaledb.compress, timescaledb.compress_orderby = '{time_col} DESC');"))
                 conn.execute(text(f"SELECT add_compression_policy('{table}', INTERVAL '30 days', if_not_exists => TRUE);"))
-                print(f"✅ {table} is now a hypertable.")
+                print(f" {table} is now a hypertable.")
             except Exception as e:
-                print(f"❌ Failed to optimize {table}: {e}")
+                print(f" Failed to optimize {table}: {e}")
 
         # 3. Create health view for TimescaleDB
         print("Creating timescale_health_overview view...")
@@ -108,9 +108,9 @@ def revamp_timescale():
                 FROM timescaledb_information.hypertables h
                 LEFT JOIN LATERAL hypertable_compression_stats(h.hypertable_name::regclass) s ON TRUE;
             """))
-            print("✅ timescale_health_overview view created.")
+            print(" timescale_health_overview view created.")
         except Exception as e:
-            print(f"❌ Failed to create timescale health view: {e}")
+            print(f" Failed to create timescale health view: {e}")
             
         conn.commit()
 

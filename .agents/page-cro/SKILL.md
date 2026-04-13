@@ -29,7 +29,7 @@ It prevents:
 
 ---
 
-## 🔢 Page Conversion Readiness & Impact Index
+##  Page Conversion Readiness & Impact Index
 
 ### Total Score: **0–100**
 
@@ -40,7 +40,7 @@ This is a **diagnostic score**, not a success metric.
 ### Scoring Categories & Weights
 
 | Category                    | Weight  |
-| --------------------------- | ------- |
+| -- | ------- |
 | Value Proposition Clarity   | 25      |
 | Conversion Goal Focus       | 20      |
 | Traffic–Message Match       | 15      |
@@ -104,7 +104,7 @@ This is a **diagnostic score**, not a success metric.
 ### Conversion Readiness Bands (Required)
 
 | Score  | Verdict                  | Interpretation                                 |
-| ------ | ------------------------ | ---------------------------------------------- |
+| ------ | -- | -- |
 | 85–100 | **High Readiness**       | Page is structurally sound; test optimizations |
 | 70–84  | **Moderate Readiness**   | Fix key issues before testing                  |
 | 55–69  | **Low Readiness**        | Foundational problems limit conversions        |

@@ -340,7 +340,7 @@ CURRENT_VERSION=$(psql -d $DATABASE -t -c \
     "SELECT version FROM schema_migrations ORDER BY applied_at DESC LIMIT 1" | xargs)
 
 if [ "$CURRENT_VERSION" != "$MIGRATION_VERSION" ]; then
-    echo "❌ Version mismatch"
+    echo " Version mismatch"
     exit 1
 fi
 
@@ -352,9 +352,9 @@ pg_dump -d $DATABASE -f "$BACKUP_FILE"
 if [ -f "migrations/${MIGRATION_VERSION}.down.sql" ]; then
     psql -d $DATABASE -f "migrations/${MIGRATION_VERSION}.down.sql"
     psql -d $DATABASE -c "DELETE FROM schema_migrations WHERE version = '$MIGRATION_VERSION';"
-    echo "✅ Rollback complete"
+    echo " Rollback complete"
 else
-    echo "❌ Rollback file not found"
+    echo " Rollback file not found"
     exit 1
 fi
 ```

@@ -198,7 +198,7 @@ def cmd_status(args):
 
     # Verificar drift
     if check_drift():
-        print("\n⚠ ACTIVE_CONTEXT.md e MEMORY.md estão dessincronizados.")
+        print("\n ACTIVE_CONTEXT.md e MEMORY.md estão dessincronizados.")
         print("  Execute: python context_manager.py maintain")
 
 

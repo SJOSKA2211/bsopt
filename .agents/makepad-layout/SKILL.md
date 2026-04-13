@@ -106,7 +106,7 @@ Refer to the local files for detailed documentation:
 ## Layout Properties Reference
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `width` | Size | Width of element |
 | `height` | Size | Height of element |
 | `padding` | Padding | Inner spacing |
@@ -120,7 +120,7 @@ Refer to the local files for detailed documentation:
 ## Size Values
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `Fit` | Size to fit content |
 | `Fill` | Fill available space |
 | `100.0` | Fixed size in pixels |
@@ -129,7 +129,7 @@ Refer to the local files for detailed documentation:
 ## Flow Directions
 
 | Value | Description |
-|-------|-------------|
+|-------|--|
 | `Down` | Top to bottom (column) |
 | `Right` | Left to right (row) |
 | `Overlay` | Stack on top |
@@ -137,7 +137,7 @@ Refer to the local files for detailed documentation:
 ## Align Values
 
 | Value | Position |
-|-------|----------|
+|-------|--|
 | `{ x: 0.0, y: 0.0 }` | Top-left |
 | `{ x: 0.5, y: 0.0 }` | Top-center |
 | `{ x: 1.0, y: 0.0 }` | Top-right |
@@ -151,15 +151,15 @@ Refer to the local files for detailed documentation:
 ## Box Model
 
 ```
-+---------------------------+
++--+
 |         margin            |
-|  +---------------------+  |
+|  +--+  |
 |  |      padding        |  |
-|  |  +---------------+  |  |
+|  |  +--+  |  |
 |  |  |   content     |  |  |
-|  |  +---------------+  |  |
-|  +---------------------+  |
-+---------------------------+
+|  |  +--+  |  |
+|  +--+  |
++--+
 ```
 
 ## When Writing Code

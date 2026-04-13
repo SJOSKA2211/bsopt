@@ -51,7 +51,7 @@ CryptographyClient cryptoClient = new CryptographyClientBuilder()
 ## Key Types
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | `RSA` | RSA key (2048, 3072, 4096 bits) |
 | `RSA_HSM` | RSA key in HSM |
 | `EC` | Elliptic Curve key |
@@ -305,7 +305,7 @@ KeyVaultKey importedKey = keyClient.importKey(importOptions);
 ## Encryption Algorithms
 
 | Algorithm | Key Type | Description |
-|-----------|----------|-------------|
+|--|--|--|
 | `RSA1_5` | RSA | RSAES-PKCS1-v1_5 |
 | `RSA_OAEP` | RSA | RSAES with OAEP (recommended) |
 | `RSA_OAEP_256` | RSA | RSAES with OAEP using SHA-256 |
@@ -317,7 +317,7 @@ KeyVaultKey importedKey = keyClient.importKey(importOptions);
 ## Signature Algorithms
 
 | Algorithm | Key Type | Hash |
-|-----------|----------|------|
+|--|--|------|
 | `RS256` | RSA | SHA-256 |
 | `RS384` | RSA | SHA-384 |
 | `RS512` | RSA | SHA-512 |

@@ -18,7 +18,7 @@ This skill provides a comprehensive framework for writing high-performance, prod
 - Use when debugging existing Playwright scripts.
 
 ## Safety & Risk
-**Risk Level: 🔵 Safe**
+**Risk Level:  Safe**
 
 - **Sandboxed Execution:** Browser contexts are isolated; they do not persist data to the host machine unless explicitly saved.
 - **Resource Management:** Designed to close browsers and contexts via `defer` to prevent memory leaks.

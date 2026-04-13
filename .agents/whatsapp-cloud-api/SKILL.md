@@ -54,7 +54,7 @@ A WhatsApp Cloud API e a API oficial da Meta para envio e recebimento de mensage
 **Pricing 2026 (por mensagem):**
 
 | Categoria      | Custo             | Quando cobrado                          |
-|----------------|-------------------|-----------------------------------------|
+|--|--|--|
 | Marketing      | $0.025-$0.1365    | Campanhas, promocoes                    |
 | Utility        | $0.004-$0.0456    | Confirmacoes de pedido, atualizacoes    |
 | Authentication | $0.004-$0.0456    | OTP, reset de senha                     |
@@ -191,7 +191,7 @@ python scripts/send_test_message.py --to 5511999999999 --message "Teste de integ
 ## Tipos De Mensagem
 
 | Tipo               | Uso                                   | Limite           |
-|--------------------|---------------------------------------|------------------|
+|--|--|--|
 | Text               | Mensagens simples de texto            | 4096 chars       |
 | Template           | Iniciar conversa / fora da janela 24h | 1600 chars body  |
 | Image              | Fotos e imagens                       | 5MB              |
@@ -394,7 +394,7 @@ Rastreie entrega: pending → server → device → read. Receba via webhook de 
 O WhatsApp monitora a qualidade das suas mensagens e atribui um rating:
 
 | Rating    | Significado                        | Acao                              |
-|-----------|------------------------------------|-----------------------------------|
+|--|--|--|
 | Verde     | Boa qualidade, poucos bloqueios    | Manter — elegivel para upgrade    |
 | Amarelo   | Qualidade media, atencao necessaria| Revisar conteudo e frequencia     |
 | Vermelho  | Qualidade baixa, risco de suspensao| Acao imediata: reduzir volume     |
@@ -407,7 +407,7 @@ O WhatsApp monitora a qualidade das suas mensagens e atribui um rating:
 Desde outubro 2025, limites sao por **Business Portfolio** (nao por numero):
 
 | Tier         | Conversas/24h | Como alcancar                           |
-|--------------|---------------|------------------------------------------|
+|--|--|--|
 | Inicial      | 250           | Conta nova / nao verificada              |
 | Tier 1       | 1,000         | Auto-upgrade: 50%+ do limite por 7 dias  |
 | Tier 2       | 10,000        | Auto-upgrade: 50%+ do limite por 7 dias  |
@@ -423,7 +423,7 @@ Desde outubro 2025, limites sao por **Business Portfolio** (nao por numero):
 ## Troubleshooting
 
 | Problema                       | Causa Provavel                     | Solucao                                    |
-|--------------------------------|------------------------------------|--------------------------------------------|
+|--|--|--|
 | 401 Unauthorized               | Token expirado ou invalido         | Gerar novo System User Token               |
 | 400 Bad Request                | Payload malformado                 | Verificar JSON contra exemplos             |
 | Template rejeitado             | Conteudo viola politicas           | Revisar e resubmeter com alteracoes        |
@@ -443,7 +443,7 @@ python scripts/validate_config.py
 ## Referencias (Leia Conforme Necessidade)
 
 | Arquivo                        | Quando ler                                        |
-|--------------------------------|---------------------------------------------------|
+|--|--|
 | `references/setup-guide.md`    | Setup inicial — criar conta Meta, configurar API  |
 | `references/message-types.md`  | Exemplos completos de todos os tipos de mensagem   |
 | `references/webhook-setup.md`  | Configurar webhooks com seguranca HMAC             |
@@ -456,7 +456,7 @@ python scripts/validate_config.py
 ## Scripts
 
 | Script                         | O que faz                                         |
-|--------------------------------|---------------------------------------------------|
+|--|--|
 | `scripts/setup_project.py`     | Cria projeto com boilerplate (Node.js ou Python)   |
 | `scripts/validate_config.py`   | Valida credenciais e conexao com a API             |
 | `scripts/send_test_message.py` | Envia mensagem teste para validar setup            |
@@ -464,7 +464,7 @@ python scripts/validate_config.py
 ## Boilerplate
 
 | Diretorio                      | Conteudo                                          |
-|--------------------------------|---------------------------------------------------|
+|--|--|
 | `assets/boilerplate/nodejs/`   | Projeto TypeScript/Express completo                |
 | `assets/boilerplate/python/`   | Projeto Python/Flask completo                      |
 | `assets/examples/`             | Exemplos de payloads JSON (templates, webhooks, flows) |

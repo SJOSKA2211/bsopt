@@ -44,10 +44,10 @@ Blueprint is for multi-session, multi-agent engineering projects where each step
 
 ## Best Practices
 
-- ✅ Use for tasks requiring 3+ PRs or multiple sessions
-- ✅ Let Blueprint auto-detect git/gh availability — it degrades gracefully
-- ❌ Don't invoke for tasks completable in a single PR
-- ❌ Don't invoke when the user says "just do it"
+-  Use for tasks requiring 3+ PRs or multiple sessions
+-  Let Blueprint auto-detect git/gh availability — it degrades gracefully
+-  Don't invoke for tasks completable in a single PR
+-  Don't invoke when the user says "just do it"
 
 ## Key Differentiators
 

@@ -8,7 +8,7 @@ description: Turborepo monorepo template principles. pnpm workspaces, shared pac
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Build System | Turborepo |
 | Package Manager | pnpm |
 | Apps | Next.js, Express |
@@ -40,7 +40,7 @@ project-name/
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Workspaces | pnpm-workspace.yaml |
 | Pipeline | turbo.json task graph |
 | Caching | Remote/local task caching |
@@ -51,7 +51,7 @@ project-name/
 ## Turbo Pipeline
 
 | Task | Depends On |
-|------|------------|
+|------|--|
 | build | ^build (dependencies first) |
 | dev | cache: false, persistent |
 | lint | ^build |
@@ -74,7 +74,7 @@ project-name/
 ## Common Commands
 
 | Command | Description |
-|---------|-------------|
+|---------|--|
 | `pnpm dev` | Run all apps |
 | `pnpm build` | Build all |
 | `pnpm --filter @name/web dev` | Run specific app |

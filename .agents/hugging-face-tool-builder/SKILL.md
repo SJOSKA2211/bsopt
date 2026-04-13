@@ -87,7 +87,7 @@ You can also query endpoints to see the shape of the data. When doing so constra
 The `hf` command line tool gives you further access to Hugging Face repository content and infrastructure. 
 
 ```bash
-❯ hf --help
+ hf --help
 Usage: hf [OPTIONS] COMMAND [ARGS]...
 
   Hugging Face Hub CLI

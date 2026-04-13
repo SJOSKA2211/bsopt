@@ -175,7 +175,7 @@ Automate Render cloud platform operations through Composio's Render toolkit via 
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List services | RENDER_LIST_SERVICES | name, type, limit, cursor |
 | Trigger deploy | RENDER_TRIGGER_DEPLOY | serviceId, clearCache |
 | Get deploy status | RENDER_RETRIEVE_DEPLOY | serviceId, deployId |

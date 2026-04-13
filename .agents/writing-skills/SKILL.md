@@ -11,7 +11,7 @@ date_added: "2026-02-27"
 
 Dispatcher for skill creation excellence. Use the decision tree below to find the right template and standards.
 
-## ⚡ Quick Decision Tree
+##  Quick Decision Tree
 
 ### What do you need to do?
 
@@ -29,16 +29,16 @@ Dispatcher for skill creation excellence. Use the decision tree below to find th
    - Check metadata/naming -> [Standards](references/standards/README.md)
    - Add tests -> [Testing Guide](references/testing/README.md)
 
-## 📚 Component Index
+##  Component Index
 
 | Component | Purpose |
-|-----------|---------|
+|--|---------|
 | **[CSO](references/cso/README.md)** | "SEO for LLMs". How to write descriptions that trigger. |
 | **[Standards](references/standards/README.md)** | File naming, YAML frontmatter, directory structure. |
 | **[Anti-Rationalization](references/anti-rationalization/README.md)**| How to write rules that agents won't ignore. |
 | **[Testing](references/testing/README.md)** | How to ensure your skill actually works. |
 
-## 🛠️ Templates
+## ️ Templates
 
 - [Technique Skill](references/templates/technique.md) (How-to)
 - [Reference Skill](references/templates/reference.md) (Docs)
@@ -88,7 +88,7 @@ metadata:
 
 See [gotchas.md](gotchas.md) for more.
 
-## ✅ Pre-Deploy Checklist
+##  Pre-Deploy Checklist
 
 Before deploying any skill:
 
@@ -100,7 +100,7 @@ Before deploying any skill:
 - [ ] No `@` force-loading in cross-references
 - [ ] Tested with real scenarios
 
-## 🔗 Related Skills
+##  Related Skills
 
 - **opencode-expert**: For OpenCode environment configuration
 - Use `/write-skill` command for guided skill creation

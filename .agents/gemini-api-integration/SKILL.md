@@ -137,7 +137,7 @@ console.log(response.response.text());
 ### 7. Model Selection Guide
 
 | Model | Best For | Speed | Cost |
-|-------|----------|-------|------|
+|-------|--|-------|------|
 | `gemini-1.5-flash` | High-throughput, cost-sensitive tasks | Fast | Low |
 | `gemini-1.5-pro` | Complex reasoning, long context | Medium | Medium |
 | `gemini-2.0-flash` | Latest fast model, multimodal | Very Fast | Low |
@@ -145,14 +145,14 @@ console.log(response.response.text());
 
 ## Best Practices
 
-- ✅ **Do:** Use `gemini-1.5-flash` for most tasks — it's fast and cost-effective
-- ✅ **Do:** Always stream responses for user-facing chat UIs to reduce perceived latency
-- ✅ **Do:** Store API keys in environment variables, never hard-code them
-- ✅ **Do:** Implement exponential backoff for rate limit (429) errors
-- ✅ **Do:** Use `systemInstruction` to set persistent model behavior
-- ❌ **Don't:** Use `gemini-pro` for simple tasks — Flash is cheaper and faster
-- ❌ **Don't:** Send large base64 images inline for files > 20MB — use File API instead
-- ❌ **Don't:** Ignore safety ratings in responses for production apps
+-  **Do:** Use `gemini-1.5-flash` for most tasks — it's fast and cost-effective
+-  **Do:** Always stream responses for user-facing chat UIs to reduce perceived latency
+-  **Do:** Store API keys in environment variables, never hard-code them
+-  **Do:** Implement exponential backoff for rate limit (429) errors
+-  **Do:** Use `systemInstruction` to set persistent model behavior
+-  **Don't:** Use `gemini-pro` for simple tasks — Flash is cheaper and faster
+-  **Don't:** Send large base64 images inline for files > 20MB — use File API instead
+-  **Don't:** Ignore safety ratings in responses for production apps
 
 ## Error Handling
 

@@ -199,7 +199,7 @@ Automate YouTube operations through Composio's YouTube toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Upload video | YOUTUBE_UPLOAD_VIDEO | title, description, tags, categoryId, privacyStatus, videoFilePath |
 | Update video | YOUTUBE_UPDATE_VIDEO | video_id, title, description, tags |
 | Set thumbnail | YOUTUBE_UPDATE_THUMBNAIL | videoId, thumbnailUrl |

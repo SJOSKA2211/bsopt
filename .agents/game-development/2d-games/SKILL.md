@@ -17,7 +17,7 @@ date_added: "2026-02-27"
 ### Sprite Organization
 
 | Component | Purpose |
-|-----------|---------|
+|--|---------|
 | **Atlas** | Combine textures, reduce draw calls |
 | **Animation** | Frame sequences |
 | **Pivot** | Rotation/scale origin |
@@ -37,7 +37,7 @@ date_added: "2026-02-27"
 ### Tile Considerations
 
 | Factor | Recommendation |
-|--------|----------------|
+|--------|--|
 | **Size** | 16x16, 32x32, 64x64 |
 | **Auto-tiling** | Use for terrain |
 | **Collision** | Simplified shapes |
@@ -58,7 +58,7 @@ date_added: "2026-02-27"
 ### Collision Shapes
 
 | Shape | Use Case |
-|-------|----------|
+|-------|--|
 | Box | Rectangular objects |
 | Circle | Balls, rounded |
 | Capsule | Characters |
@@ -109,8 +109,8 @@ date_added: "2026-02-27"
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Separate textures | Use atlases |
 | Complex collision shapes | Simplified collision |
 | Jittery camera | Smooth following |

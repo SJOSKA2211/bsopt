@@ -167,7 +167,7 @@ SELECT Id, Name FROM Opportunity WHERE CloseDate = NEXT_MONTH
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create lead | SALESFORCE_CREATE_LEAD | LastName, Company |
 | Search leads | SALESFORCE_SEARCH_LEADS | query |
 | List leads | SALESFORCE_LIST_LEADS | (filters) |

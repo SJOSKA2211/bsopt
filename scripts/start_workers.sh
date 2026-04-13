@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "⚙️ Launching Production Manifold Worker Substrate..."
+echo "️ Launching Production Manifold Worker Substrate..."
 
 # Load Production environment
 source scripts/utils_env.sh
@@ -19,15 +19,15 @@ export RAY_ADDRESS=${RAY_ADDRESS:-auto}
 # Execution Standard: Standardize on python3 -m celery
 RUN_CELERY="python3 -m celery -A src.workers.tasks.celery_app"
 
-echo "🐝 Starting Celery Worker Substrate..."
+echo " Starting Celery Worker Substrate..."
 $RUN_CELERY worker --loglevel=info --concurrency=${CELERY_CONCURRENCY:-2} -n worker1@%h &
 PID_WORKER=$!
 
-echo "📅 Starting Celery Scheduler (Beat)..."
+echo " Starting Celery Scheduler (Beat)..."
 $RUN_CELERY beat --loglevel=info &
 PID_BEAT=$!
 
 # Trap signals for graceful Production shutdown
-trap "echo '🛑 Shutting down workers...'; kill $PID_WORKER $PID_BEAT; exit" SIGINT SIGTERM
+trap "echo ' Shutting down workers...'; kill $PID_WORKER $PID_BEAT; exit" SIGINT SIGTERM
 
 wait

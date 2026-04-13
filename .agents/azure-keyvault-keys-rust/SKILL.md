@@ -39,7 +39,7 @@ let client = KeyClient::new(
 ## Key Types
 
 | Type | Description |
-|------|-------------|
+|------|--|
 | RSA | RSA keys (2048, 3072, 4096 bits) |
 | EC | Elliptic curve keys (P-256, P-384, P-521) |
 | RSA-HSM | HSM-protected RSA keys |
@@ -161,7 +161,7 @@ Assign these Key Vault roles:
 ## Reference Links
 
 | Resource | Link |
-|----------|------|
+|--|------|
 | API Reference | https://docs.rs/azure_security_keyvault_keys |
 | Source Code | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/keyvault/azure_security_keyvault_keys |
 | crates.io | https://crates.io/crates/azure_security_keyvault_keys |

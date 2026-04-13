@@ -26,7 +26,7 @@ date_added: "2026-02-27"
 ### Optimization Principles
 
 | Technique | Purpose |
-|-----------|---------|
+|--|---------|
 | **Frustum culling** | Don't render off-screen |
 | **Occlusion culling** | Don't render hidden |
 | **LOD** | Less detail at distance |
@@ -58,7 +58,7 @@ date_added: "2026-02-27"
 ### Collision Shapes
 
 | Shape | Use Case |
-|-------|----------|
+|-------|--|
 | **Box** | Buildings, crates |
 | **Sphere** | Balls, quick checks |
 | **Capsule** | Characters |
@@ -116,7 +116,7 @@ date_added: "2026-02-27"
 ### LOD Strategy
 
 | Distance | Model |
-|----------|-------|
+|--|-------|
 | Near | Full detail |
 | Medium | 50% triangles |
 | Far | 25% or billboard |
@@ -125,8 +125,8 @@ date_added: "2026-02-27"
 
 ## 7. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Mesh colliders everywhere | Simple shapes |
 | Real-time shadows on mobile | Baked or blob shadows |
 | One LOD for all distances | Distance-based LOD |

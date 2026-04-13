@@ -57,12 +57,12 @@ competitive intent keywords with accurate, structured content.
 ### Feature Matrix Layout
 ```
 | Feature          | Your Product | Competitor A | Competitor B |
-|------------------|:------------:|:------------:|:------------:|
-| Feature 1        | ✅           | ✅           | ❌           |
-| Feature 2        | ✅           | ⚠️ Partial   | ✅           |
-| Feature 3        | ✅           | ❌           | ❌           |
+|--|:--:|:--:|:--:|
+| Feature 1        |            |            |            |
+| Feature 2        |            | ️ Partial   |            |
+| Feature 3        |            |            |            |
 | Pricing (from)   | $X/mo        | $Y/mo        | $Z/mo        |
-| Free Tier        | ✅           | ❌           | ✅           |
+| Free Tier        |            |            |            |
 ```
 
 ### Data Accuracy Requirements
@@ -133,7 +133,7 @@ competitive intent keywords with accurate, structured content.
 
 ### Comparison Intent Patterns
 | Pattern | Example | Search Volume Signal |
-|---------|---------|---------------------|
+|---------|---------|--|
 | `[A] vs [B]` | "Slack vs Teams" | High |
 | `[A] alternative` | "Figma alternatives" | High |
 | `[A] alternatives [year]` | "Notion alternatives 2026" | High |
@@ -223,7 +223,7 @@ competitive intent keywords with accurate, structured content.
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | Competitor URL unreachable | Report which competitor URLs failed. Proceed with available data and note gaps in the comparison. |
 | Insufficient competitor data (pricing, features unavailable) | Flag missing data points clearly. Use "Not publicly available" in comparison tables rather than guessing. |
 | No product/service overlap found | Report that the products serve different markets. Suggest alternative competitors that share feature overlap, or pivot to a category roundup format. |

@@ -554,7 +554,7 @@ renderer.setAnimationLoop(() => {
 ### Key Differences from EffectComposer
 
 | EffectComposer (WebGL)          | PostProcessing (WebGPU)          |
-| ------------------------------- | -------------------------------- |
+| -- | -- |
 | `addPass(new RenderPass(...))`  | `pass(scene, camera)`            |
 | `addPass(new UnrealBloomPass)` | `bloom(scenePass, ...)`          |
 | `composer.render()`             | `postProcessing.render()`        |

@@ -18,7 +18,7 @@ graph TD
 
 ## 3. Execution Strategy
 | Phase | Objective | Agent | Validation |
-|-------|-----------|-------|------------|
+|-------|--|-------|--|
 | 1 | Standardize msgspec + Pydantic V2 hybrid pattern | `coder` | Schema unit tests |
 | 2 | Consolidate auth logic into unified `AuthService` | `coder` | Argon2id & MFA tests |
 | 3 | Implement gRPC server/client for inter-service auth | `api_designer` | gRPC ping & validate tests |
@@ -93,7 +93,7 @@ graph TD
 
 ## 7. Cost Estimation
 | Phase | Agent | Model | Est. Input | Est. Output | Est. Cost |
-|-------|-------|-------|-----------|------------|----------|
+|-------|-------|-------|--|--|--|
 | 1 | `coder` | Flash | 20,000 | 1,500 | $0.03 |
 | 2 | `coder` | Pro | 35,000 | 3,000 | $0.47 |
 | 3 | `api_designer` | Flash | 15,000 | 800 | $0.02 |

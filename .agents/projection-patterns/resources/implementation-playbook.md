@@ -45,7 +45,7 @@ Comprehensive guide to building projections and read models for event-sourced sy
 ### 2. Projection Types
 
 | Type           | Description                 | Use Case               |
-| -------------- | --------------------------- | ---------------------- |
+| -- | -- | -- |
 | **Live**       | Real-time from subscription | Current state queries  |
 | **Catchup**    | Process historical events   | Rebuilding read models |
 | **Persistent** | Stores checkpoint           | Resume after restart   |

@@ -37,7 +37,7 @@ Auri: assistente de voz inteligente (Alexa + Claude claude-opus-4-20250805). Vis
 ## How It Works
 
 | Atributo | Definicao |
-|----------|-----------|
+|--|--|
 | Nome | Auri |
 | Voz | Amazon Polly Vitoria Neural pt-BR |
 | Tom | Caloroso, inteligente, direto |
@@ -203,7 +203,7 @@ MRR Ano 1: R$ 31.120/mes (~R$ 373k ARR)
 ## Unit Economics
 
 | Metrica | Pro | Business |
-|---------|-----|----------|
+|---------|-----|--|
 | CAC | R$ 45 | R$ 120 |
 | LTV | R$ 522 (18m) | R$ 2.376 (24m) |
 | LTV/CAC | 11.6x | 19.8x |
@@ -217,7 +217,7 @@ MRR Ano 1: R$ 31.120/mes (~R$ 373k ARR)
 Objetivo: Validar product-market fit com early adopters brasileiros.
 
 | Entrega | Descricao | Status |
-|---------|-----------|--------|
+|---------|--|--------|
 | Core Handler | Lambda + ASK SDK + Claude | Em desenvolvimento |
 | Persona Vitoria | SSML otimizado, Polly Neural | Em desenvolvimento |
 | Free Plan | Rate limiting 10 perguntas/dia | Planejado |
@@ -230,7 +230,7 @@ KPIs Fase 1: 500 habilitacoes, 40% retornam semana 2, NPS > 50, latencia < 2s.
 ## Fase 2 - Personalizacao (Meses 4-6)
 
 | Entrega | Descricao |
-|---------|-----------|
+|---------|--|
 | Long-term Memory | DynamoDB persistente 90 dias (Pro) |
 | User Profiling | Nome, preferencias, contexto |
 | Pro Plan Launch | Via Amazon In-Skill Purchasing |
@@ -241,7 +241,7 @@ KPIs Fase 2: 200 conversoes Free->Pro, WAC > 150, sessao > 4min, churn < 7%.
 ## Fase 3 - Multi-Modal (Meses 7-12)
 
 | Entrega | Descricao |
-|---------|-----------|
+|---------|--|
 | Echo Show Support | Respostas visuais para displays |
 | Calendar Integration | Agenda via voz |
 | Auri Web App | Interface web para historico |
@@ -252,7 +252,7 @@ KPIs Fase 3: WAC > 1.000, MRR > R$ 15.000, Business: 50 clientes, rating > 4.5.
 ## Fase 4 - Ecossistema (Ano 2+)
 
 | Entrega | Descricao |
-|---------|-----------|
+|---------|--|
 | Auri SDK | Developers constroem skills na Auri |
 | WhatsApp Bridge | Persona Auri no WhatsApp |
 | Mobile App | App iOS/Android com voz |
@@ -279,7 +279,7 @@ KPIs Fase 3: WAC > 1.000, MRR > R$ 15.000, Business: 50 clientes, rating > 4.5.
 ## Canais De Aquisicao
 
 | Canal | Custo | Potencial | Prazo |
-|-------|-------|-----------|-------|
+|-------|-------|--|-------|
 | Alexa Store organico | R$ 0 | Alto | Imediato |
 | SEO + Blog | Baixo | Alto | 3-6 meses |
 | YouTube demos | Medio | Alto | 1-3 meses |
@@ -332,7 +332,7 @@ NORTH STAR: WAC
 ## Metas Wac Por Fase
 
 | Fase | Mes | WAC Meta | WAC Stretch |
-|------|-----|----------|-------------|
+|------|-----|--|--|
 | Fase 1 | M3 | 150 | 300 |
 | Fase 2 | M6 | 500 | 1.000 |
 | Fase 3 | M12 | 2.000 | 5.000 |
@@ -360,7 +360,7 @@ Metricas customizadas publicadas:
 ## Tabela Comparativa
 
 | Feature | Auri | Alexa Pura | Siri | Google Assistant | ChatGPT Voice |
-|---------|------|------------|------|------------------|---------------|
+|---------|------|--|------|--|--|
 | Idioma PT-BR nativo | Alta | Media | Media | Alta | Media |
 | Raciocinio profundo | Alta | Baixa | Media | Media | Alta |
 | Memoria multi-sessao | Alta | Baixa | Media | Media | Alta |
@@ -385,7 +385,7 @@ Nenhum concorrente ocupa esse quadrante simultaneamente:
 ## Objecoes Frequentes E Respostas
 
 | Objecao | Resposta Auri |
-|---------|---------------|
+|---------|--|
 | Por que nao ChatGPT? | ChatGPT e app, sem voz-first. Auri e native no Echo. |
 | Alexa ja resolve | Para comandos sim. Para conversas reais, nao. |
 | R\9 e caro | Menos que 1 cafe/dia por assistente pessoal 24/7. |
@@ -496,7 +496,7 @@ Verificar deployment:
 ## Monitoramento Cloudwatch Alarms
 
 | Alarme | Threshold | Acao |
-|--------|-----------|------|
+|--------|--|------|
 | high_latency | Duration > 6000ms | PagerDuty |
 | error_rate | Errors > 5 em 5min | Slack #auri-alerts |
 | claude_api_failures | AnthropicAPIErrors > 3 | Slack + fallback |
@@ -512,7 +512,7 @@ Se a API da Anthropic estiver indisponivel, o sistema retorna respostas pre-conf
 ## Gestao De Custos
 
 | Componente | Custo Estimado (1000 usuarios Pro) |
-|-----------|-----------------------------------|
+|--|--|
 | Claude API | R$ 4.000/mes (R$4/usuario) |
 | Lambda | R$ 50/mes |
 | DynamoDB | R$ 80/mes |
@@ -545,7 +545,7 @@ Se a API da Anthropic estiver indisponivel, o sistema retorna respostas pre-conf
 ## 13. Glossario
 
 | Termo | Definicao |
-|-------|-----------|
+|-------|--|
 | WAC | Weekly Active Conversationalists - North Star Metric da Auri |
 | ASK | Alexa Skills Kit - SDK oficial Amazon para Skills |
 | SSML | Speech Synthesis Markup Language - markup para controle de voz |
@@ -569,7 +569,7 @@ Se a API da Anthropic estiver indisponivel, o sistema retorna respostas pre-conf
 ## 14. Links E Recursos
 
 | Recurso | URL / Localizacao |
-|---------|-------------------|
+|---------|--|
 | Alexa Skills Kit Docs | https://developer.amazon.com/en-US/alexa/alexa-skills-kit |
 | ASK SDK Python | https://github.com/alexa/alexa-skills-kit-sdk-for-python |
 | Amazon Polly Vitoria Neural | https://docs.aws.amazon.com/polly/latest/dg/voicelist.html |

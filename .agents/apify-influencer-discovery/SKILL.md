@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on user needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Influencer profiles | `apify/instagram-profile-scraper` | Profile metrics, bio, follower counts |
 | Find by hashtag | `apify/instagram-hashtag-scraper` | Discover influencers using specific hashtags |
 | Reel engagement | `apify/instagram-reel-scraper` | Analyze reel performance and engagement |

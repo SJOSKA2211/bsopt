@@ -29,16 +29,16 @@ Listen for PENDING_DISCONNECT webhook to proactively prompt users.
 
 ## Anti-Patterns
 
-### ❌ Storing Access Tokens in Plain Text
+###  Storing Access Tokens in Plain Text
 
-### ❌ Polling Instead of Webhooks
+###  Polling Instead of Webhooks
 
-### ❌ Ignoring Item Errors
+###  Ignoring Item Errors
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | See docs |
 | Issue | high | See docs |
 | Issue | high | See docs |

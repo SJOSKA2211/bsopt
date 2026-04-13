@@ -47,16 +47,16 @@ Central coordinator dispatches work to specialized workers
 
 ## Anti-Patterns
 
-### ❌ No Durable Execution for Payments
+###  No Durable Execution for Payments
 
-### ❌ Monolithic Workflows
+###  Monolithic Workflows
 
-### ❌ No Observability
+###  No Observability
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | # ALWAYS use idempotency keys for external calls: |
 | Issue | high | # Break long workflows into checkpointed steps: |
 | Issue | high | # ALWAYS set timeouts on activities: |

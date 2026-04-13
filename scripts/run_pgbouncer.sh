@@ -11,7 +11,7 @@ if command -v docker &> /dev/null && docker compose version &> /dev/null; then
 elif command -v docker-compose &> /dev/null; then
     COMPOSE_CMD="docker-compose"
 else
-    echo "❌ Error: docker compose is not installed."
+    echo " Error: docker compose is not installed."
     exit 1
 fi
 
@@ -41,17 +41,17 @@ if __name__ == '__main__':
 fi
 }
 
-echo "🔍 Checking if PgBouncer is already healthy..."
+echo " Checking if PgBouncer is already healthy..."
 if check_health; then
-    echo "✅ PgBouncer is already ACTIVE and HEALTHY. Skipping start."
-    echo "🏁 PgBouncer Pool Engine is Online and Verified."
+    echo " PgBouncer is already ACTIVE and HEALTHY. Skipping start."
+    echo " PgBouncer Pool Engine is Online and Verified."
     exit 0
 fi
 
-echo "🚀 Starting PgBouncer..."
+echo " Starting PgBouncer..."
 # Try to start without --force-recreate first to avoid unnecessary restarts if it's just stopped
 if ! $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer; then
-    echo "⚠️ Failed to start pgbouncer normally, trying with --force-recreate..."
+    echo "️ Failed to start pgbouncer normally, trying with --force-recreate..."
     $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml up -d --force-recreate pgbouncer
 fi
 
@@ -64,18 +64,18 @@ for ((i=1; i<=RETRIES; i++)); do
     echo "   [Attempt $i/$RETRIES] Querying Reporting Engine..."
     
     if check_health; then
-        echo "✅ PgBouncer is ACTIVE, OPTIMIZED, and reporting healthy metrics."
+        echo " PgBouncer is ACTIVE, OPTIMIZED, and reporting healthy metrics."
         SUCCESS=1
         break
     fi
     
-    echo "   ⚠️ Engine not fully pressurized yet. Retrying in ${INTERVAL}s..."
+    echo "   ️ Engine not fully pressurized yet. Retrying in ${INTERVAL}s..."
     sleep $INTERVAL
 done
 
 if [ $SUCCESS -eq 0 ]; then
-    echo "❌ Fatal: PgBouncer failed to reach optimized healthy state."
+    echo " Fatal: PgBouncer failed to reach optimized healthy state."
     exit 1
 fi
 
-echo "🏁 PgBouncer Pool Engine is Online and Verified."
+echo " PgBouncer Pool Engine is Online and Verified."

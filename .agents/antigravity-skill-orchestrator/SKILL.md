@@ -111,12 +111,12 @@ memory_read({ key: "combination-ecommerce-checkout" })
 
 ## Best Practices
 
-- ✅ **Do:** Always evaluate task complexity *before* looking for skills.
-- ✅ **Do:** Keep the number of orchestrated skills as small as possible.
-- ✅ **Do:** Use highly descriptive keys when running `memory_write` so they are easy to search later.
-- ❌ **Don't:** Use this skill for simple bug fixes or UI tweaks.
-- ❌ **Don't:** Combine skills that have overlapping and conflicting instructions without a clear plan to resolve the conflict.
-- ❌ **Don't:** Attempt to construct, generate, or create new skills. Only combine what is available.
+-  **Do:** Always evaluate task complexity *before* looking for skills.
+-  **Do:** Keep the number of orchestrated skills as small as possible.
+-  **Do:** Use highly descriptive keys when running `memory_write` so they are easy to search later.
+-  **Don't:** Use this skill for simple bug fixes or UI tweaks.
+-  **Don't:** Combine skills that have overlapping and conflicting instructions without a clear plan to resolve the conflict.
+-  **Don't:** Attempt to construct, generate, or create new skills. Only combine what is available.
 
 ## Related Skills
 

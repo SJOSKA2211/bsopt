@@ -48,7 +48,7 @@ function goodCode() {
 ## Quick Reference
 
 | Scenario | Approach |
-|----------|----------|
+|--|--|
 | Case A | Solution A |
 | Case B | Solution B |
 

@@ -1,10 +1,10 @@
-# ❓ Câu hỏi thường gặp (FAQ)
+#  Câu hỏi thường gặp (FAQ)
 
 **Bạn có thắc mắc?** Bạn không hề cô đơn! Dưới đây là câu trả lời cho những câu hỏi thường gặp nhất về Antigravity Awesome Skills.
 
 ---
 
-## 🎯 Câu hỏi Chung
+##  Câu hỏi Chung
 
 ### "Skills" (kỹ năng) chính xác là gì?
 
@@ -19,21 +19,21 @@ Nó giống như việc sở hữu một thư viện - tất cả sách đều �
 
 ### Những công cụ AI nào hoạt động với các kỹ năng này?
 
-- ✅ **Claude Code** (Dòng lệnh CLI của Anthropic)
-- ✅ **Gemini CLI** (Google)
-- ✅ **Codex CLI** (OpenAI)
-- ✅ **Cursor** (IDE tích hợp AI)
-- ✅ **Antigravity IDE**
-- ✅ **OpenCode**
-- ⚠️ **GitHub Copilot** (Hỗ trợ một phần qua việc copy-paste)
+-  **Claude Code** (Dòng lệnh CLI của Anthropic)
+-  **Gemini CLI** (Google)
+-  **Codex CLI** (OpenAI)
+-  **Cursor** (IDE tích hợp AI)
+-  **Antigravity IDE**
+-  **OpenCode**
+- ️ **GitHub Copilot** (Hỗ trợ một phần qua việc copy-paste)
 
 ### Những kỹ năng này có được sử dụng miễn phí không?
 
 **Có!** Repository này được cấp phép theo giấy phép MIT License.
 
-- ✅ Miễn phí cho sử dụng cá nhân.
-- ✅ Miễn phí cho sử dụng thương mại.
-- ✅ Bạn có thể sửa đổi chúng.
+-  Miễn phí cho sử dụng cá nhân.
+-  Miễn phí cho sử dụng thương mại.
+-  Bạn có thể sửa đổi chúng.
 
 ### Các kỹ năng có hoạt động ngoại tuyến (offline) không?
 
@@ -41,14 +41,14 @@ Bản thân các file skill được lưu trữ cục bộ trên máy tính củ
 
 ---
 
-## 🔒 Bảo mật & Tin cậy (Cập nhật V4)
+##  Bảo mật & Tin cậy (Cập nhật V4)
 
 ### Các Nhãn rủi ro (Risk Labels) có ý nghĩa gì?
 
 Chúng tôi phân loại các kỹ năng để bạn biết mình đang chạy cái gì:
 
-- ⚪ **Safe (Trắng/Xanh)**: Các kỹ năng chỉ đọc, lập kế hoạch hoặc vô hại.
-- 🔴 **Risk (Đỏ)**: Các kỹ năng sửa đổi file (xóa), sử dụng công cụ quét mạng, hoặc thực hiện các hành động có tính phá hủy. **Hãy sử dụng thận trọng.**
+-  **Safe (Trắng/Xanh)**: Các kỹ năng chỉ đọc, lập kế hoạch hoặc vô hại.
+-  **Risk (Đỏ)**: Các kỹ năng sửa đổi file (xóa), sử dụng công cụ quét mạng, hoặc thực hiện các hành động có tính phá hủy. **Hãy sử dụng thận trọng.**
 - 🟣 **Official (Tím)**: Được duy trì bởi các nhà cung cấp tin cậy (Anthropic, DeepMind, v.v.).
 
 ### Những kỹ năng này có thể hack máy tính của tôi không?
@@ -58,7 +58,7 @@ _Luôn kiểm tra nhãn rủi ro và xem xét mã nguồn trước khi dùng._
 
 ---
 
-## 📦 Cài đặt & Thiết lập
+##  Cài đặt & Thiết lập
 
 ### Tôi nên cài đặt các kỹ năng này ở đâu?
 
@@ -96,7 +96,7 @@ git pull origin main
 
 ---
 
-## 🛠️ Cách sử dụng Skills
+## ️ Cách sử dụng Skills
 
 ### Làm thế nào để gọi một kỹ năng?
 
@@ -122,7 +122,7 @@ Sử dụng biểu tượng `@` theo sau là tên skill:
 
 ---
 
-## 🏗️ Xử lý sự cố
+## ️ Xử lý sự cố
 
 ### Trợ lý AI của tôi không nhận diện được kỹ năng
 
@@ -168,11 +168,11 @@ Hãy chạy `python3 scripts/validate_skills.py` cục bộ để kiểm tra tr�
 
 ---
 
-## 💡 Mẹo Chuyên nghiệp
+##  Mẹo Chuyên nghiệp
 
 - Bắt đầu với `@brainstorming` trước khi xây dựng bất kỳ thứ gì mới.
 - Sử dụng `@systematic-debugging` khi gặp lỗi khó nhằn.
 - Thử `@test-driven-development` để code có chất lượng tốt hơn.
 - Khám phá `@skill-creator` để tự tạo kỹ năng của riêng bạn.
 
-**Vẫn còn thắc mắc?** [Mở một cuộc thảo luận (Discussion)](https://github.com/sickn33/antigravity-awesome-skills/discussions) và chúng tôi sẽ giúp bạn! 🙌
+**Vẫn còn thắc mắc?** [Mở một cuộc thảo luận (Discussion)](https://github.com/sickn33/antigravity-awesome-skills/discussions) và chúng tôi sẽ giúp bạn! 

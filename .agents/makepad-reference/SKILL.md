@@ -12,7 +12,7 @@ This category provides reference materials for debugging, code quality, and adva
 ## Quick Navigation
 
 | Topic | File | Use When |
-|-------|------|----------|
+|-------|------|--|
 | API Documentation | Official docs index, quick API reference | Finding detailed API info |
 | Troubleshooting | Common errors and fixes | Build fails, runtime errors |
 | Code Quality | Makepad-aware refactoring | Simplifying code safely |
@@ -21,7 +21,7 @@ This category provides reference materials for debugging, code quality, and adva
 ## Common Issues Quick Reference
 
 | Error | Quick Fix |
-|-------|-----------|
+|-------|--|
 | `no matching field: font` | Use `text_style: <THEME_FONT_*>{}` |
 | Color parse error (ends in `e`) | Change last digit (e.g., `#14141e` → `#14141f`) |
 | `set_text` missing argument | Add `cx` as first argument |

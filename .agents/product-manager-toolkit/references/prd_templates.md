@@ -75,7 +75,7 @@ Acceptance Criteria:
 
 #### 4.2 Functional Requirements
 | ID | Requirement | Priority | Notes |
-|----|------------|----------|-------|
+|----|--|--|-------|
 | FR1 | User can... | P0 | Critical for MVP |
 | FR2 | System should... | P1 | Important |
 | FR3 | Feature must... | P2 | Nice to have |
@@ -145,7 +145,7 @@ Acceptance Criteria:
 
 #### 7.3 Success Metrics
 | Metric | Target | Measurement Method |
-|--------|--------|-------------------|
+|--------|--------|--|
 | Adoption Rate | X% | Daily Active Users |
 | User Satisfaction | X/10 | NPS Score |
 | Revenue Impact | $X | Monthly Recurring Revenue |
@@ -154,7 +154,7 @@ Acceptance Criteria:
 ### 8. Risks & Mitigations
 
 | Risk | Probability | Impact | Mitigation Strategy |
-|------|------------|--------|-------------------|
+|------|--|--------|--|
 | Technical debt | Medium | High | Allocate 20% for refactoring |
 | User adoption | Low | High | Beta program with feedback loops |
 | Scope creep | High | Medium | Weekly stakeholder reviews |
@@ -162,7 +162,7 @@ Acceptance Criteria:
 ### 9. Timeline & Milestones
 
 | Milestone | Date | Deliverables | Success Criteria |
-|-----------|------|--------------|-----------------|
+|--|------|--|--|
 | Design Complete | Week 2 | Mockups, IA | Stakeholder approval |
 | MVP Development | Week 6 | Core features | All P0s complete |
 | Beta Launch | Week 8 | Limited release | 100 beta users |
@@ -216,7 +216,7 @@ Acceptance Criteria:
 
 #### User Stories
 | Story ID | Title | Priority | Points | Status |
-|----------|-------|----------|--------|--------|
+|--|-------|--|--------|--------|
 | US-001 | As a... | P0 | 5 | To Do |
 | US-002 | As a... | P1 | 3 | To Do |
 

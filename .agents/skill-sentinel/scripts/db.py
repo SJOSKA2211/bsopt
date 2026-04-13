@@ -136,7 +136,7 @@ class Database:
         with self._connect() as conn:
             conn.executescript(DDL)
 
-    # -- Audit Runs ------------------------------------------------------------
+    # -- Audit Runs --
 
     def create_audit_run(self) -> int:
         """Cria uma nova execucao de auditoria. Retorna o id."""
@@ -181,7 +181,7 @@ class Database:
             ).fetchone()
         return dict(row) if row else None
 
-    # -- Skill Snapshots -------------------------------------------------------
+    # -- Skill Snapshots --
 
     def insert_skill_snapshot(self, run_id: int, data: dict[str, Any]) -> int:
         """Insere snapshot de uma skill. Retorna o id."""
@@ -214,7 +214,7 @@ class Database:
             ).fetchone()
         return dict(row) if row else None
 
-    # -- Findings --------------------------------------------------------------
+    # -- Findings --
 
     def insert_finding(self, run_id: int, data: dict[str, Any]) -> int:
         """Insere um finding. Retorna o id."""
@@ -269,7 +269,7 @@ class Database:
             ).fetchall()
         return {r["severity"]: r["cnt"] for r in rows}
 
-    # -- Skill Recommendations -------------------------------------------------
+    # -- Skill Recommendations --
 
     def insert_recommendation(self, run_id: int, data: dict[str, Any]) -> int:
         data["audit_run_id"] = run_id
@@ -291,7 +291,7 @@ class Database:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    # -- Score History ---------------------------------------------------------
+    # -- Score History --
 
     def insert_score_history(
         self, run_id: int, skill_name: str, dimension: str, score: float
@@ -315,7 +315,7 @@ class Database:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    # -- Action Log (Auto-Governanca) ------------------------------------------
+    # -- Action Log (Auto-Governanca) --
 
     def log_action(
         self, action: str, params: dict | None = None, result: dict | None = None
@@ -337,7 +337,7 @@ class Database:
             ).fetchall()
         return [dict(r) for r in rows]
 
-    # -- Stats -----------------------------------------------------------------
+    # -- Stats --
 
     def get_stats(self) -> dict[str, Any]:
         """Retorna estatisticas gerais do sentinel."""
@@ -355,7 +355,7 @@ class Database:
         }
 
 
-# -- CLI rapido para verificacao -----------------------------------------------
+# -- CLI rapido para verificacao --
 if __name__ == "__main__":
     db = Database()
     db.init()

@@ -34,7 +34,7 @@ Reference these guidelines when:
 ## rule categories by priority
 
 | priority | category | impact |
-|----------|----------|--------|
+|--|--|--------|
 | 1 | accessible names | critical |
 | 2 | keyboard access | critical |
 | 3 | focus and dialogs | critical |

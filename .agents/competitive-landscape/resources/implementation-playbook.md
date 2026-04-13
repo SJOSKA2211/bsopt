@@ -123,7 +123,7 @@ Analyze industry attractiveness and competitive intensity.
 Create a scorecard:
 
 | Force | Intensity (1-5) | Impact | Key Factors |
-|-------|-----------------|--------|-------------|
+|-------|--|--------|--|
 | New Entrants | 3 | Medium | Low barriers but network effects |
 | Supplier Power | 2 | Low | Many cloud providers |
 | Buyer Power | 4 | High | Enterprise customers concentrated |
@@ -157,8 +157,8 @@ Map your offering vs. competitors on key factors.
 **Example: Budget Hotels**
 
 ```
-High |                    ★ Traditional Hotels
-     |          ★ Budget Hotels (new)
+High |                     Traditional Hotels
+     |           Budget Hotels (new)
      |
 Low  |___________________________________
      Price  Luxury  Convenience  Cleanliness
@@ -203,11 +203,11 @@ Plot competitors on 2-3 key dimensions.
 ```
 High Price
     |
-    |  ★ Enterprise A      ★ Enterprise B
+    |   Enterprise A       Enterprise B
     |
     |          ● Our Position (gap)
     |
-    |  ★ Competitor C      ★ Competitor D
+    |   Competitor C       Competitor D
     |
 Low Price |____________________________________________
         Simple                           Complex
@@ -345,7 +345,7 @@ For each key competitor, document:
 ### Pricing Comparison Matrix
 
 | Competitor | Entry Price | Mid Tier | Enterprise | Model |
-|-----------|-------------|----------|------------|-------|
+|--|--|--|--|-------|
 | Competitor A | $29/mo | $99/mo | Custom | Subscription |
 | Competitor B | $49/mo | $199/mo | $499/mo | Subscription |
 | Us | $39/mo | $129/mo | Custom | Subscription |

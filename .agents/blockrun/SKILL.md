@@ -17,7 +17,7 @@ You can't generate images. You have no real-time X/Twitter access. BlockRun give
 You have a wallet. When you need a capability you lack, you pay for it autonomously.
 
 | You Need | You Call | Pricing |
-|----------|----------|---------|
+|--|--|---------|
 | Image generation | DALL-E | $0.04/image |
 | Real-time X data | Grok + Live Search | $0.025/source |
 | Second opinion | GPT-5.2 | $1.75/M input, $14/M output |
@@ -45,12 +45,12 @@ else:
 
 # At the end, report spending
 spending = client.get_spending()
-print(f"💰 Total spent: ${spending['total_usd']:.4f} across {spending['calls']} calls")
+print(f" Total spent: ${spending['total_usd']:.4f} across {spending['calls']} calls")
 ```
 
 ## When to Use
 | Trigger | Your Action |
-|---------|-------------|
+|---------|--|
 | User explicitly requests ("blockrun second opinion with GPT on...", "use grok to check...", "generate image with dall-e") | Execute via BlockRun |
 | User needs something you can't do (images, live X data) | Suggest BlockRun, wait for confirmation |
 | You can handle the task fine | Do it yourself, don't mention BlockRun |
@@ -60,7 +60,7 @@ print(f"💰 Total spent: ${spending['total_usd']:.4f} across {spending['calls']
 Users will say things like:
 
 | User Says | What You Do |
-|-----------|-------------|
+|--|--|
 | "blockrun generate an image of a sunset" | Call DALL-E via ImageClient |
 | "use grok to check what's trending on X" | Call Grok with `search=True` |
 | "blockrun GPT review this code" | Call GPT-5.2 via LLMClient |
@@ -179,7 +179,7 @@ response = client.chat("xai/grok-3", "What's trending?",
 ### Search Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `mode` | string | "auto" | "off", "auto", or "on" |
 | `sources` | array | web,news,x | Data sources to query |
 | `return_citations` | bool | true | Include source URLs |
@@ -222,7 +222,7 @@ response = client.chat("xai/grok-3", "What's trending?",
 ## Available Models
 
 | Model | Best For | Pricing |
-|-------|----------|---------|
+|-------|--|---------|
 | `openai/gpt-5.2` | Second opinions, code review, general | $1.75/M in, $14/M out |
 | `openai/gpt-5-mini` | Cost-optimized reasoning | $0.30/M in, $1.20/M out |
 | `openai/o4-mini` | Latest efficient reasoning | $1.10/M in, $4.40/M out |

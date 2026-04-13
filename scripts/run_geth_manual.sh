@@ -9,7 +9,7 @@ CONTAINER_NAME="geth-bsopt"
 IMAGE="docker.io/ethereum/client-go:stable"
 NETWORK="bsopt_bsopt-network"
 
-echo "🚀 Starting Geth container: $CONTAINER_NAME..."
+echo " Starting Geth container: $CONTAINER_NAME..."
 docker run -d --name "$CONTAINER_NAME" \
   -p 8545:8545 -p 8546:8546 \
   --network "$NETWORK" \
@@ -32,10 +32,10 @@ until [ $RETRIES -eq 0 ]; do
 done
 
 if [ "$SUCCESS" = false ]; then
-    echo "❌ Fatal: Geth failed to reach stable state within timeout."
+    echo " Fatal: Geth failed to reach stable state within timeout."
     docker logs "$CONTAINER_NAME"
     exit 1
 fi
 
-echo "✅ Geth is Online and Healthy!"
+echo " Geth is Online and Healthy!"
 echo "Report: Geth engine version $(curl -s -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' http://localhost:8545 | jq -r .result)"

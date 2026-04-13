@@ -48,7 +48,7 @@ confirmações antes de ações públicas).
 ## Resumo Rápido
 
 | Área | Scripts | O que faz |
-|------|---------|-----------|
+|------|---------|--|
 | **Setup** | `account_setup.py`, `auth.py` | Configurar conta, OAuth, token |
 | **Publicação** | `publish.py`, `schedule.py` | Publicar foto/vídeo/reel/story/carrossel, agendar |
 | **Comunidade** | `comments.py`, `messages.py` | Comentários, DMs, menções |

@@ -43,7 +43,7 @@ Walks through a complete architecture decision tree: document format → parsing
 
 ### Skill 4: Agent Safety Guard
 
-> **⚠️ AUTHORIZED USE ONLY**
+> **️ AUTHORIZED USE ONLY**
 > This skill is for educational purposes or authorized security assessments only.
 > You must have explicit, written permission from the system owner before using this tool.
 > Misuse of this tool is illegal and strictly prohibited.
@@ -78,12 +78,12 @@ Result: 65 tests executed. 3 critical failures found: Base64-encoded instruction
 
 ## Best Practices
 
-- ✅ Run prompt-evaluator before any production deployment — set a team baseline (e.g., ≥70/100)
-- ✅ Use context-budget-planner early in development, not after hitting truncation issues
-- ✅ Run agent-safety-guard as a pre-launch gate, not post-incident
-- ✅ Combine skills in sequence: RAG design → context optimization → prompt polish → security audit → eval setup
-- ❌ Don't rely on a single dimension score — look at the full profile
-- ❌ Don't skip the security audit because "it's just an internal tool"
+-  Run prompt-evaluator before any production deployment — set a team baseline (e.g., ≥70/100)
+-  Use context-budget-planner early in development, not after hitting truncation issues
+-  Run agent-safety-guard as a pre-launch gate, not post-incident
+-  Combine skills in sequence: RAG design → context optimization → prompt polish → security audit → eval setup
+-  Don't rely on a single dimension score — look at the full profile
+-  Don't skip the security audit because "it's just an internal tool"
 
 ## Security & Safety Notes
 

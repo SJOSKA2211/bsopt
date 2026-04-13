@@ -76,11 +76,11 @@ Compare my skill repo with the top 5 similar repos on GitHub
 
 ## Best Practices
 
-- ✅ Always run Stage 7 validation before pushing
-- ✅ Use semantic commit messages: `chore:`, `fix:`, `docs:`
-- ✅ Check the `pr_todo.json` file for pending reviewer requests
-- ❌ Don't skip Stage 4 — competitor analysis reveals blind spots
-- ❌ Don't commit `node_modules/` or `.env` files
+-  Always run Stage 7 validation before pushing
+-  Use semantic commit messages: `chore:`, `fix:`, `docs:`
+-  Check the `pr_todo.json` file for pending reviewer requests
+-  Don't skip Stage 4 — competitor analysis reveals blind spots
+-  Don't commit `node_modules/` or `.env` files
 
 ## Security & Safety Notes
 

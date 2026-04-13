@@ -62,7 +62,7 @@ def main():
     compose_file = os.path.join(project_root, "infrastructure/orchestration/docker-compose.yml")
     heartbeat_path = "/tmp/frontend_heartbeat"
 
-    log("🚀 Starting App Gateway (Frontend) Optimization Sequence", "INFO")
+    log(" Starting App Gateway (Frontend) Optimization Sequence", "INFO")
     
     # Start the service
     log("Starting frontend service via docker compose...", "INFO")
@@ -103,7 +103,7 @@ def main():
         # Don't exit here, maybe it just takes longer, but warn.
         # sys.exit(1)
 
-    log("🎉 Frontend Optimization & Startup Sequence Complete", "SUCCESS")
+    log(" Frontend Optimization & Startup Sequence Complete", "SUCCESS")
 
 if __name__ == "__main__":
     main()

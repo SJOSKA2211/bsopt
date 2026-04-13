@@ -202,7 +202,7 @@ Use @vercel-deployment to deploy Next.js app to production
 ## Technology Stack
 
 | Category | Technology |
-|----------|------------|
+|--|--|
 | Framework | Next.js 14+, React 18+ |
 | Language | TypeScript 5+ |
 | Styling | Tailwind CSS v4 |

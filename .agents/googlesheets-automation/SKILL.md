@@ -177,7 +177,7 @@ Google Sheets enforces strict rate limits:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search spreadsheets | `GOOGLESHEETS_SEARCH_SPREADSHEETS` | `query`, `search_type` |
 | Create spreadsheet | `GOOGLESHEETS_CREATE_GOOGLE_SHEET1` | `title` |
 | List tabs | `GOOGLESHEETS_GET_SHEET_NAMES` | `spreadsheet_id` |

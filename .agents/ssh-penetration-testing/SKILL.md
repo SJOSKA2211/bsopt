@@ -449,7 +449,7 @@ sessions -i 1
 ### Port Forwarding Types
 
 | Type | Command | Use Case |
-|------|---------|----------|
+|------|---------|--|
 | Local | `-L 8080:target:80` | Access remote services locally |
 | Remote | `-R 8080:localhost:80` | Expose local services remotely |
 | Dynamic | `-D 1080` | SOCKS proxy for pivoting |
@@ -457,7 +457,7 @@ sessions -i 1
 ### Common SSH Ports
 
 | Port | Description |
-|------|-------------|
+|------|--|
 | 22 | Default SSH |
 | 2222 | Common alternate |
 | 22222 | Another alternate |
@@ -485,7 +485,7 @@ sessions -i 1
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Connection Refused | Verify SSH running; check firewall; confirm port; test from different IP |
 | Authentication Failures | Verify username; check password policy; key permissions (600); authorized_keys format |
 | Tunnel Not Working | Check GatewayPorts/AllowTcpForwarding in sshd_config; verify firewall; use `ssh -v` |

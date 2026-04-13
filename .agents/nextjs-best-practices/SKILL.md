@@ -174,8 +174,8 @@ Does it need...?
 
 ## 9. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | 'use client' everywhere | Server by default |
 | Fetch in client components | Fetch in server |
 | Skip loading states | Use loading.tsx |

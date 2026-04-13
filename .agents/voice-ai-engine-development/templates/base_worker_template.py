@@ -41,7 +41,7 @@ class BaseWorker:
         """Start the worker's processing loop"""
         self.active = True
         self._task = asyncio.create_task(self._run_loop())
-        logger.info(f"✅ [{self.__class__.__name__}] Started")
+        logger.info(f" [{self.__class__.__name__}] Started")
 
     async def _run_loop(self):
         """
@@ -62,13 +62,13 @@ class BaseWorker:
 
             except asyncio.CancelledError:
                 # Task was cancelled (normal during shutdown)
-                logger.info(f"🛑 [{self.__class__.__name__}] Task cancelled")
+                logger.info(f" [{self.__class__.__name__}] Task cancelled")
                 break
 
             except Exception as e:
                 # Log error but don't crash the worker
                 logger.error(
-                    f"❌ [{self.__class__.__name__}] Error processing item: {e}", exc_info=True
+                    f" [{self.__class__.__name__}] Error processing item: {e}", exc_info=True
                 )
                 # Continue processing next item
 
@@ -94,7 +94,7 @@ class BaseWorker:
         if self._task and not self._task.done():
             self._task.cancel()
 
-        logger.info(f"🛑 [{self.__class__.__name__}] Terminated")
+        logger.info(f" [{self.__class__.__name__}] Terminated")
 
     async def wait_for_completion(self):
         """Wait for the worker task to complete"""
@@ -105,9 +105,9 @@ class BaseWorker:
                 pass
 
 
-# ============================================================================
+# ==
 # Example: Custom Worker Implementation
-# ============================================================================
+# ==
 
 
 class ExampleWorker(BaseWorker):
@@ -143,15 +143,15 @@ class ExampleWorker(BaseWorker):
         self.processed_count += 1
 
         logger.info(
-            f"✅ [{self.__class__.__name__}] "
+            f" [{self.__class__.__name__}] "
             f"Processed '{item}' -> '{result}' "
             f"(total: {self.processed_count})"
         )
 
 
-# ============================================================================
+# ==
 # Example Usage
-# ============================================================================
+# ==
 
 
 async def example_usage():
@@ -180,7 +180,7 @@ async def example_usage():
     while not output_queue.empty():
         results.append(await output_queue.get())
 
-    print(f"\n✅ Results: {results}")
+    print(f"\n Results: {results}")
 
     # Terminate worker
     worker.terminate()

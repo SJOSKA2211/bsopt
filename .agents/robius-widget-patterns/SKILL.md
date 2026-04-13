@@ -31,7 +31,7 @@ Use this skill when:
 For production-ready widget patterns, see the `_base/` directory:
 
 | Pattern | Description |
-|---------|-------------|
+|---------|--|
 | 01-widget-extension | Add helper methods to widget references |
 | 02-modal-overlay | Popups, dialogs using DrawList2d overlay |
 | 03-collapsible | Expandable/collapsible sections |

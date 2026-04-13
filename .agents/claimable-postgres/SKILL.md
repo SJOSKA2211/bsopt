@@ -42,7 +42,7 @@ curl -s -X POST "https://pg.new/api/v1/database" \
 ```
 
 | Parameter | Required | Description |
-|-----------|----------|-------------|
+|--|--|--|
 | `ref` | Yes | Tracking tag that identifies who provisioned the database. Use `"agent-skills"` when provisioning through this skill. |
 | `enable_logical_replication` | No | Enable logical replication (default: false, cannot be disabled once enabled) |
 
@@ -74,7 +74,7 @@ Returns the same response shape. Status transitions: `UNCLAIMED` -> `CLAIMING` -
 ### Error responses
 
 | Condition | HTTP | Message |
-|-----------|------|---------|
+|--|------|---------|
 | Missing or empty `ref` | 400 | `Missing referrer` |
 | Invalid database ID | 400 | `Database not found` |
 | Invalid JSON body | 500 | `Failed to create the database.` |
@@ -102,7 +102,7 @@ Get confirmation before proceeding.
 ### Options
 
 | Option | Alias | Description | Default |
-|--------|-------|-------------|---------|
+|--------|-------|--|---------|
 | `--yes` | `-y` | Skip prompts, use defaults | `false` |
 | `--env` | `-e` | .env file path | `./.env` |
 | `--key` | `-k` | Connection string env var key | `DATABASE_URL` |
@@ -191,7 +191,7 @@ Users cannot claim into Vercel-linked orgs; they must choose another Neon org.
 ## Defaults and Limits
 
 | Parameter | Value |
-|-----------|-------|
+|--|-------|
 | Provider | AWS |
 | Region | us-east-2 |
 | Postgres | 17 |
@@ -199,7 +199,7 @@ Users cannot claim into Vercel-linked orgs; they must choose another Neon org.
 Region cannot be changed for claimable databases. Unclaimed databases have stricter quotas. Claiming resets limits to free plan defaults.
 
 | | Unclaimed | Claimed (Free plan) |
-|---|-----------|---------------------|
+|---|--|--|
 | Storage | 100 MB | 512 MB |
 | Transfer | 1 GB | ~5 GB |
 | Branches | No | Yes |

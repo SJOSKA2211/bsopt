@@ -10,7 +10,7 @@ date_added: '2026-02-27'
 
 Management plane SDK for provisioning and managing Azure SQL resources via Azure Resource Manager.
 
-> **⚠️ Management vs Data Plane**
+> **️ Management vs Data Plane**
 > - **This SDK (Azure.ResourceManager.Sql)**: Create servers, databases, elastic pools, configure firewall rules, manage failover groups
 > - **Data Plane SDK (Microsoft.Data.SqlClient)**: Execute queries, stored procedures, manage connections
 
@@ -250,7 +250,7 @@ var connectionString = $"Server=tcp:{serverFqdn},1433;" +
 ### Database SKUs
 
 | SKU Name | Tier | Description |
-|----------|------|-------------|
+|--|------|--|
 | `Basic` | Basic | 5 DTUs, 2 GB max |
 | `S0`-`S12` | Standard | 10-3000 DTUs |
 | `P1`-`P15` | Premium | 125-4000 DTUs |
@@ -261,7 +261,7 @@ var connectionString = $"Server=tcp:{serverFqdn},1433;" +
 ### Elastic Pool SKUs
 
 | SKU Name | Tier | Description |
-|----------|------|-------------|
+|--|------|--|
 | `BasicPool` | Basic | 50-1600 eDTUs |
 | `StandardPool` | Standard | 50-3000 eDTUs |
 | `PremiumPool` | Premium | 125-4000 eDTUs |
@@ -306,7 +306,7 @@ catch (RequestFailedException ex)
 ## Reference Files
 
 | File | When to Read |
-|------|--------------|
+|------|--|
 | references/server-management.md | Server CRUD, admin credentials, Azure AD auth, networking |
 | references/database-operations.md | Database CRUD, scaling, backup, restore, copy |
 | references/elastic-pools.md | Pool management, adding/removing databases, scaling |

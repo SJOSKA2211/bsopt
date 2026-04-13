@@ -146,7 +146,7 @@ For full communication templates, see [communication-templates.md](references/co
 ### Automatic Escalation Triggers
 
 | Trigger                                                           | Action                                           | Timeline        |
-| ----------------------------------------------------------------- | ------------------------------------------------ | --------------- |
+| -- | -- | -- |
 | Carrier tender acceptance drops below 70% for 2 consecutive weeks | Notify procurement, schedule carrier call        | Within 48 hours |
 | Spot spend exceeds 30% of lane budget for any lane                | Review routing guide, initiate carrier sourcing  | Within 1 week   |
 | Carrier FMCSA authority or insurance lapses                       | Immediately suspend tendering, notify operations | Within 1 hour   |
@@ -165,7 +165,7 @@ Analyst → Transportation Manager (48 hours) → Director of Transportation (1 
 Track weekly, review monthly with carrier management team, share quarterly with carriers:
 
 | Metric                                           | Target         | Red Flag                 |
-| ------------------------------------------------ | -------------- | ------------------------ |
+| -- | -- | -- |
 | Contract rate vs. DAT benchmark                  | Within ±8%     | >15% premium or discount |
 | Routing guide compliance (% of freight on guide) | ≥85%           | <70%                     |
 | Primary tender acceptance                        | ≥90%           | <80%                     |

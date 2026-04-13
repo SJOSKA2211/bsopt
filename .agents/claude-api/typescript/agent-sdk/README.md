@@ -30,7 +30,7 @@ for await (const message of query({
 ## Built-in Tools
 
 | Tool      | Description                          |
-| --------- | ------------------------------------ |
+| --------- | -- |
 | Read      | Read files in the workspace          |
 | Write     | Create new files                     |
 | Edit      | Make precise edits to existing files |
@@ -150,7 +150,7 @@ query({ prompt: "...", options: { ... } })
 ```
 
 | Option                              | Type   | Description                                                                |
-| ----------------------------------- | ------ | -------------------------------------------------------------------------- |
+| -- | ------ | -- |
 | `cwd`                               | string | Working directory for file operations                                      |
 | `allowedTools`                      | array  | Tools the agent can use (e.g., `["Read", "Edit", "Bash"]`)                |
 | `tools`                             | array  | Built-in tools to make available (restricts the default set)               |

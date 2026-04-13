@@ -3,7 +3,7 @@
 ## Core Performance Metrics (2024–2025)
 
 | Metric                     | Average | Good   | Excellent | Source                   |
-| -------------------------- | ------- | ------ | --------- | ------------------------ |
+| -- | ------- | ------ | --------- | -- |
 | Open rate                  | 27.7%   | 40–45% | 50%+      | Belkins, Snov.io         |
 | Reply rate                 | 4–5.8%  | 5–10%  | 10–15%    | Belkins, Reachoutly      |
 | Reply rate (best-in-class) | —       | —      | 15–25%+   | Digital Bloom, Instantly |
@@ -63,7 +63,7 @@ Reply rates dropped from 7–8% (2020–2022) to 4–5.8% (2024–2025), ~15% Yo
 ## Cultural Calibration
 
 | Factor       | US              | UK                       | Germany/DACH         | Scandinavia             |
-| ------------ | --------------- | ------------------------ | -------------------- | ----------------------- |
+| -- | -- | -- | -- | -- |
 | Tone         | Direct, casual  | Polite, professional     | Precise, data-driven | Fact-based, egalitarian |
 | Length       | Shorter, blunt  | Longer, insight-led      | Detail-oriented      | Concise but substantive |
 | Social proof | Outcome numbers | Research-led credibility | Technical precision  | Shared values           |
@@ -73,7 +73,7 @@ North America: 4.1% response. Europe: 3.1%. Asia-Pacific: 2.8%. Shorter, more di
 ## Expert Quick Reference
 
 | Expert         | Core Method                                                     | Best For                                        |
-| -------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| -- | -- | -- |
 | Alex Berman    | 3C's: Compliment → Case Study → CTA                             | High-ticket B2B services, agencies              |
 | Josh Braun     | "Poke the Bear" — neutral questions exposing invisible problems | Empathy-driven consultative selling             |
 | Kyle Coleman   | Systematic research + AI personalization at scale               | Bridging mass outreach and deep personalization |

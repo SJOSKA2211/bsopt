@@ -53,7 +53,7 @@ linkedin <command> --json -q
 ```
 
 | Flag                    | Description                             |
-| ----------------------- | --------------------------------------- |
+| -- | -- |
 | `--json`                | Structured JSON output                  |
 | `--quiet` / `-q`        | Suppress stderr progress messages       |
 | `--fields name,url,...` | Select specific fields in output        |
@@ -80,7 +80,7 @@ Error:
 Exit code 0 means the API call succeeded – always check the `success` field for the action outcome. Non-zero exit codes indicate infrastructure errors:
 
 | Exit Code | Meaning                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------- |
+| --------- | -- |
 | 0         | Success (check `success` field – action may have returned an error like "person not found") |
 | 1         | General/unexpected error                                                                    |
 | 2         | Missing or invalid tokens                                                                   |
@@ -129,7 +129,7 @@ linkedin person search [flags] --json -q
 ```
 
 | Flag                   | Description                            |
-| ---------------------- | -------------------------------------- |
+| -- | -- |
 | `--term`               | Search keyword or phrase               |
 | `--limit`              | Max results                            |
 | `--first-name`         | Filter by first name                   |
@@ -161,7 +161,7 @@ Optional flags:
 Employee filters (require `--employees`):
 
 | Flag                     | Description                  |
-| ------------------------ | ---------------------------- |
+| -- | -- |
 | `--employees-limit`      | Max employees to retrieve    |
 | `--employees-first-name` | Filter by first name         |
 | `--employees-last-name`  | Filter by last name          |
@@ -171,7 +171,7 @@ Employee filters (require `--employees`):
 | `--employees-schools`    | Comma-separated school names |
 
 | Flag            | Description                                        |
-| --------------- | -------------------------------------------------- |
+| -- | -- |
 | `--dms-limit`   | Max decision makers to retrieve (requires `--dms`) |
 | `--posts-limit` | Max posts to retrieve (requires `--posts`)         |
 | `--posts-since` | Posts since ISO timestamp (requires `--posts`)     |
@@ -194,7 +194,7 @@ linkedin company search [flags] --json -q
 ```
 
 | Flag           | Description                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| -- | -- |
 | `--term`       | Search keyword                                                                                               |
 | `--limit`      | Max results                                                                                                  |
 | `--sizes`      | Comma-separated sizes: `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+` |
@@ -251,7 +251,7 @@ linkedin connection list [flags] --json -q
 ```
 
 | Flag                   | Description                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------ |
+| -- | -- |
 | `--limit`              | Max connections to return                                                            |
 | `--since`              | Only connections made since ISO timestamp (only works when no filter flags are used) |
 | `--first-name`         | Filter by first name                                                                 |
@@ -298,7 +298,7 @@ linkedin post fetch <url> [flags] --json -q
 ```
 
 | Flag                 | Description                                                        |
-| -------------------- | ------------------------------------------------------------------ |
+| -- | -- |
 | `--comments`         | Include comments                                                   |
 | `--reactions`        | Include reactions                                                  |
 | `--comments-limit`   | Max comments to retrieve (requires `--comments`)                   |
@@ -321,7 +321,7 @@ linkedin post create '<text>' [flags] --json -q
 ```
 
 | Flag            | Description                                                                                                        |
-| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| -- | -- |
 | `--company-url` | Post on behalf of a company page (requires admin access)                                                           |
 | `--attachments` | Attachment as `url:type` or `url:type:name`. Types: `image`, `video`, `document`. Can be specified multiple times. |
 
@@ -401,7 +401,7 @@ linkedin navigator person search [flags] --json -q
 ```
 
 | Flag                    | Description                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------- |
+| -- | -- |
 | `--term`                | Search keyword or phrase                                                                    |
 | `--limit`               | Max results                                                                                 |
 | `--first-name`          | Filter by first name                                                                        |
@@ -433,7 +433,7 @@ Optional flags:
 Employee filters (require `--employees`):
 
 | Flag                              | Description                                        |
-| --------------------------------- | -------------------------------------------------- |
+| -- | -- |
 | `--employees-limit`               | Max employees to retrieve                          |
 | `--employees-first-name`          | Filter by first name                               |
 | `--employees-last-name`           | Filter by last name                                |
@@ -457,7 +457,7 @@ linkedin navigator company search [flags] --json -q
 ```
 
 | Flag            | Description                                                                                                  |
-| --------------- | ------------------------------------------------------------------------------------------------------------ |
+| -- | -- |
 | `--term`        | Search keyword                                                                                               |
 | `--limit`       | Max results                                                                                                  |
 | `--sizes`       | Comma-separated sizes: `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+` |

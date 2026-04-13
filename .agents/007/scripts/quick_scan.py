@@ -17,9 +17,9 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Imports from the 007 config hub (same directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (
@@ -36,9 +36,9 @@ from config import (
     setup_logging,
 )
 
-# ---------------------------------------------------------------------------
+# --
 # Constants local to the quick scan
-# ---------------------------------------------------------------------------
+# --
 
 SCORE_DEDUCTIONS = {
     "CRITICAL": 10,
@@ -51,9 +51,9 @@ SCORE_DEDUCTIONS = {
 REDACT_KEEP_CHARS = 6  # Number of leading chars to keep in redacted snippets
 
 
-# ---------------------------------------------------------------------------
+# --
 # Helpers
-# ---------------------------------------------------------------------------
+# --
 
 
 def _redact(text: str) -> str:
@@ -122,9 +122,9 @@ def _check_permissions(filepath: Path) -> dict | None:
     return None
 
 
-# ---------------------------------------------------------------------------
+# --
 # Core scanning logic
-# ---------------------------------------------------------------------------
+# --
 
 
 def collect_files(target: Path, logger) -> list[Path]:
@@ -245,9 +245,9 @@ def compute_score(findings: list[dict]) -> int:
     return max(0, score)
 
 
-# ---------------------------------------------------------------------------
+# --
 # Aggregation
-# ---------------------------------------------------------------------------
+# --
 
 
 def aggregate_by_severity(findings: list[dict]) -> dict[str, int]:
@@ -270,9 +270,9 @@ def top_critical_findings(findings: list[dict], n: int = 10) -> list[dict]:
     return sorted_findings[:n]
 
 
-# ---------------------------------------------------------------------------
+# --
 # Report formatters
-# ---------------------------------------------------------------------------
+# --
 
 
 def format_text_report(
@@ -362,9 +362,9 @@ def build_json_report(
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Main entry point
-# ---------------------------------------------------------------------------
+# --
 
 
 def run_scan(target_path: str, output_format: str = "text", verbose: bool = False) -> dict:
@@ -461,9 +461,9 @@ def run_scan(target_path: str, output_format: str = "text", verbose: bool = Fals
     return report
 
 
-# ---------------------------------------------------------------------------
+# --
 # CLI
-# ---------------------------------------------------------------------------
+# --
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

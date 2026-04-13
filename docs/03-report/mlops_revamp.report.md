@@ -5,7 +5,7 @@ The BS-OPT MLOps manifold has been successfully stabilized and revamped. We have
 
 ## 2. Value Delivered
 | Problem | Solution | Function UX Effect | Core Value |
-|---------|----------|-------------------|------------|
+|---------|--|--|--|
 | Fragmented ML Health | Integrated /ml/health endpoint | Real-time diagnostic visibility | Observability |
 | Deprecated FastAPI Events | Migrated to Lifespan context | Improved startup reliability | Maintainability |
 | No Model Fallback | Implemented DummyModel fallback | API remains healthy in dev/test | Availability |

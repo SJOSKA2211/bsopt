@@ -224,9 +224,9 @@ module.exports = {
           .setMinValues(1)
           .setMaxValues(3)
           .addOptions([
-            { label: 'Developer', value: 'dev', emoji: '💻' },
-            { label: 'Designer', value: 'design', emoji: '🎨' },
-            { label: 'Community', value: 'community', emoji: '🎉' }
+            { label: 'Developer', value: 'dev', emoji: '' },
+            { label: 'Designer', value: 'design', emoji: '' },
+            { label: 'Community', value: 'community', emoji: '' }
           ])
       );
 
@@ -250,25 +250,25 @@ module.exports = {
 
 ## Anti-Patterns
 
-### ❌ Message Content for Commands
+###  Message Content for Commands
 
 **Why bad**: Message Content Intent is privileged and deprecated for bot commands.
 Slash commands are the intended approach.
 
-### ❌ Syncing Commands on Every Start
+###  Syncing Commands on Every Start
 
 **Why bad**: Command registration is rate limited. Global commands take up to 1 hour
 to propagate. Syncing on every start wastes API calls and can hit limits.
 
-### ❌ Blocking the Event Loop
+###  Blocking the Event Loop
 
 **Why bad**: Discord gateway requires regular heartbeats. Blocking operations
 cause missed heartbeats and disconnections.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | ## Acknowledge immediately, process later |
 | Issue | critical | ## Step 1: Enable in Developer Portal |
 | Issue | high | ## Use a separate deploy script (not on startup) |

@@ -1,10 +1,10 @@
-# 📜 Nguồn gốc & Ghi công
+#  Nguồn gốc & Ghi công
 
 Chúng tôi tin tưởng vào việc ghi nhận công sức một cách xứng đáng.  
 Nếu bạn nhận ra tác phẩm của mình ở đây mà chưa được ghi công đúng cách, vui lòng mở một Issue (Báo lỗi).
 
 | Kỹ năng / Danh mục          | Nguồn gốc                                              | Giấy phép      | Ghi chú                       |
-| :-------------------------- | :----------------------------------------------------- | :------------- | :---------------------------- |
+| :-- | :-- | :-- | :-- |
 | `cloud-penetration-testing` | [HackTricks](https://book.hacktricks.xyz/)             | MIT / CC-BY-SA | Được chuyển đổi cho trợ lý AI.|
 | `active-directory-attacks`  | [HackTricks](https://book.hacktricks.xyz/)             | MIT / CC-BY-SA | Được chuyển đổi cho trợ lý AI.|
 | `owasp-top-10`              | [OWASP](https://owasp.org/)                            | CC-BY-SA       | Chuyển đổi từ phương pháp gốc.|

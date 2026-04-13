@@ -283,7 +283,7 @@ await client.Files.DeleteFileAsync(file.Id);
 ## Streaming Update Types
 
 | Update Type | Description |
-|-------------|-------------|
+|--|--|
 | `StreamingUpdateReason.RunCreated` | Run started |
 | `StreamingUpdateReason.RunInProgress` | Run processing |
 | `StreamingUpdateReason.RunCompleted` | Run finished |
@@ -343,7 +343,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.AI.Agents.Persistent |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.ai.agents.persistent |
 | GitHub Source | https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/ai/Azure.AI.Agents.Persistent |

@@ -400,7 +400,7 @@ gcloud auth list
 ### Metadata Service URLs
 
 | Provider | URL |
-|----------|-----|
+|--|-----|
 | AWS | `http://169.254.169.254/latest/meta-data/` |
 | Azure | `http://169.254.169.254/metadata/instance?api-version=2018-02-01` |
 | GCP | `http://metadata.google.internal/computeMetadata/v1/` |
@@ -495,7 +495,7 @@ gcloud beta compute ssh instance-name --zone us-central1-a --project target-proj
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Authentication failures | Verify credentials; check MFA; ensure correct tenant/project; try alternative auth methods |
 | Permission denied | List current roles; try different resources; check resource policies; verify region |
 | Metadata service blocked | Check IMDSv2 (AWS); verify instance role; check firewall for 169.254.169.254 |

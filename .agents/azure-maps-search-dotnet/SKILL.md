@@ -487,7 +487,7 @@ catch (RequestFailedException ex)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Azure Maps Documentation | https://learn.microsoft.com/azure/azure-maps/ |
 | Search API Reference | https://learn.microsoft.com/dotnet/api/azure.maps.search |
 | Routing API Reference | https://learn.microsoft.com/dotnet/api/azure.maps.routing |

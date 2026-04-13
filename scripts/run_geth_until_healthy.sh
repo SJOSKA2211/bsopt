@@ -19,7 +19,7 @@ detect_container_engine
 COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"
 
 # 2. Start Geth
-echo "🚀 Starting Geth with blockchain profile using $CONTAINER_ENGINE..."
+echo " Starting Geth with blockchain profile using $CONTAINER_ENGINE..."
 $COMPOSE_ENGINE -f "$COMPOSE_FILE" --profile blockchain up -d geth
 
 # 3. Wait for Healthy (Reported by Engine)
@@ -37,7 +37,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         echo "Current Engine Status: $STATUS"
         
         if [ "$STATUS" == "healthy" ]; then
-            echo "✅ Engine reports Geth is healthy!"
+            echo " Engine reports Geth is healthy!"
             exit 0
         fi
     else
@@ -48,5 +48,5 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
 done
 
-echo "❌ Fatal: Geth failed to become healthy within timeout."
+echo " Fatal: Geth failed to become healthy within timeout."
 exit 1

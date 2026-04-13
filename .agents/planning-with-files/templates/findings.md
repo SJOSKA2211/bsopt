@@ -44,7 +44,7 @@
 -->
 <!-- Decisions made with rationale -->
 | Decision | Rationale |
-|----------|-----------|
+|--|--|
 |          |           |
 
 ## Issues Encountered
@@ -57,7 +57,7 @@
 -->
 <!-- Errors and how they were resolved -->
 | Issue | Resolution |
-|-------|------------|
+|-------|--|
 |       |            |
 
 ## Resources

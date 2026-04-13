@@ -70,14 +70,14 @@ Features:
 ### When to Use System Fonts
 
 ```
-✅ USE system fonts when:
+ USE system fonts when:
 ├── Brand doesn't mandate custom font
 ├── Reading efficiency is priority
 ├── App feels native/integrated important
 ├── Performance is critical
 ├── Wide language support needed
 
-❌ AVOID system fonts when:
+ AVOID system fonts when:
 ├── Brand identity requires custom
 ├── Design differentiation needed
 ├── Editorial/magazine style
@@ -103,7 +103,7 @@ If using custom fonts:
 ### iOS Type Scale (Built-in)
 
 | Style | Size | Weight | Line Height |
-|-------|------|--------|-------------|
+|-------|------|--------|--|
 | Large Title | 34pt | Bold | 41pt |
 | Title 1 | 28pt | Bold | 34pt |
 | Title 2 | 22pt | Bold | 28pt |
@@ -119,7 +119,7 @@ If using custom fonts:
 ### Android Type Scale (Material 3)
 
 | Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
+|------|------|--------|--|
 | Display Large | 57sp | 400 | 64sp |
 | Display Medium | 45sp | 400 | 52sp |
 | Display Small | 36sp | 400 | 44sp |
@@ -166,11 +166,11 @@ Example with 1.25 ratio, 16px base:
 ### iOS Dynamic Type (MANDATORY)
 
 ```swift
-// ❌ WRONG: Fixed size (doesn't scale)
+//  WRONG: Fixed size (doesn't scale)
 Text("Hello")
     .font(.system(size: 17))
 
-// ✅ CORRECT: Dynamic Type
+//  CORRECT: Dynamic Type
 Text("Hello")
     .font(.body) // Scales with user setting
 
@@ -218,7 +218,7 @@ Solutions:
 ### Minimum Sizes
 
 | Element | Minimum | Recommended |
-|---------|---------|-------------|
+|---------|---------|--|
 | Body text | 14px/pt/sp | 16px/pt/sp |
 | Secondary text | 12px/pt/sp | 13-14px/pt/sp |
 | Captions | 11px/pt/sp | 12px/pt/sp |
@@ -275,7 +275,7 @@ Use off-white (#E0E0E0 to #F0F0F0) to reduce eye strain.
 ### Dark Mode Hierarchy
 
 | Level | Light Mode | Dark Mode |
-|-------|------------|-----------|
+|-------|--|--|
 | Primary text | #000000 | #E8E8E8 |
 | Secondary text | #666666 | #A0A0A0 |
 | Tertiary text | #999999 | #707070 |
@@ -298,7 +298,7 @@ Consider:
 
 ## 7. Typography Anti-Patterns
 
-### ❌ Common Mistakes
+###  Common Mistakes
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
@@ -311,7 +311,7 @@ Consider:
 | **All caps body** | Hard to read | Headlines only |
 | **Light gray on white** | Impossible in bright light | Higher contrast |
 
-### ❌ AI Typography Mistakes
+###  AI Typography Mistakes
 
 ```
 AI tends to:

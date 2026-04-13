@@ -36,7 +36,7 @@ Guide to selecting and optimizing embedding models for vector search application
 ### 1. Embedding Model Comparison
 
 | Model | Dimensions | Max Tokens | Best For |
-|-------|------------|------------|----------|
+|-------|--|--|--|
 | **text-embedding-3-large** | 3072 | 8191 | High accuracy |
 | **text-embedding-3-small** | 1536 | 8191 | Cost-effective |
 | **voyage-2** | 1024 | 4000 | Code, legal |

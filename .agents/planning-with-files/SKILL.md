@@ -18,7 +18,7 @@ When using this skill:
 - **Your planning files** (`task_plan.md`, `findings.md`, `progress.md`) should be created in **your project directory** — the folder where you're working
 
 | Location | What Goes There |
-|----------|-----------------|
+|--|--|
 | Skill directory (`${CLAUDE_PLUGIN_ROOT}/`) | Templates, scripts, reference docs |
 | Your project directory | `task_plan.md`, `findings.md`, `progress.md` |
 
@@ -48,7 +48,7 @@ Filesystem = Disk (persistent, unlimited)
 ## File Purposes
 
 | File | Purpose | When to Update |
-|------|---------|----------------|
+|------|---------|--|
 | `task_plan.md` | Phases, progress, decisions | After each phase |
 | `findings.md` | Research, discoveries | After ANY discovery |
 | `progress.md` | Session log, test results | Throughout session |
@@ -78,7 +78,7 @@ Every error goes in the plan file. This builds knowledge and prevents repetition
 ```markdown
 ## Errors Encountered
 | Error | Attempt | Resolution |
-|-------|---------|------------|
+|-------|---------|--|
 | FileNotFoundError | 1 | Created default config |
 | API timeout | 2 | Added retry logic |
 ```
@@ -117,7 +117,7 @@ AFTER 3 FAILURES: Escalate to User
 ## Read vs Write Decision Matrix
 
 | Situation | Action | Reason |
-|-----------|--------|--------|
+|--|--------|--------|
 | Just wrote a file | DON'T read | Content still in context |
 | Viewed image/PDF | Write findings NOW | Multimodal → text before lost |
 | Browser returned data | Write to file | Screenshots don't persist |
@@ -130,7 +130,7 @@ AFTER 3 FAILURES: Escalate to User
 If you can answer these, your context management is solid:
 
 | Question | Answer Source |
-|----------|---------------|
+|--|--|
 | Where am I? | Current phase in task_plan.md |
 | Where am I going? | Remaining phases |
 | What's the goal? | Goal statement in plan |
@@ -174,7 +174,7 @@ Helper scripts for automation:
 ## Anti-Patterns
 
 | Don't | Do Instead |
-|-------|------------|
+|-------|--|
 | Use TodoWrite for persistence | Create task_plan.md file |
 | State goals once and forget | Re-read plan before decisions |
 | Hide errors and retry silently | Log errors to plan file |

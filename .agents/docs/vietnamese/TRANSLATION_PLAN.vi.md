@@ -1,4 +1,4 @@
-# 🗺️ Kế hoạch Dịch thuật (Translation Master Plan)
+# ️ Kế hoạch Dịch thuật (Translation Master Plan)
 
 Tài liệu này dùng để theo dõi tiến độ dịch thuật toàn bộ repository `antigravity-awesome-skills` sang tiếng Việt.
 
@@ -10,7 +10,7 @@ Tài liệu này dùng để theo dõi tiến độ dịch thuật toàn bộ re
 
 ---
 
-## 📊 Tổng quan Tiến độ
+##  Tổng quan Tiến độ
 
 - [x] **Giai đoạn 0: Thiết lập & Core Docs** (README, CONTRIBUTING, v.v.)
 - [x] **Giai đoạn 1: Essentials Bundle** (Các kỹ năng cốt lõi)
@@ -21,7 +21,7 @@ Tài liệu này dùng để theo dõi tiến độ dịch thuật toàn bộ re
 
 ---
 
-## ✅ Chi tiết Công việc
+##  Chi tiết Công việc
 
 ### 🟢 Giai đoạn 0: Tài liệu Gốc (Core Documentation)
 
@@ -49,7 +49,7 @@ Tài liệu này dùng để theo dõi tiến độ dịch thuật toàn bộ re
 
 ---
 
-## 🎯 Kết luận
+##  Kết luận
 - **Phần dành cho Con người (Human-facing Docs):** Đã dịch hoàn tất (`README`, `DOCS`, v.v.).
 - **Phần dành cho AI (Agent Skills):** Giữ nguyên Tiếng Anh.
 
@@ -57,7 +57,7 @@ Dự án đã đạt trạng thái sẵn sàng sử dụng cho người dùng Vi
 
 ---
 
-## 📝 Nhật ký Thay đổi (Changelog)
+##  Nhật ký Thay đổi (Changelog)
 
 - **2026-01-29**:
   - Hoàn thành Giai đoạn 0 (Docs).

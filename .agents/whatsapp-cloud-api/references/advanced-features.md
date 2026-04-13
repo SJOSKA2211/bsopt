@@ -126,7 +126,7 @@ Um Flow e composto por **screens** (telas) com **components** (campos):
 ### Componentes Disponiveis
 
 | Componente       | Descricao                          | Campos principais              |
-|------------------|------------------------------------|--------------------------------|
+|--|--|--|
 | TextHeading      | Titulo de secao                    | text                           |
 | TextBody         | Texto descritivo                   | text                           |
 | TextInput        | Campo de texto                     | name, label, input-type        |
@@ -322,7 +322,7 @@ WhatsApp Channels e um recurso de broadcasting unidirecional. Voce envia atualiz
 ### Analytics Disponiveis (30 dias)
 
 | Metrica           | Descricao                              |
-|-------------------|----------------------------------------|
+|--|--|
 | Crescimento       | Novos followers vs unfollows           |
 | Alcance           | Quantos viram suas mensagens           |
 | Engajamento       | Reacoes com emoji                      |
@@ -445,7 +445,7 @@ Enviada (sent) → Entregue ao servidor (delivered) → Entregue ao dispositivo 
 ### Status Possiveis
 
 | Status      | Descricao                              | Confiabilidade      |
-|-------------|----------------------------------------|---------------------|
+|--|--|--|
 | `sent`      | Mensagem enviada para servidores Meta  | Alta                |
 | `delivered` | Entregue ao dispositivo do cliente     | Alta                |
 | `read`      | Cliente leu a mensagem (blue check)    | Media (pode ser off)|
@@ -501,7 +501,7 @@ async function processStatusUpdate(status: WebhookStatus): Promise<void> {
 ### Metricas Essenciais para Atendimento
 
 | Metrica                        | Como Calcular                          | Meta Ideal          |
-|-------------------------------|----------------------------------------|---------------------|
+|--|--|--|
 | Tempo Primeira Resposta (FRT) | Timestamp resposta - timestamp mensagem| < 5 minutos         |
 | Tempo Medio de Resolucao      | Timestamp fechamento - timestamp inicio| < 30 minutos        |
 | Taxa de Resolucao no Bot      | Resolvidos pelo bot / total            | > 60%               |

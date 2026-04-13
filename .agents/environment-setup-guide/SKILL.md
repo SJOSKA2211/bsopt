@@ -340,7 +340,7 @@ docker-compose exec db psql -U postgres -d mydb
 
 ## Best Practices
 
-### ✅ Do This
+###  Do This
 
 - **Document Everything** - Write clear setup instructions
 - **Use Version Managers** - nvm for Node, pyenv for Python
@@ -353,7 +353,7 @@ docker-compose exec db psql -U postgres -d mydb
 - **Check Prerequisites** - List required tools before starting
 - **Provide Verification Steps** - Help users confirm setup works
 
-### ❌ Don't Do This
+###  Don't Do This
 
 - **Don't Assume Tools Installed** - Always check and provide install instructions
 - **Don't Skip Environment Variables** - Document all required variables
@@ -430,34 +430,34 @@ Create a `setup.sh` script to automate setup:
 ```bash
 #!/bin/bash
 
-echo "🚀 Setting up development environment..."
+echo " Setting up development environment..."
 
 # Check prerequisites
-command -v node >/dev/null 2>&1 || { echo "❌ Node.js not installed"; exit 1; }
-command -v git >/dev/null 2>&1 || { echo "❌ Git not installed"; exit 1; }
+command -v node >/dev/null 2>&1 || { echo " Node.js not installed"; exit 1; }
+command -v git >/dev/null 2>&1 || { echo " Git not installed"; exit 1; }
 
-echo "✅ Prerequisites check passed"
+echo " Prerequisites check passed"
 
 # Install dependencies
-echo "📦 Installing dependencies..."
+echo " Installing dependencies..."
 npm install
 
 # Copy environment file
 if [ ! -f .env ]; then
-    echo "📝 Creating .env file..."
+    echo " Creating .env file..."
     cp .env.example .env
-    echo "⚠️  Please edit .env with your configuration"
+    echo "️  Please edit .env with your configuration"
 fi
 
 # Run database migrations
-echo "🗄️  Running database migrations..."
+echo "️  Running database migrations..."
 npm run migrate
 
 # Verify setup
-echo "🔍 Verifying setup..."
+echo " Verifying setup..."
 npm run test:setup
 
-echo "✅ Setup complete! Run 'npm run dev' to start"
+echo " Setup complete! Run 'npm run dev' to start"
 ```
 
 ## Related Skills

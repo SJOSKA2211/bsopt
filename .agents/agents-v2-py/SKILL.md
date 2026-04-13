@@ -111,7 +111,7 @@ client.agents.delete_version(
 ## ImageBasedHostedAgentDefinition Parameters
 
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
+|--|------|--|--|
 | `container_protocol_versions` | `list[ProtocolVersionRecord]` | Yes | Protocol versions the agent supports |
 | `image` | `str` | Yes | Full container image path (registry/image:tag) |
 | `cpu` | `str` | No | CPU allocation (e.g., "1", "2") |
@@ -134,7 +134,7 @@ container_protocol_versions=[
 
 **Available Protocols:**
 | Protocol | Description |
-|----------|-------------|
+|--|--|
 | `AgentProtocol.RESPONSES` | Standard response protocol for agent interactions |
 
 ## Resource Allocation
@@ -152,7 +152,7 @@ definition=ImageBasedHostedAgentDefinition(
 
 **Resource Limits:**
 | Resource | Min | Max | Default |
-|----------|-----|-----|---------|
+|--|-----|-----|---------|
 | CPU | 0.5 | 4 | 1 |
 | Memory | 1Gi | 8Gi | 2Gi |
 
@@ -302,7 +302,7 @@ async def create_hosted_agent_async():
 ## Common Errors
 
 | Error | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | `ImagePullBackOff` | ACR pull permission denied | Grant `AcrPull` role to project's managed identity |
 | `InvalidContainerImage` | Image not found | Verify image path and tag exist in ACR |
 | `CapabilityHostNotFound` | No capability host configured | Create account-level capability host |

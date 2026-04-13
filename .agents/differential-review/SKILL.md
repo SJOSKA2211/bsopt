@@ -22,7 +22,7 @@ Security-focused code review for PRs, commits, and diffs.
 ## Rationalizations (Do Not Skip)
 
 | Rationalization | Why It's Wrong | Required Action |
-|-----------------|----------------|-----------------|
+|--|--|--|
 | "Small PR, quick review" | Heartbleed was 2 lines | Classify by RISK, not size |
 | "I know this codebase" | Familiarity breeds blind spots | Build explicit baseline context |
 | "Git history takes too long" | History reveals regressions | Never skip Phase 1 |
@@ -38,7 +38,7 @@ Security-focused code review for PRs, commits, and diffs.
 ### Codebase Size Strategy
 
 | Codebase Size | Strategy | Approach |
-|---------------|----------|----------|
+|--|--|--|
 | SMALL (<20 files) | DEEP | Read all deps, full git blame |
 | MEDIUM (20-200) | FOCUSED | 1-hop deps, priority files |
 | LARGE (200+) | SURGICAL | Critical paths only |
@@ -46,7 +46,7 @@ Security-focused code review for PRs, commits, and diffs.
 ### Risk Level Triggers
 
 | Risk Level | Triggers |
-|------------|----------|
+|--|--|
 | HIGH | Auth, crypto, external calls, value transfer, validation removal |
 | MEDIUM | Business logic, state changes, new public APIs |
 | LOW | Comments, tests, UI, logging |

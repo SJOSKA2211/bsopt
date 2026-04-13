@@ -44,7 +44,7 @@ Master modern Angular development with Signals, Standalone Components, Zoneless 
 ## Angular Version Timeline
 
 | Version        | Release | Key Features                                           |
-| -------------- | ------- | ------------------------------------------------------ |
+| -- | ------- | -- |
 | **Angular 20** | Q2 2025 | Signals stable, Zoneless stable, Incremental hydration |
 | **Angular 21** | Q4 2025 | Signals-first default, Enhanced SSR                    |
 | **Angular 22** | Q2 2026 | Signal Forms, Selectorless components                  |
@@ -145,13 +145,13 @@ export class ContainerComponent {
 ### When to Use Signals vs RxJS
 
 | Use Case                | Signals         | RxJS                             |
-| ----------------------- | --------------- | -------------------------------- |
-| Local component state   | ✅ Preferred    | Overkill                         |
-| Derived/computed values | ✅ `computed()` | `combineLatest` works            |
-| Side effects            | ✅ `effect()`   | `tap` operator                   |
-| HTTP requests           | ❌              | ✅ HttpClient returns Observable |
-| Event streams           | ❌              | ✅ `fromEvent`, operators        |
-| Complex async flows     | ❌              | ✅ `switchMap`, `mergeMap`       |
+| -- | -- | -- |
+| Local component state   |  Preferred    | Overkill                         |
+| Derived/computed values |  `computed()` | `combineLatest` works            |
+| Side effects            |  `effect()`   | `tap` operator                   |
+| HTTP requests           |               |  HttpClient returns Observable |
+| Event streams           |               |  `fromEvent`, operators        |
+| Complex async flows     |               |  `switchMap`, `mergeMap`       |
 
 ---
 
@@ -318,7 +318,7 @@ export class PageComponent {}
 ### Hydration Triggers
 
 | Trigger          | When to Use                             |
-| ---------------- | --------------------------------------- |
+| -- | -- |
 | `on idle`        | Low-priority, hydrate when browser idle |
 | `on viewport`    | Hydrate when element enters viewport    |
 | `on interaction` | Hydrate on first user interaction       |
@@ -785,8 +785,8 @@ describe("UserCardComponent", () => {
 
 ## Best Practices Summary
 
-| Pattern              | ✅ Do                          | ❌ Don't                        |
-| -------------------- | ------------------------------ | ------------------------------- |
+| Pattern              |  Do                          |  Don't                        |
+| -- | -- | -- |
 | **State**            | Use Signals for local state    | Overuse RxJS for simple state   |
 | **Components**       | Standalone with direct imports | Bloated SharedModules           |
 | **Change Detection** | OnPush + Signals               | Default CD everywhere           |
@@ -810,7 +810,7 @@ describe("UserCardComponent", () => {
 ## Common Troubleshooting
 
 | Issue                          | Solution                                            |
-| ------------------------------ | --------------------------------------------------- |
+| -- | -- |
 | Signal not updating UI         | Ensure `OnPush` + call signal as function `count()` |
 | Hydration mismatch             | Check server/client content consistency             |
 | Circular dependency            | Use `inject()` with `forwardRef`                    |

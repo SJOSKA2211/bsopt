@@ -6,7 +6,7 @@ source: community
 date_added: "2026-02-27"
 ---
 
-# 📝 Prompt Library
+#  Prompt Library
 
 > A comprehensive collection of battle-tested prompts inspired by [awesome-chatgpt-prompts](https://github.com/f/awesome-chatgpt-prompts) and community best practices.
 
@@ -22,7 +22,7 @@ Use this skill when the user:
 
 ## Prompt Categories
 
-### 🎭 Role-Based Prompts
+###  Role-Based Prompts
 
 #### Expert Developer
 
@@ -46,7 +46,7 @@ Act as a senior code reviewer. Your role is to:
 5. Suggest improvements with specific examples
 
 Format your review as:
-🔴 Critical Issues (must fix)
+ Critical Issues (must fix)
 🟡 Suggestions (should consider)
 🟢 Praise (what's done well)
 ```
@@ -75,7 +75,7 @@ Act as a senior system architect designing for scale. Consider:
 Provide architecture decisions with trade-off analysis.
 ```
 
-### 🛠️ Task-Specific Prompts
+### ️ Task-Specific Prompts
 
 #### Debug This Code
 
@@ -143,7 +143,7 @@ Generate API documentation for this endpoint including:
 Format as OpenAPI/Swagger or Markdown.
 ```
 
-### 📊 Analysis Prompts
+###  Analysis Prompts
 
 #### Code Complexity Analysis
 
@@ -187,7 +187,7 @@ Perform a security review of this code:
 Classify issues by severity (Critical/High/Medium/Low).
 ```
 
-### 🎨 Creative Prompts
+###  Creative Prompts
 
 #### Brainstorm Features
 
@@ -217,7 +217,7 @@ Provide 10 options in these categories:
 For each, explain the reasoning and check domain availability patterns.
 ```
 
-### 🔄 Transformation Prompts
+###  Transformation Prompts
 
 #### Migrate Code
 
@@ -322,4 +322,4 @@ When crafting prompts, ensure:
 
 ---
 
-> 💡 **Tip**: The best prompts are specific, provide context, and include examples of desired output.
+>  **Tip**: The best prompts are specific, provide context, and include examples of desired output.

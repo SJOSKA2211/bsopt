@@ -387,7 +387,7 @@ CONTACT: {incident commander contact}
 ## Severity Classification Reference
 
 | Severity | Examples | Response Time | Escalation |
-|----------|---------|---------------|------------|
+|--|---------|--|--|
 | **CRITICAL** | Data breach, ransomware, active exploitation | < 15 min | Immediate: CEO, CTO, Legal |
 | **HIGH** | DDoS, credential stuffing, supply chain compromise | < 30 min | Within 1 hour: CTO, Engineering Lead |
 | **MEDIUM** | API abuse, single account compromise, non-critical vuln exploited | < 2 hours | Within 4 hours: Engineering Lead |

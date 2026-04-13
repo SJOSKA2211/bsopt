@@ -63,7 +63,7 @@ ImageAnalysisClient client = new ImageAnalysisClientBuilder()
 ## Visual Features
 
 | Feature | Description |
-|---------|-------------|
+|---------|--|
 | `CAPTION` | Generate human-readable image description |
 | `DENSE_CAPTIONS` | Captions for up to 10 regions |
 | `READ` | OCR - Extract text from images |

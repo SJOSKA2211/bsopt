@@ -28,9 +28,9 @@ else
     exit 1
 fi
 
-echo "============================================"
+echo "=="
 echo "  Loki Mode Demo Recording"
-echo "============================================"
+echo "=="
 echo ""
 echo "Demo type:   $DEMO_TYPE"
 echo "Output file: $OUTPUT_FILE"
@@ -52,9 +52,9 @@ $ASCIINEMA_PATH rec \
     "$OUTPUT_FILE"
 
 echo ""
-echo "============================================"
+echo "=="
 echo "  Recording Complete"
-echo "============================================"
+echo "=="
 echo ""
 echo "Saved to: $OUTPUT_FILE"
 echo ""

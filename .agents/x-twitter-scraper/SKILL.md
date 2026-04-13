@@ -104,7 +104,7 @@ export XQUIK_API_KEY="xq_YOUR_KEY_HERE"
 ## API Reference
 
 | Endpoint | Method | Purpose |
-|----------|--------|---------|
+|--|--------|---------|
 | `/x/tweets/{id}` | GET | Single tweet with full metrics |
 | `/x/tweets/search` | GET | Search tweets |
 | `/x/users/{username}` | GET | User profile |

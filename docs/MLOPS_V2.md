@@ -3,7 +3,7 @@
 ## Overview
 BS-OPT MLOps V2 is a hyper-optimized, containerized, and automated machine learning lifecycle designed for zero-latency financial applications. It leverages **MLflow** for orchestration, **Ray** for distributed compute, and **Docker** for environment parity.
 
-## 🏛️ Architecture
+## ️ Architecture
 
 ### 1. Standardization: MLflow Projects
 The root `MLproject` file defines all entry points. This ensures that any model can be retrained with a single command, regardless of the underlying framework.

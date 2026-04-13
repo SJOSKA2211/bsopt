@@ -416,7 +416,7 @@ AsyncTask<int> async_compute() {
 ## Quick Reference
 
 | Primitive | Use Case | Performance |
-|-----------|----------|-------------|
+|--|--|--|
 | std::atomic | Simple shared state | Lock-free |
 | std::mutex | Exclusive access | Kernel call |
 | std::shared_mutex | Read-heavy workload | Better than mutex |
@@ -429,7 +429,7 @@ AsyncTask<int> async_compute() {
 ## Memory Ordering Guide
 
 | Ordering | Guarantees | Use Case |
-|----------|-----------|----------|
+|--|--|--|
 | relaxed | No synchronization | Counters |
 | acquire | Load barrier | Consumer |
 | release | Store barrier | Producer |

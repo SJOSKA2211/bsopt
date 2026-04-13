@@ -27,7 +27,7 @@ Reference these guidelines when:
 ## rule categories by priority
 
 | priority | category | impact |
-|----------|----------|--------|
+|--|--|--------|
 | 1 | correctness and duplication | critical |
 | 2 | title and description | high |
 | 3 | canonical and indexing | high |

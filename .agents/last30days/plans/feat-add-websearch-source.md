@@ -30,7 +30,7 @@ score = 0.45*relevance + 0.25*recency + 0.30*engagement - penalties
 **Solution**: Source-specific scoring with **engagement substitution**:
 
 | Source | Relevance | Recency | Engagement | Source Penalty |
-|--------|-----------|---------|------------|----------------|
+|--------|--|---------|--|--|
 | Reddit | 45% | 25% | 30% (real metrics) | 0 |
 | X | 45% | 25% | 30% (real metrics) | 0 |
 | WebSearch | 55% | 35% | 0% (no data) | -15 points |
@@ -43,7 +43,7 @@ score = 0.45*relevance + 0.25*recency + 0.30*engagement - penalties
 ### Mode Behavior
 
 | API Keys Available | Default Behavior | `--include-web` |
-|--------------------|------------------|-----------------|
+|--|--|--|
 | None | **WebSearch only** | n/a |
 | OpenAI only | Reddit only | Reddit + WebSearch |
 | xAI only | X only | X + WebSearch |
@@ -348,7 +348,7 @@ def test_websearch_weighting():
 ### Manual Test Scenarios
 
 | Scenario | Expected Outcome |
-|----------|------------------|
+|--|--|
 | No API keys, run `/last30days AI tools` | WebSearch-only results, useful output |
 | Both keys + `--include-web`, run `/last30days react` | Mix of all 3 sources, Reddit/X dominate top 10 |
 | Niche topic (no Reddit/X coverage) | WebSearch fills gap, becomes primary |
@@ -363,7 +363,7 @@ def test_websearch_weighting():
 ## Risk Analysis & Mitigation
 
 | Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
+|------|--|--------|--|
 | WebSearch returns stale content | Medium | Medium | Enforce date in prompt, apply low-confidence penalty |
 | WebSearch dominates rankings | Low | High | Source penalty (-15pts), testing validates |
 | WebSearch adds spam/low-quality | Medium | Medium | Exclude social media domains, domain filtering |

@@ -160,7 +160,7 @@ Brief templates below. Full versions with variables in [communication-templates.
 ### Automatic Escalation Triggers
 
 | Trigger                                    | Action                                         | Timeline          |
-| ------------------------------------------ | ---------------------------------------------- | ----------------- |
+| -- | -- | -- |
 | Exception value > $25,000                  | Notify VP Supply Chain immediately             | Within 1 hour     |
 | Enterprise customer affected               | Assign dedicated handler, notify account team  | Within 2 hours    |
 | Carrier non-response                       | Escalate to carrier account manager            | After 4 hours     |
@@ -179,7 +179,7 @@ Level 1 (Analyst) → Level 2 (Team Lead, 4 hours) → Level 3 (Manager, 24 hour
 Track these metrics weekly and trend monthly:
 
 | Metric                                 | Target              | Red Flag      |
-| -------------------------------------- | ------------------- | ------------- |
+| -- | -- | -- |
 | Mean resolution time                   | < 72 hours          | > 120 hours   |
 | First-contact resolution rate          | > 40%               | < 25%         |
 | Financial recovery rate (claims)       | > 75%               | < 50%         |

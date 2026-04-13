@@ -228,7 +228,7 @@ for manifest in client.list_manifest_properties("my-image"):
 ## Client Operations
 
 | Operation | Description |
-|-----------|-------------|
+|--|--|
 | `list_repository_names` | List all repositories |
 | `get_repository_properties` | Get repository metadata |
 | `delete_repository` | Delete repository and all images |

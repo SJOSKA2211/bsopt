@@ -3,7 +3,7 @@
 ## Minimum Word Counts by Page Type
 
 | Page Type | Min Words | Unique Content % | Notes |
-|-----------|-----------|-----------------|-------|
+|--|--|--|-------|
 | Homepage | 500 | 100% | Must clearly communicate value proposition |
 | Service / Feature Page | 800 | 100% | Detailed explanation of offering |
 | Location (Primary) | 600 | 60%+ | City headquarters or main service area |
@@ -20,7 +20,7 @@
 ## Location Page Thresholds
 
 ### Warning Level (30+ pages)
-- ⚠️ **WARNING** at 30+ location pages
+- ️ **WARNING** at 30+ location pages
 - Enforce 60%+ unique content per page
 - Content must include:
   - Unique local information (landmarks, neighborhoods)
@@ -29,7 +29,7 @@
   - Genuine customer testimonials from that area
 
 ### Hard Stop (50+ pages)
-- 🛑 **HARD STOP** at 50+ location pages
+-  **HARD STOP** at 50+ location pages
 - Require explicit user justification
 - Must demonstrate:
   - Legitimate business presence in each location
@@ -47,18 +47,18 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 
 ## Safe vs. Risky Programmatic Pages
 
-### Safe at Scale ✅
+### Safe at Scale 
 | Page Type | Why It's Safe |
-|-----------|---------------|
+|--|--|
 | Integration pages | Real setup documentation, unique technical content |
 | Template/tool pages | Downloadable assets, unique functionality |
 | Glossary pages | 200+ word unique definitions |
 | Product pages | Unique specs, images, reviews |
 | User profile pages | User-generated unique content |
 
-### Penalty Risk ❌
+### Penalty Risk 
 | Page Type | Why It's Risky |
-|-----------|----------------|
+|--|--|
 | Location pages with only city swapped | Duplicate content, doorway pages |
 | "Best [tool] for [industry]" | Often thin, no industry-specific value |
 | "[Competitor] alternative" | Requires genuine comparison data |
@@ -69,7 +69,7 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 ## Title Tag Requirements
 
 | Aspect | Requirement |
-|--------|-------------|
+|--------|--|
 | Minimum length | 30 characters |
 | Maximum length | 60 characters (Google truncates ~60) |
 | Primary keyword | Near the beginning |
@@ -91,7 +91,7 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 ## Meta Description Requirements
 
 | Aspect | Requirement |
-|--------|-------------|
+|--------|--|
 | Minimum length | 120 characters |
 | Maximum length | 160 characters (Google truncates ~155-160) |
 | Call-to-action | Include compelling CTA |
@@ -103,7 +103,7 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 ## Image Alt Text Requirements
 
 | Aspect | Requirement |
-|--------|-------------|
+|--------|--|
 | Required on | All non-decorative images |
 | Length | 10-125 characters |
 | Content | Describe the image content, not "image" or filename |
@@ -125,7 +125,7 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 ## Internal Linking Guidelines
 
 | Page Type | Internal Links Target |
-|-----------|----------------------|
+|--|--|
 | Blog post (1,500+ words) | 5-10 internal links |
 | Service page | 3-5 internal links |
 | Category page | Links to all child pages |
@@ -142,7 +142,7 @@ Google's doorway page algorithm penalizes programmatic location pages with thin/
 ## Content Freshness Signals
 
 | Content Type | Update Frequency |
-|--------------|------------------|
+|--|--|
 | News/current events | Within hours/days |
 | Blog posts (evergreen) | Review annually |
 | Product pages | When specs change |

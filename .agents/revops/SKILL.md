@@ -57,7 +57,7 @@ Marketing, sales, and customer success must agree on definitions. If marketing c
 ### Stage Definitions
 
 | Stage | Entry Criteria | Exit Criteria | Owner |
-|-------|---------------|---------------|-------|
+|-------|--|--|-------|
 | **Subscriber** | Opts in to content (blog, newsletter) | Provides company info or shows engagement | Marketing |
 | **Lead** | Identified contact with basic info | Meets minimum fit criteria | Marketing |
 | **MQL** | Passes fit + engagement threshold | Sales accepts or rejects within SLA | Marketing |
@@ -133,7 +133,7 @@ Define response times and document them:
 ### Routing Methods
 
 | Method | How It Works | Best For |
-|--------|-------------|----------|
+|--------|--|--|
 | **Round-robin** | Distribute evenly across reps | Equal territories, similar deal sizes |
 | **Territory-based** | Assign by geography, vertical, or segment | Regional teams, industry specialists |
 | **Account-based** | Named accounts go to named reps | ABM motions, strategic accounts |
@@ -164,7 +164,7 @@ Build routing rules that prioritize speed. Alert reps immediately. Escalate if S
 ### Pipeline Stages
 
 | Stage | Required Fields | Exit Criteria |
-|-------|----------------|---------------|
+|-------|--|--|
 | **Qualified** | Contact info, company, source, fit score | Discovery call scheduled |
 | **Discovery** | Pain points, current solution, timeline | Needs confirmed, demo scheduled |
 | **Demo/Evaluation** | Technical requirements, decision makers | Positive evaluation, proposal requested |
@@ -183,7 +183,7 @@ Build routing rules that prioritize speed. Alert reps immediately. Escalate if S
 ### Pipeline Metrics
 
 | Metric | What It Tells You |
-|--------|-------------------|
+|--------|--|
 | Stage conversion rates | Where deals die |
 | Average time in stage | Where deals stall |
 | Pipeline velocity | Revenue per day through the funnel |
@@ -232,7 +232,7 @@ Build routing rules that prioritize speed. Alert reps immediately. Escalate if S
 ### Approval Workflow Tiers
 
 | Deal Size | Approval Required |
-|-----------|-------------------|
+|--|--|
 | Standard pricing | Auto-approved |
 | 10-20% discount | Sales manager |
 | 20-40% discount | VP Sales |
@@ -262,7 +262,7 @@ Document every exception. Track which non-standard terms get requested most — 
 ### Enrichment Tools
 
 | Tool | Strength |
-|------|----------|
+|------|--|
 | Clearbit | Real-time enrichment, good for tech companies |
 | Apollo | Contact data + sequences, strong for prospecting |
 | ZoomInfo | Enterprise-grade, largest B2B database |
@@ -282,7 +282,7 @@ Document every exception. Track which non-standard terms get requested most — 
 ### Key Metrics
 
 | Metric | Formula / Definition | Benchmark |
-|--------|---------------------|-----------|
+|--------|--|--|
 | Lead-to-MQL rate | MQLs / Total leads | 5-15% |
 | MQL-to-SQL rate | SQLs / MQLs | 30-50% |
 | SQL-to-Opportunity | Opportunities / SQLs | 50-70% |
@@ -330,7 +330,7 @@ Format each as a standalone document the user can implement directly. Include pl
 For implementation, use the CRM, scheduling, enrichment, and automation tools available in the current environment. Key RevOps tools:
 
 | Tool | What It Does | Guide |
-|------|-------------|-------|
+|------|--|-------|
 | **HubSpot** | CRM, marketing automation, lead scoring, workflows | Use available HubSpot integrations |
 | **Salesforce** | Enterprise CRM, pipeline management, reporting | Use available Salesforce integrations |
 | **Calendly** | Meeting scheduling, round-robin routing | Use available scheduling integrations |

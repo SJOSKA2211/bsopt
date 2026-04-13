@@ -58,7 +58,7 @@ Document what is collected and why. Clear privacy policies. Easy access and dele
 Ensure these are implementable from day one:
 
 | Right | What to build |
-|-------|---------------|
+|-------|--|
 | **Access** | Endpoint or flow to return all user data |
 | **Rectification** | Ability to update/correct data |
 | **Erasure** | Account deletion + data purge (including backups) |
@@ -154,7 +154,7 @@ return jsonify({
 ## Common Pitfalls
 
 | Pitfall | Solution |
-|---------|----------|
+|---------|--|
 | Logs contain emails, IPs, tokens | Redact PII; use hashed IDs or structured logs |
 | Error messages expose data | Return generic errors to client; log details server-side |
 | Third-party SDKs load before consent | Load analytics/ads only after consent; use consent management |
@@ -193,14 +193,14 @@ When building a feature that touches user data:
 
 ## Best Practices
 
-- ✅ Ask "do we need this?" for every new data field
-- ✅ Design deletion and export flows from day one
-- ✅ Use hashing or tokenization for sensitive identifiers when possible
-- ✅ Document purpose and retention in schema or metadata
-- ❌ Don't log passwords, tokens, or PII in plain text
-- ❌ Don't share data with third parties without explicit consent
-- ❌ Don't assume "we'll add privacy later"—it rarely happens
-- ❌ Don't expose stack traces or internal errors to clients
+-  Ask "do we need this?" for every new data field
+-  Design deletion and export flows from day one
+-  Use hashing or tokenization for sensitive identifiers when possible
+-  Document purpose and retention in schema or metadata
+-  Don't log passwords, tokens, or PII in plain text
+-  Don't share data with third parties without explicit consent
+-  Don't assume "we'll add privacy later"—it rarely happens
+-  Don't expose stack traces or internal errors to clients
 
 ---
 

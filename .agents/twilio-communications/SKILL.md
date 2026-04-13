@@ -284,10 +284,10 @@ def menu_selection():
         response.say("Please leave a message after 
 ```
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | high | ## Track opt-out status in your database |
 | Issue | medium | ## Implement retry logic for transient failures |
 | Issue | high | ## Register for A2P 10DLC (US requirement) |

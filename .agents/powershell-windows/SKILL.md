@@ -16,8 +16,8 @@ date_added: "2026-02-27"
 
 ### CRITICAL: Parentheses Required
 
-| ❌ Wrong | ✅ Correct |
-|----------|-----------|
+|  Wrong |  Correct |
+|--|--|
 | `if (Test-Path "a" -or Test-Path "b")` | `if ((Test-Path "a") -or (Test-Path "b"))` |
 | `if (Get-Item $x -and $y -eq 5)` | `if ((Get-Item $x) -and ($y -eq 5))` |
 
@@ -29,12 +29,12 @@ date_added: "2026-02-27"
 
 ### CRITICAL: No Unicode in Scripts
 
-| Purpose | ❌ Don't Use | ✅ Use |
-|---------|-------------|--------|
-| Success | ✅ ✓ | [OK] [+] |
-| Error | ❌ ✗ 🔴 | [!] [X] |
-| Warning | ⚠️ 🟡 | [*] [WARN] |
-| Info | ℹ️ 🔵 | [i] [INFO] |
+| Purpose |  Don't Use |  Use |
+|---------|--|--------|
+| Success |   | [OK] [+] |
+| Error |    | [!] [X] |
+| Warning | ️ 🟡 | [*] [WARN] |
+| Info | ℹ️  | [i] [INFO] |
 | Progress | ⏳ | [...] |
 
 **Rule:** Use ASCII characters only in PowerShell scripts.
@@ -45,8 +45,8 @@ date_added: "2026-02-27"
 
 ### Always Check Before Access
 
-| ❌ Wrong | ✅ Correct |
-|----------|-----------|
+|  Wrong |  Correct |
+|--|--|
 | `$array.Count -gt 0` | `$array -and $array.Count -gt 0` |
 | `$text.Length` | `if ($text) { $text.Length }` |
 
@@ -56,8 +56,8 @@ date_added: "2026-02-27"
 
 ### Complex Expressions
 
-| ❌ Wrong | ✅ Correct |
-|----------|-----------|
+|  Wrong |  Correct |
+|--|--|
 | `"Value: $($obj.prop.sub)"` | Store in variable first |
 
 **Pattern:**
@@ -105,7 +105,7 @@ Write-Output "Value: $value"
 ### Correct Patterns
 
 | Operation | Syntax |
-|-----------|--------|
+|--|--------|
 | Empty array | `$array = @()` |
 | Add item | `$array += $item` |
 | ArrayList add | `$list.Add($item) | Out-Null` |
@@ -116,8 +116,8 @@ Write-Output "Value: $value"
 
 ### CRITICAL: Depth Parameter
 
-| ❌ Wrong | ✅ Correct |
-|----------|-----------|
+|  Wrong |  Correct |
+|--|--|
 | `ConvertTo-Json` | `ConvertTo-Json -Depth 10` |
 
 **Rule:** Always specify `-Depth` for nested objects.
@@ -125,7 +125,7 @@ Write-Output "Value: $value"
 ### File Operations
 
 | Operation | Pattern |
-|-----------|---------|
+|--|---------|
 | Read | `Get-Content "file.json" -Raw | ConvertFrom-Json` |
 | Write | `$data | ConvertTo-Json -Depth 10 | Out-File "file.json" -Encoding UTF8` |
 
@@ -134,7 +134,7 @@ Write-Output "Value: $value"
 ## 9. Common Errors
 
 | Error Message | Cause | Fix |
-|---------------|-------|-----|
+|--|-------|-----|
 | "parameter 'or'" | Missing parentheses | Wrap cmdlets in () |
 | "Unexpected token" | Unicode character | Use ASCII only |
 | "Cannot find property" | Null object | Check null first |

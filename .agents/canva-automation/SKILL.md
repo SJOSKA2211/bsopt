@@ -205,7 +205,7 @@ Many Canva operations are asynchronous:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List designs | CANVA_LIST_USER_DESIGNS | query, continuation |
 | Create design | CANVA_CREATE_CANVA_DESIGN_WITH_OPTIONAL_ASSET | design_type, title |
 | Upload asset | CANVA_CREATE_ASSET_UPLOAD_JOB | name, url |

@@ -71,7 +71,7 @@ RECEIVE → Verify serial number matches RMA
 
 **Typical processing costs:**
 | Action | Cost per Unit | Time per Unit |
-|--------|--------------|---------------|
+|--------|--|--|
 | Visual inspection | $1.50-2.50 | 45-90 seconds |
 | Functional test (basic) | $3.00-5.00 | 2-4 minutes |
 | Functional test (full diagnostic) | $8.00-15.00 | 10-20 minutes |
@@ -202,7 +202,7 @@ signals). The two scores are summed for a composite score.
 
 **Thresholds:**
 | Composite Score | Action |
-|----------------|--------|
+|--|--------|
 | 0-30 | Process normally. No additional review. |
 | 31-50 | Flag for passive monitoring. Process refund but add customer to watch list for 90 days. |
 | 51-64 | Enhanced inspection. Hold refund until physical inspection is complete and matches RMA description. |
@@ -244,7 +244,7 @@ signals). The two scores are summed for a composite score.
 ### 2.4 Score Adjustments and Overrides
 
 | Condition | Adjustment |
-|-----------|-----------|
+|--|--|
 | Customer lifetime value > $10,000 and net LTV positive | -15 points (floor at 0) |
 | Customer is a verified loyalty programme member (2+ years) | -10 points |
 | Return is an exchange (not refund) | -10 points |
@@ -313,7 +313,7 @@ Beyond individual RTV, monitor defect rates at the SKU level to identify systemi
 issues that trigger formal defect claims:
 
 | Defect Rate (per SKU, rolling 90 days) | Action |
-|----------------------------------------|--------|
+|--|--------|
 | < 2% | Normal. Process individual RTVs. No escalation. |
 | 2-5% | Alert vendor management. Request root cause analysis from vendor. Continue selling but monitor weekly. |
 | 5-8% | Formal quality complaint. Demand corrective action plan within 14 days. Consider pull from active sales pending vendor response. |
@@ -342,7 +342,7 @@ For vendor-caused issues beyond defects (packaging failures, mislabelling, wrong
 from vendor DC), apply chargebacks per the vendor compliance programme:
 
 | Violation | Chargeback | Notes |
-|-----------|-----------|-------|
+|--|--|-------|
 | Wrong item shipped from vendor DC | 100% of product cost + return shipping + $25 processing fee | Requires photo evidence of received vs ordered |
 | Mislabelled product (UPC doesn't match contents) | $50 per incident + product cost if unsellable | Creates inventory accuracy issues downstream |
 | Packaging failure (product damaged due to inadequate packaging) | 100% of product cost + return processing | Requires photos of packaging condition at receipt |
@@ -376,7 +376,7 @@ Collection probability by vendor tier:
 
 **Decision matrix:**
 | Claim Amount | Tier 1 Vendor | Tier 2 Vendor | Tier 3 Vendor | International |
-|-------------|---------------|---------------|---------------|---------------|
+|--|--|--|--|--|
 | < $100 | Offset against next PO | Offset against next PO | Write off | Write off |
 | $100-500 | Batch RTV | Batch RTV | Batch if > $200 total | Write off, note for contract |
 | $500-2,000 | Standard RTV/claim | Standard claim | Standard claim with escalation plan | Claim if > $1,000 |
@@ -396,7 +396,7 @@ exception decision.
 **Step 1: Is the exception request covered by an automatic override?**
 
 | Condition | Action | No Further Analysis Needed |
-|-----------|--------|--------------------------|
+|--|--------|--|
 | Product is defective (verified or reasonably claimed) | Accept return, full refund, no restocking fee | Yes |
 | Fulfilment error (wrong item shipped, wrong quantity) | Accept return, full refund, prepaid return label | Yes |
 | Product is subject to active recall | Route to recall programme (not returns) | Yes |
@@ -406,7 +406,7 @@ exception decision.
 **Step 2: If not an automatic override, score the exception request:**
 
 | Factor | Score Range | Description |
-|--------|-----------|-------------|
+|--------|--|--|
 | Days past policy window | 1-30 days: +2 / 31-60 days: +5 / 61-90 days: +8 / >90 days: +12 | How far outside the standard window |
 | Product condition at return | Grade A: 0 / Grade B: +2 / Grade C: +5 / Grade D: +10 | Worse condition = higher cost of exception |
 | Customer LTV | Top 20%: -5 / Middle 60%: 0 / Bottom 20%: +3 | Valuable customers get more latitude |
@@ -417,7 +417,7 @@ exception decision.
 **Step 3: Interpret the exception score:**
 
 | Score | Decision | Authority Level |
-|-------|----------|----------------|
+|-------|--|--|
 | < 0 | Grant exception. Cost is minimal, customer value is high. | Returns associate |
 | 0-5 | Grant exception with standard refund. | Team lead |
 | 6-10 | Grant as store credit (not original payment refund). | Team lead |
@@ -428,7 +428,7 @@ exception decision.
 ### 4.2 Common Exception Scenarios with Recommended Resolutions
 
 | Scenario | Typical Score | Recommended Resolution |
-|----------|--------------|----------------------|
+|--|--|--|
 | 5 days past window, Grade A, loyal customer | -3 | Full refund to original payment |
 | 45 days past window, Grade B, average customer | +7 | Store credit for purchase price |
 | 90 days past window, Grade C, low-value customer | +16 | Deny, offer 15% discount on next purchase |
@@ -508,7 +508,7 @@ When product is routed to liquidation, selecting the right channel significantly
 recovery rates. The wrong channel can mean the difference between 20% recovery and 5%.
 
 | Channel | Best For | Typical Recovery (% of retail) | Fees | Min Lot Size | Speed to Cash |
-|---------|----------|-------------------------------|------|-------------|---------------|
+|---------|--|--|------|--|--|
 | B-Stock (owned auctions) | Electronics, home goods | 12-25% | 10-15% of sale | 1 pallet | 2-4 weeks |
 | Direct Liquidation | Mixed general merchandise | 8-18% | 15-20% of sale | 1 pallet | 2-6 weeks |
 | Bulq (owned by Optoro) | Small lots, mixed goods | 10-20% | Built into marketplace | 1 box (small lots) | 1-3 weeks |
@@ -562,7 +562,7 @@ Decision thresholds:
 ### 7.2 Refurbishment Cost Benchmarks by Category
 
 | Category | Common Defects | Typical Refurb Cost | Typical Refurb Selling Price | Typical ROI |
-|----------|---------------|--------------------|-----------------------------|-------------|
+|--|--|--|--|--|
 | Smartphones (flagship) | Screen scratches, battery degradation | $40-80 (screen polish, battery replace) | $350-550 (65-75% of new) | 300-500% |
 | Laptops | Battery, cosmetic damage, slow storage | $50-120 (battery, SSD upgrade, clean) | $400-800 (55-70% of new) | 200-400% |
 | Tablets | Screen scratches, battery | $30-60 | $200-400 (60-70% of new) | 200-350% |
@@ -584,7 +584,7 @@ capacity model:
 ### 7.4 Outsource vs In-House Decision
 
 | Factor | In-House | Outsource |
-|--------|----------|-----------|
+|--------|--|--|
 | Volume > 40 units/day | Preferred (economies of scale) | Viable but more expensive |
 | Volume < 40 units/day | Only if margin justifies | Preferred (avoid fixed overhead) |
 | Brand certification programme exists | Required for "certified refurbished" branding | Must verify third-party is certified |
@@ -637,7 +637,7 @@ Customer initiates return on website/app
 
 **Key timing targets:**
 | Step | Target | Stretch Goal |
-|------|--------|-------------|
+|------|--------|--|
 | RMA generation (auto-approve) | < 5 minutes | Instant |
 | Return label delivery to customer | Immediate (email) | Immediate |
 | Customer ship-back | < 7 days from RMA | < 5 days |
@@ -743,7 +743,7 @@ Return shipping cost estimate > 40% of product value?
 January is to returns operations what December is to fulfillment. Plan for:
 
 | Metric | Normal Month | January Peak | Multiplier |
-|--------|-------------|-------------|-----------|
+|--------|--|--|--|
 | Return volume | 100% baseline | 250-350% | 2.5-3.5x |
 | Return processing backlog | < 24 hours | 48-96 hours | 2-4x |
 | Fraud attempts | Baseline | 180-220% | 1.8-2.2x |
@@ -761,7 +761,7 @@ January is to returns operations what December is to fulfillment. Plan for:
 ### 9.2 Category-Specific Seasonal Patterns
 
 | Category | Peak Return Period | Key Driver | Planning Action |
-|----------|-------------------|-----------|----------------|
+|--|--|--|--|
 | Consumer electronics | Jan 2-15 | Holiday gifts, "not what they wanted" | Pre-stage functional test stations; serial number verification capacity |
 | Apparel | Jan 5-31 (extends longer) | Gift sizing, holiday party returns | UV/odour inspection throughput; wardrobing detection focus |
 | Fitness equipment | Jan 15 - Mar 1 | New Year's resolution abandonment | Large-item return logistics; returnless refund thresholds |
@@ -790,7 +790,7 @@ costs the markdown difference plus processing cost plus potential disposition lo
 Returns are a symptom. Reducing return rates requires treating the cause:
 
 | Return Reason | Root Cause Investigation | Typical Fix | Expected Reduction |
-|--------------|------------------------|------------|-------------------|
+|--|--|--|--|
 | "Didn't fit" (apparel) | Poor size guidance, inconsistent sizing, inadequate photos | Size recommendation engine, fit model photos, detailed measurements | 15-25% reduction in "didn't fit" returns |
 | "Not as expected" | Product photo/description doesn't match reality | Lifestyle photos, video demos, customer photos in reviews, AR preview | 10-20% reduction |
 | "Defective" | Manufacturing quality, shipping damage, product design flaw | Vendor quality scorecard, packaging improvement, design feedback loop | Variable — depends on root cause |
@@ -801,7 +801,7 @@ Returns are a symptom. Reducing return rates requires treating the cause:
 ### 10.2 SKU-Level Return Rate Monitoring
 
 | Return Rate (rolling 90 days) | Action |
-|-------------------------------|--------|
+|--|--------|
 | < 5% | Normal. No action required. |
 | 5-10% | Review product listing for accuracy. Check reviews for recurring complaints. |
 | 10-15% | Flag for merchandise review. Audit listing photos/description. Check sizing data. |
@@ -813,7 +813,7 @@ Returns are a symptom. Reducing return rates requires treating the cause:
 Allocating return costs to the business units that drive them creates accountability:
 
 | Return Cause | Cost Allocation |
-|-------------|----------------|
+|--|--|
 | Defective product | Vendor (via RTV/defect claim) or Merchandise (if vendor approved) |
 | Wrong item shipped | Fulfillment operations |
 | Damaged in shipping | Carrier (via shipping claim) or Packaging engineering |

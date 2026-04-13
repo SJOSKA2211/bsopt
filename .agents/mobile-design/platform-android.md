@@ -32,7 +32,7 @@ ACCESSIBLE BY DEFAULT:
 ### Material Design Values
 
 | Value | Implementation |
-|-------|----------------|
+|-------|--|
 | **Dynamic Color** | Colors adapt to wallpaper/user preference |
 | **Personalization** | User-specific themes |
 | **Accessibility** | Built into every component |
@@ -57,7 +57,7 @@ Android System Fonts:
 ### Material Type Scale
 
 | Role | Size | Weight | Line Height | Usage |
-|------|------|--------|-------------|-------|
+|------|------|--------|--|-------|
 | **Display Large** | 57sp | Regular | 64sp | Hero text, splash |
 | **Display Medium** | 45sp | Regular | 52sp | Large headers |
 | **Display Small** | 36sp | Regular | 44sp | Medium headers |
@@ -90,7 +90,7 @@ RULE: ALWAYS use sp for text, dp for everything else.
 ### Font Weight Usage
 
 | Weight | Use Case |
-|--------|----------|
+|--------|--|
 | Regular (400) | Body text, display |
 | Medium (500) | Buttons, labels, emphasis |
 | Bold (700) | Rarely, strong emphasis only |
@@ -214,7 +214,7 @@ EXPANDED (> 840dp width):
 ### Canonical Layouts
 
 | Layout | Use Case | Window Class |
-|--------|----------|--------------|
+|--------|--|--|
 | **List-Detail** | Email, messages | Medium, Expanded |
 | **Feed** | Social, news | All |
 | **Supporting Pane** | Reference content | Medium, Expanded |
@@ -226,7 +226,7 @@ EXPANDED (> 840dp width):
 ### Navigation Components
 
 | Component | Use Case | Position |
-|-----------|----------|----------|
+|--|--|--|
 | **Bottom Navigation** | 3-5 top-level destinations | Bottom |
 | **Navigation Rail** | Tablets, foldables | Left side, vertical |
 | **Navigation Drawer** | Many destinations, large screens | Left side, hidden/visible |
@@ -240,7 +240,7 @@ EXPANDED (> 840dp width):
 │         Content Area                │
 │                                     │
 ├─────────────────────────────────────┤
-│  🏠     🔍     ➕     ❤️     👤    │ ← 80dp height
+│                 ️         │ ← 80dp height
 │ Home   Search  FAB   Saved  Profile│
 └─────────────────────────────────────┘
 
@@ -263,7 +263,7 @@ Types:
 ├── Large: Display title, collapses to small
 
 ┌─────────────────────────────────────┐
-│  ☰   App Title              🔔 ⋮  │ ← 64dp (small)
+│     App Title               ⋮  │ ← 64dp (small)
 ├─────────────────────────────────────┤
 │                                     │
 │         Content Area                │
@@ -278,13 +278,13 @@ Actions: Max 3 icons, overflow menu ( ⋮ ) for more
 ┌───────┬─────────────────────────────┐
 │  ≡    │                             │
 │       │                             │
-│  🏠   │                             │
+│     │                             │
 │ Home  │       Content Area          │
 │       │                             │
-│  🔍   │                             │
+│     │                             │
 │Search │                             │
 │       │                             │
-│  👤   │                             │
+│     │                             │
 │Profile│                             │
 └───────┴─────────────────────────────┘
 
@@ -357,7 +357,7 @@ Elevation: Floats above content
 │         Content                     │
 │                                     │
 │                              ┌────┐ │
-│                              │ ➕ │ │ ← FAB
+│                              │  │ │ ← FAB
 │                              └────┘ │
 ├─────────────────────────────────────┤
 │       Bottom Navigation             │
@@ -416,7 +416,7 @@ Types:
 ├── Suggestion: Dynamic recommendations
 
 ┌───────────────┐
-│  🏷️ Filter   │  ← 32dp height, 8dp corner radius
+│  ️ Filter   │  ← 32dp height, 8dp corner radius
 └───────────────┘
 
 States: Unselected, Selected, Disabled

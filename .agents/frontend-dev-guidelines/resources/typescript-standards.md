@@ -33,12 +33,12 @@ TypeScript strict mode is **enabled** in the project:
 ### The Rule
 
 ```typescript
-// ❌ NEVER use any
+//  NEVER use any
 function handleData(data: any) {
     return data.something;
 }
 
-// ✅ Use specific types
+//  Use specific types
 interface MyData {
     something: string;
 }
@@ -47,7 +47,7 @@ function handleData(data: MyData) {
     return data.something;
 }
 
-// ✅ Or use unknown for truly unknown data
+//  Or use unknown for truly unknown data
 function handleUnknown(data: unknown) {
     if (typeof data === 'object' && data !== null && 'something' in data) {
         return (data as MyData).something;
@@ -67,7 +67,7 @@ function handleUnknown(data: unknown) {
 ### Function Return Types
 
 ```typescript
-// ✅ CORRECT - Explicit return type
+//  CORRECT - Explicit return type
 function getUser(id: number): Promise<User> {
     return apiClient.get(`/users/${id}`);
 }
@@ -76,7 +76,7 @@ function calculateTotal(items: Item[]): number {
     return items.reduce((sum, item) => sum + item.price, 0);
 }
 
-// ❌ AVOID - Implicit return type (less clear)
+//  AVOID - Implicit return type (less clear)
 function getUser(id: number) {
     return apiClient.get(`/users/${id}`);
 }
@@ -106,12 +106,12 @@ function useMyData(id: number): { data: Data; isLoading: boolean } {
 ### Use 'type' Keyword
 
 ```typescript
-// ✅ CORRECT - Explicitly mark as type import
+//  CORRECT - Explicitly mark as type import
 import type { User } from '~types/user';
 import type { Post } from '~types/post';
 import type { SxProps, Theme } from '@mui/material';
 
-// ❌ AVOID - Mixed value and type imports
+//  AVOID - Mixed value and type imports
 import { User } from '~types/user';  // Unclear if type or value
 ```
 
@@ -341,11 +341,11 @@ export function List<T>({ items, renderItem }: ListProps<T>): React.ReactElement
 ### When to Use
 
 ```typescript
-// ✅ OK - When you know more than TypeScript
+//  OK - When you know more than TypeScript
 const element = document.getElementById('my-element') as HTMLInputElement;
 const value = element.value;
 
-// ✅ OK - API response that you've validated
+//  OK - API response that you've validated
 const response = await api.getData();
 const user = response.data as User;  // You know the shape
 ```
@@ -353,10 +353,10 @@ const user = response.data as User;  // You know the shape
 ### When NOT to Use
 
 ```typescript
-// ❌ AVOID - Circumventing type safety
+//  AVOID - Circumventing type safety
 const data = getData() as any;  // WRONG - defeats TypeScript
 
-// ❌ AVOID - Unsafe assertion
+//  AVOID - Unsafe assertion
 const value = unknownValue as string;  // Might not actually be string
 ```
 
@@ -367,7 +367,7 @@ const value = unknownValue as string;  // Might not actually be string
 ### Optional Chaining
 
 ```typescript
-// ✅ CORRECT
+//  CORRECT
 const name = user?.profile?.name;
 
 // Equivalent to:
@@ -377,7 +377,7 @@ const name = user && user.profile && user.profile.name;
 ### Nullish Coalescing
 
 ```typescript
-// ✅ CORRECT
+//  CORRECT
 const displayName = user?.name ?? 'Anonymous';
 
 // Only uses default if null or undefined
@@ -387,10 +387,10 @@ const displayName = user?.name ?? 'Anonymous';
 ### Non-Null Assertion (Use Carefully)
 
 ```typescript
-// ✅ OK - When you're certain value exists
+//  OK - When you're certain value exists
 const data = queryClient.getQueryData<Data>(['data'])!;
 
-// ⚠️ CAREFUL - Only use when you KNOW it's not null
+// ️ CAREFUL - Only use when you KNOW it's not null
 // Better to check explicitly:
 const data = queryClient.getQueryData<Data>(['data']);
 if (data) {
@@ -403,15 +403,15 @@ if (data) {
 ## Summary
 
 **TypeScript Checklist:**
-- ✅ Strict mode enabled
-- ✅ No `any` type (use `unknown` if needed)
-- ✅ Explicit return types on functions
-- ✅ Use `import type` for type imports
-- ✅ JSDoc comments on prop interfaces
-- ✅ Utility types (Partial, Pick, Omit, Required, Record)
-- ✅ Type guards for narrowing
-- ✅ Optional chaining and nullish coalescing
-- ❌ Avoid type assertions unless necessary
+-  Strict mode enabled
+-  No `any` type (use `unknown` if needed)
+-  Explicit return types on functions
+-  Use `import type` for type imports
+-  JSDoc comments on prop interfaces
+-  Utility types (Partial, Pick, Omit, Required, Record)
+-  Type guards for narrowing
+-  Optional chaining and nullish coalescing
+-  Avoid type assertions unless necessary
 
 **See Also:**
 - [component-patterns.md](component-patterns.md) - Component typing

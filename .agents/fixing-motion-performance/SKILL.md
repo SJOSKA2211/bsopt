@@ -39,7 +39,7 @@ Reference these guidelines when:
 ## rule categories by priority
 
 | priority | category | impact |
-|----------|----------|--------|
+|--|--|--------|
 | 1 | never patterns | critical |
 | 2 | choose the mechanism | critical |
 | 3 | measurement | high |

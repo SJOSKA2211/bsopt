@@ -46,16 +46,16 @@ Actively try to break agent behavior
 
 ## Anti-Patterns
 
-### ❌ Single-Run Testing
+###  Single-Run Testing
 
-### ❌ Only Happy Path Tests
+###  Only Happy Path Tests
 
-### ❌ Output String Matching
+###  Output String Matching
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Agent scores well on benchmarks but fails in production | high | // Bridge benchmark and production evaluation |
 | Same test passes sometimes, fails other times | high | // Handle flaky tests in LLM agent evaluation |
 | Agent optimized for metric, not actual task | medium | // Multi-dimensional evaluation to prevent gaming |

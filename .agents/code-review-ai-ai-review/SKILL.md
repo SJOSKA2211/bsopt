@@ -225,7 +225,7 @@ class PerformanceReviewAgent {
     if (regressions.length > 0) {
       await this.postReviewComment(prNumber, {
         severity: 'HIGH',
-        title: '⚠️ Performance Regression Detected',
+        title: '️ Performance Regression Detected',
         body: this.formatRegressionReport(regressions),
         suggestions: await this.aiGenerateOptimizations(regressions)
       });
@@ -276,10 +276,10 @@ const comment: ReviewComment = {
 **Attack Vector:** Input 'admin' OR '1'='1' bypasses authentication.
 **Impact:** Complete auth bypass, unauthorized access.`,
   codeExample: `
-// ❌ Vulnerable
+//  Vulnerable
 const query = \`SELECT * FROM users WHERE username = '\${username}'\`;
 
-// ✅ Secure
+//  Secure
 const query = 'SELECT * FROM users WHERE username = ?';
 const result = await db.execute(query, [username]);
   `,
@@ -336,7 +336,7 @@ jobs:
         run: |
           CRITICAL=$(jq '[.[] | select(.severity == "CRITICAL")] | length' review-comments.json)
           if [ $CRITICAL -gt 0 ]; then
-            echo "❌ Found $CRITICAL critical issues"
+            echo " Found $CRITICAL critical issues"
             exit 1
           fi
 ```
@@ -422,7 +422,7 @@ Return JSON array:
         }
 
         # Post to GitHub API
-        print(f"✅ Posted review with {len(issues)} comments")
+        print(f" Posted review with {len(issues)} comments")
 
 if __name__ == '__main__':
     import argparse

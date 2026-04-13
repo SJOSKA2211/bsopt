@@ -55,7 +55,7 @@ Bad itches (usually):
 
 ### The 10-Minute Test
 | Question | Answer |
-|----------|--------|
+|--|--------|
 | Can you describe the problem in one sentence? | Required |
 | Do you experience this problem weekly? | Must be yes |
 | Have you tried solving it manually? | Must have |
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
 ### Distribution
 | Method | Complexity | Reach |
-|--------|------------|-------|
+|--------|--|-------|
 | npm publish | Low | Node devs |
 | pip install | Low | Python devs |
 | Homebrew tap | Medium | Mac users |
@@ -188,7 +188,7 @@ Trade-offs:
 
 ### Stack Options
 | Stack | Best For | Complexity |
-|-------|----------|------------|
+|-------|--|--|
 | Electron + SQLite | Desktop apps | Medium |
 | Tauri + SQLite | Lightweight desktop | Medium |
 | Browser + IndexedDB | Web apps | Low |
@@ -241,7 +241,7 @@ const items = db.prepare('SELECT * FROM items').all();
 
 ## Anti-Patterns
 
-### ❌ Building for Imaginary Users
+###  Building for Imaginary Users
 
 **Why bad**: No real feedback loop.
 Building features no one needs.
@@ -253,7 +253,7 @@ Real problem = real motivation.
 You're the first tester.
 Expand users later.
 
-### ❌ Over-Engineering Personal Tools
+###  Over-Engineering Personal Tools
 
 **Why bad**: Takes forever to build.
 Harder to modify later.
@@ -265,7 +265,7 @@ Add complexity when needed.
 Refactor only when it hurts.
 Ugly but working > pretty but incomplete.
 
-### ❌ Not Dogfooding
+###  Not Dogfooding
 
 **Why bad**: Missing obvious UX issues.
 Not finding real bugs.
@@ -277,10 +277,10 @@ Feel the pain of bad UX.
 Fix what annoys YOU.
 Your needs = user needs.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Tool only works in your specific environment | medium | ## Making Tools Portable |
 | Configuration becomes unmanageable | medium | ## Taming Configuration |
 | Personal tool becomes unmaintained | low | ## Sustainable Personal Tools |

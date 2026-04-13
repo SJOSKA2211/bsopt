@@ -59,7 +59,7 @@ Read `seo/references/eeat-framework.md` for full criteria.
 ### Word Count Analysis
 Compare against page type minimums:
 | Page Type | Minimum |
-|-----------|---------|
+|--|---------|
 | Homepage | 500 |
 | Service page | 800 |
 | Blog post | 1,500 |
@@ -162,7 +162,7 @@ GEO is the emerging discipline of optimizing content specifically for AI-generat
 
 ### E-E-A-T Breakdown
 | Factor | Score | Key Signals |
-|--------|-------|-------------|
+|--------|-------|--|
 | Experience | XX/25 | ... |
 | Expertise | XX/25 | ... |
 | Authoritativeness | XX/25 | ... |
@@ -180,7 +180,7 @@ If DataForSEO MCP tools are available, use `kw_data_google_ads_search_volume` fo
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess page content. Suggest the user verify the URL and try again. |
 | Content behind paywall (402/403, login wall) | Report that the content is not publicly accessible. Analyze only the visible portion (meta tags, headers) and note the limitation. |
 | Thin content (fewer than 100 words retrievable) | Report the findings as-is rather than guessing. Flag the page as potentially JavaScript-rendered or gated, and suggest the user provide the full text directly. |

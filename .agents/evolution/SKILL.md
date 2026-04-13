@@ -14,7 +14,7 @@ This skill enables makepad-skills to self-improve continuously during developmen
 ## Quick Navigation
 
 | Topic | Description |
-|-------|-------------|
+|-------|--|
 | Collaboration Guidelines | **Contributing to makepad-skills** |
 | [Hooks Setup](#hooks-based-auto-triggering) | Auto-trigger evolution with hooks |
 | [When to Evolve](#when-to-evolve) | Triggers and classification |
@@ -79,7 +79,7 @@ This will install hooks to `.claude/hooks/` and configure `.claude/settings.json
 ### What Hooks Do
 
 | Hook | Trigger Event | Action |
-|------|---------------|--------|
+|------|--|--------|
 | `makepad-skill-router.sh` | UserPromptSubmit | Auto-route to relevant skills |
 | `pre-tool.sh` | Before Bash/Write/Edit | Detect Makepad version from Cargo.toml |
 | `post-bash.sh` | After Bash command fails | Detect Makepad errors, suggest fixes |
@@ -94,7 +94,7 @@ The `makepad-skill-router.sh` hook automatically loads relevant skills based on 
 ### Context Detection
 
 | Context | Trigger Keywords | Skills Loaded |
-|---------|------------------|---------------|
+|---------|--|--|
 | **Full App** | "build app", "从零", "完整应用" | basics, dsl, layout, widgets, event-action, app-architecture |
 | **UI Design** | "ui design", "界面设计" | dsl, layout, widgets, animation, shaders |
 | **Widget Creation** | "create widget", "创建组件", "自定义组件" | widgets, dsl, layout, animation, shaders, font, event-action |
@@ -105,7 +105,7 @@ The `makepad-skill-router.sh` hook automatically loads relevant skills based on 
 When loading certain skills, related skills are auto-loaded:
 
 | Primary Skill | Auto-loads |
-|---------------|------------|
+|--|--|
 | robius-app-architecture | makepad-basics, makepad-event-action |
 | robius-widget-patterns | makepad-widgets, makepad-layout |
 | makepad-widgets | makepad-layout, makepad-dsl |
@@ -132,7 +132,7 @@ User: "我想从零开发一个 Makepad 应用"
 Trigger skill evolution when any of these occur during development:
 
 | Trigger | Target Skill | Priority |
-|---------|--------------|----------|
+|---------|--|--|
 | New widget pattern discovered | robius-widget-patterns/_base | High |
 | Shader technique learned | makepad-shaders | High |
 | Compilation error solved | makepad-reference/troubleshooting | High |
@@ -312,7 +312,7 @@ Adapt skill suggestions to project's coding style.
 Claude analyzes the current project to detect:
 
 | Aspect | Detection Method | Adaptation |
-|--------|------------------|------------|
+|--------|--|--|
 | Naming convention | Scan existing widgets | Match snake_case vs camelCase |
 | Code organization | Check module structure | Suggest matching patterns |
 | Comment style | Read existing comments | Match documentation style |

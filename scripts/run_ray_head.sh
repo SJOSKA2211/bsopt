@@ -13,11 +13,11 @@ if command -v docker &> /dev/null; then
         COMPOSE_CMD="docker-compose"
     fi
 else
-    echo "❌ Error: docker is not installed."
+    echo " Error: docker is not installed."
     exit 1
 fi
 
-echo "🚀 Starting Ray Head and Optimized Workers..."
+echo " Starting Ray Head and Optimized Workers..."
 
 # 2. Start Ray Cluster
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml up -d ray-head ray-worker-1 rl-training-worker
@@ -35,12 +35,12 @@ until curl -s -o /dev/null -w "%{http_code}" "$ENDPOINT" | grep -q "200" || [ $R
 done
 
 if [ $RETRIES -eq 0 ]; then
-    echo "❌ Fatal: Ray Head failed to reach healthy state within timeout."
+    echo " Fatal: Ray Head failed to reach healthy state within timeout."
     $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml logs ray-head
     exit 1
 fi
 
-echo "✅ Ray Cluster is Healthy."
-echo "🏆 Revamping and Optimizing Engine..."
+echo " Ray Cluster is Healthy."
+echo " Revamping and Optimizing Engine..."
 # Note: We run this in the ray-head container to ensure it has access to the cluster and 'ray' package
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile ml exec -T ray-head python scripts/engine_revamp_ray_god_mode.py

@@ -350,13 +350,13 @@ export default UserPage;
 ## Summary
 
 **Routing Checklist:**
-- ✅ Folder-based: `routes/my-route/index.tsx`
-- ✅ Lazy load components: `React.lazy(() => import())`
-- ✅ Use `createFileRoute` with route path
-- ✅ Add breadcrumb in `loader` function
-- ✅ Wrap in `SuspenseLoader` for loading states
-- ✅ Use `Route.useParams()` for dynamic params
-- ✅ Use `useNavigate()` for programmatic navigation
+-  Folder-based: `routes/my-route/index.tsx`
+-  Lazy load components: `React.lazy(() => import())`
+-  Use `createFileRoute` with route path
+-  Add breadcrumb in `loader` function
+-  Wrap in `SuspenseLoader` for loading states
+-  Use `Route.useParams()` for dynamic params
+-  Use `useNavigate()` for programmatic navigation
 
 **See Also:**
 - [component-patterns.md](component-patterns.md) - Lazy loading patterns

@@ -75,7 +75,7 @@ Apos completar a extracao, fazer estas verificacoes cruzadas:
 Para informacoes P0 (perda fatal), verificar que aparecem em TODAS as 3 camadas:
 
 | Informacao P0 | Snapshot | MEMORY.md | Context-Agent |
-|---------------|----------|-----------|---------------|
+|--|--|--|--|
 | Decisao X     | □        | □         | □             |
 | Correcao Y    | □        | □         | □             |
 | Tarefa Z      | □        | □         | □             |

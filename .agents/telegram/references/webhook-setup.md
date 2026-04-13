@@ -298,7 +298,7 @@ CMD ["node", "dist/index.js"]
 ## Troubleshooting
 
 | Problema | Causa | Solucao |
-|----------|-------|---------|
+|--|-------|---------|
 | Webhook nao recebe updates | URL incorreta ou SSL invalido | Verifique com `getWebhookInfo` |
 | Erro 409 Conflict | Polling e webhook ativos | Delete webhook ou pare polling |
 | Erro 401 Unauthorized | Token invalido | Verifique token com `/getMe` |

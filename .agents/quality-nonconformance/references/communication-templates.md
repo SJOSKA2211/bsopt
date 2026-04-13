@@ -136,7 +136,7 @@ Formal, precise, and complete. This is a controlled document. Every field must b
 | Specification Violated | {{spec_requirement}} |
 | Actual Values | {{actual_values}} |
 
-**Disposition Decision:** ☐ Use-As-Is ☐ Rework ☐ Repair ☐ Return to Vendor ☐ Scrap
+**Disposition Decision:**  Use-As-Is  Rework  Repair  Return to Vendor  Scrap
 
 **Engineering Justification (required for Use-As-Is and Repair):**
 {{engineering_justification}}
@@ -147,7 +147,7 @@ Example: "The OD measurement of 12.52mm (USL 12.50mm) exceeds the drawing tolera
 {{risk_assessment_reference}} (e.g., "Per ISO 14971 risk assessment RA-2025-0012, risk level is acceptable — severity [minor], probability [remote]")
 
 **Customer Approval (required for aerospace Use-As-Is/Repair):**
-☐ Not required (standard/non-regulated) ☐ Requested — Reference: {{customer_approval_ref}} ☐ Approved — Date: {{approval_date}} ☐ Denied
+ Not required (standard/non-regulated)  Requested — Reference: {{customer_approval_ref}}  Approved — Date: {{approval_date}}  Denied
 
 **Cost Impact:**
 | Item | Amount |
@@ -158,7 +158,7 @@ Example: "The OD measurement of 12.52mm (USL 12.50mm) exceeds the drawing tolera
 | Expedite / replacement | {{expedite_cost}} |
 | **Total NCR cost** | **{{total_cost}}** |
 
-**CAPA Required:** ☐ Yes — {{capa_number}} ☐ No — Rationale: {{no_capa_rationale}}
+**CAPA Required:**  Yes — {{capa_number}}  No — Rationale: {{no_capa_rationale}}
 
 **MRB Attendees and Signatures:**
 
@@ -238,9 +238,9 @@ Professional, specific, and structured. Provide all data the supplier needs to i
 4. **Effectiveness verification plan** — how and when will you verify that the corrective actions are effective?
 
 **Disposition of Nonconforming Material:**
-☐ Return to Vendor — please issue RMA# and shipping instructions
-☐ Sort at our facility — credit memo for sort labor will follow
-☐ Scrap at our facility — credit memo for material value will follow
+ Return to Vendor — please issue RMA# and shipping instructions
+ Sort at our facility — credit memo for sort labor will follow
+ Scrap at our facility — credit memo for material value will follow
 
 **Contact for Questions:**
 {{our_quality_contact}} | {{our_quality_email}} | {{our_quality_phone}}
@@ -264,10 +264,10 @@ Structured and factual. The initiation record sets the scope and expectations fo
 |---|---|
 | CAPA Number | {{capa_number}} |
 | Date Initiated | {{date_initiated}} |
-| Type | ☐ Corrective ☐ Preventive |
-| Source | ☐ NCR ☐ Customer Complaint ☐ Audit Finding ☐ Trend Analysis ☐ Field Failure ☐ Other: {{other_source}} |
+| Type |  Corrective  Preventive |
+| Source |  NCR  Customer Complaint  Audit Finding  Trend Analysis  Field Failure  Other: {{other_source}} |
 | Source Reference(s) | {{source_references}} (e.g., NCR-2025-0412, NCR-2025-0398, NCR-2025-0456) |
-| Priority | ☐ Critical (safety/regulatory) ☐ High (customer impact) ☐ Medium (internal) ☐ Low (improvement) |
+| Priority |  Critical (safety/regulatory)  High (customer impact)  Medium (internal)  Low (improvement) |
 
 **Problem Statement:**
 {{problem_statement}}
@@ -338,14 +338,14 @@ Data-driven and conclusive. The effectiveness review is where the CAPA either cl
 
 | Metric | Baseline (Pre-CAPA) | Target | Actual (Monitoring Period) | Result |
 |---|---|---|---|---|
-| {{metric_1}} | {{baseline_1}} | {{target_1}} | {{actual_1}} | ☐ Pass ☐ Fail |
-| {{metric_2}} | {{baseline_2}} | {{target_2}} | {{actual_2}} | ☐ Pass ☐ Fail |
-| Recurrence count | {{baseline_recurrence}} | Zero | {{actual_recurrence}} | ☐ Pass ☐ Fail |
+| {{metric_1}} | {{baseline_1}} | {{target_1}} | {{actual_1}} |  Pass  Fail |
+| {{metric_2}} | {{baseline_2}} | {{target_2}} | {{actual_2}} |  Pass  Fail |
+| Recurrence count | {{baseline_recurrence}} | Zero | {{actual_recurrence}} |  Pass  Fail |
 
 **Conclusion:**
-☐ **CAPA Effective — Close.** All effectiveness criteria met. Zero recurrences during monitoring period. Process capability meets target.
-☐ **CAPA Partially Effective — Extend monitoring.** Improvement demonstrated but monitoring period insufficient for definitive conclusion. Extend by {{extension_days}} days.
-☐ **CAPA Not Effective — Reopen.** Recurrence observed during monitoring period. Root cause re-investigation required. See {{reopened_investigation_ref}}.
+ **CAPA Effective — Close.** All effectiveness criteria met. Zero recurrences during monitoring period. Process capability meets target.
+ **CAPA Partially Effective — Extend monitoring.** Improvement demonstrated but monitoring period insufficient for definitive conclusion. Extend by {{extension_days}} days.
+ **CAPA Not Effective — Reopen.** Recurrence observed during monitoring period. Root cause re-investigation required. See {{reopened_investigation_ref}}.
 
 **Reviewed By:**
 
@@ -373,7 +373,7 @@ Factual, accountable, and solution-oriented. Accept the finding (even if you dis
 **Auditor / Organization:** {{auditor_name}}, {{audit_organization}}
 **Audit Date(s):** {{audit_dates}}
 **Finding Number:** {{finding_number}}
-**Finding Classification:** ☐ Major Non-Conformity ☐ Minor Non-Conformity ☐ Observation / OFI
+**Finding Classification:**  Major Non-Conformity  Minor Non-Conformity  Observation / OFI
 
 **Finding Statement:**
 {{finding_statement}}
@@ -494,13 +494,13 @@ Objective and balanced. Report what was observed, both strengths and deficiencie
 |---|---|
 | Supplier | {{supplier_name}} |
 | Supplier Code | {{supplier_code}} |
-| Audit Type | ☐ System ☐ Process ☐ Product ☐ Combined |
+| Audit Type |  System  Process  Product  Combined |
 | Audit Date(s) | {{audit_dates}} |
 | Auditor(s) | {{auditor_names}} |
 | Standard(s) Audited Against | {{standards}} (e.g., ISO 9001:2015, IATF 16949, AS9100D) |
 | Scope | {{audit_scope}} |
 
-**Overall Assessment:** ☐ Approved ☐ Approved with Conditions ☐ Not Approved
+**Overall Assessment:**  Approved  Approved with Conditions  Not Approved
 
 **Strengths Observed:**
 1. {{strength_1}}
@@ -536,7 +536,7 @@ Urgent, clear, and actionable. This goes to the production floor — operators, 
 
 ### Template
 
-**⚠ QUALITY ALERT ⚠**
+** QUALITY ALERT **
 
 **Alert Number:** QA-{{alert_number}}
 **Date Issued:** {{date_issued}}

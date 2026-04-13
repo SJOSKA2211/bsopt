@@ -351,9 +351,9 @@ StateFlow como processo reativo S = (State, Ev
 
 ## 3. Propriedades Verificadas
 
-✅ [Propriedade que foi verificada como correta + argumento]
-⚠️  [Propriedade suspeita + evidência]
-❌ [Violação encontrada + contra-exemplo]
+ [Propriedade que foi verificada como correta + argumento]
+️  [Propriedade suspeita + evidência]
+ [Violação encontrada + contra-exemplo]
 
 ## 4. Análise De Complexidade
 
@@ -364,7 +364,7 @@ StateFlow como processo reativo S = (State, Ev
 ## 5. Riscos Matemáticos Prioritizados
 
 | Rank | Risco | Severidade | P(ocorrência) | Score |
-|------|-------|-----------|--------------|-------|
+|------|-------|--|--|-------|
 | 1 | ... | 9/10 | 0.8 | 7.2 |
 
 ## 6. Recomendações Provadas
@@ -452,10 +452,10 @@ Channel<T>(BUFFERED):
   - Uso: comunicação ponto-a-ponto entre coroutines
 
 Decisão matemática para cada caso em Auri:
-pipelineState         → StateFlow ✅ (UI quer estado atual, não histórico)
-erros para toast      → SharedFlow(extraBufferCapacity=10) ✅ (one-shot events)
-audio PCM chunks      → Channel(BUFFERED) ✅ (stream point-to-point)
-sttResult            → StateFlow ✅ (UI quer resultado atual)
+pipelineState         → StateFlow  (UI quer estado atual, não histórico)
+erros para toast      → SharedFlow(extraBufferCapacity=10)  (one-shot events)
+audio PCM chunks      → Channel(BUFFERED)  (stream point-to-point)
+sttResult            → StateFlow  (UI quer resultado atual)
 ```
 
 ## Anti-Padrão: Stateflow Para Eventos One-Shot

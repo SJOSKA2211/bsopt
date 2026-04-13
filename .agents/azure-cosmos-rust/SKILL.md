@@ -41,7 +41,7 @@ let client = CosmosClient::new(
 ## Client Hierarchy
 
 | Client | Purpose | Get From |
-|--------|---------|----------|
+|--------|---------|--|
 | `CosmosClient` | Account-level operations | Direct instantiation |
 | `DatabaseClient` | Database operations | `client.database_client()` |
 | `ContainerClient` | Container/item operations | `database.container_client()` |
@@ -129,7 +129,7 @@ cargo add azure_data_cosmos --features key_auth
 ## Reference Links
 
 | Resource | Link |
-|----------|------|
+|--|------|
 | API Reference | https://docs.rs/azure_data_cosmos |
 | Source Code | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/cosmos/azure_data_cosmos |
 | crates.io | https://crates.io/crates/azure_data_cosmos |

@@ -456,49 +456,49 @@ def format_single_interview(analysis: dict) -> str:
 
     # Sentiment
     sentiment = analysis["sentiment_score"]
-    output.append(f"\n📊 Overall Sentiment: {sentiment['label'].upper()}")
+    output.append(f"\n Overall Sentiment: {sentiment['label'].upper()}")
     output.append(f"   Score: {sentiment['score']}")
     output.append(f"   Positive signals: {sentiment['positive_signals']}")
     output.append(f"   Negative signals: {sentiment['negative_signals']}")
 
     # Pain Points
     if analysis["pain_points"]:
-        output.append("\n🔥 Pain Points Identified:")
+        output.append("\n Pain Points Identified:")
         for i, pain in enumerate(analysis["pain_points"][:5], 1):
             output.append(f"\n{i}. [{pain['severity'].upper()}] {pain['quote'][:100]}...")
 
     # Feature Requests
     if analysis["feature_requests"]:
-        output.append("\n💡 Feature Requests:")
+        output.append("\n Feature Requests:")
         for i, req in enumerate(analysis["feature_requests"][:5], 1):
             output.append(f"\n{i}. [{req['type']}] Priority: {req['priority']}")
             output.append(f'   "{req["quote"][:100]}..."')
 
     # Jobs to Be Done
     if analysis["jobs_to_be_done"]:
-        output.append("\n🎯 Jobs to Be Done:")
+        output.append("\n Jobs to Be Done:")
         for i, job in enumerate(analysis["jobs_to_be_done"], 1):
             output.append(f"{i}. {job['job']}")
 
     # Key Themes
     if analysis["key_themes"]:
-        output.append("\n🏷️ Key Themes:")
+        output.append("\n️ Key Themes:")
         output.append(", ".join(analysis["key_themes"]))
 
     # Key Quotes
     if analysis["quotes"]:
-        output.append("\n💬 Key Quotes:")
+        output.append("\n Key Quotes:")
         for i, quote in enumerate(analysis["quotes"][:3], 1):
             output.append(f'{i}. "{quote}"')
 
     # Metrics
     if analysis["metrics_mentioned"]:
-        output.append("\n📈 Metrics Mentioned:")
+        output.append("\n Metrics Mentioned:")
         output.append(", ".join(analysis["metrics_mentioned"]))
 
     # Competitors
     if analysis["competitors_mentioned"]:
-        output.append("\n🏢 Competitors Mentioned:")
+        output.append("\n Competitors Mentioned:")
         output.append(", ".join(analysis["competitors_mentioned"]))
 
     return "\n".join(output)

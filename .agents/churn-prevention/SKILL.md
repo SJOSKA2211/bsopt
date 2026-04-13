@@ -55,7 +55,7 @@ Gather this context (ask if not provided):
 Churn has two types requiring different strategies:
 
 | Type | Cause | Solution |
-|------|-------|----------|
+|------|-------|--|
 | **Voluntary** | Customer chooses to cancel | Cancel flows, save offers, exit surveys |
 | **Involuntary** | Payment fails | Dunning emails, smart retries, card updaters |
 
@@ -99,7 +99,7 @@ Set expectations, offer easy reactivation path, trigger win-back sequence.
 The exit survey is the foundation. Good reason categories:
 
 | Reason | What It Tells You |
-|--------|-------------------|
+|--------|--|
 | Too expensive | Price sensitivity, may respond to discount or downgrade |
 | Not using it enough | Low engagement, may respond to pause or onboarding help |
 | Missing a feature | Product gap, show roadmap or workaround |
@@ -123,7 +123,7 @@ The key insight: **match the offer to the reason.** A discount won't save someon
 **Offer-to-reason mapping:**
 
 | Cancel Reason | Primary Offer | Fallback Offer |
-|---------------|---------------|----------------|
+|--|--|--|
 | Too expensive | Discount (20-30% for 2-3 months) | Downgrade to lower plan |
 | Not using it enough | Pause (1-3 months) | Free onboarding session |
 | Missing feature | Roadmap preview + timeline | Workaround guide |
@@ -223,7 +223,7 @@ The best save happens before the customer ever clicks "Cancel."
 Track these leading indicators of churn:
 
 | Signal | Risk Level | Timeframe |
-|--------|-----------|-----------|
+|--------|--|--|
 | Login frequency drops 50%+ | High | 2-4 weeks before cancel |
 | Key feature usage stops | High | 1-3 weeks before cancel |
 | Support tickets spike then stop | High | 1-2 weeks before cancel |
@@ -259,7 +259,7 @@ Health Score = (
 **Before they think about cancelling:**
 
 | Trigger | Intervention |
-|---------|-------------|
+|---------|--|
 | Usage drop >50% for 2 weeks | "We noticed you haven't used [feature]. Need help?" email |
 | Approaching plan limit | Upgrade nudge (not a wall — paywall-upgrade-cro handles this) |
 | No login for 14 days | Re-engagement email with recent product updates |
@@ -291,7 +291,7 @@ Pre-dunning → Smart retry → Dunning emails → Grace period → Hard cancel
 Not all failures are the same. Retry strategy by decline type:
 
 | Decline Type | Examples | Retry Strategy |
-|-------------|----------|----------------|
+|--|--|--|
 | Soft decline (temporary) | Insufficient funds, processor timeout | Retry 3-5 times over 7-10 days |
 | Hard decline (permanent) | Card stolen, account closed | Don't retry — ask for new card |
 | Authentication required | 3D Secure, SCA | Send customer to update payment |
@@ -362,7 +362,7 @@ Segment churn by:
 Test one variable at a time:
 
 | Test | Hypothesis | Metric |
-|------|-----------|--------|
+|------|--|--------|
 | Discount % (20% vs 30%) | Higher discount saves more | Save rate, LTV impact |
 | Pause duration (1 vs 3 months) | Longer pause increases return rate | Reactivation rate |
 | Survey placement (before vs after offer) | Survey-first personalizes offers | Save rate |
@@ -395,7 +395,7 @@ For implementation, use the billing, analytics, and experimentation tools availa
 ### Retention Platforms
 
 | Tool | Best For | Key Feature |
-|------|----------|-------------|
+|------|--|--|
 | **Churnkey** | Full cancel flow + dunning | AI-powered adaptive offers, 34% avg save rate |
 | **ProsperStack** | Cancel flows with analytics | Advanced rules engine, Stripe/Chargebee integration |
 | **Raaft** | Simple cancel flow builder | Easy setup, good for early-stage |
@@ -404,7 +404,7 @@ For implementation, use the billing, analytics, and experimentation tools availa
 ### Billing Providers (Dunning)
 
 | Provider | Smart Retries | Dunning Emails | Card Updater |
-|----------|:------------:|:--------------:|:------------:|
+|--|:--:|:--:|:--:|
 | **Stripe** | Built-in (Smart Retries) | Built-in | Automatic |
 | **Chargebee** | Built-in | Built-in | Via gateway |
 | **Paddle** | Built-in | Built-in | Managed |

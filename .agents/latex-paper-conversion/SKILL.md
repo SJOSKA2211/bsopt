@@ -51,10 +51,10 @@ AGENT: *Triggers latex-paper-conversion skill*
 
 ## Best Practices
 
-- ✅ Always write a Python extraction script; DO NOT manually copy-paste thousands of lines of LaTeX.
-- ✅ Always run `pdflatex` and verify the `.log` to ensure the final output compiles.
-- ✅ Explicitly ask the user for the structural mapping if the source and target differ drastically (e.g., merging abstract and keywords).
-- ❌ Don't assume all math packages automatically exist in the new template (e.g., add `\usepackage{amsmath}` if missing).
+-  Always write a Python extraction script; DO NOT manually copy-paste thousands of lines of LaTeX.
+-  Always run `pdflatex` and verify the `.log` to ensure the final output compiles.
+-  Explicitly ask the user for the structural mapping if the source and target differ drastically (e.g., merging abstract and keywords).
+-  Don't assume all math packages automatically exist in the new template (e.g., add `\usepackage{amsmath}` if missing).
 
 ## Common Pitfalls
 

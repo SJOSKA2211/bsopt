@@ -319,7 +319,7 @@ email=victim@email.com
 ### Common Vulnerability Types
 
 | Vulnerability | Risk | Test Method |
-|--------------|------|-------------|
+|--|------|--|
 | Weak passwords | High | Policy testing, dictionary attack |
 | No lockout | High | Brute force testing |
 | Username enumeration | Medium | Differential response analysis |
@@ -358,7 +358,7 @@ admin123
 ### Session Cookie Flags
 
 | Flag | Purpose | Vulnerability if Missing |
-|------|---------|------------------------|
+|------|---------|--|
 | HttpOnly | Prevent JS access | XSS can steal session |
 | Secure | HTTPS only | Sent over HTTP |
 | SameSite | CSRF protection | Cross-site requests allowed |
@@ -470,7 +470,7 @@ https://target.com/reset?token=a1b2c3d4e5f6&email=admin@example.com
 ## Troubleshooting
 
 | Issue | Solutions |
-|-------|-----------|
+|-------|--|
 | Brute force too slow | Identify rate limit scope; IP rotation; add delays; use targeted wordlists |
 | Session analysis inconclusive | Collect 1000+ tokens; use statistical tools; check for timestamps; compare accounts |
 | MFA cannot be bypassed | Document as secure; test backup/recovery mechanisms; check MFA fatigue; verify enrollment |

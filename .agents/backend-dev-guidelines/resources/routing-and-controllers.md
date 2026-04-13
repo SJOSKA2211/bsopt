@@ -19,16 +19,16 @@ Complete guide to clean route definitions and controller patterns.
 ### The Golden Rule
 
 **Routes should ONLY:**
-- ✅ Define route paths
-- ✅ Register middleware
-- ✅ Delegate to controllers
+-  Define route paths
+-  Register middleware
+-  Delegate to controllers
 
 **Routes should NEVER:**
-- ❌ Contain business logic
-- ❌ Access database directly
-- ❌ Implement validation logic (use Zod + controller)
-- ❌ Format complex responses
-- ❌ Handle complex error scenarios
+-  Contain business logic
+-  Access database directly
+-  Implement validation logic (use Zod + controller)
+-  Format complex responses
+-  Handle complex error scenarios
 
 ### Clean Route Pattern
 
@@ -42,7 +42,7 @@ import { auditMiddleware } from '../middleware/auditMiddleware';
 const router = Router();
 const controller = new UserController();
 
-// ✅ CLEAN: Route definition only
+//  CLEAN: Route definition only
 router.get('/:id',
     SSOMiddlewareClient.verifyLoginStatus,
     auditMiddleware,
@@ -304,7 +304,7 @@ export class UserController extends BaseController {
 
 ## Good Examples
 
-### Example 1: Email Notification Routes (Excellent ✅)
+### Example 1: Email Notification Routes (Excellent )
 
 **File:** `/email/src/routes/notificationRoutes.ts`
 
@@ -316,7 +316,7 @@ import { SSOMiddlewareClient } from '../middleware/SSOMiddleware';
 const router = Router();
 const controller = new NotificationController();
 
-// ✅ EXCELLENT: Clean delegation
+//  EXCELLENT: Clean delegation
 router.get('/',
     SSOMiddlewareClient.verifyLoginStatus,
     async (req, res) => controller.getNotifications(req, res)
@@ -341,7 +341,7 @@ export default router;
 - Consistent pattern
 - Easy to understand
 
-### Example 2: Proxy Routes with Validation (Good ✅)
+### Example 2: Proxy Routes with Validation (Good )
 
 **File:** `/form/src/routes/proxyRoutes.ts`
 
@@ -383,26 +383,26 @@ router.post('/',
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Business Logic in Routes (Bad ❌)
+### Anti-Pattern 1: Business Logic in Routes (Bad )
 
 **File:** `/form/src/routes/responseRoutes.ts` (actual production code)
 
 ```typescript
-// ❌ ANTI-PATTERN: 200+ lines of business logic in route
+//  ANTI-PATTERN: 200+ lines of business logic in route
 router.post('/:formID/submit', async (req: Request, res: Response) => {
     try {
         const username = res.locals.claims.preferred_username;
         const responses = req.body.responses;
         const stepInstanceId = req.body.stepInstanceId;
 
-        // ❌ Permission checking in route
+        //  Permission checking in route
         const userId = await userProfileService.getProfileByEmail(username).then(p => p.id);
         const canComplete = await permissionService.canCompleteStep(userId, stepInstanceId);
         if (!canComplete) {
             return res.status(403).json({ error: 'No permission' });
         }
 
-        // ❌ Workflow logic in route
+        //  Workflow logic in route
         const { createWorkflowEngine, CompleteStepCommand } = require('../workflow/core/WorkflowEngineV3');
         const engine = await createWorkflowEngine();
         const command = new CompleteStepCommand(
@@ -413,7 +413,7 @@ router.post('/:formID/submit', async (req: Request, res: Response) => {
         );
         const events = await engine.executeCommand(command);
 
-        // ❌ Impersonation handling in route
+        //  Impersonation handling in route
         if (res.locals.isImpersonating) {
             impersonationContextStore.storeContext(stepInstanceId, {
                 originalUserId: res.locals.originalUserId,
@@ -421,13 +421,13 @@ router.post('/:formID/submit', async (req: Request, res: Response) => {
             });
         }
 
-        // ❌ Response processing in route
+        //  Response processing in route
         const post = await PrismaService.main.post.findUnique({
             where: { id: postData.id },
             include: { comments: true },
         });
 
-        // ❌ Permission check in route
+        //  Permission check in route
         await checkPostPermissions(post, userId);
 
         // ... 100+ more lines of business logic
@@ -533,7 +533,7 @@ import { PostController } from '../controllers/PostController';
 const router = Router();
 const controller = new PostController();
 
-// ✅ CLEAN: Just routing
+//  CLEAN: Just routing
 router.post('/',
     SSOMiddlewareClient.verifyLoginStatus,
     auditMiddleware,
@@ -617,7 +617,7 @@ async createUser(req: Request, res: Response): Promise<void> {
 ### Standard Codes
 
 | Code | Use Case | Example |
-|------|----------|---------|
+|------|--|---------|
 | 200 | Success (GET, PUT) | User retrieved, Updated |
 | 201 | Created (POST) | User created |
 | 204 | No Content (DELETE) | User deleted |

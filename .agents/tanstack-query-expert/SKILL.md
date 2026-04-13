@@ -226,12 +226,12 @@ export default function PostsList() {
 
 ## Best Practices
 
-- ✅ **Do:** Create Query Key factories so you don't misspell `['users']` vs `['user']` across different files.
-- ✅ **Do:** Set a global `staleTime` (e.g., `1000 * 60`) if your data doesn't change every second. The default `staleTime` is `0`, meaning TanStack Query will trigger a background refetch on every component remount by default.
-- ✅ **Do:** Use `queryClient.setQueryData` sparingly. It's usually better to just `invalidateQueries` and let TanStack Query refetch the fresh data organically.
-- ✅ **Do:** Abstract all `useMutation` and `useQuery` calls into custom hooks. Views should only say `const { mutate } = useCreatePost()`.
-- ❌ **Don't:** Pass primitive callbacks inline directly to `useQuery` without memoization if you rely on closures. (Instead, rely on the `queryKey` dependency array).
-- ❌ **Don't:** Sync query data into local React state (e.g., `useEffect(() => setLocalState(data), [data])`). Use the query data directly. If you need derived state, derive it during render.
+-  **Do:** Create Query Key factories so you don't misspell `['users']` vs `['user']` across different files.
+-  **Do:** Set a global `staleTime` (e.g., `1000 * 60`) if your data doesn't change every second. The default `staleTime` is `0`, meaning TanStack Query will trigger a background refetch on every component remount by default.
+-  **Do:** Use `queryClient.setQueryData` sparingly. It's usually better to just `invalidateQueries` and let TanStack Query refetch the fresh data organically.
+-  **Do:** Abstract all `useMutation` and `useQuery` calls into custom hooks. Views should only say `const { mutate } = useCreatePost()`.
+-  **Don't:** Pass primitive callbacks inline directly to `useQuery` without memoization if you rely on closures. (Instead, rely on the `queryKey` dependency array).
+-  **Don't:** Sync query data into local React state (e.g., `useEffect(() => setLocalState(data), [data])`). Use the query data directly. If you need derived state, derive it during render.
 
 ## Troubleshooting
 

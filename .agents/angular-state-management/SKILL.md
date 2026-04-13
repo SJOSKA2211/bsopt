@@ -31,7 +31,7 @@ Comprehensive guide to modern Angular state management patterns, from Signal-bas
 ### State Categories
 
 | Type             | Description                  | Solutions             |
-| ---------------- | ---------------------------- | --------------------- |
+| -- | -- | -- |
 | **Local State**  | Component-specific, UI state | Signals, `signal()`   |
 | **Shared State** | Between related components   | Signal services       |
 | **Global State** | App-wide, complex            | NgRx, Akita, Elf      |
@@ -547,7 +547,7 @@ export class ProductApiService {
 ### Do's
 
 | Practice                           | Why                                |
-| ---------------------------------- | ---------------------------------- |
+| -- | -- |
 | Use Signals for local state        | Simple, reactive, no subscriptions |
 | Use `computed()` for derived data  | Auto-updates, memoized             |
 | Colocate state with feature        | Easier to maintain                 |
@@ -557,7 +557,7 @@ export class ProductApiService {
 ### Don'ts
 
 | Anti-Pattern                      | Instead                                               |
-| --------------------------------- | ----------------------------------------------------- |
+| -- | -- |
 | Store derived data                | Use `computed()`                                      |
 | Mutate signals directly           | Use `set()` or `update()`                             |
 | Over-globalize state              | Keep local when possible                              |

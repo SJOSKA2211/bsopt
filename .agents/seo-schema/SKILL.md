@@ -161,7 +161,7 @@ When generating schema for a page:
 ### Validation Results
 | Schema | Type | Status | Issues |
 |--------|------|--------|--------|
-| ... | ... | ✅/⚠️/❌ | ... |
+| ... | ... | /️/ | ... |
 
 ### Recommendations
 - Missing schema opportunities
@@ -171,7 +171,7 @@ When generating schema for a page:
 ## Error Handling
 
 | Scenario | Action |
-|----------|--------|
+|--|--------|
 | URL unreachable | Report connection error with status code. Suggest verifying URL and checking if the page requires authentication. |
 | No schema markup found | Report that no JSON-LD, Microdata, or RDFa was detected. Recommend appropriate schema types based on page content analysis. |
 | Invalid JSON-LD syntax | Parse and report specific syntax errors (missing brackets, trailing commas, unquoted keys). Provide corrected JSON-LD output. |

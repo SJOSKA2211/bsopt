@@ -201,7 +201,7 @@ Automate ActiveCampaign CRM and marketing automation operations through Composio
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Find contact | ACTIVE_CAMPAIGN_FIND_CONTACT | email, id, phone |
 | Create contact | ACTIVE_CAMPAIGN_CREATE_CONTACT | email, first_name, last_name, tags |
 | Add/remove tags | ACTIVE_CAMPAIGN_MANAGE_CONTACT_TAG | action, tags, contact_email |

@@ -108,13 +108,13 @@ class TestPatientController(HttpCase):
 
 ## Best Practices
 
-- ✅ **Do:** Use `setUpClass()` with `cls.env` instead of `setUp()` — it is dramatically faster for large test suites.
-- ✅ **Do:** Use `@tagged('post_install', '-at_install')` to run tests after all modules are installed.
-- ✅ **Do:** Test both the happy path and error conditions (`ValidationError`, `AccessError`, `UserError`).
-- ✅ **Do:** Use `self.with_user(user)` to test access control without calling `sudo()`.
-- ❌ **Don't:** Use a production database for tests — always use a dedicated test database.
-- ❌ **Don't:** Rely on test execution order — each `TransactionCase` test is rolled back in isolation.
-- ❌ **Don't:** Hardcode passwords in `HttpCase.authenticate()` — use `self.env.user.login` or a fixture user.
+-  **Do:** Use `setUpClass()` with `cls.env` instead of `setUp()` — it is dramatically faster for large test suites.
+-  **Do:** Use `@tagged('post_install', '-at_install')` to run tests after all modules are installed.
+-  **Do:** Test both the happy path and error conditions (`ValidationError`, `AccessError`, `UserError`).
+-  **Do:** Use `self.with_user(user)` to test access control without calling `sudo()`.
+-  **Don't:** Use a production database for tests — always use a dedicated test database.
+-  **Don't:** Rely on test execution order — each `TransactionCase` test is rolled back in isolation.
+-  **Don't:** Hardcode passwords in `HttpCase.authenticate()` — use `self.env.user.login` or a fixture user.
 
 ## Limitations
 

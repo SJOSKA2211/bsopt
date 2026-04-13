@@ -23,7 +23,7 @@ You are working on a game development project. This skill teaches the PRINCIPLES
 ### Platform Selection
 
 | If the game targets... | Use Sub-Skill |
-|------------------------|---------------|
+|--|--|
 | Web browsers (HTML5, WebGL) | `game-development/web-games` |
 | Mobile (iOS, Android) | `game-development/mobile-games` |
 | PC (Steam, Desktop) | `game-development/pc-games` |
@@ -32,14 +32,14 @@ You are working on a game development project. This skill teaches the PRINCIPLES
 ### Dimension Selection
 
 | If the game is... | Use Sub-Skill |
-|-------------------|---------------|
+|--|--|
 | 2D (sprites, tilemaps) | `game-development/2d-games` |
 | 3D (meshes, shaders) | `game-development/3d-games` |
 
 ### Specialty Areas
 
 | If you need... | Use Sub-Skill |
-|----------------|---------------|
+|--|--|
 | GDD, balancing, player psychology | `game-development/game-design` |
 | Multiplayer, networking | `game-development/multiplayer` |
 | Visual style, asset pipeline, animation | `game-development/game-art` |
@@ -69,7 +69,7 @@ RENDER → Draw the frame (interpolated)
 ### 2. Pattern Selection Matrix
 
 | Pattern | Use When | Example |
-|---------|----------|---------|
+|---------|--|---------|
 | **State Machine** | 3-5 discrete states | Player: Idle→Walk→Jump |
 | **Object Pooling** | Frequent spawn/destroy | Bullets, particles |
 | **Observer/Events** | Cross-system communication | Health→UI updates |
@@ -117,7 +117,7 @@ Abstract input into ACTIONS, not raw keys:
 ### 5. AI Selection by Complexity
 
 | AI Type | Complexity | Use When |
-|---------|------------|----------|
+|---------|--|--|
 | **FSM** | Simple | 3-5 states, predictable behavior |
 | **Behavior Tree** | Medium | Modular, designer-friendly |
 | **GOAP** | High | Emergent, planning-based |
@@ -128,7 +128,7 @@ Abstract input into ACTIONS, not raw keys:
 ### 6. Collision Strategy
 
 | Type | Best For |
-|------|----------|
+|------|--|
 | **AABB** | Rectangles, fast checks |
 | **Circle** | Round objects, cheap |
 | **Spatial Hash** | Many similar-sized objects |

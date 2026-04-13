@@ -86,9 +86,9 @@ Data/Hora: ___________
 - Vaga de garagem inclusa (se sim, matrícula própria ou vinculada?)
 
 **Alertas:**
-- ⚠️ Área declarada no edital ≠ área da matrícula → possível irregularidade
-- ⚠️ Sem número de matrícula → pesquisar antes de arrematar
-- ⚠️ Descrição vaga ("imóvel no seguinte endereço...") → solicitar laudo de avaliação
+- ️ Área declarada no edital ≠ área da matrícula → possível irregularidade
+- ️ Sem número de matrícula → pesquisar antes de arrematar
+- ️ Descrição vaga ("imóvel no seguinte endereço...") → solicitar laudo de avaliação
 
 ---
 
@@ -109,10 +109,10 @@ Avaliador responsável:             _______________
 - Deságio real (comparado ao valor de mercado estimado): ____%
 
 **Alertas:**
-- ⚠️ Avaliação com mais de 12 meses → risco de defasagem — pedir reavaliação possível (Art. 873 CPC)
-- ⚠️ VAN muito abaixo do mercado → investigar laudos ou favorecimento
-- ⚠️ VAN muito acima do mercado → leilão não vai arrematar no 1º; aguardar 2º
-- ⚠️ Leilão extrajudicial 2º: lance mínimo = dívida → pode ser MUITO abaixo do valor de mercado (ótima oportunidade)
+- ️ Avaliação com mais de 12 meses → risco de defasagem — pedir reavaliação possível (Art. 873 CPC)
+- ️ VAN muito abaixo do mercado → investigar laudos ou favorecimento
+- ️ VAN muito acima do mercado → leilão não vai arrematar no 1º; aguardar 2º
+- ️ Leilão extrajudicial 2º: lance mínimo = dívida → pode ser MUITO abaixo do valor de mercado (ótima oportunidade)
 
 ---
 
@@ -122,12 +122,12 @@ Avaliador responsável:             _______________
 - [ ] Imóvel desocupado (pronto para uso)
 - [ ] Imóvel ocupado pelo executado/devedor
 - [ ] Imóvel ocupado por terceiro (locatário ou invasor)
-- [ ] Situação omissa no edital (⚠️ RISCO)
+- [ ] Situação omissa no edital (️ RISCO)
 
 **Impacto da Ocupação:**
 
 | Situação | Risco | Custo Estimado | Prazo |
-|----------|-------|----------------|-------|
+|--|-------|--|-------|
 | Desocupado | Baixo | Zero | Imediato |
 | Devedor cooperativo | Médio-Baixo | Negociação | 30-90 dias |
 | Devedor resistente | Alto | R$ 5-15k (ação) | 6-18 meses |
@@ -154,7 +154,7 @@ Avaliador responsável:             _______________
 **Leitura crítica das cláusulas:**
 
 | Redação no Edital | Interpretação | Risco |
-|-------------------|---------------|-------|
+|--|--|-------|
 | "O imóvel é vendido no estado em que se encontra" | Débitos podem acompanhar | Alto |
 | "Livre de ônus" | Arrematante não responde | Baixo |
 | "Débitos a cargo do arrematante" | Você paga tudo | Alto — quantificar |
@@ -253,7 +253,7 @@ Lance arrematado:                  R$ _____________
 **Pontuação (somar pontos):**
 
 | Fator | Baixo Risco (0) | Médio Risco (1) | Alto Risco (2) |
-|-------|----------------|----------------|----------------|
+|-------|--|--|--|
 | Posse | Desocupado | Ocupado (cooperativo) | Ocupado (litigioso) |
 | Débitos | Livres de ônus | Informados e quantificados | Omissos ou altos |
 | Ônus Reais | Nenhum | Hipoteca subrogada | Usufruto/penhoras |
@@ -265,10 +265,10 @@ Lance arrematado:                  R$ _____________
 ```
 SCORE DE RISCO: ____ / 14
 
-0-2: BAIXO RISCO ✅
-3-6: MÉDIO RISCO ⚠️
-7-10: ALTO RISCO 🔴
-11-14: MUITO ALTO RISCO ❌
+0-2: BAIXO RISCO 
+3-6: MÉDIO RISCO ️
+7-10: ALTO RISCO 
+11-14: MUITO ALTO RISCO 
 ```
 
 ## Veredicto Final Do Edital
@@ -287,12 +287,12 @@ VALOR DE MERCADO ESTIMADO: R$ ___________
 MARGEM DE SEGURANÇA: R$ ___________
 
 PRINCIPAIS PONTOS POSITIVOS:
-✅ _______________
-✅ _______________
+ _______________
+ _______________
 
 PRINCIPAIS ALERTAS:
-⚠️ _______________
-⚠️ _______________
+️ _______________
+️ _______________
 
 AÇÃO RECOMENDADA:
 [ ] ARREMATAR — Oportunidade clara
@@ -307,7 +307,7 @@ AÇÃO RECOMENDADA:
 ## Prazos Importantes
 
 | Prazo | Evento | Base Legal |
-|-------|--------|-----------|
+|-------|--------|--|
 | 5 dias | Antecedência mínima de publicação do edital | Art. 887 CPC |
 | 15 dias | Purga da mora (extrajudicial) | Art. 26, §1º Lei 9.514/97 |
 | 10 dias | Prazo para anular arrematação por vício | Art. 903 CPC |
@@ -318,7 +318,7 @@ AÇÃO RECOMENDADA:
 ## Custos Típicos Por Estado (Itbi)
 
 | Município | ITBI |
-|-----------|------|
+|--|------|
 | São Paulo (SP) | 3% |
 | Rio de Janeiro (RJ) | 3% |
 | Belo Horizonte (MG) | 3% |
@@ -473,7 +473,7 @@ Políticas adicionais:
 ## Armadilhas Comuns Em Editais — Top 10
 
 | # | Armadilha | Como Detectar | Impacto |
-|---|-----------|---------------|---------|
+|---|--|--|---------|
 | 1 | "No estado em que se encontra e ônus" | Leitura atenta da cláusula de responsabilidade | Débitos surpresa |
 | 2 | Edital silente sobre ocupação | Não menciona se ocupado/desocupado | Custo de desocupação |
 | 3 | Avaliação de 3+ anos atrás | Data do laudo no edital | Valor defasado |

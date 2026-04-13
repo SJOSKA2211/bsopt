@@ -85,7 +85,7 @@ The skill uses `get_application_stats` for an aggregated overview - total counts
 ## Troubleshooting
 
 | Problem | Solution |
-|---------|----------|
+|---------|--|
 | "Missing Authorization header" | For Claude Code and other remote HTTP MCP setups, confirm the `Authorization` header is configured on the MCP server entry |
 | "Missing API key" | For the local `npx jobgpt-mcp-server` setup, ensure `JOBGPT_API_KEY` is set to your API key |
 | "Insufficient credits" | Check balance with `get_credits`. Purchase more at 6figr.com/account |

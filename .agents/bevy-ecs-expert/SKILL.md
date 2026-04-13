@@ -124,11 +124,11 @@ fn enemy_behavior(
 
 ## Best Practices
 
-- ✅ **Do:** Use `Query` filters (`With`, `Without`, `Changed`) to reduce iteration count.
-- ✅ **Do:** Prefer `Res` over `ResMut` when read-only access is sufficient to allow parallel execution.
-- ✅ **Do:** Use `Bundle` to spawn complex entities atomically.
-- ❌ **Don't:** Store heavy logic inside Components; keep them as pure data.
-- ❌ **Don't:** Use `RefCell` or interior mutability inside components; let the ECS handle borrowing.
+-  **Do:** Use `Query` filters (`With`, `Without`, `Changed`) to reduce iteration count.
+-  **Do:** Prefer `Res` over `ResMut` when read-only access is sufficient to allow parallel execution.
+-  **Do:** Use `Bundle` to spawn complex entities atomically.
+-  **Don't:** Store heavy logic inside Components; keep them as pure data.
+-  **Don't:** Use `RefCell` or interior mutability inside components; let the ECS handle borrowing.
 
 ## Troubleshooting
 

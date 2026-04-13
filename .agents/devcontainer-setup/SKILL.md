@@ -56,7 +56,7 @@ Convert to slug: lowercase, replace spaces/underscores with hyphens.
 ### Detect Language Stack
 
 | Language | Detection Files |
-|----------|-----------------|
+|--|--|
 | Python | `pyproject.toml`, `*.py` |
 | Node/TypeScript | `package.json`, `tsconfig.json` |
 | Rust | `Cargo.toml` |

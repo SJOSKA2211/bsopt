@@ -3,7 +3,7 @@
 ## Overview
 The BS-OPT Serving Layer is designed for high-frequency, low-latency model inference. It prioritizes optimized ONNX runtimes and utilizes high-performance serialization formats to minimize overhead.
 
-## 🏛️ Architecture
+## ️ Architecture
 
 ### 1. Dual-Path Serving
 - **ONNX Path (Primary)**: Uses `onnxruntime` for execution. Prioritizes INT8 Quantized models for CPU/GPU efficiency.

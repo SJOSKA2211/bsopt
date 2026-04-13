@@ -15,7 +15,7 @@
 ## Tipos de Chat
 
 | Tipo | `chat.type` | Caracteristicas |
-|------|-------------|-----------------|
+|------|--|--|
 | Privado | `private` | 1:1 com usuario |
 | Grupo | `group` | Ate 200 membros, basico |
 | Supergrupo | `supergroup` | Ate 200k membros, historico persistente |

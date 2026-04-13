@@ -26,7 +26,7 @@ arrive at the effective severity, which caps at Level 5.
 #### Dimension A — Financial Impact
 
 | Level | Product Value at Risk | Expedite / Re-Ship Cost | Penalty Exposure | Typical Scenarios |
-|-------|----------------------|------------------------|-----------------|-------------------|
+|-------|--|--|--|--|
 | 1 — Minimal | < $1,000 | None or < $200 | None | Minor LTL shortage, single damaged carton, residential parcel delay |
 | 2 — Moderate | $1,000–$5,000 | $200–$1,500 | Informal customer credit request likely | Multi-carton LTL damage, regional FTL delay 1–2 days, parcel loss with declared value |
 | 3 — Significant | $5,000–$25,000 | $1,500–$8,000 | Contractual penalty triggers within 48 hrs | Full pallet damage, FTL delay into customer delivery window, ocean container shortage affecting production schedule |
@@ -36,7 +36,7 @@ arrive at the effective severity, which caps at Level 5.
 #### Dimension B — Customer Impact
 
 | Level | Customer Tier | SLA Status | Business Impact to Customer | Typical Scenarios |
-|-------|-------------|-----------|---------------------------|-------------------|
+|-------|--|--|--|--|
 | 1 — Minimal | Standard / spot customer | No SLA or well within SLA window | Inconvenience only; customer has inventory buffer | Delay to distributor who carries 30-day stock |
 | 2 — Moderate | Regular account | SLA at risk but not yet breached | Customer will notice, may request credit | Delivery misses requested date but within contractual tolerance |
 | 3 — Significant | Key account (top 20%) | SLA breach within 24 hrs | Customer's operations impacted; regional stockout possible | Late delivery to DC feeding retail replenishment |
@@ -46,7 +46,7 @@ arrive at the effective severity, which caps at Level 5.
 #### Dimension C — Time Sensitivity
 
 | Level | Available Recovery Window | Alternative Sourcing | Perishability | Typical Scenarios |
-|-------|--------------------------|---------------------|--------------|-------------------|
+|-------|--|--|--|--|
 | 1 — Minimal | > 5 business days before customer need-by | Multiple alternatives available | Non-perishable | Stock replenishment with safety stock in place |
 | 2 — Moderate | 2–5 business days | Alternatives available but at premium cost | Non-perishable, but inventory turn pressure | Promotional inventory needed before event window |
 | 3 — Significant | 24–48 hours | Limited alternatives, ground expedite still viable | Perishable with > 48 hrs remaining shelf life | Fresh produce with 5-day shelf life at day 3 |
@@ -56,7 +56,7 @@ arrive at the effective severity, which caps at Level 5.
 #### Dimension D — Regulatory / Safety
 
 | Level | Regulatory Exposure | Safety Concern | Reporting Obligation | Typical Scenarios |
-|-------|-------------------|---------------|---------------------|-------------------|
+|-------|--|--|--|--|
 | 1 — None | No regulatory dimension | No safety concern | None | Standard dry freight, consumer goods |
 | 2 — Low | Regulatory dimension exists but no violation | Potential quality concern, no safety risk | Internal documentation only | Cosmetics with minor packaging damage, electronics with cosmetic dents |
 | 3 — Moderate | Potential regulatory inquiry if not documented properly | Quality compromise that could reach end consumer | Proactive notification to QA team; may require regulatory hold | Food products with cold chain deviation within acceptable range |
@@ -69,7 +69,7 @@ Apply these modifiers after computing the raw composite score. Elevation is addi
 but caps at Level 5.
 
 | Condition | Elevation |
-|-----------|-----------|
+|--|--|
 | Customer is under active QBR (quarterly business review) period | +1 level |
 | This is the 3rd+ exception on the same lane in 30 days | +1 level |
 | Exception occurred on a shipment booked at premium/guaranteed service | +1 level |
@@ -81,7 +81,7 @@ but caps at Level 5.
 ### 1.4 Severity-to-Action Mapping
 
 | Effective Severity | Assigned To | Initial Response SLA | Customer Notification | Internal Notification | Review Cadence |
-|-------------------|-------------|---------------------|----------------------|----------------------|---------------|
+|--|--|--|--|--|--|
 | Level 1 | Analyst (auto-assign) | 8 business hours | Only if customer inquires | None required | Daily batch review |
 | Level 2 | Analyst (auto-assign) | 4 business hours | Proactive if delivery date affected | Team lead dashboard | Daily batch review |
 | Level 3 | Senior analyst (manual assign) | 2 hours | Proactive with resolution timeline | Manager notification | Every 4 hours |
@@ -123,7 +123,7 @@ chargeback purposes.
 Standard cost multipliers against base freight cost:
 
 | Expedite Method | Multiplier vs. Base Rate | Typical Lead Time | When to Use |
-|----------------|------------------------|------------------|-------------|
+|--|--|--|--|
 | Ground re-ship (same mode) | 1.0–1.3× | Original transit time | Recovery window > 5 business days |
 | Ground expedite (team driver / exclusive-use) | 2.5–4.0× | 40–60% of standard transit | Recovery window 2–5 business days, shipment > 150 lbs |
 | LTL guaranteed (volume or guaranteed overnight) | 1.8–2.5× | Next-day to 2-day | Recovery window 1–3 days, shipment < 10,000 lbs |
@@ -140,7 +140,7 @@ if weight allows; FTL expedite is cheaper above roughly 4,000–5,000 lbs depend
 #### Customer Penalties (CP)
 
 | Penalty Type | Typical Range | Calculation |
-|-------------|--------------|-------------|
+|--|--|--|
 | Retail chargeback (late delivery to DC) | $500 flat + $50–$150 per carton | Per retailer's vendor compliance guide |
 | Retail chargeback (ASN/labeling error from re-ship) | $200–$1,000 flat | Often triggered by rush re-ships that bypass EDI integration |
 | OTIF (On-Time In-Full) penalty | 3–8% of invoice value per occurrence | Walmart = 3% of COGS; other retailers vary |
@@ -153,7 +153,7 @@ if weight allows; FTL expedite is cheaper above roughly 4,000–5,000 lbs depend
 Internal labor cost to manage the exception from intake to closure:
 
 | Complexity Tier | Activities | Estimated Hours | Cost at $45/hr Fully Loaded |
-|----------------|-----------|----------------|---------------------------|
+|--|--|--|--|
 | Tier 1 — Simple | Log, one carrier call, update customer, close | 1.5–2.5 hrs | $68–$113 |
 | Tier 2 — Standard | Log, multiple carrier contacts, file claim, gather docs, customer updates, close | 4–8 hrs | $180–$360 |
 | Tier 3 — Complex | All of Tier 2 + inspection coordination, multi-party dispute, escalation, legal review potential | 12–25 hrs | $540–$1,125 |
@@ -267,7 +267,7 @@ The carrier acknowledges the exception, provides updates, and works toward resol
 This is the expected path with contracted carriers in good standing.
 
 | Checkpoint | Action | Expected Carrier Response | If Response is Inadequate |
-|-----------|--------|--------------------------|--------------------------|
+|--|--------|--|--|
 | 0 hrs (intake) | Send initial exception notice via carrier portal or email with PRO#, BOL#, description of exception, requested action, and response deadline | Acknowledgment within 1 hour during business hours | Move to Path B at 2 hrs |
 | 2 hrs | Verify carrier acknowledgment received; confirm they have assigned the exception internally | Carrier provides case/reference number and assigned handler name | Escalate to carrier's operations supervisor; send second notice with "Escalation" in subject |
 | 4 hrs | Request status update — what has the carrier done so far, what is the plan, what is the revised ETA or inspection timeline | Specific plan with timeline: "Driver ETA 6pm" or "Inspector scheduled tomorrow AM" | Call carrier's account representative (not just dispatch). Document that operational channel is unresponsive |
@@ -283,7 +283,7 @@ overwhelmed, claims department is backed up, or the contact information is wrong
 Common with smaller asset carriers and during peak season.
 
 | Checkpoint | Action | Objective | Escalation |
-|-----------|--------|-----------|-----------|
+|--|--------|--|--|
 | 0–2 hrs | Standard notice sent, no response received | Establish contact | Try all available channels: portal, email, phone. If broker-arranged shipment, contact broker AND underlying carrier |
 | 2 hrs | Call carrier dispatch directly. If no answer, leave voicemail with your callback number and shipment references. Send follow-up email with "URGENT — Response Required" subject | Get any human response | If broker-arranged: put broker on notice that their carrier is unresponsive. Broker has contractual obligation to manage their carrier |
 | 4 hrs | Second call to dispatch. Try driver's cell if available (from BOL or load confirmation). Contact carrier's safety/compliance department (different phone tree) as alternative entry point | Any status information | Notify your team lead. Begin contingency planning for re-ship or alternative resolution |
@@ -299,7 +299,7 @@ or acts in bad faith. This includes situations where the carrier's claims depart
 issues a blanket denial without investigating.
 
 | Checkpoint | Action | Documentation Priority | Escalation |
-|-----------|--------|----------------------|-----------|
+|--|--------|--|--|
 | 0 hrs (denial received) | Review denial letter/email line by line. Identify the specific basis for denial (act of shipper, inherent vice, act of God, packaging, etc.) | Preserve all original documentation. Screenshot carrier portal status history before it can be altered | Assign to senior analyst or claims specialist, not junior staff |
 | 2 hrs | Draft point-by-point rebuttal addressing each denial reason with documentary evidence. Under Carmack, once shipper proves three elements (good condition at tender, damaged at delivery, damages amount), burden shifts to carrier | Organize evidence package: clean BOL, exception-noted POD, photos, packing specs, weight certificates, temperature logs | Brief team lead on denial and planned rebuttal strategy |
 | 4 hrs | Send formal rebuttal via email and carrier portal with all supporting evidence attached. Request "reconsideration of claim denial" and cite specific regulatory basis for carrier liability | Send via method that provides delivery confirmation. Keep copies of everything sent | If denial is clearly frivolous (e.g., "act of God" for a forklift puncture), notify carrier's account manager that denial is damaging the relationship |
@@ -333,7 +333,7 @@ The decision to file a formal claim is not automatic. Each path has costs and tr
 #### Decision Matrix
 
 | Scenario | Recommended Path | Rationale |
-|----------|-----------------|-----------|
+|--|--|--|
 | Claim value < $250, carrier has self-service portal | File via portal (< 15 min effort) | Automated filing cost is near-zero; builds claims history for scorecard |
 | Claim value < $500, no portal, good carrier relationship | Absorb, log for scorecard | APC exceeds likely net recovery. Mention informally to carrier rep at next review |
 | Claim value $500–$2,500, clear carrier liability | Negotiate pre-claim: call carrier and propose a freight credit or invoice deduction | Faster resolution (days vs. months), preserves relationship, avoids formal claims overhead |
@@ -365,7 +365,7 @@ claims. Adjust ±10% based on your specific carrier relationships and documentat
 quality.
 
 | Carrier Type | Damage (visible, noted on POD) | Damage (concealed) | Shortage (noted at delivery) | Full Loss | Delay (service failure) |
-|-------------|-------------------------------|-------------------|----------------------------|----------|----------------------|
+|--|--|--|--|--|--|
 | National LTL (FedEx Freight, XPO, Estes, ODFL) | 80–90% | 40–55% | 70–80% | 85–95% | 15–25% (unless guaranteed service) |
 | Regional LTL | 70–85% | 30–45% | 60–75% | 75–85% | 10–20% |
 | Asset FTL carrier (large fleet) | 75–90% | 35–50% | 65–80% | 80–90% | 20–35% |
@@ -887,7 +887,7 @@ and a railroad (BNSF, UP, CSX, NS, etc.) that performs the linehaul.
 ### 6.1 Internal Escalation — Who, When, How
 
 | Severity / Trigger | Escalation Target (Role) | Information Required | Channel | Expected Response Time | Follow-Up Cadence |
-|--------------------|--------------------------|---------------------|---------|----------------------|-------------------|
+|--|--|--|---------|--|--|
 | Level 1 exception, no resolution after 48 hrs | Exception Team Lead | Exception summary, carrier contact log, current status | Email (team queue) or Slack/Teams channel | 4 business hours | Daily until resolved |
 | Level 2 exception, no resolution after 24 hrs | Exception Team Lead | Exception summary, financial impact estimate, carrier response history | Email with priority flag + verbal heads-up | 2 business hours | Every 8 hours |
 | Level 3 exception at intake | Exception Manager | Full exception brief: financial impact, customer impact, timeline, carrier status, recommended action | Phone call + email follow-up within 30 min | 1 hour | Every 4 hours |
@@ -903,7 +903,7 @@ and a railroad (BNSF, UP, CSX, NS, etc.) that performs the linehaul.
 ### 6.2 External Escalation — Carrier-Side Contacts
 
 | Escalation Level | Carrier Contact (Title) | When to Engage | What to Say | Expected Outcome |
-|-----------------|------------------------|---------------|-------------|-----------------|
+|--|--|--|--|--|
 | Level 1 | Carrier Customer Service / Dispatch Agent | First contact for any exception | State the exception, provide references, request status and ETA | Information and initial action |
 | Level 2 | Operations Supervisor / Terminal Manager | When Level 1 is unresponsive (2 hrs) or unable to resolve | Reference the open case number, state the business impact, request supervisor intervention | Escalated attention, possible override of standard process |
 | Level 3 | Regional Operations Director or VP Operations | When 2+ business days with no resolution, or high-value exception | Formal email referencing all prior communications, stating financial exposure and expected resolution | Direct oversight, dedicated resource assigned |
@@ -913,7 +913,7 @@ and a railroad (BNSF, UP, CSX, NS, etc.) that performs the linehaul.
 ### 6.3 External Escalation — Third Parties
 
 | Party | When to Engage | Contact Method | Cost | Expected Outcome |
-|-------|---------------|---------------|------|-----------------|
+|-------|--|--|------|--|
 | Independent marine / cargo surveyor | Damage claim > $5,000, or any disputed damage | Engage through your insurance broker's surveyor network, or directly via NAMS (National Association of Marine Surveyors) | $800–$2,500 per survey (domestic); $1,500–$5,000 (international) | Independent damage assessment report admissible in claims and litigation |
 | Third-party claims management firm | When internal claims volume exceeds capacity, or for complex multi-modal claims | Contract through RFP or direct engagement. Major firms: CIS (Claims Information Services), TranSolutions, NovaTrans | Contingency fee 25–33% of recovery, or flat fee $200–$800 per claim depending on complexity | Professional claims handling with higher recovery rates (typically 10–15% higher than in-house for complex claims) |
 | Freight claims attorney | Denied claims > $25,000, or any claim heading to litigation | Engage through industry referral (Transportation Intermediaries Association, Transportation Lawyers Association) | Contingency 25–33%, or hourly $250–$450 for pre-litigation work | Legal demand, negotiation, or litigation |
@@ -934,7 +934,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 2 Hours Post-Intake
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Severity classified? | Must have a score. If insufficient information to score, default to one level above what you suspect and gather data to confirm/downgrade |
 | Carrier contacted? | Initial contact must be made. If unable to reach carrier at 2 hrs, this is now Path B (Unresponsive) |
 | Customer notification needed? | Level 3+: customer must be notified by this checkpoint. Level 1–2: only if customer has already inquired |
@@ -944,7 +944,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 4 Hours Post-Intake
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Carrier response received? | If no response: escalate to carrier operations supervisor. Switch to Path B protocol |
 | Resolution timeline established? | Carrier should have provided a plan and timeline. If not: this is a carrier performance failure in addition to the original exception |
 | Internal escalation needed? | Level 3+: manager should be aware by now. Level 4+: director must be briefed |
@@ -954,7 +954,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 8 Hours Post-Intake (End of Business Day)
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Will this resolve today? | Honest assessment. If not: set next-day actions and ensure overnight monitoring for Level 4+ |
 | Financial impact calculated? | Full TEC should be computed by this point for Level 3+ exceptions |
 | Documentation gathered? | Photos, POD, BOL — everything needed for a claim should be in hand or requested with a deadline |
@@ -964,7 +964,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 24 Hours Post-Intake
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Resolution achieved? | Level 1–2 exceptions should be resolved or near-resolution by 24 hrs. If not: why? |
 | Claim filing decision made? | For damage/shortage/loss: you should know by now whether you are filing a claim, negotiating, or absorbing |
 | Carrier accountability documented? | Regardless of resolution, the carrier's performance on this exception must be logged for scorecard purposes |
@@ -974,7 +974,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 48 Hours Post-Intake
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Escalation review | Any exception open 48 hrs without clear resolution path: escalate to the next level in the chain, regardless of severity |
 | Claim filed? | If claim was warranted, it should be filed by now. Every day of delay weakens the claim (evidence degrades, carrier disputes increase) |
 | Root cause identified? | Even if the exception is not fully resolved, the root cause should be understood. If not: dedicate analytical resource to determine it |
@@ -983,7 +983,7 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 72 Hours Post-Intake
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Resolution or plan | Exception must be either resolved OR have a documented resolution plan with a specific completion date |
 | Management review | All exceptions open > 72 hrs should be on the manager's weekly review report |
 | Customer mitigation complete? | Any customer-facing mitigation (re-ship, credit, expedite) should be completed by this point. The customer should not be waiting |
@@ -991,21 +991,21 @@ identified, regardless of when it actually occurred.
 #### Checkpoint: 5 Business Days
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Concealed damage window closing | 5 days is the industry-standard window for concealed damage claims. If damage was discovered post-delivery, the claim must be filed by this point |
 | Team lead review | Team lead should review any exception open 5 days and assess whether it is being handled efficiently or is stuck |
 
 #### Checkpoint: 10 Business Days
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Claim acknowledgment received? | If claim was filed, carrier must acknowledge within 30 days (per 49 CFR § 370.9), but should acknowledge within 10 business days. If not: follow up formally |
 | Exception aging report | 10-day open exceptions should appear on the manager-level report with a status update required |
 
 #### Checkpoint: 30 Calendar Days
 
 | Decision | Detail |
-|----------|--------|
+|--|--------|
 | Claim acknowledgment mandatory deadline | 30 days is the carrier's regulatory deadline to acknowledge a domestic claim. If not acknowledged: send formal notice citing 49 CFR § 370.9 and state that failure to comply is a regulatory violation |
 | Financial write-off or reserve decision | For unresolved claims: finance team should either reserve the claim amount or write it off, depending on recovery probability assessment |
 | Carrier performance review trigger | Any carrier with an exception open 30 days without resolution should be in a formal performance review conversation |
@@ -1057,7 +1057,7 @@ When volume overwhelms the standard severity matrix process, use this rapid
 triage scoring:
 
 | Factor | Score 3 (Highest Priority) | Score 2 | Score 1 (Lowest Priority) |
-|--------|---------------------------|---------|--------------------------|
+|--------|--|---------|--|
 | Time to customer impact | < 8 hours | 8–48 hours | > 48 hours |
 | Product at risk | Perishable, hazmat, pharma | High-value non-perishable (> $25K) | Standard product < $25K |
 | Customer tier | Enterprise / penalty contract | Key account | Standard |
@@ -1101,7 +1101,7 @@ During a triage event:
 ### 8.5 Resource Allocation During Triage
 
 | Exception Priority (Triage Score) | Analyst Allocation | Manager Involvement | Customer Communication |
-|-----------------------------------|--------------------|--------------------|-----------------------|
+|--|--|--|--|
 | Score 13–15 (Critical) | Dedicated senior analyst, 1:1 ratio | Direct manager oversight | VP or account director handles |
 | Score 10–12 (High) | Senior analyst, up to 3:1 ratio | Manager briefed every 2 hours | Account manager handles |
 | Score 7–9 (Medium) | Analyst, up to 5:1 ratio | Included in batch status report | Standard proactive template |
@@ -1144,7 +1144,7 @@ If NRV ≤ 0: ABSORB and log for carrier scorecard
 #### Processing Cost by Complexity Tier
 
 | Tier | Criteria | Internal Hours | External Cost | Total Estimated Cost |
-|------|----------|---------------|--------------|---------------------|
+|------|--|--|--|--|
 | A — Automated | Parcel claim via portal, simple damage with clear POD notation | 0.5 hrs ($23) | $0 | $23 |
 | B — Simple | LTL damage with good documentation, cooperative carrier, value < $2,500 | 2–3 hrs ($90–$135) | $0 | $90–$135 |
 | C — Standard | FTL damage/loss, value $2,500–$10,000, standard claim process | 5–8 hrs ($225–$360) | $0 | $225–$360 |
@@ -1156,7 +1156,7 @@ If NRV ≤ 0: ABSORB and log for carrier scorecard
 Start with the base recovery probabilities from §4.2 and adjust:
 
 | Factor | Adjustment |
-|--------|-----------|
+|--------|--|
 | Documentation is complete and clean (photos, clean BOL, noted POD) | +10% |
 | Documentation is incomplete (missing photos or POD unsigned) | -15% |
 | Carrier has a history of paying claims promptly | +5% |
@@ -1178,7 +1178,7 @@ Typical: annual cost of capital = 8-12%
 ```
 
 | Estimated Days to Recovery | Discount Factor (at 10% annual) |
-|---------------------------|-------------------------------|
+|--|--|
 | 30 days | 0.992 |
 | 60 days | 0.984 |
 | 90 days | 0.976 |
@@ -1215,7 +1215,7 @@ filing drops.
 This is the qualitative overlay. Assign one of these values:
 
 | Carrier Relationship Status | Relationship Cost Factor |
-|----------------------------|------------------------|
+|--|--|
 | New carrier (< 6 months), building relationship | $500 imputed cost — filing a claim this early sends a signal. Absorb small claims if possible and address in the quarterly review |
 | Established carrier (6+ months), good relationship | $0 — professional carriers expect claims as part of the business. Filing does not damage the relationship if done respectfully |
 | Strategic carrier (top 5 by spend, or sole-source on critical lanes) | $250 imputed cost — even though the relationship is strong enough to handle claims, there is a negotiation overhead and quarterly review complexity |
@@ -1293,7 +1293,7 @@ rates increase 30–50%, and claims departments slow down. Adjust decision frame
 accordingly.
 
 | Parameter | Standard Setting | Peak Season Adjustment | Rationale |
-|-----------|-----------------|----------------------|-----------|
+|--|--|--|--|
 | Carrier response SLA (before escalation) | 2 hours | 4 hours | Carrier dispatch is overwhelmed; allow more time before declaring unresponsive |
 | Customer notification threshold | Level 3+ proactive | Level 2+ proactive | Customer expectations are already fragile during peak; proactive communication prevents inbound complaint calls |
 | Expedite authorization threshold | Manager approval > $5,000 | Manager approval > $10,000 | Expedite costs are inflated 50–100% during peak; air capacity is scarce. Raise the bar for what justifies a premium expedite |
@@ -1311,7 +1311,7 @@ widespread severe weather (tornado outbreak, flooding) is actively disrupting a
 region.
 
 | Parameter | Standard Setting | Weather Event Adjustment | Duration |
-|-----------|-----------------|------------------------|----------|
+|--|--|--|--|
 | Carrier response SLA | 2 hours | 8 hours (carrier dispatch may be evacuated or overwhelmed) | Until 48 hours after last weather advisory expires |
 | Force majeure acceptance | Require specific documentation | Accept carrier's force majeure claim if weather event is confirmed by NOAA for the route and timeframe | Event duration + 72 hours recovery |
 | Expedite decisions | Standard ROI calculation | Suspend expedite for affected lanes until roads/airports reopen. Redirect expedite spend to alternative routing | Until carrier confirms lane is clear |
@@ -1326,7 +1326,7 @@ Temperature-sensitive shipments increase dramatically. Reefer capacity tightens.
 Temperature exceptions spike.
 
 | Parameter | Standard Setting | Produce Season Adjustment | Rationale |
-|-----------|-----------------|--------------------------|-----------|
+|--|--|--|--|
 | Temperature excursion response time | 2 hours to contact carrier | 1 hour to contact carrier | Perishable shelf life is non-recoverable. Every hour of delay in response reduces the salvageable value |
 | Pre-trip inspection documentation | Recommended | Required — do not load without confirmed pre-trip on reefer unit | Carrier defense #1 is "reefer was fine at dispatch; product was loaded warm." Pre-trip eliminates this |
 | Continuous temperature logging | Required for pharma/biotech | Required for ALL perishable shipments including produce, dairy, frozen food | Carrier disputes on temperature are unresolvable without continuous data |
@@ -1341,7 +1341,7 @@ carrier tender rejections, and increased exception rates as shippers rush to mee
 revenue recognition deadlines.
 
 | Parameter | Standard Setting | Month/Quarter-End Adjustment | Rationale |
-|-----------|-----------------|------------------------------|-----------|
+|--|--|--|--|
 | Backup carrier readiness | Pre-identified for top 20 lanes | Pre-identified and confirmed available for top 50 lanes | Tender rejection rates spike 25–40% at month-end. Having confirmed backup capacity prevents scrambling |
 | Tender rejection response time | 2 hours to re-tender | 1 hour to re-tender | Every hour matters when the month is closing. Spot market tightens through the day |
 | Spot market premium approval | Manager approval > 20% over contract rate | Manager pre-approval up to 35% over contract rate | Speed of authorization matters more than cost optimization at month-end. Pre-authorize higher thresholds |
@@ -1423,7 +1423,7 @@ IF product is custom/irreplaceable → EXPEDITE the manufacturing queue, not jus
 ## Appendix B — Acronyms and Glossary
 
 | Term | Definition |
-|------|-----------|
+|------|--|
 | APC | Administrative Processing Cost — internal labor cost to handle an exception |
 | ASN | Advanced Shipping Notice — EDI 856 document notifying customer of incoming shipment |
 | BOL / BL | Bill of Lading — the shipping contract between shipper and carrier |

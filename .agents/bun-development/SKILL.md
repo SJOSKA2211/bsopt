@@ -8,7 +8,7 @@ date_added: "2026-02-27"
 
 <!-- security-allowlist: curl-pipe-bash, irm-pipe-iex -->
 
-# ⚡ Bun Development
+#  Bun Development
 
 > Fast, modern JavaScript/TypeScript development with the Bun runtime, inspired by [oven-sh/bun](https://github.com/oven-sh/bun).
 
@@ -49,7 +49,7 @@ bun upgrade
 ### 1.2 Why Bun?
 
 | Feature         | Bun            | Node.js                     |
-| :-------------- | :------------- | :-------------------------- |
+| :-- | :-- | :-- |
 | Startup time    | ~25ms          | ~100ms+                     |
 | Package install | 10-100x faster | Baseline                    |
 | TypeScript      | Native         | Requires transpiler         |
@@ -605,21 +605,21 @@ bun add -d @types/bun
 ### 8.3 Differences from Node.js
 
 ```typescript
-// ❌ Node.js specific (may not work)
+//  Node.js specific (may not work)
 require("module")             // Use import instead
 require.resolve("pkg")        // Use import.meta.resolve
 __non_webpack_require__       // Not supported
 
-// ✅ Bun equivalents
+//  Bun equivalents
 import pkg from "pkg";
 const resolved = import.meta.resolve("pkg");
 Bun.resolveSync("pkg", process.cwd());
 
-// ❌ These globals differ
+//  These globals differ
 process.hrtime()              // Use Bun.nanoseconds()
 setImmediate()                // Use queueMicrotask()
 
-// ✅ Bun-specific features
+//  Bun-specific features
 const file = Bun.file("./data.txt");  // Fast file API
 Bun.serve({ port: 3000, fetch: ... }); // Fast HTTP server
 Bun.password.hash(password);           // Built-in hashing
@@ -675,7 +675,7 @@ bun run ./dist/index.js
 ## Quick Reference
 
 | Task         | Command                                    |
-| :----------- | :----------------------------------------- |
+| :-- | :-- |
 | Init project | `bun init`                                 |
 | Install deps | `bun install`                              |
 | Add package  | `bun add <pkg>`                            |

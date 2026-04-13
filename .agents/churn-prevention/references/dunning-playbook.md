@@ -61,7 +61,7 @@ This takes less than 30 seconds.
 Major card networks offer automatic card update programs:
 
 | Service | Network | What It Does |
-|---------|---------|--------------|
+|---------|---------|--|
 | Visa Account Updater (VAU) | Visa | Auto-updates stored card numbers and expiry dates |
 | Mastercard Automatic Billing Updater (ABU) | Mastercard | Same for Mastercard |
 | Amex Cardrefresher | American Express | Same for Amex |
@@ -116,7 +116,7 @@ For annual plans or high-value subscriptions:
 **Manual retry schedule (if no smart retries):**
 
 | Retry | Timing | Best Day/Time |
-|-------|--------|--------------|
+|-------|--------|--|
 | 1 | Day 1 (24h after failure) | Morning, same day of week as original |
 | 2 | Day 3 | Try a different time of day |
 | 3 | Day 5 | After typical payday (1st, 15th) |
@@ -239,7 +239,7 @@ will be paused automatically.
 ### What Happens During Grace Period
 
 | Setting | Recommendation |
-|---------|---------------|
+|---------|--|
 | Duration | 7-14 days after final retry |
 | Access | Degraded (read-only) or full access |
 | Visibility | In-app banner: "Payment past due — update to continue" |
@@ -340,7 +340,7 @@ Don't rely on email alone. Show payment failures in the app:
 ### Banner Pattern
 ```
 ┌──────────────────────────────────────────────────────┐
-│ ⚠ Your payment of $29 failed. Update your card to    │
+│  Your payment of $29 failed. Update your card to    │
 │ avoid losing access. [Update Payment →]  [Dismiss]   │
 └──────────────────────────────────────────────────────┘
 ```
@@ -375,7 +375,7 @@ Don't rely on email alone. Show payment failures in the app:
 ### Key Metrics
 
 | Metric | How to Calculate | Target |
-|--------|-----------------|--------|
+|--------|--|--------|
 | Recovery rate | Recovered payments / Total failed | 50-60% |
 | Recovery rate by decline type | Recovered / Failed per type | Soft: 70%+, Hard: 40%+ |
 | Time to recovery | Days from failure to successful payment | <5 days |
@@ -390,7 +390,7 @@ Don't rely on email alone. Show payment failures in the app:
 **By company stage:**
 
 | Stage | Typical Involuntary Churn | Target After Optimization |
-|-------|--------------------------|--------------------------|
+|-------|--|--|
 | Early (< $1M ARR) | 3-5% of MRR/month | 1-2% |
 | Growth ($1-10M ARR) | 2-4% of MRR/month | 0.5-1.5% |
 | Scale ($10M+ ARR) | 1-3% of MRR/month | 0.3-0.8% |

@@ -78,7 +78,7 @@ Platforms reject or truncate creative that exceeds these limits, so verify every
 ### Google Ads (Responsive Search Ads)
 
 | Element | Limit | Quantity |
-|---------|-------|----------|
+|---------|-------|--|
 | Headline | 30 characters | Up to 15 |
 | Description | 90 characters | Up to 4 |
 | Display URL path | 15 characters each | 2 paths |
@@ -154,7 +154,7 @@ Before writing individual headlines, establish 3-5 distinct **angles** — diffe
 **Common angle categories:**
 
 | Category | Example Angle |
-|----------|---------------|
+|--|--|
 | Pain point | "Stop wasting time on X" |
 | Outcome | "Achieve Y in Z days" |
 | Social proof | "Join 10,000+ teams who..." |
@@ -342,7 +342,7 @@ For large-scale creative production (Anthropic's growth team generates 100+ vari
 For pulling performance data and managing campaigns, use the relevant ads platform tools available in this environment.
 
 | Platform | Pull Performance Data | Manage Campaigns | Guide |
-|----------|:---------------------:|:----------------:|-------|
+|--|:--:|:--:|-------|
 | **Google Ads** | `google-ads campaigns list`, `google-ads reports get` | `google-ads campaigns create` | Use available Google Ads integrations |
 | **Meta Ads** | `meta-ads insights get` | `meta-ads campaigns list` | Use available Meta Ads integrations |
 | **LinkedIn Ads** | `linkedin-ads analytics get` | `linkedin-ads campaigns list` | Use available LinkedIn Ads integrations |

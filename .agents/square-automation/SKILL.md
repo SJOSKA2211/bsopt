@@ -165,7 +165,7 @@ Automate Square payment processing, order management, and invoicing through Comp
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List payments | SQUARE_LIST_PAYMENTS | begin_time, end_time, location_id, cursor |
 | Cancel payment | SQUARE_CANCEL_PAYMENT | payment_id |
 | Search orders | SQUARE_SEARCH_ORDERS | location_ids, query, cursor |

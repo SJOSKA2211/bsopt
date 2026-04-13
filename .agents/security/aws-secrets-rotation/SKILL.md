@@ -259,7 +259,7 @@ aws cloudwatch put-metric-alarm \
 # audit-rotations.sh
 
 echo "Secrets Rotation Audit"
-echo "====================="
+echo "=="
 
 aws secretsmanager list-secrets --query 'SecretList[*].[Name,RotationEnabled,LastRotatedDate]' \
   --output text | \
@@ -281,7 +281,7 @@ while read name enabled last_rotated; do
       echo "  Days Since Rotation: $days_ago"
       
       if [ $days_ago -gt $rules ]; then
-        echo "  ⚠️  OVERDUE for rotation!"
+        echo "  ️  OVERDUE for rotation!"
       fi
     fi
   fi

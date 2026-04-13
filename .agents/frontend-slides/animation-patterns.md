@@ -5,7 +5,7 @@ Use this reference when generating presentations. Match animations to the intend
 ## Effect-to-Feeling Guide
 
 | Feeling | Animations | Visual Cues |
-|---------|-----------|-------------|
+|---------|--|--|
 | **Dramatic / Cinematic** | Slow fade-ins (1-1.5s), large scale transitions (0.9 to 1), parallax scrolling | Dark backgrounds, spotlight effects, full-bleed images |
 | **Techy / Futuristic** | Neon glow (box-shadow), glitch/scramble text, grid reveals | Particle systems (canvas), grid patterns, monospace accents, cyan/magenta/electric blue |
 | **Playful / Friendly** | Bouncy easing (spring physics), floating/bobbing | Rounded corners, pastel/bright colors, hand-drawn elements |

@@ -4,7 +4,7 @@
 
 ---
 
-## 📁 Basic Folder Structure
+##  Basic Folder Structure
 
 ```
 skills/
@@ -165,10 +165,10 @@ More instructions...
 ```markdown
 ## Best Practices
 
-- ✅ Do this
-- ✅ Also do this
-- ❌ Don't do this
-- ❌ Avoid this
+-  Do this
+-  Also do this
+-  Don't do this
+-  Avoid this
 ```
 
 #### 7. Common Pitfalls
@@ -212,36 +212,36 @@ add a dedicated section before final wrap-up:
 
 ### Use Clear, Direct Language
 
-**❌ Bad:**
+** Bad:**
 ```markdown
 You might want to consider possibly checking if the user has authentication.
 ```
 
-**✅ Good:**
+** Good:**
 ```markdown
 Check if the user is authenticated before proceeding.
 ```
 
 ### Use Action Verbs
 
-**❌ Bad:**
+** Bad:**
 ```markdown
 The file should be created...
 ```
 
-**✅ Good:**
+** Good:**
 ```markdown
 Create the file...
 ```
 
 ### Be Specific
 
-**❌ Bad:**
+** Bad:**
 ```markdown
 Set up the database properly.
 ```
 
-**✅ Good:**
+** Good:**
 ```markdown
 1. Create a PostgreSQL database
 2. Run migrations: `npm run migrate`
@@ -371,7 +371,7 @@ Use consistent formatting:
 
 ---
 
-## ✅ Quality Checklist
+##  Quality Checklist
 
 Before finalizing your skill:
 
@@ -401,7 +401,7 @@ Before finalizing your skill:
 
 ---
 
-## 🔍 Real-World Example Analysis
+##  Real-World Example Analysis
 
 Let's analyze a real skill: `brainstorming`
 
@@ -413,9 +413,9 @@ description: "You MUST use this before any creative work..."
 ```
 
 **Analysis:**
-- ✅ Clear name
-- ✅ Strong description with urgency ("MUST use")
-- ✅ Explains when to use it
+-  Clear name
+-  Strong description with urgency ("MUST use")
+-  Explains when to use it
 
 ```markdown
 # Brainstorming Ideas Into Designs
@@ -425,9 +425,9 @@ Help turn ideas into fully formed designs...
 ```
 
 **Analysis:**
-- ✅ Clear title
-- ✅ Concise overview
-- ✅ Explains the value proposition
+-  Clear title
+-  Concise overview
+-  Explains the value proposition
 
 ```markdown
 ## The Process
@@ -438,9 +438,9 @@ Help turn ideas into fully formed designs...
 ```
 
 **Analysis:**
-- ✅ Broken into clear phases
-- ✅ Specific, actionable steps
-- ✅ Easy to follow
+-  Broken into clear phases
+-  Specific, actionable steps
+-  Easy to follow
 
 ---
 
@@ -518,7 +518,7 @@ How to know if your skill is good:
 
 ---
 
-## 💡 Pro Tips
+##  Pro Tips
 
 1. **Start with the "When to Use" section** - This clarifies the skill's purpose
 2. **Write examples first** - They help you understand what you're teaching
@@ -530,13 +530,13 @@ How to know if your skill is good:
 
 ## Common Mistakes to Avoid
 
-### ❌ Mistake 1: Too Vague
+###  Mistake 1: Too Vague
 ```markdown
 ## Instructions
 Make the code better.
 ```
 
-**✅ Fix:**
+** Fix:**
 ```markdown
 ## Instructions
 1. Extract repeated logic into functions
@@ -544,35 +544,35 @@ Make the code better.
 3. Write unit tests for core functionality
 ```
 
-### ❌ Mistake 2: Too Complex
+###  Mistake 2: Too Complex
 ```markdown
 ## Instructions
 [5000 words of dense technical jargon]
 ```
 
-**✅ Fix:**
+** Fix:**
 Break into multiple skills or use progressive disclosure
 
-### ❌ Mistake 3: No Examples
+###  Mistake 3: No Examples
 ```markdown
 ## Instructions
 [Instructions without any code examples]
 ```
 
-**✅ Fix:**
+** Fix:**
 Add at least 2-3 realistic examples
 
-### ❌ Mistake 4: Outdated Information
+###  Mistake 4: Outdated Information
 ```markdown
 Use React class components...
 ```
 
-**✅ Fix:**
+** Fix:**
 Keep skills updated with current best practices
 
 ---
 
-## 🎯 Next Steps
+##  Next Steps
 
 1. **Read 3-5 existing skills** to see different styles
 2. **Try the skill template** from [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md)
@@ -582,4 +582,4 @@ Keep skills updated with current best practices
 
 ---
 
-**Remember:** Every expert was once a beginner. Start simple, learn from feedback, and improve over time! 🚀
+**Remember:** Every expert was once a beginner. Start simple, learn from feedback, and improve over time! 

@@ -226,7 +226,7 @@ async def main():
 ## Provider Methods
 
 | Method | Description |
-|--------|-------------|
+|--------|--|
 | `create_agent()` | Create new agent on Azure AI service |
 | `get_agent(agent_id)` | Retrieve existing agent by ID |
 | `as_agent(sdk_agent)` | Wrap SDK Agent object (no HTTP call) |

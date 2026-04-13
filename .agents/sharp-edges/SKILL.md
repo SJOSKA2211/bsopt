@@ -34,7 +34,7 @@ Evaluates whether APIs, configurations, and interfaces are resistant to develope
 ## Rationalizations to Reject
 
 | Rationalization | Why It's Wrong | Required Action |
-|-----------------|----------------|-----------------|
+|--|--|--|
 | "It's documented" | Developers don't read docs under deadline pressure | Make the secure choice the default or only option |
 | "Advanced users need flexibility" | Flexibility creates footguns; most "advanced" usage is copy-paste | Provide safe high-level APIs; hide primitives |
 | "It's the developer's responsibility" | Blame-shifting; you designed the footgun | Remove the footgun or make it impossible to misuse |
@@ -247,7 +247,7 @@ If a finding seems questionable, return to Phase 2 and probe more edge cases.
 ## Severity Classification
 
 | Severity | Criteria | Examples |
-|----------|----------|----------|
+|--|--|--|
 | Critical | Default or obvious usage is insecure | `verify: false` default; empty password allowed |
 | High | Easy misconfiguration breaks security | Algorithm parameter accepts "none" |
 | Medium | Unusual but possible misconfiguration | Negative timeout has unexpected meaning |
@@ -265,7 +265,7 @@ If a finding seems questionable, return to Phase 2 and probe more edge cases.
 **By language** (general footguns, not crypto-specific):
 
 | Language | Guide |
-|----------|-------|
+|--|-------|
 | C/C++ | references/lang-c.md |
 | Go | references/lang-go.md |
 | Rust | references/lang-rust.md |

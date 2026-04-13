@@ -210,7 +210,7 @@ await setStorage({ settings: { ...settings, theme: 'dark' } });
 
 ## Anti-Patterns
 
-### ❌ Requesting All Permissions
+###  Requesting All Permissions
 
 **Why bad**: Users won't install.
 Store may reject.
@@ -222,7 +222,7 @@ Use optional permissions.
 Explain why in description.
 Request at time of use.
 
-### ❌ Heavy Background Processing
+###  Heavy Background Processing
 
 **Why bad**: MV3 terminates idle workers.
 Battery drain.
@@ -234,7 +234,7 @@ Use alarms for periodic tasks.
 Offload to content scripts.
 Cache aggressively.
 
-### ❌ Breaking on Updates
+###  Breaking on Updates
 
 **Why bad**: Selectors change.
 APIs change.

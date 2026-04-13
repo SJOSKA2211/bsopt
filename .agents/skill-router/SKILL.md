@@ -75,14 +75,14 @@ collaboratively (you stay in the loop)?**
 Based on their answers, recommend **1 primary skill** and up to **2 secondary
 skills**. Structure your recommendation exactly like this:
 
-**✅ Primary Skill: `@skill-name`**
+** Primary Skill: `@skill-name`**
 *Why:* [1–2 sentences explaining why this is the best fit for what they described]
 *Invoke it like this:*
 ```
 @skill-name [paste their goal here]
 ```
 
-**🔁 Also consider:**
+** Also consider:**
 - `@skill-name-2` — [one sentence on when to layer this in]
 - `@skill-name-3` — [one sentence on when to layer this in]
 
@@ -121,13 +121,13 @@ Agent: What tech stack? (React, Node, Python, etc. — or "not sure")
 
 User: Next.js
 
-Agent: ✅ Primary Skill: @brainstorming
+Agent:  Primary Skill: @brainstorming
        Why: You have a rough idea that needs shaping before building.
        Brainstorming asks structured questions and produces a clear spec.
 
        @brainstorming help me design a [your app idea] using Next.js
 
-       🔁 Also consider:
+        Also consider:
        - @plan-writing — once brainstorming produces a spec, break it into tasks
        - @senior-fullstack — when you are ready to start building
 

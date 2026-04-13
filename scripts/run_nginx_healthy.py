@@ -24,7 +24,7 @@ def check_health(url, timeout=120, interval=5):
             resp = requests.get(url, timeout=2)
             if resp.status_code == 200:
                 console.print(
-                    Panel("[bold green]✅ NGINX GATEWAY & UPSTREAM ARE HEALTHY[/bold green]")
+                    Panel("[bold green] NGINX GATEWAY & UPSTREAM ARE HEALTHY[/bold green]")
                 )
                 return True
             else:
@@ -78,11 +78,11 @@ if __name__ == "__main__":
         if check_health(health_url):
             console.print(
                 Panel(
-                    "[bold green]🚀 NGINX API GATEWAY (OPTIMIZED) IS ONLINE[/bold green]",
+                    "[bold green] NGINX API GATEWAY (OPTIMIZED) IS ONLINE[/bold green]",
                     title="Success",
                 )
             )
             sys.exit(0)
 
-    console.print(Panel("[bold red]❌ FAILED to reach healthy state[/bold red]"))
+    console.print(Panel("[bold red] FAILED to reach healthy state[/bold red]"))
     sys.exit(1)

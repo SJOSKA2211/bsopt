@@ -141,11 +141,11 @@ fun AppNavHost(navController: NavHostController) {
 
 ## Best Practices
 
-- ✅ **Do:** Use `remember` and `derivedStateOf` to minimize unnecessary calculations during recomposition.
-- ✅ **Do:** Mark data classes used in UI state as `@Immutable` or `@Stable` if they contain `List` or other unstable types to enable smart recomposition skipping.
-- ✅ **Do:** Use `LaunchedEffect` for one-off side effects (like showing a Snackbar) triggered by state changes.
-- ❌ **Don't:** Perform expensive operations (like sorting a list) directly inside the Composable function body without `remember`.
-- ❌ **Don't:** Pass `ViewModel` instances down to child components. Pass only the data (state) and lambda callbacks (events).
+-  **Do:** Use `remember` and `derivedStateOf` to minimize unnecessary calculations during recomposition.
+-  **Do:** Mark data classes used in UI state as `@Immutable` or `@Stable` if they contain `List` or other unstable types to enable smart recomposition skipping.
+-  **Do:** Use `LaunchedEffect` for one-off side effects (like showing a Snackbar) triggered by state changes.
+-  **Don't:** Perform expensive operations (like sorting a list) directly inside the Composable function body without `remember`.
+-  **Don't:** Pass `ViewModel` instances down to child components. Pass only the data (state) and lambda callbacks (events).
 
 ## Troubleshooting
 

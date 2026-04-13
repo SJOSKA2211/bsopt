@@ -96,7 +96,7 @@ Quando o usuario pedir para gerar uma imagem, siga este fluxo:
 Pergunte ou deduza pelo contexto:
 
 | Modo | Quando Usar | Caracteristicas |
-|------|-------------|-----------------|
+|------|--|--|
 | **influencer** | Posts de redes sociais, lifestyle, branding pessoal | Estetica atraente mas natural, cores vibrantes sem saturacao excessiva, composicao que prende atencao |
 | **educacional** | Material de curso, tutorial, apresentacao, infografico | Visual limpo, profissional, foco no conteudo, elementos claros e legiveis |
 
@@ -106,7 +106,7 @@ e **educacional** para qualquer coisa relacionada a ensino/apresentacao.
 ## Passo 2: Identificar O Formato
 
 | Formato | Aspect Ratio | Uso Ideal |
-|---------|-------------|-----------|
+|---------|--|--|
 | `square` | 1:1 | Feed Instagram, Facebook, perfis |
 | `portrait` | 3:4 | Instagram portrait, Pinterest |
 | `landscape` | 16:9 | YouTube thumbnails, banners, desktop |
@@ -169,7 +169,7 @@ python C:\Users\renat\skills\ai-studio-image\scripts\generate.py \
 **Modelos disponiveis (em ordem de recomendacao):**
 
 | Modelo | Velocidade | Qualidade | Custo | Uso Ideal |
-|--------|-----------|-----------|-------|-----------|
+|--------|--|--|-------|--|
 | `gemini-2-flash-exp` | Rapido | Alta | **GRATIS** | **Padrao — usar sempre** |
 | `imagen-4` | Medio | Alta | $0.03/img | Alta qualidade (requer --force-paid) |
 | `imagen-4-ultra` | Lento | Maxima | $0.06/img | Impressao, 2K (requer --force-paid) |
@@ -198,7 +198,7 @@ Templates disponiveis:
 ## Modo Influencer
 
 | Template | Descricao |
-|----------|-----------|
+|--|--|
 | `cafe-lifestyle` | Pessoa em cafeteria/restaurante com bebida/comida |
 | `outdoor-adventure` | Atividade ao ar livre, natureza, viagem |
 | `workspace-minimal` | Mesa de trabalho elegante, home office |
@@ -213,7 +213,7 @@ Templates disponiveis:
 ## Modo Educacional
 
 | Template | Descricao |
-|----------|-----------|
+|--|--|
 | `tutorial-step` | Pessoa demonstrando passo de tutorial |
 | `whiteboard-explain` | Pessoa explicando em quadro/lousa |
 | `hands-on-demo` | Maos fazendo demonstracao pratica |
@@ -254,7 +254,7 @@ python C:\Users\renat\skills\ai-studio-image\scripts\generate.py \
 A iluminacao muda drasticamente:
 
 | Opcao | Descricao |
-|-------|-----------|
+|-------|--|
 | `morning` | Luz matinal suave, tons frios-quentes |
 | `golden-hour` | Por-do-sol/nascer, tons dourados |
 | `midday` | Luz dura do meio-dia, sombras marcadas |
@@ -284,7 +284,7 @@ As imagens geradas podem ser enviadas para o Canva para adicao de texto/branding
 ## Troubleshooting
 
 | Problema | Solucao |
-|----------|---------|
+|--|---------|
 | `GEMINI_API_KEY not found` | Configure a variavel de ambiente ou crie `.env` |
 | `quota exceeded` | Aguarde reset do rate limit ou upgrade do plano |
 | `image blocked` | Ajuste o prompt — pode conter conteudo restrito |

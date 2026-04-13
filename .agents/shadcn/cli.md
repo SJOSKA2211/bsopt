@@ -26,7 +26,7 @@ npx shadcn@latest init [components...] [options]
 Initializes shadcn/ui in an existing project or creates a new project (when `--name` is provided). Optionally installs components in the same step.
 
 | Flag                    | Short | Description                                               | Default |
-| ----------------------- | ----- | --------------------------------------------------------- | ------- |
+| -- | ----- | -- | ------- |
 | `--template <template>` | `-t`  | Template (next, start, vite, next-monorepo, react-router) | —       |
 | `--preset [name]`       | `-p`  | Preset configuration (named, code, or URL)                | —       |
 | `--yes`                 | `-y`  | Skip confirmation prompt                                  | `true`  |
@@ -53,7 +53,7 @@ npx shadcn@latest add [components...] [options]
 Accepts component names, registry-prefixed names (`@magicui/shimmer-button`), URLs, or local paths.
 
 | Flag            | Short | Description                                                                                                          | Default |
-| --------------- | ----- | -------------------------------------------------------------------------------------------------------------------- | ------- |
+| -- | ----- | -- | ------- |
 | `--yes`         | `-y`  | Skip confirmation prompt                                                                                             | `false` |
 | `--overwrite`   | `-o`  | Overwrite existing files                                                                                             | `false` |
 | `--cwd <cwd>`   | `-c`  | Working directory                                                                                                    | current |
@@ -114,7 +114,7 @@ npx shadcn@latest search <registries...> [options]
 Fuzzy search across registries. Also aliased as `npx shadcn@latest list`. Without `-q`, lists all items.
 
 | Flag                | Short | Description            | Default |
-| ------------------- | ----- | ---------------------- | ------- |
+| -- | ----- | -- | ------- |
 | `--query <query>`   | `-q`  | Search query           | —       |
 | `--limit <number>`  | `-l`  | Max items per registry | `100`   |
 | `--offset <number>` | `-o`  | Items to skip          | `0`     |
@@ -165,13 +165,13 @@ npx shadcn@latest info [options]
 Displays project info and `components.json` configuration. Run this first to discover the project's framework, aliases, Tailwind version, and resolved paths.
 
 | Flag          | Short | Description       | Default |
-| ------------- | ----- | ----------------- | ------- |
+| -- | ----- | -- | ------- |
 | `--cwd <cwd>` | `-c`  | Working directory | current |
 
 **Project Info fields:**
 
 | Field                | Type      | Meaning                                                            |
-| -------------------- | --------- | ------------------------------------------------------------------ |
+| -- | --------- | -- |
 | `framework`          | `string`  | Detected framework (`next`, `vite`, `react-router`, `start`, etc.) |
 | `frameworkVersion`   | `string`  | Framework version (e.g. `15.2.4`)                                  |
 | `isSrcDir`           | `boolean` | Whether the project uses a `src/` directory                        |
@@ -186,7 +186,7 @@ Displays project info and `components.json` configuration. Run this first to dis
 **Components.json fields:**
 
 | Field                | Type      | Meaning                                                                                    |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------ |
+| -- | --------- | -- |
 | `base`               | `string`  | Primitive library (`radix` or `base`) — determines component APIs and available props      |
 | `style`              | `string`  | Visual style (e.g. `nova`, `vega`)                                                         |
 | `rsc`                | `boolean` | RSC flag from config                                                                       |
@@ -215,7 +215,7 @@ npx shadcn@latest build [registry] [options]
 Builds `registry.json` into individual JSON files for distribution. Default input: `./registry.json`, default output: `./public/r`.
 
 | Flag              | Short | Description       | Default      |
-| ----------------- | ----- | ----------------- | ------------ |
+| -- | ----- | -- | -- |
 | `--output <path>` | `-o`  | Output directory  | `./public/r` |
 | `--cwd <cwd>`     | `-c`  | Working directory | current      |
 
@@ -224,7 +224,7 @@ Builds `registry.json` into individual JSON files for distribution. Default inpu
 ## Templates
 
 | Value          | Framework      | Monorepo support |
-| -------------- | -------------- | ---------------- |
+| -- | -- | -- |
 | `next`         | Next.js        | Yes              |
 | `vite`         | Vite           | Yes              |
 | `start`        | TanStack Start | Yes              |

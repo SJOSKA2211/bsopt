@@ -155,7 +155,7 @@ Microsoft Build), reframeu como pensar em LLMs como plataforma:
 **O LLM como kernel de SO:**
 
 | Sistema Operacional | LLM |
-|--------------------|----|
+|--|----|
 | Kernel | Pesos treinados (conhecimento persistente) |
 | RAM (working memory) | Context window |
 | Processos em execução | Agentes rodando raciocínio |
@@ -596,10 +596,10 @@ de inteiros (tokens) que o modelo pode processar.
 import tiktoken
 enc = tiktoken.get_encoding("cl100k_base")
 
-text = "Hello world! 🌍"
+text = "Hello world! "
 tokens = enc.encode(text)
 
-## " 🌍" → 9468, 248, 233  (Emoji Vira 3 Tokens!)
+## " " → 9468, 248, 233  (Emoji Vira 3 Tokens!)
 
 ```
 

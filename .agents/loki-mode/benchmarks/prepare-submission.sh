@@ -1,5 +1,5 @@
 #!/bin/bash
-#===============================================================================
+#==
 # Prepare SWE-bench Submission
 # Converts benchmark results to official SWE-bench submission format
 #
@@ -9,7 +9,7 @@
 #
 # Output:
 #   Creates submission-ready folder at benchmarks/submission/
-#===============================================================================
+#==
 
 set -euo pipefail
 
@@ -196,9 +196,9 @@ CHECKLIST
 
 # Final summary
 echo ""
-echo "======================================================================"
+echo "=="
 echo "  SUBMISSION PREPARED"
-echo "======================================================================"
+echo "=="
 echo "  Location: $SUBMISSION_DIR"
 echo ""
 echo "  Files:"
@@ -210,6 +210,6 @@ echo "  2. Run SWE-bench evaluator (optional)"
 echo "  3. Fork SWE-bench/experiments"
 echo "  4. Copy submission folder to evaluation/lite/"
 echo "  5. Create pull request"
-echo "======================================================================"
+echo "=="
 
 log_success "Submission preparation complete!"

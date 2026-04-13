@@ -226,7 +226,7 @@ async def translate_documents():
 ## Supported Formats
 
 | Category | Formats |
-|----------|---------|
+|--|---------|
 | Documents | DOCX, PDF, PPTX, XLSX, HTML, TXT, RTF |
 | Structured | CSV, TSV, JSON, XML |
 | Localization | XLIFF, XLF, MHTML |

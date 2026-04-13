@@ -31,7 +31,7 @@ Use this skill when Claude in Chrome MCP tools fail to connect or work unreliabl
 ### Two Native Hosts, Two Socket Formats
 
 | Component | Native Host Binary | Socket Location |
-|-----------|-------------------|-----------------|
+|--|--|--|
 | **Claude.app (Cowork)** | `/Applications/Claude.app/Contents/Helpers/chrome-native-host` | `/tmp/claude-mcp-browser-bridge-$USER/<PID>.sock` |
 | **Claude Code CLI** | `~/.local/share/claude/versions/<version> --chrome-native-host` | `$TMPDIR/claude-mcp-browser-bridge-$USER` (single file) |
 

@@ -75,7 +75,7 @@ Pense como um atacante para defender como um profissional:
 ## 2.1 Tipos De Credenciais (Taxonomia Completa)
 
 | Categoria | Exemplos | Criticidade Base |
-|-----------|----------|-----------------|
+|--|--|--|
 | API Keys (strings) | OpenAI sk-*, Google AIza*, Stripe sk_live_* | CRITICA |
 | OAuth Secrets | client_id + client_secret | CRITICA |
 | Access/Refresh Tokens | Bearer tokens, JWT, refresh_token | ALTA |
@@ -275,7 +275,7 @@ rg -n "\.env" .github/workflows/ Jenkinsfile .gitlab-ci.yml 2>/dev/null
 Para cada achado, classificar usando esta matriz:
 
 | Nivel | Criterio | Acao | SLA |
-|-------|----------|------|-----|
+|-------|--|------|-----|
 | **P0 — CRITICO** | Segredo confirmado exposto em repo publico ou produção | Revogar AGORA, rotacionar, notificar | < 1 hora |
 | **P1 — ALTO** | Segredo em repo privado, historico git, ou CI logs | Revogar, rotacionar, limpar historico | < 24 horas |
 | **P2 — MEDIO** | Permissoes excessivas, chave sem restricao, sem rotacao | Restringir, adicionar restricoes, agendar rotacao | < 1 semana |
@@ -682,7 +682,7 @@ F) SECRET REGISTRY
 ## 7.1 Severidade E Tempo De Resposta
 
 | Severidade | Descricao | SLA | Quem |
-|-----------|-----------|-----|------|
+|--|--|-----|------|
 | SEV-1 | Chave admin/root vazada publicamente | < 15 min | Toda equipe |
 | SEV-2 | Token de producao exposto em repo privado | < 1 hora | Dev + Ops |
 | SEV-3 | Chave de dev exposta, permissoes limitadas | < 4 horas | Dev responsavel |
@@ -825,7 +825,7 @@ Monitore estes sinais durante QUALQUER operacao:
 ## Score De Seguranca (0-100)
 
 | Dimensao | Peso | Criterio |
-|----------|------|----------|
+|--|------|--|
 | Exposicao Zero | 25% | Nenhum segredo em repo/front/logs |
 | Least Privilege | 20% | Todas credenciais com escopo minimo |
 | Rotacao | 15% | Todas dentro da politica de rotacao |
@@ -846,7 +846,7 @@ onde dimensao_score = (itens_ok / itens_total) * 100
 ## Skills Complementares
 
 | Skill | Integracao |
-|-------|-----------|
+|-------|--|
 | **007** | Threat modeling + Red Team — cred-omega cuida de segredos, 007 de arquitetura |
 | **instagram** | Protecao de Meta tokens, Graph API secrets |
 | **whatsapp-cloud-api** | Protecao de WABA tokens, webhook secrets |

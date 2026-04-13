@@ -519,26 +519,26 @@ public abstract class DapperRepositoryBase<T> where T : class
 ## Anti-Patterns to Avoid
 
 ```csharp
-// ❌ Bad - SQL injection risk
+//  Bad - SQL injection risk
 var sql = $"SELECT * FROM Products WHERE Name = '{userInput}'";
 
-// ✅ Good - Parameterized query
+//  Good - Parameterized query
 var sql = "SELECT * FROM Products WHERE Name = @Name";
 await connection.QueryAsync<Product>(sql, new { Name = userInput });
 
-// ❌ Bad - Not disposing connection
+//  Bad - Not disposing connection
 var connection = new SqlConnection(connectionString);
 var result = await connection.QueryAsync<Product>(sql);
 // Connection leak!
 
-// ✅ Good - Using statement
+//  Good - Using statement
 using var connection = new SqlConnection(connectionString);
 var result = await connection.QueryAsync<Product>(sql);
 
-// ❌ Bad - Opening connection manually when not needed
+//  Bad - Opening connection manually when not needed
 await connection.OpenAsync();  // Dapper does this automatically
 var result = await connection.QueryAsync<Product>(sql);
 
-// ✅ Good - Let Dapper manage connection
+//  Good - Let Dapper manage connection
 var result = await connection.QueryAsync<Product>(sql);
 ```

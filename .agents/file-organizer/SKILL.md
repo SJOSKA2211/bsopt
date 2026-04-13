@@ -190,7 +190,7 @@ When a user requests file organization help:
    After organizing:
 
    ```markdown
-   # Organization Complete! ✨
+   # Organization Complete! 
 
    ## What Changed
 

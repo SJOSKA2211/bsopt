@@ -30,38 +30,38 @@
 ```
 antigravity-awesome-skills/
 │
-├── 📄 README.md                         ← Overview and quick start
-├── 📄 CONTRIBUTING.md                  ← Contributor workflow
-├── 📄 CATALOG.md                       ← Full generated catalog
+├──  README.md                         ← Overview and quick start
+├──  CONTRIBUTING.md                  ← Contributor workflow
+├──  CATALOG.md                       ← Full generated catalog
 │
-├── 📁 skills/                          ← 1,331+ skills live here
+├──  skills/                          ← 1,331+ skills live here
 │   │
-│   ├── 📁 brainstorming/
-│   │   └── 📄 SKILL.md                 ← Skill definition
+│   ├──  brainstorming/
+│   │   └──  SKILL.md                 ← Skill definition
 │   │
-│   ├── 📁 stripe-integration/
-│   │   ├── 📄 SKILL.md
-│   │   └── 📁 examples/                ← Optional extras
+│   ├──  stripe-integration/
+│   │   ├──  SKILL.md
+│   │   └──  examples/                ← Optional extras
 │   │
-│   ├── 📁 game-development/
-│   │   └── 📁 2d-games/
-│   │       └── 📄 SKILL.md             ← Nested skills also supported
+│   ├──  game-development/
+│   │   └──  2d-games/
+│   │       └──  SKILL.md             ← Nested skills also supported
 │   │
 │   └── ... (1,331+ total)
 │
-├── 📁 apps/
-│   └── 📁 web-app/                     ← Interactive browser
+├──  apps/
+│   └──  web-app/                     ← Interactive browser
 │
-├── 📁 tools/
-│   ├── 📁 scripts/                     ← Validators and generators
-│   ├── 📁 lib/                         ← Shared helpers
-│   └── 📁 bin/                         ← Installer entrypoint
+├──  tools/
+│   ├──  scripts/                     ← Validators and generators
+│   ├──  lib/                         ← Shared helpers
+│   └──  bin/                         ← Installer entrypoint
 │
-└── 📁 docs/
-    ├── 📁 users/                       ← Getting started, bundles, workflows
-    ├── 📁 contributors/                ← Template, anatomy, quality bar
-    ├── 📁 maintainers/                 ← Release and maintenance docs
-    └── 📁 sources/                     ← Attribution and licenses
+└──  docs/
+    ├──  users/                       ← Getting started, bundles, workflows
+    ├──  contributors/                ← Template, anatomy, quality bar
+    ├──  maintainers/                 ← Release and maintenance docs
+    └──  sources/                     ← Attribution and licenses
 ```
 
 ---
@@ -185,7 +185,7 @@ antigravity-awesome-skills/
 ├─────────────────────────────────────────┤
 │ $ npx antigravity-awesome-skills        │
 │                                         │
-│ ✓ Installing to                         │
+│  Installing to                         │
 │   ~/.gemini/antigravity/skills/         │
 └─────────────────────────────────────────┘
 ```
@@ -197,10 +197,10 @@ If you want a workspace-style manual install instead, cloning into `.agent/skill
 ┌─────────────────────────────────────────┐
 │ File Explorer                           │
 ├─────────────────────────────────────────┤
-│ 📁 ~/.gemini/antigravity/skills/        │
-│   ├── 📁 brainstorming/                 │
-│   ├── 📁 stripe-integration/            │
-│   ├── 📁 react-best-practices/          │
+│  ~/.gemini/antigravity/skills/        │
+│   ├──  brainstorming/                 │
+│   ├──  stripe-integration/            │
+│   ├──  react-best-practices/          │
 │   └── ... (1,331+ total)                │
 └─────────────────────────────────────────┘
 ```
@@ -421,7 +421,7 @@ START HERE
 └────────┬────────┘
          │
          ↓
-    CONTRIBUTOR! 🎉
+    CONTRIBUTOR! 
 ```
 
 ---
@@ -433,19 +433,19 @@ START HERE
 │                    QUICK REFERENCE                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  📥 INSTALL                                                 │
+│   INSTALL                                                 │
 │  npx antigravity-awesome-skills                             │
 │                                                             │
-│  🎯 USE                                                     │
+│   USE                                                     │
 │  @skill-name [your request]                                 │
 │                                                             │
-│  🔍 FIND                                                    │
+│   FIND                                                    │
 │  ls skills/ | grep "keyword"                                │
 │                                                             │
-│  ✅ VALIDATE                                                │
+│   VALIDATE                                                │
 │  npm run validate                                          │
 │                                                             │
-│  📝 CREATE                                                  │
+│   CREATE                                                  │
 │  1. mkdir skills/my-skill                                   │
 │  2. Create SKILL.md with frontmatter                        │
 │  3. Add content                                             │
@@ -481,7 +481,7 @@ Week 1: Create first skill
   
 Week 2: Skill gets merged
   │
-  └─→ "My skill is helping others! 🎉"
+  └─→ "My skill is helping others! "
   
 Month 1: Regular contributor
   │
@@ -492,12 +492,12 @@ Month 1: Regular contributor
 
 ## Next Steps
 
-1. ✅ **Understand** the visual structure
-2. ✅ **Install** skills in your AI tool
-3. ✅ **Try** 2-3 skills from different categories
-4. ✅ **Read** CONTRIBUTING.md
-5. ✅ **Create** your first skill
-6. ✅ **Share** with the community
+1.  **Understand** the visual structure
+2.  **Install** skills in your AI tool
+3.  **Try** 2-3 skills from different categories
+4.  **Read** CONTRIBUTING.md
+5.  **Create** your first skill
+6.  **Share** with the community
 
 ---
 
@@ -506,4 +506,4 @@ Month 1: Regular contributor
 - [skill-anatomy.md](../contributors/skill-anatomy.md) - Detailed breakdown
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - How to contribute
 
-**Ready to contribute?** You've got this! 💪
+**Ready to contribute?** You've got this! 

@@ -7,7 +7,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 1. DAG Design Principles
 
 | Principle | Description |
-|-----------|-------------|
+|--|--|
 | **Idempotent** | Running twice produces same result |
 | **Atomic** | Tasks succeed or fail completely |
 | **Incremental** | Process only new/changed data |

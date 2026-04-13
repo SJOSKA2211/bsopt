@@ -39,23 +39,23 @@ Integrate multiple digital health data sources, connect to [WellAlly.tech](https
 Use this skill when users mention the following scenarios:
 
 **Data Import**:
-- ✅ "Import my health data from Apple Health"
-- ✅ "Connect my Fitbit device"
-- ✅ "Sync my Oura Ring data"
-- ✅ "Import CSV health data file"
-- ✅ "How to import fitness tracker/smartwatch data"
+-  "Import my health data from Apple Health"
+-  "Connect my Fitbit device"
+-  "Sync my Oura Ring data"
+-  "Import CSV health data file"
+-  "How to import fitness tracker/smartwatch data"
 
 **Knowledge Base Query**:
-- ✅ "Articles about hypertension on WellAlly platform"
-- ✅ "Recommend some health management reading materials"
-- ✅ "Recommend articles based on my health data"
-- ✅ "WellAlly knowledge base articles about sleep"
-- ✅ "How to improve my blood pressure (check knowledge base)"
+-  "Articles about hypertension on WellAlly platform"
+-  "Recommend some health management reading materials"
+-  "Recommend articles based on my health data"
+-  "WellAlly knowledge base articles about sleep"
+-  "How to improve my blood pressure (check knowledge base)"
 
 **Data Management**:
-- ✅ "What health data sources do I have"
-- ✅ "Integrate health data from different platforms"
-- ✅ "View imported external data"
+-  "What health data sources do I have"
+-  "Integrate health data from different platforms"
+-  "View imported external data"
 
 ### Execution Steps
 
@@ -293,32 +293,32 @@ const recommendationReport = {
 ### Data Import Output
 
 ```
-✅ Data Import Successful
+ Data Import Successful
 
 Data Source: Apple Health
 Import Time: 2025-01-22 14:30:00
 
 Import Records Statistics:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 Step Records: 1,234 records
-⚖️ Weight Records: 30 records
-❤️ Heart Rate Records: 1,200 records
-😴 Sleep Records: 90 records
+ Step Records: 1,234 records
+️ Weight Records: 30 records
+️ Heart Rate Records: 1,200 records
+ Sleep Records: 90 records
 
 Data Time Range: 2025-01-01 to 2025-01-22
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💾 Data Saved To:
+ Data Saved To:
 • data/fitness/activities.json (steps)
 • data/profile.json (weight history)
 • data/fitness/heart-rate.json (heart rate)
 • data/sleep/sleep-records.json (sleep)
 
-⚠️  Validation Warnings:
+️  Validation Warnings:
 • 3 step records missing timestamps, used default values
 • 1 weight record abnormal (<20kg), skipped
 
-💡 Next Steps:
+ Next Steps:
 • Use /health-trend to analyze imported data
 • Use /wellally-tech for personalized article recommendations
 ```
@@ -326,7 +326,7 @@ Data Time Range: 2025-01-01 to 2025-01-22
 ### Knowledge Base Query Output
 
 ```
-📚 WellAlly Knowledge Base Search Results
+ WellAlly Knowledge Base Search Results
 
 Search Topic: Hypertension Management
 Articles Found: 2
@@ -345,25 +345,25 @@ Articles Found: 2
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔗 Related Topics:
+ Related Topics:
 • Diabetes Management
 • Cardiovascular Health
 • Medication Adherence
 
-💡 Tips:
+ Tips:
 Click links to visit [WellAlly.tech](https://www.wellally.tech/) platform for full articles
 ```
 
 ### Intelligent Recommendation Output
 
 ```
-💡 Article Recommendations Based on Your Health Data
+ Article Recommendations Based on Your Health Data
 
 Generated Time: 2025-01-22 14:30:00
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔴 Attention Needed: Blood Pressure Management
+ Attention Needed: Blood Pressure Management
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Current Status: Average blood pressure 142/92 mmHg (elevated)
 
@@ -411,7 +411,7 @@ Visit [WellAlly.tech](https://www.wellally.tech/) Knowledge Base for full conten
 ### External Data Sources
 
 | Data Source | Type | Import Method | Data Content |
-|-------------|------|---------------|--------------|
+|--|------|--|--|
 | Apple Health | File Import | XML/ZIP Parsing | Steps, weight, heart rate, sleep, workouts |
 | Fitbit | API/CSV | OAuth2 or CSV | Activities, heart rate, sleep, weight |
 | Oura Ring | API | OAuth2 | Sleep stages, readiness, heart rate variability |
@@ -421,7 +421,7 @@ Visit [WellAlly.tech](https://www.wellally.tech/) Knowledge Base for full conten
 ### Local Data Files
 
 | File Path | Data Content | Source Mapping |
-|-----------|--------------|----------------|
+|--|--|--|
 | `data/profile.json` | Profile, weight history | Apple Health, Fitbit, Oura |
 | `data/fitness/activities.json` | Steps, activity data | Apple Health, Fitbit, Oura |
 | `data/fitness/heart-rate.json` | Heart rate records | Apple Health, Fitbit, Oura |
@@ -556,19 +556,19 @@ python scripts/import_generic.py health_data.csv --mapping mapping_config.json
 
 ### Must Follow
 
-- ❌ Do not upload data to external servers (except API sync)
-- ❌ Do not hardcode API credentials in code
-- ❌ Do not share user access tokens
-- ✅ All imported data stored locally only
-- ✅ OAuth credentials encrypted storage
-- ✅ Import only after explicit user authorization
+-  Do not upload data to external servers (except API sync)
+-  Do not hardcode API credentials in code
+-  Do not share user access tokens
+-  All imported data stored locally only
+-  OAuth credentials encrypted storage
+-  Import only after explicit user authorization
 
 ### Data Validation
 
-- ✅ Validate imported data types and ranges
-- ✅ Filter abnormal values (e.g., negative steps)
-- ✅ Preserve data source information
-- ✅ Handle timezone conversion
+-  Validate imported data types and ranges
+-  Filter abnormal values (e.g., negative steps)
+-  Preserve data source information
+-  Handle timezone conversion
 
 ### Error Handling
 

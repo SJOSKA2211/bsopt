@@ -174,7 +174,7 @@ When interpreting results:
 ### Interpretation Outcomes
 
 | Result               | Action                                 |
-| -------------------- | -------------------------------------- |
+| -- | -- |
 | Significant positive | Consider rollout                       |
 | Significant negative | Reject variant, document learning      |
 | Inconclusive         | Consider more traffic or bolder change |

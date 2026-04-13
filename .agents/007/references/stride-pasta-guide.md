@@ -8,7 +8,7 @@
 ## When to Use What
 
 | Method | Best For | Effort | Output |
-|--------|----------|--------|--------|
+|--------|--|--------|--------|
 | **STRIDE** | Component-level analysis, quick threat identification | Low-Medium | List of threats per component |
 | **PASTA** | Full system risk analysis, business-aligned | Medium-High | Prioritized attack scenarios |
 | **Both** | Critical systems, compliance requirements | High | Complete threat landscape |
@@ -309,7 +309,7 @@ Use this template for every identified threat:
 ### STRIDE Analysis
 
 | Category | Threat | Severity | Mitigation |
-|----------|--------|----------|------------|
+|--|--------|--|--|
 | **Spoofing** | Attacker sends fake Stripe events | CRITICAL | Verify `Stripe-Signature` header with HMAC |
 | **Tampering** | Event payload modified in transit | HIGH | HTTPS + signature verification |
 | **Repudiation** | Cannot prove event was received/processed | MEDIUM | Log all webhook events with idempotency key |
@@ -346,7 +346,7 @@ def verify_stripe_webhook(payload: bytes, signature: str, secret: str) -> bool:
 ### STRIDE Analysis
 
 | Category | Threat | Severity | Mitigation |
-|----------|--------|----------|------------|
+|--|--------|--|--|
 | **Spoofing** | Prompt injection makes agent impersonate admin | CRITICAL | Input sanitization, system prompt hardening |
 | **Tampering** | Agent modifies files/DB beyond intended scope | CRITICAL | Read-only by default, allowlist of writable paths |
 | **Repudiation** | Cannot trace which agent action caused damage | HIGH | Log every tool call with full context |

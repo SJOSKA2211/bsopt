@@ -35,7 +35,7 @@ What type of multiplayer?
 ### Comparison
 
 | Architecture | Latency | Cost | Security |
-|--------------|---------|------|----------|
+|--|---------|------|--|
 | **Dedicated** | Low | High | Strong |
 | **P2P** | Variable | Low | Weak |
 | **Host-based** | Medium | Low | Medium |
@@ -47,7 +47,7 @@ What type of multiplayer?
 ### State vs Input
 
 | Approach | Sync What | Best For |
-|----------|-----------|----------|
+|--|--|--|
 | **State Sync** | Game state | Simple, few objects |
 | **Input Sync** | Player inputs | Action games |
 | **Hybrid** | Both | Most games |
@@ -55,7 +55,7 @@ What type of multiplayer?
 ### Lag Compensation
 
 | Technique | Purpose |
-|-----------|---------|
+|--|---------|
 | **Prediction** | Client predicts server |
 | **Interpolation** | Smooth remote players |
 | **Reconciliation** | Fix mispredictions |
@@ -68,7 +68,7 @@ What type of multiplayer?
 ### Bandwidth Reduction
 
 | Technique | Savings |
-|-----------|---------|
+|--|---------|
 | **Delta compression** | Send only changes |
 | **Quantization** | Reduce precision |
 | **Priority** | Important data first |
@@ -99,7 +99,7 @@ Server: Validate → did projectile actually hit?
 ### Anti-Cheat
 
 | Cheat | Prevention |
-|-------|------------|
+|-------|--|
 | Speed hack | Server validates movement |
 | Aimbot | Server validates sight line |
 | Item dupe | Server owns inventory |
@@ -122,8 +122,8 @@ Server: Validate → did projectile actually hit?
 
 ## 6. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Trust the client | Server is authority |
 | Send everything | Send only necessary |
 | Ignore latency | Design for 100-200ms |

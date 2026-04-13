@@ -239,7 +239,7 @@ catch (RequestFailedException ex) when (ex.Status == 404)
 ## Available Regions
 
 | Region Enum | Azure Region |
-|-------------|--------------|
+|--|--|
 | `WeightsAndBiasesRegion.EastUS` | East US |
 | `WeightsAndBiasesRegion.CentralUS` | Central US |
 | `WeightsAndBiasesRegion.WestUS` | West US |
@@ -252,7 +252,7 @@ catch (RequestFailedException ex) when (ex.Status == 404)
 For Azure Marketplace integration:
 
 | Property | Value |
-|----------|-------|
+|--|-------|
 | Publisher ID | `wandb` |
 | Offer ID | `wandb-pay-as-you-go` |
 | Plan ID | `wandb-payg` (Pay As You Go) |
@@ -322,7 +322,7 @@ run.finish()
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.ResourceManager.WeightsAndBiases |
 | W&B Documentation | https://docs.wandb.ai/ |
 | Azure Marketplace | https://azuremarketplace.microsoft.com/marketplace/apps/wandb.wandb-pay-as-you-go |

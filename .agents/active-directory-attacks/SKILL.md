@@ -372,7 +372,7 @@ python3 printerbug.py domain.local/user:pass@target 10.10.10.12
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+|-------|--|
 | Clock skew too great | Sync time with DC or use faketime |
 | Kerberoasting returns empty | No service accounts with SPNs |
 | DCSync access denied | Need Replicating Directory Changes rights |

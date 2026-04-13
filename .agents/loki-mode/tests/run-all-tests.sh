@@ -35,11 +35,11 @@ run_test() {
 
     if bash "$test_file"; then
         echo ""
-        echo -e "${GREEN}✓ ${test_name} PASSED${NC}"
+        echo -e "${GREEN} ${test_name} PASSED${NC}"
         TOTAL_PASSED=$((TOTAL_PASSED + 1))
     else
         echo ""
-        echo -e "${RED}✗ ${test_name} FAILED${NC}"
+        echo -e "${RED} ${test_name} FAILED${NC}"
         TOTAL_FAILED=$((TOTAL_FAILED + 1))
     fi
 

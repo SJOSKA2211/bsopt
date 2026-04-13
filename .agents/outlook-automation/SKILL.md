@@ -173,7 +173,7 @@ Automate Microsoft Outlook operations through Composio's Outlook toolkit via Rub
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search emails | OUTLOOK_SEARCH_MESSAGES | query, from_index, size |
 | Query folder | OUTLOOK_QUERY_EMAILS | folder, filter, top |
 | Get message | OUTLOOK_GET_MESSAGE | message_id |

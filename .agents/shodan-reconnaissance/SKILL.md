@@ -298,7 +298,7 @@ for item in host['data']:
 ### Essential CLI Commands
 
 | Command | Description | Credits |
-|---------|-------------|---------|
+|---------|--|---------|
 | `shodan init KEY` | Initialize API key | 0 |
 | `shodan info` | Show account info | 0 |
 | `shodan myip` | Show your IP | 0 |
@@ -348,7 +348,7 @@ for item in host['data']:
 ### Credit System
 
 | Action | Credit Type | Cost |
-|--------|-------------|------|
+|--------|--|------|
 | Basic search | Query | 0 (no filters) |
 | Filtered search | Query | 1 |
 | Download 100 results | Query | 1 |
@@ -495,7 +495,7 @@ shodan download network_scan.json.gz 'net:192.168.1.0/24'
 ## Troubleshooting
 
 | Issue | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | No API Key Configured | Key not initialized | Run `shodan init YOUR_API_KEY` then verify with `shodan info` |
 | Query Credits Exhausted | Monthly credits consumed | Use credit-free queries (no filters), wait for reset, or upgrade |
 | Host Recently Crawled | Cannot re-scan IP within 24h | Use `shodan host IP` for existing data, or wait 24 hours |

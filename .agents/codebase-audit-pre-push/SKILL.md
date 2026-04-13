@@ -198,24 +198,24 @@ FILES REMOVED:
 
 CODE CHANGES:  
 [src/api/users.js]  
-  ✂ Removed unused import: lodash  
-  ✂ Removed dead function: formatOldWay()  
-  🔧 Renamed 'data' → 'userData' for clarity  
-  🛡 Added try/catch around API call (line 47)  
+   Removed unused import: lodash  
+   Removed dead function: formatOldWay()  
+   Renamed 'data' → 'userData' for clarity  
+   Added try/catch around API call (line 47)  
 
 [src/db/queries.js]  
-  ⚡ Fixed N+1 query: now uses JOIN instead of loop  
+   Fixed N+1 query: now uses JOIN instead of loop  
 
 SECURITY ISSUES:  
-🚨 CRITICAL: Hardcoded API key in config.js (line 12) → moved to .env  
-⚠️ HIGH: SQL injection risk in search.js (line 34) → fixed with parameterized query  
+ CRITICAL: Hardcoded API key in config.js (line 12) → moved to .env  
+️ HIGH: SQL injection risk in search.js (line 34) → fixed with parameterized query  
 
 SCALABILITY:  
-⚡ Added pagination to /api/users endpoint  
-⚡ Added index on users.email column  
+ Added pagination to /api/users endpoint  
+ Added index on users.email column  
 
 FINAL STATUS:  
-✅ CLEAN - Ready to push to GitHub  
+ CLEAN - Ready to push to GitHub  
 
 Scores:  
 Security: 9/10 (one minor header missing)  

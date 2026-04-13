@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-02-03
 
-### ✨ Added
+###  Added
 
 - **Intelligent Prompt Workflow** (Step 3b) - Complete integration with prompt-engineer skill
   - **Scenario A**: User-provided prompts are automatically improved with prompt-engineer
@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ata-*.md` - Intelligent summary/meeting minutes (if LLM available)
   - User can decline LLM processing to get transcript-only
 
-### 🔧 Changed
+###  Changed
 
 - **SKILL.md** - Major documentation updates
   - Added Step 0b (CLI Detection)
@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Command-line arguments: `--prompt`, `--model`, `--output-dir`, `--keep-temp`
   - Auto-installs `rich` and `tqdm` if missing
 
-### 🐛 Fixed
+###  Fixed
 
 - **User prompts no longer ignored** - v1.0.0 completely ignored custom prompts
   - Now processes all prompts (custom or auto-generated) with LLM
@@ -96,14 +96,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shows spinner for LLM processing
   - Clear status messages throughout
 
-### 📝 Notes
+###  Notes
 
 - **Backward Compatibility:** Fully compatible with v1.0.0 workflows
 - **Requires:** Python 3.8+, faster-whisper OR whisper, tqdm, rich
 - **Optional:** Claude CLI or GitHub Copilot CLI for intelligent processing
 - **Optional:** prompt-engineer skill for automatic prompt generation
 
-### 🔗 Related Issues
+###  Related Issues
 
 - Fixes #1: Prompt do usuário RISEN ignorado
 - Fixes #2: Arquivos temporários (metadata.json, transcription.json) deixados como lixo
@@ -115,7 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-02-02
 
-### ✨ Initial Release
+###  Initial Release
 
 - Audio transcription using Faster-Whisper or OpenAI Whisper
 - Automatic language detection
@@ -128,7 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FFmpeg integration for format conversion
 - Zero-configuration philosophy
 
-### 📝 Known Limitations (Fixed in v1.1.0)
+###  Known Limitations (Fixed in v1.1.0)
 
 - User prompts ignored (no LLM integration)
 - Only raw transcript generated (no ata/summary)

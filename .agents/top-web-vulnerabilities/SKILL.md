@@ -407,7 +407,7 @@ Assess SSRF vulnerabilities:
 ### Phase 13: Additional Web Vulnerabilities
 
 | # | Vulnerability | Root Cause | Impact | Mitigation |
-|---|--------------|-----------|--------|------------|
+|---|--|--|--------|--|
 | 67 | HTTP Parameter Pollution | Inconsistent parsing | Injection, ACL bypass | Strict parsing, validation |
 | 68 | Insecure Redirects | Unvalidated targets | Phishing, malware | Whitelist destinations |
 | 69 | File Inclusion (LFI/RFI) | Unvalidated paths | Code exec, disclosure | Whitelist files, disable RFI |
@@ -419,7 +419,7 @@ Assess SSRF vulnerabilities:
 ### Phase 14: Mobile and IoT Security
 
 | # | Vulnerability | Root Cause | Impact | Mitigation |
-|---|--------------|-----------|--------|------------|
+|---|--|--|--------|--|
 | 76 | Insecure Mobile Storage | Plain text, weak crypto | Data theft | Keychain/Keystore, encrypt |
 | 77 | Insecure Mobile Transmission | HTTP, cert failures | Traffic interception | TLS, cert pinning |
 | 78 | Insecure Mobile APIs | Missing auth/validation | Data exposure | OAuth/JWT, validation |
@@ -433,7 +433,7 @@ Assess SSRF vulnerabilities:
 ### Phase 15: Advanced and Zero-Day Threats
 
 | # | Vulnerability | Root Cause | Impact | Mitigation |
-|---|--------------|-----------|--------|------------|
+|---|--|--|--------|--|
 | 89 | MIME Sniffing | Missing headers | XSS, spoofing | X-Content-Type-Options |
 | 91 | CSP Bypass | Weak config | XSS despite CSP | Strict CSP, nonces |
 | 92 | Inconsistent Validation | Decentralized logic | Control bypass | Centralized validation |
@@ -450,7 +450,7 @@ Assess SSRF vulnerabilities:
 ### Vulnerability Categories Summary
 
 | Category | Vulnerability Numbers | Key Controls |
-|----------|----------------------|--------------|
+|--|--|--|
 | Injection | 1-13 | Parameterized queries, input validation, output encoding |
 | Authentication | 14-23, 85-86 | MFA, session management, account lockout |
 | Data Exposure | 24-27 | Encryption at rest/transit, access controls, DLP |
@@ -482,7 +482,7 @@ Permissions-Policy: geolocation=(), microphone=()
 ### OWASP Top 10 Mapping
 
 | OWASP 2021 | Related Vulnerabilities |
-|------------|------------------------|
+|--|--|
 | A01: Broken Access Control | 40-44, 23, 74 |
 | A02: Cryptographic Failures | 24-25, 53-55 |
 | A03: Injection | 1-13, 37-39 |
@@ -512,7 +512,7 @@ Permissions-Policy: geolocation=(), microphone=()
 ### Common Assessment Challenges
 
 | Challenge | Solution |
-|-----------|----------|
+|--|--|
 | False positives in scanning | Manual verification, contextual analysis |
 | Business logic flaws missed | Manual testing, threat modeling, abuse case analysis |
 | Encrypted traffic analysis | Proxy configuration, certificate installation |
@@ -523,7 +523,7 @@ Permissions-Policy: geolocation=(), microphone=()
 ### Vulnerability Verification Techniques
 
 | Vulnerability Type | Verification Approach |
-|-------------------|----------------------|
+|--|--|
 | Injection | Payload testing with encoded variants |
 | XSS | Alert boxes, cookie access, DOM inspection |
 | CSRF | Cross-origin form submission testing |

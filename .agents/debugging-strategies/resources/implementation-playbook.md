@@ -317,7 +317,7 @@ Compare working vs broken:
 ## What's Different?
 
 | Aspect       | Working         | Broken          |
-|--------------|-----------------|-----------------|
+|--|--|--|
 | Environment  | Development     | Production      |
 | Node version | 18.16.0         | 18.15.0         |
 | Data         | Empty DB        | 1M records      |

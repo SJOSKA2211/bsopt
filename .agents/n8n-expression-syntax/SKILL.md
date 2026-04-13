@@ -21,11 +21,11 @@ All dynamic content in n8n uses **double curly braces**:
 
 **Examples**:
 ```
-✅ {{$json.email}}
-✅ {{$json.body.name}}
-✅ {{$node["HTTP Request"].json.data}}
-❌ $json.email  (no braces - treated as literal text)
-❌ {$json.email}  (single braces - invalid)
+ {{$json.email}}
+ {{$json.body.name}}
+ {{$node["HTTP Request"].json.data}}
+ $json.email  (no braces - treated as literal text)
+ {$json.email}  (single braces - invalid)
 ```
 
 ---
@@ -80,7 +80,7 @@ Access environment variables:
 
 ---
 
-## 🚨 CRITICAL: Webhook Data Structure
+##  CRITICAL: Webhook Data Structure
 
 **Most Common Mistake**: Webhook data is **NOT** at the root!
 
@@ -91,7 +91,7 @@ Access environment variables:
   "headers": {...},
   "params": {...},
   "query": {...},
-  "body": {           // ⚠️ USER DATA IS HERE!
+  "body": {           // ️ USER DATA IS HERE!
     "name": "John",
     "email": "john@example.com",
     "message": "Hello"
@@ -102,12 +102,12 @@ Access environment variables:
 ### Correct Webhook Data Access
 
 ```javascript
-❌ WRONG: {{$json.name}}
-❌ WRONG: {{$json.email}}
+ WRONG: {{$json.name}}
+ WRONG: {{$json.email}}
 
-✅ CORRECT: {{$json.body.name}}
-✅ CORRECT: {{$json.body.email}}
-✅ CORRECT: {{$json.body.message}}
+ CORRECT: {{$json.body.name}}
+ CORRECT: {{$json.body.email}}
+ CORRECT: {{$json.body.message}}
 ```
 
 **Why**: Webhook node wraps incoming data under `.body` property to preserve headers, params, and query parameters.
@@ -165,16 +165,16 @@ https://api.example.com/users/{{$json.body.user_id}}
 
 ## When NOT to Use Expressions
 
-### ❌ Code Nodes
+###  Code Nodes
 
 Code nodes use **direct JavaScript access**, NOT expressions!
 
 ```javascript
-// ❌ WRONG in Code node
+//  WRONG in Code node
 const email = '={{$json.email}}';
 const name = '{{$json.body.name}}';
 
-// ✅ CORRECT in Code node
+//  CORRECT in Code node
 const email = $json.email;
 const name = $json.body.name;
 
@@ -183,23 +183,23 @@ const email = $input.item.json.email;
 const allItems = $input.all();
 ```
 
-### ❌ Webhook Paths
+###  Webhook Paths
 
 ```javascript
-// ❌ WRONG
+//  WRONG
 path: "{{$json.user_id}}/webhook"
 
-// ✅ CORRECT
+//  CORRECT
 path: "user-webhook"  // Static paths only
 ```
 
-### ❌ Credential Fields
+###  Credential Fields
 
 ```javascript
-// ❌ WRONG
+//  WRONG
 apiKey: "={{$env.API_KEY}}"
 
-// ✅ CORRECT
+//  CORRECT
 Use n8n credential system, not expressions
 ```
 
@@ -212,8 +212,8 @@ Use n8n credential system, not expressions
 Expressions **must** be wrapped in double curly braces.
 
 ```javascript
-❌ $json.field
-✅ {{$json.field}}
+ $json.field
+ {{$json.field}}
 ```
 
 ### 2. Use Quotes for Spaces
@@ -221,11 +221,11 @@ Expressions **must** be wrapped in double curly braces.
 Field or node names with spaces require **bracket notation**:
 
 ```javascript
-❌ {{$json.field name}}
-✅ {{$json['field name']}}
+ {{$json.field name}}
+ {{$json['field name']}}
 
-❌ {{$node.HTTP Request.json}}
-✅ {{$node["HTTP Request"].json}}
+ {{$node.HTTP Request.json}}
+ {{$node["HTTP Request"].json}}
 ```
 
 ### 3. Match Exact Node Names
@@ -233,9 +233,9 @@ Field or node names with spaces require **bracket notation**:
 Node references are **case-sensitive**:
 
 ```javascript
-❌ {{$node["http request"].json}}  // lowercase
-❌ {{$node["Http Request"].json}}  // wrong case
-✅ {{$node["HTTP Request"].json}}  // exact match
+ {{$node["http request"].json}}  // lowercase
+ {{$node["Http Request"].json}}  // wrong case
+ {{$node["HTTP Request"].json}}  // exact match
 ```
 
 ### 4. No Nested {{}}
@@ -243,8 +243,8 @@ Node references are **case-sensitive**:
 Don't double-wrap expressions:
 
 ```javascript
-❌ {{{$json.field}}}
-✅ {{$json.field}}
+ {{{$json.field}}}
+ {{$json.field}}
 ```
 
 ---
@@ -468,7 +468,7 @@ Hello {{$json.name}}!
 
 ## Best Practices
 
-### ✅ Do
+###  Do
 
 - Always use {{ }} for dynamic content
 - Use bracket notation for field names with spaces
@@ -476,7 +476,7 @@ Hello {{$json.name}}!
 - Use $node for data from other nodes
 - Test expressions in expression editor
 
-### ❌ Don't
+###  Don't
 
 - Don't use expressions in Code nodes
 - Don't forget quotes around node names with spaces

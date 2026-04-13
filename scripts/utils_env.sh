@@ -19,7 +19,7 @@ load_decrypted_secrets() {
         return 0
     fi
 
-    echo "🔐 Decrypting Secrets..."
+    echo " Decrypting Secrets..."
     # Logic to decrypt ENC_ variables if they exist
     while IFS= read -r line; do
         [[ "$line" =~ ^#.*$ ]] && continue
@@ -33,7 +33,7 @@ load_decrypted_secrets() {
                 local clean_val=$(echo -n "$decrypted_val" | tr -d '\000-\010\013\014\016-\037')
                 echo "Setting $var_name to $clean_val"; export "$var_name"="$clean_val"
             else
-                echo "🔴 Failed to decrypt $var_name"
+                echo " Failed to decrypt $var_name"
             fi
         fi
     done < "$ENV_FILE"
@@ -49,7 +49,7 @@ detect_container_engine() {
             export COMPOSE_ENGINE="docker-compose"
         fi
     else
-        echo "❌ Error: Docker engine not detected. This system requires docker."
+        echo " Error: Docker engine not detected. This system requires docker."
         exit 1
     fi
 }

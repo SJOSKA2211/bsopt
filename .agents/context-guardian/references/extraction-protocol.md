@@ -16,7 +16,7 @@ Formato:
 ```markdown
 ### Arquivos Tocados
 | Arquivo | Acao | Detalhes |
-|---------|------|----------|
+|---------|------|--|
 | C:\path\file.py | EDIT L40-119 | Adicionou 5 categorias a CAPABILITY_KEYWORDS |
 | C:\path\new.md | CREATE | Nova skill com 14 modulos |
 | C:\path\old.bak | DELETE | Backup obsoleto |

@@ -188,7 +188,7 @@ Use @docker-expert to containerize FastAPI application
 ## Technology Stack
 
 | Category | Technology |
-|----------|------------|
+|--|--|
 | Framework | FastAPI |
 | Language | Python 3.11+ |
 | ORM | SQLAlchemy 2.0 |

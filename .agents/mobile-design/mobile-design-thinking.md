@@ -40,7 +40,7 @@
 
 ---
 
-## 🚫 AI MOBILE DEFAULTS (FORBIDDEN LIST)
+##  AI MOBILE DEFAULTS (FORBIDDEN LIST)
 
 ### Using These Patterns Automatically is FORBIDDEN!
 
@@ -49,7 +49,7 @@ Before using any of these, **QUESTION them and CONSIDER ALTERNATIVES!**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                 🚫 AI MOBILE SAFE HARBOR                        │
+│                  AI MOBILE SAFE HARBOR                        │
 │           (Default Patterns - Never Use Without Questioning)    │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -82,7 +82,7 @@ Before using any of these, **QUESTION them and CONSIDER ALTERNATIVES!**
 
 ---
 
-## 🔍 COMPONENT DECOMPOSITION (MANDATORY)
+##  COMPONENT DECOMPOSITION (MANDATORY)
 
 ### Decomposition Analysis for Every Screen
 
@@ -124,14 +124,14 @@ SCREEN: [Screen Name]
 
 ---
 
-## 🎯 PATTERN QUESTIONING MATRIX
+##  PATTERN QUESTIONING MATRIX
 
 Ask these questions for every default pattern:
 
 ### Navigation Pattern Questioning
 
 | Assumption | Question | Alternative |
-|------------|----------|-------------|
+|--|--|--|
 | "I'll use tab bar" | How many destinations? | 3 → minimal tabs, 6+ → drawer |
 | "5 tabs" | Are all equally important? | "More" tab? Drawer hybrid? |
 | "Bottom nav" | iPad/tablet support? | Navigation rail alternative |
@@ -140,7 +140,7 @@ Ask these questions for every default pattern:
 ### State Pattern Questioning
 
 | Assumption | Question | Alternative |
-|------------|----------|-------------|
+|--|--|--|
 | "I'll use Redux" | How complex is the app? | Simple: Zustand, Server: TanStack |
 | "Global state" | Is this state really global? | Local lift, Context selector |
 | "Context Provider" | Will re-render be an issue? | Zustand, Jotai (atom-based) |
@@ -149,7 +149,7 @@ Ask these questions for every default pattern:
 ### List Pattern Questioning
 
 | Assumption | Question | Alternative |
-|------------|----------|-------------|
+|--|--|--|
 | "FlatList" | Is performance critical? | FlashList (faster) |
 | "Standard renderItem" | Is it memoized? | useCallback + React.memo |
 | "Index key" | Does data order change? | Use item.id |
@@ -158,7 +158,7 @@ Ask these questions for every default pattern:
 ### UI Pattern Questioning
 
 | Assumption | Question | Alternative |
-|------------|----------|-------------|
+|--|--|--|
 | "FAB bottom-right" | User handedness? | Accessibility settings |
 | "Pull-to-refresh" | Does this list need refresh? | Only when necessary |
 | "Modal bottom sheet" | How much content? | Full screen modal might be better |
@@ -201,7 +201,7 @@ Ask these questions for every default pattern:
 
 ---
 
-## 📊 CONTEXT-BASED DECISION PROTOCOL
+##  CONTEXT-BASED DECISION PROTOCOL
 
 ### Think Differently Based on Project Type
 
@@ -246,7 +246,7 @@ DETERMINE PROJECT TYPE:
 
 ---
 
-## 🔄 INTERACTION BREAKDOWN
+##  INTERACTION BREAKDOWN
 
 ### Analysis for Every Gesture
 
@@ -285,28 +285,28 @@ GESTURE: [Gesture Type]
 
 ---
 
-## 🎭 SPIRIT OVER CHECKLIST (Mobile Edition)
+##  SPIRIT OVER CHECKLIST (Mobile Edition)
 
 ### Passing the Checklist is Not Enough!
 
-| ❌ Self-Deception | ✅ Honest Assessment |
-|-------------------|----------------------|
+|  Self-Deception |  Honest Assessment |
+|--|--|
 | "Touch target is 44px" (but on edge, unreachable) | "Can user reach it one-handed?" |
 | "I used FlatList" (but didn't memoize) | "Is scroll smooth?" |
 | "Platform-specific nav" (but only icons differ) | "Does iOS feel like iOS, Android like Android?" |
 | "Offline support exists" (but error message is generic) | "What can user actually do offline?" |
 | "Loading state exists" (but just a spinner) | "Does user know how long to wait?" |
 
-> 🔴 **Passing the checklist is NOT the goal. Creating great mobile UX IS the goal.**
+>  **Passing the checklist is NOT the goal. Creating great mobile UX IS the goal.**
 
 ---
 
-## 📝 MOBILE DESIGN COMMITMENT
+##  MOBILE DESIGN COMMITMENT
 
 ### Fill This at the Start of Every Mobile Project
 
 ```
-📱 MOBILE DESIGN COMMITMENT
+ MOBILE DESIGN COMMITMENT
 
 Project: _______________
 Platform: iOS / Android / Both
@@ -333,7 +333,7 @@ Platform: iOS / Android / Both
 
 ---
 
-## 🚨 MANDATORY: Before Every Mobile Work
+##  MANDATORY: Before Every Mobile Work
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -347,7 +347,7 @@ Platform: iOS / Android / Both
 │  □ Did I analyze Interaction Breakdown?                         │
 │  □ Did I fill the Mobile Design Commitment?                     │
 │                                                                 │
-│  ⚠️ Do not write code without completing these!                 │
+│  ️ Do not write code without completing these!                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```

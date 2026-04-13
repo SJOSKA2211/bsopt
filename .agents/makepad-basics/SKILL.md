@@ -121,7 +121,7 @@ let text = input.text();
 ## API Reference Table
 
 | Macro/Type | Description | Example |
-|------------|-------------|---------|
+|--|--|---------|
 | `live_design!` | Defines UI in DSL | `live_design! { App = {{App}} { ... } }` |
 | `app_main!` | Entry point macro | `app_main!(App);` |
 | `#[derive(Live)]` | Derive live data | `#[derive(Live, LiveHook)]` |
@@ -132,7 +132,7 @@ let text = input.text();
 ## Platform Setup
 
 | Platform | Requirements |
-|----------|--------------|
+|--|--|
 | macOS | Works out of the box |
 | Windows | Works out of the box |
 | Linux | `apt-get install clang libaudio-dev libpulse-dev libx11-dev libxcursor-dev` |

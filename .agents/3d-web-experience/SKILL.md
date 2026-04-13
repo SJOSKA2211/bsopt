@@ -39,7 +39,7 @@ Choosing the right 3D approach
 
 ### Options Comparison
 | Tool | Best For | Learning Curve | Control |
-|------|----------|----------------|---------|
+|------|--|--|---------|
 | Spline | Quick prototypes, designers | Low | Medium |
 | React Three Fiber | React apps, complex scenes | Medium | High |
 | Three.js vanilla | Max control, non-React | High | Maximum |
@@ -104,7 +104,7 @@ Getting models web-ready
 
 ### Format Selection
 | Format | Use Case | Size |
-|--------|----------|------|
+|--------|--|------|
 | GLB/GLTF | Standard web 3D | Smallest |
 | FBX | From 3D software | Large |
 | OBJ | Simple meshes | Medium |
@@ -215,7 +215,7 @@ gsap.to(camera.position, {
 
 ## Anti-Patterns
 
-### ❌ 3D For 3D's Sake
+###  3D For 3D's Sake
 
 **Why bad**: Slows down the site.
 Confuses users.
@@ -227,7 +227,7 @@ Product visualization = good.
 Random floating shapes = probably not.
 Ask: would an image work?
 
-### ❌ Desktop-Only 3D
+###  Desktop-Only 3D
 
 **Why bad**: Most traffic is mobile.
 Kills battery.
@@ -239,7 +239,7 @@ Reduce quality on mobile.
 Provide static fallback.
 Consider disabling 3D on low-end.
 
-### ❌ No Loading State
+###  No Loading State
 
 **Why bad**: Users think it's broken.
 High bounce rate.

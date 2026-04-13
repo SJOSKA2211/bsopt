@@ -18,7 +18,7 @@ date_added: "2026-02-27"
 ### Tool Selection
 
 | Scenario | Tool |
-|----------|------|
+|--|------|
 | **Node.js app** | PM2 (clustering, reload) |
 | **Any app** | systemd (Linux native) |
 | **Containers** | Docker/Podman |
@@ -27,7 +27,7 @@ date_added: "2026-02-27"
 ### Process Management Goals
 
 | Goal | What It Means |
-|------|---------------|
+|------|--|
 | **Restart on crash** | Auto-recovery |
 | **Zero-downtime reload** | No service interruption |
 | **Clustering** | Use all CPU cores |
@@ -40,7 +40,7 @@ date_added: "2026-02-27"
 ### What to Monitor
 
 | Category | Key Metrics |
-|----------|-------------|
+|--|--|
 | **Availability** | Uptime, health checks |
 | **Performance** | Response time, throughput |
 | **Errors** | Error rate, types |
@@ -49,7 +49,7 @@ date_added: "2026-02-27"
 ### Alert Severity Strategy
 
 | Level | Response |
-|-------|----------|
+|-------|--|
 | **Critical** | Immediate action |
 | **Warning** | Investigate soon |
 | **Info** | Review daily |
@@ -70,7 +70,7 @@ date_added: "2026-02-27"
 ### Log Strategy
 
 | Log Type | Purpose |
-|----------|---------|
+|--|---------|
 | **Application logs** | Debug, audit |
 | **Access logs** | Traffic analysis |
 | **Error logs** | Issue detection |
@@ -89,7 +89,7 @@ date_added: "2026-02-27"
 ### When to Scale
 
 | Symptom | Solution |
-|---------|----------|
+|---------|--|
 | High CPU | Add instances (horizontal) |
 | High memory | Increase RAM or fix leak |
 | Slow response | Profile first, then scale |
@@ -98,7 +98,7 @@ date_added: "2026-02-27"
 ### Scaling Strategy
 
 | Type | When to Use |
-|------|-------------|
+|------|--|
 | **Vertical** | Quick fix, single instance |
 | **Horizontal** | Sustainable, distributed |
 | **Auto** | Variable traffic |
@@ -127,7 +127,7 @@ date_added: "2026-02-27"
 ## 6. Security Principles
 
 | Area | Principle |
-|------|-----------|
+|------|--|
 | **Access** | SSH keys only, no passwords |
 | **Firewall** | Only needed ports open |
 | **Updates** | Regular security patches |
@@ -150,8 +150,8 @@ When something's wrong:
 
 ## 8. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Run as root | Use non-root user |
 | Ignore logs | Set up log rotation |
 | Skip monitoring | Monitor from day one |

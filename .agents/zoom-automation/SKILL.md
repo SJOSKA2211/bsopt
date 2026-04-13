@@ -198,7 +198,7 @@ Most Zoom list endpoints use token-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create meeting | `ZOOM_CREATE_A_MEETING` | `userId`, `topic`, `start_time`, `type` |
 | Get meeting details | `ZOOM_GET_A_MEETING` | `meetingId` |
 | Update meeting | `ZOOM_UPDATE_A_MEETING` | `meetingId`, fields to update |

@@ -267,7 +267,7 @@ Use TanStack Query for **all server data**:
 - Synchronization: Built-in
 
 ```typescript
-// ✅ CORRECT - TanStack Query for server data
+//  CORRECT - TanStack Query for server data
 const { data: users } = useSuspenseQuery({
     queryKey: ['users'],
     queryFn: () => userApi.getUsers(),
@@ -283,7 +283,7 @@ Use `useState` for **local UI state only**:
 - Temporary UI flags
 
 ```typescript
-// ✅ CORRECT - useState for UI state
+//  CORRECT - useState for UI state
 const [modalOpen, setModalOpen] = useState(false);
 const [selectedTab, setSelectedTab] = useState(0);
 ```
@@ -316,14 +316,14 @@ export const useAppState = create<AppState>((set) => ({
 ## Summary
 
 **Common Patterns:**
-- ✅ useAuth hook for current user (id, email, roles, username)
-- ✅ React Hook Form + Zod for forms
-- ✅ Dialog with icon + close button
-- ✅ DataGrid wrapper contracts
-- ✅ Mutations with cache invalidation
-- ✅ TanStack Query for server state
-- ✅ useState for UI state
-- ✅ Zustand for global client state (minimal)
+-  useAuth hook for current user (id, email, roles, username)
+-  React Hook Form + Zod for forms
+-  Dialog with icon + close button
+-  DataGrid wrapper contracts
+-  Mutations with cache invalidation
+-  TanStack Query for server state
+-  useState for UI state
+-  Zustand for global client state (minimal)
 
 **See Also:**
 - [data-fetching.md](data-fetching.md) - TanStack Query patterns

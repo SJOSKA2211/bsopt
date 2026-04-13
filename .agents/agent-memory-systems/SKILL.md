@@ -46,16 +46,16 @@ Breaking documents into retrievable chunks
 
 ## Anti-Patterns
 
-### ❌ Store Everything Forever
+###  Store Everything Forever
 
-### ❌ Chunk Without Testing Retrieval
+###  Chunk Without Testing Retrieval
 
-### ❌ Single Memory Type for All Data
+###  Single Memory Type for All Data
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | ## Contextual Chunking (Anthropic's approach) |
 | Issue | high | ## Test different sizes |
 | Issue | high | ## Always filter by metadata first |

@@ -346,7 +346,7 @@ VecSum<E1, E2> operator+(const VecExpression<E1>& lhs,
 ## Quick Reference
 
 | Technique | Use Case | Performance |
-|-----------|----------|-------------|
+|--|--|--|
 | Variadic Templates | Variable arguments | Zero overhead |
 | SFINAE | Conditional compilation | Compile-time |
 | if constexpr | Type-based branching | Zero overhead |

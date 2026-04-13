@@ -39,7 +39,7 @@ Design cloud-agnostic architectures and make informed decisions about service se
 ### Compute Services
 
 | AWS | Azure | GCP | Use Case |
-|-----|-------|-----|----------|
+|-----|-------|-----|--|
 | EC2 | Virtual Machines | Compute Engine | IaaS VMs |
 | ECS | Container Instances | Cloud Run | Containers |
 | EKS | AKS | GKE | Kubernetes |
@@ -49,7 +49,7 @@ Design cloud-agnostic architectures and make informed decisions about service se
 ### Storage Services
 
 | AWS | Azure | GCP | Use Case |
-|-----|-------|-----|----------|
+|-----|-------|-----|--|
 | S3 | Blob Storage | Cloud Storage | Object storage |
 | EBS | Managed Disks | Persistent Disk | Block storage |
 | EFS | Azure Files | Filestore | File storage |
@@ -58,7 +58,7 @@ Design cloud-agnostic architectures and make informed decisions about service se
 ### Database Services
 
 | AWS | Azure | GCP | Use Case |
-|-----|-------|-----|----------|
+|-----|-------|-----|--|
 | RDS | SQL Database | Cloud SQL | Managed SQL |
 | DynamoDB | Cosmos DB | Firestore | NoSQL |
 | Aurora | PostgreSQL/MySQL | Cloud Spanner | Distributed SQL |

@@ -2,7 +2,7 @@
 
 **New here? This guide will help you supercharge your AI Agent in 5 minutes.**
 
-> **💡 Confused about what to do after installation?** Check out the [**Complete Usage Guide**](usage.md) for detailed explanations and examples!
+> ** Confused about what to do after installation?** Check out the [**Complete Usage Guide**](usage.md) for detailed explanations and examples!
 
 ---
 
@@ -49,7 +49,7 @@ git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skill
 Find the bundle that matches your role (see [bundles.md](bundles.md)):
 
 | Persona               | Bundle Name    | What's Inside?                                    |
-| :-------------------- | :------------- | :------------------------------------------------ |
+| :-- | :-- | :-- |
 | **Web Developer**     | `Web Wizard`   | React Patterns, Tailwind mastery, Frontend Design |
 | **Security Engineer** | `Hacker Pack`  | OWASP, Metasploit, Pentest Methodology            |
 | **Manager / PM**      | `Product Pack` | Brainstorming, Planning, SEO, Strategy            |
@@ -96,20 +96,20 @@ Once installed, just talk to your AI naturally.
 
 ---
 
-## 🔌 Supported Tools
+##  Supported Tools
 
 | Tool            | Status          | Path                                                                  |
-| :-------------- | :-------------- | :-------------------------------------------------------------------- |
-| **Claude Code** | ✅ Full Support | `.claude/skills/` or install via `/plugin marketplace add sickn33/antigravity-awesome-skills` |
-| **Gemini CLI**  | ✅ Full Support | `.gemini/skills/`                                                     |
-| **Codex CLI**   | ✅ Full Support | `.codex/skills/` or use the repo-local plugin metadata described in [plugins.md](plugins.md) |
-| **Kiro CLI**    | ✅ Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
-| **Kiro IDE**    | ✅ Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
-| **Antigravity** | ✅ Native       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agent/skills/` |
-| **Cursor**      | ✅ Native       | `.cursor/skills/`                                                     |
-| **OpenCode**    | ✅ Full Support | `.agents/skills/`                                                     |
-| **AdaL CLI**    | ✅ Full Support | `.adal/skills/`                                                       |
-| **Copilot**     | ⚠️ Text Only    | Manual copy-paste                                                     |
+| :-- | :-- | :-- |
+| **Claude Code** |  Full Support | `.claude/skills/` or install via `/plugin marketplace add sickn33/antigravity-awesome-skills` |
+| **Gemini CLI**  |  Full Support | `.gemini/skills/`                                                     |
+| **Codex CLI**   |  Full Support | `.codex/skills/` or use the repo-local plugin metadata described in [plugins.md](plugins.md) |
+| **Kiro CLI**    |  Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
+| **Kiro IDE**    |  Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
+| **Antigravity** |  Native       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agent/skills/` |
+| **Cursor**      |  Native       | `.cursor/skills/`                                                     |
+| **OpenCode**    |  Full Support | `.agents/skills/`                                                     |
+| **AdaL CLI**    |  Full Support | `.adal/skills/`                                                       |
+| **Copilot**     | ️ Text Only    | Manual copy-paste                                                     |
 
 ---
 
@@ -117,11 +117,11 @@ Once installed, just talk to your AI naturally.
 
 We classify skills so you know what you're running:
 
-- ⚪ **unknown**: legacy/unclassified content that still needs maintainer triage.
+-  **unknown**: legacy/unclassified content that still needs maintainer triage.
 - 🟢 **none**: pure text/reasoning guidance.
-- 🔵 **safe**: read-only or low-risk operational guidance.
+-  **safe**: read-only or low-risk operational guidance.
 - 🟠 **critical**: state-changing or deployment-impacting guidance.
-- 🔴 **offensive**: pentest/red-team guidance with an explicit Authorized Use Only warning.
+-  **offensive**: pentest/red-team guidance with an explicit Authorized Use Only warning.
 
 Community PRs may still submit `risk: unknown`, but maintainers now audit and progressively reconcile those labels using the repo-wide audit/report tooling. High-risk guidance is extra-reviewed with repository-wide `security:docs` scanning before release.
 

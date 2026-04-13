@@ -5,19 +5,19 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🎨 Launching Production Manifold Dashboard..."
+echo " Launching Production Manifold Dashboard..."
 
 cd src/frontend
 
 if [ ! -d "node_modules" ]; then
-    echo "📦 Initializing Frontend dependencies..."
+    echo " Initializing Frontend dependencies..."
     npm install --quiet
 fi
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
-    echo "🏗️ Running in PRODUCTION mode..."
+    echo "️ Running in PRODUCTION mode..."
     exec npm run start
 else
-    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    echo "️ Running in DEVELOPMENT mode with hot-reload..."
     exec npm run dev
 fi

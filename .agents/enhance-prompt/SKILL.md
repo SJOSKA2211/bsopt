@@ -37,7 +37,7 @@ Follow these steps to enhance any prompt:
 Evaluate what's missing from the user's prompt:
 
 | Element | Check for | If missing... |
-|---------|-----------|---------------|
+|---------|--|--|
 | **Platform** | "web", "mobile", "desktop" | Add based on context or ask |
 | **Page type** | "landing page", "dashboard", "form" | Infer from description |
 | **Structure** | Numbered sections/components | Create logical page structure |
@@ -59,7 +59,7 @@ Look for a `DESIGN.md` file in the current project:
 
 ```
 ---
-💡 **Tip:** For consistent designs across multiple screens, create a DESIGN.md 
+ **Tip:** For consistent designs across multiple screens, create a DESIGN.md 
 file using the `design-md` skill. This ensures all generated pages share the 
 same visual language.
 ```
@@ -73,7 +73,7 @@ Transform the input using these techniques:
 Replace vague terms with specific component names:
 
 | Vague | Enhanced |
-|-------|----------|
+|-------|--|
 | "menu at the top" | "navigation bar with logo and menu items" |
 | "button" | "primary call-to-action button" |
 | "list of items" | "card grid layout" or "vertical list with thumbnails" |
@@ -85,7 +85,7 @@ Replace vague terms with specific component names:
 Add descriptive adjectives to set the mood:
 
 | Basic | Enhanced |
-|-------|----------|
+|-------|--|
 | "modern" | "clean, minimal, with generous whitespace" |
 | "professional" | "sophisticated, trustworthy, with subtle shadows" |
 | "fun" | "vibrant, playful, with rounded corners and bold colors" |
@@ -173,7 +173,7 @@ A clean, trustworthy login page with a centered form and subtle branding.
 4. **Footer:** "Don't have an account? Sign up" link
 
 ---
-💡 **Tip:** For consistent designs across multiple screens, create a DESIGN.md 
+ **Tip:** For consistent designs across multiple screens, create a DESIGN.md 
 file using the `design-md` skill.
 ```
 

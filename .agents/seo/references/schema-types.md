@@ -14,7 +14,7 @@ Google's documentation explicitly recommends JSON-LD over Microdata and RDFa.
 ## Active: Recommend freely
 
 | Type | Use Case | Key Properties |
-|------|----------|----------------|
+|------|--|--|
 | Organization | Company info | name, url, logo, contactPoint, sameAs |
 | LocalBusiness | Physical businesses | name, address, telephone, openingHours, geo, priceRange |
 | SoftwareApplication | Desktop/mobile apps | name, operatingSystem, applicationCategory, offers, aggregateRating |
@@ -46,7 +46,7 @@ Google's documentation explicitly recommends JSON-LD over Microdata and RDFa.
 ## Restricted: Only for specific site types
 
 | Type | Restriction | Since |
-|------|------------|-------|
+|------|--|-------|
 | FAQPage | Government and healthcare authority sites ONLY | August 2023 |
 
 > Google severely limited FAQ rich results in August 2023. Only authoritative sources (government, health organizations) receive FAQ rich results.
@@ -77,7 +77,7 @@ Google's documentation explicitly recommends JSON-LD over Microdata and RDFa.
 ## Recent Additions (2024-2026)
 
 | Type/Feature | Added | Notes |
-|-------------|-------|-------|
+|--|-------|-------|
 | Product Certification markup | April 2025 | Energy ratings, safety certifications. Replaced EnergyConsumptionDetails. |
 | ProductGroup | 2025 | E-commerce product variants with variesBy, hasVariant properties |
 | ProfilePage | 2025 | Author/creator profile pages with mainEntity Person for E-E-A-T |
@@ -91,7 +91,7 @@ Google's documentation explicitly recommends JSON-LD over Microdata and RDFa.
 ## E-commerce Requirements (Updated)
 
 | Requirement | Status | Since |
-|-------------|--------|-------|
+|--|--------|-------|
 | `returnPolicyCountry` in MerchantReturnPolicy | **Required** | March 2025 |
 | Product variant structured data | Expanded | 2025, includes apparel, cosmetics, electronics |
 
@@ -103,14 +103,14 @@ Google's documentation explicitly recommends JSON-LD over Microdata and RDFa.
 
 For any schema block, verify:
 
-1. ✅ `@context` is `"https://schema.org"` (not http)
-2. ✅ `@type` is a valid, non-deprecated type
-3. ✅ All required properties are present
-4. ✅ Property values match expected data types
-5. ✅ No placeholder text (e.g., "[Business Name]")
-6. ✅ URLs are absolute, not relative
-7. ✅ Dates are in ISO 8601 format
-8. ✅ Images have valid URLs
+1.  `@context` is `"https://schema.org"` (not http)
+2.  `@type` is a valid, non-deprecated type
+3.  All required properties are present
+4.  Property values match expected data types
+5.  No placeholder text (e.g., "[Business Name]")
+6.  URLs are absolute, not relative
+7.  Dates are in ISO 8601 format
+8.  Images have valid URLs
 
 ## Testing Tools
 

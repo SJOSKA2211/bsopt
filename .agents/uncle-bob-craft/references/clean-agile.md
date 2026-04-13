@@ -14,7 +14,7 @@ Uncle Bob stresses that the right-hand side still has value; the left-hand side 
 ## Iron Cross (four supporting values)
 
 | Value | What it means in practice |
-|-------|---------------------------|
+|-------|--|
 | **Communication** | Prefer face-to-face (or high-bandwidth) communication; reduce information loss; keep the team aligned. |
 | **Courage** | Courage to refactor, to say no to unreasonable requests, to change the design when the code tells you to. |
 | **Feedback** | Short feedback loops—unit tests, integration tests, demos, small iterations. Learn fast what works and what doesn’t. |

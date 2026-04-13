@@ -16,7 +16,7 @@ These templates dictate the relationship between a business and its workforce. T
 ## Contract Types & Nuances
 
 | Contract Type | USA Context | Canada Context | EU Context |
-|---------------|-------------|----------------|------------|
+|--|--|--|--|
 | **Employment Agreements** | Focus strictly on "At-Will" employment status. | Focus on "Reasonable Notice" for termination (Common Law) or statutory minimums. | "At-Will" does not exist. Focus on "Statutory Notice Periods" (e.g., Zákoník práce in Czech Republic), fixed-term limits, and the Working Time Directive. |
 | **Independent Contractor Agreements** | Critical to avoid IRS/DOL misclassification. Must emphasize lack of control and independence. | Strict CRA rules on "Personal Services Businesses" vs True Contractors. | Misclassification is heavily penalized. Must avoid elements of subordination. In Czechia, "Švarcsystém" is strictly prohibited. |
 | **Non-Disclosure Agreements (NDA)** | Unilateral or Mutual. Can be perpetual for trade secrets. | similar to US, but careful detailing of what constitutes a trade secret is necessary. | Similar, but often more bound by local whistleblowing directives. |

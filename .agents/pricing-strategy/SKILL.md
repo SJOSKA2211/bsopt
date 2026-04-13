@@ -126,7 +126,7 @@ Used to inform **packaging**, not price levels.
 ### Willingness-to-Pay Testing
 
 | Method        | Use Case                    |
-| ------------- | --------------------------- |
+| -- | -- |
 | Direct WTP    | Directional only            |
 | Gabor-Granger | Demand curve                |
 | Conjoint      | Feature + price sensitivity |
@@ -149,7 +149,7 @@ The value metric is **what scales price with customer value**.
 ### Common Patterns
 
 | Metric             | Best For             |
-| ------------------ | -------------------- |
+| -- | -- |
 | Per user           | Collaboration tools  |
 | Per usage          | APIs, infrastructure |
 | Per record/contact | CRMs, email          |
@@ -169,7 +169,7 @@ If not → metric is misaligned.
 ### Number of Tiers
 
 | Count | When to Use                    |
-| ----- | ------------------------------ |
+| ----- | -- |
 | 2     | Simple segmentation            |
 | 3     | Default (Good / Better / Best) |
 | 4+    | Broad market, careful UX       |

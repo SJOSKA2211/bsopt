@@ -57,7 +57,7 @@ Resolution: Insights and recommendations
 ### 3. Three Pillars
 
 | Pillar        | Purpose  | Components                       |
-| ------------- | -------- | -------------------------------- |
+| -- | -------- | -- |
 | **Data**      | Evidence | Numbers, trends, comparisons     |
 | **Narrative** | Meaning  | Context, causation, implications |
 | **Visuals**   | Clarity  | Charts, diagrams, highlights     |
@@ -132,7 +132,7 @@ Team morale was low after missed goals.
 
 [Before/after comparison chart]
 | Metric | Q3 | Q4 | Change |
-|----------------|--------|--------|--------|
+|--|--------|--------|--------|
 | Trial → Paid | 8% | 15% | +87% |
 | Time to Value | 14 days| 5 days | -64% |
 | Expansion Rate | 2% | 8% | +300% |
@@ -183,7 +183,7 @@ Should we expand into EMEA or APAC first?
 [Weighted scoring matrix visualization]
 
 | Factor      | Weight | EMEA Score | APAC Score |
-| ----------- | ------ | ---------- | ---------- |
+| -- | ------ | -- | -- |
 | Market Size | 25%    | 5          | 4          |
 | Growth      | 30%    | 3          | 5          |
 | Competition | 20%    | 2          | 4          |
@@ -290,9 +290,9 @@ ax.legend()
 │                      │                                      │
 │  THE DATA            │  THE IMPLICATION                     │
 │                      │                                      │
-│  Week 1 completers:  │  ✓ Prioritize onboarding UX         │
-│  • LTV: $4,500       │  ✓ Add day-1 success milestones     │
-│  • Retention: 85%    │  ✓ Proactive week-1 outreach        │
+│  Week 1 completers:  │   Prioritize onboarding UX         │
+│  • LTV: $4,500       │   Add day-1 success milestones     │
+│  • Retention: 85%    │   Proactive week-1 outreach        │
 │  • NPS: 72           │                                      │
 │                      │  Investment: $75K                    │
 │  Others:             │  Expected ROI: 8x                    │
@@ -359,15 +359,15 @@ Revenue up 15% but CAC increasing faster than LTV
 
 ## WHAT'S WORKING
 
-✓ Enterprise segment growing 25% MoM
-✓ Referral program driving 30% of new logos
-✓ Support satisfaction at all-time high (94%)
+ Enterprise segment growing 25% MoM
+ Referral program driving 30% of new logos
+ Support satisfaction at all-time high (94%)
 
 ## WHAT NEEDS ATTENTION
 
-✗ SMB acquisition cost up 40%
-✗ Trial conversion down 5 points
-✗ Time-to-value increased by 3 days
+ SMB acquisition cost up 40%
+ Trial conversion down 5 points
+ Time-to-value increased by 3 days
 
 ## ROOT CAUSE
 

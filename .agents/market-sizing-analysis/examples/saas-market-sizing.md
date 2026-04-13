@@ -23,7 +23,7 @@ Complete TAM/SAM/SOM calculation for a B2B SaaS startup using bottom-up and top-
 **Segment Breakdown:**
 
 | Segment | Annual Revenue | Count | ACV | Priority |
-|---------|---------------|-------|-----|----------|
+|---------|--|-------|-----|--|
 | Small E-commerce | $1M-$5M | 85,000 | $3,600 | High |
 | Mid-Market E-commerce | $5M-$50M | 18,000 | $9,600 | High |
 | Enterprise E-commerce | $50M+ | 2,500 | $24,000 | Medium |
@@ -118,7 +118,7 @@ Total:                          $8.5M ARR (888 customers)
 ### Bottom-Up Summary
 
 | Metric | North America | Notes |
-|--------|---------------|-------|
+|--------|--|-------|
 | **TAM** | $539M | All e-commerce $1M+ revenue |
 | **SAM** | $169M | AI-ready, addressable switching market |
 | **SOM (Year 3)** | $4.2M | 2.5% market share, 495 customers |
@@ -161,7 +161,7 @@ Total:                          $8.5M ARR (888 customers)
 ### Top-Down Summary
 
 | Metric | Amount | Calculation |
-|--------|--------|-------------|
+|--------|--------|--|
 | **TAM** | $488M | NA e-commerce email marketing $1M+ |
 | **SAM** | $171M | AI-powered subset |
 
@@ -170,11 +170,11 @@ Total:                          $8.5M ARR (888 customers)
 ### Comparing Methodologies
 
 | Metric | Bottom-Up | Top-Down | Variance |
-|--------|-----------|----------|----------|
+|--------|--|--|--|
 | **TAM** | $539M | $488M | +10% |
 | **SAM** | $169M | $171M | -1% |
 
-**Validation Result:** ✅ Excellent alignment (< 2% variance on SAM)
+**Validation Result:**  Excellent alignment (< 2% variance on SAM)
 
 **Why alignment matters:**
 - Bottom-up and top-down within 10% gives high confidence
@@ -200,19 +200,19 @@ Total:                          $8.5M ARR (888 customers)
 ### Sanity Checks
 
 **Customer Count Check:**
-✅ 888 customers at Year 5 (5% market share) = reasonable
-✅ Implies ~14,000 total addressable customers
-✅ Aligns with estimated 105,000 e-commerce cos $1M+ in NA
+ 888 customers at Year 5 (5% market share) = reasonable
+ Implies ~14,000 total addressable customers
+ Aligns with estimated 105,000 e-commerce cos $1M+ in NA
 
 **Average Revenue Check:**
-✅ $8.5M ARR / 888 customers = $9,571 ACV
-✅ Within expected range of $3.6K-$24K by segment
-✅ Weighted average makes sense given segment mix
+ $8.5M ARR / 888 customers = $9,571 ACV
+ Within expected range of $3.6K-$24K by segment
+ Weighted average makes sense given segment mix
 
 **Market Share Check:**
-✅ 5% market share in Year 5 is achievable for well-funded startup
-✅ Lower than Klaviyo (46%), appropriate for new entrant
-✅ Room for growth beyond Year 5
+ 5% market share in Year 5 is achievable for well-funded startup
+ Lower than Klaviyo (46%), appropriate for new entrant
+ Room for growth beyond Year 5
 
 ## Growth Projections
 
@@ -264,19 +264,19 @@ Total:                          $8.5M ARR (888 customers)
 
 ## Investment Thesis Validation
 
-### Market Opportunity Score: ✅ Strong
+### Market Opportunity Score:  Strong
 
 **Positives:**
-✅ Large market: $1.5B+ global TAM
-✅ Growing market: 12% CAGR, 25% for AI subset
-✅ Addressable: $169M SAM with clear path to customers
-✅ Achievable: $8.5M Year 5 ARR reasonable
-✅ Validation: Public companies prove market exists
+ Large market: $1.5B+ global TAM
+ Growing market: 12% CAGR, 25% for AI subset
+ Addressable: $169M SAM with clear path to customers
+ Achievable: $8.5M Year 5 ARR reasonable
+ Validation: Public companies prove market exists
 
 **Risks:**
-⚠️ Competition: Klaviyo and Mailchimp are strong
-⚠️ Switching costs: Customers invested in current tools
-⚠️ Market share: 5% requires excellent execution
+️ Competition: Klaviyo and Mailchimp are strong
+️ Switching costs: Customers invested in current tools
+️ Market share: 5% requires excellent execution
 
 **Verdict:** Market opportunity supports venture-scale outcome ($100M+ exit possible)
 

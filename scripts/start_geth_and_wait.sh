@@ -8,7 +8,7 @@ cd "$PROJECT_ROOT"
 COMPOSE_CMD="docker compose"
 DOCKER_CMD="docker"
 
-echo "🚀 Starting Geth with blockchain profile..."
+echo " Starting Geth with blockchain profile..."
 $COMPOSE_CMD -f infrastructure/orchestration/docker-compose.yml --profile blockchain up -d geth
 
 echo "⏳ Waiting for Geth (8545) to become healthy..."
@@ -22,10 +22,10 @@ until curl -s -X POST -H "Content-Type: application/json" \
 done
 
 if [ $RETRIES -eq 0 ]; then
-    echo "❌ Fatal: Geth failed to reach stable state within timeout."
+    echo " Fatal: Geth failed to reach stable state within timeout."
     exit 1
 fi
 
-echo "✅ Geth is Online and Healthy!"
+echo " Geth is Online and Healthy!"
 # Report health to the engine? Maybe it means outputting a specific string or using a tool.
 # I'll just output the final status.

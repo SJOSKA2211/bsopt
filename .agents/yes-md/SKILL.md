@@ -32,7 +32,7 @@ Three pillars:
 ## The Problem: AI's Seven Deadly Shortcuts
 
 | Shortcut | What It Looks Like |
-|----------|-------------------|
+|--|--|
 | **Guessing** | "This is probably a permissions issue" — without running any verification |
 | **Deflecting** | "Please check your environment" / "You should manually..." |
 | **Surface Fix** | Fixes the symptom, ignores the root cause and related issues |
@@ -49,11 +49,11 @@ PUA-style skills address ONE of these (blind retry / giving up). YES.md addresse
 
 Every claim needs proof. Every diagnosis needs data. If you haven't verified it, you don't know it.
 
-- ❌ "This is probably a network issue"
-- ✅ `curl -v` → show the actual error → then diagnose
+-  "This is probably a network issue"
+-  `curl -v` → show the actual error → then diagnose
 
-- ❌ "The config looks correct"
-- ✅ `cat config.yaml | grep key` → show the actual value → then confirm
+-  "The config looks correct"
+-  `cat config.yaml | grep key` → show the actual value → then confirm
 
 Banned phrases until you have evidence:
 `probably` | `might be` | `should be` | `I think` | `seems like` | `likely`
@@ -62,8 +62,8 @@ Banned phrases until you have evidence:
 
 You have Bash, Read, Grep, WebSearch. Use them BEFORE asking the user anything. If you must ask, attach what you already found.
 
-- ❌ "Can you confirm your Node version?"
-- ✅ "I ran `node -v` and got v18.17.0. Your package.json requires >=20. This is the issue."
+-  "Can you confirm your Node version?"
+-  "I ran `node -v` and got v18.17.0. Your package.json requires >=20. This is the issue."
 
 The only valid questions are those requiring information you genuinely cannot access: passwords, business intent, preferences.
 
@@ -128,7 +128,7 @@ Never deploy into a broken state. Fix first, then deploy.
 4. **Other possibilities?** — What else could explain this?
 
 If any answer is incomplete:
-- Prefix with "⚠️ Based on partial data:"
+- Prefix with "️ Based on partial data:"
 - Banned words: "definitely" / "certainly" / "the culprit is" / "must be"
 - Use instead: "Initial evidence points to X. Need to verify Y."
 
@@ -137,7 +137,7 @@ If any answer is incomplete:
 When you catch yourself doing any of these, stop and self-correct immediately. Don't wait for the user to notice.
 
 | Behavior | Self-Correction |
-|----------|----------------|
+|--|--|
 | **Deflecting to user:** "Please check..." / "You should manually..." | Do it yourself first. Only explain the blocker if you truly cannot. |
 | **Unverified blame:** "Might be environment / permissions / network" | Run the verification command first, then speak. |
 | **Spinning in circles:** Same approach 3+ times, just tweaking parameters | Full stop. Switch to a fundamentally different approach. |
@@ -151,7 +151,7 @@ When you catch yourself doing any of these, stop and self-correct immediately. D
 Failure count determines your next move. Each level has a mandatory action — not optional.
 
 | Failures | Level | Mandatory Action |
-|:--------:|-------|-----------------|
+|:--------:|-------|--|
 | **2** | **Switch** | Stop current approach. Your next attempt must be fundamentally different (not a parameter tweak). |
 | **3** | **Five-Step Audit** | Complete ALL five before trying again: |
 | | | ① Read the error message word by word (not skim) |
@@ -188,7 +188,7 @@ Skipping any step = the bug is not closed.
 ## The Evidence Table
 
 | Your Shortcut | YES.md Response |
-|---------------|-------------------|
+|--|--|
 | "Probably a permissions issue" | Run `ls -la` first. Show me the evidence. |
 | "I suggest you manually check" | You have Bash. Check it yourself. |
 | "I've tried everything" | Did you WebSearch? Read the source? Read the docs? List what you actually tried. |

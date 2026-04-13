@@ -86,7 +86,7 @@ async def check_temporal_health():
     """Verify Temporal server is accessible"""
     try:
         client = await Client.connect("localhost:7233")
-        print("✓ Connected to Temporal server")
+        print(" Connected to Temporal server")
 
         # Test workflow execution
         from temporalio.worker import Worker
@@ -107,12 +107,12 @@ async def check_temporal_health():
                 id="health-check",
                 task_queue="health-check",
             )
-            print(f"✓ Workflow execution successful: {result}")
+            print(f" Workflow execution successful: {result}")
 
         return True
 
     except Exception as e:
-        print(f"✗ Health check failed: {e}")
+        print(f" Health check failed: {e}")
         return False
 
 if __name__ == "__main__":
@@ -325,9 +325,9 @@ pytest --cov=src --cov-fail-under=80
 ### Coverage Report Example
 
 ```
----------- coverage: platform darwin, python 3.11.5 -----------
+-- coverage: platform darwin, python 3.11.5 --
 Name                                Stmts   Miss  Cover   Missing
------------------------------------------------------------------
+--
 src/__init__.py                         0      0   100%
 src/activities/__init__.py              2      0   100%
 src/activities/inventory.py            45      3    93%   78-80
@@ -335,7 +335,7 @@ src/activities/payment.py              38      0   100%
 src/workflows/__init__.py               2      0   100%
 src/workflows/order_workflow.py        67      5    93%   45-49
 src/workflows/payment_workflow.py      52      0   100%
------------------------------------------------------------------
+--
 TOTAL                                 206      8    96%
 
 10 files skipped due to complete coverage.

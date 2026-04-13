@@ -45,7 +45,7 @@ git clone https://github.com/sickn33/antigravity-awesome-skills.git ~/.kiro/skil
 
 ```bash
 # Verify installation
-test -d ~/.kiro/skills && echo "✓ Skills installed successfully"
+test -d ~/.kiro/skills && echo " Skills installed successfully"
 ls ~/.kiro/skills/skills/ | head -10
 ```
 

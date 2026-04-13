@@ -6,7 +6,7 @@ The skill collection now uses intelligent auto-categorization to eliminate "unca
 
 ## Current Status
 
-✅ Current repository indexed through the generated catalog
+ Current repository indexed through the generated catalog
 - Most skills are in meaningful categories
 - A smaller tail still needs manual review or better keyword coverage
 - 11 primary categories
@@ -15,7 +15,7 @@ The skill collection now uses intelligent auto-categorization to eliminate "unca
 ## Category Distribution
 
 | Category | Count | Examples |
-|----------|-------|----------|
+|--|-------|--|
 | Backend | 164 | Node.js, Django, Express, FastAPI |
 | Web Development | 107 | React, Vue, Tailwind, CSS |
 | Automation | 103 | Workflow, Scripting, RPA |
@@ -63,15 +63,15 @@ python tools/scripts/auto_categorize_skills.py --dry-run
 
 ### Output
 ```
-======================================================================
+==
 AUTO-CATEGORIZATION REPORT
-======================================================================
+==
 
 Summary:
-   ✅ Categorized: 776
+    Categorized: 776
    ⏭️  Already categorized: 46
-   ❌ Failed to categorize: 124
-   📈 Total processed: full repository
+    Failed to categorize: 124
+    Total processed: full repository
 
 Sample changes:
    • 3d-web-experience
@@ -216,4 +216,4 @@ This will:
 
 ---
 
-**Result**: Much cleaner category filter with smart, meaningful organization! 🎉
+**Result**: Much cleaner category filter with smart, meaningful organization! 

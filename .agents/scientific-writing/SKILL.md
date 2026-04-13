@@ -34,7 +34,7 @@ This skill should be used when:
 
 ## Visual Enhancement with Scientific Schematics
 
-**⚠️ MANDATORY: Every scientific paper MUST include a graphical abstract plus 1-2 additional AI-generated figures using the scientific-schematics skill.**
+**️ MANDATORY: Every scientific paper MUST include a graphical abstract plus 1-2 additional AI-generated figures using the scientific-schematics skill.**
 
 This is not optional. Scientific papers without visual elements are incomplete. Before finalizing any document:
 1. **ALWAYS generate a graphical abstract** as the first visual element
@@ -63,14 +63,14 @@ python scripts/generate_schematic.py "Graphical abstract for [paper title]: [bri
 
 ### Additional Figures (GENERATE EXTENSIVELY)
 
-**⚠️ CRITICAL: Use BOTH scientific-schematics AND generate-image EXTENSIVELY throughout all documents.**
+**️ CRITICAL: Use BOTH scientific-schematics AND generate-image EXTENSIVELY throughout all documents.**
 
 Every document should be richly illustrated. Generate figures liberally - when in doubt, add a visual.
 
 **MINIMUM Figure Requirements:**
 
 | Document Type | Minimum | Recommended |
-|--------------|---------|-------------|
+|--|---------|--|
 | Research Papers | 5 | 6-8 |
 | Literature Reviews | 4 | 5-7 |
 | Market Research | 20 | 25-30 |
@@ -328,7 +328,7 @@ interpretability of the results.
 **Key Differences Between Outlines and Final Text:**
 
 | Outline (Planning Stage) | Final Manuscript |
-|--------------------------|------------------|
+|--|--|
 | Bullet points and fragments | Complete sentences and paragraphs |
 | Telegraphic notes | Full explanations with context |
 | List of citations | Citations integrated into prose |
@@ -337,13 +337,13 @@ interpretability of the results.
 
 **Common Mistakes to Avoid:**
 
-- ❌ **Never** leave bullet points in the final manuscript
-- ❌ **Never** submit lists where paragraphs should be
-- ❌ **Don't** use numbered or bulleted lists in Results or Discussion sections (except for specific cases like study hypotheses or inclusion criteria)
-- ❌ **Don't** write sentence fragments or incomplete thoughts
-- ✅ **Do** use occasional lists only in Methods (e.g., inclusion/exclusion criteria, materials lists)
-- ✅ **Do** ensure every section flows as connected prose
-- ✅ **Do** read paragraphs aloud to check for natural flow
+-  **Never** leave bullet points in the final manuscript
+-  **Never** submit lists where paragraphs should be
+-  **Don't** use numbered or bulleted lists in Results or Discussion sections (except for specific cases like study hypotheses or inclusion criteria)
+-  **Don't** write sentence fragments or incomplete thoughts
+-  **Do** use occasional lists only in Methods (e.g., inclusion/exclusion criteria, materials lists)
+-  **Do** ensure every section flows as connected prose
+-  **Do** read paragraphs aloud to check for natural flow
 
 **When Lists ARE Acceptable (Limited Cases):**
 
@@ -353,8 +353,8 @@ Lists may appear in scientific papers only in specific contexts:
 - **Never in**: Abstract, Introduction, Results, Discussion, Conclusions
 
 **Abstract Format Rule:**
-- ❌ **NEVER** use labeled sections (Background:, Methods:, Results:, Conclusions:)
-- ✅ **ALWAYS** write as flowing paragraph(s) with natural transitions
+-  **NEVER** use labeled sections (Background:, Methods:, Results:, Conclusions:)
+-  **ALWAYS** write as flowing paragraph(s) with natural transitions
 - Exception: Only use structured format if journal explicitly requires it in author guidelines
 
 **Integration with Research Lookup:**
@@ -391,7 +391,7 @@ For research reports, technical reports, white papers, and other professional do
 **The `scientific_report.sty` Style Package Provides:**
 
 | Feature | Description |
-|---------|-------------|
+|---------|--|
 | Typography | Helvetica font family for modern, professional appearance |
 | Color Scheme | Professional blues, greens, and accent colors |
 | Box Environments | Colored boxes for key findings, methods, recommendations, limitations |
@@ -659,7 +659,7 @@ This skill works effectively with:
 **Choose the right formatting approach:**
 
 | Document Type | Formatting Approach |
-|---------------|---------------------|
+|--|--|
 | Journal manuscripts | Use `venue-templates` skill |
 | Conference papers | Use `venue-templates` skill |
 | Research reports | Use `scientific_report.sty` (this skill) |

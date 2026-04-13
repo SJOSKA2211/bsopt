@@ -89,13 +89,13 @@ Action:
 
 ## Best Practices
 
-- ✅ **Do:** Install your country's **localization module** first (`l10n_us`, `l10n_mx`, etc.) before manually creating accounts — it sets up the correct chart of accounts.
-- ✅ **Do:** Use **Fiscal Positions** to automate B2B vs B2C tax switching — never change taxes manually on individual invoices.
-- ✅ **Do:** Lock accounting periods (Accounting → Actions → Lock Dates) after month-end closing to prevent retroactive edits.
-- ✅ **Do:** Use the **Early Payment Discount** feature (v16+) instead of splitting payment term lines for discount modelling.
-- ❌ **Don't:** Delete journal entries — always reverse them with a credit note or the built-in reversal function.
-- ❌ **Don't:** Mix personal and business transactions in the same journal.
-- ❌ **Don't:** Create manual journal entries to fix bank reconciliation mismatches — use the reconciliation model workflow instead.
+-  **Do:** Install your country's **localization module** first (`l10n_us`, `l10n_mx`, etc.) before manually creating accounts — it sets up the correct chart of accounts.
+-  **Do:** Use **Fiscal Positions** to automate B2B vs B2C tax switching — never change taxes manually on individual invoices.
+-  **Do:** Lock accounting periods (Accounting → Actions → Lock Dates) after month-end closing to prevent retroactive edits.
+-  **Do:** Use the **Early Payment Discount** feature (v16+) instead of splitting payment term lines for discount modelling.
+-  **Don't:** Delete journal entries — always reverse them with a credit note or the built-in reversal function.
+-  **Don't:** Mix personal and business transactions in the same journal.
+-  **Don't:** Create manual journal entries to fix bank reconciliation mismatches — use the reconciliation model workflow instead.
 
 ## Limitations
 

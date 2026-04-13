@@ -203,7 +203,7 @@
 
 #### LinkedIn Post Framework
 ```
-🎯 Hook/Pattern Interrupt
+ Hook/Pattern Interrupt
 
 Context paragraph explaining the situation or challenge.
 
@@ -278,7 +278,7 @@ Here's what I learned:
 
 Drop a [emoji] if you've experienced this too!
 
-What's your biggest challenge with [topic]? Let me know below 👇
+What's your biggest challenge with [topic]? Let me know below 
 
 -
 #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5
@@ -340,9 +340,9 @@ I've got something that can help:
 [Solution introduction - what it is]
 
 Here's what you get:
-✓ Benefit 1 (not feature)
-✓ Benefit 2 (not feature)
-✓ Benefit 3 (not feature)
+ Benefit 1 (not feature)
+ Benefit 2 (not feature)
+ Benefit 3 (not feature)
 
 [Social proof - testimonial or results]
 

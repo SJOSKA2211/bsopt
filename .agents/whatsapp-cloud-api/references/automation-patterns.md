@@ -407,7 +407,7 @@ Quando um humano assume, ele deve ver o historico da conversa automatizada:
 ```typescript
 async function buildHandoffContext(session: Session): string {
   return `
-📋 Contexto da conversa:
+ Contexto da conversa:
 - Cliente: ${session.phone}
 - Departamento: ${session.data.department}
 - Estado anterior: ${session.state}
@@ -415,7 +415,7 @@ async function buildHandoffContext(session: Session): string {
 - Tentativas do bot: ${session.data.botAttempts || 0}
 - Tempo na conversa: ${getElapsedTime(session.data.startedAt)}
 
-📝 Histórico resumido:
+ Histórico resumido:
 ${session.data.history?.map(h => `[${h.from}] ${h.text}`).join('\n') || 'Sem histórico'}
   `.trim();
 }

@@ -262,25 +262,25 @@ gcloud run deploy my-service \
 
 ## Anti-Patterns
 
-### ❌ CPU-Intensive Work Without Concurrency=1
+###  CPU-Intensive Work Without Concurrency=1
 
 **Why bad**: CPU is shared across concurrent requests. CPU-bound work
 will starve other requests, causing timeouts.
 
-### ❌ Writing Large Files to /tmp
+###  Writing Large Files to /tmp
 
 **Why bad**: /tmp is an in-memory filesystem. Large files consume
 your memory allocation and can cause OOM errors.
 
-### ❌ Long-Running Background Tasks
+###  Long-Running Background Tasks
 
 **Why bad**: Cloud Run throttles CPU to near-zero when not handling
 requests. Background tasks will be extremely slow or stall.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | high | ## Calculate memory including /tmp usage |
 | Issue | high | ## Set appropriate concurrency |
 | Issue | high | ## Enable CPU always allocated |

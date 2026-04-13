@@ -43,7 +43,7 @@ client = ServiceBusClient(
 ## Client Types
 
 | Client | Purpose | Get From |
-|--------|---------|----------|
+|--------|---------|--|
 | `ServiceBusClient` | Connection management | Direct instantiation |
 | `ServiceBusSender` | Send messages | `client.get_queue_sender()` / `get_topic_sender()` |
 | `ServiceBusReceiver` | Receive messages | `client.get_queue_receiver()` / `get_subscription_receiver()` |
@@ -117,7 +117,7 @@ asyncio.run(receive_messages())
 ## Receive Modes
 
 | Mode | Behavior | Use Case |
-|------|----------|----------|
+|------|--|--|
 | `PEEK_LOCK` (default) | Message locked, must complete/abandon | Reliable processing |
 | `RECEIVE_AND_DELETE` | Removed immediately on receive | At-most-once delivery |
 
@@ -261,7 +261,7 @@ with ServiceBusClient(
 ## Reference Files
 
 | File | Contents |
-|------|----------|
+|------|--|
 | references/patterns.md | Competing consumers, sessions, retry patterns, request-response, transactions |
 | references/dead-letter.md | DLQ handling, poison messages, reprocessing strategies |
 | scripts/setup_servicebus.py | CLI for queue/topic/subscription management and DLQ monitoring |

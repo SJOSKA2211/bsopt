@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🚀 Launching Production Financial Data Ingestion (Data-Driven)..."
+echo " Launching Production Financial Data Ingestion (Data-Driven)..."
 
 # Ensure environment is clean
 export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
@@ -18,7 +18,7 @@ else
 fi
 
 # Multi-Provider Concurrent Ingestion
-echo "📊 Fetching Market Data from Polygon and Alpha Vantage Substrates..."
+echo " Fetching Market Data from Polygon and Alpha Vantage Substrates..."
 $RUN_CMD -m src.ingestion.pipeline --providers polygon yfinance nse
 
-echo "✅ Ingestion Pipeline Sync Complete."
+echo " Ingestion Pipeline Sync Complete."

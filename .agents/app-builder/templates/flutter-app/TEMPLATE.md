@@ -8,7 +8,7 @@ description: Flutter mobile app template principles. Riverpod, Go Router, clean 
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | Flutter 3.x |
 | Language | Dart 3.x |
 | State | Riverpod 2.0 |
@@ -51,7 +51,7 @@ project_name/
 ## Architecture Layers
 
 | Layer | Contents |
-|-------|----------|
+|-------|--|
 | Presentation | Screens, Widgets, Providers |
 | Domain | Entities, Use Cases |
 | Data | Repositories, Models |

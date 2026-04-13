@@ -39,7 +39,7 @@ blob_service_client = BlobServiceClient(account_url, credential=credential)
 ## Client Hierarchy
 
 | Client | Purpose | Get From |
-|--------|---------|----------|
+|--------|---------|--|
 | `BlobServiceClient` | Account-level operations | Direct instantiation |
 | `ContainerClient` | Container operations | `blob_service_client.get_container_client()` |
 | `BlobClient` | Single blob operations | `container_client.get_blob_client()` |

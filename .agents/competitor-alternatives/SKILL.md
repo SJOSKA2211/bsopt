@@ -594,13 +594,13 @@ Focus on switchers:
 
 Instead of:
 | Feature | You | Competitor |
-|---------|-----|-----------|
-| Feature A | ✓ | ✓ |
-| Feature B | ✓ | ✗ |
+|---------|-----|--|
+| Feature A |  |  |
+| Feature B |  |  |
 
 Do this:
 | Feature | You | Competitor |
-|---------|-----|-----------|
+|---------|-----|--|
 | Feature A | Full support with [detail] | Basic support, [limitation] |
 | Feature B | [Specific capability] | Not available |
 
@@ -616,7 +616,7 @@ Group features into meaningful categories:
 ### Include Ratings Where Useful
 
 | Category | You | Competitor | Notes |
-|----------|-----|-----------|-------|
+|--|-----|--|-------|
 | Ease of use | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | [Brief note] |
 | Feature depth | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | [Brief note] |
 
@@ -672,7 +672,7 @@ Competitor pages need maintenance:
 ### Keyword Targeting
 
 | Format | Primary Keywords | Secondary Keywords |
-|--------|-----------------|-------------------|
+|--------|--|--|
 | Alternative (singular) | [Competitor] alternative | alternative to [Competitor], switch from [Competitor], [Competitor] replacement |
 | Alternatives (plural) | [Competitor] alternatives | best [Competitor] alternatives, tools like [Competitor], [Competitor] competitors |
 | You vs Competitor | [You] vs [Competitor] | [Competitor] vs [You], [You] compared to [Competitor] |

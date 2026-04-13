@@ -190,7 +190,7 @@ class QuantumOptionPricer:
         # Initial superposition
         qc.h(range(num_qubits))
 
-        # 🌀 GAUSSIAN-CENTRIC ROTATIONS
+        #  GAUSSIAN-CENTRIC ROTATIONS
         # Applying rotations that shape the uniform superposition into a
         # discretized normal distribution in log-space.
         for i in range(num_qubits):
@@ -200,7 +200,7 @@ class QuantumOptionPricer:
             angle = sigma * weight * 2.0  # Proportional scaling
             qc.ry(angle, i)
 
-        # ⛓️ ENTANGLEMENT CHAIN
+        # ️ ENTANGLEMENT CHAIN
         for i in range(num_qubits - 1):
             qc.cx(i, i + 1)
 

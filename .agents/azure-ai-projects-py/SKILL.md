@@ -40,7 +40,7 @@ client = AIProjectClient(
 ## Client Operations Overview
 
 | Operation | Access | Purpose |
-|-----------|--------|---------|
+|--|--------|---------|
 | `client.agents` | `.agents.*` | Agent CRUD, versions, threads, runs |
 | `client.connections` | `.connections.*` | List/get project connections |
 | `client.deployments` | `.deployments.*` | List model deployments |
@@ -129,7 +129,7 @@ See references/agents.md for detailed agent patterns.
 ## Tools Overview
 
 | Tool | Class | Use Case |
-|------|-------|----------|
+|------|-------|--|
 | Code Interpreter | `CodeInterpreterTool` | Execute Python, generate files |
 | File Search | `FileSearchTool` | RAG over uploaded documents |
 | Bing Grounding | `BingGroundingTool` | Web search (requires connection) |
@@ -272,7 +272,7 @@ agent = client.agents.create_agent(
 ## SDK Comparison
 
 | Feature | `azure-ai-projects` | `azure-ai-agents` |
-|---------|---------------------|-------------------|
+|---------|--|--|
 | Level | High-level (Foundry) | Low-level (Agents) |
 | Client | `AIProjectClient` | `AgentsClient` |
 | Versioning | `create_version()` | Not available |

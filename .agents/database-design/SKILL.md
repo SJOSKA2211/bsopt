@@ -10,12 +10,12 @@ date_added: "2026-02-27"
 
 > **Learn to THINK, not copy SQL patterns.**
 
-## 🎯 Selective Reading Rule
+##  Selective Reading Rule
 
 **Read ONLY files relevant to the request!** Check the content map, find what you need.
 
 | File | Description | When to Read |
-|------|-------------|--------------|
+|------|--|--|
 | `database-selection.md` | PostgreSQL vs Neon vs Turso vs SQLite | Choosing database |
 | `orm-selection.md` | Drizzle vs Prisma vs Kysely | Choosing ORM |
 | `schema-design.md` | Normalization, PKs, relationships | Designing schema |
@@ -25,7 +25,7 @@ date_added: "2026-02-27"
 
 ---
 
-## ⚠️ Core Principle
+## ️ Core Principle
 
 - ASK user for database preferences when unclear
 - Choose database/ORM based on CONTEXT
@@ -47,11 +47,11 @@ Before designing schema:
 
 ## Anti-Patterns
 
-❌ Default to PostgreSQL for simple apps (SQLite may suffice)
-❌ Skip indexing
-❌ Use SELECT * in production
-❌ Store JSON when structured data is better
-❌ Ignore N+1 queries
+ Default to PostgreSQL for simple apps (SQLite may suffice)
+ Skip indexing
+ Use SELECT * in production
+ Store JSON when structured data is better
+ Ignore N+1 queries
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

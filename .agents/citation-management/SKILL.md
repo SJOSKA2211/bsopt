@@ -457,7 +457,7 @@ Always prioritize papers based on citation count, venue quality, and author repu
 
 **Citation Count Thresholds:**
 | Paper Age | Citations | Classification |
-|-----------|-----------|----------------|
+|--|--|--|
 | 0-3 years | 20+ | Noteworthy |
 | 0-3 years | 100+ | Highly Influential |
 | 3-7 years | 100+ | Significant |

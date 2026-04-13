@@ -32,7 +32,7 @@ anyio.run(main)
 ## Built-in Tools
 
 | Tool      | Description                          |
-| --------- | ------------------------------------ |
+| --------- | -- |
 | Read      | Read files in the workspace          |
 | Write     | Create new files                     |
 | Edit      | Make precise edits to existing files |
@@ -177,7 +177,7 @@ async for message in query(prompt="...", options=ClaudeAgentOptions(...)):
 ```
 
 | Option                              | Type   | Description                                                                |
-| ----------------------------------- | ------ | -------------------------------------------------------------------------- |
+| -- | ------ | -- |
 | `cwd`                               | string | Working directory for file operations                                      |
 | `allowed_tools`                     | list   | Tools the agent can use (e.g., `["Read", "Edit", "Bash"]`)                |
 | `tools`                             | list   | Built-in tools to make available (restricts the default set)               |

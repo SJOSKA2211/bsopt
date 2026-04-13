@@ -34,7 +34,7 @@ E - Elevation of   → Authorization threats
 ### 2. Threat Analysis Matrix
 
 | Category | Question | Control Family |
-|----------|----------|----------------|
+|--|--|--|
 | **Spoofing** | Can attacker pretend to be someone else? | Authentication |
 | **Tampering** | Can attacker modify data in transit/rest? | Integrity |
 | **Repudiation** | Can attacker deny actions? | Logging/Audit |
@@ -70,7 +70,7 @@ E - Elevation of   → Authorization threats
 ## 2. Assets
 
 | Asset | Sensitivity | Description |
-|-------|-------------|-------------|
+|-------|--|--|
 | User Credentials | High | Authentication tokens, passwords |
 | Personal Data | High | PII, financial information |
 | Session Data | Medium | Active user sessions |
@@ -82,7 +82,7 @@ E - Elevation of   → Authorization threats
 ### 3.1 Spoofing Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | S1 | Session hijacking | User sessions | High | Medium |
 | S2 | Token forgery | JWT tokens | High | Low |
 | S3 | Credential stuffing | Login endpoint | High | High |
@@ -95,7 +95,7 @@ E - Elevation of   → Authorization threats
 ### 3.2 Tampering Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | T1 | SQL injection | Database queries | Critical | Medium |
 | T2 | Parameter manipulation | API requests | High | High |
 | T3 | File upload abuse | File storage | High | Medium |
@@ -108,7 +108,7 @@ E - Elevation of   → Authorization threats
 ### 3.3 Repudiation Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | R1 | Transaction denial | Financial ops | High | Medium |
 | R2 | Access log tampering | Audit logs | Medium | Low |
 | R3 | Action attribution | User actions | Medium | Medium |
@@ -121,7 +121,7 @@ E - Elevation of   → Authorization threats
 ### 3.4 Information Disclosure Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | I1 | Data breach | User PII | Critical | Medium |
 | I2 | Error message leakage | System info | Low | High |
 | I3 | Insecure transmission | Network traffic | High | Medium |
@@ -134,7 +134,7 @@ E - Elevation of   → Authorization threats
 ### 3.5 Denial of Service Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | D1 | Resource exhaustion | API servers | High | High |
 | D2 | Database overload | Database | Critical | Medium |
 | D3 | Bandwidth saturation | Network | High | Medium |
@@ -147,7 +147,7 @@ E - Elevation of   → Authorization threats
 ### 3.6 Elevation of Privilege Threats
 
 | ID | Threat | Target | Impact | Likelihood |
-|----|--------|--------|--------|------------|
+|----|--------|--------|--------|--|
 | E1 | IDOR vulnerabilities | User resources | High | High |
 | E2 | Role manipulation | Admin access | Critical | Low |
 | E3 | JWT claim tampering | Authorization | High | Medium |
@@ -173,7 +173,7 @@ K   Crit  4    8   12    16
 ### 4.2 Prioritized Risks
 
 | Rank | Threat | Risk Score | Priority |
-|------|--------|------------|----------|
+|------|--------|--|--|
 | 1 | SQL Injection (T1) | 12 | Critical |
 | 2 | IDOR (E1) | 9 | High |
 | 3 | Credential Stuffing (S3) | 9 | High |

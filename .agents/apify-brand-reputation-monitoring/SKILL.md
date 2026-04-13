@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on user needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Google Maps reviews | `compass/crawler-google-places` | Business reviews, ratings |
 | Google Maps review export | `compass/Google-Maps-Reviews-Scraper` | Dedicated review scraping |
 | Booking.com hotels | `voyager/booking-scraper` | Hotel data, scores |

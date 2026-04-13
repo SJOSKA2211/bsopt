@@ -34,7 +34,7 @@ Task Progress:
 Select the appropriate Actor based on analytics needs:
 
 | User Need | Actor ID | Best For |
-|-----------|----------|----------|
+|--|--|--|
 | Post engagement metrics | `apify/instagram-post-scraper` | Post performance |
 | Reel performance | `apify/instagram-reel-scraper` | Reel analytics |
 | Follower growth tracking | `apify/instagram-followers-count-scraper` | Growth metrics |

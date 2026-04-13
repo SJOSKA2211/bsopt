@@ -3,11 +3,11 @@
 > **Current Status**: All 96 skills are available in the repository.  
 > **This Document**: Recommends 35 high-priority skills for typical usage.
 
-## 📊 Recommended High-Priority Skills (35)
+##  Recommended High-Priority Skills (35)
 
 These are the skills recommended for most common development workflows. All other skills remain available and can be used as needed.
 
-### 🔥 Tier S - Core Development (13 skills)
+###  Tier S - Core Development (13 skills)
 
 Essential skills used automatically by the agent:
 
@@ -42,18 +42,18 @@ Skills actively used for your specific projects:
 - `notebooklm` - Google NotebookLM integration
 - `ui-ux-pro-max` - Advanced design intelligence
 
-### 📢 Marketing & SEO (1 skill)
+###  Marketing & SEO (1 skill)
 
 - `content-creator` - SEO-optimized marketing and brand voice
 
-### 🏢 Corporate (4 skills)
+###  Corporate (4 skills)
 
 - `brand-guidelines-anthropic` - Official Anthropic brand styling
 - `brand-guidelines-community` - Community brand guidelines
 - `internal-comms-anthropic` - Official Anthropic communications
 - `internal-comms-community` - Community communications
 
-### 📝 Planning & Documentation (1 skill)
+###  Planning & Documentation (1 skill)
 
 - `writing-plans` - Strategic planning documentation
 
@@ -67,7 +67,7 @@ Skills actively used for your specific projects:
 
 ---
 
-## 🗂️ Repository Structure
+## ️ Repository Structure
 
 ```
 skills/
@@ -77,7 +77,7 @@ skills/
 
 ---
 
-## 📚 Other Available Skills (61)
+##  Other Available Skills (61)
 
 All other skills in the repository are available for use as needed. Some notable categories:
 
@@ -137,12 +137,12 @@ Miscellaneous:
 
 ---
 
-## 🎯 Benefits of This Recommendation
+##  Benefits of This Recommendation
 
-✅ **Focused Guidance** - 35 high-priority skills for common workflows  
-✅ **Full Availability** - All 96 skills accessible when needed  
-✅ **Balanced Coverage** - Core dev + AI/automation + frontend excellence  
-✅ **Easy Discovery** - Categorized list of all other available skills
+ **Focused Guidance** - 35 high-priority skills for common workflows  
+ **Full Availability** - All 96 skills accessible when needed  
+ **Balanced Coverage** - Core dev + AI/automation + frontend excellence  
+ **Easy Discovery** - Categorized list of all other available skills
 
 ---
 

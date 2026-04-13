@@ -7,7 +7,7 @@ from src.database import create_tables, db_manager
 
 def verify_god_mode():
     print(" BSOpt High-Performance Database Verification")
-    print("----------------------------------------")
+    print("--")
 
     try:
         db_manager.initialize()
@@ -25,7 +25,7 @@ def verify_god_mode():
                 if ext in extensions:
                     print(f" Extension Found: {ext}")
                 else:
-                    print(f"❌ Missing Extension: {ext}")
+                    print(f" Missing Extension: {ext}")
 
             # 3. Revamp Diagnostics Check
             views = (
@@ -42,7 +42,7 @@ def verify_god_mode():
                 if v in views:
                     print(f" High-Performance View Active: {v}")
                 else:
-                    print(f"⚠️  Revamp View Missing: {v}")
+                    print(f"️  Revamp View Missing: {v}")
 
             # 4. Ingestion Readiness
             res = conn.execute(
@@ -53,7 +53,7 @@ def verify_god_mode():
         print("\n STATUS: MANIFOLD PRESSURIZED (Production-Ready)")
 
     except Exception as e:
-        print(f"\n❌ VERIFICATION FAILED: {e}")
+        print(f"\n VERIFICATION FAILED: {e}")
         sys.exit(1)
 
 

@@ -46,16 +46,16 @@ Normalized cache with type policies
 
 ## Anti-Patterns
 
-### ❌ No DataLoader
+###  No DataLoader
 
-### ❌ No Query Depth Limiting
+###  No Query Depth Limiting
 
-### ❌ Authorization in Schema
+###  Authorization in Schema
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Each resolver makes separate database queries | critical | # USE DATALOADER |
 | Deeply nested queries can DoS your server | critical | # LIMIT QUERY DEPTH AND COMPLEXITY |
 | Introspection enabled in production exposes your schema | high | # DISABLE INTROSPECTION IN PRODUCTION |

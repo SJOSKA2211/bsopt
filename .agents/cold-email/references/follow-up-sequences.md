@@ -14,7 +14,7 @@
 Increase the gap between each touch:
 
 | Touch         | Day   | Notes                                          |
-| ------------- | ----- | ---------------------------------------------- |
+| -- | ----- | -- |
 | Initial email | 0     | Maximum personalization investment             |
 | Follow-up 1   | 3     | Waiting 3 days increases response by up to 31% |
 | Follow-up 2   | 7–8   | Different angle                                |
@@ -30,7 +30,7 @@ Increase the gap between each touch:
 Each follow-up must stand alone while building toward the goal. Never just "bump this up."
 
 | Email       | Angle                                                      | Purpose                    |
-| ----------- | ---------------------------------------------------------- | -------------------------- |
+| -- | -- | -- |
 | Initial     | Personalized hook + core value prop + soft CTA             | Introduce problem/solution |
 | Follow-up 1 | Different angle, new value piece (stat, insight, resource) | Show additional benefit    |
 | Follow-up 2 | Social proof / case study from similar company             | Build credibility          |

@@ -60,7 +60,7 @@ Invoke this skill when:
 **Framework Mapping Logic:**
 
 | Task Type | Recommended Framework(s) | Rationale |
-|-----------|-------------------------|-----------|
+|--|--|--|
 | **Role-based tasks** (act as expert, consultant) | **RTF** (Role-Task-Format) | Clear role definition + task + output format |
 | **Step-by-step reasoning** (debugging, proof, logic) | **Chain of Thought** | Encourages explicit reasoning steps |
 | **Structured projects** (multi-phase, deliverables) | **RISEN** (Role, Instructions, Steps, End goal, Narrowing) | Comprehensive structure for complex work |
@@ -125,27 +125,27 @@ Before finalizing, verify:
 
 ### **NEVER:**
 
-- ❌ Assume information that wasn't provided - ALWAYS ask if critical details are missing
-- ❌ Explain which framework was selected or why (magic mode - keep it invisible)
-- ❌ Generate generic, one-size-fits-all prompts - always customize to context
-- ❌ Use technical jargon in the final prompt (unless user's domain is technical)
-- ❌ Ask more than 3 clarifying questions (avoid user fatigue)
-- ❌ Include meta-commentary in the output ("This prompt uses...", "Note that...")
-- ❌ Present output without code block formatting
-- ❌ Mix languages inconsistently (if user writes in PT, respond in PT)
+-  Assume information that wasn't provided - ALWAYS ask if critical details are missing
+-  Explain which framework was selected or why (magic mode - keep it invisible)
+-  Generate generic, one-size-fits-all prompts - always customize to context
+-  Use technical jargon in the final prompt (unless user's domain is technical)
+-  Ask more than 3 clarifying questions (avoid user fatigue)
+-  Include meta-commentary in the output ("This prompt uses...", "Note that...")
+-  Present output without code block formatting
+-  Mix languages inconsistently (if user writes in PT, respond in PT)
 
 ### **ALWAYS:**
 
-- ✅ Analyze intent before generating (Step 1 is mandatory)
-- ✅ Ask clarifying questions if critical information is ambiguous (Step 2 conditional)
-- ✅ Select framework(s) based on task type and complexity (Step 3 mapping)
-- ✅ Blend multiple frameworks when it improves prompt quality
-- ✅ Adapt prompt length to original input complexity (simple → short, complex → detailed)
-- ✅ Include output format specification in generated prompts
-- ✅ Present final prompt in clean Markdown code block
-- ✅ Make prompts self-contained (no dependency on external context)
-- ✅ Use examples in complex prompts to illustrate expected output
-- ✅ Validate prompt completeness before presenting (quality checks in Step 4.6)
+-  Analyze intent before generating (Step 1 is mandatory)
+-  Ask clarifying questions if critical information is ambiguous (Step 2 conditional)
+-  Select framework(s) based on task type and complexity (Step 3 mapping)
+-  Blend multiple frameworks when it improves prompt quality
+-  Adapt prompt length to original input complexity (simple → short, complex → detailed)
+-  Include output format specification in generated prompts
+-  Present final prompt in clean Markdown code block
+-  Make prompts self-contained (no dependency on external context)
+-  Use examples in complex prompts to illustrate expected output
+-  Validate prompt completeness before presenting (quality checks in Step 4.6)
 
 
 ### **Example 2: Complex Clear Prompt → RODES + Chain of Thought (No Clarification)**

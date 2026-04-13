@@ -12,9 +12,9 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-# ============================================================================
+# ==
 # Provider Interfaces
-# ============================================================================
+# ==
 
 
 class TranscriberProvider(ABC):
@@ -44,9 +44,9 @@ class TTSProvider(ABC):
         pass
 
 
-# ============================================================================
+# ==
 # Multi-Provider Factory
-# ============================================================================
+# ==
 
 
 class VoiceComponentFactory:
@@ -102,7 +102,7 @@ class VoiceComponentFactory:
                 f"Supported: {list(self.transcriber_providers.keys())}"
             )
 
-        logger.info(f"🎤 Creating transcriber: {provider}")
+        logger.info(f" Creating transcriber: {provider}")
         return self.transcriber_providers[provider](config)
 
     def create_agent(self, config: dict[str, Any]):
@@ -148,12 +148,12 @@ class VoiceComponentFactory:
                 f"Unknown voice provider: {provider}. Supported: {list(self.tts_providers.keys())}"
             )
 
-        logger.info(f"🔊 Creating synthesizer: {provider}")
+        logger.info(f" Creating synthesizer: {provider}")
         return self.tts_providers[provider](config)
 
-    # ========================================================================
+    # ==
     # Transcriber Implementations
-    # ========================================================================
+    # ==
 
     def _create_deepgram_transcriber(self, config: dict[str, Any]):
         """Create Deepgram transcriber"""
@@ -181,9 +181,9 @@ class VoiceComponentFactory:
         # TODO: Implement Google transcriber
         raise NotImplementedError("Google transcriber not implemented")
 
-    # ========================================================================
+    # ==
     # LLM Agent Implementations
-    # ========================================================================
+    # ==
 
     def _create_openai_agent(self, config: dict[str, Any]):
         """Create OpenAI agent"""
@@ -212,9 +212,9 @@ class VoiceComponentFactory:
         # TODO: Implement Claude agent
         raise NotImplementedError("Claude agent not implemented")
 
-    # ========================================================================
+    # ==
     # TTS Synthesizer Implementations
-    # ========================================================================
+    # ==
 
     def _create_elevenlabs_synthesizer(self, config: dict[str, Any]):
         """Create ElevenLabs synthesizer"""
@@ -248,9 +248,9 @@ class VoiceComponentFactory:
         raise NotImplementedError("Play.ht synthesizer not implemented")
 
 
-# ============================================================================
+# ==
 # Example Usage
-# ============================================================================
+# ==
 
 
 def example_usage():
@@ -277,12 +277,12 @@ def example_usage():
         factory.create_agent(config)
         factory.create_synthesizer(config)
 
-        print("✅ All components created successfully!")
+        print(" All components created successfully!")
 
     except ValueError as e:
-        print(f"❌ Configuration error: {e}")
+        print(f" Configuration error: {e}")
     except NotImplementedError as e:
-        print(f"⚠️ Not implemented: {e}")
+        print(f"️ Not implemented: {e}")
 
 
 if __name__ == "__main__":

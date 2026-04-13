@@ -1521,7 +1521,7 @@ async def mark_as_read(message_id: str) -> bool:
 ## Referencia Rapida - Limites e Formatos
 
 | Tipo          | Tamanho Max | Formatos                          | Caption |
-|---------------|-------------|-----------------------------------|---------|
+|--|--|--|---------|
 | Texto         | 4096 chars  | -                                 | -       |
 | Imagem        | 5 MB        | JPEG, PNG                         | 1024 ch |
 | Documento     | 100 MB      | PDF, DOC, XLS, PPT, TXT, etc.    | 1024 ch |
@@ -1530,7 +1530,7 @@ async def mark_as_read(message_id: str) -> bool:
 | Sticker       | 100 KB (s) / 500 KB (a) | WEBP                 | N/A     |
 
 | Interativo    | Limite                                              |
-|---------------|-----------------------------------------------------|
+|--|--|
 | Botoes        | 3 botoes, titulo ate 20 chars                       |
 | Lista         | 10 secoes, 10 rows total, titulo ate 24 chars       |
 | Reacao        | 1 emoji por remetente por mensagem                  |
@@ -1556,7 +1556,7 @@ Todas as funcoes acima podem lancar erros da API. Estrutura padrao de erro:
 ### Codigos de erro frequentes
 
 | Codigo  | Significado                                          |
-|---------|------------------------------------------------------|
+|---------|--|
 | 131030  | Numero do destinatario nao esta na lista permitida   |
 | 131031  | Conta do remetente bloqueada                         |
 | 131047  | Re-engagement message (mais de 24h sem janela)       |

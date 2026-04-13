@@ -16,7 +16,7 @@ Use this skill when making Node.js architecture decisions, choosing frameworks, 
 
 ---
 
-## ⚠️ How to Use This Skill
+## ️ How to Use This Skill
 
 This skill teaches **decision-making principles**, not fixed code to copy.
 
@@ -96,7 +96,7 @@ CommonJS (require)
 ### Runtime Selection
 
 | Runtime | Best For |
-|---------|----------|
+|---------|--|
 | **Node.js** | General purpose, largest ecosystem |
 | **Bun** | Performance, built-in bundler |
 | **Deno** | Security-first, built-in TypeScript |
@@ -169,7 +169,7 @@ Logs get:
 ### Status Code Selection
 
 | Situation | Status | When |
-|-----------|--------|------|
+|--|--------|------|
 | Bad input | 400 | Client sent invalid data |
 | No auth | 401 | Missing or invalid credentials |
 | No permission | 403 | Valid auth, but not allowed |
@@ -185,7 +185,7 @@ Logs get:
 ### When to Use Each
 
 | Pattern | Use When |
-|---------|----------|
+|---------|--|
 | `async/await` | Sequential async operations |
 | `Promise.all` | Parallel independent operations |
 | `Promise.allSettled` | Parallel where some can fail |
@@ -230,7 +230,7 @@ Where to validate:
 ### Validation Library Selection
 
 | Library | Best For |
-|---------|----------|
+|---------|--|
 | **Zod** | TypeScript first, inference |
 | **Valibot** | Smaller bundle (tree-shakeable) |
 | **ArkType** | Performance critical |
@@ -303,7 +303,7 @@ node --test src/**/*.test.ts
 
 ## 10. Anti-Patterns to Avoid
 
-### ❌ DON'T:
+###  DON'T:
 - Use Express for new edge projects (use Hono)
 - Use sync methods in production code
 - Put business logic in controllers
@@ -312,7 +312,7 @@ node --test src/**/*.test.ts
 - Trust external data without validation
 - Block event loop with CPU work
 
-### ✅ DO:
+###  DO:
 - Choose framework based on context
 - Ask user for preferences when unclear
 - Use layered architecture for growing projects

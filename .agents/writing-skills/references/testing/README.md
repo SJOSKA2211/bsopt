@@ -122,7 +122,7 @@ Always write tests.
 ## Common Rationalizations
 
 | Excuse                              | Reality                                                                 |
-| ----------------------------------- | ----------------------------------------------------------------------- |
+| -- | -- |
 | "Testing after achieves same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
 | "Too simple to test"                | Simple code breaks. Test takes 30 seconds.                              |
 ```
@@ -181,7 +181,7 @@ Before deploying a skill:
 ## Common Testing Mistakes
 
 | Mistake                        | Fix                                                       |
-| ------------------------------ | --------------------------------------------------------- |
+| -- | -- |
 | "I'll test if problems emerge" | Problems = agents can't use skill. Test BEFORE deploying. |
 | "Skill is obviously clear"     | Clear to you ≠ clear to agents. Test it.                  |
 | "Testing is overkill"          | Untested skills have issues. Always.                      |

@@ -21,7 +21,7 @@ E-E-A-T is **not a direct ranking factor**.
 It is a framework used by search engines to **evaluate content quality**, especially for sensitive or high-impact topics.
 
 | Dimension             | What It Represents                 | Common Signals                                      |
-| --------------------- | ---------------------------------- | --------------------------------------------------- |
+| -- | -- | -- |
 | **Experience**        | First-hand, real-world involvement | Original examples, lived experience, demonstrations |
 | **Expertise**         | Subject-matter competence          | Credentials, depth, accuracy                        |
 | **Authoritativeness** | Recognition by others              | Mentions, citations, links                          |
@@ -36,7 +36,7 @@ It is a framework used by search engines to **evaluate content quality**, especi
 Core Web Vitals measure **how users experience a page**, not whether it deserves to rank.
 
 | Metric  | Target  | What It Reflects    |
-| ------- | ------- | ------------------- |
+| ------- | ------- | -- |
 | **LCP** | < 2.5s  | Loading performance |
 | **INP** | < 200ms | Interactivity       |
 | **CLS** | < 0.1   | Visual stability    |
@@ -56,7 +56,7 @@ Technical SEO ensures pages are **accessible, understandable, and stable**.
 ### Crawl & Index Control
 
 | Element           | Purpose                |
-| ----------------- | ---------------------- |
+| -- | -- |
 | XML sitemaps      | Help discovery         |
 | robots.txt        | Control crawl access   |
 | Canonical tags    | Consolidate duplicates |
@@ -66,7 +66,7 @@ Technical SEO ensures pages are **accessible, understandable, and stable**.
 ### Performance & Accessibility
 
 | Factor                 | Why It Matters                |
-| ---------------------- | ----------------------------- |
+| -- | -- |
 | Page speed             | User satisfaction             |
 | Mobile-friendly design | Mobile-first indexing         |
 | Clean URLs             | Crawl clarity                 |
@@ -79,7 +79,7 @@ Technical SEO ensures pages are **accessible, understandable, and stable**.
 ### Page-Level Elements
 
 | Element          | Principle                    |
-| ---------------- | ---------------------------- |
+| -- | -- |
 | Title tag        | Clear topic + intent         |
 | Meta description | Click relevance, not ranking |
 | H1               | Page’s primary subject       |
@@ -89,7 +89,7 @@ Technical SEO ensures pages are **accessible, understandable, and stable**.
 ### Content Quality Signals
 
 | Dimension   | What Search Engines Look For |
-| ----------- | ---------------------------- |
+| -- | -- |
 | Depth       | Fully answers the query      |
 | Originality | Adds unique value            |
 | Accuracy    | Factually correct            |
@@ -103,7 +103,7 @@ Technical SEO ensures pages are **accessible, understandable, and stable**.
 Structured data helps search engines **understand meaning**, not boost rankings directly.
 
 | Type           | Purpose                |
-| -------------- | ---------------------- |
+| -- | -- |
 | Article        | Content classification |
 | Organization   | Entity identity        |
 | Person         | Author information     |
@@ -142,7 +142,7 @@ There is **no fixed ranking factor order**.
 However, when competing pages are similar, importance tends to follow this pattern:
 
 | Relative Weight | Factor                      |
-| --------------- | --------------------------- |
+| -- | -- |
 | Highest         | Content relevance & quality |
 | High            | Authority & trust signals   |
 | Medium          | Page experience (CWV, UX)   |
@@ -158,7 +158,7 @@ However, when competing pages are similar, importance tends to follow this patte
 SEO fundamentals should be validated using **multiple signals**, not single metrics.
 
 | Area        | What to Observe            |
-| ----------- | -------------------------- |
+| -- | -- |
 | Visibility  | Indexed pages, impressions |
 | Engagement  | Click-through, dwell time  |
 | Performance | CWV field data             |

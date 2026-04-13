@@ -110,11 +110,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
 ## Best Practices
 
-- ✅ **Do:** Use `mix()` for linear interpolation instead of manual math.
-- ✅ **Do:** Use `step()` and `smoothstep()` for thresholding and soft edges (avoid `if` branches).
-- ✅ **Do:** Pack data into vectors (`vec4`) to minimize memory access.
-- ❌ **Don't:** Use heavy branching (`if-else`) inside loops if possible; it hurts GPU parallelism.
-- ❌ **Don't:** Calculate constant values inside the shader; pre-calculate them on the CPU (uniforms).
+-  **Do:** Use `mix()` for linear interpolation instead of manual math.
+-  **Do:** Use `step()` and `smoothstep()` for thresholding and soft edges (avoid `if` branches).
+-  **Do:** Pack data into vectors (`vec4`) to minimize memory access.
+-  **Don't:** Use heavy branching (`if-else`) inside loops if possible; it hurts GPU parallelism.
+-  **Don't:** Calculate constant values inside the shader; pre-calculate them on the CPU (uniforms).
 
 ## Troubleshooting
 

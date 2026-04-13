@@ -28,7 +28,7 @@ n8n-mcp provides tools organized into categories:
 ### Most Used Tools (by success rate)
 
 | Tool | Use When | Speed |
-|------|----------|-------|
+|------|--|-------|
 | `search_nodes` | Finding nodes by keyword | <20ms |
 | `get_node` | Understanding node operations (detail="standard") | <10ms |
 | `validate_node` | Checking configurations (mode="full") | <100ms |
@@ -570,7 +570,7 @@ validate_node({nodeType: "nodes-base.webhook", config: {}, mode: "minimal"})
 ## Performance Characteristics
 
 | Tool | Response Time | Payload Size |
-|------|---------------|--------------|
+|------|--|--|
 | search_nodes | <20ms | Small |
 | get_node (standard) | <10ms | ~1-2KB |
 | get_node (full) | <100ms | 3-8KB |

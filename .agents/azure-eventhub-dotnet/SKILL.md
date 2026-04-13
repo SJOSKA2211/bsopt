@@ -69,7 +69,7 @@ var producer = new EventHubProducerClient(
 ## Client Types
 
 | Client | Purpose | When to Use |
-|--------|---------|-------------|
+|--------|---------|--|
 | `EventHubProducerClient` | Send events immediately in batches | Real-time sending, full control over batching |
 | `EventHubBufferedProducerClient` | Automatic batching with background sending | High-volume, fire-and-forget scenarios |
 | `EventHubConsumerClient` | Simple event reading | Prototyping only, NOT for production |
@@ -330,7 +330,7 @@ catch (EventHubsException ex)
 ## Checkpointing Strategies
 
 | Strategy | When to Use |
-|----------|-------------|
+|--|--|
 | Every event | Low volume, critical data |
 | Every N events | Balanced throughput/reliability |
 | Time-based | Consistent checkpoint intervals |

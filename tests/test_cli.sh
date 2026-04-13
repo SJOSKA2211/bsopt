@@ -1,16 +1,16 @@
 #!/bin/bash
 #
 # Test Script for Black-Scholes CLI
-# ==================================
+# ==
 #
 # Comprehensive test suite for all CLI commands
 # Run with: bash test_cli.sh
 
 set -e  # Exit on error
 
-echo "========================================"
+echo "=="
 echo "Black-Scholes CLI Test Suite"
-echo "========================================"
+echo "=="
 echo ""
 
 # Colors
@@ -29,11 +29,11 @@ test_command() {
     TESTS_RUN=$((TESTS_RUN + 1))
     echo -e "${YELLOW}Test $TESTS_RUN: $1${NC}"
     if eval "$2" > /dev/null 2>&1; then
-        echo -e "${GREEN}✓ PASSED${NC}"
+        echo -e "${GREEN} PASSED${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
     else
-        echo -e "${RED}✗ FAILED${NC}"
+        echo -e "${RED} FAILED${NC}"
         TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
@@ -44,11 +44,11 @@ test_command_output() {
     echo -e "${YELLOW}Test $TESTS_RUN: $1${NC}"
     OUTPUT=$(eval "$2" 2>&1)
     if echo "$OUTPUT" | grep -q "$3"; then
-        echo -e "${GREEN}✓ PASSED${NC}"
+        echo -e "${GREEN} PASSED${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
     else
-        echo -e "${RED}✗ FAILED${NC}"
+        echo -e "${RED} FAILED${NC}"
         echo "Expected: $3"
         echo "Got: $OUTPUT"
         TESTS_FAILED=$((TESTS_FAILED + 1))
@@ -67,17 +67,17 @@ echo -e "${GREEN}CLI found!${NC}"
 echo ""
 
 # Test 1: Version
-echo "----------------------------------------"
+echo "--"
 echo "1. Basic Commands"
-echo "----------------------------------------"
+echo "--"
 test_command "Version check" "bsopt --version"
 test_command "Help display" "bsopt --help"
 
 # Test 2: Pricing Commands
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "2. Pricing Commands"
-echo "----------------------------------------"
+echo "--"
 
 # Black-Scholes call
 test_command "BS call pricing" \
@@ -101,9 +101,9 @@ test_command "JSON output" \
 
 # Test 3: Greeks
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "3. Greeks Calculation"
-echo "----------------------------------------"
+echo "--"
 
 test_command "Calculate Greeks" \
     "bsopt greeks --spot 100 --strike 100 --maturity 1.0 --vol 0.2 --rate 0.05"
@@ -113,9 +113,9 @@ test_command "Greeks for put" \
 
 # Test 4: Configuration
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "4. Configuration Management"
-echo "----------------------------------------"
+echo "--"
 
 test_command "Config list" "bsopt config list"
 test_command "Config get" "bsopt config get api.base_url"
@@ -123,9 +123,9 @@ test_command "Config set" "bsopt config set pricing.default_method bs"
 
 # Test 5: Portfolio
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "5. Portfolio Management"
-echo "----------------------------------------"
+echo "--"
 
 test_command "Portfolio list (empty)" "bsopt portfolio list"
 
@@ -140,9 +140,9 @@ test_command "Portfolio P&L" "bsopt portfolio pnl"
 
 # Test 6: Batch Processing
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "6. Batch Processing"
-echo "----------------------------------------"
+echo "--"
 
 # Create test CSV
 cat > /tmp/test_options.csv << EOF
@@ -156,19 +156,19 @@ test_command "Batch pricing" \
     "bsopt batch --input /tmp/test_options.csv --output /tmp/test_results.csv"
 
 if [ -f /tmp/test_results.csv ]; then
-    echo -e "${GREEN}✓ Batch output file created${NC}"
+    echo -e "${GREEN} Batch output file created${NC}"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${RED}✗ Batch output file not found${NC}"
+    echo -e "${RED} Batch output file not found${NC}"
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 TESTS_RUN=$((TESTS_RUN + 1))
 
 # Test 7: Error Handling
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "7. Error Handling"
-echo "----------------------------------------"
+echo "--"
 
 # Invalid parameters should fail
 test_command "Negative spot price (should fail)" \
@@ -179,26 +179,26 @@ test_command "Invalid maturity (should fail)" \
 
 # Test 8: Authentication (skip if no API)
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "8. Authentication Commands"
-echo "----------------------------------------"
+echo "--"
 
 test_command "Check auth status" "bsopt auth whoami || true"
 
 # Test 9: Server commands (just check they exist)
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "9. Server Commands"
-echo "----------------------------------------"
+echo "--"
 
 test_command "Serve help" "bsopt serve --help"
 test_command "Init-db help" "bsopt init-db --help"
 
 # Cleanup
 echo ""
-echo "----------------------------------------"
+echo "--"
 echo "Cleanup"
-echo "----------------------------------------"
+echo "--"
 
 # Remove test files
 rm -f /tmp/test_options.csv /tmp/test_results.csv
@@ -208,19 +208,19 @@ rm -f /tmp/test_options.csv /tmp/test_results.csv
 
 # Summary
 echo ""
-echo "========================================"
+echo "=="
 echo "Test Summary"
-echo "========================================"
+echo "=="
 echo -e "Total tests:  $TESTS_RUN"
 echo -e "${GREEN}Passed:       $TESTS_PASSED${NC}"
 echo -e "${RED}Failed:       $TESTS_FAILED${NC}"
 
 if [ $TESTS_FAILED -eq 0 ]; then
     echo ""
-    echo -e "${GREEN}✓ All tests passed!${NC}"
+    echo -e "${GREEN} All tests passed!${NC}"
     exit 0
 else
     echo ""
-    echo -e "${RED}✗ Some tests failed${NC}"
+    echo -e "${RED} Some tests failed${NC}"
     exit 1
 fi

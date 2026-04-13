@@ -69,7 +69,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 ## 2. Identificar O Perfil Do Cliente
 
 | Perfil | Abordagem |
-|--------|-----------|
+|--------|--|
 | **Vitima** | Acolhimento, orientacao de direitos, medidas protetivas, rede de apoio |
 | **Acusado/Reu** | Analise tecnica da acusacao, teses defensivas, direitos constitucionais |
 | **Advogado** | Linguagem tecnica, jurisprudencia, estrategia processual |
@@ -81,7 +81,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 ## 1.1 Mapa Da Legislacao Atualizada (2006-2025)
 
 | Lei | Ano | Alteracao Principal |
-|-----|-----|-------------------|
+|-----|-----|--|
 | **11.340** | 2006 | Lei Maria da Penha (texto base) |
 | **13.641** | 2018 | Criminalizou descumprimento de medida protetiva (Art. 24-A) |
 | **13.827** | 2019 | Delegado/policial podem afastar agressor do lar |
@@ -105,7 +105,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 ## 1.2 Formas De Violencia (Art. 7 Da Lei 11.340/2006)
 
 | Forma | Definicao | Exemplos |
-|-------|-----------|----------|
+|-------|--|--|
 | **Fisica** (I) | Ofensa a integridade ou saude corporal | Tapas, socos, empurroes, queimaduras, estrangulamento |
 | **Psicologica** (II) | Dano emocional, diminuicao da autoestima, controle | Humilhacao, ameaca, isolamento, gaslighting, manipulacao |
 | **Sexual** (III) | Conduta que constranja a presenciar/manter/participar de relacao sexual | Estupro marital, impedir uso de contraceptivo, forcar aborto |
@@ -117,7 +117,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 #### Contra o Agressor (Art. 22)
 
 | Medida | Descricao |
-|--------|-----------|
+|--------|--|
 | **I** | Suspensao de porte/posse de arma |
 | **II** | Afastamento do lar/domicilio |
 | **III-a** | Proibicao de aproximacao (distancia minima fixada pelo juiz) |
@@ -130,7 +130,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 #### Em Favor da Vitima (Art. 23)
 
 | Medida | Descricao |
-|--------|-----------|
+|--------|--|
 | **I** | Encaminhamento a programa de protecao |
 | **II** | Retorno ao domicilio apos afastamento do agressor |
 | **III** | Afastamento da vitima sem prejuizo de direitos |
@@ -139,7 +139,7 @@ Voce atua tanto na **defesa** quanto na **acusacao**, conforme o perfil do clien
 #### Protecao Patrimonial (Art. 24)
 
 | Medida | Descricao |
-|--------|-----------|
+|--------|--|
 | **I** | Restituicao de bens subtraidos pelo agressor |
 | **II** | Proibicao de venda/locacao de bens comuns |
 | **III** | Suspensao de procuracoes |
@@ -187,7 +187,7 @@ VITIMA em situacao de violencia
 ## 1.6 Sumulas Do Stj Sobre Maria Da Penha
 
 | Sumula | Conteudo |
-|--------|----------|
+|--------|--|
 | **536** | Nao se aplica suspensao do processo (Art. 89 Lei 9.099) |
 | **542** | Lesao corporal em violencia domestica = acao penal publica incondicionada |
 | **588** | Nao cabe substituicao por pena restritiva de direitos |
@@ -199,7 +199,7 @@ VITIMA em situacao de violencia
 ## 2.1 Evolucao Legislativa
 
 | Periodo | Enquadramento |
-|---------|--------------|
+|---------|--|
 | Ate 2015 | Homicidio simples/qualificado (Art. 121) |
 | 2015-2024 | Qualificadora do homicidio (Art. 121, par. 2, VI) — Lei 13.104/2015 |
 | **2024+** | **Crime autonomo** — Art. 121-A (Lei 14.994/2024) |
@@ -245,7 +245,7 @@ II — menosprezo ou discriminacao a condicao de mulher
 ## 3.1 Tabela De Crimes E Penas Atualizadas
 
 | Crime | Base Legal | Pena | Acao Penal |
-|-------|-----------|------|-----------|
+|-------|--|------|--|
 | **Feminicidio** | Art. 121-A CP (Lei 14.994/2024) | 20-40 anos reclusao | Publica incondicionada |
 | **Lesao corporal — violencia domestica** | Art. 129, par. 9 CP | 3 meses - 3 anos detencao | Publica incondicionada (Sum. 542) |
 | **Lesao corporal — razao genero** | Art. 129, par. 13 CP (Lei 14.994/2024) | 2-5 anos reclusao | Publica incondicionada |
@@ -267,7 +267,7 @@ II — menosprezo ou discriminacao a condicao de mulher
 O que **NAO** se aplica em casos de violencia domestica contra a mulher:
 
 | Vedacao | Base Legal |
-|---------|-----------|
+|---------|--|
 | Nao aplica Lei 9.099/95 (JECrim) | Art. 41 Lei 11.340 |
 | Nao aplica transacao penal | Art. 41 Lei 11.340 |
 | Nao aplica suspensao condicional do processo | Sumula 536 STJ |
@@ -293,7 +293,7 @@ O que **NAO** se aplica em casos de violencia domestica contra a mulher:
 ## 4.2 Sancoes (Art. 81 Cpc)
 
 | Sancao | Detalhamento |
-|--------|-------------|
+|--------|--|
 | **Multa** | Superior a 1% e inferior a 10% do valor corrigido da causa |
 | **Indenizacao** | Perdas e danos a parte contraria |
 | **Honorarios** | Pagamento de honorarios advocaticios |
@@ -302,14 +302,14 @@ O que **NAO** se aplica em casos de violencia domestica contra a mulher:
 ## 4.3 Aplicacao No Processo Penal — Divergencia Jurisprudencial
 
 | Tribunal | Posicao | Fundamento |
-|----------|---------|-----------|
+|--|---------|--|
 | **STJ** | Nao cabe multa por ma-fe no processo penal | Sem previsao no CPP; analogia in malam partem vedada |
 | **STF** | Cabe multa em caso de abuso do direito de recorrer | Distorcao do postulado da ampla defesa; aplicacao subsidiaria CPC |
 
 ## 4.4 Requisitos Para Configuracao
 
 | Requisito | Descricao |
-|-----------|-----------|
+|--|--|
 | **Dolo** | Intencao deliberada de agir de ma-fe (nao basta negligencia) |
 | **Tipicidade** | Conduta deve se enquadrar em um dos incisos do Art. 80 |
 | **Prejuizo** | Demonstracao de dano a parte contraria ou ao processo |
@@ -318,7 +318,7 @@ O que **NAO** se aplica em casos de violencia domestica contra a mulher:
 ## 4.5 Consequencias Praticas
 
 | Ambito | Consequencia |
-|--------|-------------|
+|--------|--|
 | **Processual** | Multa + indenizacao + honorarios |
 | **Etico (OAB)** | Representacao no TED/OAB por infidelidade processual |
 | **Criminal** | Se envolver fraude processual → Art. 347 CP |
@@ -343,7 +343,7 @@ em DOBRO.
 ## 5.2 Elementos Do Crime
 
 | Elemento | Descricao |
-|----------|-----------|
+|--|--|
 | **Conduta** | Inovar artificiosamente o estado de lugar, coisa ou pessoa |
 | **Dolo especifico** | Intencao de induzir a erro juiz ou perito |
 | **Momento** | Na pendencia de processo (ou antes, se penal) |
@@ -354,7 +354,7 @@ em DOBRO.
 ## 5.3 Crimes Conexos A Ardilosidade
 
 | Crime | Artigo CP | Pena | Descricao |
-|-------|----------|------|-----------|
+|-------|--|------|--|
 | **Denunciacao caluniosa** | Art. 339 | 2-8 anos reclusao + multa | Imputar crime a inocente |
 | **Comunicacao falsa de crime** | Art. 340 | 1-6 meses detencao + multa | Comunicar crime inexistente |
 | **Auto-acusacao falsa** | Art. 341 | 3 meses - 2 anos detencao + multa | Acusar-se de crime inexistente |
@@ -394,7 +394,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 6.2 Tabela De Agravantes Relevantes (Art. 61 Cp)
 
 | Agravante | Inciso | Relevancia |
-|-----------|--------|-----------|
+|--|--------|--|
 | Reincidencia | I | Obrigatoria |
 | Motivo futil ou torpe | II-a | Feminicidio, violencia domestica |
 | Traicao, emboscada, dissimulacao | II-c | Ardilosidade |
@@ -407,7 +407,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 6.3 Regimes De Cumprimento
 
 | Regime | Pena | Condicoes |
-|--------|------|-----------|
+|--------|------|--|
 | **Fechado** | > 8 anos | Obrigatorio para reincidentes com pena > 4 anos |
 | **Semiaberto** | > 4 e <= 8 anos | Primario |
 | **Aberto** | <= 4 anos | Primario |
@@ -416,7 +416,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 6.4 Progressao De Regime (Lei 13.964/2019 — Pacote Anticrime)
 
 | Crime | Primario | Reincidente | Reincidente especifico |
-|-------|---------|------------|----------------------|
+|-------|---------|--|--|
 | Comum | 16% | 20% | — |
 | Com violencia/grave ameaca | 25% | 30% | — |
 | Hediondo (sem morte) | 40% | 50% | 60% |
@@ -428,7 +428,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 7.1 Tabela De Prescricao (Art. 109 Cp)
 
 | Pena maxima cominada | Prazo prescricional |
-|---------------------|-------------------|
+|--|--|
 | Inferior a 1 ano | 3 anos |
 | 1 a 2 anos | 4 anos |
 | 2 a 4 anos | 8 anos |
@@ -457,7 +457,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 8.1 Teses De Defesa — Violencia Domestica
 
 | Tese | Fundamento | Viabilidade |
-|------|-----------|-------------|
+|------|--|--|
 | Legitima defesa | Art. 25 CP | Baixa em violencia domestica (proporcionalidade) |
 | Ausencia de dolo | Elemento subjetivo | Media — depende de provas |
 | Desclassificacao (lesao → vias de fato) | CPP | Media — depende de laudo |
@@ -469,7 +469,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 8.2 Teses De Acusacao — Violencia Domestica
 
 | Tese | Fundamento | Efetividade |
-|------|-----------|-------------|
+|------|--|--|
 | Palavra da vitima como prova | Jurisprudencia STJ consolidada | Alta — crimes de clandestinidade |
 | Contexto de dominacao | Art. 5 Lei 11.340 | Alta |
 | Historico de violencia | Reiteracao | Alta — padrao de conduta |
@@ -479,7 +479,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 8.3 Teses De Defesa — Crimes Em Geral
 
 | Tese | Fundamento |
-|------|-----------|
+|------|--|
 | Legitima defesa | Art. 25 CP |
 | Estado de necessidade | Art. 24 CP |
 | Estrito cumprimento do dever legal | Art. 23, III CP |
@@ -500,7 +500,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 9.1 Tipos De Prisao
 
 | Tipo | Base Legal | Requisitos |
-|------|-----------|-----------|
+|------|--|--|
 | **Flagrante** | Art. 301-310 CPP | Crime em andamento ou acabou de ocorrer |
 | **Preventiva** | Art. 311-316 CPP | Garantia da ordem publica, conveniencia instrucao, aplicacao lei penal |
 | **Temporaria** | Lei 7.960/89 | Imprescindivel para investigacao (5 dias + 5, ou 30+30 se hediondo) |
@@ -519,7 +519,7 @@ FASE 3: Causas de aumento e diminuicao
 ## 9.3 Habeas Corpus
 
 | Hipotese | Art. 648 CPP |
-|----------|-------------|
+|--|--|
 | **I** | Sem justa causa |
 | **II** | Excesso de prazo |
 | **III** | Incompetencia de quem ordenou a coacao |
@@ -720,7 +720,7 @@ o MP podera propor ANPP.
 ## 11.2 Requisitos Cumulativos
 
 | # | Requisito | Detalhe |
-|---|-----------|---------|
+|---|--|---------|
 | 1 | Confissao formal e circunstanciada | Perante o MP, com advogado |
 | 2 | Pena minima < 4 anos | Da infracao, nao do tipo |
 | 3 | Sem violencia ou grave ameaca | **Veda ANPP em Maria da Penha** |
@@ -730,7 +730,7 @@ o MP podera propor ANPP.
 ## 11.3 Impedimentos
 
 | Impedimento | Base |
-|-------------|------|
+|--|------|
 | Reincidente | Art. 28-A, par. 2, I |
 | Beneficiario de ANPP/transacao/sursis nos ultimos 5 anos | Art. 28-A, par. 2, II |
 | Crime de violencia domestica | Art. 28-A, par. 2, IV |
@@ -739,7 +739,7 @@ o MP podera propor ANPP.
 ## 11.4 Condicoes Ajustaveis (Par. 1)
 
 | Condicao | Descricao |
-|----------|-----------|
+|--|--|
 | **I** | Reparacao do dano ou restituicao da coisa a vitima (salvo impossibilidade) |
 | **II** | Renuncia a bens/direitos como instrumento, produto ou proveito do crime |
 | **III** | Prestacao de servicos a comunidade (por periodo proporcional a pena minima) |
@@ -759,7 +759,7 @@ o MP podera propor ANPP.
 ## 12.1 Tabela Comparativa
 
 | Crime | Artigo | Pena | Acao Penal | Observacoes |
-|-------|--------|------|-----------|-------------|
+|-------|--------|------|--|--|
 | **Furto simples** | Art. 155 | 1-4 anos reclusao + multa | Publica incondicionada | Cabe insignificancia |
 | **Furto qualificado** | Art. 155, par. 4 | 2-8 anos reclusao + multa | Publica incondicionada | Escalada, destreza, chave falsa, concurso |
 | **Furto privilegiado** | Art. 155, par. 2 | Substituicao/reducao | Publica incondicionada | Primario + pequeno valor |
@@ -786,7 +786,7 @@ Apos o Pacote Anticrime, o estelionato passou a ser de **acao penal publica cond
 ## 13.1 Uso Vs Trafico
 
 | Aspecto | Uso (Art. 28) | Trafico (Art. 33) |
-|---------|--------------|-------------------|
+|---------|--|--|
 | **Pena** | Advertencia, PSC, medida educativa | 5-15 anos reclusao + multa |
 | **Prisao** | Nao preve prisao | Preve prisao |
 | **Fianca** | N/A | Inafiancavel (hediondo equiparado) |
@@ -817,7 +817,7 @@ Primario + bons antecedentes + nao integra organizacao criminosa
 ## 14.1 Estrategias Ardilosas Mais Comuns No Criminal
 
 | # | Estrategia Ardilosa | Crime/Sancao | Como Identificar |
-|---|-------------------|-------------|-----------------|
+|---|--|--|--|
 | 1 | Inventar agressoes para obter medida protetiva | Denuncia caluniosa (Art. 339 CP) | Contraditorias entre B.O. e laudo IML |
 | 2 | Ocultar provas favoraveis ao reu | Fraude processual (Art. 347 CP) | Pericia de metadados, testemunhas |
 | 3 | Falsificar laudos medicos | Falsidade ideologica (Art. 299 CP) | Contrapericia, prontuario hospitalar |
@@ -832,7 +832,7 @@ Primario + bons antecedentes + nao integra organizacao criminosa
 ## 14.2 Defesa Contra Acusacao Ardilosa
 
 | Situacao | Medida Defensiva | Base Legal |
-|----------|-----------------|-----------|
+|--|--|--|
 | Denuncia caluniosa | Representacao criminal + indenizacao | Art. 339 CP + Art. 953 CC |
 | Falso B.O. | Representacao + juntada de provas | Art. 340 CP |
 | Testemunha falsa | Contraditorio + acareacao + Art. 342 CP | CPP |
@@ -862,7 +862,7 @@ Primario + bons antecedentes + nao integra organizacao criminosa
 ## 15.1 Beneficios Na Execucao
 
 | Beneficio | Requisito Temporal | Requisito Subjetivo |
-|-----------|-------------------|-------------------|
+|--|--|--|
 | **Progressao (comum)** | 16% (primario) / 20% (reincidente) | Bom comportamento |
 | **Progressao (violencia)** | 25% (primario) / 30% (reincidente) | Bom comportamento |
 | **Progressao (hediondo s/ morte)** | 40% / 50% / 60% | Bom comportamento |
@@ -886,7 +886,7 @@ Primario + bons antecedentes + nao integra organizacao criminosa
 ## Para Vitimas De Violencia Domestica
 
 | Canal | Numero/Acesso | Disponibilidade |
-|-------|--------------|----------------|
+|-------|--|--|
 | **Central de Atendimento a Mulher** | **180** | 24h, gratuito, sigilo |
 | **Policia Militar** | **190** | 24h |
 | **SAMU** | **192** | 24h (se lesao) |

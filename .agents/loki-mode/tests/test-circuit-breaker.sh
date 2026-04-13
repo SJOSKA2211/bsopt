@@ -26,9 +26,9 @@ trap cleanup EXIT
 
 cd "$TEST_DIR"
 
-echo "========================================"
+echo "=="
 echo "Loki Mode Circuit Breaker Tests"
-echo "========================================"
+echo "=="
 echo ""
 
 # Initialize structure
@@ -373,9 +373,9 @@ EOF
 log_pass "Per-agent-type thresholds work correctly"
 
 echo ""
-echo "========================================"
+echo "=="
 echo "Test Summary"
-echo "========================================"
+echo "=="
 echo -e "${GREEN}Passed: $PASSED${NC}"
 echo -e "${RED}Failed: $FAILED${NC}"
 echo ""

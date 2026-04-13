@@ -34,7 +34,7 @@ What type of game?
 ### Comparison (2025)
 
 | Framework | Type | Best For |
-|-----------|------|----------|
+|--|------|--|
 | **Phaser 4** | 2D | Full game features |
 | **PixiJS 8** | 2D | Rendering, UI |
 | **Three.js** | 3D | Visualizations, lightweight |
@@ -48,10 +48,10 @@ What type of game?
 
 | Browser | Support |
 |---------|---------|
-| Chrome | ✅ Since v113 |
-| Edge | ✅ Since v113 |
-| Firefox | ✅ Since v131 |
-| Safari | ✅ Since 18.0 |
+| Chrome |  Since v113 |
+| Edge |  Since v113 |
+| Firefox |  Since v131 |
+| Safari |  Since 18.0 |
 | **Total** | **~73%** global |
 
 ### Decision
@@ -67,7 +67,7 @@ What type of game?
 ### Browser Constraints
 
 | Constraint | Strategy |
-|------------|----------|
+|--|--|
 | No local file access | Asset bundling, CDN |
 | Tab throttling | Pause when hidden |
 | Mobile data limits | Compress assets |
@@ -139,8 +139,8 @@ What type of game?
 
 ## 7. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Load all assets upfront | Progressive loading |
 | Ignore tab visibility | Pause when hidden |
 | Block on audio load | Lazy load audio |

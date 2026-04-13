@@ -95,7 +95,7 @@ bot.command('app', (ctx) => {
   ctx.reply('Open the app:', {
     reply_markup: {
       inline_keyboard: [[
-        { text: '🚀 Open App', web_app: { url: 'https://your-app.com' } }
+        { text: ' Open App', web_app: { url: 'https://your-app.com' } }
       ]]
     }
   });
@@ -182,7 +182,7 @@ Making money from Mini Apps
 
 ### Revenue Streams
 | Model | Example | Potential |
-|-------|---------|-----------|
+|-------|---------|--|
 | TON payments | Premium features | High |
 | In-app purchases | Virtual goods | High |
 | Ads (Telegram Ads) | Display ads | Medium |
@@ -231,7 +231,7 @@ function ReferralShare() {
 
 ## Anti-Patterns
 
-### ❌ Ignoring Telegram Theme
+###  Ignoring Telegram Theme
 
 **Why bad**: Feels foreign in Telegram.
 Bad user experience.
@@ -243,7 +243,7 @@ Match Telegram colors.
 Use native-feeling UI.
 Test in both light/dark.
 
-### ❌ Desktop-First Mini App
+###  Desktop-First Mini App
 
 **Why bad**: 95% of Telegram is mobile.
 Touch targets too small.
@@ -255,7 +255,7 @@ Test on real phones.
 Touch-friendly buttons.
 Fit within Telegram frame.
 
-### ❌ No Loading States
+###  No Loading States
 
 **Why bad**: Users think it's broken.
 Poor perceived performance.
@@ -267,10 +267,10 @@ Loading indicators.
 Progressive loading.
 Optimistic updates.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Not validating initData from Telegram | high | ## Validating initData |
 | TON Connect not working on mobile | high | ## TON Connect Mobile Issues |
 | Mini App feels slow and janky | medium | ## Mini App Performance |

@@ -17,7 +17,7 @@ Tools and workflows for managing issues, projects, and teams in Linear.
 
 ---
 
-## ⚠️ Tool Availability (READ FIRST)
+## ️ Tool Availability (READ FIRST)
 
 **This skill supports multiple tool backends. Use whichever is available:**
 
@@ -54,7 +54,7 @@ linear issues list
 Manage Linear issues, projects, and teams
 
 Use this skill when working with manage linear issues, projects, and teams.
-## 🔐 Security: Varlock Integration
+##  Security: Varlock Integration
 
 **CRITICAL**: Never expose API keys in terminal output or Claude's context.
 
@@ -74,7 +74,7 @@ cat .env.schema | grep LINEAR
 ### Unsafe Commands (NEVER Use)
 
 ```bash
-# ❌ NEVER - exposes key to Claude's context
+#  NEVER - exposes key to Claude's context
 linear config show
 echo $LINEAR_API_KEY
 printenv | grep LINEAR
@@ -219,7 +219,7 @@ Use this skill when working with manage linear issues, projects, and teams.
 
 #### Anti-Pattern to Avoid
 
-❌ Creating issues in a "holding" project and moving them later:
+ Creating issues in a "holding" project and moving them later:
 ```bash
 # Don't do this
 create-issue "Phase 6A" "New feature"  # Wrong project
@@ -240,7 +240,7 @@ npx tsx scripts/linear-ops.ts project-status <project-name> <state>
 
 **Valid States:**
 | Input | Description | API Value |
-|-------|-------------|-----------|
+|-------|--|--|
 | `backlog` | Not yet started | backlog |
 | `planned` | Scheduled for future | planned |
 | `in-progress` | Currently active | started |
@@ -337,7 +337,7 @@ Use this skill when working with manage linear issues, projects, and teams.
 Choose the right tool for the task:
 
 | Tool | When to Use |
-|------|-------------|
+|------|--|
 | **MCP (Official Server)** | Most operations - PREFERRED |
 | **Helper Scripts** | Bulk operations, when MCP unavailable |
 | **SDK scripts** | Complex operations (loops, conditionals) |
@@ -364,11 +364,11 @@ Choose the right tool for the task:
 ### MCP Reliability (Official Server)
 
 | Operation | Reliability | Notes |
-|-----------|-------------|-------|
-| Create issue | ✅ High | Full support |
-| Update status | ✅ High | Use `state: "Done"` directly |
-| List/Search issues | ✅ High | Supports filters, queries |
-| Add comment | ✅ High | Works with issue IDs |
+|--|--|-------|
+| Create issue |  High | Full support |
+| Update status |  High | Use `state: "Done"` directly |
+| List/Search issues |  High | Supports filters, queries |
+| Add comment |  High | Works with issue IDs |
 
 ### Quick Status Update
 
@@ -417,7 +417,7 @@ See **sync.md** for parallel execution patterns.
 **Every issue MUST be attached to a project. Every project MUST be linked to an initiative.**
 
 | Entity | Must Link To | If Missing |
-|--------|--------------|------------|
+|--------|--|--|
 | Issue | Project | Not visible in project board |
 | Project | Initiative | Not visible in roadmap |
 
@@ -531,7 +531,7 @@ npx tsx scripts/linear-ops.ts project-status "My Project" completed
 ## Reference
 
 | Document | Purpose |
-|----------|---------|
+|--|---------|
 | api.md | GraphQL API reference, timeout handling |
 | sdk.md | SDK automation patterns |
 | sync.md | Bulk sync patterns |

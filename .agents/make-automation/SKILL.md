@@ -173,7 +173,7 @@ Make workflows often connect to other apps. Compose multi-tool workflows:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Get operations | MAKE_GET_OPERATIONS | (check schema for filters) |
 | List languages | MAKE_LIST_ENUMS_LANGUAGES | (none) |
 | List timezones | MAKE_LIST_ENUMS_TIMEZONES | (none) |
@@ -185,7 +185,7 @@ Make workflows often connect to other apps. Compose multi-tool workflows:
 Since the Make toolkit has limited tools, consider these alternatives for common Make use cases:
 
 | Make Use Case | Alternative Approach |
-|--------------|---------------------|
+|--|--|
 | Trigger a scenario | Use Make's native webhook or API endpoint directly |
 | Create a scenario | Use Make's scenario management API directly |
 | Schedule execution | Use RUBE_MANAGE_RECIPE_SCHEDULE with composed workflows |

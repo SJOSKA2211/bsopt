@@ -104,7 +104,7 @@ echo "$prompt" | claude --dangerously-skip-permissions
 
 ### Environment Variables
 | Variable | Default | Description |
-|----------|---------|-------------|
+|--|---------|--|
 | `LOKI_MAX_RETRIES` | 50 | Max retry attempts |
 | `LOKI_BASE_WAIT` | 60 | Base wait time (seconds) |
 | `LOKI_MAX_WAIT` | 3600 | Max wait time (1 hour) |
@@ -115,7 +115,7 @@ echo "$prompt" | claude --dangerously-skip-permissions
 ## Version History Summary
 
 | Version | Key Changes |
-|---------|-------------|
+|---------|--|
 | 2.5.0 | Real streaming output (stream-json), Web dashboard with Anthropic design |
 | 2.4.0 | Live output fix (stdin pipe), STATUS.txt monitor |
 | 2.3.0 | Unified autonomy runner (`autonomy/run.sh`) |

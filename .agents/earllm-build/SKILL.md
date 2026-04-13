@@ -60,7 +60,7 @@ app ──→ voice ──→ audio ──→ core-logging
 ## Modules And Key Files
 
 | Module | Purpose | Key Files |
-|--------|---------|-----------|
+|--------|---------|--|
 | **core-logging** | Structured logging, performance tracking | `EarLogger.kt`, `PerformanceTracker.kt` |
 | **bluetooth** | BT discovery, pairing, A2DP/HFP profiles | `BluetoothController.kt`, `BluetoothState.kt`, `BluetoothPermissions.kt` |
 | **audio** | Audio routing (SCO/BLE), capture, headset buttons | `AudioRouteController.kt`, `VoiceCaptureController.kt`, `HeadsetButtonController.kt` |
@@ -78,7 +78,7 @@ app ──→ voice ──→ audio ──→ core-logging
 ## Target Hardware
 
 | Device | Model | Key Details |
-|--------|-------|-------------|
+|--------|-------|--|
 | Phone | Samsung Galaxy S24 Ultra | Android 14, One UI 6.1, Snapdragon 8 Gen 3 |
 | Earbuds | Xiaomi Redmi Buds 6 Pro | BT 5.3, A2DP/HFP/AVRCP, ANC, LDAC |
 
@@ -172,7 +172,7 @@ powershell -Command "Remove-Item 'EarLLM_One_v1.0.zip' -Force -ErrorAction Silen
 ## Stt Engine Reference
 
 | Engine | Size | WER | Streaming | Best For |
-|--------|------|-----|-----------|----------|
+|--------|------|-----|--|--|
 | Vosk small-en | 40 MB | ~10% | Yes | Real-time mobile |
 | Vosk lgraph | 128 MB | ~8% | Yes | Better accuracy |
 | Whisper tiny | 40 MB | ~10-12% | No (batch) | Post-utterance polish |

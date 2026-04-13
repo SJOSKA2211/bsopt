@@ -51,7 +51,7 @@ def analyze_cross_skill(all_skills: list[dict[str, Any]]) -> tuple[float, list[d
                 }
             )
 
-    # -- 2. Padroes de Database (mesmo pattern _connect) --------------------------
+    # -- 2. Padroes de Database (mesmo pattern _connect) --
     db_skills = [s for s in all_skills if s.get("has_db")]
     if len(db_skills) > 1:
         findings.append(
@@ -70,7 +70,7 @@ def analyze_cross_skill(all_skills: list[dict[str, Any]]) -> tuple[float, list[d
             }
         )
 
-    # -- 3. Padroes de Config (mesmo pattern ROOT_DIR) ----------------------------
+    # -- 3. Padroes de Config (mesmo pattern ROOT_DIR) --
     config_skills = [s for s in all_skills if s.get("has_config")]
     if len(config_skills) > 1:
         findings.append(
@@ -87,7 +87,7 @@ def analyze_cross_skill(all_skills: list[dict[str, Any]]) -> tuple[float, list[d
             }
         )
 
-    # -- 4. Skills sem governanca vs com governanca --------------------------------
+    # -- 4. Skills sem governanca vs com governanca --
     gov_skills = [s for s in all_skills if s.get("has_governance")]
     no_gov_skills = [s for s in all_skills if not s.get("has_governance")]
 
@@ -108,7 +108,7 @@ def analyze_cross_skill(all_skills: list[dict[str, Any]]) -> tuple[float, list[d
             }
         )
 
-    # -- 5. Padroes de export (json/csv/parquet) -----------------------------------
+    # -- 5. Padroes de export (json/csv/parquet) --
     export_skills = []
     for skill in all_skills:
         for rel_path in skill.get("python_files", []):

@@ -30,7 +30,7 @@ Refer to the local files for detailed documentation:
 For production-ready shader patterns, see the `_base/` directory:
 
 | Pattern | Description |
-|---------|-------------|
+|---------|--|
 | 01-shader-structure | Shader fundamentals |
 | 02-shader-math | Mathematical functions |
 | 03-sdf-shapes | SDF shape primitives |
@@ -139,7 +139,7 @@ Community contributions: `./community/`
 ## Shader Structure
 
 | Component | Description |
-|-----------|-------------|
+|--|--|
 | `draw_*` | Shader container (draw_bg, draw_text, draw_icon) |
 | Uniforms | Typed properties accessible in shader |
 | `fn pixel(self)` | Fragment shader function |
@@ -149,7 +149,7 @@ Community contributions: `./community/`
 ## Built-in Variables
 
 | Variable | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `self.pos` | vec2 | Normalized position (0-1) |
 | `self.rect_size` | vec2 | Widget size in pixels |
 | `self.rect_pos` | vec2 | Widget position |
@@ -157,7 +157,7 @@ Community contributions: `./community/`
 ## Sdf2d Quick Reference
 
 | Category | Functions |
-|----------|-----------|
+|--|--|
 | Shapes | `circle`, `rect`, `box`, `hexagon` |
 | Paths | `move_to`, `line_to`, `close_path` |
 | Fill/Stroke | `fill`, `fill_keep`, `stroke`, `stroke_keep` |
@@ -168,7 +168,7 @@ Community contributions: `./community/`
 ## Built-in Functions (GLSL)
 
 | Category | Functions |
-|----------|-----------|
+|--|--|
 | Math | `abs`, `sign`, `floor`, `ceil`, `fract`, `min`, `max`, `clamp` |
 | Trig | `sin`, `cos`, `tan`, `asin`, `acos`, `atan` |
 | Interp | `mix`, `step`, `smoothstep` |

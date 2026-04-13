@@ -36,7 +36,7 @@ Comprehensive guide to modern React state management patterns, from local compon
 ### 1. State Categories
 
 | Type | Description | Solutions |
-|------|-------------|-----------|
+|------|--|--|
 | **Local State** | Component-specific, UI state | useState, useReducer |
 | **Global State** | Shared across components | Redux Toolkit, Zustand, Jotai |
 | **Server State** | Remote data, caching | React Query, SWR, RTK Query |

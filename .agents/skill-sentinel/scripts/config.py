@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-# -- Paths --------------------------------------------------------------------
+# -- Paths --
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = ROOT_DIR / "scripts"
 DATA_DIR = ROOT_DIR / "data"
@@ -24,7 +24,7 @@ SKILLS_ROOT = ROOT_DIR.parent
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# -- Skill Discovery ----------------------------------------------------------
+# -- Skill Discovery --
 # Locais onde skills podem estar (relativo a SKILLS_ROOT)
 SKILL_SEARCH_PATHS: list[Path] = [
     SKILLS_ROOT,  # skills de primeiro nivel
@@ -48,7 +48,7 @@ IGNORE_DIRS = {
     "skill-sentinel",  # nao auditar a si mesmo
 }
 
-# -- Scoring Weights (devem somar 1.0) ----------------------------------------
+# -- Scoring Weights (devem somar 1.0) --
 DIMENSION_WEIGHTS: dict[str, float] = {
     "code_quality": 0.20,
     "security": 0.20,
@@ -58,7 +58,7 @@ DIMENSION_WEIGHTS: dict[str, float] = {
     "dependencies": 0.15,
 }
 
-# -- Score Labels --------------------------------------------------------------
+# -- Score Labels --
 SCORE_LABELS: list[tuple[int, int, str]] = [
     (90, 100, "Excelente"),
     (75, 89, "Bom"),
@@ -76,7 +76,7 @@ def get_score_label(score: float) -> str:
     return "Desconhecido"
 
 
-# -- Code Quality Thresholds ---------------------------------------------------
+# -- Code Quality Thresholds --
 MAX_FUNCTION_LINES = 50
 MAX_CYCLOMATIC_COMPLEXITY = 10
 MAX_FILE_LINES = 500
@@ -90,7 +90,7 @@ PENALTY_NO_DOCSTRING = 1  # por funcao/classe sem docstring
 PENALTY_BARE_EXCEPT = 8  # por bare except
 PENALTY_BROAD_EXCEPT = 3  # por except Exception sem log
 
-# -- Security Patterns ---------------------------------------------------------
+# -- Security Patterns --
 SECRET_PATTERNS: list[re.Pattern] = [
     re.compile(r'(?:password|passwd|pwd)\s*=\s*["\'][^"\']{8,}["\']', re.I),
     re.compile(r'(?:secret|secret_key)\s*=\s*["\'][^"\']{8,}["\']', re.I),
@@ -111,12 +111,12 @@ SQL_INJECTION_PATTERNS: list[re.Pattern] = [
     re.compile(r"%\s*\(.*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)", re.I),
 ]
 
-# -- Performance Thresholds ----------------------------------------------------
+# -- Performance Thresholds --
 MAX_SEQUENTIAL_API_CALLS = 5  # sugerir batching se > este numero
 WARN_NO_RETRY = True  # avisar se nao tem retry/backoff
 WARN_NO_TIMEOUT = True  # avisar se requests sem timeout
 
-# -- Governance Maturity Levels ------------------------------------------------
+# -- Governance Maturity Levels --
 GOVERNANCE_LEVELS: dict[int, str] = {
     0: "Nenhuma",
     1: "Basica (action logging)",
@@ -125,7 +125,7 @@ GOVERNANCE_LEVELS: dict[int, str] = {
     4: "Avancada (completa + alertas + trends)",
 }
 
-# -- Documentation Required Sections -------------------------------------------
+# -- Documentation Required Sections --
 SKILL_MD_REQUIRED_SECTIONS: list[str] = [
     "name",  # frontmatter
     "description",  # frontmatter
@@ -139,10 +139,10 @@ SKILL_MD_RECOMMENDED_SECTIONS: list[str] = [
     "referencias",  # ou "references"
 ]
 
-# -- Severity Ordering ---------------------------------------------------------
+# -- Severity Ordering --
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 
-# -- Gap Analysis Taxonomy -----------------------------------------------------
+# -- Gap Analysis Taxonomy --
 CAPABILITY_TAXONOMY: dict[str, str] = {
     "data-extraction": "Extracao de dados de fontes externas",
     "social-media": "Integracao com redes sociais",

@@ -1,8 +1,8 @@
-# 📦 Gói Kỹ năng Antigravity (Skill Bundles)
+#  Gói Kỹ năng Antigravity (Skill Bundles)
 
 Bạn không biết bắt đầu từ đâu? Hãy chọn một gói dưới đây để sỡ hữu bộ kỹ năng được tuyển chọn phù hợp cho vai trò của bạn.
 
-## 🚀 Gói Khởi đầu "Thiết yếu" (Essentials)
+##  Gói Khởi đầu "Thiết yếu" (Essentials)
 
 _Dành cho tất cả mọi người. Hãy cài đặt những kỹ năng này đầu tiên._
 
@@ -11,7 +11,7 @@ _Dành cho tất cả mọi người. Hãy cài đặt những kỹ năng này �
 - `git-pushing`: Lưu công việc của bạn một cách an toàn.
 - `kaizen`: Tư duy cải tiến liên tục.
 
-## 🛡️ Gói "Kỹ sư Bảo mật" (Security Engineer)
+## ️ Gói "Kỹ sư Bảo mật" (Security Engineer)
 
 _Dành cho pentesting, kiểm tra (auditing) và tăng cường bảo mật (hardening)._
 
@@ -21,7 +21,7 @@ _Dành cho pentesting, kiểm tra (auditing) và tăng cường bảo mật (har
 - `linux-privilege-escalation`: Đánh giá bảo mật Linux nâng cao.
 - `cloud-penetration-testing`: Bảo mật AWS/Azure/GCP.
 
-## 🌐 Gói "Phù thủy Web" (Web Wizard)
+##  Gói "Phù thủy Web" (Web Wizard)
 
 _Để xây dựng các ứng dụng web hiện đại, hiệu suất cao._
 
@@ -40,7 +40,7 @@ _Để xây dựng các hệ thống AI._
 - `mcp-builder`: Tự tạo các công cụ của riêng bạn.
 - `prompt-engineering`: Làm chủ nghệ thuật giao tiếp với LLM.
 
-## 🎮 Gói "Lập trình viên Game Độc lập" (Indie Game Dev)
+##  Gói "Lập trình viên Game Độc lập" (Indie Game Dev)
 
 _Đế xây dựng trò chơi với sự trợ giúp của AI._
 
@@ -50,7 +50,7 @@ _Đế xây dựng trò chơi với sự trợ giúp của AI._
 - `game-development/unity-csharp`: Làm chủ lập trình C#.
 - `algorithmic-art`: Tạo tài nguyên game (assets) bằng code.
 
-## 🐍 Gói "Chuyên gia Python" (Python Pro)
+##  Gói "Chuyên gia Python" (Python Pro)
 
 _Dành cho những người làm backend và các nhà khoa học dữ liệu._
 
@@ -70,7 +70,7 @@ _Để xây dựng sản phẩm, không chỉ là viết code._
 - `landing-page-copy`: Viết nội dung bán hàng hiệu quả.
 - `stripe-integration`: Phương thức thanh toán.
 
-## 🌧️ Gói "DevOps & Cloud"
+## ️ Gói "DevOps & Cloud"
 
 _Dành cho hạ tầng và mở rộng hệ thống._
 
@@ -80,7 +80,7 @@ _Dành cho hạ tầng và mở rộng hệ thống._
 - `deployment-procedures`: Chiến lược triển khai an toàn.
 - `bash-linux`: Làm chủ dòng lệnh Terminal.
 
-## 📊 Gói "Dữ liệu & Phân tích" (Data & Analytics)
+##  Gói "Dữ liệu & Phân tích" (Data & Analytics)
 
 _Để hiểu rõ các con số._
 
@@ -89,7 +89,7 @@ _Để hiểu rõ các con số._
 - `sql-mastery`: Viết truy vấn tốt hơn (Skill cộng đồng).
 - `ab-test-setup`: Học hỏi từ thực nghiệm đã xác thực.
 
-## 🎨 Gói "Giám đốc Sáng tạo" (Creative Director)
+##  Gói "Giám đốc Sáng tạo" (Creative Director)
 
 _Dành cho hình ảnh, nội dung và thương hiệu._
 
@@ -99,7 +99,7 @@ _Dành cho hình ảnh, nội dung và thương hiệu._
 - `copy-editing`: Trau chuốt nội dung văn bản.
 - `algorithmic-art`: Các tác phẩm nghệ thuật tạo bằng code.
 
-## 🐞 Gói "QA & Kiểm thử" (QA & Testing)
+##  Gói "QA & Kiểm thử" (QA & Testing)
 
 _Để phát hiện lỗi trước khi người dùng thấy._
 
@@ -109,7 +109,7 @@ _Để phát hiện lỗi trước khi người dùng thấy._
 - `ab-test-setup`: Các thử nghiệm đã được xác thực.
 - `code-review-checklist`: Phát hiện lỗi trong các Pull Request.
 
-## 🖌️ Gói "Thiết kế Web" (Web Designer)
+## ️ Gói "Thiết kế Web" (Web Designer)
 
 _Để tạo ra những trải nghiệm hoàn hảo đến từng pixel._
 

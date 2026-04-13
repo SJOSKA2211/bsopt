@@ -468,11 +468,11 @@ def generate_compatibility_matrix(dependencies):
 ## Dependency Compatibility Matrix
 
 | Package | Current | Target | Compatible With | Conflicts | Action Required |
-|---------|---------|--------|-----------------|-----------|-----------------|
+|---------|---------|--------|--|--|--|
 """
     
     for pkg, info in matrix.items():
-        compatible = '✅' if not info['conflicts'] else '⚠️'
+        compatible = '' if not info['conflicts'] else '️'
         conflicts = ', '.join(info['conflicts']) if info['conflicts'] else 'None'
         action = 'Safe to upgrade' if not info['conflicts'] else 'Resolve conflicts first'
         
@@ -506,7 +506,7 @@ Implement safe rollback procedures:
 
 # Create rollback point
 create_rollback_point() {
-    echo "📌 Creating rollback point..."
+    echo " Creating rollback point..."
     
     # Save current state
     cp package.json package.json.backup
@@ -520,12 +520,12 @@ create_rollback_point() {
         ./database-backup.sh
     fi
     
-    echo "✅ Rollback point created"
+    echo " Rollback point created"
 }
 
 # Perform rollback
 rollback() {
-    echo "🔄 Performing rollback..."
+    echo " Performing rollback..."
     
     # Restore package files
     mv package.json.backup package.json
@@ -538,12 +538,12 @@ rollback() {
     # Run post-rollback tests
     npm test
     
-    echo "✅ Rollback complete"
+    echo " Rollback complete"
 }
 
 # Verify rollback
 verify_rollback() {
-    echo "🔍 Verifying rollback..."
+    echo " Verifying rollback..."
     
     # Check critical functionality
     npm run test:critical
@@ -551,7 +551,7 @@ verify_rollback() {
     # Check service health
     curl -f http://localhost:3000/health || exit 1
     
-    echo "✅ Rollback verified"
+    echo " Rollback verified"
 }
 ```
 
@@ -726,10 +726,10 @@ const monitoring = {
         for (const [category, metrics] of Object.entries(results)) {
             report += `### ${category}\n\n`;
             report += '| Metric | Value | Threshold | Status |\n';
-            report += '|--------|-------|-----------|--------|\n';
+            report += '|--------|-------|--|--------|\n';
             
             for (const [metric, data] of Object.entries(metrics)) {
-                const status = data.status === 'PASS' ? '✅' : '❌';
+                const status = data.status === 'PASS' ? '' : '';
                 report += `| ${metric} | ${data.value}${data.unit} | ${data.threshold}${data.unit} | ${status} |\n`;
             }
             

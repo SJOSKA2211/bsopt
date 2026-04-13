@@ -214,7 +214,7 @@ If critical context is missing, **state assumptions explicitly** before proceedi
 * Secure site
 
 ---
-## 🔢 SEO Health Index & Scoring Layer (Additive)
+##  SEO Health Index & Scoring Layer (Additive)
 
 ### Purpose
 
@@ -236,7 +236,7 @@ It is designed to:
 The score is a **weighted composite**, not an average.
 
 | Category                  | Weight  |
-| ------------------------- | ------- |
+| -- | ------- |
 | Crawlability & Indexation | 30      |
 | Technical Foundations     | 25      |
 | On-Page Optimization      | 20      |
@@ -259,7 +259,7 @@ Start each category at **100** and subtract points based on issues found.
 #### Severity Deductions
 
 | Issue Severity                              | Deduction  |
-| ------------------------------------------- | ---------- |
+| -- | -- |
 | Critical (blocks crawling/indexing/ranking) | −15 to −30 |
 | High impact                                 | −10        |
 | Medium impact                               | −5         |
@@ -303,7 +303,7 @@ Rounded to nearest whole number.
 Always classify the final score into a band:
 
 | Score Range | Health Status | Interpretation                                  |
-| ----------- | ------------- | ----------------------------------------------- |
+| -- | -- | -- |
 | 90–100      | Excellent     | Strong SEO foundation, minor optimizations only |
 | 75–89       | Good          | Solid performance with clear improvement areas  |
 | 60–74       | Fair          | Meaningful issues limiting growth               |
@@ -324,7 +324,7 @@ Include this **after the Executive Summary**:
 #### Category Breakdown
 
 | Category                  | Score | Weight | Weighted Contribution |
-| ------------------------- | ----- | ------ | --------------------- |
+| -- | ----- | ------ | -- |
 | Crawlability & Indexation | XX    | 30     | XX                    |
 | Technical Foundations     | XX    | 25     | XX                    |
 | On-Page Optimization      | XX    | 20     | XX                    |

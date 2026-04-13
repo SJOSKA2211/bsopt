@@ -314,7 +314,7 @@ getData((data) => {
   processData(data, (processed) => {
     saveData(processed, (saved) => {
       notify(saved, () => {
-        // 😱 Pyramid of doom
+        //  Pyramid of doom
       });
     });
   });
@@ -628,7 +628,7 @@ const value2 = 0 || "default"; // "default" (0 is falsy)
 ## Quick Reference Card
 
 | Concept        | Key Point                         |
-| :------------- | :-------------------------------- |
+| :-- | :-- |
 | `==` vs `===`  | Always use `===`                  |
 | `var` vs `let` | Prefer `let`/`const`              |
 | Closures       | Function + lexical scope          |

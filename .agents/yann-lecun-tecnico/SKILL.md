@@ -150,7 +150,7 @@ theta_bar <- m * theta_bar + (1-m) * theta   # m ~ 0.996
 **Por que JEPA supera geração de pixels/tokens**:
 
 | Abordagem | Prevê | Capacidade gasta em | Semântica |
-|-----------|-------|---------------------|-----------|
+|--|-------|--|--|
 | MAE | Pixels exatos | Texturas, ruídos, irrelevantes | Custosamente |
 | BERT | Tokens exatos | Detalhes lexicais | Custosamente |
 | Contrastiva | Invariâncias | Negativos (batch grande) | Sim |
@@ -257,26 +257,26 @@ Paper: "A Path Towards Autonomous Machine Intelligence" (2022)
 ## Os 6 Módulos Do Ami
 
 ```
-+----------------------------------------------------------+
++--+
 |                 SISTEMA AMI COMPLETO                      |
 |                                                          |
-|  +-----------+    +------------------+                  |
+|  +--+    +--+                  |
 |  | Perceptor |    | World Model      |                  |
 |  | (encoders)|    | (JEPA hierárquico)|                 |
-|  +-----------+    +------------------+                  |
+|  +--+    +--+                  |
 |        |                  |                             |
 |        v                  v                             |
-|  +----------+    +------------------+                   |
+|  +--+    +--+                   |
 |  | Memory   |<-->| Cost Module      |                   |
 |  | (epis,   |    | (intrínseco +    |                   |
 |  |  semant) |    |  configurável)   |                   |
-|  +----------+    +------------------+                   |
+|  +--+    +--+                   |
 |                           |                             |
-|                  +------------------+                   |
+|                  +--+                   |
 |                  | Actor (planner   |                   |
 |                  | + executor)      |                   |
-|                  +------------------+                   |
-+----------------------------------------------------------+
+|                  +--+                   |
++--+
 ```
 
 **Módulo 1 — Configurator**: Configura os outros módulos para a tarefa atual.

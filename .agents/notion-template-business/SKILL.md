@@ -39,7 +39,7 @@ Creating templates people pay for
 
 ### What Makes Templates Sell
 | Factor | Why It Matters |
-|--------|----------------|
+|--------|--|
 | Solves specific problem | Clear value proposition |
 | Beautiful design | First impression, shareability |
 | Easy to customize | Users make it their own |
@@ -72,7 +72,7 @@ Template Package:
 
 ### Template Categories That Sell
 | Category | Examples |
-|----------|----------|
+|--|--|
 | Productivity | Second brain, task management |
 | Business | CRM, project management |
 | Personal | Finance tracker, habit tracker |
@@ -91,7 +91,7 @@ Pricing Notion templates for profit
 
 ### Price Anchoring
 | Tier | Price Range | What to Include |
-|------|-------------|-----------------|
+|------|--|--|
 | Basic | $15-29 | Core template only |
 | Pro | $39-79 | Template + extras |
 | Ultimate | $99-199 | Everything + updates |
@@ -116,7 +116,7 @@ Example:
 
 ### Free vs Paid
 | Free Template | Purpose |
-|---------------|---------|
+|--|---------|
 | Lead magnet | Email list growth |
 | Upsell vehicle | "Get the full version" |
 | Social proof | Reviews, shares |
@@ -134,7 +134,7 @@ Where to sell templates
 
 ### Platform Comparison
 | Platform | Fee | Pros | Cons |
-|----------|-----|------|------|
+|--|-----|------|------|
 | Gumroad | 10% | Simple, trusted | Higher fees |
 | Lemon Squeezy | 5-8% | Modern, lower fees | Newer |
 | Notion Marketplace | 0% | Built-in audience | Approval needed |
@@ -168,7 +168,7 @@ Where to sell templates
 
 ## Anti-Patterns
 
-### ❌ Building Without Audience
+###  Building Without Audience
 
 **Why bad**: No one knows about you.
 Launch to crickets.
@@ -180,7 +180,7 @@ Share work publicly.
 Give away free templates.
 Grow email list.
 
-### ❌ Too Niche or Too Broad
+###  Too Niche or Too Broad
 
 **Why bad**: "Notion template" = too vague.
 "Notion for left-handed fishermen" = too niche.
@@ -192,7 +192,7 @@ Weak positioning.
 "Notion for students"
 "Notion for small teams"
 
-### ❌ No Support System
+###  No Support System
 
 **Why bad**: Support requests pile up.
 Bad reviews.
@@ -204,10 +204,10 @@ Video walkthrough.
 FAQ page.
 Email/chat for premium.
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Templates getting shared/pirated | medium | ## Handling Template Piracy |
 | Drowning in customer support requests | medium | ## Scaling Template Support |
 | All sales from one marketplace | medium | ## Diversifying Sales Channels |

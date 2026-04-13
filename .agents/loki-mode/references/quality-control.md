@@ -77,7 +77,7 @@ async def check_secrets(output, context):
 ### Execution Modes
 
 | Mode | Behavior | Use When |
-|------|----------|----------|
+|------|--|--|
 | **Blocking** | Guardrail completes before agent starts | Expensive models, sensitive ops |
 | **Parallel** | Guardrail runs with agent | Fast checks, acceptable token loss |
 
@@ -211,7 +211,7 @@ else:
 **Each reviewer has distinct personality/focus:**
 
 | Reviewer | Model | Expertise | Personality |
-|----------|-------|-----------|-------------|
+|--|-------|--|--|
 | Code Quality | Opus | SOLID, patterns, maintainability | Perfectionist |
 | Business Logic | Opus | Requirements, edge cases, UX | Pragmatic |
 | Security | Opus | OWASP, auth, injection | Paranoid |
@@ -221,7 +221,7 @@ This diversity prevents groupthink and catches more issues.
 ### 3. Severity-Based Blocking
 
 | Severity | Action | Continue? |
-|----------|--------|-----------|
+|--|--------|--|
 | **Critical** | BLOCK - Fix immediately | NO |
 | **High** | BLOCK - Fix immediately | NO |
 | **Medium** | BLOCK - Fix before proceeding | NO |

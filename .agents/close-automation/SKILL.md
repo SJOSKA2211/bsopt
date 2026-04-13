@@ -204,7 +204,7 @@ Close data model:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create lead | CLOSE_CREATE_LEAD | name, contacts, custom |
 | Log call | CLOSE_CREATE_CALL | lead_id, direction, status, duration |
 | Send SMS | CLOSE_CREATE_SMS | lead_id, text, direction |

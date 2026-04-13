@@ -97,7 +97,7 @@ Modo: WAL (Write-Ahead Logging) com foreign keys habilitadas.
 Armazena contas Instagram configuradas. Multi-conta pronta desde o dia 1.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | ig_user_id | TEXT | UNIQUE NOT NULL | ID do usuário IG na Graph API |
 | username | TEXT | | @username |
@@ -114,7 +114,7 @@ Armazena contas Instagram configuradas. Multi-conta pronta desde o dia 1.
 Pipeline de conteúdo com status machine.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | FK → accounts | Conta associada |
 | media_type | TEXT | | PHOTO, VIDEO, CAROUSEL, REEL, STORY |
@@ -138,7 +138,7 @@ Pipeline de conteúdo com status machine.
 Comentários dos posts, com tracking de respostas.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | FK → accounts | Conta associada |
 | ig_comment_id | TEXT | UNIQUE | ID do comentário na Graph API |
@@ -154,7 +154,7 @@ Comentários dos posts, com tracking de respostas.
 Métricas individuais de cada mídia.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | FK → accounts | Conta associada |
 | ig_media_id | TEXT | | ID da mídia |
@@ -170,7 +170,7 @@ Métricas individuais de cada mídia.
 Métricas agregadas da conta (não por mídia).
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | FK → accounts | Conta associada |
 | metric_name | TEXT | | follower_count, reach, impressions, profile_views |
@@ -183,7 +183,7 @@ Métricas agregadas da conta (não por mídia).
 Templates reutilizáveis para captions e hashtags.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | name | TEXT | UNIQUE NOT NULL | Nome do template (ex: "promo") |
 | caption_template | TEXT | | Template com {variáveis} |
@@ -195,7 +195,7 @@ Templates reutilizáveis para captions e hashtags.
 Tracking de buscas de hashtag (para respeitar limite de 30/semana).
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | FK → accounts | Conta associada |
 | hashtag | TEXT | | Hashtag pesquisada |
@@ -206,7 +206,7 @@ Tracking de buscas de hashtag (para respeitar limite de 30/semana).
 Audit log de todas as ações que modificam dados.
 
 | Campo | Tipo | Constraint | Descrição |
-|-------|------|------------|-----------|
+|-------|------|--|--|
 | id | INTEGER | PK | Auto-increment |
 | account_id | INTEGER | | Conta associada (pode ser NULL) |
 | action | TEXT | NOT NULL | Nome da ação (publish_photo, delete_comment, etc.) |

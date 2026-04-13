@@ -49,10 +49,10 @@ More instructions...
 
 ## Best Practices
 
-- ✅ Do this
-- ✅ Also do this
-- ❌ Don't do this
-- ❌ Avoid this
+-  Do this
+-  Also do this
+-  Don't do this
+-  Avoid this
 
 ## Security & Safety Notes
 

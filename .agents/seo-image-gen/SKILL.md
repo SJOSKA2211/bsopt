@@ -48,7 +48,7 @@ and provide install instructions.
 ## Quick Reference
 
 | Command | What it does |
-|---------|-------------|
+|---------|--|
 | `/seo image-gen og <description>` | Generate OG/social preview image (1200x630 feel) |
 | `/seo image-gen hero <description>` | Blog hero image (widescreen, dramatic) |
 | `/seo image-gen product <description>` | Product photography (clean, white BG) |
@@ -61,7 +61,7 @@ and provide install instructions.
 Each use case maps to pre-configured banana parameters:
 
 | Use Case | Aspect Ratio | Resolution | Domain Mode | Notes |
-|----------|-------------|------------|-------------|-------|
+|--|--|--|--|-------|
 | **OG/Social Preview** | `16:9` | `1K` | Product or UI/Web | Clean, professional, text-friendly |
 | **Blog Hero** | `16:9` | `2K` | Cinema or Editorial | Dramatic, atmospheric, editorial quality |
 | **Schema Image** | `4:3` | `1K` | Product | Clean, descriptive, schema ImageObject |
@@ -139,7 +139,7 @@ Approximate costs (gemini-3.1-flash):
 ## Model Routing
 
 | Scenario | Model | Why |
-|----------|-------|-----|
+|--|-------|-----|
 | OG images, social previews | `gemini-3.1-flash-image-preview` @ 1K | Fast, cost-effective |
 | Hero images, product photos | `gemini-3.1-flash-image-preview` @ 2K | Quality + detail |
 | Infographics with text | `gemini-3.1-flash-image-preview` @ 2K, thinking: high | Better text rendering |
@@ -148,7 +148,7 @@ Approximate costs (gemini-3.1-flash):
 ## Error Handling
 
 | Error | Resolution |
-|-------|-----------|
+|-------|--|
 | MCP not configured | Run `./extensions/banana/install.sh` |
 | API key invalid | New key at https://aistudio.google.com/apikey |
 | Rate limited (429) | Wait 60s, retry. Free tier: ~10 RPM / ~500 RPD |

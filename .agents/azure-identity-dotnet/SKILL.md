@@ -51,7 +51,7 @@ AZURE_CLIENT_ID=<user-assigned-managed-identity-client-id>  # Only for user-assi
 The recommended credential for most scenarios. Tries multiple authentication methods in order:
 
 | Order | Credential | Enabled by Default |
-|-------|------------|-------------------|
+|-------|--|--|
 | 1 | EnvironmentCredential | Yes |
 | 2 | WorkloadIdentityCredential | Yes |
 | 3 | ManagedIdentityCredential | Yes |
@@ -207,7 +207,7 @@ var credential = new DefaultAzureCredential(
 ## Credential Types Reference
 
 | Category | Credential | Purpose |
-|----------|------------|---------|
+|--|--|---------|
 | **Chains** | `DefaultAzureCredential` | Preconfigured chain for dev-to-prod |
 | | `ChainedTokenCredential` | Custom credential chain |
 | **Azure-Hosted** | `ManagedIdentityCredential` | Azure managed identity |
@@ -301,7 +301,7 @@ catch (CredentialUnavailableException e)
 ## Key Exceptions
 
 | Exception | Description |
-|-----------|-------------|
+|--|--|
 | `AuthenticationFailedException` | Base exception for authentication errors |
 | `CredentialUnavailableException` | Credential cannot authenticate in current environment |
 | `AuthenticationRequiredException` | Interactive authentication is required |
@@ -332,7 +332,7 @@ All credential implementations are thread-safe. A single credential instance can
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.Identity |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.identity |
 | Credential Chains | https://learn.microsoft.com/dotnet/azure/sdk/authentication/credential-chains |

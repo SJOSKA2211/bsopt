@@ -61,7 +61,7 @@ DocumentAnalysisClient client = new DocumentAnalysisClientBuilder()
 ## Prebuilt Models
 
 | Model ID | Purpose |
-|----------|---------|
+|--|---------|
 | `prebuilt-layout` | Extract text, tables, selection marks |
 | `prebuilt-document` | General document with key-value pairs |
 | `prebuilt-receipt` | Receipt data extraction |

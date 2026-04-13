@@ -48,7 +48,7 @@ metadata:
  Apply these evidence-based patterns to maximize retention:
  
  | Pattern | Retention Boost | How to Apply |
- |---------|-----------------|--------------|
+ |---------|--|--|
  | Learn by Doing | +% vs reading | Every concept → immediate practice |
  | Spaced Repetition | +% long-term | Revisit key concepts - times |
  | Worked Examples | +% comprehension | Show complete solution before practice |
@@ -121,7 +121,7 @@ metadata:
  **Speed Rules:** Apply these heuristics to write x faster with better outcomes.
  
  | Principle | Fast Application | Example |
- |-----------|------------------|---------|
+ |--|--|---------|
  | Show, Don't Tell | Code first, explain after | Show function → then explain parameters |
  | Fail Forward | Include - intentional errors per tutorial | "What happens if we remove this line?" |
  | Incremental Complexity | Each step adds ≤ new concept | Previous code + new feature = working |
@@ -164,7 +164,7 @@ metadata:
  **When to use each:**
  
  | Visual Type | Best For | Tool Suggestions |
- |-------------|----------|------------------|
+ |--|--|--|
  | Flowchart | Data flow, decision logic | Mermaid, Excalidraw |
  | Sequence Diagram | API calls, event flow | Mermaid, PlantUML |
  | Before/After | Refactoring, transformations | Side-by-side code blocks |
@@ -183,7 +183,7 @@ metadata:
  **Difficulty Calibration:**
  
  | Type | Time | Cognitive Load | When to Use |
- |------|------|----------------|-------------|
+ |------|------|--|--|
  | Fill-in-the-Blank | - min | Low | Early sections, confidence building |
  | Debug Challenges | - min | Medium | After concept introduction |
  | Extension Tasks | - min | Medium-High | Mid-tutorial application |
@@ -210,7 +210,7 @@ metadata:
  **Choose based on learning goal:**
  
  | Format | Length | Depth | Best For |
- |--------|--------|-------|----------|
+ |--------|--------|-------|--|
  | Quick Start | - min | Surface | First-time setup, hello world |
  | Deep Dive | - min | Comprehensive | Complex topics, best practices |
  | Workshop Series | - hours | Multi-part | Bootcamps, team training |
@@ -251,7 +251,7 @@ metadata:
  Rate your tutorial - on each dimension. Target: + average before publishing.
  
  | Dimension |  (Poor) |  (Adequate) |  (Excellent) |
- |-----------|----------|--------------|---------------|
+ |--|--|--|--|
  | Clarity | Confusing steps | Clear but dense | Crystal clear, no re-reading |
  | Pacing | Too fast/slow | Mostly good | Perfect rhythm |
  | Practice | No exercises | Some exercises | Exercise per concept |
@@ -332,7 +332,7 @@ metadata:
  **Efficiency Heuristics:**
  
  | Situation | Apply This Rule |
- |-----------|-----------------|
+ |--|--|
  | Reader stuck | Add checkpoint with expected state |
  | Concept too abstract | Add analogy + concrete example |
  | Exercise too hard | Add scaffolding (hints, partial solution) |
@@ -349,7 +349,7 @@ metadata:
  **Calibration by Audience:**
  
  | Audience | Adjustments |
- |----------|-------------|
+ |--|--|
  | Beginners | More analogies, smaller steps, more exercises, hand-holding setup |
  | Intermediate | Assume basics, focus on patterns and best practices |
  | Advanced | Skip introductions, dive into edge cases and optimization |

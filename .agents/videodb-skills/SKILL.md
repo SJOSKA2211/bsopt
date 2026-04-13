@@ -56,7 +56,7 @@ pip install "videodb[capture]" python-dotenv
 ## Capabilities
 
 | Capability  | Description                                                               |
-| ----------- | ------------------------------------------------------------------------- |
+| -- | -- |
 | Upload      | Ingest videos from YouTube, URLs, or local files                          |
 | Search      | Find moments by speech (semantic/keyword) or visual scenes                |
 | Transcripts | Generate timestamped transcripts from any video                           |

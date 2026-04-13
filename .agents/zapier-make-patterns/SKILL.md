@@ -45,16 +45,16 @@ Different actions based on conditions
 
 ## Anti-Patterns
 
-### ❌ Text in Dropdown Fields
+###  Text in Dropdown Fields
 
-### ❌ No Error Handling
+###  No Error Handling
 
-### ❌ Hardcoded Values
+###  Hardcoded Values
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | # ALWAYS use dropdowns to select, don't type |
 | Issue | critical | # Prevention: |
 | Issue | high | # Understand the math: |

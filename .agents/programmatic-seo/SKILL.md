@@ -36,7 +36,7 @@ The Feasibility Index answers one question:
 
 ---
 
-## 🔢 Programmatic SEO Feasibility Index
+##  Programmatic SEO Feasibility Index
 
 ### Total Score: **0–100**
 
@@ -48,7 +48,7 @@ A high score indicates _structural suitability_, not guaranteed rankings.
 ### Scoring Categories & Weights
 
 | Category                    | Weight  |
-| --------------------------- | ------- |
+| -- | ------- |
 | Search Pattern Validity     | 20      |
 | Unique Value per Page       | 25      |
 | Data Availability & Quality | 20      |
@@ -116,7 +116,7 @@ A high score indicates _structural suitability_, not guaranteed rankings.
 ### Feasibility Bands (Required)
 
 | Score  | Verdict            | Interpretation                    |
-| ------ | ------------------ | --------------------------------- |
+| ------ | -- | -- |
 | 80–100 | **Strong Fit**     | Programmatic SEO is well-suited   |
 | 65–79  | **Moderate Fit**   | Proceed with scope limits         |
 | 50–64  | **High Risk**      | Only attempt with strong controls |

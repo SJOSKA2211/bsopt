@@ -1494,7 +1494,7 @@ const result = items
 ## Summary
 
 | Task | Imperative | Functional | Recommendation |
-|------|-----------|------------|----------------|
+|------|--|--|--|
 | Transform array elements | for loop with push | `.map()` | Use map |
 | Filter array | for loop with condition | `.filter()` | Use filter |
 | Accumulate values | for loop with accumulator | `.reduce()` | Use reduce for complex, loop for simple |

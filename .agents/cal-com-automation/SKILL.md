@@ -188,7 +188,7 @@ Automate Cal.com scheduling operations through Composio's Cal toolkit via Rube M
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List bookings | CAL_FETCH_ALL_BOOKINGS | status, afterStart, beforeEnd |
 | Create booking | CAL_POST_NEW_BOOKING_REQUEST | eventTypeId, start, end, name, email |
 | Get busy times | CAL_RETRIEVE_CALENDAR_BUSY_TIMES | dateFrom, dateTo |

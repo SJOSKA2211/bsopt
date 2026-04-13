@@ -48,7 +48,7 @@ Tasks (one per partition)
 ### 2. Key Performance Factors
 
 | Factor | Impact | Solution |
-|--------|--------|----------|
+|--------|--------|--|
 | **Shuffle** | Network I/O, disk I/O | Minimize wide transformations |
 | **Data Skew** | Uneven task duration | Salting, broadcast joins |
 | **Serialization** | CPU overhead | Use Kryo, columnar formats |

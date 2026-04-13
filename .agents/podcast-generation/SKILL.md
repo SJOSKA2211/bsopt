@@ -96,7 +96,7 @@ new Audio(audioUrl).play();
 ## Voice Options
 
 | Voice | Character |
-|-------|-----------|
+|-------|--|
 | alloy | Neutral |
 | echo | Warm |
 | fable | Expressive |

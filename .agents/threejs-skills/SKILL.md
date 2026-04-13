@@ -374,12 +374,12 @@ const material = new THREE.MeshStandardMaterial({
 
 ### Common Pitfalls to Avoid
 
-- ❌ Using `outputEncoding` instead of `outputColorSpace` (renamed in r152)
-- ❌ Forgetting to add objects to scene with `scene.add()`
-- ❌ Using lit materials without adding lights
-- ❌ Not handling window resize
-- ❌ Forgetting to call `renderer.render()` in animation loop
-- ❌ Using `THREE.Clock` without considering `THREE.Timer` (recommended in r183)
+-  Using `outputEncoding` instead of `outputColorSpace` (renamed in r152)
+-  Forgetting to add objects to scene with `scene.add()`
+-  Using lit materials without adding lights
+-  Not handling window resize
+-  Forgetting to call `renderer.render()` in animation loop
+-  Using `THREE.Clock` without considering `THREE.Timer` (recommended in r183)
 
 ## Example Workflow
 
@@ -392,7 +392,7 @@ User: "Create an interactive 3D sphere that responds to mouse movement"
 5. **Interaction**: Track mouse position, update camera
 6. **Animation**: Rotate sphere, render continuously
 7. **Responsive**: Add window resize handler
-8. **Result**: Smooth, interactive 3D sphere ✓
+8. **Result**: Smooth, interactive 3D sphere 
 
 ## Troubleshooting
 

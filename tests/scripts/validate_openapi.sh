@@ -4,9 +4,9 @@
 
 set -e
 
-echo "=========================================="
+echo "=="
 echo "OpenAPI Specification Validation"
-echo "=========================================="
+echo "=="
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,7 +25,7 @@ if [ ! -f "$OPENAPI_SPEC" ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓${NC} Found OpenAPI specification: $OPENAPI_SPEC"
+echo -e "${GREEN}${NC} Found OpenAPI specification: $OPENAPI_SPEC"
 echo ""
 
 # 1. Check YAML syntax
@@ -33,13 +33,13 @@ echo "1. Validating YAML syntax..."
 if command -v python3 &> /dev/null; then
     python3 -c "import yaml; yaml.safe_load(open('$OPENAPI_SPEC'))" 2>&1
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓${NC} YAML syntax is valid"
+        echo -e "${GREEN}${NC} YAML syntax is valid"
     else
-        echo -e "${RED}✗${NC} YAML syntax error"
+        echo -e "${RED}${NC} YAML syntax error"
         exit 1
     fi
 else
-    echo -e "${YELLOW}⚠${NC} Python3 not found, skipping YAML syntax check"
+    echo -e "${YELLOW}${NC} Python3 not found, skipping YAML syntax check"
 fi
 echo ""
 
@@ -48,9 +48,9 @@ echo "2. Checking OpenAPI version..."
 OPENAPI_VERSION=$(grep -m 1 "^openapi:" "$OPENAPI_SPEC" | awk '{print $2}')
 echo "   Version: $OPENAPI_VERSION"
 if [[ "$OPENAPI_VERSION" == 3.0.* || "$OPENAPI_VERSION" == 3.1.* ]]; then
-    echo -e "${GREEN}✓${NC} OpenAPI version is valid"
+    echo -e "${GREEN}${NC} OpenAPI version is valid"
 else
-    echo -e "${RED}✗${NC} OpenAPI version should be 3.0.x or 3.1.x"
+    echo -e "${RED}${NC} OpenAPI version should be 3.0.x or 3.1.x"
     exit 1
 fi
 echo ""
@@ -60,9 +60,9 @@ echo "3. Checking required fields..."
 REQUIRED_FIELDS=("openapi" "info" "paths")
 for field in "${REQUIRED_FIELDS[@]}"; do
     if grep -q "^$field:" "$OPENAPI_SPEC"; then
-        echo -e "${GREEN}✓${NC} Found required field: $field"
+        echo -e "${GREEN}${NC} Found required field: $field"
     else
-        echo -e "${RED}✗${NC} Missing required field: $field"
+        echo -e "${RED}${NC} Missing required field: $field"
         exit 1
     fi
 done
@@ -93,21 +93,21 @@ MISSING_RESPONSES=0
 
 # This is a simplified check
 if grep -q "summary:" "$OPENAPI_SPEC"; then
-    echo -e "${GREEN}✓${NC} Endpoints have summaries"
+    echo -e "${GREEN}${NC} Endpoints have summaries"
 else
-    echo -e "${YELLOW}⚠${NC} Some endpoints may be missing summaries"
+    echo -e "${YELLOW}${NC} Some endpoints may be missing summaries"
 fi
 
 if grep -q "description:" "$OPENAPI_SPEC"; then
-    echo -e "${GREEN}✓${NC} Endpoints have descriptions"
+    echo -e "${GREEN}${NC} Endpoints have descriptions"
 else
-    echo -e "${YELLOW}⚠${NC} Some endpoints may be missing descriptions"
+    echo -e "${YELLOW}${NC} Some endpoints may be missing descriptions"
 fi
 
 if grep -q "responses:" "$OPENAPI_SPEC"; then
-    echo -e "${GREEN}✓${NC} Endpoints have response definitions"
+    echo -e "${GREEN}${NC} Endpoints have response definitions"
 else
-    echo -e "${RED}✗${NC} Missing response definitions"
+    echo -e "${RED}${NC} Missing response definitions"
     exit 1
 fi
 echo ""
@@ -115,24 +115,24 @@ echo ""
 # 6. Check for security definitions
 echo "6. Checking security configuration..."
 if grep -q "securitySchemes:" "$OPENAPI_SPEC"; then
-    echo -e "${GREEN}✓${NC} Security schemes defined"
+    echo -e "${GREEN}${NC} Security schemes defined"
     SECURITY_SCHEME=$(grep -A 2 "securitySchemes:" "$OPENAPI_SPEC" | grep -m 1 "type:" | awk '{print $2}')
     echo "   Type: $SECURITY_SCHEME"
 else
-    echo -e "${YELLOW}⚠${NC} No security schemes defined"
+    echo -e "${YELLOW}${NC} No security schemes defined"
 fi
 echo ""
 
 # 7. Check for schemas/components
 echo "7. Checking schema definitions..."
 if grep -q "components:" "$OPENAPI_SPEC"; then
-    echo -e "${GREEN}✓${NC} Components section exists"
+    echo -e "${GREEN}${NC} Components section exists"
     if grep -q "schemas:" "$OPENAPI_SPEC"; then
         SCHEMA_COUNT=$(grep -c "^    [A-Z].*:" "$OPENAPI_SPEC" || true)
         echo "   Schemas defined: ~$SCHEMA_COUNT"
     fi
 else
-    echo -e "${YELLOW}⚠${NC} No components section found"
+    echo -e "${YELLOW}${NC} No components section found"
 fi
 echo ""
 
@@ -143,9 +143,9 @@ EXAMPLES_COUNT=$(grep -c "examples:" "$OPENAPI_SPEC" || true)
 TOTAL_EXAMPLES=$((EXAMPLE_COUNT + EXAMPLES_COUNT))
 echo "   Examples found: $TOTAL_EXAMPLES"
 if [ "$TOTAL_EXAMPLES" -gt 0 ]; then
-    echo -e "${GREEN}✓${NC} API includes examples"
+    echo -e "${GREEN}${NC} API includes examples"
 else
-    echo -e "${YELLOW}⚠${NC} No examples found"
+    echo -e "${YELLOW}${NC} No examples found"
 fi
 echo ""
 
@@ -154,9 +154,9 @@ echo "9. Checking server definitions..."
 if grep -q "servers:" "$OPENAPI_SPEC"; then
     SERVER_COUNT=$(grep -c "  - url:" "$OPENAPI_SPEC" || true)
     echo "   Servers defined: $SERVER_COUNT"
-    echo -e "${GREEN}✓${NC} Server definitions found"
+    echo -e "${GREEN}${NC} Server definitions found"
 else
-    echo -e "${YELLOW}⚠${NC} No server definitions"
+    echo -e "${YELLOW}${NC} No server definitions"
 fi
 echo ""
 
@@ -166,31 +166,31 @@ if command -v swagger-cli &> /dev/null; then
     echo "   Running swagger-cli validation..."
     swagger-cli validate "$OPENAPI_SPEC"
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓${NC} swagger-cli validation passed"
+        echo -e "${GREEN}${NC} swagger-cli validation passed"
     else
-        echo -e "${RED}✗${NC} swagger-cli validation failed"
+        echo -e "${RED}${NC} swagger-cli validation failed"
         exit 1
     fi
 elif npm list -g @apidevtools/swagger-cli &> /dev/null 2>&1; then
     echo "   Running swagger-cli validation..."
     npx @apidevtools/swagger-cli validate "$OPENAPI_SPEC"
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓${NC} swagger-cli validation passed"
+        echo -e "${GREEN}${NC} swagger-cli validation passed"
     else
-        echo -e "${RED}✗${NC} swagger-cli validation failed"
+        echo -e "${RED}${NC} swagger-cli validation failed"
         exit 1
     fi
 else
-    echo -e "${YELLOW}⚠${NC} swagger-cli not installed"
+    echo -e "${YELLOW}${NC} swagger-cli not installed"
     echo "   Install: npm install -g @apidevtools/swagger-cli"
 fi
 echo ""
 
 # Summary
-echo "=========================================="
+echo "=="
 echo "Validation Summary"
-echo "=========================================="
-echo -e "${GREEN}✓ OpenAPI specification is valid${NC}"
+echo "=="
+echo -e "${GREEN} OpenAPI specification is valid${NC}"
 echo ""
 echo "Statistics:"
 echo "  - Endpoints: $ENDPOINT_COUNT"

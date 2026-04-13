@@ -36,7 +36,7 @@ It prevents:
 
 ---
 
-## 🔢 Form Health & Friction Index
+##  Form Health & Friction Index
 
 ### Total Score: **0–100**
 
@@ -47,7 +47,7 @@ This is a **diagnostic score**, not a KPI.
 ### Scoring Categories & Weights
 
 | Category                     | Weight  |
-| ---------------------------- | ------- |
+| -- | ------- |
 | Field Necessity & Efficiency | 30      |
 | Value–Effort Balance         | 20      |
 | Cognitive Load & Clarity     | 20      |
@@ -111,7 +111,7 @@ This is a **diagnostic score**, not a KPI.
 ### Health Bands (Required)
 
 | Score  | Verdict                  | Interpretation                   |
-| ------ | ------------------------ | -------------------------------- |
+| ------ | -- | -- |
 | 85–100 | **High-Performing**      | Optimize incrementally           |
 | 70–84  | **Usable with Friction** | Clear optimization opportunities |
 | 55–69  | **Conversion-Limited**   | Structural issues present        |

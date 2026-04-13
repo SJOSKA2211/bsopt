@@ -488,9 +488,9 @@ async def reset_password_confirm(
     return SuccessResponse(message="Password has been reset successfully")
 
 
-# ---------------------------------------------------------------------------
+# --
 # Internal Helpers
-# ---------------------------------------------------------------------------
+# --
 
 
 async def _send_verification_email(email: str, token: str) -> None:

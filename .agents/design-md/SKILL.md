@@ -172,8 +172,8 @@ To use this skill for the Furniture Collection project:
 
 ## Common Pitfalls to Avoid
 
-- ❌ Using technical jargon without translation (e.g., "rounded-xl" instead of "generously rounded corners")
-- ❌ Omitting color codes or using only descriptive names
-- ❌ Forgetting to explain functional roles of design elements
-- ❌ Being too vague in atmosphere descriptions
-- ❌ Ignoring subtle design details like shadows or spacing patterns
+-  Using technical jargon without translation (e.g., "rounded-xl" instead of "generously rounded corners")
+-  Omitting color codes or using only descriptive names
+-  Forgetting to explain functional roles of design elements
+-  Being too vague in atmosphere descriptions
+-  Ignoring subtle design details like shadows or spacing patterns

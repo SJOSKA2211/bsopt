@@ -206,7 +206,7 @@ Box tools use double underscore notation for nested objects:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Search content | `BOX_SEARCH_FOR_CONTENT` | `query`, `type`, `ancestor_folder_ids` |
 | List folder items | `BOX_LIST_ITEMS_IN_FOLDER` | `folder_id`, `limit`, `marker` |
 | Get file info | `BOX_GET_FILE_INFORMATION` | `file_id`, `fields` |

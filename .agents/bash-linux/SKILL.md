@@ -17,7 +17,7 @@ date_added: "2026-02-27"
 ### Chaining Commands
 
 | Operator | Meaning | Example |
-|----------|---------|---------|
+|--|---------|---------|
 | `;` | Run sequentially | `cmd1; cmd2` |
 | `&&` | Run if previous succeeded | `npm install && npm run dev` |
 | `\|\|` | Run if previous failed | `npm test \|\| echo "Tests failed"` |
@@ -165,7 +165,7 @@ done
 ## 9. Differences from PowerShell
 
 | Task | PowerShell | Bash |
-|------|------------|------|
+|------|--|------|
 | List files | `Get-ChildItem` | `ls -la` |
 | Find files | `Get-ChildItem -Recurse` | `find . -type f` |
 | Environment | `$env:VAR` | `$VAR` |

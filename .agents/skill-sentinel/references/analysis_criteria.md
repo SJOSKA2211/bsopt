@@ -8,7 +8,7 @@ Score final: max(0, min(100, score)).
 ### Qualidade de Codigo
 
 | Criterio | Penalidade | Limiar |
-|----------|-----------|---------|
+|--|--|---------|
 | Complexidade ciclomatica > 10 | -5 por funcao | CC > 10 |
 | Funcao > 50 linhas | -3 por funcao | > 50 linhas |
 | Arquivo > 500 linhas | -5 por arquivo | > 500 linhas |
@@ -20,7 +20,7 @@ Score final: max(0, min(100, score)).
 ### Seguranca
 
 | Criterio | Penalidade |
-|----------|-----------|
+|--|--|
 | Secret hardcoded (critical) | -20 |
 | SQL injection (high) | -15 |
 | Token em log (high) | -10 |
@@ -32,7 +32,7 @@ Score final: max(0, min(100, score)).
 ### Performance
 
 | Criterio | Penalidade |
-|----------|-----------|
+|--|--|
 | Sem retry/backoff | -10 |
 | Sem timeout | -5 |
 | Sem connection reuse | -3 |
@@ -54,7 +54,7 @@ Score direto baseado no nivel de maturidade:
 ### Documentacao
 
 | Criterio | Penalidade |
-|----------|-----------|
+|--|--|
 | Sem campo name no frontmatter | -20 |
 | Sem campo description | -20 |
 | Sem campo version | -3 |
@@ -66,7 +66,7 @@ Score direto baseado no nivel de maturidade:
 ### Dependencias
 
 | Criterio | Penalidade |
-|----------|-----------|
+|--|--|
 | Sem requirements.txt | -15 |
 | Versao nao pinada | -2 por dep |
 | Dep importada nao listada | -2 por dep |

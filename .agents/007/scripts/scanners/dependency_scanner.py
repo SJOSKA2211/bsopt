@@ -17,22 +17,22 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Import from the 007 config hub (parent directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import config  # noqa: E402
 
-# ---------------------------------------------------------------------------
+# --
 # Logger
-# ---------------------------------------------------------------------------
+# --
 logger = config.setup_logging("007-dependency-scanner")
 
 
-# ---------------------------------------------------------------------------
+# --
 # Dependency file patterns
-# ---------------------------------------------------------------------------
+# --
 
 # Python dependency files
 PYTHON_DEP_FILES = {
@@ -67,9 +67,9 @@ ALL_DEP_FILES = PYTHON_DEP_FILES | NODE_DEP_FILES
 _REQUIREMENTS_RE = re.compile(r"""^requirements[-_]?\w*\.txt$""", re.IGNORECASE)
 
 
-# ---------------------------------------------------------------------------
+# --
 # Python analysis patterns
-# ---------------------------------------------------------------------------
+# --
 
 # Pinned:   package==1.2.3
 # Hashed:   package==1.2.3 --hash=sha256:abc...
@@ -108,9 +108,9 @@ _RISKY_PYTHON_PACKAGES = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Node.js analysis patterns
-# ---------------------------------------------------------------------------
+# --
 
 # Exact version:  "1.2.3"
 # Pinned prefix:  "1.2.3" (no ^ or ~ or * or > or <)
@@ -127,9 +127,9 @@ _NODE_RISKY_SCRIPTS = re.compile(
 )
 
 
-# ---------------------------------------------------------------------------
+# --
 # Dockerfile analysis patterns
-# ---------------------------------------------------------------------------
+# --
 
 _DOCKER_FROM_RE = re.compile(r"""^\s*FROM\s+(\S+)""", re.IGNORECASE)
 
@@ -176,9 +176,9 @@ _DOCKER_TRUSTED_BASES = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Finding builder
-# ---------------------------------------------------------------------------
+# --
 
 
 def _make_finding(
@@ -213,9 +213,9 @@ def _make_finding(
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Python dependency analysis
-# ---------------------------------------------------------------------------
+# --
 
 
 def analyze_requirements_txt(filepath: Path, verbose: bool = False) -> dict:
@@ -558,9 +558,9 @@ def analyze_pipfile(filepath: Path, verbose: bool = False) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Node.js dependency analysis
-# ---------------------------------------------------------------------------
+# --
 
 
 def analyze_package_json(filepath: Path, verbose: bool = False) -> dict:
@@ -754,9 +754,9 @@ def analyze_package_json(filepath: Path, verbose: bool = False) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Dockerfile analysis
-# ---------------------------------------------------------------------------
+# --
 
 
 def analyze_dockerfile(filepath: Path, verbose: bool = False) -> dict:
@@ -925,9 +925,9 @@ def analyze_docker_compose(filepath: Path, verbose: bool = False) -> dict:
     return {"services": services, "findings": findings}
 
 
-# ---------------------------------------------------------------------------
+# --
 # File discovery
-# ---------------------------------------------------------------------------
+# --
 
 
 def discover_dependency_files(target: Path) -> list[Path]:
@@ -962,9 +962,9 @@ def discover_dependency_files(target: Path) -> list[Path]:
     return found
 
 
-# ---------------------------------------------------------------------------
+# --
 # Core scan logic
-# ---------------------------------------------------------------------------
+# --
 
 
 def scan_dependency_file(filepath: Path, verbose: bool = False) -> dict:
@@ -1011,9 +1011,9 @@ def scan_dependency_file(filepath: Path, verbose: bool = False) -> dict:
     return {"findings": []}
 
 
-# ---------------------------------------------------------------------------
+# --
 # Scoring
-# ---------------------------------------------------------------------------
+# --
 
 SCORE_DEDUCTIONS = {
     "CRITICAL": 15,
@@ -1052,9 +1052,9 @@ def compute_supply_chain_score(findings: list[dict], pinning_pct: float) -> int:
     return max(0, min(100, round(total)))
 
 
-# ---------------------------------------------------------------------------
+# --
 # Aggregation helpers
-# ---------------------------------------------------------------------------
+# --
 
 
 def aggregate_by_severity(findings: list[dict]) -> dict[str, int]:
@@ -1076,9 +1076,9 @@ def aggregate_by_pattern(findings: list[dict]) -> dict[str, int]:
     return counts
 
 
-# ---------------------------------------------------------------------------
+# --
 # Report formatters
-# ---------------------------------------------------------------------------
+# --
 
 
 def format_text_report(
@@ -1226,9 +1226,9 @@ def build_json_report(
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Main entry point
-# ---------------------------------------------------------------------------
+# --
 
 
 def run_scan(
@@ -1365,9 +1365,9 @@ def run_scan(
     return report
 
 
-# ---------------------------------------------------------------------------
+# --
 # CLI
-# ---------------------------------------------------------------------------
+# --
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

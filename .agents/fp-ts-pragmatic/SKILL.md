@@ -562,7 +562,7 @@ const result = pipe(
 ## Cheat Sheet
 
 | What you want | Plain language | fp-ts |
-|--------------|----------------|-------|
+|--|--|-------|
 | Handle null/undefined | "Wrap this nullable" | `O.fromNullable(x)` |
 | Default for missing | "Use this if nothing" | `O.getOrElse(() => default)` |
 | Transform if present | "If something, change it" | `O.map(fn)` |

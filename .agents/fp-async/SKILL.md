@@ -870,7 +870,7 @@ const fromBoolean = TE.fromPredicate(
 ## Quick Reference Card
 
 | What you want | How to do it |
-|---------------|--------------|
+|--|--|
 | Wrap a promise | `TE.tryCatch(() => promise, toError)` |
 | Create success | `TE.right(value)` |
 | Create failure | `TE.left(error)` |

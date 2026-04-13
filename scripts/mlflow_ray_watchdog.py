@@ -78,7 +78,7 @@ class MLflowRayWatchdog:
         # Extract params from failed run to preserve configuration
         params = mlflow.get_run(run_id).data.params
 
-        # ⚡ OOM Recovery Strategy: Reduce batch size AND Increase allocated memory per worker
+        #  OOM Recovery Strategy: Reduce batch size AND Increase allocated memory per worker
         if "batch_size" in params:
             new_batch_size = max(8, int(params["batch_size"]) // 2)
             params["batch_size"] = str(new_batch_size)
@@ -88,7 +88,7 @@ class MLflowRayWatchdog:
                 new_batch=new_batch_size,
             )
 
-        # 🚀 Resource Negotiation: Request MORE memory per worker if previous failed
+        #  Resource Negotiation: Request MORE memory per worker if previous failed
         # This is a hint to the BSOptDistributedTrainer
         config = {k: self._infer_type(v) for k, v in params.items()}
         config["_recovery_attempt"] = True

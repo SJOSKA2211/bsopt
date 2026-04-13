@@ -14,7 +14,7 @@ Write user-facing copy following Sentry's brand guidelines.
 Choose the appropriate tone based on context:
 
 | Use Plain Speech | Use Sentry Voice |
-|------------------|------------------|
+|--|--|
 | Product UI (buttons, labels, forms) | 404 pages |
 | Documentation | Empty states |
 | Error messages | Onboarding flows |
@@ -39,7 +39,7 @@ Plain Speech is clear, direct, and functional. Use it for most UI elements.
 ### Examples
 
 | Instead of | Write |
-|------------|-------|
+|--|-------|
 | "Click here to save your changes" | "Save" |
 | "You can filter results by date" | "Filter by date" |
 | "An error has occurred" | "Something went wrong" |

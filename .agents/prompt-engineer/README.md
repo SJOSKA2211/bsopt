@@ -1,31 +1,31 @@
-# 🎯 Prompt Engineer
+#  Prompt Engineer
 
 **Version:** 1.0.1  
-**Status:** ✨ Zero-Config | 🌍 Universal
+**Status:**  Zero-Config |  Universal
 
 Transform raw prompts into optimized, production-ready prompts using 11 established prompting frameworks.
 
 ---
 
-## 📋 Overview
+##  Overview
 
 **Prompt Engineer** is an intelligent AI skill that analyzes your intentions and automatically generates optimized prompts for Claude, ChatGPT, or any other AI model. Instead of struggling with how to phrase complex requests, simply describe what you want - the skill handles the rest.
 
 This skill works in **"magic mode"** - it operates silently, only asking questions when absolutely necessary. You provide a rough idea, and it returns a polished, structured prompt ready to use.
 
-### ✨ Key Features
+###  Key Features
 
-- **🎯 Intent Analysis:** Understands what you're trying to accomplish
+- ** Intent Analysis:** Understands what you're trying to accomplish
 - **🧠 11 Frameworks:** RTF, Chain of Thought, RISEN, RODES, Chain of Density, RACE, RISE, STAR, SOAP, CLEAR, GROW
-- **🔄 Framework Blending:** Combines multiple frameworks when needed
-- **❓ Smart Clarification:** Only asks questions when critically needed
-- **📏 Adaptive Output:** Matches prompt length to task complexity
-- **🌍 Universal:** Works in any project, any terminal context
+- ** Framework Blending:** Combines multiple frameworks when needed
+- ** Smart Clarification:** Only asks questions when critically needed
+- ** Adaptive Output:** Matches prompt length to task complexity
+- ** Universal:** Works in any project, any terminal context
 - **🪄 Magic Mode:** No technical explanations - just results
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Invoke the Skill
 
@@ -170,7 +170,7 @@ Output format: Practical playbook with templates, examples, and metrics.
 
 ---
 
-## 📚 Supported Frameworks
+##  Supported Frameworks
 
 The **Prompt Engineer** skill uses **11 established frameworks** to optimize your prompts. The skill automatically selects and blends these frameworks based on your task - you never need to know or choose them manually.
 
@@ -459,7 +459,7 @@ The skill analyzes your input and:
 ### Common Framework Blends
 
 | Task Type | Primary Framework | Blended With | Result |
-|-----------|------------------|--------------|--------|
+|--|--|--|--------|
 | Complex technical design | RODES | Chain of Thought | Structured design with step-by-step reasoning |
 | Leadership development | CLEAR | GROW | Measurable goals with action commitment |
 | Strategic communication | RACE | STAR | Audience-aware storytelling with context |
@@ -468,7 +468,7 @@ The skill analyzes your input and:
 
 ---
 
-## 🎯 How It Works
+##  How It Works
 
 ```
 User Input (rough prompt)
@@ -508,7 +508,7 @@ User Input (rough prompt)
 
 ---
 
-## 🎨 Use Cases
+##  Use Cases
 
 ### Coding
 
@@ -560,7 +560,7 @@ copilot> transform into prompt: learn machine learning from zero
 
 ---
 
-## ❓ FAQ
+##  FAQ
 
 ### Q: Does this skill work outside of Obsidian vaults?
 **A:** Yes! It's a **universal skill** that works in any terminal context. It doesn't depend on vault structure, project configuration, or external files.
@@ -602,7 +602,7 @@ copilot> transform into prompt: learn machine learning from zero
 
 ---
 
-## 🔧 Installation (Global Setup)
+##  Installation (Global Setup)
 
 This skill is designed to work **globally** across all your projects.
 
@@ -645,7 +645,7 @@ Then configure:
 
 ---
 
-## 📖 Learn More
+##  Learn More
 
 - **Skill Development Guide** - Learn how to create your own skills
 - **[SKILL.md](./SKILL.md)** - Full technical specification of this skill
@@ -653,7 +653,7 @@ Then configure:
 
 ---
 
-## 📄 Version
+##  Version
 
 **v1.0.1** | Zero-Config | Universal  
 *Works in any project, any context, any terminal.*

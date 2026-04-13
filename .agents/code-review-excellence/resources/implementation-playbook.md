@@ -41,16 +41,16 @@ This file contains detailed patterns, checklists, and code samples referenced by
 - Prioritized (critical vs nice-to-have)
 
 ```markdown
-❌ Bad: "This is wrong."
-✅ Good: "This could cause a race condition when multiple users
+ Bad: "This is wrong."
+ Good: "This could cause a race condition when multiple users
          access simultaneously. Consider using a mutex here."
 
-❌ Bad: "Why didn't you use X pattern?"
-✅ Good: "Have you considered the Repository pattern? It would
+ Bad: "Why didn't you use X pattern?"
+ Good: "Have you considered the Repository pattern? It would
          make this easier to test. Here's an example: [link]"
 
-❌ Bad: "Rename this variable."
-✅ Good: "[nit] Consider `userCount` instead of `uc` for
+ Bad: "Rename this variable."
+ Good: "[nit] Consider `userCount` instead of `uc` for
          clarity. Not blocking if you prefer to keep it."
 ```
 
@@ -142,9 +142,9 @@ For each file:
 1. Summarize key concerns
 2. Highlight what you liked
 3. Make clear decision:
-   - ✅ Approve
-   - 💬 Comment (minor suggestions)
-   - 🔄 Request Changes (must address)
+   -  Approve
+   -  Comment (minor suggestions)
+   -  Request Changes (must address)
 4. Offer to pair if complex
 ```
 
@@ -180,14 +180,14 @@ For each file:
 Instead of stating problems, ask questions to encourage thinking:
 
 ```markdown
-❌ "This will fail if the list is empty."
-✅ "What happens if `items` is an empty array?"
+ "This will fail if the list is empty."
+ "What happens if `items` is an empty array?"
 
-❌ "You need error handling here."
-✅ "How should this behave if the API call fails?"
+ "You need error handling here."
+ "How should this behave if the API call fails?"
 
-❌ "This is inefficient."
-✅ "I see this loops through all users. Have we considered
+ "This is inefficient."
+ "I see this loops through all users. Have we considered
     the performance impact with 100k users?"
 ```
 
@@ -196,8 +196,8 @@ Instead of stating problems, ask questions to encourage thinking:
 ```markdown
 ## Use Collaborative Language
 
-❌ "You must change this to use async/await"
-✅ "Suggestion: async/await might make this more readable:
+ "You must change this to use async/await"
+ "Suggestion: async/await might make this more readable:
     ```typescript
     async function fetchUser(id: string) {
         const user = await db.query('SELECT * FROM users WHERE id = ?', id);
@@ -206,8 +206,8 @@ Instead of stating problems, ask questions to encourage thinking:
     ```
     What do you think?"
 
-❌ "Extract this into a function"
-✅ "This logic appears in 3 places. Would it make sense to
+ "Extract this into a function"
+ "This logic appears in 3 places. Would it make sense to
     extract it into a shared utility function?"
 ```
 
@@ -216,20 +216,20 @@ Instead of stating problems, ask questions to encourage thinking:
 ```markdown
 Use labels to indicate priority:
 
-🔴 [blocking] - Must fix before merge
+ [blocking] - Must fix before merge
 🟡 [important] - Should fix, discuss if disagree
 🟢 [nit] - Nice to have, not blocking
-💡 [suggestion] - Alternative approach to consider
-📚 [learning] - Educational comment, no action needed
-🎉 [praise] - Good work, keep it up!
+ [suggestion] - Alternative approach to consider
+ [learning] - Educational comment, no action needed
+ [praise] - Good work, keep it up!
 
 Example:
-"🔴 [blocking] This SQL query is vulnerable to injection.
+" [blocking] This SQL query is vulnerable to injection.
  Please use parameterized queries."
 
 "🟢 [nit] Consider renaming `data` to `userData` for clarity."
 
-"🎉 [praise] Excellent test coverage! This will catch edge cases."
+" [praise] Excellent test coverage! This will catch edge cases."
 ```
 
 ## Language-Specific Patterns
@@ -239,36 +239,36 @@ Example:
 ```python
 # Check for Python-specific issues
 
-# ❌ Mutable default arguments
+#  Mutable default arguments
 def add_item(item, items=[]):  # Bug! Shared across calls
     items.append(item)
     return items
 
-# ✅ Use None as default
+#  Use None as default
 def add_item(item, items=None):
     if items is None:
         items = []
     items.append(item)
     return items
 
-# ❌ Catching too broad
+#  Catching too broad
 try:
     result = risky_operation()
 except:  # Catches everything, even KeyboardInterrupt!
     pass
 
-# ✅ Catch specific exceptions
+#  Catch specific exceptions
 try:
     result = risky_operation()
 except ValueError as e:
     logger.error(f"Invalid value: {e}")
     raise
 
-# ❌ Using mutable class attributes
+#  Using mutable class attributes
 class User:
     permissions = []  # Shared across all instances!
 
-# ✅ Initialize in __init__
+#  Initialize in __init__
 class User:
     def __init__(self):
         self.permissions = []
@@ -279,12 +279,12 @@ class User:
 ```typescript
 // Check for TypeScript-specific issues
 
-// ❌ Using any defeats type safety
+//  Using any defeats type safety
 function processData(data: any) {  // Avoid any
     return data.value;
 }
 
-// ✅ Use proper types
+//  Use proper types
 interface DataPayload {
     value: string;
 }
@@ -292,13 +292,13 @@ function processData(data: DataPayload) {
     return data.value;
 }
 
-// ❌ Not handling async errors
+//  Not handling async errors
 async function fetchUser(id: string) {
     const response = await fetch(`/api/users/${id}`);
     return response.json();  // What if network fails?
 }
 
-// ✅ Handle errors properly
+//  Handle errors properly
 async function fetchUser(id: string): Promise<User> {
     try {
         const response = await fetch(`/api/users/${id}`);
@@ -312,13 +312,13 @@ async function fetchUser(id: string): Promise<User> {
     }
 }
 
-// ❌ Mutation of props
+//  Mutation of props
 function UserProfile({ user }: Props) {
     user.lastViewed = new Date();  // Mutating prop!
     return <div>{user.name}</div>;
 }
 
-// ✅ Don't mutate props
+//  Don't mutate props
 function UserProfile({ user, onView }: Props) {
     useEffect(() => {
         onView(user.id);  // Notify parent to update
@@ -354,7 +354,7 @@ When reviewing significant changes:
 ### Pattern 2: Test Quality Review
 
 ```typescript
-// ❌ Poor test: Implementation detail testing
+//  Poor test: Implementation detail testing
 test('increments counter variable', () => {
     const component = render(<Counter />);
     const button = component.getByRole('button');
@@ -362,7 +362,7 @@ test('increments counter variable', () => {
     expect(component.state.counter).toBe(1);  // Testing internal state
 });
 
-// ✅ Good test: Behavior testing
+//  Good test: Behavior testing
 test('displays incremented count when clicked', () => {
     render(<Counter />);
     const button = screen.getByRole('button', { name: /increment/i });
@@ -490,19 +490,19 @@ When author disagrees with your feedback:
 - [Good patterns or approaches]
 
 ## Required Changes
-🔴 [Blocking issue 1]
-🔴 [Blocking issue 2]
+ [Blocking issue 1]
+ [Blocking issue 2]
 
 ## Suggestions
-💡 [Improvement 1]
-💡 [Improvement 2]
+ [Improvement 1]
+ [Improvement 2]
 
 ## Questions
-❓ [Clarification needed on X]
-❓ [Alternative approach consideration]
+ [Clarification needed on X]
+ [Alternative approach consideration]
 
 ## Verdict
-✅ Approve after addressing required changes
+ Approve after addressing required changes
 ```
 
 ## Resources

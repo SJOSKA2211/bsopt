@@ -161,7 +161,7 @@ Extract IDs from Figma URLs:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Parse URL | FIGMA_DISCOVER_FIGMA_RESOURCES | figma_url |
 | Get file JSON | FIGMA_GET_FILE_JSON | file_key, ids, depth |
 | Get nodes | FIGMA_GET_FILE_NODES | file_key, ids |

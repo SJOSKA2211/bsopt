@@ -23,7 +23,7 @@ Reference these guidelines when:
 ## Rule Categories by Priority
 
 | Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
+|--|--|--------|--------|
 | 1 | Lifecycle | CRITICAL | `lifecycle-` |
 | 2 | Workflow | CRITICAL | `workflow-` |
 | 3 | Step | HIGH | `step-` |

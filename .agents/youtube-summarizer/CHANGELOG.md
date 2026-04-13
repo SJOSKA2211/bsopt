@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.1] - 2026-02-04
 
-### 🐛 Fixed
+###  Fixed
 
 - **Exit code propagation in `--list` mode**
   - **Issue:** Script always exited with status 0 even when `list_available_transcripts()` failed
@@ -18,19 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Solution:** Now properly checks return value and exits with code 1 on failure
   - **Impact:** Scripts in automation can now correctly detect when transcript listing fails (invalid video ID, network errors, etc.)
 
-### 🔧 Changed
+###  Changed
 
 - `extract-transcript.py` (lines 58-60)
   - Before: `list_available_transcripts(video_id); sys.exit(0)`
   - After: `success = list_available_transcripts(video_id); sys.exit(0 if success else 1)`
 
-### 📝 Notes
+###  Notes
 
 - **Breaking Change:** None - only affects error handling behavior
 - **Backward Compatibility:** Scripts that check exit codes will now work correctly
 - **Migration:** No changes needed for existing users
 
-### 🔗 Related
+###  Related
 
 - Identified by Codex automated review in antigravity-awesome-skills PR #62
 - Also fixed in antigravity-awesome-skills fork
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2026-02-04
 
-### ✨ Added
+###  Added
 
 - Intelligent prompt workflow integration
 - LLM processing with Claude CLI or GitHub Copilot CLI
@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multiple output formats
 - Enhanced error handling
 
-### 🔧 Changed
+###  Changed
 
 - Major refactor of transcript extraction logic
 - Improved documentation in SKILL.md
@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2025-02-01
 
-### ✨ Initial Release
+###  Initial Release
 
 - YouTube transcript extraction
 - Language detection and selection

@@ -5,7 +5,7 @@
 ## Keyword Matrix
 
 | Keywords | Project Type | Template |
-|----------|--------------|----------|
+|--|--|--|
 | blog, post, article | Blog | astro-static |
 | e-commerce, product, cart, payment | E-commerce | nextjs-saas |
 | dashboard, panel, management | Admin Dashboard | nextjs-fullstack |

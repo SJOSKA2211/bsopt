@@ -13,7 +13,7 @@ Các trợ lý AI (như **Claude Code**, **Gemini**, **Cursor**) rất thông mi
 
 ---
 
-## ⚡️ Khởi động nhanh: Các "Gói khởi đầu" (Starter Packs)
+## ️ Khởi động nhanh: Các "Gói khởi đầu" (Starter Packs)
 
 Đừng lo lắng về con số hơn 560 kỹ năng. Bạn không cần dùng tất cả chúng cùng một lúc.  
 Chúng tôi đã tuyển chọn các **Gói khởi đầu** để bạn có thể bắt đầu sử dụng ngay lập tức.
@@ -32,7 +32,7 @@ git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skill
 Tìm gói kỹ năng phù hợp với vị trí của bạn (xem [BUNDLES.md](BUNDLES.vi.md)):
 
 | Vai trò               | Tên Gói kỹ năng | Bên trong có những gì?                            |
-| :-------------------- | :-------------- | :------------------------------------------------ |
+| :-- | :-- | :-- |
 | **Web Developer**     | `Web Wizard`    | React Patterns, Tailwind mastery, Frontend Design |
 | **Security Engineer** | `Hacker Pack`   | OWASP, Metasploit, Pentest Methodology            |
 | **Manager / PM**      | `Product Pack`  | Brainstorming, Planning, SEO, Strategy            |
@@ -40,7 +40,7 @@ Tìm gói kỹ năng phù hợp với vị trí của bạn (xem [BUNDLES.md](BU
 
 ---
 
-## 🚀 Cách sử dụng một Skill
+##  Cách sử dụng một Skill
 
 Sau khi cài đặt, bạn chỉ cần trò chuyện với AI một cách tự nhiên.
 
@@ -64,31 +64,31 @@ Sau khi cài đặt, bạn chỉ cần trò chuyện với AI một cách tự n
 
 ---
 
-## 🔌 Các công cụ được hỗ trợ
+##  Các công cụ được hỗ trợ
 
 | Công cụ          | Trạng thái      | Đường dẫn         |
-| :--------------- | :-------------- | :---------------- |
-| **Claude Code**  | ✅ Hỗ trợ đầy đủ | `.claude/skills/` |
-| **Gemini CLI**   | ✅ Hỗ trợ đầy đủ | `.gemini/skills/` |
-| **Antigravity**  | ✅ Hỗ trợ gốc   | `.agent/skills/`  |
-| **Cursor**       | ✅ Hỗ trợ gốc   | `.cursor/skills/` |
-| **Copilot**      | ⚠️ Chỉ văn bản  | Copy-paste thủ công |
+| :-- | :-- | :-- |
+| **Claude Code**  |  Hỗ trợ đầy đủ | `.claude/skills/` |
+| **Gemini CLI**   |  Hỗ trợ đầy đủ | `.gemini/skills/` |
+| **Antigravity**  |  Hỗ trợ gốc   | `.agent/skills/`  |
+| **Cursor**       |  Hỗ trợ gốc   | `.cursor/skills/` |
+| **Copilot**      | ️ Chỉ văn bản  | Copy-paste thủ công |
 
 ---
 
-## 🛡️ Sự tin cậy & An toàn (Mới trong bản V4)
+## ️ Sự tin cậy & An toàn (Mới trong bản V4)
 
 Chúng tôi phân loại các kỹ năng để bạn biết mình đang chạy những gì:
 
 - 🟣 **Official (Chính thức)**: Được duy trì bởi Anthropic/Google/Nhà cung cấp (Độ tin cậy cao).
-- 🔵 **Safe (An toàn)**: Các kỹ năng cộng đồng không gây hại (Chỉ đọc/Lập kế hoạch).
-- 🔴 **Risk (Rủi ro)**: Các kỹ năng sửa đổi hệ thống hoặc thực hiện kiểm thử bảo mật (Sử dụng khi được cấp phép).
+-  **Safe (An toàn)**: Các kỹ năng cộng đồng không gây hại (Chỉ đọc/Lập kế hoạch).
+-  **Risk (Rủi ro)**: Các kỹ năng sửa đổi hệ thống hoặc thực hiện kiểm thử bảo mật (Sử dụng khi được cấp phép).
 
 _Kiểm tra [Danh mục Skill (Skill Catalog)](../CATALOG.vi.md) để xem danh sách đầy đủ._
 
 ---
 
-## ❓ FAQ
+##  FAQ
 
 **H: Tôi có cần cài đặt tất cả 560 kỹ năng không?**  
 Đ: Bạn tải toàn bộ repo về, nhưng AI của bạn chỉ _đọc_ những kỹ năng bạn yêu cầu (hoặc những kỹ năng có liên quan). Nó rất nhẹ!

@@ -111,7 +111,7 @@ hooks:
 ### Key azure.yaml Options
 
 | Option | Description |
-|--------|-------------|
+|--------|--|
 | `remoteBuild: true` | Build images in Azure Container Registry (recommended) |
 | `context: .` | Docker build context relative to project path |
 | `host: containerapp` | Deploy to Azure Container Apps |

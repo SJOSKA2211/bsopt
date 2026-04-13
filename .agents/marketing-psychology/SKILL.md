@@ -50,9 +50,9 @@ When a user asks for psychology, persuasion, or behavioral insight:
    * Define *what to test*
    * Include *ethical guardrails*
 
-> ❌ No bias encyclopedias
-> ❌ No manipulation
-> ✅ Behavior-first application
+>  No bias encyclopedias
+>  No manipulation
+>  Behavior-first application
 
 ---
 
@@ -63,7 +63,7 @@ Every recommended mental model **must be scored**.
 ### PLFS Dimensions (1–5)
 
 | Dimension               | Question                                                    |
-| ----------------------- | ----------------------------------------------------------- |
+| -- | -- |
 | **Behavioral Leverage** | How strongly does this model influence the target behavior? |
 | **Context Fit**         | How well does it fit the product, audience, and stage?      |
 | **Implementation Ease** | How easy is it to apply correctly?                          |
@@ -85,7 +85,7 @@ PLFS = (Leverage + Fit + Speed + Ethics) − Implementation Cost
 ### Interpretation
 
 | PLFS      | Meaning               | Action            |
-| --------- | --------------------- | ----------------- |
+| --------- | -- | -- |
 | **12–15** | High-confidence lever | Apply immediately |
 | **8–11**  | Strong                | Prioritize        |
 | **4–7**   | Situational           | Test carefully    |
@@ -99,7 +99,7 @@ PLFS = (Leverage + Fit + Speed + Ethics) − Implementation Cost
 **Model:** Paradox of Choice (Pricing Page)
 
 | Factor              | Score |
-| ------------------- | ----- |
+| -- | ----- |
 | Leverage            | 5     |
 | Fit                 | 5     |
 | Speed               | 4     |
@@ -110,7 +110,7 @@ PLFS = (Leverage + Fit + Speed + Ethics) − Implementation Cost
 PLFS = (5 + 5 + 4 + 5) − 2 = 17 (cap at 15)
 ```
 
-➡️ *Extremely high-leverage, low-risk*
+️ *Extremely high-leverage, low-risk*
 
 ---
 
@@ -130,8 +130,8 @@ PLFS = (5 + 5 + 4 + 5) − 2 = 17 (cap at 15)
 
 ### (Foundational Thinking Models, Buyer Psychology, Persuasion, Pricing Psychology, Design Models, Growth Models)
 
-✅ **Library unchanged**
-✅ **Your original content preserved in full**
+ **Library unchanged**
+ **Your original content preserved in full**
 *(All models from your provided draft remain valid and included)*
 
 ---
@@ -210,15 +210,15 @@ Use these biases when scoring:
 
 ## 7. Ethical Guardrails (Non-Negotiable)
 
-❌ Dark patterns
-❌ False scarcity
-❌ Hidden defaults
-❌ Exploiting vulnerable users
+ Dark patterns
+ False scarcity
+ Hidden defaults
+ Exploiting vulnerable users
 
-✅ Transparency
-✅ Reversibility
-✅ Informed choice
-✅ User benefit alignment
+ Transparency
+ Reversibility
+ Informed choice
+ User benefit alignment
 
 If ethical risk > leverage → **do not recommend**
 

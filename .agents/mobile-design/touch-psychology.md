@@ -38,7 +38,7 @@ Where:
 ### Minimum Touch Target Sizes
 
 | Platform | Minimum | Recommended | Use For |
-|----------|---------|-------------|---------|
+|--|---------|--|---------|
 | **iOS (HIG)** | 44pt × 44pt | 48pt+ | All tappable elements |
 | **Android (Material)** | 48dp × 48dp | 56dp+ | All tappable elements |
 | **WCAG 2.2** | 44px × 44px | - | Accessibility compliance |
@@ -57,14 +57,14 @@ Where:
 │                                     │ ← Hit area: 48px (padding extends)
 └─────────────────────────────────────┘
 
-✅ CORRECT: Visual can be smaller if hit area is minimum 44-48px
-❌ WRONG: Making hit area same as small visual element
+ CORRECT: Visual can be smaller if hit area is minimum 44-48px
+ WRONG: Making hit area same as small visual element
 ```
 
 ### Application Rules
 
 | Element | Visual Size | Hit Area |
-|---------|-------------|----------|
+|---------|--|--|
 | Icon buttons | 24-32px | 44-48px (padding) |
 | Text links | Any | 44px height minimum |
 | List items | Full width | 48-56px height |
@@ -125,7 +125,7 @@ Left hand is mirrored.
 ### Placement Guidelines
 
 | Element Type | Ideal Position | Reason |
-|--------------|----------------|--------|
+|--|--|--------|
 | **Primary CTA** | Bottom center/right | Easy thumb reach |
 | **Tab bar** | Bottom | Natural thumb position |
 | **FAB** | Bottom right | Easy for right hand |
@@ -154,7 +154,7 @@ Solutions:
 ### Expectation Differences
 
 | Aspect | Click (Desktop) | Touch (Mobile) |
-|--------|-----------------|----------------|
+|--------|--|--|
 | **Feedback timing** | Can wait 100ms | Expect instant (<50ms) |
 | **Visual feedback** | Hover → Click | Immediate tap response |
 | **Error tolerance** | Easy retry | Frustrating, feels broken |
@@ -217,7 +217,7 @@ Solution: Always provide visible alternative
 ### Common Gesture Conventions
 
 | Gesture | Universal Meaning | Usage |
-|---------|-------------------|-------|
+|---------|--|-------|
 | **Tap** | Select, activate | Primary action |
 | **Double tap** | Zoom in, like/favorite | Quick action |
 | **Long press** | Context menu, selection mode | Secondary options |
@@ -237,10 +237,10 @@ Swipe actions need visual hints:
 │  └───┘                                  │
 └─────────────────────────────────────────┘
 
-✅ Good: Slight color peek at edge suggesting swipe
-✅ Good: Drag handle icon ( ≡ ) suggesting reorder
-✅ Good: Onboarding tooltip explaining gesture
-❌ Bad: Hidden gestures with no visual affordance
+ Good: Slight color peek at edge suggesting swipe
+ Good: Drag handle icon ( ≡ ) suggesting reorder
+ Good: Onboarding tooltip explaining gesture
+ Bad: Hidden gestures with no visual affordance
 ```
 
 ### Platform Gesture Differences
@@ -276,7 +276,7 @@ Without haptics:
 ### iOS Haptic Types
 
 | Type | Intensity | Use Case |
-|------|-----------|----------|
+|------|--|--|
 | `selection` | Light | Picker scroll, toggle, selection |
 | `light` | Light | Minor actions, hover equivalent |
 | `medium` | Medium | Standard tap confirmation |
@@ -288,7 +288,7 @@ Without haptics:
 ### Android Haptic Types
 
 | Type | Use Case |
-|------|----------|
+|------|--|
 | `CLICK` | Standard tap feedback |
 | `HEAVY_CLICK` | Important actions |
 | `DOUBLE_CLICK` | Confirm actions |
@@ -299,7 +299,7 @@ Without haptics:
 ### Haptic Usage Guidelines
 
 ```
-✅ DO use haptics for:
+ DO use haptics for:
 ├── Button taps
 ├── Toggle switches
 ├── Picker/slider values
@@ -309,7 +309,7 @@ Without haptics:
 ├── Swipe action thresholds
 └── Important state changes
 
-❌ DON'T use haptics for:
+ DON'T use haptics for:
 ├── Every scroll position
 ├── Every list item
 ├── Background events
@@ -320,7 +320,7 @@ Without haptics:
 ### Haptic Intensity Mapping
 
 | Action Importance | Haptic Level | Example |
-|-------------------|--------------|---------|
+|--|--|---------|
 | Minor/Browsing | Light / None | Scrolling, hovering |
 | Standard Action | Medium / Selection | Tap, toggle |
 | Significant Action | Heavy / Success | Complete, confirm |
@@ -334,7 +334,7 @@ Without haptics:
 ### How Mobile Differs from Desktop
 
 | Factor | Desktop | Mobile | Implication |
-|--------|---------|--------|-------------|
+|--------|---------|--------|--|
 | **Attention** | Focused sessions | Interrupted constantly | Design for micro-sessions |
 | **Context** | Controlled environment | Anywhere, any condition | Handle bad lighting, noise |
 | **Multitasking** | Multiple windows | One app visible | Complete task in-app |
@@ -433,7 +433,7 @@ OR the target is:
 ### Accessible Touch Patterns
 
 | Pattern | Accessible Implementation |
-|---------|---------------------------|
+|---------|--|
 | Swipe actions | Provide menu alternative |
 | Drag and drop | Provide select + move option |
 | Pinch zoom | Provide zoom buttons |
@@ -459,7 +459,7 @@ What makes touch feel "premium":
 ### Emotional Touch Feedback
 
 | Emotion | Touch Response |
-|---------|----------------|
+|---------|--|
 | Success | Haptic success + confetti/check |
 | Error | Haptic error + shake animation |
 | Warning | Haptic warning + attention color |

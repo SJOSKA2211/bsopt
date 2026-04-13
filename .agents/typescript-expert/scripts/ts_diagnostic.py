@@ -20,7 +20,7 @@ def run_cmd(cmd: str) -> str:
 
 def check_versions():
     """Check TypeScript and Node versions."""
-    print("\n📦 Versions:")
+    print("\n Versions:")
     print("-" * 40)
 
     ts_version = run_cmd("npx tsc --version 2>/dev/null").strip()
@@ -32,12 +32,12 @@ def check_versions():
 
 def check_tsconfig():
     """Analyze tsconfig.json settings."""
-    print("\n⚙️ TSConfig Analysis:")
+    print("\n️ TSConfig Analysis:")
     print("-" * 40)
 
     tsconfig_path = Path("tsconfig.json")
     if not tsconfig_path.exists():
-        print("⚠️ tsconfig.json not found")
+        print("️ tsconfig.json not found")
         return
 
     try:
@@ -48,9 +48,9 @@ def check_tsconfig():
 
         # Check strict mode
         if compiler_opts.get("strict"):
-            print("✅ Strict mode enabled")
+            print(" Strict mode enabled")
         else:
-            print("⚠️ Strict mode NOT enabled")
+            print("️ Strict mode NOT enabled")
 
         # Check important flags
         flags = {
@@ -61,7 +61,7 @@ def check_tsconfig():
         }
 
         for flag, desc in flags.items():
-            status = "✅" if compiler_opts.get(flag) else "⚪"
+            status = "" if compiler_opts.get(flag) else ""
             print(f"  {status} {desc}: {compiler_opts.get(flag, 'not set')}")
 
         # Check module settings
@@ -70,17 +70,17 @@ def check_tsconfig():
         print(f"  Target: {compiler_opts.get('target', 'not set')}")
 
     except json.JSONDecodeError:
-        print("❌ Invalid JSON in tsconfig.json")
+        print(" Invalid JSON in tsconfig.json")
 
 
 def check_tooling():
     """Detect TypeScript tooling ecosystem."""
-    print("\n🛠️ Tooling Detection:")
+    print("\n️ Tooling Detection:")
     print("-" * 40)
 
     pkg_path = Path("package.json")
     if not pkg_path.exists():
-        print("⚠️ package.json not found")
+        print("️ package.json not found")
         return
 
     try:
@@ -104,16 +104,16 @@ def check_tooling():
         for tool, desc in tools.items():
             for dep in all_deps:
                 if tool in dep.lower():
-                    print(f"  ✅ {desc}")
+                    print(f"   {desc}")
                     break
 
     except json.JSONDecodeError:
-        print("❌ Invalid JSON in package.json")
+        print(" Invalid JSON in package.json")
 
 
 def check_monorepo():
     """Check for monorepo configuration."""
-    print("\n📦 Monorepo Check:")
+    print("\n Monorepo Check:")
     print("-" * 40)
 
     indicators = [
@@ -126,48 +126,48 @@ def check_monorepo():
     found = False
     for file, name in indicators:
         if Path(file).exists():
-            print(f"  ✅ {name} detected")
+            print(f"   {name} detected")
             found = True
 
     if not found:
-        print("  ⚪ No monorepo configuration detected")
+        print("   No monorepo configuration detected")
 
 
 def check_type_errors():
     """Run quick type check."""
-    print("\n🔍 Type Check:")
+    print("\n Type Check:")
     print("-" * 40)
 
     result = run_cmd("npx tsc --noEmit 2>&1 | head -20")
     if "error TS" in result:
         errors = result.count("error TS")
-        print(f"  ❌ {errors}+ type errors found")
+        print(f"   {errors}+ type errors found")
         print(result[:500])
     else:
-        print("  ✅ No type errors")
+        print("   No type errors")
 
 
 def check_any_usage():
     """Check for any type usage."""
-    print("\n⚠️ 'any' Type Usage:")
+    print("\n️ 'any' Type Usage:")
     print("-" * 40)
 
     result = run_cmd("grep -r ': any' --include='*.ts' --include='*.tsx' src/ 2>/dev/null | wc -l")
     count = result.strip()
     if count and count != "0":
-        print(f"  ⚠️ Found {count} occurrences of ': any'")
+        print(f"  ️ Found {count} occurrences of ': any'")
         sample = run_cmd(
             "grep -rn ': any' --include='*.ts' --include='*.tsx' src/ 2>/dev/null | head -5"
         )
         if sample:
             print(sample)
     else:
-        print("  ✅ No explicit 'any' types found")
+        print("   No explicit 'any' types found")
 
 
 def check_type_assertions():
     """Check for type assertions."""
-    print("\n⚠️ Type Assertions (as):")
+    print("\n️ Type Assertions (as):")
     print("-" * 40)
 
     result = run_cmd(
@@ -175,9 +175,9 @@ def check_type_assertions():
     )
     count = result.strip()
     if count and count != "0":
-        print(f"  ⚠️ Found {count} type assertions")
+        print(f"  ️ Found {count} type assertions")
     else:
-        print("  ✅ No type assertions found")
+        print("   No type assertions found")
 
 
 def check_performance():
@@ -192,12 +192,12 @@ def check_performance():
         for line in result.strip().split("\n"):
             print(f"  {line}")
     else:
-        print("  ⚠️ Could not measure performance")
+        print("  ️ Could not measure performance")
 
 
 def main():
     print("=" * 50)
-    print("🔍 TypeScript Project Diagnostic Report")
+    print(" TypeScript Project Diagnostic Report")
     print("=" * 50)
 
     check_versions()
@@ -210,7 +210,7 @@ def main():
     check_performance()
 
     print("\n" + "=" * 50)
-    print("✅ Diagnostic Complete")
+    print(" Diagnostic Complete")
     print("=" * 50)
 
 

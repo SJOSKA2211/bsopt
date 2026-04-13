@@ -20,7 +20,7 @@ Production patterns for Unity's Data-Oriented Technology Stack (DOTS) including 
 ### 1. ECS vs OOP
 
 | Aspect | Traditional OOP | ECS/DOTS |
-|--------|-----------------|----------|
+|--------|--|--|
 | Data layout | Object-oriented | Data-oriented |
 | Memory | Scattered | Contiguous |
 | Processing | Per-object | Batched |

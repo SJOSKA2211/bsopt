@@ -10,12 +10,12 @@ date_added: "2026-02-27"
 
 > Analyzes user's requests, determines tech stack, plans structure, and coordinates agents.
 
-## 🎯 Selective Reading Rule
+##  Selective Reading Rule
 
 **Read ONLY files relevant to the request!** Check the content map, find what you need.
 
 | File | Description | When to Read |
-|------|-------------|--------------|
+|------|--|--|
 | `project-detection.md` | Keyword matrix, project type detection | Starting new project |
 | `tech-stack.md` | 2025 default stack, alternatives | Choosing technologies |
 | `agent-coordination.md` | Agent pipeline, execution order | Coordinating multi-agent work |
@@ -25,12 +25,12 @@ date_added: "2026-02-27"
 
 ---
 
-## 📦 Templates (13)
+##  Templates (13)
 
 Quick-start scaffolding for new projects. **Read the matching template only!**
 
 | Template | Tech Stack | When to Use |
-|----------|------------|-------------|
+|--|--|--|
 | [nextjs-fullstack](templates/nextjs-fullstack/TEMPLATE.md) | Next.js + Prisma | Full-stack web app |
 | [nextjs-saas](templates/nextjs-saas/TEMPLATE.md) | Next.js + Stripe | SaaS product |
 | [nextjs-static](templates/nextjs-static/TEMPLATE.md) | Next.js + Framer | Landing page |
@@ -46,7 +46,7 @@ Quick-start scaffolding for new projects. **Read the matching template only!**
 
 ---
 
-## 🔗 Related Agents
+##  Related Agents
 
 | Agent | Role |
 |-------|------|

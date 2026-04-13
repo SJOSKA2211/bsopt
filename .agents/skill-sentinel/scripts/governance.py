@@ -49,7 +49,7 @@ class SentinelGovernance:
         return self.db.get_recent_actions(limit)
 
 
-# -- CLI -----------------------------------------------------------------------
+# -- CLI --
 if __name__ == "__main__":
     gov = SentinelGovernance()
     actions = gov.get_recent_actions(10)

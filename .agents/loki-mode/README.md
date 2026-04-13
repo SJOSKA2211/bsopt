@@ -38,7 +38,7 @@
 ### Full Results
 
 | Benchmark | Score | Details |
-|-----------|-------|---------|
+|--|-------|---------|
 | **Loki Mode HumanEval** | **98.78% Pass@1** | 162/164 (multi-agent with RARV) |
 | **Direct Claude HumanEval** | **98.17% Pass@1** | 161/164 (single agent baseline) |
 | **Direct Claude SWE-bench** | **99.67% patch gen** | 299/300 problems |
@@ -68,7 +68,7 @@ PRD → Research → Architecture → Development → Testing → Deployment →
 ### **Better Than Anything Out There**
 
 | What Others Do | What Loki Mode Does |
-|----------------|---------------------|
+|--|--|
 | **Single agent** writes code linearly | **100+ agents** work in parallel across engineering, ops, business, data, product, and growth |
 | **Manual deployment** required | **Autonomous deployment** to AWS, GCP, Azure, Vercel, Railway with blue-green and canary strategies |
 | **No testing** or basic unit tests | **14 automated quality gates**: security scans, load tests, accessibility audits, code reviews |
@@ -321,7 +321,7 @@ See [references/agents.md](references/agents.md) for complete agent type definit
 ### **Phase Execution**
 
 | Phase | Description |
-|-------|-------------|
+|-------|--|
 | **0. Bootstrap** | Create `.loki/` directory structure, initialize state |
 | **1. Discovery** | Parse PRD, competitive research via web search |
 | **2. Architecture** | Tech stack selection with self-reflection |
@@ -373,7 +373,7 @@ IMPLEMENT → REVIEW (parallel) → AGGREGATE → FIX → RE-REVIEW → COMPLETE
 Test Loki Mode with these pre-built PRDs in the `examples/` directory:
 
 | PRD | Complexity | Est. Time | Description |
-|-----|------------|-----------|-------------|
+|-----|--|--|--|
 | `simple-todo-app.md` | Low | ~10 min | Basic todo app - tests core functionality |
 | `api-only.md` | Low | ~10 min | REST API only - tests backend agents |
 | `static-landing-page.md` | Low | ~5 min | HTML/CSS only - tests frontend/marketing |
@@ -400,7 +400,7 @@ LOKI_MAX_WAIT=7200 \
 ```
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+|--|---------|--|
 | `LOKI_MAX_RETRIES` | 50 | Maximum retry attempts before giving up |
 | `LOKI_BASE_WAIT` | 60 | Base wait time in seconds |
 | `LOKI_MAX_WAIT` | 3600 | Maximum wait time (1 hour) |
@@ -509,7 +509,7 @@ Loki Mode incorporates research and patterns from leading AI labs and practition
 ### Research Foundation
 
 | Source | Key Contribution |
-|--------|------------------|
+|--------|--|
 | [Anthropic: Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) | Evaluator-optimizer pattern, parallelization |
 | [Anthropic: Constitutional AI](https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback) | Self-critique against principles |
 | [DeepMind: Scalable Oversight via Debate](https://deepmind.google/research/publications/34920/) | Debate-based verification |

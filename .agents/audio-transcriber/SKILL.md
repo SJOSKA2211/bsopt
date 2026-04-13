@@ -39,19 +39,19 @@ Run detection commands to find installed tools:
 # Check for Faster-Whisper (preferred - 4-5x faster)
 if python3 -c "import faster_whisper" 2>/dev/null; then
     TRANSCRIBER="faster-whisper"
-    echo "✅ Faster-Whisper detected (optimized)"
+    echo " Faster-Whisper detected (optimized)"
 # Fallback to original Whisper
 elif python3 -c "import whisper" 2>/dev/null; then
     TRANSCRIBER="whisper"
-    echo "✅ OpenAI Whisper detected"
+    echo " OpenAI Whisper detected"
 else
     TRANSCRIBER="none"
-    echo "⚠️  No transcription tool found"
+    echo "️  No transcription tool found"
 fi
 
 # Check for ffmpeg (audio format conversion)
 if command -v ffmpeg &>/dev/null; then
-    echo "✅ ffmpeg available (format conversion enabled)"
+    echo " ffmpeg available (format conversion enabled)"
 else
     echo "ℹ️  ffmpeg not found (limited format support)"
 fi
@@ -62,9 +62,9 @@ fi
 Offer automatic installation using the provided script:
 
 ```bash
-echo "⚠️  No transcription tool found"
+echo "️  No transcription tool found"
 echo ""
-echo "🔧 Auto-install dependencies? (Recommended)"
+echo " Auto-install dependencies? (Recommended)"
 read -p "Run installation script? [Y/n]: " AUTO_INSTALL
 
 if [[ ! "$AUTO_INSTALL" =~ ^[Nn] ]]; then
@@ -75,9 +75,9 @@ if [[ ! "$AUTO_INSTALL" =~ ^[Nn] ]]; then
     if [[ -f "$SKILL_DIR/scripts/install-requirements.sh" ]]; then
         bash "$SKILL_DIR/scripts/install-requirements.sh"
     else
-        echo "❌ Installation script not found"
+        echo " Installation script not found"
         echo ""
-        echo "📦 Manual installation:"
+        echo " Manual installation:"
         echo "  pip install faster-whisper  # Recommended"
         echo "  pip install openai-whisper  # Alternative"
         echo "  brew install ffmpeg         # Optional (macOS)"
@@ -86,14 +86,14 @@ if [[ ! "$AUTO_INSTALL" =~ ^[Nn] ]]; then
     
     # Verify installation succeeded
     if python3 -c "import faster_whisper" 2>/dev/null || python3 -c "import whisper" 2>/dev/null; then
-        echo "✅ Installation successful! Proceeding with transcription..."
+        echo " Installation successful! Proceeding with transcription..."
     else
-        echo "❌ Installation failed. Please install manually."
+        echo " Installation failed. Please install manually."
         exit 1
     fi
 else
     echo ""
-    echo "📦 Manual installation required:"
+    echo " Manual installation required:"
     echo ""
     echo "Recommended (fastest):"
     echo "  pip install faster-whisper"
@@ -130,7 +130,7 @@ Proceed to Step 0b (CLI Detection).
 
 ```bash
 if [[ ! -f "$AUDIO_FILE" ]]; then
-    echo "❌ File not found: $AUDIO_FILE"
+    echo " File not found: $AUDIO_FILE"
     exit 1
 fi
 ```
@@ -156,7 +156,7 @@ DURATION_HMS=$(date -u -r "$DURATION" +%H:%M:%S 2>/dev/null || echo "Unknown")
 ```bash
 SIZE_MB=$(du -m "$AUDIO_FILE" | cut -f1)
 if [[ $SIZE_MB -gt 25 ]]; then
-    echo "⚠️  Large file ($FILE_SIZE) - processing may take several minutes"
+    echo "️  Large file ($FILE_SIZE) - processing may take several minutes"
 fi
 ```
 
@@ -167,13 +167,13 @@ EXTENSION="${AUDIO_FILE##*.}"
 SUPPORTED_FORMATS=("mp3" "wav" "m4a" "ogg" "flac" "webm" "mp4")
 
 if [[ ! " ${SUPPORTED_FORMATS[@]} " =~ " ${EXTENSION,,} " ]]; then
-    echo "⚠️  Unsupported format: $EXTENSION"
+    echo "️  Unsupported format: $EXTENSION"
     if command -v ffmpeg &>/dev/null; then
-        echo "🔄 Converting to WAV..."
+        echo " Converting to WAV..."
         ffmpeg -i "$AUDIO_FILE" -ar 16000 "${AUDIO_FILE%.*}.wav" -y
         AUDIO_FILE="${AUDIO_FILE%.*}.wav"
     else
-        echo "❌ Install ffmpeg to convert formats: brew install ffmpeg"
+        echo " Install ffmpeg to convert formats: brew install ffmpeg"
         exit 1
     fi
 fi
@@ -189,7 +189,7 @@ fi
 ```markdown
 # Audio Transcription Report
 
-## 📊 Metadata
+##  Metadata
 
 | Field | Value |
 |-------|-------|
@@ -202,7 +202,7 @@ fi
 | **Transcription Engine** | {engine} (model: {model}) |
 
 
-## 📋 Meeting Minutes
+##  Meeting Minutes
 
 ### Participants
 - {speaker_1}
@@ -218,8 +218,8 @@ fi
    - {key_point_1}
 
 ### Decisions Made
-- ✅ {decision_1}
-- ✅ {decision_2}
+-  {decision_1}
+-  {decision_2}
 
 ### Action Items
 - [ ] **{action_1}** - Assigned to: {speaker} - Due: {date_if_mentioned}
@@ -282,11 +282,11 @@ TRANSCRIPT_FILE="transcript-${TIMESTAMP}.md"
 ATA_FILE="ata-${TIMESTAMP}.md"
 
 echo "$TRANSCRIPT_CONTENT" > "$TRANSCRIPT_FILE"
-echo "✅ Transcript salvo: $TRANSCRIPT_FILE"
+echo " Transcript salvo: $TRANSCRIPT_FILE"
 
 if [[ -n "$ATA_CONTENT" ]]; then
     echo "$ATA_CONTENT" > "$ATA_FILE"
-    echo "✅ Ata salva: $ATA_FILE"
+    echo " Ata salva: $ATA_FILE"
 fi
 ```
 
@@ -297,7 +297,7 @@ fi
 
 1. **Display user's prompt:**
    ```
-   📝 Prompt fornecido pelo usuário:
+    Prompt fornecido pelo usuário:
    ┌──────────────────────────────────┐
    │ [User's prompt preview]          │
    └──────────────────────────────────┘
@@ -305,13 +305,13 @@ fi
 
 2. **Automatically improve with prompt-engineer (if available):**
    ```bash
-   🔧 Melhorando prompt com prompt-engineer...
+    Melhorando prompt com prompt-engineer...
    [Invokes: gh copilot -p "melhore este prompt: {user_prompt}"]
    ```
 
 3. **Show both versions:**
    ```
-   ✨ Versão melhorada:
+    Versão melhorada:
    ┌──────────────────────────────────┐
    │ Role: Você é um documentador...  │
    │ Instructions: Transforme...      │
@@ -319,7 +319,7 @@ fi
    │ End Goal: ...                    │
    └──────────────────────────────────┘
 
-   📝 Versão original:
+    Versão original:
    ┌──────────────────────────────────┐
    │ [User's original prompt]         │
    └──────────────────────────────────┘
@@ -327,7 +327,7 @@ fi
 
 4. **Ask which to use:**
    ```bash
-   💡 Usar versão melhorada? [s/n] (default: s):
+    Usar versão melhorada? [s/n] (default: s):
    ```
 
 5. **Process with selected prompt:**
@@ -381,7 +381,7 @@ def process_with_llm(transcript, prompt, cli_tool='claude'):
 ```
 🤖 Processando com claude... ⠋
 [After completion:]
-✅ Ata gerada com sucesso!
+ Ata gerada com sucesso!
 ```
 
 
@@ -389,29 +389,29 @@ def process_with_llm(transcript, prompt, cli_tool='claude'):
 
 **Success (both files):**
 ```bash
-💾 Salvando arquivos...
+ Salvando arquivos...
 
-✅ Arquivos criados:
+ Arquivos criados:
   - transcript-20260203-023045.md  (transcript puro)
   - ata-20260203-023045.md         (processado com LLM)
 
 🧹 Removidos arquivos temporários: metadata.json, transcription.json
 
-✅ Concluído! Tempo total: 3m 45s
+ Concluído! Tempo total: 3m 45s
 ```
 
 **Transcript only (user declined LLM):**
 ```bash
-💾 Salvando arquivos...
+ Salvando arquivos...
 
-✅ Arquivo criado:
+ Arquivo criado:
   - transcript-20260203-023045.md
 
 ℹ️  Ata não gerada (processamento LLM recusado pelo usuário)
 
 🧹 Removidos arquivos temporários: metadata.json, transcription.json
 
-✅ Concluído!
+ Concluído!
 ```
 
 
@@ -423,9 +423,9 @@ def process_with_llm(transcript, prompt, cli_tool='claude'):
 
 ```bash
 echo ""
-echo "✅ Transcription Complete!"
+echo " Transcription Complete!"
 echo ""
-echo "📊 Results:"
+echo " Results:"
 echo "  File: $OUTPUT_FILE"
 echo "  Language: $LANGUAGE"
 echo "  Duration: $DURATION_HMS"
@@ -433,13 +433,13 @@ echo "  Speakers: $NUM_SPEAKERS"
 echo "  Words: $WORD_COUNT"
 echo "  Processing time: ${ELAPSED_TIME}s"
 echo ""
-echo "📝 Generated:"
+echo " Generated:"
 echo "  - $OUTPUT_FILE (Markdown report)"
 [if alternative formats:]
 echo "  - ${OUTPUT_FILE%.*}.srt (Subtitles)"
 echo "  - ${OUTPUT_FILE%.*}.json (Structured data)"
 echo ""
-echo "🎯 Next steps:"
+echo " Next steps:"
 echo "  1. Review meeting minutes and action items"
 echo "  2. Share report with participants"
 echo "  3. Track action items to completion"
@@ -458,23 +458,23 @@ copilot> transcribe audio to markdown: meeting-2026-02-02.mp3
 **Skill Output:**
 
 ```bash
-✅ Faster-Whisper detected (optimized)
-✅ ffmpeg available (format conversion enabled)
+ Faster-Whisper detected (optimized)
+ ffmpeg available (format conversion enabled)
 
-📂 File: meeting-2026-02-02.mp3
-📊 Size: 12.3 MB
+ File: meeting-2026-02-02.mp3
+ Size: 12.3 MB
 ⏱️  Duration: 00:45:32
 
-🎙️  Processing...
+️  Processing...
 [████████████████████] 100%
 
-✅ Language detected: Portuguese (pt-BR)
-👥 Speakers identified: 4
-📝 Generating Markdown output...
+ Language detected: Portuguese (pt-BR)
+ Speakers identified: 4
+ Generating Markdown output...
 
-✅ Transcription Complete!
+ Transcription Complete!
 
-📊 Results:
+ Results:
   File: meeting-2026-02-02.md
   Language: pt-BR
   Duration: 00:45:32
@@ -482,10 +482,10 @@ copilot> transcribe audio to markdown: meeting-2026-02-02.mp3
   Words: 6,842
   Processing time: 127s
 
-📝 Generated:
+ Generated:
   - meeting-2026-02-02.md (Markdown report)
 
-🎯 Next steps:
+ Next steps:
   1. Review meeting minutes and action items
   2. Share report with participants
   3. Track action items to completion
@@ -502,23 +502,23 @@ copilot> transcreva estes áudios: recordings/*.mp3
 **Skill Output:**
 
 ```bash
-📦 Batch mode: 5 files found
+ Batch mode: 5 files found
   1. team-standup.mp3
   2. client-call.mp3
   3. brainstorm-session.mp3
   4. product-demo.mp3
   5. retrospective.mp3
 
-🎙️  Processing batch...
+️  Processing batch...
 
-[1/5] team-standup.mp3 ✅ (2m 34s)
-[2/5] client-call.mp3 ✅ (15m 12s)
-[3/5] brainstorm-session.mp3 ✅ (8m 47s)
-[4/5] product-demo.mp3 ✅ (22m 03s)
-[5/5] retrospective.mp3 ✅ (11m 28s)
+[1/5] team-standup.mp3  (2m 34s)
+[2/5] client-call.mp3  (15m 12s)
+[3/5] brainstorm-session.mp3  (8m 47s)
+[4/5] product-demo.mp3  (22m 03s)
+[5/5] retrospective.mp3  (11m 28s)
 
-✅ Batch Complete!
-📝 Generated 5 Markdown reports
+ Batch Complete!
+ Generated 5 Markdown reports
 ⏱️  Total processing time: 6m 15s
 ```
 
@@ -533,12 +533,12 @@ copilot> transcribe audio to markdown: conference-keynote.mp3
 **Skill Output:**
 
 ```bash
-✅ Faster-Whisper detected (optimized)
+ Faster-Whisper detected (optimized)
 
-📂 File: conference-keynote.mp3
-📊 Size: 87.2 MB
+ File: conference-keynote.mp3
+ Size: 87.2 MB
 ⏱️  Duration: 02:15:47
-⚠️  Large file (87.2 MB) - processing may take several minutes
+️  Large file (87.2 MB) - processing may take several minutes
 
 Continue? [Y/n]:
 ```
@@ -546,7 +546,7 @@ Continue? [Y/n]:
 **User:** `Y`
 
 ```bash
-🎙️  Processing... (this may take 10-15 minutes)
+️  Processing... (this may take 10-15 minutes)
 [████░░░░░░░░░░░░░░░░] 20% - Estimated time remaining: 12m
 ```
 

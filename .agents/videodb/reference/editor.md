@@ -23,7 +23,7 @@ timeline = Timeline(conn)
 Every element on a timeline is an **asset**. VideoDB provides five asset types:
 
 | Asset | Import | Primary Use |
-|-------|--------|-------------|
+|-------|--------|--|
 | `VideoAsset` | `from videodb.asset import VideoAsset` | Video clips (trim, sequencing) |
 | `AudioAsset` | `from videodb.asset import AudioAsset` | Music, SFX, narration |
 | `ImageAsset` | `from videodb.asset import ImageAsset` | Logos, thumbnails, overlays |
@@ -62,7 +62,7 @@ timeline.add_inline(clip)
 ### VideoAsset Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `asset_id` | `str` | required | Video media ID |
 | `start` | `float` | `0` | Trim start (seconds) |
 | `end` | `float\|None` | `None` | Trim end (`None` = full) |
@@ -95,7 +95,7 @@ timeline.add_overlay(0, title)
 ### TextStyle Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `fontsize` | `int` | `24` | Font size in pixels |
 | `fontcolor` | `str` | `"black"` | CSS colour name or hex |
 | `fontcolor_expr` | `str` | `""` | Dynamic font colour expression |
@@ -145,7 +145,7 @@ timeline.add_overlay(0, audio_layer)
 ### AudioAsset Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `asset_id` | `str` | required | Audio media ID |
 | `start` | `float` | `0` | Trim start (seconds) |
 | `end` | `float\|None` | `None` | Trim end (`None` = full) |
@@ -177,7 +177,7 @@ timeline.add_overlay(0, logo_overlay)
 ### ImageAsset Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `asset_id` | `str` | required | Image media ID |
 | `width` | `int\|str` | `100` | Display width |
 | `height` | `int\|str` | `100` | Display height |
@@ -252,7 +252,7 @@ stream_url = editor_tl.generate_stream()
 ### CaptionAsset Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|--|------|---------|--|
 | `src` | `str` | `"auto"` | Caption source (`"auto"` or base64 ASS string) |
 | `font` | `FontStyling\|None` | `FontStyling()` | Font styling (name, size, bold, italic, etc.) |
 | `primary_color` | `str` | `"&H00FFFFFF"` | Primary text colour (ASS format) |

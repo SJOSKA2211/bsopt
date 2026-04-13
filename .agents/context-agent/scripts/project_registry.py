@@ -126,7 +126,7 @@ def save_registry(projects: list[ProjectInfo]):
         f"# Registro de Projetos — Atualizado em {now}",
         "",
         "| Projeto | Status | Última Interação | Próximas Ações |",
-        "|---------|--------|------------------|----------------|",
+        "|---------|--------|--|--|",
     ]
     for p in projects:
         actions = "; ".join(p.next_actions) if p.next_actions else "—"

@@ -22,9 +22,9 @@ def escape(text: str) -> str:
     return html_module.escape(str(text))
 
 
-# ---------------------------------------------------------------------------
+# --
 # Tailwind style mappings for TSX output
-# ---------------------------------------------------------------------------
+# --
 
 DESIGN_STYLES = {
     "dark-saas": {
@@ -74,9 +74,9 @@ DESIGN_STYLES = {
 }
 
 
-# ---------------------------------------------------------------------------
+# --
 # TSX generators
-# ---------------------------------------------------------------------------
+# --
 
 
 def tsx_nav(config: dict[str, Any], style: dict[str, str]) -> str:
@@ -339,9 +339,9 @@ export default function LandingPage() {{
 '''
 
 
-# ---------------------------------------------------------------------------
+# --
 # HTML generators (existing)
-# ---------------------------------------------------------------------------
+# --
 
 
 def generate_css(config: dict[str, Any]) -> str:

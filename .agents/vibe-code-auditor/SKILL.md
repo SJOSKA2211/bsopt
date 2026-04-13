@@ -56,7 +56,7 @@ Evaluate the code across all seven dimensions below. For each finding, record: t
 Use these heuristics to accelerate detection:
 
 | Pattern | Likely Issue | Quick Check |
-|---------|-------------|-------------|
+|---------|--|--|
 | `eval()`, `exec()`, `os.system()` | Security critical | Search for these strings |
 | `except:` or `except Exception:` | Silent failures | Grep for bare excepts |
 | `password`, `secret`, `key`, `token` in code | Hardcoded credentials | Search + check if literal string |
@@ -244,7 +244,7 @@ Score: XX / 100
 Provide a score using the rubric below, then write 2-3 sentences justifying it with specific reference to the most impactful findings.
 
 | Range  | Meaning                                                                |
-| ------ | ---------------------------------------------------------------------- |
+| ------ | -- |
 | 0-30   | Not deployable. Critical failures are likely under normal use.         |
 | 31-50  | High risk. Significant rework required before any production exposure. |
 | 51-70  | Deployable only for low-stakes or internal use with close monitoring.  |

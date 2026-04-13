@@ -36,7 +36,7 @@ Comprehensive guide to writing effective, blameless postmortems that drive organ
 ### 1. Blameless Culture
 
 | Blame-Focused | Blameless |
-|---------------|-----------|
+|--|--|
 | "Who caused this?" | "What conditions allowed this?" |
 | "Someone made a mistake" | "The system allowed this mistake" |
 | Punish individuals | Improve systems |
@@ -202,7 +202,7 @@ The deployment completed at 14:23, but the first alert didn't fire until 14:31 (
 ## Action Items
 
 | Priority | Action | Owner | Due Date | Ticket |
-|----------|--------|-------|----------|--------|
+|--|--------|-------|--|--------|
 | P0 | Add integration test for connection pool behavior | @alice | 2024-01-22 | ENG-1234 |
 | P0 | Lower database connection alert threshold to 70% | @bob | 2024-01-17 | OPS-567 |
 | P1 | Document connection management patterns | @alice | 2024-01-29 | DOC-89 |
@@ -280,7 +280,7 @@ Payment service experienced 47-minute outage due to database connection exhausti
 ## Systemic Improvements
 
 | Root Cause | Improvement | Type |
-|------------|-------------|------|
+|--|--|------|
 | Missing tests | Add infrastructure behavior tests | Prevention |
 | Missing docs | Document connection patterns | Prevention |
 | Review gaps | Update review checklist | Detection |
@@ -359,7 +359,7 @@ Don't full-flush cache in production; use targeted invalidation.
 ## Anti-Patterns to Avoid
 
 | Anti-Pattern | Problem | Better Approach |
-|--------------|---------|-----------------|
+|--|---------|--|
 | **Blame game** | Shuts down learning | Focus on systems |
 | **Shallow analysis** | Doesn't prevent recurrence | Ask "why" 5 times |
 | **No action items** | Waste of time | Always have concrete next steps |

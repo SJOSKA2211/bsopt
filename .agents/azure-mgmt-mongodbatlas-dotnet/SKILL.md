@@ -13,7 +13,7 @@ Manage MongoDB Atlas Organizations as Azure ARM resources with unified billing t
 ## Package Information
 
 | Property | Value |
-|----------|-------|
+|--|-------|
 | Package | `Azure.ResourceManager.MongoDBAtlas` |
 | Version | 1.0.0 (GA) |
 | API Version | 2025-06-01 |
@@ -215,7 +215,7 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ### MongoDBAtlasOrganizationProperties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `Marketplace` | `MongoDBAtlasMarketplaceDetails` | Required. Marketplace subscription details |
 | `User` | `MongoDBAtlasUserDetails` | Required. Organization admin user |
 | `PartnerProperties` | `MongoDBAtlasPartnerProperties` | MongoDB-specific properties |
@@ -224,7 +224,7 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ### MongoDBAtlasMarketplaceDetails
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `SubscriptionId` | `string` | Required. Azure subscription ID for billing |
 | `OfferDetails` | `MongoDBAtlasOfferDetails` | Required. Marketplace offer configuration |
 | `SubscriptionStatus` | `MarketplaceSubscriptionStatus` | Read-only. Subscription status |
@@ -232,7 +232,7 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ### MongoDBAtlasOfferDetails
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `PublisherId` | `string` | Required. Publisher ID (typically "mongodb") |
 | `OfferId` | `string` | Required. Offer ID |
 | `PlanId` | `string` | Required. Plan ID |
@@ -243,7 +243,7 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ### MongoDBAtlasUserDetails
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `EmailAddress` | `string` | Required. User email address |
 | `Upn` | `string` | Required. User principal name |
 | `FirstName` | `string` | Optional. User first name |
@@ -252,14 +252,14 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ### MongoDBAtlasPartnerProperties
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `OrganizationName` | `string` | Name of the MongoDB Atlas organization |
 | `OrganizationId` | `string` | Read-only. MongoDB Atlas organization ID |
 
 ## Provisioning States
 
 | State | Description |
-|-------|-------------|
+|-------|--|
 | `Succeeded` | Resource provisioned successfully |
 | `Failed` | Provisioning failed |
 | `Canceled` | Provisioning was canceled |
@@ -271,7 +271,7 @@ await organization.DeleteAsync(WaitUntil.Completed);
 ## Marketplace Subscription Status
 
 | Status | Description |
-|--------|-------------|
+|--------|--|
 | `PendingFulfillmentStart` | Subscription pending activation |
 | `Subscribed` | Active subscription |
 | `Suspended` | Subscription suspended |
@@ -343,7 +343,7 @@ var response = await orgResource.GetAsync();
 ## Common Errors
 
 | Error | Cause | Solution |
-|-------|-------|----------|
+|-------|-------|--|
 | `ResourceNotFound` | Organization doesn't exist | Verify name and resource group |
 | `AuthorizationFailed` | Insufficient permissions | Check RBAC roles on resource group |
 | `InvalidParameter` | Missing required properties | Ensure all required fields are set |

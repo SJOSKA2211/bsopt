@@ -13,7 +13,7 @@ import json
 
 from core import DATA_DIR, search
 
-# ============ CONFIGURATION ============
+# == CONFIGURATION ==
 REASONING_FILE = "ui-reasoning.csv"
 
 SEARCH_CONFIG = {
@@ -25,7 +25,7 @@ SEARCH_CONFIG = {
 }
 
 
-# ============ DESIGN SYSTEM GENERATOR ============
+# == DESIGN SYSTEM GENERATOR ==
 class DesignSystemGenerator:
     """Generates design system recommendations from aggregated searches."""
 
@@ -232,7 +232,7 @@ class DesignSystemGenerator:
         }
 
 
-# ============ OUTPUT FORMATTERS ============
+# == OUTPUT FORMATTERS ==
 BOX_WIDTH = 90  # Wider box for more content
 
 
@@ -465,7 +465,7 @@ def format_markdown(design_system: dict) -> str:
     return "\n".join(lines)
 
 
-# ============ MAIN ENTRY POINT ============
+# == MAIN ENTRY POINT ==
 def generate_design_system(
     query: str, project_name: str = None, output_format: str = "ascii"
 ) -> str:
@@ -488,7 +488,7 @@ def generate_design_system(
     return format_ascii_box(design_system)
 
 
-# ============ CLI SUPPORT ============
+# == CLI SUPPORT ==
 if __name__ == "__main__":
     import argparse
 

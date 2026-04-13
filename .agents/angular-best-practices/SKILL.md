@@ -25,7 +25,7 @@ Reference these guidelines when:
 ## Rule Categories by Priority
 
 | Priority | Category              | Impact     | Focus                           |
-| -------- | --------------------- | ---------- | ------------------------------- |
+| -------- | -- | -- | -- |
 | 1        | Change Detection      | CRITICAL   | Signals, OnPush, Zoneless       |
 | 2        | Async Waterfalls      | CRITICAL   | RxJS patterns, SSR preloading   |
 | 3        | Bundle Optimization   | CRITICAL   | Lazy loading, tree shaking      |

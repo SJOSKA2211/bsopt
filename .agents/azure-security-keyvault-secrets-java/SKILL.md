@@ -292,7 +292,7 @@ try {
 ## Secret Properties
 
 | Property | Description |
-|----------|-------------|
+|--|--|
 | `name` | Secret name |
 | `value` | Secret value (string) |
 | `id` | Full identifier URL |

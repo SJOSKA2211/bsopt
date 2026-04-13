@@ -39,7 +39,7 @@ def check_heartbeat(path, timeout=300, interval=10, exit_early_if_healthy=False)
                     if processed > 0:
                         console.print(
                             Panel(
-                                f"[bold green]✅ SCRAPER IS HEALTHY & PRODUCING DATA[/bold green]\n"
+                                f"[bold green] SCRAPER IS HEALTHY & PRODUCING DATA[/bold green]\n"
                                 f"Metrics: {processed} ticks ingested"
                             )
                         )
@@ -61,7 +61,7 @@ def check_heartbeat(path, timeout=300, interval=10, exit_early_if_healthy=False)
                     if time.time() - ts < 60:
                         console.print(
                             Panel(
-                                "[bold yellow]⚠️ Legacy Heartbeat Detected - Scraper is LIVE but metrics missing[/bold yellow]"
+                                "[bold yellow]️ Legacy Heartbeat Detected - Scraper is LIVE but metrics missing[/bold yellow]"
                             )
                         )
                         return True
@@ -128,20 +128,20 @@ if __name__ == "__main__":
     )
 
     # CHECK FIRST
-    console.print("🔍 Checking if scraper is already healthy...")
+    console.print(" Checking if scraper is already healthy...")
     if check_heartbeat(heartbeat_path, exit_early_if_healthy=True):
-        console.print(Panel(f"🚀 [bold green]{service_name.upper()} IS ALREADY ONLINE[/bold green]"))
+        console.print(Panel(f" [bold green]{service_name.upper()} IS ALREADY ONLINE[/bold green]"))
         sys.exit(0)
 
     if start_scraper(compose, service_name):
         if check_heartbeat(heartbeat_path):
             console.print(
                 Panel(
-                    f"🚀 [bold green]{service_name.upper()} DATA FLOW IS ONLINE[/bold green]",
+                    f" [bold green]{service_name.upper()} DATA FLOW IS ONLINE[/bold green]",
                     title="Success",
                 )
             )
             sys.exit(0)
 
-    console.print(Panel(f"❌ FAILED to reach healthy state for {service_name}"))
+    console.print(Panel(f" FAILED to reach healthy state for {service_name}"))
     sys.exit(1)

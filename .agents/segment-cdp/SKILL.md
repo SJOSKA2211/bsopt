@@ -29,16 +29,16 @@ Connect to Protocols for enforcement.
 
 ## Anti-Patterns
 
-### ❌ Dynamic Event Names
+###  Dynamic Event Names
 
-### ❌ Tracking Properties as Events
+###  Tracking Properties as Events
 
-### ❌ Missing Identify Before Track
+###  Missing Identify Before Track
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | medium | See docs |
 | Issue | high | See docs |
 | Issue | medium | See docs |

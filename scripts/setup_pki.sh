@@ -8,11 +8,11 @@ KEY_DIR="${PROJECT_ROOT}/.pki"
 mkdir -p "$KEY_DIR"
 mkdir -p "$KEY_DIR/vault"
 
-echo "🔐 Initializing Production Security Layer in $KEY_DIR..."
+echo " Initializing Production Security Layer in $KEY_DIR..."
 
 # 1. Generate Root CA (RSA 4096)
 if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
-    echo "📜 Generating Root CA (RSA 4096)..."
+    echo " Generating Root CA (RSA 4096)..."
     openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096
     openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
         -out "${KEY_DIR}/root_ca.crt" \
@@ -22,14 +22,14 @@ fi
 
 # 2. Generate Asymmetric JWT Key Pairs (ECC P-256 for performance/security balance)
 if [[ ! -f "${KEY_DIR}/jwt_es256.key" ]]; then
-    echo "🔑 Generating ES256 JWT Key Pair (ECC P-256)..."
+    echo " Generating ES256 JWT Key Pair (ECC P-256)..."
     openssl ecparam -name prime256v1 -genkey -noout -out "${KEY_DIR}/jwt_es256.key"
     openssl ec -in "${KEY_DIR}/jwt_es256.key" -pubout -out "${KEY_DIR}/jwt_es256.pub"
     chmod 600 "${KEY_DIR}/jwt_es256.key"
 fi
 
 if [[ ! -f "${KEY_DIR}/jwt_rs256.key" ]]; then
-    echo "🔑 Generating RS256 JWT Key Pair (RSA 4096)..."
+    echo " Generating RS256 JWT Key Pair (RSA 4096)..."
     openssl genrsa -out "${KEY_DIR}/jwt_rs256.key" 4096
     openssl rsa -in "${KEY_DIR}/jwt_rs256.key" -pubout -out "${KEY_DIR}/jwt_rs256.pub"
     chmod 600 "${KEY_DIR}/jwt_rs256.key"
@@ -37,14 +37,14 @@ fi
 
 # 3. Generate Vault RSA 4096 Key Pair for persistence encryption
 if [[ ! -f "${KEY_DIR}/vault.key" ]]; then
-    echo "🔑 Generating Vault RSA 4096 Key Pair..."
+    echo " Generating Vault RSA 4096 Key Pair..."
     openssl genrsa -out "${KEY_DIR}/vault.key" 4096
     openssl rsa -in "${KEY_DIR}/vault.key" -pubout -out "${KEY_DIR}/vault.pub"
     chmod 600 "${KEY_DIR}/vault.key"
 fi
 
 if [[ ! -f "${KEY_DIR}/argon2_salt.secret" ]]; then
-    echo "🔑 Generating Argon2 Salt..."
+    echo " Generating Argon2 Salt..."
     openssl rand -hex 16 > "${KEY_DIR}/argon2_salt.secret"
     chmod 600 "${KEY_DIR}/argon2_salt.secret"
 fi
@@ -58,7 +58,7 @@ issue_cert() {
         return
     fi
 
-    echo "📜 Issuing $type certificate for $service_name..."
+    echo " Issuing $type certificate for $service_name..."
     openssl genrsa -out "${KEY_DIR}/${service_name}.key" 2048
     openssl req -new -key "${KEY_DIR}/${service_name}.key" \
         -out "${KEY_DIR}/${service_name}.csr" \
@@ -86,4 +86,4 @@ for service in "${CLIENT_SERVICES[@]}"; do
     issue_cert "$service" "client"
 done
 
-echo "✅ Production Security Layer Finalized in $KEY_DIR"
+echo " Production Security Layer Finalized in $KEY_DIR"

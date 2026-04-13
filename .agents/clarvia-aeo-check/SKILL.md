@@ -113,11 +113,11 @@ Add to your CI pipeline using the GitHub Action:
 
 ## Best Practices
 
-- ✅ Score tools before adding them to long-running agent workflows
-- ✅ Use Clarvia's leaderboard to discover alternatives you haven't considered
-- ✅ Re-check scores periodically — tools improve over time
-- ❌ Don't skip scoring for "well-known" tools — even popular tools can score poorly
-- ❌ Don't use tools scoring below 50 in production agent pipelines without understanding the limitations
+-  Score tools before adding them to long-running agent workflows
+-  Use Clarvia's leaderboard to discover alternatives you haven't considered
+-  Re-check scores periodically — tools improve over time
+-  Don't skip scoring for "well-known" tools — even popular tools can score poorly
+-  Don't use tools scoring below 50 in production agent pipelines without understanding the limitations
 
 ## Common Pitfalls
 

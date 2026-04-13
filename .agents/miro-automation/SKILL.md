@@ -193,7 +193,7 @@ Automate Miro whiteboard operations through Composio's Miro toolkit via Rube MCP
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List boards | MIRO_GET_BOARDS2 | query, sort, limit, offset |
 | Get board details | MIRO_GET_BOARD | board_id |
 | Create board | MIRO_CREATE_BOARD | name, description |

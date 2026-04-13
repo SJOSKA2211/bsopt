@@ -172,7 +172,7 @@ Hooks executam comandos automaticamente em eventos do Claude Code.
 ## Tipos De Hooks Disponiveis
 
 | Hook | Quando Dispara |
-|------|----------------|
+|------|--|
 | PreToolUse | Antes de qualquer ferramenta ser usada |
 | PostToolUse | Apos qualquer ferramenta ser usada |
 | Notification | Ao receber notificacao do sistema |
@@ -268,7 +268,7 @@ claude mcp remove nome          # remover um MCP
 ## Mcps Mais Uteis
 
 | MCP | Funcao Principal |
-|-----|------------------|
+|-----|--|
 | filesystem | Acesso expandido a arquivos alem do projeto |
 | github | PRs, issues, commits, reviews via Claude |
 | postgres / sqlite | Consultas SQL diretas sem sair do Claude |
@@ -424,7 +424,7 @@ claude -p "leia memory/MEMORY.md e me da um briefing completo do estado atual"
 ## Tabela De Problemas Comuns
 
 | Problema | Causa Provavel | Solucao |
-|----------|----------------|----------|
+|--|--|--|
 | API key not found | ANTHROPIC_API_KEY nao configurada | export ANTHROPIC_API_KEY=sk-ant-... |
 | Timeout em tarefas longas | max-turns insuficiente | Adicionar --max-turns 100 |
 | Context window cheio | Muitos arquivos no contexto | Usar sub-agentes com contexto focado |

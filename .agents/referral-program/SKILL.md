@@ -146,7 +146,7 @@ When are customers most likely to refer?
 ### Incentive Types
 
 | Type | Pros | Cons | Best For |
-|------|------|------|----------|
+|------|------|------|--|
 | Cash/credit | Universally valued | Feels transactional | Marketplaces, fintech |
 | Product credit | Drives usage | Only valuable if they'll use it | SaaS, subscriptions |
 | Free months | Clear value | May attract freebie-seekers | Subscription products |
@@ -246,7 +246,7 @@ Max Referral Reward = (Customer LTV × Gross Margin) - Target CAC
 How long after click does affiliate get credit?
 
 | Duration | Use Case |
-|----------|----------|
+|--|--|
 | 24 hours | High-volume, low-consideration purchases |
 | 7-14 days | Standard e-commerce |
 | 30 days | Standard SaaS/B2B |
@@ -390,7 +390,7 @@ Program costs = Rewards paid + Tool costs + Management time
 ### Common Problems & Fixes
 
 | Problem | Likely Cause | Fix |
-|---------|--------------|-----|
+|---------|--|-----|
 | Low awareness | Program not visible | Add prominent in-app prompts |
 | Low share rate | Too much friction | Simplify to one click |
 | Low conversion | Weak landing page | Optimize referred user experience |

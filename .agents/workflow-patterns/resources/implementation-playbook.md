@@ -247,7 +247,7 @@ Update plan.md checkpoints table:
 ## Checkpoints
 
 | Phase   | Checkpoint SHA | Date       | Status   |
-| ------- | -------------- | ---------- | -------- |
+| ------- | -- | -- | -------- |
 | Phase 1 | def5678        | 2025-01-15 | verified |
 | Phase 2 |                |            | pending  |
 ```

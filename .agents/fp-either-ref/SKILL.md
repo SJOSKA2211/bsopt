@@ -66,7 +66,7 @@ const parseJson = (s: string) => E.tryCatch(
 ## vs try/catch
 
 ```typescript
-// ❌ try/catch - errors not in types
+//  try/catch - errors not in types
 try {
   const data = JSON.parse(input)
   process(data)
@@ -74,7 +74,7 @@ try {
   handleError(e)
 }
 
-// ✅ Either - errors explicit in types
+//  Either - errors explicit in types
 pipe(
   E.tryCatch(() => JSON.parse(input), String),
   E.map(process),

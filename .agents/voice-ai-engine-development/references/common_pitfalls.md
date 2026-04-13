@@ -23,7 +23,7 @@ Sending text to the synthesizer in small chunks (sentence-by-sentence or word-by
 ### Solution
 Buffer the entire LLM response before sending it to the synthesizer:
 
-**❌ Bad: Yields sentence-by-sentence**
+** Bad: Yields sentence-by-sentence**
 ```python
 async def generate_response(self, prompt):
     async for sentence in llm_stream:
@@ -31,7 +31,7 @@ async def generate_response(self, prompt):
         yield GeneratedResponse(message=BaseMessage(text=sentence))
 ```
 
-**✅ Good: Buffer entire response**
+** Good: Buffer entire response**
 ```python
 async def generate_response(self, prompt):
     # Buffer the entire response
@@ -131,14 +131,14 @@ All audio chunks are sent to the client immediately, buffering the entire messag
 ### Solution
 Rate-limit audio chunks to match real-time playback:
 
-**❌ Bad: Send all chunks immediately**
+** Bad: Send all chunks immediately**
 ```python
 async for chunk in synthesis_result.chunk_generator:
     # Sends all chunks as fast as possible
     output_device.consume_nonblocking(chunk)
 ```
 
-**✅ Good: Rate-limit chunks**
+** Good: Rate-limit chunks**
 ```python
 async for chunk in synthesis_result.chunk_generator:
     # Check for interrupt
@@ -198,7 +198,7 @@ WebSocket connections, API streams, or async tasks are not properly closed when 
 ### Solution
 Always use context managers and cleanup:
 
-**❌ Bad: No cleanup**
+** Bad: No cleanup**
 ```python
 async def handle_conversation(websocket):
     conversation = create_conversation()
@@ -209,7 +209,7 @@ async def handle_conversation(websocket):
     # No cleanup! Resources leak
 ```
 
-**✅ Good: Proper cleanup**
+** Good: Proper cleanup**
 ```python
 async def handle_conversation(websocket):
     conversation = None
@@ -372,31 +372,31 @@ Long delays between user speech and bot response.
 
 **1. Not using streaming**
 ```python
-# ❌ Bad: Wait for entire response
+#  Bad: Wait for entire response
 response = await llm.complete(prompt)
 
-# ✅ Good: Stream response
+#  Good: Stream response
 async for chunk in llm.complete(prompt, stream=True):
     yield chunk
 ```
 
 **2. Sequential processing**
 ```python
-# ❌ Bad: Sequential
+#  Bad: Sequential
 transcription = await transcriber.transcribe(audio)
 response = await agent.generate(transcription)
 audio = await synthesizer.synthesize(response)
 
-# ✅ Good: Concurrent with queues
+#  Good: Concurrent with queues
 # All workers run simultaneously
 ```
 
 **3. Large chunk sizes**
 ```python
-# ❌ Bad: Large chunks (high latency)
+#  Bad: Large chunks (high latency)
 chunk_size = 8192  # 0.25 seconds
 
-# ✅ Good: Small chunks (low latency)
+#  Good: Small chunks (low latency)
 chunk_size = 1024  # 0.032 seconds
 ```
 
@@ -417,14 +417,14 @@ Poor audio quality, distortion, or artifacts.
 
 **1. Wrong audio format**
 ```python
-# ✅ Use LINEAR16 PCM at 16kHz
+#  Use LINEAR16 PCM at 16kHz
 audio_encoding = AudioEncoding.LINEAR16
 sample_rate = 16000
 ```
 
 **2. Incorrect format conversion**
 ```python
-# ✅ Proper MP3 to PCM conversion
+#  Proper MP3 to PCM conversion
 from pydub import AudioSegment
 import io
 
@@ -438,7 +438,7 @@ def mp3_to_pcm(mp3_bytes):
 
 **3. Buffer underruns**
 ```python
-# ✅ Ensure consistent chunk timing
+#  Ensure consistent chunk timing
 await asyncio.sleep(max(seconds_per_chunk - processing_time, 0))
 ```
 
@@ -447,7 +447,7 @@ await asyncio.sleep(max(seconds_per_chunk - processing_time, 0))
 ## Summary
 
 | Problem | Root Cause | Solution |
-|---------|-----------|----------|
+|---------|--|--|
 | Audio jumping | Multiple TTS calls | Buffer entire response |
 | Echo/feedback | Transcriber active during bot speech | Mute transcriber |
 | Interrupts not working | All chunks sent immediately | Rate-limit chunks |

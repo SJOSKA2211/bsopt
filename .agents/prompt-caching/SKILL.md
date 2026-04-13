@@ -44,16 +44,16 @@ Pre-cache documents in prompt instead of RAG retrieval
 
 ## Anti-Patterns
 
-### ❌ Caching with High Temperature
+###  Caching with High Temperature
 
-### ❌ No Cache Invalidation
+###  No Cache Invalidation
 
-### ❌ Caching Everything
+###  Caching Everything
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Cache miss causes latency spike with additional overhead | high | // Optimize for cache misses, not just hits |
 | Cached responses become incorrect over time | high | // Implement proper cache invalidation |
 | Prompt caching doesn't work due to prefix changes | medium | // Structure prompts for optimal caching |

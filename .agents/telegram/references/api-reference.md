@@ -31,7 +31,7 @@ Formas de enviar parametros:
 ## Metodos de Envio
 
 | Metodo | Descricao | Parametros obrigatorios |
-|--------|-----------|------------------------|
+|--------|--|--|
 | `sendMessage` | Texto | `chat_id`, `text` |
 | `sendPhoto` | Foto | `chat_id`, `photo` |
 | `sendVideo` | Video | `chat_id`, `video` |
@@ -53,7 +53,7 @@ Formas de enviar parametros:
 ### Parametros comuns a todos os metodos de envio
 
 | Parametro | Tipo | Descricao |
-|-----------|------|-----------|
+|--|------|--|
 | `chat_id` | Integer/String | ID do chat ou @username |
 | `message_thread_id` | Integer | ID do topic (em forums) |
 | `parse_mode` | String | `HTML`, `MarkdownV2`, `Markdown` |
@@ -72,7 +72,7 @@ Formas de enviar parametros:
 ## Metodos de Edicao
 
 | Metodo | Descricao |
-|--------|-----------|
+|--------|--|
 | `editMessageText` | Editar texto |
 | `editMessageCaption` | Editar legenda |
 | `editMessageMedia` | Editar midia |
@@ -89,7 +89,7 @@ Formas de enviar parametros:
 ## Metodos de Chat
 
 | Metodo | Descricao |
-|--------|-----------|
+|--------|--|
 | `getChat` | Info completa do chat |
 | `getChatMemberCount` | Qtd de membros |
 | `getChatAdministrators` | Lista admins |
@@ -113,7 +113,7 @@ Formas de enviar parametros:
 ## Metodos de Membro
 
 | Metodo | Descricao |
-|--------|-----------|
+|--------|--|
 | `getChatMember` | Info de membro |
 | `banChatMember` | Banir |
 | `unbanChatMember` | Desbanir |
@@ -128,7 +128,7 @@ Formas de enviar parametros:
 ## Updates e Webhooks
 
 | Metodo | Descricao |
-|--------|-----------|
+|--------|--|
 | `getUpdates` | Long polling |
 | `setWebhook` | Registrar webhook |
 | `deleteWebhook` | Remover webhook |
@@ -143,7 +143,7 @@ Formas de enviar parametros:
 ## Bot Config
 
 | Metodo | Descricao |
-|--------|-----------|
+|--------|--|
 | `getMe` | Info do bot |
 | `setMyCommands` | Definir comandos |
 | `getMyCommands` | Listar comandos |
@@ -256,7 +256,7 @@ python code
 ## Codigos de Erro
 
 | Codigo | Descricao | Acao |
-|--------|-----------|------|
+|--------|--|------|
 | 400 | Bad Request - parametros invalidos | Verificar parametros |
 | 401 | Unauthorized - token invalido | Verificar token |
 | 403 | Forbidden - bot bloqueado | Usuario bloqueou o bot |

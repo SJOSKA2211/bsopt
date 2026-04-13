@@ -26,7 +26,7 @@ async def check_network():
             
         print(f" [Nginx: {nginx_status} | Envoy: {envoy_status}]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 
 
 async def check_database():
@@ -36,7 +36,7 @@ async def check_database():
         try:
             from src.database import db_manager
         except ImportError as e:
-            print(f"❌ [MISSING DEPENDENCY: {e}]")
+            print(f" [MISSING DEPENDENCY: {e}]")
             return
 
         db_manager.initialize()
@@ -63,9 +63,9 @@ async def check_database():
                     stats = conn.execute(text("SELECT * FROM db_engine_health")).mappings().first()
                     print(f"   Size: {stats['total_size']} | Cache Hit: {float(stats['cache_hit_ratio'])*100:.2f}%")
                 else:
-                    print("⚠️ [ALIVE | REVAMP DIAGNOSTICS MISSING]")
+                    print("️ [ALIVE | REVAMP DIAGNOSTICS MISSING]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 
 
 async def check_pgbouncer():
@@ -94,11 +94,11 @@ async def check_pgbouncer():
                     total_waiting += pool[3]
                 
                 if total_waiting > 0:
-                    print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
+                    print(f"️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
                 else:
                     print(f" [HEALTHY: {total_active} active connections] [HEALTHY]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 
 
 async def check_redis():
@@ -108,7 +108,7 @@ async def check_redis():
         try:
             import redis.asyncio as aioredis
         except ImportError:
-            print(" ❌ [FAILED: redis-py not installed]")
+            print("  [FAILED: redis-py not installed]")
             return
             
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6380/0")
@@ -120,9 +120,9 @@ async def check_redis():
         if val == "pong":
             print(f" [ALIVE | RTT: {latency:.1f}ms]")
         else:
-            print("⚠️ [UNEXPECTED RESPONSE]")
+            print("️ [UNEXPECTED RESPONSE]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 
 
 async def check_shm():
@@ -155,9 +155,9 @@ async def check_shm():
         if not missing:
             print(f" [PRESSURIZED | Usage: {pressure:.1f}%]")
         else:
-            print(f"⚠️ [MISSING/CORRUPT: {', '.join(missing)}]")
+            print(f"️ [MISSING/CORRUPT: {', '.join(missing)}]")
     except Exception as e:
-        print(f"❌ [ERROR: {e}]")
+        print(f" [ERROR: {e}]")
 
 
 async def main():

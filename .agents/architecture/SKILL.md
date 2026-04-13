@@ -10,12 +10,12 @@ date_added: "2026-02-27"
 
 > "Requirements drive architecture. Trade-offs inform decisions. ADRs capture rationale."
 
-## 🎯 Selective Reading Rule
+##  Selective Reading Rule
 
 **Read ONLY files relevant to the request!** Check the content map, find what you need.
 
 | File | Description | When to Read |
-|------|-------------|--------------|
+|------|--|--|
 | `context-discovery.md` | Questions to ask, project classification | Starting architecture design |
 | `trade-off-analysis.md` | ADR templates, trade-off framework | Documenting decisions |
 | `pattern-selection.md` | Decision trees, anti-patterns | Choosing patterns |
@@ -24,7 +24,7 @@ date_added: "2026-02-27"
 
 ---
 
-## 🔗 Related Skills
+##  Related Skills
 
 | Skill | Use For |
 |-------|---------|

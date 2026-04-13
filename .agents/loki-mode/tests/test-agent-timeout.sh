@@ -28,9 +28,9 @@ trap cleanup EXIT
 
 cd "$TEST_DIR"
 
-echo "========================================"
+echo "=="
 echo "Loki Mode Timeout & Stuck Process Tests"
-echo "========================================"
+echo "=="
 echo ""
 
 # macOS-compatible timeout function
@@ -332,9 +332,9 @@ else
 fi
 
 echo ""
-echo "========================================"
+echo "=="
 echo "Test Summary"
-echo "========================================"
+echo "=="
 echo -e "${GREEN}Passed: $PASSED${NC}"
 echo -e "${RED}Failed: $FAILED${NC}"
 echo ""

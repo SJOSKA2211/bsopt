@@ -409,7 +409,7 @@ IotHubDeviceCreatedEventData deviceCreated;
 ## Event Schemas Comparison
 
 | Feature | EventGridEvent | CloudEvent |
-|---------|----------------|------------|
+|---------|--|--|
 | Standard | Azure-specific | CNCF standard |
 | Required fields | subject, eventType, dataVersion, data | source, type |
 | Extensibility | Limited | Extension attributes |
@@ -481,7 +481,7 @@ catch (RequestFailedException)
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.Messaging.EventGrid |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.messaging.eventgrid |
 | Quickstart | https://learn.microsoft.com/azure/event-grid/custom-event-quickstart |

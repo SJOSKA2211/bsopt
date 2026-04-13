@@ -17,7 +17,7 @@ date_added: "2026-02-27"
 ### Category Definitions
 
 | Category | Behavior | Examples |
-|----------|----------|----------|
+|--|--|--|
 | **Music** | Looping, crossfade, ducking | BGM, combat music |
 | **SFX** | One-shot, 3D positioned | Footsteps, impacts |
 | **Ambient** | Looping, background layer | Wind, crowd, forest |
@@ -43,7 +43,7 @@ When sounds compete for channels:
 ### SFX Creation Approach
 
 | Approach | When to Use | Trade-offs |
-|----------|-------------|------------|
+|--|--|--|
 | **Recording** | Realistic needs | High quality, time intensive |
 | **Synthesis** | Sci-fi, retro, UI | Unique, requires skill |
 | **Library samples** | Fast production | Common sounds, licensing |
@@ -52,7 +52,7 @@ When sounds compete for channels:
 ### Layering Structure
 
 | Layer | Purpose | Example: Gunshot |
-|-------|---------|------------------|
+|-------|---------|--|
 | **Attack** | Initial transient | Click, snap |
 | **Body** | Main character | Boom, blast |
 | **Tail** | Decay, room | Reverb, echo |
@@ -79,7 +79,7 @@ Game State → Music Response
 ### Transition Techniques
 
 | Technique | Use When | Feel |
-|-----------|----------|------|
+|--|--|------|
 | **Crossfade** | Smooth mood shift | Gradual |
 | **Stinger** | Immediate event | Dramatic |
 | **Stem mixing** | Dynamic intensity | Seamless |
@@ -93,7 +93,7 @@ Game State → Music Response
 ### Intensity Parameters
 
 | Parameter | Affects | Example |
-|-----------|---------|---------|
+|--|---------|---------|
 | **Threat level** | Music intensity | Enemy count |
 | **Health** | Filter, reverb | Low health = muffled |
 | **Speed** | Tempo, energy | Racing speed |
@@ -103,7 +103,7 @@ Game State → Music Response
 ### Vertical vs Horizontal
 
 | System | What Changes | Best For |
-|--------|--------------|----------|
+|--------|--|--|
 | **Vertical (layers)** | Add/remove instrument layers | Intensity scaling |
 | **Horizontal (segments)** | Different music sections | State changes |
 | **Combined** | Both | AAA adaptive scores |
@@ -115,7 +115,7 @@ Game State → Music Response
 ### Spatialization
 
 | Element | 3D Positioned? | Reason |
-|---------|----------------|--------|
+|---------|--|--------|
 | Player footsteps | No (or subtle) | Always audible |
 | Enemy footsteps | Yes | Directional awareness |
 | Gunfire | Yes | Combat awareness |
@@ -126,7 +126,7 @@ Game State → Music Response
 ### Distance Behavior
 
 | Distance | Sound Behavior |
-|----------|----------------|
+|--|--|
 | **Near** | Full volume, full frequency |
 | **Medium** | Volume falloff, high-freq rolloff |
 | **Far** | Low volume, low-pass filter |
@@ -139,7 +139,7 @@ Game State → Music Response
 ### Format Selection
 
 | Platform | Recommended Format | Reason |
-|----------|-------------------|--------|
+|--|--|--------|
 | PC | OGG Vorbis, WAV | Quality, no licensing |
 | Console | Platform-specific | Certification |
 | Mobile | MP3, AAC | Size, compatibility |
@@ -148,7 +148,7 @@ Game State → Music Response
 ### Memory Budget
 
 | Game Type | Audio Budget | Strategy |
-|-----------|--------------|----------|
+|--|--|--|
 | Mobile casual | 10-50 MB | Compressed, fewer variants |
 | PC indie | 100-500 MB | Quality focus |
 | AAA | 1+ GB | Full quality, many variants |
@@ -160,7 +160,7 @@ Game State → Music Response
 ### Volume Balance Reference
 
 | Category | Relative Level | Notes |
-|----------|----------------|-------|
+|--|--|-------|
 | **Voice** | 0 dB (reference) | Always clear |
 | **Player SFX** | -3 to -6 dB | Prominent but not harsh |
 | **Music** | -6 to -12 dB | Foundation, ducks for voice |
@@ -170,7 +170,7 @@ Game State → Music Response
 ### Ducking Rules
 
 | When | Duck What | Amount |
-|------|-----------|--------|
+|------|--|--------|
 | Voice plays | Music, Ambient | -6 to -9 dB |
 | Explosion | All except explosion | Brief duck |
 | Menu open | Gameplay audio | -3 to -6 dB |

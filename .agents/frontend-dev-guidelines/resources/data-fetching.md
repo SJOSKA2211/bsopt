@@ -43,7 +43,7 @@ export const MyComponent: React.FC<Props> = ({ id }) => {
 ### useSuspenseQuery vs useQuery
 
 | Feature | useSuspenseQuery | useQuery |
-|---------|------------------|----------|
+|---------|--|--|
 | Loading state | Handled by Suspense | Manual `isLoading` check |
 | Data type | Always defined | `Data \| undefined` |
 | Use with | Suspense boundaries | Traditional components |
@@ -278,13 +278,13 @@ export const myFeatureApi = {
 ### Correct Format
 
 ```typescript
-// ✅ CORRECT - Direct service path
+//  CORRECT - Direct service path
 await apiClient.get('/blog/posts/123');
 await apiClient.post('/projects/create', data);
 await apiClient.put('/users/update/456', updates);
 await apiClient.get('/email/templates');
 
-// ❌ WRONG - Do NOT add /api/ prefix
+//  WRONG - Do NOT add /api/ prefix
 await apiClient.get('/api/blog/posts/123');  // WRONG!
 await apiClient.post('/api/projects/create', data); // WRONG!
 ```

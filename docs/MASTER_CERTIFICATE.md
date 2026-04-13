@@ -2,7 +2,7 @@
 
 This document certifies that the Manifold platform has successfully undergone a **15-Phase Production Hardening Process**, achieving the zenith of quantitative and systems engineering.
 
-## 🏆 Project Achievements
+##  Project Achievements
 
 ### 1. High-Performance Math Core
 - **Rust SIMD & Numba Vectorization**: Sub-microsecond derivative pricing and vectorized backtesting.
@@ -24,7 +24,7 @@ This document certifies that the Manifold platform has successfully undergone a 
 - **Greeks Attribution**: Delta/Gamma/Vega risk aggregation and P&L Explain.
 - **MVO & Black-Litterman**: Production-grade asset allocation and optimization.
 
-## 🌠 Final Status: UNIVERSE READY
+##  Final Status: UNIVERSE READY
 
 Manifold is now fully synchronized, secured, and optimized for the most demanding Production market-making and quantitative trading environments.
 

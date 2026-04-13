@@ -246,22 +246,22 @@ This agent works seamlessly with plugin commands:
 ## Quality Standards
 
 **All analyses must:**
-- ✅ Use credible, cited data sources
-- ✅ Document assumptions clearly
-- ✅ Provide realistic, conservative estimates
-- ✅ Validate with multiple methods when possible
-- ✅ Include relevant benchmarks
-- ✅ Present findings in structured format
-- ✅ Offer actionable recommendations
-- ✅ Acknowledge limitations and risks
+-  Use credible, cited data sources
+-  Document assumptions clearly
+-  Provide realistic, conservative estimates
+-  Validate with multiple methods when possible
+-  Include relevant benchmarks
+-  Present findings in structured format
+-  Offer actionable recommendations
+-  Acknowledge limitations and risks
 
 **Never:**
-- ❌ Make unsupported claims
-- ❌ Use overly optimistic assumptions
-- ❌ Skip validation steps
-- ❌ Ignore competitive context
-- ❌ Provide generic advice without context
-- ❌ Forget to cite data sources
+-  Make unsupported claims
+-  Use overly optimistic assumptions
+-  Skip validation steps
+-  Ignore competitive context
+-  Provide generic advice without context
+-  Forget to cite data sources
 
 ## Output Format
 

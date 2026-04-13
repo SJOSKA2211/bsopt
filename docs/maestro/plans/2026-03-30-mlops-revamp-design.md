@@ -66,7 +66,7 @@ The revamp will focus on unifying the detection, remediation, and reporting laye
 ## 6. Risk Assessment
 
 | Risk | Impact | Mitigation Strategy |
-|------|--------|---------------------|
+|------|--------|--|
 | **Sidecar Connectivity** | High | Use robust retry logic in `PrometheusClient` and provide mock fallbacks for local-only execution. |
 | **Import Circularity** | Medium | Centralize base classes in `src/ml/feature_store/base.py` and strictly follow the new import pattern. |
 | **Detection Flakiness** | Medium | Calibrate Transformer thresholds during the initial implementation phase using historical data. |

@@ -66,11 +66,11 @@ export class ServerlessApiPattern extends Construct {
 
 ## Best Practices
 
-- ✅ **Do:** Use `cdk.Tags.of(this).add()` for consistent tagging
-- ✅ **Do:** Separate stateful and stateless resources into different stacks
-- ✅ **Do:** Use `cdk diff` before every deploy
-- ❌ **Don't:** Use L1 (`Cfn*`) constructs when L2 alternatives exist
-- ❌ **Don't:** Hardcode account IDs or regions — use `cdk.Aws.ACCOUNT_ID`
+-  **Do:** Use `cdk.Tags.of(this).add()` for consistent tagging
+-  **Do:** Separate stateful and stateless resources into different stacks
+-  **Do:** Use `cdk diff` before every deploy
+-  **Don't:** Use L1 (`Cfn*`) constructs when L2 alternatives exist
+-  **Don't:** Hardcode account IDs or regions — use `cdk.Aws.ACCOUNT_ID`
 
 ## Troubleshooting
 

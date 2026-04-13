@@ -60,7 +60,7 @@ A sintese dessas perspectivas e o que separa decisoes mediocres de decisoes imor
 ## 2.1 Personas Disponiveis
 
 | Agente | Especialidade Core | Quando Chamar |
-|--------|-------------------|---------------|
+|--------|--|--|
 | `elon-musk` | First principles, sistemas fisicos, manufatura, IA/Space | Produto disruptivo, engenharia, impossibilidades |
 | `bill-gates` | Plataformas, escala, filantropia, saude/energia | Estrategia de negocio, tecnologia de impacto |
 | `warren-buffett` | Moats, valor intrinseco, psicologia do mercado | Investimento, financas, durabilidade |
@@ -78,7 +78,7 @@ A sintese dessas perspectivas e o que separa decisoes mediocres de decisoes imor
 ## 2.2 Boards Pre-Configurados
 
 | Board | Composicao | Uso |
-|-------|-----------|-----|
+|-------|--|-----|
 | **STARTUP_BOARD** | sam-altman + elon-musk + steve-jobs | Nova empresa, produto early stage |
 | **INVEST_BOARD** | warren-buffett + bill-gates + matematico-tao | Decisao de investimento |
 | **PRODUCT_BOARD** | steve-jobs + product-inventor + andrej-karpathy | Produto digital |

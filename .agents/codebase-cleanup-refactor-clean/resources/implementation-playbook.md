@@ -477,7 +477,7 @@ let userEmail = new Email("test@example.com"); // Validation automatic
 **Code Quality Metrics Interpretation Matrix**
 
 | Metric | Good | Warning | Critical | Action |
-|--------|------|---------|----------|--------|
+|--------|------|---------|--|--------|
 | Cyclomatic Complexity | <10 | 10-15 | >15 | Split into smaller methods |
 | Method Lines | <20 | 20-50 | >50 | Extract methods, apply SRP |
 | Class Lines | <200 | 200-500 | >500 | Decompose into multiple classes |

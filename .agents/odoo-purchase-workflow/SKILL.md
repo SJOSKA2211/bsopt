@@ -56,7 +56,7 @@ Step 5: Match Vendor Bill (3-Way Match)
 Menu: Purchase → Configuration → Settings
 
 Purchase Order Approval:
-  ☑ Purchase Order Approval
+   Purchase Order Approval
   Minimum Order Amount: $5,000
 
 Result:
@@ -88,13 +88,13 @@ based on the ordered quantity for this vendor.
 
 ## Best Practices
 
-- ✅ **Do:** Enable **Purchase Order Approval** for orders above your company's approval threshold.
-- ✅ **Do:** Use **Purchase Agreements (Blanket Orders)** for recurring vendors with pre-negotiated annual contracts.
-- ✅ **Do:** Set a **vendor lead time** on products (Purchase tab) so Odoo can schedule arrival dates accurately.
-- ✅ **Do:** Set the **Bill Control** policy to "Based on received quantities" (not ordered qty) for accurate 3-way matching.
-- ❌ **Don't:** Confirm a PO before prices are agreed — use Draft/RFQ status to negotiate first.
-- ❌ **Don't:** Post a vendor bill without linking it to a receipt — bypassing 3-way matching creates accounting discrepancies.
-- ❌ **Don't:** Delete a PO that has received quantities — archive it instead to preserve the stock and accounting trail.
+-  **Do:** Enable **Purchase Order Approval** for orders above your company's approval threshold.
+-  **Do:** Use **Purchase Agreements (Blanket Orders)** for recurring vendors with pre-negotiated annual contracts.
+-  **Do:** Set a **vendor lead time** on products (Purchase tab) so Odoo can schedule arrival dates accurately.
+-  **Do:** Set the **Bill Control** policy to "Based on received quantities" (not ordered qty) for accurate 3-way matching.
+-  **Don't:** Confirm a PO before prices are agreed — use Draft/RFQ status to negotiate first.
+-  **Don't:** Post a vendor bill without linking it to a receipt — bypassing 3-way matching creates accounting discrepancies.
+-  **Don't:** Delete a PO that has received quantities — archive it instead to preserve the stock and accounting trail.
 
 ## Limitations
 

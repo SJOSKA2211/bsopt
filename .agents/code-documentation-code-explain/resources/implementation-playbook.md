@@ -330,7 +330,7 @@ class AlgorithmVisualizer:
                 steps.append(step_viz)
                 
                 if not swapped:
-                    steps.append(f"\n✅ Array is sorted: {arr}")
+                    steps.append(f"\n Array is sorted: {arr}")
                     break
         
         return '\n'.join(steps)
@@ -535,14 +535,14 @@ classDiagram
 {code_analysis}
 
 ### Benefits:
-✅ Controlled access to single instance
-✅ Reduced namespace pollution
-✅ Permits refinement of operations
+ Controlled access to single instance
+ Reduced namespace pollution
+ Permits refinement of operations
 
 ### Drawbacks:
-❌ Can make unit testing difficult
-❌ Violates Single Responsibility Principle
-❌ Can hide dependencies
+ Can make unit testing difficult
+ Violates Single Responsibility Principle
+ Can hide dependencies
 
 ### Alternative Approaches:
 1. Dependency Injection
@@ -643,7 +643,7 @@ def analyze_common_pitfalls(self, code):
             'issue': 'Bare except clause',
             'severity': 'high',
             'explanation': '''
-## ⚠️ Bare Except Clause
+## ️ Bare Except Clause
 
 **Problem**: `except:` catches ALL exceptions, including system exits and keyboard interrupts.
 
@@ -676,7 +676,7 @@ except Exception as e:
             'issue': 'Global variable usage',
             'severity': 'medium',
             'explanation': '''
-## ⚠️ Global Variable Usage
+## ️ Global Variable Usage
 
 **Problem**: Using global variables makes code harder to test and reason about.
 

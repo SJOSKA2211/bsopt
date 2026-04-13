@@ -8,7 +8,7 @@ date_added: '2026-02-27'
 
 # Azure Monitor OpenTelemetry Exporter for Java
 
-> **⚠️ DEPRECATION NOTICE**: This package is deprecated. Migrate to `azure-monitor-opentelemetry-autoconfigure`.
+> **️ DEPRECATION NOTICE**: This package is deprecated. Migrate to `azure-monitor-opentelemetry-autoconfigure`.
 >
 > See [Migration Guide](https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/monitor/azure-monitor-opentelemetry-exporter/MIGRATION.md) for detailed instructions.
 
@@ -228,7 +228,7 @@ latencyHistogram.record(150, Attributes.of(
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Connection String | Application Insights connection string with instrumentation key |
 | Tracer | Creates spans for distributed tracing |
 | Span | Represents a unit of work with timing and attributes |
@@ -274,7 +274,7 @@ The `azure-monitor-opentelemetry-autoconfigure` package provides:
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | Maven Package | https://central.sonatype.com/artifact/com.azure/azure-monitor-opentelemetry-exporter |
 | GitHub | https://github.com/Azure/azure-sdk-for-java/tree/main/sdk/monitor/azure-monitor-opentelemetry-exporter |
 | Migration Guide | https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/monitor/azure-monitor-opentelemetry-exporter/MIGRATION.md |

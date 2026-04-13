@@ -22,7 +22,7 @@ better data about their own costs than you do about market rates.
 #### Data Assembly Checklist
 
 | Data Point | Source | Purpose |
-|-----------|--------|---------|
+|--|--------|---------|
 | Current contract rate (linehaul + FSC + avg accessorials) | TMS / rate management system | Establish baseline total cost |
 | DAT 90-day lane average (spot and contract) | DAT RateView | Market benchmark for shipper leverage |
 | Greenscreens carrier-specific rate intelligence | Greenscreens.ai | Carrier-specific pricing behavior and predicted pricing |
@@ -54,7 +54,7 @@ Total Cost per Shipment = Linehaul Rate
 For every carrier proposal, calculate total cost at three diesel price points:
 
 | Scenario | Diesel Price | Purpose |
-|----------|-------------|---------|
+|--|--|---------|
 | Low | $3.25/gallon | Tests carrier's FSC floor — does the FSC go to zero or maintain a minimum? |
 | Current | Current DOE average | Apples-to-apples comparison with other carriers |
 | High | $4.50/gallon | Exposes aggressive FSC schedules that inflate cost disproportionately |
@@ -124,7 +124,7 @@ without giving away core economics:
 #### Concession Priority (Give These First — They Cost Less Than They're Worth)
 
 | Concession | Your Cost | Carrier Value | When to Offer |
-|-----------|-----------|---------------|---------------|
+|--|--|--|--|
 | Volume commitment (guarantee minimum loads/week) | Low — you were shipping this volume anyway | High — predictable volume improves carrier utilization | When carrier won't budge on rate |
 | Faster payment terms (Net 15 vs. Net 30) | Moderate — accelerates cash outflow by 15 days | High — carriers are always cash-constrained | When spread between positions is <5% |
 | Drop-trailer program | Moderate — requires trailer parking space | Very High — eliminates driver detention, improves asset utilization | When carrier cites detention as cost driver |
@@ -134,7 +134,7 @@ without giving away core economics:
 #### Concession Boundary (Never Give These Away)
 
 | Element | Why It's Non-Negotiable |
-|---------|----------------------|
+|---------|--|
 | FSC table transparency | Opaque FSC schedules are a carrier margin tool, not a cost recovery mechanism |
 | Accessorial audit rights | You must be able to verify every accessorial charge against the BOL and contract |
 | Service-level remedies | A contract without OTD and tender acceptance minimums is just a rate sheet with no accountability |
@@ -154,7 +154,7 @@ Run this assessment quarterly to identify optimization opportunities:
 For each lane in your top 50 by volume:
 
 | Metric | Target | Action If Out of Range |
-|--------|--------|----------------------|
+|--------|--------|--|
 | Primary carrier volume share | 50-70% | If >70%: diversify. If <50%: routing guide isn't being followed — investigate ops compliance |
 | Number of active carriers on lane | 2-4 | If <2: single point of failure risk. If >4: volume is too fragmented for carriers to care |
 | Backup carrier last-used date | Within 90 days | If >90 days: the backup is stale. Run a test load to confirm the carrier can still service the lane |
@@ -166,7 +166,7 @@ Rank all active carriers by composite score (weighted: OTD 30%, tender acceptanc
 claims ratio 20%, invoice accuracy 15%, communication/responsiveness 10%).
 
 | Tier | Score Range | Action |
-|------|------------|--------|
+|------|--|--------|
 | A — Strategic Partners | ≥90% | Increase allocation, offer longer-term contracts, invest in integration (EDI, API), invite to annual business review |
 | B — Reliable Performers | 75-89% | Maintain current allocation, monitor for improvement or decline, include in next RFP |
 | C — Underperformers | 60-74% | Issue corrective action plan with 60-day timeline. Reduce allocation by 25%. If no improvement at 60 days, reduce by another 25% |
@@ -175,7 +175,7 @@ claims ratio 20%, invoice accuracy 15%, communication/responsiveness 10%).
 #### Step 3: Spend Optimization
 
 | Analysis | Method | Target |
-|----------|--------|--------|
+|--|--------|--------|
 | Rate-vs-market alignment | Compare contract rates to DAT contract lane average for each active lane | Within ±8% of DAT. If >+15%, renegotiate. If <-10%, carrier may be underpriced and at exit risk |
 | Accessorial spend ratio | Total accessorials / total linehaul spend | <8% of total spend. If >12%, audit accessorial billing and address root causes (detention, reclass) |
 | Spot premium tracking | (Avg spot rate - avg contract rate) / avg contract rate | <15% premium. If >25%, routing guide coverage is insufficient |
@@ -189,7 +189,7 @@ guide executes itself; a poorly designed one requires constant manual interventi
 #### Structure by Lane Volume
 
 | Lane Volume | Guide Depth | Primary % | Secondary % | Tertiary % |
-|-------------|------------|-----------|-------------|------------|
+|--|--|--|--|--|
 | >10 loads/week | 3-4 carriers | 50-60% | 25-30% | 10-20% |
 | 5-10 loads/week | 3 carriers | 55-65% | 25-30% | 10-15% |
 | 2-5 loads/week | 2-3 carriers | 60-75% | 25-40% | — |
@@ -219,7 +219,7 @@ guide executes itself; a poorly designed one requires constant manual interventi
 #### Routing Guide Maintenance Cadence
 
 | Activity | Frequency | Owner |
-|----------|-----------|-------|
+|--|--|-------|
 | Review lane-level tender acceptance rates | Weekly | Transportation Analyst |
 | Adjust carrier allocation based on performance trends | Monthly | Transportation Manager |
 | Full routing guide audit (dead lanes, stale backups, rate alignment) | Quarterly | Director of Transportation |
@@ -233,7 +233,7 @@ expectations from day one.
 #### Onboarding Checklist
 
 | Step | Timeline | Owner | Verification Method |
-|------|----------|-------|-------------------|
+|------|--|-------|--|
 | FMCSA authority verification (active MC#, property authorization) | Day 1 | Compliance | SAFER website direct lookup |
 | Insurance verification ($1M+ auto liability, $100K cargo, workers comp) | Day 1 | Compliance | FMCSA Insurance tab + certificate of insurance on file |
 | Safety rating and CSA score review | Day 1 | Compliance | SAFER + CSA BASIC percentiles — flag if Unsafe Driving or HOS >75th percentile |
@@ -251,7 +251,7 @@ Exiting a carrier requires planning to avoid service disruption on lanes they cu
 #### Decision: Immediate vs. Managed Exit
 
 | Scenario | Exit Type | Timeline |
-|----------|-----------|----------|
+|--|--|--|
 | FMCSA authority revoked or insurance lapsed | Immediate — stop tendering now | 0 days |
 | Confirmed double-brokering | Immediate — stop tendering, document evidence | 0 days |
 | Unsatisfactory safety rating | Immediate — stop tendering | 0 days |
@@ -274,7 +274,7 @@ Exiting a carrier requires planning to avoid service disruption on lanes they cu
 ### 3.1 RFP Timeline
 
 | Phase | Duration | Activities |
-|-------|----------|-----------|
+|-------|--|--|
 | 1 — Pre-RFP Analysis | Weeks 1-2 | Analyze 12 months of shipment data, identify lanes for bid, benchmark current rates against DAT/Greenscreens, set cost and service targets, define evaluation criteria and weightings |
 | 2 — RFP Development | Weeks 3-4 | Build lane-level bid package with volume, equipment, and service requirements. Define accessorial schedule, insurance minimums, and contract terms. Prepare carrier communication and Q&A timeline |
 | 3 — Carrier Outreach | Week 5 | Distribute RFP to incumbent carriers + 5-10 prospective carriers identified through market research or peer referrals. Allow 2-3 weeks for bid submission |
@@ -289,7 +289,7 @@ Exiting a carrier requires planning to avoid service disruption on lanes they cu
 #### Criteria Weighting
 
 | Criterion | Weight | Data Source | Scoring Method |
-|-----------|--------|-------------|---------------|
+|--|--------|--|--|
 | Rate competitiveness | 40% | Bid response | Normalize to 100-point scale where lowest total cost (linehaul + modeled FSC + expected accessorials) = 100, and each 1% above lowest = -3 points |
 | Service history / OTD | 25% | Carrier scorecard (for incumbents) or reference checks (for new carriers) | 100 points for ≥96% OTD, 80 for 93-95%, 60 for 90-92%, 40 for 85-89%, 0 for <85% |
 | Capacity commitment | 20% | Bid response (stated tender acceptance commitment, equipment availability, driver count on the lane) | 100 points for ≥95% acceptance commitment with driver count evidence, scaled down based on commitment level and supporting evidence |
@@ -312,7 +312,7 @@ Carrier B has lowest rate but weakest service — appropriate as tertiary.
 Incumbents have data; new carriers have promises. Adjust evaluation accordingly:
 
 | Factor | Incumbent | New Carrier |
-|--------|-----------|-------------|
+|--------|--|--|
 | Service history | Use actual OTD, claims, tender acceptance from your data | Use carrier's reported statistics + 2-3 reference checks from similarly sized shippers |
 | Rate credibility | High — they know the lane and are pricing from experience | Moderate — new carriers may under-bid to win then renegotiate after award. Discount new-carrier bids by 3-5% for risk |
 | Implementation risk | Low — already in your systems, familiar with your operations | Moderate — onboarding takes 2-3 weeks, first-month performance often lags |
@@ -334,7 +334,7 @@ these protections into the contract:
 ### 4.1 Decision Matrix
 
 | Condition | Recommendation | Rationale |
-|-----------|---------------|-----------|
+|--|--|--|
 | Lane volume >3 loads/week, consistent year-round | Contract | Carrier will invest in dedicated capacity for predictable volume |
 | Lane volume 1-3 loads/week, seasonal | Contract for peak months, spot for off-peak | Avoids paying contract rates during low-demand months |
 | Lane volume <1 load/week, unpredictable | Spot or broker relationship | Carriers won't commit capacity to inconsistent volume; contract rates will be inflated to cover utilization risk |
@@ -437,7 +437,7 @@ contract strategy, and portfolio decisions.
 #### Leading Indicators (Signal Direction 3-6 Months Ahead)
 
 | Indicator | Source | Shipper-Favorable Signal | Carrier-Favorable Signal |
-|-----------|--------|------------------------|------------------------|
+|--|--------|--|--|
 | Class 8 truck orders | ACT Research, FTR | Rising (new capacity entering) | Falling (capacity leaving or not being replaced) |
 | FMCSA new authority applications | FMCSA data | Rising (new carriers entering) | Falling (fewer new entrants, possibly exits increasing) |
 | Diesel price trend | DOE | Falling (lowers carrier costs, reduces FSC) | Rising sharply (squeezes small carriers, may cause exits) |
@@ -447,7 +447,7 @@ contract strategy, and portfolio decisions.
 #### Coincident Indicators (Confirm Current Position)
 
 | Indicator | Source | Shipper-Favorable | Carrier-Favorable |
-|-----------|--------|------------------|------------------|
+|--|--------|--|--|
 | DAT load-to-truck ratio | DAT | <3:1 (more trucks than loads) | >6:1 (more loads than trucks) |
 | Outbound Tender Rejection Index (OTRI) | FreightWaves SONAR | <5% (carriers accepting almost everything) | >12% (carriers cherry-picking profitable freight) |
 | Spot rate trend (13-week) | DAT, Greenscreens | Declining or flat | Rising >5% over 13 weeks |
@@ -456,7 +456,7 @@ contract strategy, and portfolio decisions.
 ### 6.2 Strategic Actions by Cycle Phase
 
 | Phase | Duration (typical) | Rate Action | Contract Action | Portfolio Action |
-|-------|-------------------|-------------|-----------------|-----------------|
+|-------|--|--|--|--|
 | Early recovery (market tightening) | 3-6 months | Lock rates on top 30% of lanes before carriers reprice | Extend expiring contracts 6-12 months at current rates | Onboard 2-3 new carriers for surge capacity |
 | Peak (tight market) | 6-12 months | Minimize rate exposure — renegotiate only what's necessary | Honor commitments — this builds carrier trust for the downturn | Increase allocation to asset carriers (brokers get unreliable in tight markets) |
 | Early softening (market loosening) | 3-6 months | Run mini-bids on your worst-performing 20% of lanes | Let short-term contracts expire — rebid at new market rates | Evaluate carrier portfolio for exits (weak performers lose leverage to resist) |
@@ -515,7 +515,7 @@ ALWAYS: vet the spot carrier (FMCSA check, rate confirmation signed before dispa
 ## Appendix B — Glossary
 
 | Term | Definition |
-|------|-----------|
+|------|--|
 | BASIC | Behavior Analysis and Safety Improvement Categories — the seven CSA safety dimensions scored by FMCSA |
 | CAP | Corrective Action Plan — formal performance improvement plan with timeline and metrics |
 | CSA | Compliance, Safety, Accountability — FMCSA's carrier safety measurement system |

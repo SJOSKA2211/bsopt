@@ -53,9 +53,9 @@ def run_health_report():
     print(metrics)
     
     if "manifold_thread_pool_size" in metrics:
-        print("[✔] Rayon thread pool metrics detected")
+        print("[] Rayon thread pool metrics detected")
     if "manifold_mmap_active_buffers" in metrics:
-        print("[✔] MMap buffer metrics detected")
+        print("[] MMap buffer metrics detected")
         
     os.remove(tick_file)
     print("=" * 60)

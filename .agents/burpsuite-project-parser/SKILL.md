@@ -51,7 +51,7 @@ See [Platform Configuration](#platform-configuration) for setup instructions.
 ### Available Filters
 
 | Filter | Returns | Typical Size |
-|--------|---------|--------------|
+|--------|---------|--|
 | `proxyHistory.request.headers` | Request line + headers only | Small (< 1KB/record) |
 | `proxyHistory.request.body` | Request body only | Variable |
 | `proxyHistory.response.headers` | Status + headers only | Small (< 1KB/record) |
@@ -159,7 +159,7 @@ The `wc -cl` output shows: `<bytes> <lines>` (e.g., `524288 42` means 512KB acro
 **Interpret the results - BOTH must pass:**
 
 | Metric | Safe | Narrow search | Too broad | STOP |
-|--------|------|---------------|-----------|------|
+|--------|------|--|--|------|
 | **Lines** | < 50 | 50-200 | 200+ | 1000+ |
 | **Bytes** | < 50KB | 50-200KB | 200KB+ | 1MB+ |
 
@@ -253,7 +253,7 @@ Even after narrowing, always pipe through truncation:
 Burp reports both **severity** (High/Medium/Low) and **confidence** (Certain/Firm/Tentative). Use both when triaging:
 
 | Combination | Meaning |
-|-------------|---------|
+|--|---------|
 | High + Certain | Likely real vulnerability, prioritize investigation |
 | High + Tentative | Often a false positive, verify before reporting |
 | Medium + Firm | Worth investigating, may need manual validation |
@@ -281,7 +281,7 @@ Response bodies may be gzip compressed, chunked, or use non-UTF8 encoding. Regex
 Common shortcuts that lead to missed vulnerabilities or false reports:
 
 | Shortcut | Why It's Wrong |
-|----------|----------------|
+|--|--|
 | "This regex looks good" | Verify on sample data first—encoding and escaping cause silent failures |
 | "High severity = must fix" | Check confidence score too; Burp has false positives |
 | "All audit items are relevant" | Filter by actual threat model; not every finding matters for every app |

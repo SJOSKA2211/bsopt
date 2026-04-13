@@ -166,7 +166,7 @@ Automate LinkedIn operations through Composio's LinkedIn toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Get my profile | LINKEDIN_GET_MY_INFO | (none) |
 | Create post | LINKEDIN_CREATE_LINKED_IN_POST | text, visibility |
 | Get company info | LINKEDIN_GET_COMPANY_INFO | organization_id |

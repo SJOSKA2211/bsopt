@@ -100,7 +100,7 @@ Choose based on your project's language:
 ### Quick Reference
 
 | Language | Install | Wrap Code |
-|----------|---------|-----------|
+|--|---------|--|
 | JS/TS | `npm install apify` | `await Actor.init()` ... `await Actor.exit()` |
 | Python | `pip install apify` | `async with Actor:` |
 | Other | Use CLI in wrapper script | `apify actor:get-input` / `apify actor:push-data` |

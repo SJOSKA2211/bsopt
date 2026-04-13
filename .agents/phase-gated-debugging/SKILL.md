@@ -55,7 +55,7 @@ If verification fails: root cause was wrong, go back to Phase 2.
 ## Bug-Type Strategies
 
 | Type | Technique |
-|------|-----------|
+|------|--|
 | Crash/Panic | Stack trace backward — trace the bad value to its source |
 | Wrong Output | Binary search — log midpoint, halve search space each iteration |
 | Intermittent | Compare passing vs failing run logs — find ordering divergence |

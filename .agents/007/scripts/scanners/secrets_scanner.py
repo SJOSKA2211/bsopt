@@ -20,21 +20,21 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
+# --
 # Import from the 007 config hub (parent directory)
-# ---------------------------------------------------------------------------
+# --
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import config  # noqa: E402
 
-# ---------------------------------------------------------------------------
+# --
 # Logger
-# ---------------------------------------------------------------------------
+# --
 logger = config.setup_logging("007-secrets-scanner")
 
-# ---------------------------------------------------------------------------
+# --
 # Additional patterns beyond config.SECRET_PATTERNS
-# ---------------------------------------------------------------------------
+# --
 # Each entry: (pattern_name, compiled_regex, severity)
 
 _EXTRA_PATTERN_DEFS = [
@@ -108,9 +108,9 @@ EXTRA_PATTERNS = [
 ALL_SECRET_PATTERNS = list(config.SECRET_PATTERNS) + EXTRA_PATTERNS
 
 
-# ---------------------------------------------------------------------------
+# --
 # Targeted file categories for deep scanning
-# ---------------------------------------------------------------------------
+# --
 
 # .env variants -- always scanned regardless of SCANNABLE_EXTENSIONS
 ENV_FILE_PATTERNS = {
@@ -157,9 +157,9 @@ _PLACEHOLDER_PATTERN = re.compile(
 )
 
 
-# ---------------------------------------------------------------------------
+# --
 # Entropy calculation
-# ---------------------------------------------------------------------------
+# --
 
 
 def shannon_entropy(s: str) -> float:
@@ -191,9 +191,9 @@ def shannon_entropy(s: str) -> float:
     return entropy
 
 
-# ---------------------------------------------------------------------------
+# --
 # Base64 detection
-# ---------------------------------------------------------------------------
+# --
 
 _BASE64_RE = re.compile(r"""[A-Za-z0-9+/]{20,}={0,2}""")
 
@@ -220,9 +220,9 @@ def _check_base64_secret(token: str) -> bool:
         return False
 
 
-# ---------------------------------------------------------------------------
+# --
 # Hardcoded IP detection
-# ---------------------------------------------------------------------------
+# --
 
 _IP_RE = re.compile(r"""\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b""")
 
@@ -250,9 +250,9 @@ def _is_private_or_localhost(ip: str) -> bool:
     return False
 
 
-# ---------------------------------------------------------------------------
+# --
 # Context-aware false positive reduction
-# ---------------------------------------------------------------------------
+# --
 
 _COMMENT_LINE_RE = re.compile(r"""^\s*(?:#|//|/\*|\*|;|rem\b|@rem\b)""", re.IGNORECASE)
 
@@ -324,9 +324,9 @@ def _classify_file(filepath: Path) -> str:
     return "other"
 
 
-# ---------------------------------------------------------------------------
+# --
 # File collection (deeper than quick_scan)
-# ---------------------------------------------------------------------------
+# --
 
 
 def _should_scan_file(filepath: Path) -> bool:
@@ -390,9 +390,9 @@ def collect_files(target: Path) -> list[Path]:
     return files
 
 
-# ---------------------------------------------------------------------------
+# --
 # Core scanning logic
-# ---------------------------------------------------------------------------
+# --
 
 
 def _redact(text: str, keep: int = 6) -> str:
@@ -648,9 +648,9 @@ def scan_file(filepath: Path, verbose: bool = False) -> list[dict]:
     return findings
 
 
-# ---------------------------------------------------------------------------
+# --
 # Aggregation and scoring
-# ---------------------------------------------------------------------------
+# --
 
 SCORE_DEDUCTIONS = {
     "CRITICAL": 10,
@@ -698,9 +698,9 @@ def compute_score(findings: list[dict]) -> int:
     return max(0, score)
 
 
-# ---------------------------------------------------------------------------
+# --
 # Report formatters
-# ---------------------------------------------------------------------------
+# --
 
 
 def format_text_report(
@@ -844,9 +844,9 @@ def build_json_report(
     }
 
 
-# ---------------------------------------------------------------------------
+# --
 # Main entry point
-# ---------------------------------------------------------------------------
+# --
 
 
 def run_scan(
@@ -966,9 +966,9 @@ def run_scan(
     return report
 
 
-# ---------------------------------------------------------------------------
+# --
 # CLI
-# ---------------------------------------------------------------------------
+# --
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

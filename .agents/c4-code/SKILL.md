@@ -190,7 +190,7 @@ flowchart TB
 ### Choosing the Right Diagram
 
 | Code Style                       | Primary Diagram                  | When to Use                                             |
-| -------------------------------- | -------------------------------- | ------------------------------------------------------- |
+| -- | -- | -- |
 | OOP (classes, interfaces)        | `classDiagram`                   | Show inheritance, composition, interface implementation |
 | FP (pure functions, pipelines)   | `flowchart`                      | Show data transformations and function composition      |
 | FP (modules with exports)        | `classDiagram` with `<<module>>` | Show module structure and dependencies                  |

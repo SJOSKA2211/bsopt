@@ -8,7 +8,7 @@ description: Nuxt 3 full-stack template. Vue 3, Pinia, Tailwind, Prisma.
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|--|--|
 | Framework | Nuxt 3 |
 | Language | TypeScript |
 | UI | Vue 3 (Composition API) |
@@ -55,7 +55,7 @@ project-name/
 ## Key Concepts
 
 | Concept | Description |
-|---------|-------------|
+|---------|--|
 | Auto-imports | Components, composables, utils |
 | File-based routing | pages/ → routes |
 | Server Routes | server/api/ → API endpoints |
@@ -67,7 +67,7 @@ project-name/
 ## Environment Variables
 
 | Variable | Purpose |
-|----------|---------|
+|--|---------|
 | DATABASE_URL | Prisma connection |
 | NUXT_PUBLIC_APP_URL | Public URL |
 

@@ -15,12 +15,12 @@ export const DataDisplay: React.FC<{ items: Item[], searchTerm: string }> = ({
     items,
     searchTerm,
 }) => {
-    // ❌ AVOID - Runs on every render
+    //  AVOID - Runs on every render
     const filteredItems = items
         .filter(item => item.name.includes(searchTerm))
         .sort((a, b) => a.name.localeCompare(b.name));
 
-    // ✅ CORRECT - Memoized, only recalculates when dependencies change
+    //  CORRECT - Memoized, only recalculates when dependencies change
     const filteredItems = useMemo(() => {
         return items
             .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -49,7 +49,7 @@ export const DataDisplay: React.FC<{ items: Item[], searchTerm: string }> = ({
 ### The Problem
 
 ```typescript
-// ❌ AVOID - Creates new function on every render
+//  AVOID - Creates new function on every render
 export const Parent: React.FC = () => {
     const handleClick = (id: string) => {
         console.log('Clicked:', id);
@@ -67,7 +67,7 @@ export const Parent: React.FC = () => {
 import { useCallback } from 'react';
 
 export const Parent: React.FC = () => {
-    // ✅ CORRECT - Stable function reference
+    //  CORRECT - Stable function reference
     const handleClick = useCallback((id: string) => {
         console.log('Clicked:', id);
     }, []); // Empty deps = function never changes
@@ -101,7 +101,7 @@ interface ExpensiveComponentProps {
     onAction: () => void;
 }
 
-// ✅ Wrap expensive components in React.memo
+//  Wrap expensive components in React.memo
 export const ExpensiveComponent = React.memo<ExpensiveComponentProps>(
     function ExpensiveComponent({ data, onAction }) {
         // Complex rendering logic
@@ -174,7 +174,7 @@ export const MyComponent: React.FC = () => {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
-        // ✅ CORRECT - Cleanup interval
+        //  CORRECT - Cleanup interval
         const intervalId = setInterval(() => {
             setCount(c => c + 1);
         }, 1000);
@@ -185,7 +185,7 @@ export const MyComponent: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        // ✅ CORRECT - Cleanup timeout
+        //  CORRECT - Cleanup timeout
         const timeoutId = setTimeout(() => {
             console.log('Delayed action');
         }, 5000);
@@ -250,10 +250,10 @@ import { useForm } from 'react-hook-form';
 export const MyForm: React.FC = () => {
     const { register, watch, handleSubmit } = useForm();
 
-    // ❌ AVOID - Watches all fields, re-renders on any change
+    //  AVOID - Watches all fields, re-renders on any change
     const formValues = watch();
 
-    // ✅ CORRECT - Watch only what you need
+    //  CORRECT - Watch only what you need
     const username = watch('username');
     const email = watch('email');
 
@@ -280,14 +280,14 @@ export const MyForm: React.FC = () => {
 ### Key Prop Usage
 
 ```typescript
-// ✅ CORRECT - Stable unique keys
+//  CORRECT - Stable unique keys
 {items.map(item => (
     <ListItem key={item.id}>
         {item.name}
     </ListItem>
 ))}
 
-// ❌ AVOID - Index as key (unstable if list changes)
+//  AVOID - Index as key (unstable if list changes)
 {items.map((item, index) => (
     <ListItem key={index}>  // WRONG if list reorders
         {item.name}
@@ -332,7 +332,7 @@ export const List: React.FC<{ items: Item[] }> = ({ items }) => {
 ### The Problem
 
 ```typescript
-// ❌ AVOID - Component recreated on every render
+//  AVOID - Component recreated on every render
 export const Parent: React.FC = () => {
     // New component definition each render!
     const ChildComponent = () => <div>Child</div>;
@@ -344,14 +344,14 @@ export const Parent: React.FC = () => {
 ### The Solution
 
 ```typescript
-// ✅ CORRECT - Define outside or use useMemo
+//  CORRECT - Define outside or use useMemo
 const ChildComponent: React.FC = () => <div>Child</div>;
 
 export const Parent: React.FC = () => {
     return <ChildComponent />;  // Stable component
 };
 
-// ✅ OR if dynamic, use useMemo
+//  OR if dynamic, use useMemo
 export const Parent: React.FC<{ config: Config }> = ({ config }) => {
     const DynamicComponent = useMemo(() => {
         return () => <div>{config.title}</div>;
@@ -368,11 +368,11 @@ export const Parent: React.FC<{ config: Config }> = ({ config }) => {
 ### Code Splitting
 
 ```typescript
-// ❌ AVOID - Import heavy libraries at top level
+//  AVOID - Import heavy libraries at top level
 import jsPDF from 'jspdf';  // Large library loaded immediately
 import * as XLSX from 'xlsx';  // Large library loaded immediately
 
-// ✅ CORRECT - Dynamic import when needed
+//  CORRECT - Dynamic import when needed
 const handleExportPDF = async () => {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
@@ -390,15 +390,15 @@ const handleExportExcel = async () => {
 ## Summary
 
 **Performance Checklist:**
-- ✅ `useMemo` for expensive computations (filter, sort, map)
-- ✅ `useCallback` for functions passed to children
-- ✅ `React.memo` for expensive components
-- ✅ Debounce search/filter (300-500ms)
-- ✅ Cleanup timeouts/intervals in useEffect
-- ✅ Watch specific form fields (not all)
-- ✅ Stable keys in lists
-- ✅ Lazy load heavy libraries
-- ✅ Code splitting with React.lazy
+-  `useMemo` for expensive computations (filter, sort, map)
+-  `useCallback` for functions passed to children
+-  `React.memo` for expensive components
+-  Debounce search/filter (300-500ms)
+-  Cleanup timeouts/intervals in useEffect
+-  Watch specific form fields (not all)
+-  Stable keys in lists
+-  Lazy load heavy libraries
+-  Code splitting with React.lazy
 
 **See Also:**
 - [component-patterns.md](component-patterns.md) - Lazy loading

@@ -391,7 +391,7 @@ await webTest.DeleteAsync(WaitUntil.Completed);
 ## Application Types
 
 | Type | Enum Value |
-|------|------------|
+|------|--|
 | Web Application | `Web` |
 | iOS Application | `iOS` |
 | Java Application | `Java` |
@@ -402,7 +402,7 @@ await webTest.DeleteAsync(WaitUntil.Completed);
 ## Web Test Locations
 
 | Location ID | Region |
-|-------------|--------|
+|--|--------|
 | `us-ca-sjc-azr` | West US |
 | `us-tx-sn1-azr` | South Central US |
 | `us-il-ch1-azr` | North Central US |
@@ -480,7 +480,7 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 ## Reference Links
 
 | Resource | URL |
-|----------|-----|
+|--|-----|
 | NuGet Package | https://www.nuget.org/packages/Azure.ResourceManager.ApplicationInsights |
 | API Reference | https://learn.microsoft.com/dotnet/api/azure.resourcemanager.applicationinsights |
 | Product Documentation | https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview |

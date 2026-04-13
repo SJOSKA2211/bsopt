@@ -160,7 +160,7 @@ For full communication templates, see [communication-templates.md](references/co
 ## Escalation Protocols
 
 | Trigger                                                              | Action                                                                                      | Timeline               |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
+| -- | -- | -- |
 | Wholesale prices exceed 2× budget assumption for 5+ consecutive days | Notify finance, evaluate hedge position, consider emergency fixed-price procurement         | Within 24 hours        |
 | Supplier credit downgrade below investment grade                     | Review contract termination provisions, assess replacement supplier options                 | Within 48 hours        |
 | Utility rate case filed with >10% proposed increase                  | Engage regulatory counsel, evaluate intervention filing                                     | Within 1 week          |
@@ -179,7 +179,7 @@ Energy Analyst → Energy Procurement Manager (24 hours) → Director of Procure
 Track monthly, review quarterly with finance and sustainability:
 
 | Metric                                                                     | Target                        | Red Flag               |
-| -------------------------------------------------------------------------- | ----------------------------- | ---------------------- |
+| -- | -- | -- |
 | Weighted average energy cost vs. budget                                    | Within ±5%                    | >10% variance          |
 | Procurement cost vs. market benchmark (forward curve at time of execution) | Within 3% of market           | >8% premium            |
 | Demand charges as % of total bill                                          | <25% (manufacturing)          | >35%                   |

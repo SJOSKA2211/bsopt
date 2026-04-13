@@ -135,7 +135,7 @@ console.log(`Tokens used: ${finalMessage.usage.output_tokens}`);
 ## Stream Event Types
 
 | Event Type            | Description                 | When it fires                     |
-| --------------------- | --------------------------- | --------------------------------- |
+| -- | -- | -- |
 | `message_start`       | Contains message metadata   | Once at the beginning             |
 | `content_block_start` | New content block beginning | When a text/tool_use block starts |
 | `content_block_delta` | Incremental content update  | For each token/chunk              |

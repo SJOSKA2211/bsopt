@@ -198,7 +198,7 @@ await client.path("/text/blocklists/{blocklistName}", "my-blocklist").delete();
 ## Harm Categories
 
 | Category | API Term | Description |
-|----------|----------|-------------|
+|--|--|--|
 | Hate and Fairness | `Hate` | Discriminatory language targeting identity groups |
 | Sexual | `Sexual` | Sexual content, nudity, pornography |
 | Violence | `Violence` | Physical harm, weapons, terrorism |
@@ -207,7 +207,7 @@ await client.path("/text/blocklists/{blocklistName}", "my-blocklist").delete();
 ## Severity Levels
 
 | Level | Risk | Recommended Action |
-|-------|------|-------------------|
+|-------|------|--|
 | 0 | Safe | Allow |
 | 2 | Low | Review or allow with warning |
 | 4 | Medium | Block or require human review |
@@ -269,7 +269,7 @@ async function moderateContent(
 ## API Endpoints
 
 | Operation | Method | Path |
-|-----------|--------|------|
+|--|--------|------|
 | Analyze Text | POST | `/text:analyze` |
 | Analyze Image | POST | `/image:analyze` |
 | Create/Update Blocklist | PATCH | `/text/blocklists/{blocklistName}` |

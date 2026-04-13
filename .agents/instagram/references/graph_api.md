@@ -85,7 +85,7 @@ POST /{user-id}/media
 ```
 
 | Tipo | Parâmetros obrigatórios |
-|------|------------------------|
+|------|--|
 | Foto | `image_url`, `caption` (opcional) |
 | Vídeo | `video_url`, `caption`, `media_type=VIDEO` |
 | Reel | `video_url`, `caption`, `media_type=REELS` |
@@ -300,7 +300,7 @@ Mídias em que o usuário foi mencionado/tagueado.
 ## Erros Comuns
 
 | Código | Subcódigo | Significado | Ação |
-|--------|-----------|-------------|------|
+|--------|--|--|------|
 | 4 | - | Rate limit atingido | Backoff 1 hora |
 | 10 | - | Permissão negada | Verificar scopes |
 | 17 | - | Rate limit da conta | Esperar período indicado |

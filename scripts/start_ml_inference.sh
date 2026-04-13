@@ -45,7 +45,7 @@ export XGB_ONNX_MODEL_PATH="models/latest_pricing.onnx"
 PORT=5002
 
 if [ "${ENVIRONMENT:-development}" == "production" ]; then
-    echo "🏗️ Running in PRODUCTION mode..."
+    echo "️ Running in PRODUCTION mode..."
     exec uv run python3 -m uvicorn src.ml.serving.serve:app \
         --host 0.0.0.0 \
         --port $PORT \
@@ -53,6 +53,6 @@ if [ "${ENVIRONMENT:-development}" == "production" ]; then
         --loop uvloop \
         --no-access-log
 else
-    echo "🛠️ Running in DEVELOPMENT mode with hot-reload..."
+    echo "️ Running in DEVELOPMENT mode with hot-reload..."
     exec uv run python3 -m uvicorn src.ml.serving.serve:app --port $PORT --host 0.0.0.0 --loop uvloop
 fi

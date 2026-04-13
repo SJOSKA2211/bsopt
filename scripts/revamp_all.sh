@@ -20,7 +20,7 @@ echo "--- STEP 1: Component Health Alignment ---"
 
 echo "--- STEP 2: Pool Optimization (PgBouncer) ---"
 # Using the already running bsopt-pgbouncer-1 (port 6432)
-echo "✅ PgBouncer Pool is ALREADY ACTIVE on port 6432."
+echo " PgBouncer Pool is ALREADY ACTIVE on port 6432."
 
 echo "--- STEP 3: God-Mode Engine Revamp ---"
 ./.venv/bin/python scripts/engine_revamp_god_mode.py

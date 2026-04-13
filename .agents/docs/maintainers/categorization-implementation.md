@@ -1,6 +1,6 @@
 # Smart Categorization Implementation - Complete Summary
 
-## ✅ What Was Done
+##  What Was Done
 
 ### 1. **Intelligent Auto-Categorization Script**
 Created [`tools/scripts/auto_categorize_skills.py`](../../tools/scripts/auto_categorize_skills.py) that:
@@ -10,9 +10,9 @@ Created [`tools/scripts/auto_categorize_skills.py`](../../tools/scripts/auto_cat
 - Removes "uncategorized" bulk assignment
 
 **Results:**
-- ✅ 776 skills auto-categorized
-- ✅ 46 already had categories preserved
-- ✅ 124 remaining uncategorized (edge cases)
+-  776 skills auto-categorized
+-  46 already had categories preserved
+-  124 remaining uncategorized (edge cases)
 
 ### 2. **Category Distribution**
 
@@ -52,10 +52,10 @@ Modified [`tools/scripts/generate_index.py`](../../tools/scripts/generate_index.
 ### 4. **Improved Web App Filter**
 
 **Home Page Changes:**
-- ✅ Categories sorted by skill count (most first)
-- ✅ "Uncategorized" moved to bottom
-- ✅ Each shows count: "Backend (164)", "Web Dev (107)"
-- ✅ Much easier to navigate
+-  Categories sorted by skill count (most first)
+-  "Uncategorized" moved to bottom
+-  Each shows count: "Backend (164)", "Web Dev (107)"
+-  Much easier to navigate
 
 **Updated Code:**
 - [`apps/web-app/src/pages/Home.tsx`](../../apps/web-app/src/pages/Home.tsx) - Smart category sorting
@@ -66,7 +66,7 @@ Modified [`tools/scripts/generate_index.py`](../../tools/scripts/generate_index.
 ### 5. **Categorization Keywords** (13 Categories)
 
 | Category | Key Keywords |
-|----------|--------------|
+|--|--|
 | **Backend** | nodejs, express, fastapi, django, server, api, database |
 | **Web Dev** | react, vue, angular, frontend, css, html, tailwind |
 | **Automation** | workflow, scripting, automation, robot, trigger |
@@ -89,7 +89,7 @@ Created [`smart-auto-categorization.md`](smart-auto-categorization.md) with:
 - Customization guide
 - Troubleshooting
 
-## 🎯 The Result
+##  The Result
 
 ### No More Uncategorized Chaos
 - **Before**: the vast majority of skills were lumped into "uncategorized"
@@ -107,9 +107,9 @@ User wants to find database skills:
 2. Sees filter dropdown: "Backend (164) | Database (44) | Web Dev (107)..."
 3. Clicks "Database (44)"
 4. Gets 44 relevant SQL/MongoDB/Postgres skills
-5. Done! 🎉
+5. Done! 
 
-## 🚀 Usage
+##  Usage
 
 ### Run Auto-Categorization
 ```bash
@@ -137,7 +137,7 @@ date_added: "2026-03-06"
 ---
 ```
 
-## 📁 Files Changed
+##  Files Changed
 
 ### New Files
 - `tools/scripts/auto_categorize_skills.py` - Auto-categorization engine
@@ -148,14 +148,14 @@ date_added: "2026-03-06"
 - `apps/web-app/src/pages/Home.tsx` - Smart category sorting
 - `apps/web-app/public/skills.json` - Regenerated with categories
 
-## 📊 Quality Metrics
+##  Quality Metrics
 
 - **Coverage**: 87% of skills in meaningful categories
 - **Accuracy**: Keyword-based matching with word boundaries
 - **Performance**: fast enough to categorize the full repository in a single local pass
 - **Maintainability**: Easily add keywords/categories for future growth
 
-## 🎁 Bonus Features
+##  Bonus Features
 
 1. **Dry-run mode**: See changes before applying
 2. **Weighted scoring**: Exact matches score 2x partial matches
@@ -165,6 +165,6 @@ date_added: "2026-03-06"
 
 ---
 
-**Status**: ✅ Complete and deployed to web app!
+**Status**:  Complete and deployed to web app!
 
-The web app now has a clean, intelligent category filter instead of "uncategorized" chaos. 🚀
+The web app now has a clean, intelligent category filter instead of "uncategorized" chaos. 

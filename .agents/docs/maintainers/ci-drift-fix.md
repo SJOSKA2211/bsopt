@@ -5,7 +5,7 @@
 **Error**:
 
 ```
-❌ Detected uncommitted changes produced by registry/readme/catalog scripts.
+ Detected uncommitted changes produced by registry/readme/catalog scripts.
 ```
 
 **Cause**:

@@ -129,7 +129,7 @@ const result3 = validate_node({
   config,
   profile: "runtime"
 });
-// → Valid! ✅
+// → Valid! 
 ```
 
 **This is normal!** Don't be discouraged by multiple iterations.
@@ -323,7 +323,7 @@ config.expression = "={{$node['HTTP Request'].json.data}}";
 {
   "type": "boolean",
   "operation": "equals",
-  "singleValue": true  // ❌ Wrong!
+  "singleValue": true  //  Wrong!
 }
 ```
 
@@ -332,7 +332,7 @@ config.expression = "={{$node['HTTP Request'].json.data}}";
 {
   "type": "boolean",
   "operation": "equals"
-  // singleValue removed ✅
+  // singleValue removed 
 }
 ```
 
@@ -346,7 +346,7 @@ config.expression = "={{$node['HTTP Request'].json.data}}";
 {
   "type": "boolean",
   "operation": "isEmpty"
-  // Missing singleValue ❌
+  // Missing singleValue 
 }
 ```
 
@@ -355,7 +355,7 @@ config.expression = "={{$node['HTTP Request'].json.data}}";
 {
   "type": "boolean",
   "operation": "isEmpty",
-  "singleValue": true  // ✅ Added
+  "singleValue": true  //  Added
 }
 ```
 
@@ -483,9 +483,9 @@ validate_node({
 #### 1. Check `valid` field
 ```javascript
 if (result.valid) {
-  // ✅ Configuration is valid
+  //  Configuration is valid
 } else {
-  // ❌ Has errors - must fix before deployment
+  //  Has errors - must fix before deployment
 }
 ```
 
@@ -636,7 +636,7 @@ n8n_autofix_workflow({
 
 ## Best Practices
 
-### ✅ Do
+###  Do
 
 - Validate after every significant change
 - Read error messages completely
@@ -647,7 +647,7 @@ n8n_autofix_workflow({
 - Use `get_node` when unclear about requirements
 - Document false positives you accept
 
-### ❌ Don't
+###  Don't
 
 - Skip validation before activation
 - Try to fix all errors at once

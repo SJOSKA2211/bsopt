@@ -23,7 +23,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 2. Node Types
 
 | Type | Symbol | Description |
-|------|--------|-------------|
+|------|--------|--|
 | **OR** | Oval | Any child achieves goal |
 | **AND** | Rectangle | All children required |
 | **Leaf** | Box | Atomic attack step |
@@ -31,7 +31,7 @@ This file contains detailed patterns, checklists, and code samples referenced by
 ### 3. Attack Attributes
 
 | Attribute | Description | Values |
-|-----------|-------------|--------|
+|--|--|--------|
 | **Cost** | Resources needed | $, $$, $$$ |
 | **Time** | Duration to execute | Hours, Days, Weeks |
 | **Skill** | Expertise required | Low, Medium, High |

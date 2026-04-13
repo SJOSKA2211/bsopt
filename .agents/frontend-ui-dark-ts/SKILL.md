@@ -570,7 +570,7 @@ export function PageTransition({ children }: PageTransitionProps) {
 ## Color Usage
 
 | Use Case | Color | Class |
-|----------|-------|-------|
+|--|-------|-------|
 | Primary action | Brand purple | `bg-brand text-white` |
 | Primary hover | Brand hover | `hover:bg-brand-hover` |
 | Page background | Neutral bg1 | `bg-neutral-bg1` |

@@ -46,16 +46,16 @@ Detect when user starts/stops speaking
 
 ## Anti-Patterns
 
-### ❌ Ignoring Latency Budget
+###  Ignoring Latency Budget
 
-### ❌ Silence-Only Turn Detection
+###  Silence-Only Turn Detection
 
-### ❌ Long Responses
+###  Long Responses
 
-## ⚠️ Sharp Edges
+## ️ Sharp Edges
 
 | Issue | Severity | Solution |
-|-------|----------|----------|
+|-------|--|--|
 | Issue | critical | # Measure and budget latency for each component: |
 | Issue | high | # Target jitter metrics: |
 | Issue | high | # Use semantic VAD: |

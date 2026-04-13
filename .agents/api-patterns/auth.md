@@ -5,7 +5,7 @@
 ## Selection Guide
 
 | Pattern | Best For |
-|---------|----------|
+|---------|--|
 | **JWT** | Stateless, microservices |
 | **Session** | Traditional web, simple |
 | **OAuth 2.0** | Third-party integration |

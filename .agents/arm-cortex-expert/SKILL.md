@@ -25,7 +25,7 @@ date_added: '2026-02-27'
 - Provide actionable steps and verification.
 - If detailed examples are required, open `resources/implementation-playbook.md`.
 
-## 🎯 Role & Objectives
+##  Role & Objectives
 
 - Deliver **complete, compilable firmware and driver modules** for ARM Cortex-M platforms.
 - Implement **peripheral drivers** (I²C/SPI/UART/ADC/DAC/PWM/USB) with clean abstractions using HAL, bare-metal registers, or platform-specific libraries.
@@ -64,7 +64,7 @@ date_added: '2026-02-27'
 
 ---
 
-## ⚙️ Operating Principles
+## ️ Operating Principles
 
 - **Safety Over Performance:** correctness first; optimize after profiling
 - **Full Solutions:** complete drivers with init, ISR, example usage — not snippets
@@ -74,7 +74,7 @@ date_added: '2026-02-27'
 
 ---
 
-## 🛡️ Safety-Critical Patterns for ARM Cortex-M7 (Teensy 4.x, STM32 F7/H7)
+## ️ Safety-Critical Patterns for ARM Cortex-M7 (Teensy 4.x, STM32 F7/H7)
 
 ### Memory Barriers for MMIO (ARM Cortex-M7 Weakly-Ordered Memory)
 
@@ -134,7 +134,7 @@ mmio_write(&USB1_USBSTS, status);  // Write bits back to clear them
 
 ### Platform Safety & Gotchas
 
-**⚠️ Voltage Tolerances:**
+**️ Voltage Tolerances:**
 
 - Most platforms: GPIO max 3.3V (NOT 5V tolerant except STM32 FT pins)
 - Use level shifters for 5V interfaces
@@ -164,7 +164,7 @@ static STATE: Mutex<RefCell<Option<T>>> = Mutex::new(RefCell::new(None));
 
 ---
 
-## 🎯 Interrupt Priorities & NVIC Configuration
+##  Interrupt Priorities & NVIC Configuration
 
 **Platform-Specific Priority Levels:**
 
@@ -187,7 +187,7 @@ static STATE: Mutex<RefCell<Option<T>>> = Mutex::new(RefCell::new(None));
 
 ---
 
-## 🔒 Critical Sections & Interrupt Masking
+##  Critical Sections & Interrupt Masking
 
 **Purpose:** Protect shared data from concurrent access by ISRs and main code.
 
@@ -214,7 +214,7 @@ __set_BASEPRI(basepri);
 
 ---
 
-## 🐛 Hardfault Debugging Basics
+##  Hardfault Debugging Basics
 
 **Common Causes:**
 
@@ -240,10 +240,10 @@ __set_BASEPRI(basepri);
 
 ---
 
-## 📊 Cortex-M Architecture Differences
+##  Cortex-M Architecture Differences
 
 | Feature            | M0/M0+                   | M3       | M4/M4F                | M7/M7F               |
-| ------------------ | ------------------------ | -------- | --------------------- | -------------------- |
+| -- | -- | -------- | -- | -- |
 | **Max Clock**      | ~50 MHz                  | ~100 MHz | ~180 MHz              | ~600 MHz             |
 | **ISA**            | Thumb-1 only             | Thumb-2  | Thumb-2 + DSP         | Thumb-2 + DSP        |
 | **MPU**            | M0+ optional             | Optional | Optional              | Optional             |
@@ -263,7 +263,7 @@ __set_BASEPRI(basepri);
 
 ---
 
-## 🛡️ Stack Overflow Protection
+## ️ Stack Overflow Protection
 
 **MPU Guard Pages (Best):** Configure no-access MPU region below stack. Triggers MemManage fault on M3/M4/M7. Limited on M0/M0+.
 
@@ -273,7 +273,7 @@ __set_BASEPRI(basepri);
 
 ---
 
-## 🔄 Workflow
+##  Workflow
 
 1. **Clarify Requirements** → target platform, peripheral type, protocol details (speed, mode, packet size)
 2. **Design Driver Skeleton** → constants, structs, compile-time config
@@ -284,7 +284,7 @@ __set_BASEPRI(basepri);
 
 ---
 
-## 🛠 Example: SPI Driver for External Sensor
+##  Example: SPI Driver for External Sensor
 
 **Pattern:** Create non-blocking SPI drivers with transaction-based read/write:
 

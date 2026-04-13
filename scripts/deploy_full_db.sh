@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "🏟️ Launching Production Persistent Substrate Deployment..."
+echo "️ Launching Production Persistent Substrate Deployment..."
 
 # Load Production environment and detection
 source scripts/utils_env.sh
@@ -13,7 +13,7 @@ detect_container_engine
 load_decrypted_secrets
 
 # 1. Start Persistent Tier
-echo "📦 Phase 1: Initializing PostgreSQL & TimescaleDB Substrate..."
+echo " Phase 1: Initializing PostgreSQL & TimescaleDB Substrate..."
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml up -d postgres pgbouncer
 
 # 2. Readiness Handshake
@@ -23,7 +23,7 @@ until $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -T
 done
 
 # 3. Schema & Migration Factory
-echo "📜 Phase 2: Executing Full Schema & Migration Factory..."
+echo " Phase 2: Executing Full Schema & Migration Factory..."
 # We utilize the containerized deployment script for consistency
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -T postgres /bin/bash -c "
   for script in \$(find /docker-entrypoint-initdb.d/ -name '*.sql' | sort); do
@@ -33,7 +33,7 @@ $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -T postg
 "
 
 # 4. Optimization Pass
-echo "🛠️ Phase 3: Executing Production Performance Optimization..."
+echo "️ Phase 3: Executing Production Performance Optimization..."
 bash scripts/deploy_db_updates.sh
 
-echo "🎉 DATABASE SUBSTRATE IS FULLY DEPLOYED AND OPTIMIZED."
+echo " DATABASE SUBSTRATE IS FULLY DEPLOYED AND OPTIMIZED."

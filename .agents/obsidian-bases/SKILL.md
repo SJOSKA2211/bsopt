@@ -113,7 +113,7 @@ filters:
 ### Filter Operators
 
 | Operator | Description |
-|----------|-------------|
+|--|--|
 | `==` | equals |
 | `!=` | not equal |
 | `>` | greater than |
@@ -135,7 +135,7 @@ filters:
 ### File Properties Reference
 
 | Property | Type | Description |
-|----------|------|-------------|
+|--|------|--|
 | `file.name` | String | File name |
 | `file.basename` | String | File name without extension |
 | `file.path` | String | Full path to file |
@@ -166,7 +166,7 @@ formulas:
   total: "price * quantity"
 
   # Conditional logic
-  status_icon: 'if(done, "✅", "⏳")'
+  status_icon: 'if(done, "", "⏳")'
 
   # String formatting
   formatted_price: 'if(price, price.toFixed(2) + " dollars")'
@@ -186,7 +186,7 @@ formulas:
 Most commonly used functions. For the complete reference of all types (Date, String, Number, List, File, Link, Object, RegExp), see [FUNCTIONS_REFERENCE.md](references/FUNCTIONS_REFERENCE.md).
 
 | Function | Signature | Description |
-|----------|-----------|-------------|
+|--|--|--|
 | `date()` | `date(string): date` | Parse string to date (`YYYY-MM-DD HH:mm:ss`) |
 | `now()` | `now(): date` | Current date and time |
 | `today()` | `today(): date` | Current date (time = 00:00:00) |
@@ -278,7 +278,7 @@ views:
 ## Default Summary Formulas
 
 | Name | Input Type | Description |
-|------|------------|-------------|
+|------|--|--|
 | `Average` | Number | Mathematical mean |
 | `Min` | Number | Smallest number |
 | `Max` | Number | Largest number |
@@ -308,7 +308,7 @@ filters:
 formulas:
   days_until_due: 'if(due, (date(due) - today()).days, "")'
   is_overdue: 'if(due, date(due) < today() && status != "done", false)'
-  priority_label: 'if(priority == 1, "🔴 High", if(priority == 2, "🟡 Medium", "🟢 Low"))'
+  priority_label: 'if(priority == 1, " High", if(priority == 2, "🟡 Medium", "🟢 Low"))'
 
 properties:
   status:
@@ -356,7 +356,7 @@ filters:
 
 formulas:
   reading_time: 'if(pages, (pages * 2).toString() + " min", "")'
-  status_icon: 'if(status == "reading", "📖", if(status == "done", "✅", "📚"))'
+  status_icon: 'if(status == "reading", "", if(status == "done", "", ""))'
   year_read: 'if(finished_date, date(finished_date).year, "")'
 
 properties:

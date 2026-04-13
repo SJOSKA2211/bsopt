@@ -128,14 +128,14 @@ The skill includes examples for:
 
 ## Best Practices
 
-1. ✅ Always stream at every stage (transcription, LLM, synthesis)
-2. ✅ Buffer entire LLM responses before synthesis
-3. ✅ Mute transcriber during bot speech
-4. ✅ Rate-limit audio chunks for interrupts
-5. ✅ Maintain conversation history for context
-6. ✅ Use proper error handling in worker loops
-7. ✅ Cleanup resources in finally blocks
-8. ✅ Use LINEAR16 PCM at 16kHz for audio
+1.  Always stream at every stage (transcription, LLM, synthesis)
+2.  Buffer entire LLM responses before synthesis
+3.  Mute transcriber during bot speech
+4.  Rate-limit audio chunks for interrupts
+5.  Maintain conversation history for context
+6.  Use proper error handling in worker loops
+7.  Cleanup resources in finally blocks
+8.  Use LINEAR16 PCM at 16kHz for audio
 
 ## Common Pitfalls
 
@@ -172,4 +172,4 @@ MIT License - See repository LICENSE file
 
 ---
 
-**Built with ❤️ for the Antigravity community**
+**Built with ️ for the Antigravity community**

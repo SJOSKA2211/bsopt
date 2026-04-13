@@ -14,9 +14,9 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-# ============================================================================
+# ==
 # InterruptibleEvent Pattern
-# ============================================================================
+# ==
 
 
 class InterruptibleEvent:
@@ -46,7 +46,7 @@ class InterruptibleEvent:
         if not self.interrupted:
             self.interruption_event.set()  # Signal to stop!
             self.interrupted = True
-            logger.info("⚠️ [INTERRUPT] Event interrupted")
+            logger.info("️ [INTERRUPT] Event interrupted")
             return True
 
         return False
@@ -56,9 +56,9 @@ class InterruptibleEvent:
         return self.interruption_event.is_set()
 
 
-# ============================================================================
+# ==
 # Conversation with Interrupt Support
-# ============================================================================
+# ==
 
 
 class ConversationWithInterrupts:
@@ -105,7 +105,7 @@ class ConversationWithInterrupts:
         if self.synthesizer_worker:
             self.synthesizer_worker.cancel_current_task()
 
-        logger.info(f"⚠️ [INTERRUPT] Interrupted {num_interrupts} events")
+        logger.info(f"️ [INTERRUPT] Interrupted {num_interrupts} events")
 
         return num_interrupts > 0
 
@@ -114,9 +114,9 @@ class ConversationWithInterrupts:
         self.interruptible_events.put_nowait(event)
 
 
-# ============================================================================
+# ==
 # Synthesis Worker with Interrupt Support
-# ============================================================================
+# ==
 
 
 class SynthesisWorkerWithInterrupts:
@@ -160,13 +160,13 @@ class SynthesisWorkerWithInterrupts:
         async for chunk_result in synthesis_result.chunk_generator:
             # CRITICAL: Check for interrupt before sending each chunk
             if stop_event.is_set():
-                logger.info(f"🛑 [SYNTHESIZER] Interrupted after {chunk_idx} chunks")
+                logger.info(f" [SYNTHESIZER] Interrupted after {chunk_idx} chunks")
 
                 # Calculate what was actually spoken
                 seconds_spoken = chunk_idx * seconds_per_chunk
                 partial_message = synthesis_result.get_message_up_to(seconds_spoken)
 
-                logger.info(f"📝 [SYNTHESIZER] Partial message: '{partial_message}'")
+                logger.info(f" [SYNTHESIZER] Partial message: '{partial_message}'")
 
                 return partial_message, True  # cut_off = True
 
@@ -183,19 +183,19 @@ class SynthesisWorkerWithInterrupts:
             chunk_idx += 1
 
         # Completed without interruption
-        logger.info(f"✅ [SYNTHESIZER] Completed {chunk_idx} chunks")
+        logger.info(f" [SYNTHESIZER] Completed {chunk_idx} chunks")
         return message, False  # cut_off = False
 
     def cancel_current_task(self):
         """Cancel the current synthesis task"""
         if self.current_task and not self.current_task.done():
             self.current_task.cancel()
-            logger.info("🛑 [SYNTHESIZER] Cancelled current task")
+            logger.info(" [SYNTHESIZER] Cancelled current task")
 
 
-# ============================================================================
+# ==
 # Transcription Worker with Interrupt Detection
-# ============================================================================
+# ==
 
 
 class TranscriptionWorkerWithInterrupts:
@@ -221,7 +221,7 @@ class TranscriptionWorkerWithInterrupts:
 
         # Check if this is an interrupt
         if not self.conversation.is_human_speaking:
-            logger.info("⚠️ [TRANSCRIPTION] User interrupted bot!")
+            logger.info("️ [TRANSCRIPTION] User interrupted bot!")
 
             # Broadcast interrupt to all in-flight events
             interrupted = self.conversation.broadcast_interrupt()
@@ -231,12 +231,12 @@ class TranscriptionWorkerWithInterrupts:
         self.conversation.is_human_speaking = True
 
         # Continue processing transcription...
-        logger.info(f"🎤 [TRANSCRIPTION] Received: '{transcription.message}'")
+        logger.info(f" [TRANSCRIPTION] Received: '{transcription.message}'")
 
 
-# ============================================================================
+# ==
 # Example Usage
-# ============================================================================
+# ==
 
 
 @dataclass
@@ -266,7 +266,7 @@ async def example_interrupt_scenario():
     Example scenario: User interrupts bot mid-sentence
     """
 
-    print("🎬 Scenario: User interrupts bot mid-sentence\n")
+    print(" Scenario: User interrupts bot mid-sentence\n")
 
     # Create conversation
     conversation = ConversationWithInterrupts()
@@ -274,10 +274,10 @@ async def example_interrupt_scenario():
     # Create mock components
     class MockAgent:
         def cancel_current_task(self):
-            print("🛑 [AGENT] Task cancelled")
+            print(" [AGENT] Task cancelled")
 
         def update_last_bot_message_on_cut_off(self, partial_message):
-            print(f"📝 [AGENT] Updated history: '{partial_message}'")
+            print(f" [AGENT] Updated history: '{partial_message}'")
 
     class MockOutputDevice:
         async def consume_nonblocking(self, chunk):
@@ -316,7 +316,7 @@ async def example_interrupt_scenario():
     # Wait a bit, then interrupt
     await asyncio.sleep(0.3)
 
-    print("👤 User interrupts: 'Stop!'\n")
+    print(" User interrupts: 'Stop!'\n")
 
     # Trigger interrupt
     conversation.broadcast_interrupt()
@@ -325,7 +325,7 @@ async def example_interrupt_scenario():
     # Wait for synthesis to finish
     message_sent, was_cut_off = await synthesis_task
 
-    print("\n✅ Result:")
+    print("\n Result:")
     print(f"   - Message sent: '{message_sent}'")
     print(f"   - Was cut off: {was_cut_off}")
 

@@ -4,7 +4,7 @@ These are the real-world issues that only surface after integration. Read this b
 
 ---
 
-## 🚨 Critical Gotchas (Will Break Your Site)
+##  Critical Gotchas (Will Break Your Site)
 
 ---
 

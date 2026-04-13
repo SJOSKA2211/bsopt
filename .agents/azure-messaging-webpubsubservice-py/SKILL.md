@@ -223,7 +223,7 @@ async def broadcast():
 ## Client Operations
 
 | Operation | Description |
-|-----------|-------------|
+|--|--|
 | `get_client_access_token` | Generate WebSocket connection URL |
 | `send_to_all` | Broadcast to all connections |
 | `send_to_user` | Send to specific user |

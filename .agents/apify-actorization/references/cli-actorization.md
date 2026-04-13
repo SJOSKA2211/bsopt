@@ -74,7 +74,7 @@ export INPUT='{"myParam": "test-value"}'
 ## CLI Commands Reference
 
 | Command | Description |
-|---------|-------------|
+|---------|--|
 | `apify actor:get-input` | Get input JSON from key-value store |
 | `apify actor:set-value KEY` | Store value in key-value store |
 | `apify actor:push-data JSON` | Push data to dataset |

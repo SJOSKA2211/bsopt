@@ -72,7 +72,7 @@ Nodes are objects placed on the canvas. Array order determines z-index: first no
 ### Generic Node Attributes
 
 | Attribute | Required | Type | Description |
-|-----------|----------|------|-------------|
+|--|--|------|--|
 | `id` | Yes | string | Unique 16-char hex identifier |
 | `type` | Yes | string | `text`, `file`, `link`, or `group` |
 | `x` | Yes | integer | X position in pixels |
@@ -84,7 +84,7 @@ Nodes are objects placed on the canvas. Array order determines z-index: first no
 ### Text Nodes
 
 | Attribute | Required | Type | Description |
-|-----------|----------|------|-------------|
+|--|--|------|--|
 | `text` | Yes | string | Plain text with Markdown syntax |
 
 ```json
@@ -104,7 +104,7 @@ Nodes are objects placed on the canvas. Array order determines z-index: first no
 ### File Nodes
 
 | Attribute | Required | Type | Description |
-|-----------|----------|------|-------------|
+|--|--|------|--|
 | `file` | Yes | string | Path to file within the system |
 | `subpath` | No | string | Link to heading or block (starts with `#`) |
 
@@ -123,7 +123,7 @@ Nodes are objects placed on the canvas. Array order determines z-index: first no
 ### Link Nodes
 
 | Attribute | Required | Type | Description |
-|-----------|----------|------|-------------|
+|--|--|------|--|
 | `url` | Yes | string | External URL |
 
 ```json
@@ -143,7 +143,7 @@ Nodes are objects placed on the canvas. Array order determines z-index: first no
 Groups are visual containers for organizing other nodes. Position child nodes inside the group's bounds.
 
 | Attribute | Required | Type | Description |
-|-----------|----------|------|-------------|
+|--|--|------|--|
 | `label` | No | string | Text label for the group |
 | `background` | No | string | Path to background image |
 | `backgroundStyle` | No | string | `cover`, `ratio`, or `repeat` |
@@ -166,7 +166,7 @@ Groups are visual containers for organizing other nodes. Position child nodes in
 Edges connect nodes via `fromNode` and `toNode` IDs.
 
 | Attribute | Required | Type | Default | Description |
-|-----------|----------|------|---------|-------------|
+|--|--|------|---------|--|
 | `id` | Yes | string | - | Unique identifier |
 | `fromNode` | Yes | string | - | Source node ID |
 | `fromSide` | No | string | - | `top`, `right`, `bottom`, or `left` |
@@ -221,7 +221,7 @@ Generate 16-character lowercase hexadecimal strings (64-bit random value):
 - Align to grid (multiples of 10 or 20) for cleaner layouts
 
 | Node Type | Suggested Width | Suggested Height |
-|-----------|-----------------|------------------|
+|--|--|--|
 | Small text | 200-300 | 80-150 |
 | Medium text | 300-450 | 150-300 |
 | Large text | 400-600 | 300-500 |

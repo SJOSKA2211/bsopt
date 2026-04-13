@@ -118,7 +118,7 @@ export const options = {
 ### Test Types
 
 | Type | Use Case | Configuration |
-|------|----------|---------------|
+|------|--|--|
 | Smoke Test | Verify basic functionality | Low VUs (1-5), short duration |
 | Load Test | Normal expected load | Target VUs based on traffic |
 | Stress Test | Find breaking point | Ramp beyond capacity |
@@ -517,7 +517,7 @@ k6 run --out cloud load-test.js
 ### Interpreting Results
 
 | Metric | Description | Good | Warning | Bad |
-|--------|-------------|------|---------|-----|
+|--------|--|------|---------|-----|
 | http_req_duration (p95) | 95% response time | < 300ms | 300-500ms | > 500ms |
 | http_req_failed | Error rate | < 0.1% | 0.1-1% | > 1% |
 | http_reqs | Requests/sec | Meeting target | Near limit | At limit |

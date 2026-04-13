@@ -2,7 +2,7 @@
 
 Using the right container for the data type simplifies XAML and improves maintainability. `Zafiro.Avalonia` provides specialized controls for common layout patterns.
 
-## 📦 HeaderedContainer
+##  HeaderedContainer
 
 Prefer `HeaderedContainer` over a `Border` or `Grid` when a section needs a title or header.
 
@@ -34,7 +34,7 @@ Use `EdgePanel` to position elements at the edges of a container without complex
 - `Content`: Fills the remaining space in the middle.
 - `EndContent`: Aligned to the right (or end).
 
-## 📇 Card
+##  Card
 
 A simple container for grouping related information, often used inside `HeaderedContainer` or as a standalone element in a list.
 
@@ -44,7 +44,7 @@ A simple container for grouping related information, often used inside `Headered
 </Card>
 ```
 
-## 📐 Best Practices
+##  Best Practices
 
 - Use `Classes` to apply themed variants (e.g., `Classes="Section"`, `Classes="Highlight"`).
 - Customize internal parts of the containers using templates in your styles when necessary, rather than nesting more controls.

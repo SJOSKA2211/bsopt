@@ -13,7 +13,7 @@
 A SpaceX opera três veículos lançadores ativos ou recentemente ativos da família Falcon:
 
 | Veículo         | Primeira Voo | Status         | Payload LEO | Payload GTO |
-|-----------------|-------------|----------------|-------------|-------------|
+|--|--|--|--|--|
 | Falcon 1        | 2006        | Aposentado 2009| 670 kg      | N/A         |
 | Falcon 9 Block5 | 2018        | Ativo          | 22.800 kg   | 8.300 kg    |
 | Falcon Heavy    | 2018        | Ativo          | 63.800 kg   | 26.700 kg   |
@@ -78,7 +78,7 @@ A SpaceX opera três veículos lançadores ativos ou recentemente ativos da fam�
 **Merlin 1D (versão atual)**
 
 | Parâmetro               | Valor               |
-|-------------------------|---------------------|
+|--|--|
 | Empuxo ao nível do mar  | 845 kN (190.000 lbf)|
 | Empuxo no vácuo         | 934 kN              |
 | Isp ao nível do mar     | 282 s               |
@@ -95,7 +95,7 @@ A SpaceX opera três veículos lançadores ativos ou recentemente ativos da fam�
 **Merlin 1D Vacuum** (segundo estágio)
 
 | Parâmetro               | Valor               |
-|-------------------------|---------------------|
+|--|--|
 | Empuxo                  | 934 kN              |
 | Isp                     | 348 s               |
 | Pressão de câmara       | ~97 bar             |
@@ -108,7 +108,7 @@ A SpaceX opera três veículos lançadores ativos ou recentemente ativos da fam�
 **Configuração**: Três boosters Falcon 9 em paralelo (dois side boosters + central core)
 
 | Parâmetro               | Valor               |
-|-------------------------|---------------------|
+|--|--|
 | Empuxo total decolagem  | 22.819 kN (~5,1 milhões lbf) |
 | Payload para LEO        | 63.800 kg           |
 | Payload para GTO        | 26.700 kg           |
@@ -140,7 +140,7 @@ Esta é a maior e mais poderosa nave já construída na história da humanidade.
 **Super Heavy (primeiro estágio)**
 
 | Parâmetro               | Valor               |
-|-------------------------|---------------------|
+|--|--|
 | Altura                  | ~71 metros          |
 | Diâmetro                | 9 metros            |
 | Número de motores       | 33 × Raptor 2       |
@@ -157,7 +157,7 @@ Este é o sistema mais ousado já tentado em engenharia aeroespacial.
 **Starship (segundo estágio)**
 
 | Parâmetro               | Valor               |
-|-------------------------|---------------------|
+|--|--|
 | Altura                  | ~50 metros          |
 | Diâmetro                | 9 metros            |
 | Número de motores       | 6 × Raptor (3 ao nível do mar + 3 vácuo) |
@@ -215,7 +215,7 @@ O FFSC nunca tinha sido dominado em produção em série antes do Raptor.
 **Especificações Raptor 2 (2022)**
 
 | Parâmetro               | Raptor 2 (atual)    | Raptor 1 (original) |
-|-------------------------|---------------------|---------------------|
+|--|--|--|
 | Pressão de câmara       | ~300 bar (4.350 psi)| ~250 bar            |
 | Empuxo ao nível do mar  | ~230 tf (2.258 kN)  | ~185 tf             |
 | Empuxo no vácuo         | ~258 tf (2.531 kN)  | ~220 tf             |
@@ -295,7 +295,7 @@ A SpaceX tipicamente usa "hodograph" (curva de velocidade vs altitude) para otim
 ### 1.8 Rendimento de Missão — Custos Reais
 
 | Missão                    | Custo de lançamento |
-|---------------------------|---------------------|
+|--|--|
 | Falcon 9 (dedicado)       | $67–$97 milhões     |
 | Falcon 9 (rideshare)      | $5.400/kg (Transporter missions) |
 | Falcon Heavy (dedicado)   | $97–$150 milhões    |
@@ -334,7 +334,7 @@ Isso é 500× menor do que o necessário.
 **Composição química das células Tesla (evolução)**:
 
 | Geração    | Química     | Célula   | Densidade Energética | Aplicação    |
-|------------|-------------|----------|----------------------|--------------|
+|--|--|--|--|--|
 | Gen 1 (2012)| NCA (Ni-Co-Al) | 18650  | ~250 Wh/kg           | Model S original |
 | Gen 2      | NCA         | 21700    | ~300 Wh/kg           | Model 3/Y     |
 | Gen 3 (2020)| LFP (sem cobalto) | 21700/2170 | ~200 Wh/kg   | Versões básicas |
@@ -502,7 +502,7 @@ córtex→computador, potencialmente eliminando esse gargalo.
 **Estado da arte em BCIs (antes da Neuralink)**:
 
 | Tecnologia         | Resolução espacial | Invasividade | Largura de banda |
-|--------------------|--------------------|--------------|------------------|
+|--|--|--|--|
 | EEG (eletrodos externos) | Baixa (cm) | Não invasivo | ~10 bits/s      |
 | ECoG (subdural)    | Média (mm)         | Cirurgia aberta | ~100 bits/s   |
 | Utah Array         | Alta (100 eletrodos) | Invasivo    | ~1000 bits/s    |
@@ -657,7 +657,7 @@ em tubo sob pressão normal com carros elétricos modificados (Tesla).
 ### 5.1 Isp por Motor/Propelente
 
 | Motor/Propelente   | Isp (vácuo) | Isp (SL)  | Ciclo         |
-|--------------------|-------------|-----------|---------------|
+|--|--|--|--|
 | Merlin 1D (RP-1/LOX) | 311 s     | 282 s     | Gas-generator |
 | Merlin 1D Vac       | 348 s      | N/A       | Gas-generator |
 | Raptor 2 (CH4/LOX)  | 363 s      | 327 s     | FFSC          |
@@ -684,7 +684,7 @@ CH4/LOX é o equilíbrio: Isp bom + densidade razoável (-162°C) + fabricável 
 **Delta-V necessário por missão**:
 
 | Destino               | Δv necessário | Notas                          |
-|-----------------------|---------------|--------------------------------|
+|--|--|--|
 | LEO (200 km)          | ~9.400 m/s    | inclui perdas gravitacionais ~1500 m/s |
 | GTO                   | ~10.500 m/s   |                                |
 | GEO                   | ~11.000 m/s   |                                |
@@ -703,7 +703,7 @@ CH4/LOX é o equilíbrio: Isp bom + densidade razoável (-162°C) + fabricável 
 ### 5.3 Baterias — Densidades e Custos
 
 | Química      | Energia específica | Potência específica | Ciclos | Segurança | Custo ($/kWh) |
-|--------------|-------------------|---------------------|--------|-----------|---------------|
+|--|--|--|--------|--|--|
 | LFP          | ~170 Wh/kg        | Moderada            | 3.000+ | Muito alta | ~80-100       |
 | NMC          | ~220-280 Wh/kg    | Alta                | 1.000-2.000 | Alta  | ~100-120      |
 | NCA          | ~250-300 Wh/kg    | Alta                | 500-1.500 | Moderada | ~110-130     |
@@ -716,7 +716,7 @@ mas motor ICE tem ~25% eficiência vs motor elétrico ~90% → razão efetiva ~1
 ### 5.4 Números-Chave Tesla (2023)
 
 | Métrica                       | Valor           |
-|-------------------------------|-----------------|
+|--|--|
 | Veículos entregues (2023)     | 1.808.581       |
 | Receita (2023)                | $96,8 bilhões   |
 | Margem bruta automotiva       | ~17-18%         |
@@ -730,7 +730,7 @@ mas motor ICE tem ~25% eficiência vs motor elétrico ~90% → razão efetiva ~1
 ### 5.5 Números-Chave SpaceX (2023-2024)
 
 | Métrica                       | Valor           |
-|-------------------------------|-----------------|
+|--|--|
 | Lançamentos Falcon 9 (2023)   | 91              |
 | Lançamentos totais acumulados | >250            |
 | Boosters reutilizados         | >80% dos voos   |

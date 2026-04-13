@@ -18,9 +18,9 @@ NC='\033[0m'
 # Demo output helpers
 banner() {
     echo ""
-    echo -e "${CYAN}========================================${NC}"
+    echo -e "${CYAN}==${NC}"
     echo -e "${CYAN}  $1${NC}"
-    echo -e "${CYAN}========================================${NC}"
+    echo -e "${CYAN}==${NC}"
     echo ""
     sleep 1
 }

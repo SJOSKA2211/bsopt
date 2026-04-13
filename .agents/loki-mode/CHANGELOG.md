@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Loki Mode already implements more comprehensive versions of:
 
 | Feature | Loki Mode | Best External |
-|---------|-----------|---------------|
+|---------|--|--|
 | Agent Types | 37 specialized | Sisyphus: 11 |
 | Memory System | Episodic/semantic/procedural + cross-project | Worldview: single-project |
 | Recovery | RARV + circuit breakers + git checkpoints | Sisyphus: session recovery |
@@ -91,7 +91,7 @@ Loki Mode already implements more comprehensive versions of:
 Two dispatch modes based on task complexity - reduces latency for simple tasks:
 
 | Mode | When to Use | Behavior |
-|------|-------------|----------|
+|------|--|--|
 | **Direct Routing** | Simple, single-domain tasks | Route directly to specialist agent, skip orchestration |
 | **Supervisor Mode** | Complex, multi-step tasks | Full decomposition, coordination, result synthesis |
 
@@ -114,7 +114,7 @@ Two dispatch modes based on task complexity - reduces latency for simple tasks:
 **5 bugs fixed in autonomy/run.sh:**
 
 | Bug | Symptom | Root Cause | Fix |
-|-----|---------|------------|-----|
+|-----|---------|--|-----|
 | Dashboard crash on edit | Dashboard killed mid-session | Bash reads scripts incrementally; editing corrupts execution | Self-copy to `/tmp/loki-run-PID.sh` before exec |
 | Parse error: `name 'pattern' is not defined` | Python errors during PRD processing | PRD content with quotes breaking Python string literals | Pass context via `LOKI_CONTEXT` env var |
 | `datetime.utcnow()` deprecated | DeprecationWarning spam in logs | Python 3.12+ deprecation | Use `datetime.now(timezone.utc)` |
@@ -177,7 +177,7 @@ Battle-tested patterns from practitioners:
 ### Key Practitioner Insights
 
 | Insight | Source | Implementation |
-|---------|--------|----------------|
+|---------|--------|--|
 | "Zero companies without HITL" | Amazon AI engineer | Confidence thresholds |
 | "3-5 steps max before review" | Multiple practitioners | Task scope constraints |
 | "Deterministic validation wins" | Production teams | Rule-based outer loops |
@@ -244,7 +244,7 @@ Comprehensive guide covering:
 ### Research Insights Applied
 
 | Lab | Key Insight | Loki Mode Implementation |
-|-----|-------------|-------------------------|
+|-----|--|--|
 | DeepMind | "Hierarchical reasoning separates planning from execution" | Orchestrator = planner, agents = executors |
 | DeepMind | "Debate can verify beyond human capability" | Debate verification for critical changes |
 | Anthropic | "Self-critique against principles is more robust" | Constitutional AI workflow |
@@ -309,7 +309,7 @@ Comprehensive guide covering:
 
 ### OpenAI Key Insights Applied
 | Insight | Implementation |
-|---------|----------------|
+|---------|--|
 | "Layered defense with multiple guardrails" | 4-layer guardrail system |
 | "Tripwires halt execution immediately" | Exception hierarchy for validation failures |
 | "on_handoff for data preparation" | Pre-fetch context during agent transfers |
@@ -357,7 +357,7 @@ Comprehensive guide covering:
 ### Research Validation
 Loki Mode already implements most research-backed patterns:
 | Pattern | Research Source | Status |
-|---------|----------------|--------|
+|---------|--|--------|
 | Evaluator-optimizer | Anthropic | RARV cycle |
 | Parallelization | Anthropic | Parallel review |
 | Routing | Anthropic | Model selection |
@@ -427,13 +427,13 @@ Loki Mode already implements most research-backed patterns:
 ### Comparison: Loki Mode vs ToolOrchestra
 
 | Feature | ToolOrchestra | Loki Mode 2.28.0 |
-|---------|---------------|------------------|
+|---------|--|--|
 | Multi-turn reasoning | Orchestrator-8B | RARV cycle |
-| Efficiency tracking | ✅ 70% cost reduction | ✅ Now implemented |
-| Reward signals | 3 types | ✅ 3 types (same) |
-| Dynamic tool selection | 5/10/15/20/all | ✅ By complexity (5 levels) |
-| Memory system | None | ✅ Episodic/Semantic/Procedural |
-| Anti-sycophancy | None | ✅ Blind review + Devil's Advocate |
+| Efficiency tracking |  70% cost reduction |  Now implemented |
+| Reward signals | 3 types |  3 types (same) |
+| Dynamic tool selection | 5/10/15/20/all |  By complexity (5 levels) |
+| Memory system | None |  Episodic/Semantic/Procedural |
+| Anti-sycophancy | None |  Blind review + Devil's Advocate |
 | Benchmarks | GAIA #1, HLE 37.1% | HumanEval 98.78%, SWE-bench 99.67% |
 
 ---
@@ -487,7 +487,7 @@ Loki Mode already implements most research-backed patterns:
 
 ### Research Impact Summary
 | Enhancement | Source | Improvement |
-|-------------|--------|-------------|
+|--|--------|--|
 | Blind Review + Devil's Advocate | CONSENSAGENT | 30% fewer false positives |
 | Heterogeneous Teams | A-HMAD | 4-6% accuracy improvement |
 | Hierarchical Planning | GoalAct | 12% success rate improvement |
@@ -532,7 +532,7 @@ Loki Mode already implements most research-backed patterns:
 **Full SWE-bench Lite Multi-Agent Benchmark** - 299/300 problems!
 
 | System | SWE-bench Patch Gen | Notes |
-|--------|---------------------|-------|
+|--------|--|-------|
 | Direct Claude | 99.67% (299/300) | Single agent baseline |
 | **Loki Mode (multi-agent)** | **99.67%** (299/300) | 4-agent pipeline with RARV |
 
@@ -557,7 +557,7 @@ Loki Mode already implements most research-backed patterns:
 **True Multi-Agent Benchmark Implementation** - Now benchmarks actually use the Loki Mode agent pipeline!
 
 | System | HumanEval Pass@1 | Agent Type |
-|--------|------------------|------------|
+|--------|--|--|
 | **Loki Mode (multi-agent)** | **98.78%** | Architect->Engineer->QA->Reviewer |
 | Direct Claude | 98.17% | Single agent |
 | MetaGPT | 85.9-87.7% | Multi-agent |
@@ -778,7 +778,7 @@ Based on comprehensive competitive analysis against Claude-Flow (10.7K stars), M
 
 ### Competitive Position After This Release
 | Capability | Before | After |
-|------------|--------|-------|
+|--|--------|-------|
 | Published Benchmarks | None | HumanEval + SWE-bench infrastructure |
 | Enterprise Security | `--dangerously-skip-permissions` | Staged autonomy, audit logs, command blocking |
 | Cross-Project Learning | None | Global learnings database |

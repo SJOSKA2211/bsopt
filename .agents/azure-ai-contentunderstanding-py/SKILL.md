@@ -45,7 +45,7 @@ Content Understanding operations are asynchronous long-running operations:
 ## Prebuilt Analyzers
 
 | Analyzer | Content Type | Purpose |
-|----------|--------------|---------|
+|--|--|---------|
 | `prebuilt-documentSearch` | Documents | Extract markdown for RAG applications |
 | `prebuilt-imageSearch` | Images | Extract content from images |
 | `prebuilt-audioSearch` | Audio | Transcribe audio with timing |
@@ -237,7 +237,7 @@ asyncio.run(analyze_document())
 ## Content Types
 
 | Class | For | Provides |
-|-------|-----|----------|
+|-------|-----|--|
 | `DocumentContent` | PDF, images, Office docs | Pages, tables, figures, paragraphs |
 | `AudioVisualContent` | Audio, video files | Transcript phrases, timing, key frames |
 

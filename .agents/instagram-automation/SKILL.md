@@ -177,7 +177,7 @@ Automate Instagram operations through Composio's Instagram toolkit via Rube MCP.
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Get user info | INSTAGRAM_GET_USER_INFO | (none) |
 | Create media container | INSTAGRAM_CREATE_MEDIA_CONTAINER | image_url/video_url, caption |
 | Create carousel | INSTAGRAM_CREATE_CAROUSEL_CONTAINER | children, caption |

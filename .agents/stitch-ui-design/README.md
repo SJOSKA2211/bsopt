@@ -107,7 +107,7 @@ Platform: Responsive web (desktop-first)
 
 ## Best Practices
 
-### Do's ✅
+### Do's 
 - Provide specific component details
 - Define clear visual direction
 - Specify responsive behavior
@@ -117,7 +117,7 @@ Platform: Responsive web (desktop-first)
 - Iterate with annotations
 - Consider accessibility from the start
 
-### Don'ts ❌
+### Don'ts 
 - Use vague descriptions ("nice website")
 - Omit visual style guidance
 - Forget platform specifications

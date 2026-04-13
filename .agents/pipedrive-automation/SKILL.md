@@ -197,7 +197,7 @@ Most list endpoints use offset-based pagination:
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | Create deal | `PIPEDRIVE_ADD_A_DEAL` | `title`, `value`, `org_id`, `stage_id` |
 | Update deal | `PIPEDRIVE_UPDATE_A_DEAL` | `id`, `status`, `value`, `stage_id` |
 | Get deal details | `PIPEDRIVE_GET_DETAILS_OF_A_DEAL` | `id` |

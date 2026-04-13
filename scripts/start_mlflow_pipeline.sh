@@ -19,12 +19,12 @@ detect_container_engine
 
 # Ensure MLflow substrate is active
 if ! $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml ps | grep -q "mlflow"; then
-    echo "🏗️ Starting MLflow infrastructure..."
+    echo "️ Starting MLflow infrastructure..."
     $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml up -d mlflow minio
     sleep 5
 fi
 
-echo "🚀 Executing pipeline in Production ml-worker..."
+echo " Executing pipeline in Production ml-worker..."
 # standardizing on 'ml-worker' service name
 $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -d ml-worker mlflow run . \
     -e "$ENTRY_POINT" \
@@ -32,5 +32,5 @@ $COMPOSE_ENGINE -f infrastructure/orchestration/docker-compose.yml exec -d ml-wo
     --env-manager local \
     $PARAMS
 
-echo "✅ Pipeline $ENTRY_POINT initiated."
+echo " Pipeline $ENTRY_POINT initiated."
 echo "Track results: http://localhost:5000"

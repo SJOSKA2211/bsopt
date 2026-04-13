@@ -18,13 +18,13 @@ Complete guide to async/await patterns and custom error handling.
 ### Always Use Try-Catch
 
 ```typescript
-// ❌ NEVER: Unhandled async errors
+//  NEVER: Unhandled async errors
 async function fetchData() {
     const data = await database.query(); // If throws, unhandled!
     return data;
 }
 
-// ✅ ALWAYS: Wrap in try-catch
+//  ALWAYS: Wrap in try-catch
 async function fetchData() {
     try {
         const data = await database.query();
@@ -39,7 +39,7 @@ async function fetchData() {
 ### Avoid .then() Chains
 
 ```typescript
-// ❌ AVOID: Promise chains
+//  AVOID: Promise chains
 function processData() {
     return fetchData()
         .then(data => transform(data))
@@ -49,7 +49,7 @@ function processData() {
         });
 }
 
-// ✅ PREFER: Async/await
+//  PREFER: Async/await
 async function processData() {
     try {
         const data = await fetchData();
@@ -69,7 +69,7 @@ async function processData() {
 ### Parallel Operations
 
 ```typescript
-// ✅ Handle errors in Promise.all
+//  Handle errors in Promise.all
 try {
     const [users, profiles, settings] = await Promise.all([
         userService.getAll(),
@@ -82,7 +82,7 @@ try {
     throw error;
 }
 
-// ✅ Handle errors individually with Promise.allSettled
+//  Handle errors individually with Promise.allSettled
 const results = await Promise.allSettled([
     userService.getAll(),
     profileService.getAll(),
@@ -217,7 +217,7 @@ router.get('/users', asyncErrorWrapper(async (req, res) => {
 ### Proper Error Chains
 
 ```typescript
-// ✅ Propagate errors up the stack
+//  Propagate errors up the stack
 async function repositoryMethod() {
     try {
         return await PrismaService.main.user.findMany();
@@ -253,13 +253,13 @@ async function controllerMethod(req, res) {
 ### Fire and Forget (Bad)
 
 ```typescript
-// ❌ NEVER: Fire and forget
+//  NEVER: Fire and forget
 async function processRequest(req, res) {
     sendEmail(user.email); // Fires async, errors unhandled!
     res.json({ success: true });
 }
 
-// ✅ ALWAYS: Await or handle
+//  ALWAYS: Await or handle
 async function processRequest(req, res) {
     try {
         await sendEmail(user.email);
@@ -270,7 +270,7 @@ async function processRequest(req, res) {
     }
 }
 
-// ✅ OR: Intentional background task
+//  OR: Intentional background task
 async function processRequest(req, res) {
     sendEmail(user.email).catch(error => {
         Sentry.captureException(error);
@@ -282,7 +282,7 @@ async function processRequest(req, res) {
 ### Unhandled Rejections
 
 ```typescript
-// ✅ Global handler for unhandled rejections
+//  Global handler for unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
     Sentry.captureException(reason, {
         tags: { type: 'unhandled_rejection' }

@@ -585,7 +585,7 @@ repos:
 
 set -euo pipefail
 
-echo "🚀 Setting up development environment..."
+echo " Setting up development environment..."
 
 # Check prerequisites
 check_prerequisites() {
@@ -594,12 +594,12 @@ check_prerequisites() {
     commands=("git" "node" "npm" "docker" "docker-compose")
     for cmd in "${commands[@]}"; do
         if ! command -v "$cmd" &> /dev/null; then
-            echo "❌ $cmd is not installed"
+            echo " $cmd is not installed"
             exit 1
         fi
     done
     
-    echo "✅ All prerequisites installed"
+    echo " All prerequisites installed"
 }
 
 # Install dependencies
@@ -645,8 +645,8 @@ setup_environment() {
     
     if [ ! -f .env.local ]; then
         cp .env.example .env.local
-        echo "✅ Created .env.local from .env.example"
-        echo "⚠️  Please update .env.local with your values"
+        echo " Created .env.local from .env.example"
+        echo "️  Please update .env.local with your values"
     fi
 }
 
@@ -658,7 +658,7 @@ main() {
     setup_environment
     initialize_database
     
-    echo "✅ Development environment setup complete!"
+    echo " Development environment setup complete!"
     echo ""
     echo "Next steps:"
     echo "1. Update .env.local with your configuration"
@@ -745,7 +745,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const output = `#### Terraform Plan 📖
+            const output = `#### Terraform Plan 
             \`\`\`
             ${process.env.PLAN_SUMMARY}
             \`\`\`

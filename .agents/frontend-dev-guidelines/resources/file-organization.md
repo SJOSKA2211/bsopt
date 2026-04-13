@@ -218,7 +218,7 @@ types/
 From `vite.config.ts` lines 180-185:
 
 | Alias | Resolves To | Use For |
-|-------|-------------|---------|
+|-------|--|---------|
 | `@/` | `src/` | Absolute imports from src root |
 | `~types` | `src/types` | Shared TypeScript types |
 | `~components` | `src/components` | Reusable components |
@@ -227,13 +227,13 @@ From `vite.config.ts` lines 180-185:
 ### Usage Examples
 
 ```typescript
-// ✅ PREFERRED - Use aliases for absolute imports
+//  PREFERRED - Use aliases for absolute imports
 import { apiClient } from '@/lib/apiClient';
 import { SuspenseLoader } from '~components/SuspenseLoader';
 import { postApi } from '~features/posts/api/postApi';
 import type { User } from '~types/user';
 
-// ❌ AVOID - Relative paths from deep nesting
+//  AVOID - Relative paths from deep nesting
 import { apiClient } from '../../../lib/apiClient';
 import { SuspenseLoader } from '../../../components/SuspenseLoader';
 ```
@@ -280,9 +280,9 @@ CustomAppBar.tsx
 ```
 
 **Avoid:**
-- camelCase: `myComponent.tsx` ❌
-- kebab-case: `my-component.tsx` ❌
-- All caps: `MYCOMPONENT.tsx` ❌
+- camelCase: `myComponent.tsx` 
+- kebab-case: `my-component.tsx` 
+- All caps: `MYCOMPONENT.tsx` 
 
 ### Hooks
 
@@ -426,10 +426,10 @@ export type { MyFeatureData, MyFeatureConfig } from './types';
 
 **Usage:**
 ```typescript
-// ✅ Clean import from feature index
+//  Clean import from feature index
 import { MyFeatureMain, useMyFeature } from '~features/my-feature';
 
-// ❌ Avoid deep imports (but OK if needed)
+//  Avoid deep imports (but OK if needed)
 import { MyFeatureMain } from '~features/my-feature/components/MyFeatureMain';
 ```
 

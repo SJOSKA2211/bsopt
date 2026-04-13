@@ -479,7 +479,7 @@ Structured scanning approach:
 Choose the right tool for each scenario:
 
 | Scenario | Recommended Tools |
-|----------|-------------------|
+|--|--|
 | Network Discovery | Nmap, Masscan |
 | Vulnerability Assessment | Nessus, OpenVAS |
 | Web App Testing | Burp Suite, ZAP, Nikto |
@@ -517,7 +517,7 @@ gvm-cli socket --xml '<get_reports report_id="<id>" format_id="<pdf_format>"/>'
 ### Nmap Cheat Sheet
 
 | Scan Type | Command |
-|-----------|---------|
+|--|---------|
 | Ping Scan | `nmap -sn <target>` |
 | Quick Scan | `nmap -T4 -F <target>` |
 | Full Scan | `nmap -p- <target>` |

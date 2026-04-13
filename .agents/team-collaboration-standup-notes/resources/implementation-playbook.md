@@ -252,20 +252,20 @@ obsidian_get_recent_periodic_notes --period daily --limit 2 | \
 
 **Posted:** 9:00 AM PT | **Read time:** ~2min
 
-## ✅ Yesterday
+##  Yesterday
 • Shipped user profile API endpoints (JIRA-234) - Live in staging
 • Fixed critical bug in payment flow - PR merged, deploying at 2pm
 • Reviewed PRs from @teammate1 and @teammate2
 
-## 🎯 Today
+##  Today
 • Migrate user database to new schema (JIRA-456) - Target: EOD
 • Pair with @teammate3 on webhook integration - 11am session
 • Write deployment runbook for profile API
 
-## 🚧 Blockers
+##  Blockers
 • Need staging database access for migration testing - @infra-team
 
-## 📎 Links
+##  Links
 • PR #789 | JIRA Sprint Board
 ```
 
@@ -273,7 +273,7 @@ obsidian_get_recent_periodic_notes --period daily --limit 2 | \
 - Post standup as Slack thread parent message
 - Teammates reply in thread with questions or offers to help
 - Keep discussion contained, surface key decisions to channel
-- Use emoji reactions for quick acknowledgment (👀 = read, ✅ = noted, 🤝 = I can help)
+- Use emoji reactions for quick acknowledgment ( = read,  = noted, 🤝 = I can help)
 
 **Video Async Standup:**
 - Record 2-3 minute Loom video walking through work
@@ -351,7 +351,7 @@ From standup notes, automatically extract:
 • Taking tomorrow afternoon off (dentist appointment) - Will post morning standup but limited availability after 12pm
 • Mobile responsiveness research doc started: [Link to Notion doc]
 
-📎 Sprint Board | My Active PRs
+ Sprint Board | My Active PRs
 ```
 
 ### Example 2: AI-Generated Standup from Git History
@@ -391,29 +391,29 @@ From standup notes, automatically extract:
 ### Example 3: Async Standup Template (Slack/Discord)
 
 ```markdown
-**🌅 Standup - Friday, Oct 11** | Posted 9:15 AM ET | @here
+** Standup - Friday, Oct 11** | Posted 9:15 AM ET | @here
 
-**✅ Since last update (Thu evening)**
-• Merged PR #789 - New search filters now in production 🚀
+** Since last update (Thu evening)**
+• Merged PR #789 - New search filters now in production 
 • Closed JIRA-445 (the CSS rendering bug) - Fix deployed and verified
 • Documented API changes in Confluence - [Link]
 • Helped @alex debug the staging environment issue
 
-**🎯 Today's focus**
+** Today's focus**
 • Finish user permissions refactor (JIRA-501) - aiming for code complete by EOD
 • Deploy search performance improvements to prod (pending final QA approval)
 • Kick off spike on GraphQL migration - research phase, doc by end of day
 
-**🚧 Blockers**
-• ⚠️ Need @product approval on permissions UX before I can finish JIRA-501
+** Blockers**
+• ️ Need @product approval on permissions UX before I can finish JIRA-501
   - I've posted in #product-questions, following up in standup if no response by 11am
 
-**📅 Schedule notes**
+** Schedule notes**
 • OOO 2-3pm for doctor appointment
 • Available for pairing this afternoon if anyone needs help!
 
 ---
-React with 👀 when read | Reply in thread with questions
+React with  when read | Reply in thread with questions
 ```
 
 ### Example 4: Blocker Escalation Format
@@ -431,7 +431,7 @@ React with 👀 when read | Reply in thread with questions
 • Will pivot to JIRA-802 (refactor user service) as backup work
 • Review PRs and help unblock teammates
 
-## 🚨 CRITICAL BLOCKER
+##  CRITICAL BLOCKER
 
 **Issue:** Production database read access for migration dry-run
 **Blocked since:** Tuesday (3 days)
@@ -504,33 +504,33 @@ jira issues list --assignee currentUser() --status "In Progress"
 **Standup Note (Posted in Slack):**
 
 ```markdown
-**🌄 Standup - Oct 11** | @team-backend | Read time: 2min
+** Standup - Oct 11** | @team-backend | Read time: 2min
 
-**✅ Yesterday**
+** Yesterday**
 • Shipped v2 API authentication (JIRA-234) → Production deployment successful, monitoring dashboards green
 • Fixed race condition in job queue (JIRA-456) → Reduced error rate from 2% to 0.1%
 • Code review marathon: Reviewed 4 PRs from @alice, @bob, @charlie → All merged
 • Pair programming: Helped @diana debug webhook integration → Issue resolved, she's unblocked
 
-**🎯 Today**
+** Today**
 • **Priority 1:** Complete database migration script (JIRA-567) → Target: Code complete + tested by 3pm
 • **Priority 2:** Security audit prep → Generate access logs report for compliance team
 • **Priority 3:** Start API rate limiting implementation (JIRA-589) → Spike and design doc
 • **Meetings:** Architecture review at 11am PT, sprint planning at 2pm PT
 
-**🚧 Blockers**
-• None! (Yesterday's staging env blocker was resolved by @sre-team 🙌)
+** Blockers**
+• None! (Yesterday's staging env blocker was resolved by @sre-team )
 
-**💡 Notes**
+** Notes**
 • Database migration is sprint goal - will update thread when complete
 • Available for pairing this afternoon if anyone needs database help
 • Heads up: Deploying migration to staging at noon, expect ~10min downtime
 
-**🔗 Links**
+** Links**
 • Active PRs | Sprint Board | Migration Runbook
 
 ---
-👀 = I've read this | 🤝 = I can help with something | 💬 = Reply in thread
+ = I've read this | 🤝 = I can help with something |  = Reply in thread
 ```
 
 **Follow-Up Actions (Throughout Day):**
@@ -544,7 +544,7 @@ Response:
 > "Absolutely! I'll review by 1pm so you have feedback before sprint planning. Link?"
 
 # 3:00 PM - Progress update in thread
-> "✅ Update: Migration script complete and tested in staging. Dry-run successful, ready for prod deployment tomorrow. PR #892 up for review."
+> " Update: Migration script complete and tested in staging. Dry-run successful, ready for prod deployment tomorrow. PR #892 up for review."
 
 # EOD - Tomorrow's setup
 Add to tomorrow's "Today" section:
@@ -558,10 +558,10 @@ Add to tomorrow's "Today" section:
 ```markdown
 # Review week of standup notes
 Patterns observed:
-• ✅ Completed all 5 sprint stories
-• ⚠️ Database blocker cost 1.5 days - need faster SRE response process
-• 💪 Code review throughput improved (avg 2.5 reviews/day vs 1.5 last week)
-• 🎯 Pairing sessions very productive (3 this week) - schedule more next sprint
+•  Completed all 5 sprint stories
+• ️ Database blocker cost 1.5 days - need faster SRE response process
+•  Code review throughput improved (avg 2.5 reviews/day vs 1.5 last week)
+•  Pairing sessions very productive (3 this week) - schedule more next sprint
 
 Action items:
 • Talk to @sre-lead about expedited access request process
@@ -629,12 +629,12 @@ USER_EMAIL=$(git config user.email)
 echo "🤖 Generating standup note for $USER on $DATE..."
 
 # 1. Collect Git commits
-echo "📊 Analyzing Git history..."
+echo " Analyzing Git history..."
 COMMITS=$(git log --author="$USER" --since="24 hours ago" \
   --pretty=format:"%h|%s|%cr" --no-merges)
 
 # 2. Query Jira (requires jira CLI)
-echo "🎫 Fetching Jira tickets..."
+echo " Fetching Jira tickets..."
 JIRA_DONE=$(jira issues list --assignee currentUser() \
   --jql "status CHANGED TO 'Done' DURING (-1d, now())" \
   --template json)
@@ -644,11 +644,11 @@ JIRA_PROGRESS=$(jira issues list --assignee currentUser() \
   --template json)
 
 # 3. Get Obsidian recent changes (via MCP)
-echo "📝 Checking Obsidian vault..."
+echo " Checking Obsidian vault..."
 OBSIDIAN_CHANGES=$(obsidian_get_recent_changes --days 2)
 
 # 4. Get calendar events
-echo "📅 Fetching calendar..."
+echo " Fetching calendar..."
 MEETINGS=$(gcal --today --format=json)
 
 # 5. Send to AI for analysis and generation
@@ -688,7 +688,7 @@ PROMPT
 echo "$STANDUP_NOTE" > ~/Obsidian/Standup\ Notes/$DATE.md
 
 # 7. Present for human review
-echo "✅ Draft standup note generated!"
+echo " Draft standup note generated!"
 echo ""
 echo "$STANDUP_NOTE"
 echo ""
@@ -697,10 +697,10 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     # 8. Post to Slack
     slack-cli chat send --channel "#standup" --text "$STANDUP_NOTE"
-    echo "📮 Posted to Slack #standup channel"
+    echo " Posted to Slack #standup channel"
 fi
 
-echo "💾 Saved to: ~/Obsidian/Standup Notes/$DATE.md"
+echo " Saved to: ~/Obsidian/Standup Notes/$DATE.md"
 ```
 
 **AI Prompt Template for Standup Generation:**
@@ -742,7 +742,7 @@ Format:
 - Bullet points for each item
 - Include hyperlinks to PRs, tickets, docs
 - Keep each bullet 1-2 lines maximum
-- Add emoji for visual scanning (✅ ⚠️ 🚀 etc.)
+- Add emoji for visual scanning ( ️  etc.)
 
 Tone: Professional but conversational, transparent about challenges
 

@@ -44,11 +44,11 @@ Returning errors that help the LLM recover
 
 ## Anti-Patterns
 
-### ❌ Vague Descriptions
+###  Vague Descriptions
 
-### ❌ Silent Failures
+###  Silent Failures
 
-### ❌ Too Many Tools
+###  Too Many Tools
 
 ## Related Skills
 

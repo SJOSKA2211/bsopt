@@ -13,7 +13,7 @@ metadata:
 
 Lightweight Gmail integration with standalone OAuth authentication. No MCP server required.
 
-> **⚠️ Requires Google Workspace account.** Personal Gmail accounts are not supported.
+> **️ Requires Google Workspace account.** Personal Gmail accounts are not supported.
 
 ## First-Time Setup
 
@@ -132,7 +132,7 @@ python scripts/gmail.py list-labels
 Gmail supports powerful search operators:
 
 | Query | Description |
-|-------|-------------|
+|-------|--|
 | `from:user@example.com` | Emails from a specific sender |
 | `to:user@example.com` | Emails to a specific recipient |
 | `subject:meeting` | Emails with "meeting" in subject |

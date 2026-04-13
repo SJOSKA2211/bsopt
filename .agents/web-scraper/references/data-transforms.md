@@ -30,7 +30,7 @@ Patterns to handle:
 ### HTML Entity Decode
 
 | Entity      | Character | Entity     | Character |
-|:------------|:----------|:-----------|:----------|
+|:--|:--|:--|:--|
 | `&amp;`     | `&`       | `&quot;`   | `"`       |
 | `&lt;`      | `<`       | `&apos;`   | `'`       |
 | `&gt;`      | `>`       | `&#39;`    | `'`       |
@@ -58,7 +58,7 @@ This handles:
 ### Empty Value Standardization
 
 | Input                   | Markdown Output | JSON Output |
-|:------------------------|:----------------|:------------|
+|:--|:--|:--|
 | `""` (empty string)     | `N/A`           | `null`      |
 | `"-"` or `"--"`         | `N/A`           | `null`      |
 | `"N/A"`, `"n/a"`, `"NA"`| `N/A`           | `null`      |
@@ -97,7 +97,7 @@ def normalize_price(raw):
 ### Currency Detection
 
 | Symbol/Code | Currency | Symbol/Code | Currency |
-|:------------|:---------|:------------|:---------|
+|:--|:---------|:--|:---------|
 | `$`, `US$`, `USD` | US Dollar | `R$`, `BRL` | Brazilian Real |
 | `€`, `EUR` | Euro     | `£`, `GBP`  | British Pound |
 | `¥`, `JPY` | Yen      | `₹`, `INR`  | Indian Rupee  |
@@ -124,7 +124,7 @@ Normalize all dates to ISO-8601 format.
 ### Common Formats to Handle
 
 | Input Format            | Example              | Normalized         |
-|:------------------------|:---------------------|:-------------------|
+|:--|:--|:--|
 | Full text               | February 25, 2026    | 2026-02-25         |
 | Short text              | Feb 25, 2026         | 2026-02-25         |
 | US numeric              | 02/25/2026           | 2026-02-25         |
@@ -173,7 +173,7 @@ Convert relative URLs to absolute.
 ### Patterns
 
 | Input                    | Base URL                    | Resolved                              |
-|:-------------------------|:----------------------------|:--------------------------------------|
+|:--|:--|:--|
 | `/products/item-1`       | `https://example.com/shop`  | `https://example.com/products/item-1` |
 | `item-1`                 | `https://example.com/shop/` | `https://example.com/shop/item-1`     |
 | `//cdn.example.com/img`  | `https://example.com`       | `https://cdn.example.com/img`         |
@@ -215,7 +215,7 @@ def normalize_phone(raw):
 ### Format by Context
 
 | Context          | Format Example       |
-|:-----------------|:---------------------|
+|:--|:--|
 | JSON output      | `"+5511999998888"`   |
 | Markdown table   | `+55 11 99999-8888`  |
 | CSV output       | `"+5511999998888"`   |
@@ -255,7 +255,7 @@ When records share key fields but differ in details:
 ### Dedup Key Selection by Mode
 
 | Mode     | Key Fields                        |
-|:---------|:----------------------------------|
+|:---------|:--|
 | product  | name + source (or name + brand)   |
 | contact  | name + email (or name + org)      |
 | jobs     | title + company + location        |
@@ -272,7 +272,7 @@ When records share key fields but differ in details:
 Common noise patterns to strip from extracted text:
 
 | Pattern                            | Action                    |
-|:-----------------------------------|:--------------------------|
+|:--|:--|
 | `\[edit\]`, `\[citation needed\]`  | Remove (Wikipedia)        |
 | `Read more...`, `See more`         | Remove (truncation markers)|
 | `Sponsored`, `Ad`, `Promoted`      | Remove or flag            |
@@ -301,7 +301,7 @@ user requests it, or data looks better normalized.
 ### Automatic Type Detection
 
 | Raw Value     | Detected Type | Coerced Value     |
-|:--------------|:--------------|:------------------|
+|:--|:--|:--|
 | `"123"`       | integer       | `123`             |
 | `"12.99"`     | float         | `12.99`           |
 | `"true"`      | boolean       | `true`            |

@@ -19,7 +19,7 @@ dotnet add package Azure.ResourceManager.ArizeAIObservabilityEval --version 1.0.
 ## Package Info
 
 | Property | Value |
-|----------|-------|
+|--|-------|
 | Package | `Azure.ResourceManager.ArizeAIObservabilityEval` |
 | Version | `1.0.0` (GA) |
 | API Version | `2024-10-01` |

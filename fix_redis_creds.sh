@@ -7,8 +7,8 @@ if [ -n "${REDIS_PASSWORD:-}" ]; then
     echo "Updating REDIS_PASSWORD in .env..."
     sed -i '/^REDIS_PASSWORD=/d' .env
     echo "REDIS_PASSWORD=\"$REDIS_PASSWORD\"" >> .env
-    echo "✅ REDIS_PASSWORD updated."
+    echo " REDIS_PASSWORD updated."
 else
-    echo "❌ REDIS_PASSWORD not found after decryption."
+    echo " REDIS_PASSWORD not found after decryption."
     exit 1
 fi

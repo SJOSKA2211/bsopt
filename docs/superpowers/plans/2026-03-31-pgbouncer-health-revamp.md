@@ -64,11 +64,11 @@ async def check_pgbouncer():
                 total_waiting += pool.cl_waiting
             
             if total_waiting > 0:
-                print(f"⚠️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
+                print(f"️ [CONGESTED: {total_active} active, {total_waiting} waiting]")
             else:
                 print(f" [HEALTHY: {total_active} active connections]")
     except Exception as e:
-        print(f"❌ [FAILED: {e}]")
+        print(f" [FAILED: {e}]")
 ```
 
 - [ ] **Step 2: Update `main` to include PgBouncer check**
@@ -128,7 +128,7 @@ def revamp_diagnostics():
     with engine.connect() as conn:
         conn.execute(text(view_sql))
         conn.commit()
-        print("✅ Database diagnostics view 'db_health_overview' REVAMPED.")
+        print(" Database diagnostics view 'db_health_overview' REVAMPED.")
 
 if __name__ == "__main__":
     revamp_diagnostics()
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Run the revamp script**
 
 Run: `PYTHONPATH=. python3 scripts/revamp_db_views.py`
-Expected: "✅ Database diagnostics view 'db_health_overview' REVAMPED."
+Expected: " Database diagnostics view 'db_health_overview' REVAMPED."
 
 - [ ] **Step 3: Verify with sentinel**
 

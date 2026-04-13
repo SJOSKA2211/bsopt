@@ -193,7 +193,7 @@ Automate Microsoft Teams operations through Composio's Microsoft Teams toolkit v
 ## Quick Reference
 
 | Task | Tool Slug | Key Params |
-|------|-----------|------------|
+|------|--|--|
 | List teams | MICROSOFT_TEAMS_TEAMS_LIST | filter, select, top |
 | Get team details | MICROSOFT_TEAMS_GET_TEAM | team_id |
 | List channels | MICROSOFT_TEAMS_TEAMS_LIST_CHANNELS | team_id, filter |

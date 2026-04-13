@@ -37,7 +37,7 @@ date_added: "2026-02-27"
 ### When to Extract Hooks
 
 | Pattern | Extract When |
-|---------|-------------|
+|---------|--|
 | **useLocalStorage** | Same storage logic needed |
 | **useDebounce** | Multiple debounced values |
 | **useFetch** | Repeated fetch patterns |
@@ -55,7 +55,7 @@ date_added: "2026-02-27"
 ## 3. State Management Selection
 
 | Complexity | Solution |
-|------------|----------|
+|--|--|
 | Simple | useState, useReducer |
 | Shared local | Context |
 | Server state | React Query, SWR |
@@ -102,7 +102,7 @@ date_added: "2026-02-27"
 ### Render Props vs Hooks
 
 | Use Case | Prefer |
-|----------|--------|
+|--|--------|
 | Reusable logic | Custom hook |
 | Render flexibility | Render props |
 | Cross-cutting | Higher-order component |
@@ -134,7 +134,7 @@ date_added: "2026-02-27"
 ### Error Boundary Usage
 
 | Scope | Placement |
-|-------|-----------|
+|-------|--|
 | App-wide | Root level |
 | Feature | Route/feature level |
 | Component | Around risky component |
@@ -187,8 +187,8 @@ date_added: "2026-02-27"
 
 ## 10. Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+|  Don't |  Do |
+|--|-------|
 | Prop drilling deep | Use context |
 | Giant components | Split smaller |
 | useEffect for everything | Server components |

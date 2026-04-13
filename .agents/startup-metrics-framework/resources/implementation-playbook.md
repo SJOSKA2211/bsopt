@@ -174,7 +174,7 @@ Rule of 40 = Revenue Growth Rate% + Profit Margin%
 - < 20% = Needs improvement
 
 **Example:**
-50% growth + (10%) margin = 40% ✓
+50% growth + (10%) margin = 40% 
 
 **Quick Ratio**
 ```

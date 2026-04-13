@@ -78,7 +78,7 @@ Gather this context (ask if not provided):
 ## Lead Magnet Types
 
 | Type | Best For | Effort | Time to Create |
-|------|----------|--------|----------------|
+|------|--|--------|--|
 | Checklist | Quick wins, process steps | Low | 1-2 hours |
 | Cheat sheet | Reference material, shortcuts | Low | 2-4 hours |
 | Template (doc/spreadsheet/Notion) | Repeatable processes, workflows | Low-Med | 2-8 hours |
@@ -134,7 +134,7 @@ Goal: Help implement. Remove friction to purchase.
 ### Gating Options
 
 | Approach | When to Use | Trade-off |
-|----------|-------------|-----------|
+|--|--|--|
 | **Full gate** | High-value content, bottom-funnel | Max capture, lower reach |
 | **Partial gate** | Preview + full version | Balance of reach and capture |
 | **Ungated + optional** | Top-funnel education | Max reach, lower capture |
@@ -236,7 +236,7 @@ Don't waste the thank you page. After they've converted:
 ### Key Metrics
 
 | Metric | What It Tells You | Benchmark |
-|--------|-------------------|-----------|
+|--------|--|--|
 | **Landing page conversion rate** | Offer attractiveness | 20-40% (warm traffic), 5-15% (cold) |
 | **Cost per lead** | Acquisition efficiency | Varies by channel and industry |
 | **Lead-to-customer rate** | Lead quality | 1-5% (B2B), varies widely |
