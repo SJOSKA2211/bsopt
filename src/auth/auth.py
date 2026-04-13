@@ -286,9 +286,9 @@ async def get_current_active_user(
 
 
 class RoleRegistry:
-    """Dynamic Registry for Role-based Access Control (RBAC)."""
+    """Config-driven dynamic Registry for Role-based Access Control (RBAC)."""
     
-    _ROLES: dict[str, list[str]] = {
+    _ROLES: dict[str, list[str]] = settings.rbac_roles if hasattr(settings, "rbac_roles") else {
         "free": ["free"],
         "pro": ["free", "pro"],
         "enterprise": ["free", "pro", "enterprise", "admin"],
@@ -303,6 +303,7 @@ class RoleRegistry:
         return required_role in cls.get_effective_roles(user_tier)
 
 class RoleChecker:
+    """Efficient role verification middleware."""
     def __init__(self, required_role: str):
         self.required_role = required_role
 
@@ -317,43 +318,40 @@ async def get_api_key(
     api_key: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_async_db),
 ) -> User | None:
+    """Optimized API Key verification with dual-tier caching."""
     if not api_key:
         return None
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-
-    cached_api_key_data = await centralized_cache_service.get_api_key_cached(key_hash)
-    if cached_api_key_data:
+    cached_data = await centralized_cache_service.get_api_key_cached(key_hash)
+    
+    if cached_data:
         await centralized_cache_service.update_api_key_last_used(key_hash)
-        return User(**cached_api_key_data)
+        return User(**cached_data)
 
     from sqlalchemy.orm import joinedload
-
     result = await db.execute(
-        select(APIKey)
-        .options(joinedload(APIKey.user))
-        .where(APIKey.key_hash == key_hash, APIKey.is_active)
+        select(APIKey).options(joinedload(APIKey.user)).where(APIKey.key_hash == key_hash, APIKey.is_active)
     )
-    key_record = result.scalar_one_or_none()
-
-    if not key_record:
+    record = result.scalar_one_or_none()
+    
+    if not record:
         return None
 
-    user = key_record.user
-    user_dict_for_cache = {
+    user = record.user
+    user_data = {
         "id": str(user.id),
         "email": user.email,
         "tier": user.tier,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
         "mfa_enabled": user.mfa_enabled,
-        "key_name": key_record.name,
+        "key_name": record.name,
     }
 
-    await centralized_cache_service.set_api_key_cached(key_hash, user_dict_for_cache)
+    await centralized_cache_service.set_api_key_cached(key_hash, user_data)
     await centralized_cache_service.update_api_key_last_used(key_hash)
-
-    return User(**user_dict_for_cache)
+    return User(**user_data)
 
 
 async def get_current_user_flexible(

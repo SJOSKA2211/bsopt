@@ -2,6 +2,8 @@
 .git
 .gitignore
 .github
+.git-corrupted-backup
+.git-rewrite
 
 # === Environments ===
 .env
@@ -17,7 +19,7 @@ __pycache__
 *.pyo
 *.pyd
 *.egg-info
-.db
+*.db
 .ipynb_checkpoints
 .pytest_cache
 .mypy_cache
@@ -25,8 +27,10 @@ __pycache__
 lightning_logs/
 mlruns/
 models/
+build/
+dist/
 
-# === Development Tools ===
+# === Development & Junk ===
 .vscode
 .idea
 .devcontainer
@@ -34,42 +38,37 @@ models/
 Dockerfile*
 docker-compose*
 Makefile
-# README.md
 LICENSE
 Jenkinsfile
 deploy.sh
 DOCKER_DEV_GUIDE.md
+.omg
+.jules
+.postman
+postman/
+todos/
+~
+*.log
 
-# === Docs ===
+# === Docs & Metadata ===
 docs/
 audit_report.md
 coverage_report.txt
 coverage.xml
 ml_unit_report*.txt
 ps_output.txt
+SESSION_SUMMARY.md
+PRODUCTION_HANDOVER.md
+DIGITAL_CERTIFICATE.md
+swagger.json
 
-# === Sessions & Backups ===
-sessions/
-backups/
-tickets/
-.gemini/
-.gemini_security/
-# === Infrastructure (allow configs) ===
-# infrastructure/  (removed to allow configs)
-infrastructure/**/
+# === Infrastructure ===
+infrastructure/
+!infrastructure/nginx/
 init-scripts/
 logs/
 monitoring/
 protos/
-ref0003/
 scripts/
 src/frontend/node_modules/
-src/auth-service/node_modules/
-src/gateway/node_modules/
 .ruff_cache
-
-# === Whitelists (Must be at the end) ===
-!infrastructure/configs/
-!infrastructure/orchestration/
-!infrastructure/requirements/
-!infrastructure/scripts/

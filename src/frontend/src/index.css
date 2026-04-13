@@ -1,105 +1,116 @@
 @import "tailwindcss";
 
 @theme {
-  /* High-Performance Institutional Palette - Quantum Financial Deity */
-  --color-bento-bg: #020617; /* deep slate 950 */
-  --color-bento-card: rgba(15, 23, 42, 0.45); /* slate 900 semi-transparent */
-  --color-bento-border: rgba(148, 163, 184, 0.08); /* slate 400 subtle */
+  /* High-Performance Institutional Palette - The Quantum Financial Deity */
+  --color-bento-bg: #010409; 
+  --color-bento-card: rgba(13, 17, 23, 0.75); 
+  --color-bento-border: rgba(48, 54, 61, 0.4); 
   
-  --color-mint: #10b981; /* emerald 500 */
-  --color-teal: #14b8a6; /* teal 500 */
-  --color-quantum: #06b6d4; /* cyan 500 */
-  --color-nebula: #8b5cf6; /* violet 500 */
-  --color-amber: #f59e0b; /* amber 500 */
-  --color-electrum: #d4af37; /* authentic gold */
+  --color-mint: #00ffa3; 
+  --color-teal: #14b8a6; 
+  --color-quantum: #00d1ff; 
+  --color-nebula: #bd00ff; 
+  --color-amber: #f59e0b; 
+  --color-electrum: #ffd700;
   
-  --radius-bento: 28px;
+  --radius-bento: 16px;
+  
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --bento-glass: blur(16px) saturate(200%);
+  --bento-glass: blur(12px) saturate(180%);
+  --card-glow: 0 0 20px rgba(0, 255, 163, 0.03);
 }
 
 @layer base {
   body {
     @apply bg-bento-bg text-white font-sans antialiased overflow-x-hidden;
-    /* Subdued Grid Backdrop */
-    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.02) 1px, transparent 0);
-    background-size: 32px 32px;
+    /* Ultra-subtle geometric backdrop */
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 209, 255, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(189, 0, 255, 0.03) 0px, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
   }
 }
 
 @layer components {
   .bento-card {
-    @apply bg-bento-card border border-bento-border p-6 relative overflow-hidden transition-all;
+    @apply bg-bento-card border border-bento-border p-6 relative overflow-hidden transition-all duration-500;
     border-radius: var(--radius-bento);
-    transition-duration: 400ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
     backdrop-filter: var(--bento-glass);
     -webkit-backdrop-filter: var(--bento-glass);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .bento-card::before {
+    content: "";
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-white/[0.03] to-transparent;
   }
 
   .bento-card:hover {
-    @apply -translate-y-1;
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.05) inset;
+    @apply -translate-y-1 border-white/20;
+    box-shadow: var(--card-glow), 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .bento-card:hover::before {
+    @apply opacity-100;
   }
 
   .bento-grid {
-    @apply grid grid-cols-12 gap-4 p-4;
+    @apply grid grid-cols-12 gap-5 p-6;
   }
 
   .status-pill {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold gap-1.5 bg-white/5;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-widest gap-1.5 bg-white/5;
   }
 
-  .status-pill.healthy { @apply text-mint border border-mint/20; }
-  .status-pill.warning { @apply text-amber border border-amber/20; }
-  .status-pill.critical { @apply text-red-500 border border-red-500/20; }
+  .status-pill.healthy { @apply text-mint bg-mint/10 border border-mint/20; }
+  .status-pill.warning { @apply text-amber bg-amber/10 border border-amber/20; }
+  .status-pill.critical { @apply text-red-500 bg-red-500/10 border border-red-500/20; }
 }
 
 @layer utilities {
   .data-mono {
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-    @apply tracking-tight;
+    @apply font-mono font-medium tracking-tight tabular-nums;
   }
 
   .label-secondary {
-    @apply text-[13px] font-medium text-white/60 uppercase tracking-wider;
+    @apply text-[10px] font-black uppercase tracking-[0.2em] text-white/40;
   }
 
-  .shimmer-overlay {
-    @apply absolute inset-0 pointer-events-none;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-    animation: bento-shimmer 2.5s infinite;
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60;
   }
 
-  /* High-Performance High-Frequency Pulse */
-  .pulse-active {
-    animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  .neon-border-mint {
+    box-shadow: 0 0 10px rgba(0, 255, 163, 0.1), inset 0 0 10px rgba(0, 255, 163, 0.1);
   }
 
-  .glow-mint { box-shadow: 0 0 15px -2px var(--color-mint); }
-  .glow-amber { box-shadow: 0 0 15px -2px var(--color-amber); }
-  .glow-purple { box-shadow: 0 0 15px -2px var(--color-purple); }
+  /* Real-time high-intensity scanline */
+  .scanline {
+    @apply absolute inset-0 pointer-events-none overflow-hidden opacity-10;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(0, 255, 163, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 100% 4px;
+    animation: scanline_scroll 10s linear infinite;
+  }
 }
 
-@keyframes bento-shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+@keyframes scanline_scroll {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
 }
 
-@keyframes pulse-ring {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 0.4; }
-  100% { transform: scale(0.95); opacity: 0.8; }
-}
-
-/* Custom Lean Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { @apply bg-bento-bg; }
-::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+/* Scrollbar Modernization */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors; }
 

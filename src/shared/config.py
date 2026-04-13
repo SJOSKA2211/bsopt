@@ -95,9 +95,16 @@ class Settings(BaseSettings):
         default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS"
     )
     OPA_URL: str = Field(..., validation_alias="OPA_URL")
-    AUDIT_VAULT_KEY: str = Field(
-        ..., validation_alias="AUDIT_VAULT_KEY"
-    )
+    # RBAC & Authorization
+    RBAC_ROLES: dict[str, list[str]] = {
+        "free": ["free"],
+        "pro": ["free", "pro"],
+        "enterprise": ["free", "pro", "enterprise", "admin"],
+    }
+
+    @property
+    def rbac_roles(self) -> dict[str, list[str]]:
+        return self.RBAC_ROLES
 
 
     @field_validator(

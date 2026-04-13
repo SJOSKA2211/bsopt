@@ -91,114 +91,68 @@ def train_func(config: dict[str, Any]):
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
 
-    # 4. Training Loop
+    # 4. Training Loop (Pure CPU)
     model.train()
     for epoch in range(config.get("epochs", 10)):
         epoch_loss = 0
         for batch in sharded_loader:
             optimizer.zero_grad()
+            
+            states, actions, rtg, timesteps = (
+                (batch["states"], batch["actions"], batch["rtg"], batch["timesteps"])
+                if isinstance(batch, dict) else batch
+            )
+            states, actions, rtg, timesteps = [x.to(device) for x in [states, actions, rtg, timesteps]]
 
-            if isinstance(batch, dict):
-                states = batch["states"].to(device)
-                actions = batch["actions"].to(device)
-                rtg = batch["rtg"].to(device)
-                timesteps = batch["timesteps"].to(device)
-            else:
-                states, actions, rtg, timesteps = [x.to(device) for x in batch]
-
-            # Standard Forward Pass (CPU)
             state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
 
-            # 1. Action Prediction Loss (P0)
-            loss_action = criterion(action_preds, actions)
+            # Combined Loss
+            loss = criterion(action_preds, actions) + \
+                   0.1 * criterion(state_preds[:, :-1, :], states[:, 1:, :]) + \
+                   0.1 * criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
 
-            # 2. Auxiliary Losses for Stability (P1)
-            # Predict next state and next return
-            loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
-            loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
-
-            loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
-
-            # Standard Backward Pass (CPU)
             loss.backward()
 
-            # Grad Clipping & Monitoring (Rank 0 only)
             if ray.train.get_context().get_local_rank() == 0:
-                grad_norm = th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                mlflow.log_metric("grad_norm", grad_norm.item())
+                th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
             epoch_loss += loss.item()
 
         avg_loss = epoch_loss / len(sharded_loader)
         ray.train.report({"loss": avg_loss, "epoch": epoch})
-
+        
         if ray.train.get_context().get_local_rank() == 0:
             mlflow.log_metric("dist_loss", avg_loss, step=epoch)
-            # HIGH-PERFORMANCE: Log weight distribution and gradient flow
-            for name, param in model.named_parameters():
-                if param.requires_grad and param.grad is not None:
-                    mlflow.log_metric(f"grad_norm_{name}", param.grad.norm().item(), step=epoch)
-                if "weight" in name:
-                    mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item(), step=epoch)
-                    mlflow.log_metric(f"weight_std_{name}", param.data.std().item(), step=epoch)
 
 
 class BSOptDistributedTrainer:
-    """
-    Orchestrator for scaling BSOpt training across a Ray cluster.
-    OPTIMIZED: Automatic resource negotiation and cluster-aware scaling.
-    """
-
+    """Optimized Orchestrator for scaling BSOpt training natively on CPU."""
+    def __init__(self, num_workers: int | None = None):
         self._explicit_workers = num_workers
 
-    def _negotiate_resources(self) -> tuple[int, bool]:
-        """Dynamically detect cluster capacity and set optimal worker count. Refactored for pure CPU."""
+    def _negotiate_resources(self) -> int:
+        """Dynamically detect CPU capacity for worker scaling."""
         resources = ray.cluster_resources()
         cpus = int(resources.get("CPU", 1))
-
-        # 1. Determine Worker Count
-        if self._explicit_workers:
-            num_workers = self._explicit_workers
-        else:
-            # Leave 1 CPU for the driver
-            num_workers = max(1, cpus - 1)
-
-        # 2. Force GPU usage to False
-
-        logger.info(
-            "resource_negotiation_complete_cpu_only",
-            cpus=cpus,
-            workers=num_workers,
-        )
+        return self._explicit_workers if self._explicit_workers else max(1, cpus - 1)
 
     def run(self, config: dict[str, Any]):
-        """Starts the distributed training session using RayClusterManager."""
-
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
             return None
 
         from src.shared.utils.ray_cluster_manager import RayClusterManager
-
         if not RayClusterManager.initialize():
-            raise RuntimeError("Failed to initialize Ray cluster via RayClusterManager.")
+            raise RuntimeError("Ray Cluster Initialization Failed")
 
         try:
-
-            #  HIGH-PERFORMANCE: Dynamic Scaling Config - CPU Only
-            scaling_config = ScalingConfig(
-                num_workers=num_workers,
-                resources_per_worker={"CPU": 1, "GPU": 0},
-            )
-
-            trainer = TorchTrainer(
-                train_func, train_loop_config=config, scaling_config=scaling_config
-            )
-
-            logger.info("starting_distributed_training_cpu_only", workers=num_workers)
-            result = trainer.fit()
-            return result
+            num_workers = self._negotiate_resources()
+            scaling_config = ScalingConfig(num_workers=num_workers, resources_per_worker={"CPU": 1, "GPU": 0})
+            trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
+            
+            logger.info("starting_distributed_training_cpu", workers=num_workers)
+            return trainer.fit()
         finally:
             if settings.RAY_SHUTDOWN_AFTER_RUN:
                 RayClusterManager.shutdown()

@@ -1,2 +1,0 @@
-- [x] [Plan] revamp
-- [x] [Design] revamp
