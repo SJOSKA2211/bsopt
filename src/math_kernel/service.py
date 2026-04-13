@@ -548,5 +548,69 @@ class PricingService:
         )
         return [float(v) for v in vols_arr]
 
+    async def generate_heatmap(self, request: Any) -> Any:
+        """
+        Generates a grid of P&L values for a risk heatmap.
+        Vectorized across the entire grid for near-instant results.
+        """
+        from api.schemas.pricing import HeatmapCell, HeatmapResponse, PriceRequest
+
+        start_time = time.perf_counter()
+        
+        # 1. Base price calculation
+        base_params = request.to_bs_params()
+        try:
+            base_res = await self.price_option(base_params, request.option_type, request.model)
+            base_price = base_res.price
+        except Exception:
+            base_price = 0.0
+
+        # 2. Build grid of scenarios
+        scenarios = []
+        for v_shift in request.vol_shifts:
+            for p_shift in request.price_shifts:
+                shifted_spot = request.spot * (1 + p_shift / 100)
+                shifted_vol = max(0.01, request.volatility + v_shift / 100)
+                
+                scenarios.append(PriceRequest(
+                    spot=shifted_spot,
+                    strike=request.strike,
+                    time_to_expiry=request.time_to_expiry,
+                    volatility=shifted_vol,
+                    rate=request.rate,
+                    option_type=request.option_type,
+                    dividend_yield=request.dividend_yield,
+                    model=request.model
+                ))
+
+        # 3. Batch price all scenarios
+        batch_res = await self.price_batch(scenarios)
+        
+        # 4. Reshape into grid
+        grid = []
+        idx = 0
+        for v_shift in request.vol_shifts:
+            row = []
+            for p_shift in request.price_shifts:
+                res = batch_res.results[idx]
+                pnl = res.price - base_price
+                row.append(HeatmapCell(
+                    price_shift=p_shift,
+                    vol_shift=v_shift,
+                    pnl=pnl,
+                    theoretical_price=res.price
+                ))
+                idx += 1
+            grid.append(row)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        
+        return HeatmapResponse(
+            grid=grid,
+            price_steps=request.price_shifts,
+            vol_steps=request.vol_shifts,
+            computation_time_ms=duration_ms
+        )
+
 
 pricing_service = PricingService()

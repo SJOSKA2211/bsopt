@@ -14,7 +14,9 @@ from api.schemas.pricing import (
     BatchGreeksResult,
     BatchPriceRequest,
     BatchPriceResult,
+    BatchPriceResult,
     GreeksRequest,
+    HeatmapRequest,
     PriceRequest,
     PriceResult,
 )
@@ -155,7 +157,19 @@ async def calculate(
     return _build_calculate_response(result, req, greeks_data)
 
 
-    def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
+@router.post("/heatmap")
+@pricing_circuit
+async def calculate_heatmap(
+    request: HeatmapRequest, current_user: User = Depends(get_current_active_user)
+) -> MsgspecJSONResponse:
+    """
+    Generate multidimensional risk heatmap.
+    """
+    res = await pricing_service.generate_heatmap(request)
+    return MsgspecJSONResponse(content=res)
+
+
+def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
     resp = CalculateResponseStruct(
         price=getattr(result, "price", 0.0) if result else 0.0,
         greeks=greeks_data,

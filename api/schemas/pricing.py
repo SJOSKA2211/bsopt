@@ -206,3 +206,38 @@ class PricingDataResponse(msgspec.Struct):
     success: bool = True
     message: str | None = None
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+
+
+class HeatmapRequest(BaseModel):
+    """
+    Multidimensional risk analysis request.
+    Generates a grid of P&L values across price and volatility shifts.
+    """
+
+    spot: float
+    strike: float
+    time_to_expiry: float
+    volatility: float
+    rate: float
+    option_type: Literal["call", "put"] = "call"
+    dividend_yield: float = 0.0
+    model: str = "black_scholes"
+    
+    # Grid parameters
+    price_shifts: list[float] = [-10, -5, -2, 0, 2, 5, 10] # Percent
+    vol_shifts: list[float] = [-5, -2, 0, 2, 5]            # Percent points
+
+
+class HeatmapCell(msgspec.Struct):
+    price_shift: float
+    vol_shift: float
+    pnl: float
+    theoretical_price: float
+
+
+class HeatmapResponse(msgspec.Struct):
+    grid: list[list[HeatmapCell]]
+    price_steps: list[float]
+    vol_steps: list[float]
+    computation_time_ms: float
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
