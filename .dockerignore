@@ -1,0 +1,17 @@
+.git/
+node_modules/
+src/frontend/node_modules/
+dist/
+build/
+*.pyc
+__pycache__/
+.env
+.pki/
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+playwright-report/
+test-results/
