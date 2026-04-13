@@ -161,6 +161,8 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
 
 
 async def serve(port: str = "50051"):
+    from src.shared.grpc_util import get_server_credentials
+
     options = [
         ("grpc.keepalive_time_ms", 30000),
         ("grpc.keepalive_timeout_ms", 10000),
@@ -178,31 +180,14 @@ async def serve(port: str = "50051"):
     health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
 
     listen_addr = f"0.0.0.0:{port}"
-    secure_mode = os.getenv("GRPC_SECURE", "true").lower() == "true"
-    
-    try:
-        ca_cert = os.getenv("GRPC_CA_CERT", "/etc/pki/root_ca.crt")
-        server_crt = os.getenv("GRPC_SERVER_CERT", "/etc/pki/auth-service.crt")
-        server_key = os.getenv("GRPC_SERVER_KEY", "/etc/pki/auth-service.key")
+    creds = get_server_credentials()
 
-        if secure_mode and all(os.path.exists(p) for p in [ca_cert, server_crt, server_key]):
-            with open(server_key, "rb") as f: private_key = f.read()
-            with open(server_crt, "rb") as f: certificate_chain = f.read()
-            with open(ca_cert, "rb") as f: root_certificates = f.read()
-
-            server_credentials = grpc.ssl_server_credentials(
-                [(private_key, certificate_chain)],
-                root_certificates=root_certificates,
-                require_client_auth=True,
-            )
-            server.add_secure_port(listen_addr, server_credentials)
-            logger.info("grpc_auth_server_online_secure", addr=listen_addr)
-        else:
-            server.add_insecure_port(listen_addr)
-            logger.warning("grpc_auth_server_online_insecure", addr=listen_addr)
-    except Exception as e:
-        logger.exception("grpc_bootstrap_failed", error=str(e))
+    if creds:
+        server.add_secure_port(listen_addr, creds)
+        logger.info("grpc_auth_server_online_secure", addr=listen_addr)
+    else:
         server.add_insecure_port(listen_addr)
+        logger.warning("grpc_auth_server_online_insecure", addr=listen_addr)
 
     await server.start()
     await server.wait_for_termination()

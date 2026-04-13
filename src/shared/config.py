@@ -90,6 +90,14 @@ class Settings(BaseSettings):
     XGB_ONNX_MODEL_PATH: str = "models/latest_xgb_pricing.onnx"
     XGB_INT8_MODEL_PATH: str = "models/latest_xgb_pricing.int8.onnx"
 
+    # gRPC Security (Universal mTLS)
+    GRPC_SECURE: bool = Field(default=True, validation_alias="GRPC_SECURE")
+    GRPC_CA_CERT: str = Field(default="/etc/pki/root_ca.crt", validation_alias="GRPC_CA_CERT")
+    GRPC_SERVER_CERT: str | None = Field(default=None, validation_alias="GRPC_SERVER_CERT")
+    GRPC_SERVER_KEY: str | None = Field(default=None, validation_alias="GRPC_SERVER_KEY")
+    GRPC_CLIENT_CERT: str | None = Field(default=None, validation_alias="GRPC_CLIENT_CERT")
+    GRPC_CLIENT_KEY: str | None = Field(default=None, validation_alias="GRPC_CLIENT_KEY")
+
     # Security Configuration
     BSOPT_ALLOW_WEAK_SECRETS: bool = Field(
         default=False, validation_alias="BSOPT_ALLOW_WEAK_SECRETS"
@@ -352,13 +360,17 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_PRIVATE_KEY
         if raw_key:
-            # Check if it's a file path
-            if os.path.exists(raw_key):
-                try:
-                    with open(raw_key, "r") as f:
-                        return f.read()
-                except Exception as e:
-                    logger.error("failed_to_read_rsa_private_key_file", path=raw_key, error=str(e))
+            # Check if it looks like a path or just starts with / (Linux path)
+            if os.path.isabs(raw_key) or os.sep in raw_key:
+                if os.path.exists(raw_key):
+                    try:
+                        with open(raw_key, "r") as f:
+                            logger.info("loaded_rsa_private_key_from_file", path=raw_key)
+                            return f.read()
+                    except Exception as e:
+                        logger.error("failed_to_read_rsa_private_key_file", path=raw_key, error=str(e))
+                else:
+                    logger.warning("rsa_private_key_path_does_not_exist", path=raw_key)
 
             import base64
             try:
@@ -386,13 +398,16 @@ class Settings(BaseSettings):
         # 2. Try Environment
         raw_key = self.JWT_PUBLIC_KEY
         if raw_key:
-            # Check if it's a file path
-            if os.path.exists(raw_key):
-                try:
-                    with open(raw_key, "r") as f:
-                        return f.read()
-                except Exception as e:
-                    logger.error("failed_to_read_rsa_public_key_file", path=raw_key, error=str(e))
+            if os.path.isabs(raw_key) or os.sep in raw_key:
+                if os.path.exists(raw_key):
+                    try:
+                        with open(raw_key, "r") as f:
+                            logger.info("loaded_rsa_public_key_from_file", path=raw_key)
+                            return f.read()
+                    except Exception as e:
+                        logger.error("failed_to_read_rsa_public_key_file", path=raw_key, error=str(e))
+                else:
+                    logger.warning("rsa_public_key_path_does_not_exist", path=raw_key)
 
             import base64
             try:

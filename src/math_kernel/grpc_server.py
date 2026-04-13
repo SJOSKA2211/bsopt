@@ -78,11 +78,22 @@ class PricingServicer(pricing_pb2_grpc.PricingServiceServicer):
         )
 
 
-async def serve():
+async def serve(port: str = "50052"):
+    from src.shared.grpc_util import get_server_credentials
+
     server = grpc.aio.server()
     pricing_pb2_grpc.add_PricingServiceServicer_to_server(PricingServicer(), server)
-    server.add_insecure_port("[::]:50052")
-    print("gRPC Pricing Server starting on port 50052...")
+
+    listen_addr = f"0.0.0.0:{port}"
+    creds = get_server_credentials()
+
+    if creds:
+        server.add_secure_port(listen_addr, creds)
+        print(f"gRPC Pricing Server starting SECURELY on port {port}...")
+    else:
+        server.add_insecure_port(listen_addr)
+        print(f"gRPC Pricing Server starting INSECURELY on port {port}...")
+
     await server.start()
     await server.wait_for_termination()
 
