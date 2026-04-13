@@ -89,7 +89,7 @@ services:
         condition: service_healthy
       vault:
         condition: service_healthy
-    command: ["python", "src/auth/auth_server.py"]
+    command: ["python", "api/auth_index.py"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 10s

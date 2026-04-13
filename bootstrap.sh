@@ -141,6 +141,7 @@ deploy_service() {
     local check_cmd=$2
     
     log_info "Deploying $service..."
+    export PYTHONPATH=$PYTHONPATH:$(pwd)
     DOCKER_BUILDKIT=1 $COMPOSE_CMD build "$service"
     $COMPOSE_CMD up -d "$service"
     
