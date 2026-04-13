@@ -6,88 +6,72 @@ from sklearn.preprocessing import StandardScaler
 
 logger = structlog.get_logger()
 
-#  Safetied Torch Import 
-try:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    from torch.utils.data import DataLoader, TensorDataset
-    TORCH_AVAILABLE = True
-except ImportError as e:
-    logger.warning("torch_not_available_falling_back_to_classical_ml", error=str(e))
-    TORCH_AVAILABLE = False
-    # Define stubs so code doesn't crash on class definitions
-    class nn:
-        class Module: pass
-    F = None
-    TensorDataset = None
-    DataLoader = None
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, TensorDataset
 
 #  Neural Network Components 
 
-if TORCH_AVAILABLE:
-    class VAE(nn.Module):
-        """Variational Autoencoder for robust anomaly detection."""
+class VAE(nn.Module):
+    """Variational Autoencoder for robust anomaly detection."""
 
-        def __init__(self, input_dim, latent_dim):
-            super().__init__()
-            self.encoder = nn.Sequential(
-                nn.Linear(input_dim, 128),
-                nn.LeakyReLU(0.2),
-                nn.Linear(128, 64),
-                nn.LeakyReLU(0.2),
-            )
-            self.fc_mu = nn.Linear(64, latent_dim)
-            self.fc_logvar = nn.Linear(64, latent_dim)
+    def __init__(self, input_dim: int, latent_dim: int):
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.LeakyReLU(0.2),
+            nn.Linear(128, 64),
+            nn.LeakyReLU(0.2),
+        )
+        self.fc_mu = nn.Linear(64, latent_dim)
+        self.fc_logvar = nn.Linear(64, latent_dim)
 
-            self.decoder = nn.Sequential(
-                nn.Linear(latent_dim, 64),
-                nn.LeakyReLU(0.2),
-                nn.Linear(64, 128),
-                nn.LeakyReLU(0.2),
-                nn.Linear(128, input_dim),
-                nn.Sigmoid(),
-            )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, 64),
+            nn.LeakyReLU(0.2),
+            nn.Linear(64, 128),
+            nn.LeakyReLU(0.2),
+            nn.Linear(128, input_dim),
+            nn.Sigmoid(),
+        )
 
-        def reparameterize(self, mu, logvar):
-            std = torch.exp(0.5 * logvar)
-            eps = torch.randn_like(std)
-            return mu + eps * std
+    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
 
-        def forward(self, x):
-            h = self.encoder(x)
-            mu, logvar = self.fc_mu(h), self.fc_logvar(h)
-            z = self.reparameterize(mu, logvar)
-            return self.decoder(z), mu, logvar
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        h = self.encoder(x)
+        mu, logvar = self.fc_mu(h), self.fc_logvar(h)
+        z = self.reparameterize(mu, logvar)
+        return self.decoder(z), mu, logvar
 
 
-    class TimeSeriesTransformerEncoder(nn.Module):
-        """Transformer-based encoder for sequential metric analysis."""
+class TimeSeriesTransformerEncoder(nn.Module):
+    """Transformer-based encoder for sequential metric analysis."""
 
-        def __init__(
-            self, input_dim, d_model=64, nhead=4, num_layers=2, dim_feedforward=128, dropout=0.1
-        ):
-            super().__init__()
-            self.embedding = nn.Linear(input_dim, d_model)
-            self.pos_encoder = nn.Parameter(torch.zeros(1, 1000, d_model))
-            encoder_layer = nn.TransformerEncoderLayer(
-                d_model=d_model,
-                nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                dropout=dropout,
-                batch_first=True,
-            )
-            self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-            self.decoder = nn.Linear(d_model, input_dim)
+    def __init__(
+        self, input_dim: int, d_model: int = 64, nhead: int = 4, num_layers: int = 2, dim_feedforward: int = 128, dropout: float = 0.1
+    ):
+        super().__init__()
+        self.embedding = nn.Linear(input_dim, d_model)
+        self.pos_encoder = nn.Parameter(torch.zeros(1, 1000, d_model))
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            batch_first=True,
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.decoder = nn.Linear(d_model, input_dim)
 
-        def forward(self, x):
-            seq_len = x.size(1)
-            x = self.embedding(x) + self.pos_encoder[:, :seq_len, :]
-            x = self.transformer_encoder(x)
-            return self.decoder(x)
-else:
-    VAE = None
-    TimeSeriesTransformerEncoder = None
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        seq_len = x.size(1)
+        x = self.embedding(x) + self.pos_encoder[:, :seq_len, :]
+        x = self.transformer_encoder(x)
+        return self.decoder(x)
 
 
 #  Unified Anomaly Detector 
@@ -101,18 +85,13 @@ class AnomalyDetector:
     - transformer: Sequential pattern based anomalies.
     """
 
-    def __init__(self, engine: str = "isolation_forest", **kwargs):
+    def __init__(self, engine: str = "isolation_forest", **kwargs: Any):
         self.engine = engine
         self.scaler = StandardScaler()
         self.is_fitted = False
-        self.columns = []
+        self.columns: list[str] = []
+        self.device = torch.device("cpu")
         
-        # Determine engine availability
-        if self.engine in ["autoencoder", "transformer"] and not TORCH_AVAILABLE:
-            logger.warning("engine_unavailable_switching_to_isolation_forest", requested=engine)
-            self.engine = "isolation_forest"
-
-
         if self.engine == "isolation_forest":
             contamination = kwargs.get("contamination", 0.05)
             if not (0 < contamination <= 0.5):

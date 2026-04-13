@@ -32,7 +32,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:alpine
     container_name: bsopt_broker
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RABBITMQ_USER not set}
@@ -71,9 +71,15 @@ services:
       - ENVIRONMENT=production
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER not set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB not set}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY not set}
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY not set}
+      - GRPC_SECURE=true
+      - GRPC_CA_CERT=/etc/pki/root_ca.crt
+      - GRPC_SERVER_CERT=/etc/pki/auth-service.crt
+      - GRPC_SERVER_KEY=/etc/pki/auth-service.key
+    volumes:
+      - ./.pki:/etc/pki:ro
     networks:
       - app-network
     depends_on:
@@ -99,6 +105,12 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - AUTH_SERVICE_GRPC_URL=auth_api:50051
+      - GRPC_SECURE=true
+      - GRPC_CA_CERT=/etc/pki/root_ca.crt
+      - GRPC_CLIENT_CERT=/etc/pki/api-client.crt
+      - GRPC_CLIENT_KEY=/etc/pki/api-client.key
+    volumes:
+      - ./.pki:/etc/pki:ro
     networks:
       - app-network
     depends_on:
@@ -128,6 +140,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      pricing_api:
+        condition: service_healthy
     command: ["celery", "-A", "src.workers.math_worker.app", "worker", "--loglevel=info", "-P", "solo"]
 
   # --- FRONTEND & GATEWAY ---
@@ -142,7 +156,7 @@ services:
       pricing_api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -155,7 +169,6 @@ services:
       - "443:443"
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
     networks:
       - app-network
     depends_on:
@@ -176,4 +189,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-    enable_ipv6: false

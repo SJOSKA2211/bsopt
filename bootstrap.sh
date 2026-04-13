@@ -113,9 +113,12 @@ generate_env() {
         fi
     }
 
-    # Generate Secure Passwords
+    # Generate Secure Passwords and Defaults
+    set_var "POSTGRES_USER" "admin"
+    set_var "POSTGRES_DB" "bsopt"
     set_var "POSTGRES_PASSWORD" "$(openssl rand -hex 16)"
     set_var "REDIS_PASSWORD" "$(openssl rand -hex 16)"
+    set_var "RABBITMQ_USER" "admin"
     set_var "RABBITMQ_PASSWORD" "$(openssl rand -hex 16)"
     set_var "JWT_SECRET" "$(openssl rand -hex 32)"
     set_var "BETTER_AUTH_SECRET" "$(openssl rand -hex 32)"

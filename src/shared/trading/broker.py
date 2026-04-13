@@ -90,18 +90,9 @@ class AlpacaBroker(TradingBroker):
                 return False
 
 
-class MockTradingBroker(TradingBroker):
-    """
-    Deterministic Mock Broker for local dev or tests.
-    REMOVED per "NO placeholders" mandate.
-    """
-    pass
-
-
 def get_broker() -> TradingBroker:
     # Factory to return the configured broker
     if settings.BROKER_TYPE == "alpaca":
         return AlpacaBroker(paper=settings.BROKER_USE_PAPER)
-    
-    # Default fallback to Alpaca Paper for now, but strictly non-placeholder
+
     return AlpacaBroker(paper=True)
