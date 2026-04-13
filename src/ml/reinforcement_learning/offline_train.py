@@ -101,10 +101,10 @@ def train_offline(
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
-        dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True
+        dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False
     )
 
-    device = th.device("cuda" if th.cuda.is_available() else "cpu")
+    device = th.device("cpu")
 
     # DT-v2 Model
     model = cast(nn.Module, DecisionTransformer(state_dim=128, action_dim=10).to(device))
@@ -115,16 +115,7 @@ def train_offline(
     target_q_net = cast(nn.Module, QNetwork(state_dim=128, action_dim=10).to(device))
     target_q_net.load_state_dict(q_net.state_dict())
 
-    #  ACCELERATION: torch.compile
-    if hasattr(th, "compile") and device.type == "cuda":
-        try:
-            model = th.compile(model)
-            q_net = th.compile(q_net)
-            v_net = th.compile(v_net)
-            logger.info("models_compiled_successfully")
-        except Exception as e:
-            logger.warning("torch_compile_failed", error=str(e))
-
+    # GPU-specific hardware acceleration (AMP, torch.compile) removed for pure CPU execution
     optimizer = th.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     th.optim.Adam(q_net.parameters(), lr=3e-4)
     v_optimizer = th.optim.Adam(v_net.parameters(), lr=3e-4)
@@ -133,7 +124,6 @@ def train_offline(
     scheduler = th.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     criterion = nn.MSELoss()
-    scaler = th.amp.GradScaler("cuda", enabled=(device.type == "cuda"))
 
     with mlflow.start_run(run_name="DT_v2_IQL_High_Performance"):
         mlflow.log_params(
@@ -143,7 +133,7 @@ def train_offline(
                 "iql_beta": iql_beta,
                 "iql_tau": iql_tau,
                 "model": "DT-v2",
-                "precision": "AMP",
+                "precision": "FP32",
             }
         )
 
@@ -181,29 +171,28 @@ def train_offline(
                     exp_adv = th.exp(iql_beta * advantage).clamp(max=100.0)
 
                 optimizer.zero_grad(set_to_none=True)
-                with th.amp.autocast("cuda", enabled=(device.type == "cuda")):
-                    state_preds, action_preds, return_preds = cast(Any, model)(
-                        states,
-                        actions,
-                        rtg,
-                        timesteps,
-                    )
+                
+                state_preds, action_preds, return_preds = cast(Any, model)(
+                    states,
+                    actions,
+                    rtg,
+                    timesteps,
+                )
 
-                    # Weighted imitation loss
-                    loss_action = (exp_adv * (action_preds - actions) ** 2).mean()
+                # Weighted imitation loss
+                loss_action = (exp_adv * (action_preds - actions) ** 2).mean()
 
-                    # Auxiliary losses: predict next state from current seq
-                    loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
-                    loss = loss_action + 0.1 * loss_state
+                # Auxiliary losses: predict next state from current seq
+                loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
+                loss = loss_action + 0.1 * loss_state
 
-                scaler.scale(loss).backward()
+                loss.backward()
 
                 # 📊 Gradient Flow Monitoring (Periodic)
                 if global_step % 100 == 0:
                     _log_gradient_flow(model, global_step)
 
-                scaler.step(optimizer)
-                scaler.update()
+                optimizer.step()
 
                 epoch_loss += float(loss.item())
                 global_step += 1

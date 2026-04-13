@@ -34,14 +34,15 @@ class TestRevampPhase4:
             mock_scaling_instance.num_workers = 4
             mock_scaling_cls.return_value = mock_scaling_instance
 
-            trainer = BSOptDistributedTrainer(num_workers=4, use_gpu=True)
+            # Refactored for pure CPU execution
+            trainer = BSOptDistributedTrainer(num_workers=4, use_gpu=False)
             config = {"lr": 1e-3, "epochs": 5}
 
             trainer.run(config)
 
-            # Verify ScalingConfig construction
+            # Verify ScalingConfig construction - Force CPU only
             mock_scaling_cls.assert_called_once_with(
-                num_workers=4, use_gpu=True, resources_per_worker={"CPU": 1, "GPU": 1}
+                num_workers=4, use_gpu=False, resources_per_worker={"CPU": 1, "GPU": 0}
             )
 
             # Verify TorchTrainer call

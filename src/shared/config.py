@@ -139,6 +139,12 @@ class Settings(BaseSettings):
         default=None, validation_alias="ALPHA_VANTAGE_API_KEY"
     )
 
+    # Trading Broker Integration
+    BROKER_TYPE: str = Field(default="alpaca", validation_alias="BROKER_TYPE")
+    BROKER_USE_PAPER: bool = Field(default=True, validation_alias="BROKER_USE_PAPER")
+    ALPACA_API_KEY: str = Field(default="", validation_alias="ALPACA_API_KEY")
+    ALPACA_API_SECRET: str = Field(default="", validation_alias="ALPACA_API_SECRET")
+
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
     ML_TRAINING_OPTUNA_TRIALS: int = 50
@@ -491,88 +497,28 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_security_configs(self) -> "Settings":
-        """Validate security-critical settings and apply environment defaults."""
+        """Validate security-critical settings."""
 
-        # 0. Master Secret and Key Derivation
-        if self.is_production:
-            if not self.BETTER_AUTH_SECRET:
-                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
-            if len(self.BETTER_AUTH_SECRET) < 32 and not self.BSOPT_ALLOW_WEAK_SECRETS:
-                raise ValueError(
-                    "CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters for robust key derivation."
-                )
+        if self.is_production and not self.BSOPT_ALLOW_WEAK_SECRETS:
+            # 1. BETTER_AUTH_SECRET
+            if not self.BETTER_AUTH_SECRET or len(self.BETTER_AUTH_SECRET) < 32:
+                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be at least 32 characters in production.")
 
-        # Derivation logic (Shared between dev and prod if master secret exists)
-        if self.BETTER_AUTH_SECRET:
-            import base64
-            import hashlib
+            # 2. JWT_SECRET
+            if not self.JWT_SECRET or len(self.JWT_SECRET) < 32:
+                raise ValueError("CRITICAL: JWT_SECRET must be at least 32 characters in production.")
 
-            # Key derivation (PBKDF2-HMAC-SHA256)
-            salt = b"manifold-derivation-v1"
-            iterations = 100_000
-
-            def derive_key(purpose: str, length: int = 32) -> bytes:
-                return hashlib.pbkdf2_hmac(
-                    "sha256",
-                    self.BETTER_AUTH_SECRET.encode(),
-                    salt + purpose.encode(),
-                    iterations,
-                    length,
-                )
-
-            # Derive MFA Encryption Key if not explicitly set
-            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY == _DEFAULT_MFA_KEY_SEED:
-                mfa_seed = derive_key("mfa-encryption")
-                self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
-                logger.debug("derived_mfa_key")
-
-            # Derive JWT Secret if not explicitly set
-            if not self.JWT_SECRET or self.JWT_SECRET == "change-me-in-production":
-                jwt_seed = derive_key("jwt-signing", length=64)
-                self.JWT_SECRET = jwt_seed.hex()
-                logger.debug("derived_jwt_secret")
-
-        # Enforce email verification in production by default if not set
-        if self.is_production and self.ENVIRONMENT != "test":
-            pass
-
-        if self.is_production:
-            # 1. JWT Secret Security
-            if self.JWT_SECRET == "change-me-in-production" or not self.JWT_SECRET:
-                raise ValueError(
-                    "CRITICAL: JWT_SECRET must be changed from the default or derived from BETTER_AUTH_SECRET in production."
-                )
-
-            # 2. MFA Key Security
-            key = self.MFA_ENCRYPTION_KEY
-            if not key or key == _DEFAULT_MFA_KEY_SEED:
-                raise ValueError(
-                    "CRITICAL: MFA_ENCRYPTION_KEY must be set or derived in production."
-                )
+            # 3. MFA_ENCRYPTION_KEY
+            if not self.MFA_ENCRYPTION_KEY:
+                raise ValueError("CRITICAL: MFA_ENCRYPTION_KEY must be set in production.")
 
             try:
                 import base64
-
-                decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
-                if len(decoded) < 32 and not self.BSOPT_ALLOW_WEAK_SECRETS:
-                    raise ValueError(
-                        "MFA_ENCRYPTION_KEY is too short. The decoded key must "
-                        "be at least 32 bytes (256 bits)."
-                    )
+                decoded = base64.urlsafe_b64decode(self.MFA_ENCRYPTION_KEY + "=" * (-len(self.MFA_ENCRYPTION_KEY) % 4))
+                if len(decoded) < 32:
+                    raise ValueError("MFA_ENCRYPTION_KEY must be at least 32 bytes after base64 decoding.")
             except Exception as e:
-                if "MFA_ENCRYPTION_KEY" in str(e):
-                    raise
-                raise ValueError(
-                    "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
-                    f"string of at least 32 bytes: {e}"
-                ) from e
-
-            # 3. Email Verification Security
-            if not self.REQUIRE_EMAIL_VERIFICATION:
-                logger.warning(
-                    "security_warning: email verification is DISABLED in production",
-                    environment=self.ENVIRONMENT,
-                )
+                raise ValueError(f"MFA_ENCRYPTION_KEY must be valid base64: {e}")
 
         return self
 

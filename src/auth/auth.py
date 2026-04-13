@@ -49,6 +49,11 @@ class AuthService:
         self.mfa = mfa_service
         self.sessions = session_service
 
+    @property
+    def token_blacklist(self) -> session_service:
+        """Alias for session_service to maintain compatibility with existing routes."""
+        return self.sessions
+
     def hash_password(self, password: str) -> str:
         return self.hasher.hash_password(password)
 

@@ -57,8 +57,6 @@ class DatabaseManager:
     def get_urls(self) -> tuple[str, str]:
         """Constructs sync and async database URLs based on environment."""
         db_url = settings.DATABASE_URL
-        if "localhost" in db_url:
-            db_url = db_url.replace("localhost", "127.0.0.1")
             
         app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
 

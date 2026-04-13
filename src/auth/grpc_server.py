@@ -17,7 +17,7 @@ from src.auth.exceptions import AuthError
 from src.common.caching import centralized_cache_service
 from src.database import db_manager
 from src.database.models import APIKey, User
-from src.protos import auth_pb2, auth_pb2_grpc
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 from src.shared.grpc_errors import handle_grpc_error
 
 logger = structlog.get_logger(__name__)

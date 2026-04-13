@@ -8,6 +8,7 @@ Optimized for 1000+ concurrent users with connection pooling and keepalive.
 import asyncio
 import hashlib
 import time
+from datetime import timedelta
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from enum import StrEnum
@@ -34,8 +35,6 @@ def get_redis() -> Redis | None:
         from src.shared.config import settings
 
         url = settings.REDIS_URL
-        if "localhost" in url:
-            url = url.replace("localhost", "127.0.0.1")
 
         try:
             _redis = Redis.from_url(
@@ -477,6 +476,44 @@ class DatabaseQueryCache:
             return True
         except Exception as e:
             logger.error("db_cache_set_api_key_failed", error=str(e), key_hash=key_hash[:10])
+            return False
+
+    async def get(self, key: str) -> Any | None:
+        """Generic get from Redis."""
+        redis = get_redis()
+        if redis is None:
+            return None
+        try:
+            val = await redis.get(key)
+            return msgspec.json.decode(val) if val else None
+        except Exception as e:
+            logger.error("db_cache_get_failed", error=str(e), key=key)
+            return None
+
+    async def set(self, key: str, value: Any, ttl: int | timedelta = 3600) -> bool:
+        """Generic set to Redis."""
+        redis = get_redis()
+        if redis is None:
+            return False
+        try:
+            if isinstance(ttl, timedelta):
+                ttl = int(ttl.total_seconds())
+            await redis.setex(key, ttl, msgspec.json.encode(value, enc_hook=_enc_hook))
+            return True
+        except Exception as e:
+            logger.error("db_cache_set_failed", error=str(e), key=key)
+            return False
+
+    async def delete(self, key: str) -> bool:
+        """Generic delete from Redis."""
+        redis = get_redis()
+        if redis is None:
+            return False
+        try:
+            await redis.delete(key)
+            return True
+        except Exception as e:
+            logger.error("db_cache_delete_failed", error=str(e), key=key)
             return False
 
 

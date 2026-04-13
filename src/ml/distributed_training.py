@@ -26,7 +26,7 @@ logger = structlog.get_logger(__name__)
 def train_func(config: dict[str, Any]):
     """
     Worker function for distributed Decision Transformer training.
-    OPTIMIZED: torch.compile, AMP (GradScaler), and Grad Flow Monitoring.
+    Optimized for pure CPU execution.
     """
     if not HAS_RAY_TRAIN:
         raise ImportError("Ray Train Torch dependencies missing.")
@@ -46,18 +46,11 @@ def train_func(config: dict[str, Any]):
 
     import ray
 
-    device = ray.train.torch.get_device()
+    device = th.device("cpu")
     model = model.to(device)
 
-    #  HIGH-PERFORMANCE: Kernel Fusion via torch.compile
-    try:
-        if config.get("use_compile", True):
-            model = th.compile(model)
-            logger.info("model_compiled_successfully")
-    except Exception as e:
-        logger.warning("torch_compile_failed", error=str(e))
-
-    # Wrap for DDP
+    # GPU-specific compile and hardware flags removed
+    # Wrap for DDP (using 'gloo' backend for CPU if possible, handled by ray.train.torch.prepare_model)
     model = ray.train.torch.prepare_model(model)
 
     optimizer = th.optim.AdamW(
@@ -68,10 +61,7 @@ def train_func(config: dict[str, Any]):
     )
     criterion = nn.MSELoss()
 
-    # ⚡ AMP: Automatic Mixed Precision
-    use_amp = config.get("use_amp", th.cuda.is_available())
-    scaler = th.cuda.amp.GradScaler(enabled=use_amp)
-
+    # ⚡ AMP and GradScaler removed for CPU-only architecture
     # 3. Setup Data
     import ray.data
 
@@ -116,31 +106,28 @@ def train_func(config: dict[str, Any]):
             else:
                 states, actions, rtg, timesteps = [x.to(device) for x in batch]
 
-            # ⚡ AMP Forward Pass
-            with th.cuda.amp.autocast(enabled=config.get("use_amp", True)):
-                state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
+            # Standard Forward Pass (CPU)
+            state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
 
-                # 1. Action Prediction Loss (P0)
-                loss_action = criterion(action_preds, actions)
+            # 1. Action Prediction Loss (P0)
+            loss_action = criterion(action_preds, actions)
 
-                # 2. Auxiliary Losses for Stability (P1)
-                # Predict next state and next return
-                loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
-                loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
+            # 2. Auxiliary Losses for Stability (P1)
+            # Predict next state and next return
+            loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
+            loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
 
-                loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
+            loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
 
-            # ⚡ AMP Backward Pass
-            scaler.scale(loss).backward()
+            # Standard Backward Pass (CPU)
+            loss.backward()
 
             # Grad Clipping & Monitoring (Rank 0 only)
             if ray.train.get_context().get_local_rank() == 0:
-                scaler.unscale_(optimizer)
                 grad_norm = th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 mlflow.log_metric("grad_norm", grad_norm.item())
 
-            scaler.step(optimizer)
-            scaler.update()
+            optimizer.step()
             epoch_loss += loss.item()
 
         avg_loss = epoch_loss / len(sharded_loader)
@@ -168,10 +155,9 @@ class BSOptDistributedTrainer:
         self._explicit_gpu = use_gpu
 
     def _negotiate_resources(self) -> tuple[int, bool]:
-        """Dynamically detect cluster capacity and set optimal worker count."""
+        """Dynamically detect cluster capacity and set optimal worker count. Refactored for pure CPU."""
         resources = ray.cluster_resources()
         cpus = int(resources.get("CPU", 1))
-        gpus = int(resources.get("GPU", 0))
 
         # 1. Determine Worker Count
         if self._explicit_workers:
@@ -180,17 +166,12 @@ class BSOptDistributedTrainer:
             # Leave 1 CPU for the driver
             num_workers = max(1, cpus - 1)
 
-        # 2. Determine GPU usage
-        if self._explicit_gpu is not None:
-            use_gpu = self._explicit_gpu
-        else:
-            # Use GPU if available and we have enough for workers
-            use_gpu = gpus >= num_workers if num_workers > 0 else gpus > 0
+        # 2. Force GPU usage to False
+        use_gpu = False
 
         logger.info(
-            "resource_negotiation_complete",
+            "resource_negotiation_complete_cpu_only",
             cpus=cpus,
-            gpus=gpus,
             workers=num_workers,
             use_gpu=use_gpu,
         )
@@ -211,18 +192,18 @@ class BSOptDistributedTrainer:
         try:
             num_workers, use_gpu = self._negotiate_resources()
 
-            #  HIGH-PERFORMANCE: Dynamic Scaling Config
+            #  HIGH-PERFORMANCE: Dynamic Scaling Config - CPU Only
             scaling_config = ScalingConfig(
                 num_workers=num_workers,
-                use_gpu=use_gpu,
-                resources_per_worker={"CPU": 1, "GPU": 1 if use_gpu else 0},
+                use_gpu=False,
+                resources_per_worker={"CPU": 1, "GPU": 0},
             )
 
             trainer = TorchTrainer(
                 train_func, train_loop_config=config, scaling_config=scaling_config
             )
 
-            logger.info("starting_distributed_training", workers=num_workers, gpu=use_gpu)
+            logger.info("starting_distributed_training_cpu_only", workers=num_workers)
             result = trainer.fit()
             return result
         finally:

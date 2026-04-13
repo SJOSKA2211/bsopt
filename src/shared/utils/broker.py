@@ -6,6 +6,8 @@ from typing import Any
 import aio_pika
 import structlog
 
+from src.shared.config import settings
+
 logger = structlog.get_logger()
 
 
@@ -16,9 +18,8 @@ class MessageBroker:
     """
 
     def __init__(self):
-        # Default to localhost:5673 for local development if not in Docker
-        default_url = "amqp://bsopt_admin:bsopt_rmq_secret@127.0.0.1:5673//"
-        self.url = os.getenv("RABBITMQ_URL", default_url)
+        # Use settings from centralized config
+        self.url = settings.RABBITMQ_URL
         self._connection_pool: aio_pika.pool.Pool | None = None
         self._channel_pool: aio_pika.pool.Pool | None = None
         self._lock = asyncio.Lock()

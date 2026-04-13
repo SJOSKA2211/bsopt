@@ -76,7 +76,7 @@ def train_xgboost_distributed(
 def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
     """
     Synchronizes metrics across all workers in a distributed training group.
-    Uses torch.distributed if initialized.
+    Uses torch.distributed if initialized. Optimized for CPU.
     """
     import torch
 
@@ -87,12 +87,8 @@ def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
     synced_metrics = {}
 
     for k, v in metrics.items():
-        # Ensure we use the correct device for the rank
-        device = (
-            torch.device("cuda", torch.cuda.current_device())
-            if torch.cuda.is_available()
-            else torch.device("cpu")
-        )
+        # Force CPU device
+        device = torch.device("cpu")
         t = torch.tensor([v], device=device)
         torch.distributed.all_reduce(t, op=torch.distributed.ReduceOp.SUM)
         synced_metrics[k] = t.item() / world_size
@@ -103,6 +99,7 @@ def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
 def check_ray_cluster() -> dict[str, Any]:
     """
     High-Performance: Comprehensive Ray Cluster health and resource check.
+    Refactored for pure CPU execution.
     """
     import ray
 
@@ -118,7 +115,6 @@ def check_ray_cluster() -> dict[str, Any]:
         "node_count": len(nodes),
         "total_cpus": resources.get("CPU", 0),
         "available_cpus": available.get("CPU", 0),
-        "total_gpus": resources.get("GPU", 0),
         "total_memory_gb": resources.get("memory", 0) / (1024**3),
         "object_store_gb": resources.get("object_store_memory", 0) / (1024**3),
     }

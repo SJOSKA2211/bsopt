@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ONNXInferenceEngine:
     """
     High-performance inference engine using ONNX Runtime.
-    OPTIMIZED: GPU-aware with memory pinning and graph optimizations.
+    Optimized for pure CPU execution with graph optimizations.
     """
 
     def __init__(self, model_path: str, providers: list[str] | None = None):

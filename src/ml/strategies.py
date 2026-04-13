@@ -16,17 +16,14 @@ logger = structlog.get_logger()
 
 
 def init_collective_backend() -> None:
-    """Initialize NCCL backend for multi-GPU training if available."""
-    if not torch.cuda.is_available():
-        return
-
+    """Initialize distributed backend for CPU training."""
     try:
         if not dist.is_initialized():
-            # Use 'gloo' as fallback for CPU or if NCCL fails
-            backend = "nccl" if torch.cuda.is_available() else "gloo"
+            # Use 'gloo' for CPU-only execution
+            backend = "gloo"
             dist.init_process_group(backend=backend, init_method="env://")
             logger.info(
-                "dist_backend_initialized", backend=backend, world_size=dist.get_world_size()
+                "dist_backend_initialized_cpu", backend=backend, world_size=dist.get_world_size()
             )
     except Exception as e:
         logger.warning("dist_init_failed", error=str(e))
@@ -241,7 +238,7 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
         params: dict[str, Any],
         base_model: Any | None = None,
     ) -> Any:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu")
         epochs = params.get("epochs", 100)
         lr = params.get("lr", 0.001)
         batch_size = params.get("batch_size", 32)
@@ -257,13 +254,7 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
         if base_model:
             model.load_state_dict(base_model.state_dict())
 
-        if hasattr(torch, "compile") and device.type == "cuda":
-            try:
-                model = torch.compile(model)
-                logger.info("pytorch_strategy_model_compiled")
-            except Exception as e:
-                logger.warning("pytorch_strategy_compile_failed", error=str(e))
-
+        # GPU-specific hardware flags removed for pure CPU execution
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.MSELoss()  # Changed to MSE for regression
         early_stopping = EarlyStopping(patience=patience)
@@ -297,10 +288,9 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
         return model
 
     def predict(self, model: Any, X: Any) -> Any:
-        device = next(model.parameters()).device
         model.eval()
         with torch.no_grad():
-            X_t = torch.FloatTensor(X).to(device)
+            X_t = torch.FloatTensor(X)
             outputs = model(X_t)
             return outputs.cpu().numpy().flatten()
 
