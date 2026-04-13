@@ -62,12 +62,19 @@ regenerate_pki() {
     openssl req -x509 -new -nodes -key "$KEYS_DIR/root_ca.key" -sha256 -days 3650 \
         -out "$KEYS_DIR/root_ca.crt" -subj "/CN=BSOPT-Root-CA/O=BSOPT/C=US"
 
-    # Auth Identity (mTLS)
+    # Auth Identity (Server)
     openssl genrsa -out "$KEYS_DIR/auth-service.key" 2048
     openssl req -new -key "$KEYS_DIR/auth-service.key" -out "$KEYS_DIR/auth-service.csr" -subj "/CN=auth-api/O=BSOPT/C=US"
     openssl x509 -req -in "$KEYS_DIR/auth-service.csr" -CA "$KEYS_DIR/root_ca.crt" -CAkey "$KEYS_DIR/root_ca.key" \
         -CAcreateserial -out "$KEYS_DIR/auth-service.crt" -days 365 -sha256
     rm "$KEYS_DIR/auth-service.csr"
+
+    # API Identity (Client mTLS)
+    openssl genrsa -out "$KEYS_DIR/api-client.key" 2048
+    openssl req -new -key "$KEYS_DIR/api-client.key" -out "$KEYS_DIR/api-client.csr" -subj "/CN=pricing-api/O=BSOPT/C=US"
+    openssl x509 -req -in "$KEYS_DIR/api-client.csr" -CA "$KEYS_DIR/root_ca.crt" -CAkey "$KEYS_DIR/root_ca.key" \
+        -CAcreateserial -out "$KEYS_DIR/api-client.crt" -days 365 -sha256
+    rm "$KEYS_DIR/api-client.csr"
 
     # JWT Keys (RSA + EC)
     openssl genrsa -out "$KEYS_DIR/jwt_rs256.key" 4096
@@ -119,6 +126,8 @@ generate_env() {
     set_var "GRPC_CA_CERT" "$KEYS_DIR/root_ca.crt"
     set_var "GRPC_SERVER_CERT" "$KEYS_DIR/auth-service.crt"
     set_var "GRPC_SERVER_KEY" "$KEYS_DIR/auth-service.key"
+    set_var "GRPC_CLIENT_CERT" "$KEYS_DIR/api-client.crt"
+    set_var "GRPC_CLIENT_KEY" "$KEYS_DIR/api-client.key"
 
     log_success ".env file stabilized and secured."
 }

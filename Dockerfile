@@ -7,11 +7,11 @@ FROM python:3.12.13-alpine AS builder
 # Optimized for BuildKit caching
 ENV UV_SYSTEM_PYTHON=1 \
     UV_COMPILE_BYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PYTHONUNBUFFERED=1
 
-# Install build dependencies
-RUN apk add --no-cache \
+# Install build dependencies with cache mount
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
     build-base \
     curl \
     openssl-dev \
@@ -25,16 +25,18 @@ WORKDIR /app
 # Install uv core
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 1. Build Rust Math Kernel
+# 1. Build Rust Math Kernel with cache mount
 COPY src/math_kernel/rust-core ./rust-core
-RUN cd rust-core && uv pip install maturin && maturin build --release --out ../wheels
+RUN --mount=type=cache,target=/root/.cache/uv \
+    cd rust-core && uv pip install maturin && maturin build --release --out ../wheels
 
-# 2. Build Python Environment
+# 2. Build Python Environment with cache mounts
 COPY pyproject.toml uv.lock ./
 # Force CPU-only torch
-RUN uv pip install --no-cache torch --index-url https://download.pytorch.org/whl/cpu
-RUN uv pip install --no-cache .
-RUN uv pip install --no-cache ./wheels/*.whl
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install torch --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install . && \
+    uv pip install ./wheels/*.whl
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
 FROM python:3.12.13-alpine AS latest

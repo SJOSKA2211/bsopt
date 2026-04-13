@@ -141,6 +141,11 @@ services:
     depends_on:
       pricing_api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     image: nginx:stable-alpine
@@ -155,9 +160,14 @@ services:
       - app-network
     depends_on:
       frontend:
-        condition: service_started
+        condition: service_healthy
       pricing_api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
@@ -166,3 +176,4 @@ volumes:
 networks:
   app-network:
     driver: bridge
+    enable_ipv6: false

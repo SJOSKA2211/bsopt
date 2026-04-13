@@ -50,13 +50,13 @@ class AuthGrpcClient:
                 if not os.path.exists(ca_cert_path):
                     ca_cert_path = os.path.join(PROJECT_ROOT, ".pki/root_ca.crt")
 
-                client_cert_path = os.getenv("GRPC_CLIENT_CERT", "/etc/pki/api.crt")
+                client_cert_path = os.getenv("GRPC_CLIENT_CERT", "/etc/pki/api-client.crt")
                 if not os.path.exists(client_cert_path):
-                    client_cert_path = os.path.join(PROJECT_ROOT, ".pki/api.crt")
+                    client_cert_path = os.path.join(PROJECT_ROOT, ".pki/api-client.crt")
 
-                client_key_path = os.getenv("GRPC_CLIENT_KEY", "/etc/pki/api.key")
+                client_key_path = os.getenv("GRPC_CLIENT_KEY", "/etc/pki/api-client.key")
                 if not os.path.exists(client_key_path):
-                    client_key_path = os.path.join(PROJECT_ROOT, ".pki/api.key")
+                    client_key_path = os.path.join(PROJECT_ROOT, ".pki/api-client.key")
 
                 if SECURE_MODE and os.path.exists(ca_cert_path) and os.path.exists(client_cert_path):
                     with open(ca_cert_path, "rb") as f:

@@ -1,17 +1,17 @@
 # Stage 1: Build Frontend Application
-FROM node:20-alpine as frontend_builder
+FROM node:22-alpine as frontend_builder
 
 WORKDIR /app/frontend
 
-# Copy package.json and package-lock.json
-COPY src/frontend/package.json ./
-COPY src/frontend/package-lock.json ./
+# Copy dependencies first for better caching
+COPY package.json package-lock.json ./
 
-# Install frontend dependencies
-RUN npm install --frozen-lockfile
+# Install dependencies with cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # Copy the rest of the frontend source code
-COPY src/frontend/ ./
+COPY . .
 
 # Build the frontend application for production
 RUN npm run build
