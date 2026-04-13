@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "=== OMarchy Meta-Cognitive Node: Sequential Deployment Starting ==="
+echo "=== Meta-Cognitive Node: Sequential Deployment Starting ==="
 
 # 1. Environment Generation (Secure-by-Default)
 ENV_FILE=".env"
@@ -89,7 +89,7 @@ issue_cert "pricing_api" "api-client"
 SERVICES=("postgres" "redis" "rabbitmq" "vault")
 for s in "${SERVICES[@]}"; do issue_cert "$s"; done
 
-# Consistency link
+# Duplicate for JWT consistency if needed
 cp "${KEY_DIR}/auth-service.key" "${KEY_DIR}/auth_service.key" 2>/dev/null || true
 cp "${KEY_DIR}/auth-service.crt" "${KEY_DIR}/auth_service.crt" 2>/dev/null || true
 
@@ -115,7 +115,7 @@ deploy_and_validate() {
     
     echo "⏳ Validating $svc health..."
     local retries=40
-    until [ "$(docker compose -f "$COMPOSE_FILE" ps --format json "$svc" | grep -o '"Health":"healthy"' || true)" ] || [ $retries -eq 0 ]; do
+    until docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"' || [ $retries -eq 0 ]; do
         echo -n "."
         sleep 3
         ((retries--))
@@ -144,7 +144,7 @@ deploy_and_validate "frontend"
 deploy_and_validate "nginx"
 
 # 5. Zero-Mock E2E Tests
-echo "--- Initiating Master Test (Zero-Mock E2E) ---"
+echo "--- Initiating Master Test: Zero-Mock E2E ---"
 docker compose run --rm pricing_api pytest tests/e2e -v
 
 echo "=== ALL SYSTEMS OPERATIONAL: 100% HEALTHY NETWORK & 100% PASSING E2E ==="
