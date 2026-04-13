@@ -1,18 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatedCard } from '../common/AnimatedCard';
-
-const authClient = { 
-  signUp: {
-    email: async (_data: any, options: any) => {
-      if (options.onRequest) options.onRequest();
-      setTimeout(() => {
-        if (options.onSuccess) options.onSuccess();
-      }, 1200);
-      return {};
-    }
-  }
-} as any;
+import { useRegister } from '../../api/hooks';
 
 const InputField: React.FC<{
   label: string;
@@ -51,6 +40,7 @@ export function SignUp() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const register = useRegister();
 
   const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,18 +48,15 @@ export function SignUp() {
     setError('');
     setSuccess(false);
 
-    await authClient.signUp.email({ email, password, name }, {
-      onRequest: () => setLoading(true),
-      onSuccess: () => { 
-        setLoading(false); 
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
-      },
-      onError: (ctx: any) => { 
-        setLoading(false); 
-        setError(ctx.error.message); 
-      },
-    });
+    try {
+      await register.mutateAsync({ email, password, full_name: name });
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

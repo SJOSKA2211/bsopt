@@ -1,8 +1,8 @@
 # Manifold: UNIFIED CPU-ONLY BASE (v13.0)
-# Optimized for pure CPU execution on Alpine Linux
+# Optimized for pure CPU execution on Debian Slim
 
 # --- STAGE 1: BUILDER ---
-FROM python:3.12.13-alpine AS builder
+FROM python:3.12.13-slim AS builder
 
 # Optimized for BuildKit caching
 ENV UV_SYSTEM_PYTHON=1 \
@@ -10,15 +10,15 @@ ENV UV_SYSTEM_PYTHON=1 \
     PYTHONUNBUFFERED=1
 
 # Install build dependencies with cache mount
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-    build-base \
+RUN --mount=type=cache,target=/var/cache/apt/archives \
+    apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     curl \
-    openssl-dev \
-    pkgconfig \
+    libssl-dev \
+    pkg-config \
     git \
     patchelf \
-    rust \
+    rustc \
     cargo
 
 WORKDIR /app
@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install ./wheels/*.whl
 
 # --- STAGE 2: PRODUCTION RUNTIME ---
-FROM python:3.12.13-alpine AS latest
+FROM python:3.12.13-slim AS latest
 
 WORKDIR /app
 ENV PYTHONPATH=/app \
@@ -48,7 +48,11 @@ ENV PYTHONPATH=/app \
     UV_SYSTEM_PYTHON=1
 
 # Runtime utilities
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libssl3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy ONLY site-packages and binaries
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
@@ -58,7 +62,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 
 # Hardening
-RUN addgroup -S manifold && adduser -S manifold -G manifold
+RUN groupadd -r manifold && useradd -r -g manifold manifold
 RUN chown -R manifold:manifold /app
 
 USER manifold

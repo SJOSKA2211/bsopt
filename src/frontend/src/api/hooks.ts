@@ -136,6 +136,29 @@ const api = axios.create({
   },
 });
 
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return {
+    mutateAsync: async (payload: any) => {
+      const { data } = await api.post('/auth/login', payload);
+      if (data.data?.access_token) {
+        localStorage.setItem('access_token', data.data.access_token);
+        localStorage.setItem('refresh_token', data.data.refresh_token);
+      }
+      return data;
+    }
+  };
+}
+
+export function useRegister() {
+  return {
+    mutateAsync: async (payload: any) => {
+      const { data } = await api.post('/auth/register', payload);
+      return data;
+    }
+  };
+}
+
 export function usePortfolioSummary() {
   return useReactQuery<PortfolioSummary>({
     queryKey: ['portfolio', 'summary'],

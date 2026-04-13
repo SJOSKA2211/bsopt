@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AnimatedCard } from '../common/AnimatedCard';
+import { useLogin } from '../../api/hooks';
 
 const SystemStatus: React.FC = () => (
   <div className="flex items-center gap-3 mb-6">
@@ -46,16 +47,21 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const login = useLogin();
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    // Mock authentication logic matching premium transition speed
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      await login.mutateAsync({ email, password });
       window.location.href = '/';
-    }, 1200);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
