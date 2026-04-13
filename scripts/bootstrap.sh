@@ -42,7 +42,7 @@ for s in "${SERVICES[@]}"; do issue_cert "$s"; done
 echo " Synchronizing Protocols..."
 GEN_DIR="src/shared/protos"
 mkdir -p "$GEN_DIR"
-uv run python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" ./protos/*.proto
+uv run --no-project --with grpcio-tools python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" ./protos/*.proto
 touch "$GEN_DIR/__init__.py"
 sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
 
