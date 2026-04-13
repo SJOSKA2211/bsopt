@@ -40,41 +40,10 @@ const PORTFOLIO_UPDATES = gql`
 `;
 
 
-const authClient = { 
-  signIn: { 
-    social: async () => ({}) 
-  }, 
-  useSession: () => ({ 
-    data: { 
-      user: { 
-        id: 'mock-user-123', 
-        email: 'trader@bsopt.io', 
-        name: 'Quant Trader' 
-      } 
-    },
-    isLoading: false
-  }) 
-} as any;
-
-
-const authClient = { 
-  signIn: { 
-    social: async () => ({}) 
-  }, 
-  useSession: () => ({ 
-    data: { 
-      user: { 
-        id: 'mock-user-123', 
-        email: 'trader@bsopt.io', 
-        name: 'Quant Trader' 
-      } 
-    },
-    isLoading: false
-  }) 
-} as any;
+import { useSession } from '../../../lib/auth';
 
 export const usePortfolio = () => {
-  const { data: sessionData } = authClient.useSession();
+  const { data: sessionData } = useSession();
   const userId = sessionData?.user?.id;
 
   // Initial fetch and polling fallback
