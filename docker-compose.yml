@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # --- INFRASTRUCTURE LAYER ---
   postgres:
@@ -11,6 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
       - app-network
     healthcheck:

@@ -1,200 +1,153 @@
-#!/bin/bash
-# ==
-# BSOPT: THE ZERO-TOUCH MODERNIZED BOOTSTRAP (v4.0 - CPU Optimized)
-# ==
-# Features:
-# - Forced PKI Regeneration (mTLS & Asymmetric JWT)
-# - Sequential Health-Aware Deployment
-# - Strict Environment Validation (${VAR:?error})
-# - BuildKit + Alpine/Distroless Optimization
-# ==
+#!/usr/bin/env bash
+# bootstrap.sh - Sequential Deployment & Validation Orchestrator (CPU-ONLY)
+set -euo pipefail
 
-set -e
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
 
-# Configuration
-KEYS_DIR="$(pwd)/.pki"
+echo "=== OMarchy Meta-Cognitive Node: Sequential Deployment Starting ==="
+
+# 1. Environment Generation (Secure-by-Default)
 ENV_FILE=".env"
-ENV_EXAMPLE=".env.example"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+if [ ! -f "$ENV_FILE" ]; then
+    echo " Generating cryptographically secure .env..."
+    DB_PASS=$(openssl rand -hex 32)
+    REDIS_PASS=$(openssl rand -hex 32)
+    RABBIT_PASS=$(openssl rand -hex 32)
+    JWT_PASS=$(openssl rand -hex 32)
+    MFA_KEY=$(openssl rand -base64 32)
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+    cat > "$ENV_FILE" <<EOF
+ENVIRONMENT=production
+POSTGRES_DB=bsopt
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=$DB_PASS
+REDIS_PASSWORD=$REDIS_PASS
+REDIS_HOST=redis
+REDIS_PORT=6379
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=$RABBIT_PASS
+RABBITMQ_HOST=rabbitmq
+JWT_SECRET=$JWT_PASS
+JWT_ALGORITHM=RS256
+JWT_PRIVATE_KEY=/etc/pki/auth_service.key
+JWT_PUBLIC_KEY=/etc/pki/auth_service.crt
+MFA_ENCRYPTION_KEY=$MFA_KEY
+BETTER_AUTH_SECRET=$DB_PASS
+BETTER_AUTH_URL=http://localhost:3001
+CORS_ORIGINS=http://localhost,http://localhost:3000
+TRUSTED_PROXIES=127.0.0.1
+MARKET_TICKER_SYMBOLS=SPY,AAPL,TSLA,GOOGL
+MINIO_ENDPOINT=minio:9000
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=$DB_PASS
+OPA_URL=http://opa:8181
+ML_SERVICE_GRPC_URL=pricing_api:50051
+AUTH_SERVICE_GRPC_URL=auth_api:50051
+PGBOUNCER_ADMIN_USER=admin
+PGBOUNCER_ADMIN_PASSWORD=$DB_PASS
+PGBOUNCER_HOST=postgres
+PGBOUNCER_PORT=6432
+NSE_SYMBOLS='{}'
+NSE_SCRAPER_SECTORS='[]'
+EOF
+    echo " .env generated successfully."
+fi
 
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+# Load variables
+export $(grep -v '^#' .env | xargs)
 
-# 1. Prerequisite Check
-check_prereq() {
-    local cmd=$1
-    if ! command -v "$cmd" &> /dev/null; then
-        log_error "$cmd is not installed."
-        exit 1
+# 2. PKI & Security substrate
+KEY_DIR=".pki"
+mkdir -p "$KEY_DIR"
+if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
+    echo " Initializing Internal CA..."
+    openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096
+    openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
+        -out "${KEY_DIR}/root_ca.crt" \
+        -subj "/C=US/ST=State/L=City/O=BSOPT-Production/CN=Manifold-Internal-CA"
+fi
+
+issue_cert() {
+    local svc=$1
+    local name=${2:-$svc}
+    if [[ ! -f "${KEY_DIR}/${name}.key" ]]; then
+        echo " Issuing cert for $name ($svc)..."
+        openssl genrsa -out "${KEY_DIR}/${name}.key" 2048
+        openssl req -new -key "${KEY_DIR}/${name}.key" -out "${KEY_DIR}/${name}.csr" -subj "/C=US/O=BSOPT/CN=${svc}"
+        openssl x509 -req -in "${KEY_DIR}/${name}.csr" -CA "${KEY_DIR}/root_ca.crt" -CAkey "${KEY_DIR}/root_ca.key" \
+            -CAcreateserial -out "${KEY_DIR}/${name}.crt" -days 365 -sha256
+        rm "${KEY_DIR}/${name}.csr"
     fi
 }
-check_prereq openssl
-check_prereq docker
 
-# 2. Container Engine Detection
-detect_engine() {
-    if docker compose version &> /dev/null; then
-        COMPOSE_CMD="docker compose"
-    else
-        COMPOSE_CMD="docker-compose"
-    fi
-}
-detect_engine
+# Certs for gRPC Services
+issue_cert "auth_api" "auth-service"
+issue_cert "pricing_api" "api-client" # For pricing_api as a client of auth_api
 
-# 3. PKI Regeneration (FORCED)
-regenerate_pki() {
-    log_info "Regenerating Infrastructure PKI (Forced)..."
-    rm -rf "$KEYS_DIR"
-    mkdir -p "$KEYS_DIR"
-    chmod 700 "$KEYS_DIR"
+# Certs for other services if needed
+SERVICES=("postgres" "redis" "rabbitmq" "vault")
+for s in "${SERVICES[@]}"; do issue_cert "$s"; done
+
+# Duplicate for JWT consistency if needed
+cp "${KEY_DIR}/auth-service.key" "${KEY_DIR}/auth_service.key" 2>/dev/null || true
+cp "${KEY_DIR}/auth-service.crt" "${KEY_DIR}/auth_service.crt" 2>/dev/null || true
+
+# 3. Protocol Synchronization
+echo " Generating gRPC code from protos..."
+GEN_DIR="src/shared/protos"
+mkdir -p "$GEN_DIR"
+docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-alpine sh -c \
+    "pip install grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto"
+touch "$GEN_DIR/__init__.py"
+sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+
+# 4. Sequential Deployment Loop
+COMPOSE_FILE="docker-compose.yml"
+
+deploy_and_validate() {
+    local svc=$1
+    echo "--- Building $svc ---"
+    docker compose -f "$COMPOSE_FILE" build "$svc"
     
-    # Root CA
-    openssl genrsa -out "$KEYS_DIR/root_ca.key" 4096
-    openssl req -x509 -new -nodes -key "$KEYS_DIR/root_ca.key" -sha256 -days 3650 \
-        -out "$KEYS_DIR/root_ca.crt" -subj "/CN=BSOPT-Root-CA/O=BSOPT/C=US"
-
-    # Auth Identity (Server)
-    openssl genrsa -out "$KEYS_DIR/auth-service.key" 2048
-    openssl req -new -key "$KEYS_DIR/auth-service.key" -out "$KEYS_DIR/auth-service.csr" -subj "/CN=auth-api/O=BSOPT/C=US"
-    openssl x509 -req -in "$KEYS_DIR/auth-service.csr" -CA "$KEYS_DIR/root_ca.crt" -CAkey "$KEYS_DIR/root_ca.key" \
-        -CAcreateserial -out "$KEYS_DIR/auth-service.crt" -days 365 -sha256
-    rm "$KEYS_DIR/auth-service.csr"
-
-    # API Identity (Client mTLS)
-    openssl genrsa -out "$KEYS_DIR/api-client.key" 2048
-    openssl req -new -key "$KEYS_DIR/api-client.key" -out "$KEYS_DIR/api-client.csr" -subj "/CN=pricing-api/O=BSOPT/C=US"
-    openssl x509 -req -in "$KEYS_DIR/api-client.csr" -CA "$KEYS_DIR/root_ca.crt" -CAkey "$KEYS_DIR/root_ca.key" \
-        -CAcreateserial -out "$KEYS_DIR/api-client.crt" -days 365 -sha256
-    rm "$KEYS_DIR/api-client.csr"
-
-    # JWT Keys (RSA + EC)
-    openssl genrsa -out "$KEYS_DIR/jwt_rs256.key" 4096
-    openssl rsa -in "$KEYS_DIR/jwt_rs256.key" -pubout -out "$KEYS_DIR/jwt_rs256.pub"
-    openssl ecparam -name prime256v1 -genkey -noout -out "$KEYS_DIR/jwt_es256.key"
-    openssl ec -in "$KEYS_DIR/jwt_es256.key" -pubout -out "$KEYS_DIR/jwt_es256.pub"
-
-    # Vault Keys
-    openssl genrsa -out "$KEYS_DIR/vault.key" 4096
-    openssl rsa -in "$KEYS_DIR/vault.key" -pubout -out "$KEYS_DIR/vault.pub"
+    echo "--- Deploying $svc ---"
+    docker compose -f "$COMPOSE_FILE" up -d "$svc"
     
-    openssl rand -base64 32 > "$KEYS_DIR/argon2_salt.secret"
-    chmod 600 "$KEYS_DIR"/*.key
-    log_success "PKI Stack Regenerated."
-}
-
-# 4. Environment Stabilization
-generate_env() {
-    log_info "Generating stabilized .env file..."
-    if [ ! -f "$ENV_EXAMPLE" ]; then
-        log_error ".env.example missing. Cannot stabilize environment."
-        exit 1
-    fi
-
-    # Read example, strip defaults, generate secure ones
-    cp "$ENV_EXAMPLE" "$ENV_FILE"
-    
-    # Helper to set/replace var
-    set_var() {
-        local key=$1
-        local val=$2
-        if grep -q "^${key}=" "$ENV_FILE"; then
-            sed -i "s|^${key}=.*|${key}=${val}|g" "$ENV_FILE"
-        else
-            echo "${key}=${val}" >> "$ENV_FILE"
-        fi
-    }
-
-    # Generate Secure Passwords and Defaults
-    set_var "POSTGRES_USER" "admin"
-    set_var "POSTGRES_DB" "bsopt"
-    set_var "POSTGRES_PASSWORD" "$(openssl rand -hex 16)"
-    set_var "REDIS_PASSWORD" "$(openssl rand -hex 16)"
-    set_var "RABBITMQ_USER" "admin"
-    set_var "RABBITMQ_PASSWORD" "$(openssl rand -hex 16)"
-    set_var "JWT_SECRET" "$(openssl rand -hex 32)"
-    set_var "BETTER_AUTH_SECRET" "$(openssl rand -hex 32)"
-    
-    # Map PKI to .env
-    set_var "JWT_PRIVATE_KEY" "\"$(cat $KEYS_DIR/jwt_rs256.key | base64 -w0)\""
-    set_var "JWT_PUBLIC_KEY" "\"$(cat $KEYS_DIR/jwt_rs256.pub | base64 -w0)\""
-    set_var "GRPC_CA_CERT" "$KEYS_DIR/root_ca.crt"
-    set_var "GRPC_SERVER_CERT" "$KEYS_DIR/auth-service.crt"
-    set_var "GRPC_SERVER_KEY" "$KEYS_DIR/auth-service.key"
-    set_var "GRPC_CLIENT_CERT" "$KEYS_DIR/api-client.crt"
-    set_var "GRPC_CLIENT_KEY" "$KEYS_DIR/api-client.key"
-
-    log_success ".env file stabilized and secured."
-}
-
-# 5. Sequential Deployment Loop
-deploy_service() {
-    local service=$1
-    local check_cmd=$2
-    
-    log_info "Deploying $service..."
-    export PYTHONPATH=$PYTHONPATH:$(pwd)
-    DOCKER_BUILDKIT=1 $COMPOSE_CMD build "$service"
-    $COMPOSE_CMD up -d "$service"
-    
-    log_info "Waiting for $service health..."
-    local retries=0
-    while [ $retries -lt 30 ]; do
-        if $COMPOSE_CMD ps "$service" | grep -q "healthy"; then
-            log_success "$service is healthy."
-            return 0
-        fi
-        # Fallback manual check
-        if [ -n "$check_cmd" ] && $COMPOSE_CMD exec -T "$service" sh -c "$check_cmd" >/dev/null 2>&1; then
-            log_success "$service is healthy (via manual check)."
-            return 0
-        fi
+    echo "⏳ Validating $svc health..."
+    local retries=30
+    until [ "$(docker compose -f "$COMPOSE_FILE" ps --format json "$svc" | grep -o '"Health":"healthy"' || true)" ] || [ $retries -eq 0 ]; do
         echo -n "."
-        sleep 2
-        retries=$((retries + 1))
+        sleep 3
+        ((retries--))
     done
+    echo ""
     
-    log_error "$service failed health check. Inspecting logs..."
-    $COMPOSE_CMD logs "$service" | tail -n 20
-    exit 1
+    if [ $retries -eq 0 ]; then
+        echo " FAILED: $svc did not reach healthy state."
+        docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 50
+        # If it failed, don't stop, try to fix common issues? 
+        # But the instruction says "If a service crashes, autonomously patch the code/environment and rebuild until green."
+        # For now, exit to let the agent handle it.
+        exit 1
+    fi
+    echo " $svc is ONLINE and HEALTHY."
 }
 
-# 6. Main Sequence
-main() {
-    clear
-    echo -e "${GREEN}=== BSOPT MODERNIZED BOOTSTRAP ===${NC}"
-    
-    regenerate_pki
-    generate_env
-    
-    log_info "Starting Sequential Deployment Cycle..."
-    
-    # Infrastructure
-    deploy_service "postgres" "pg_isready -U admin"
-    deploy_service "redis" "redis-cli -a \${REDIS_PASSWORD} ping"
-    
-    # Core
-    deploy_service "auth_api" "curl -f http://localhost:3001/health"
-    deploy_service "pricing_api" "curl -f http://localhost:8000/health"
-    
-    # Workers & Frontend
-    deploy_service "math_worker" "celery -A src.workers.math_worker inspect ping"
-    deploy_service "frontend" ""
-    
-    # Gateway
-    deploy_service "nginx" ""
-    
-    log_success "DEPLOYMENT COMPLETE. ALL SERVICES HEALTHY."
-    echo -e "${GREEN}API:${NC} http://localhost/api/v1"
-    echo -e "${GREEN}UI:${NC}  http://localhost"
-}
+# Core Infra
+deploy_and_validate "postgres"
+deploy_and_validate "redis"
+deploy_and_validate "rabbitmq"
+deploy_and_validate "vault"
 
-main "$@"
+# Microservices
+deploy_and_validate "auth_api"
+deploy_and_validate "pricing_api"
+deploy_and_validate "math_worker"
+deploy_and_validate "frontend"
+deploy_and_validate "nginx"
+
+# 5. Zero-Mock E2E Tests
+echo "--- Initiating Master Test (Zero-Mock E2E) ---"
+docker compose run --rm pricing_api pytest tests/e2e/test_auth_e2e.py -v
+
+echo "=== ALL SYSTEMS OPERATIONAL: 100% HEALTHY NETWORK & 100% PASSING E2E ==="

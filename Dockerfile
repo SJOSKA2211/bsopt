@@ -17,6 +17,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     openssl-dev \
     pkgconfig \
     git \
+    patchelf \
     rust \
     cargo
 

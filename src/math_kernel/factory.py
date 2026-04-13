@@ -2,7 +2,7 @@
 Pricing Engine Factory (Refactored)
 
 Implements a hardware-aware Strategy Pattern for option pricing.
-Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
+Supports dynamic registration and execution strategy selection (JIT, WASM, Rust).
 """
 
 import os
@@ -25,7 +25,7 @@ class PricingEngineFactory:
     """
     Advanced Self-Healing and Auto-Optimizing Pricing Engine Factory.
     Automatically selects the optimal execution strategy based on:
-    1. Available Hardware (SIMD, GPU, AMX)
+    1. Available Hardware (SIMD, AMX)
     2. Input Problem Size (Batch vs Single)
     3. Engine Health & Latency Metrics
     """

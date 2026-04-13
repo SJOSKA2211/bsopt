@@ -148,7 +148,7 @@ class BSOptDistributedTrainer:
 
         try:
             num_workers = self._negotiate_resources()
-            scaling_config = ScalingConfig(num_workers=num_workers, resources_per_worker={"CPU": 1, "GPU": 0})
+            scaling_config = ScalingConfig(num_workers=num_workers, resources_per_worker={"CPU": 1})
             trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
             
             logger.info("starting_distributed_training_cpu", workers=num_workers)
