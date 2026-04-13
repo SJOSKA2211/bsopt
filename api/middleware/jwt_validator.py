@@ -56,7 +56,7 @@ class JWTValidator:
         # 1. Fast Path (Redis)
         cached = await self.sessions.get_cached_session(token)
         if cached:
-            return JWTClaims(**cached.model_dump())
+            return cached
 
         # 2. Signature & Revocation Check
         token_data = self.tokens.decode_token(token)
@@ -66,7 +66,7 @@ class JWTValidator:
         # 3. Cache valid result
         await self.sessions.cache_session(token, token_data)
 
-        return JWTClaims(**token_data.model_dump())
+        return token_data
 
     def create_token(
         self,

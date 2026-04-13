@@ -6,6 +6,7 @@ import { AnimatedCard } from '../../components/common/AnimatedCard';
 import { usePricingStore, type PricingState } from '../../store/usePricingStore';
 import { useDataIntegration } from '../../hooks/useDataIntegration';
 import { useSignals } from '../../api/hooks';
+import { UI_CONFIG } from '../../lib/config';
 
 // Lazy loaded components
 const LivePriceChart = lazy(() =>
@@ -45,7 +46,7 @@ const KpiCard: React.FC<{ label: string; value: string | number; color: string; 
 export const DashboardPage: React.FC = () => {
   // Bootstrap data integration for institutional symbols
   const { isConnected } = useDataIntegration({ 
-    symbols: ['SPX', 'NDX', 'AAPL', 'NVDA', 'TSLA', 'BTC/USD'],
+    symbols: UI_CONFIG.INSTITUTIONAL_SYMBOLS,
     enabled: true 
   });
 
@@ -96,11 +97,7 @@ export const DashboardPage: React.FC = () => {
            <AnimatedCard delay={0.3} className="h-full">
               <h2 className="label-secondary mb-6 opacity-40">STRATEGY_ALLOCATION</h2>
               <div className="flex flex-col gap-6">
-                 {[
-                   { name: 'NEUTRAL_CONDOR_v4', weight: 45, color: '#00FFA3' },
-                   { name: 'BLACK_SWAN_HEDGE', weight: 25, color: '#8B5CF6' },
-                   { name: 'INCOME_OVERLAY', weight: 30, color: '#14B8A6' },
-                 ].map(strat => (
+                 {UI_CONFIG.STRATEGY_ALLOCATIONS.map(strat => (
                    <div key={strat.name}>
                       <div className="flex justify-between mb-2">
                          <span className="text-[11px] font-bold text-white/80">{strat.name}</span>
@@ -127,8 +124,8 @@ export const DashboardPage: React.FC = () => {
               <div className="p-6 border-b border-bento-border flex justify-between items-center">
                  <h2 className="label-secondary opacity-40">TEMPORAL_TRAJECTORY // GLOBAL_INDICES</h2>
                  <div className="flex gap-2">
-                    {['1M', '5M', '15M', '1H', '1D'].map(tf => (
-                      <button key={tf} className={`px-3 py-1 rounded text-[10px] font-bold border transition-colors ${tf === '5M' ? 'bg-mint text-black border-mint' : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10'}`}>
+                    {UI_CONFIG.TIME_FRAMES.map(tf => (
+                      <button key={tf} className={`px-3 py-1 rounded text-[10px] font-bold border transition-colors ${tf === UI_CONFIG.DEFAULT_TIME_FRAME ? 'bg-mint text-black border-mint' : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10'}`}>
                         {tf}
                       </button>
                     ))}

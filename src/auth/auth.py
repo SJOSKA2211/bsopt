@@ -10,7 +10,9 @@ import logging
 import secrets
 from datetime import datetime
 
+import msgspec
 import structlog
+from src.shared.config import settings
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -127,7 +129,7 @@ class AuthService:
             token_data = self.decode_token(token)
             await centralized_cache_service.set_token_data_cached(token, token_data)
         elif isinstance(token_data, dict):
-            token_data = TokenData(**token_data)
+            token_data = msgspec.json.decode(msgspec.json.encode(token_data), type=TokenData)
 
         if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
             # If revoked, remove from cache to ensure consistent state

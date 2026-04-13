@@ -4,20 +4,18 @@ from pathlib import Path
 
 import pytest
 import structlog
+from datetime import datetime, UTC, timedelta
 
 # Set testing environment variables before any imports
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
 os.environ["ENVIRONMENT"] = "test"
+os.environ["TESTING"] = "true"
 os.environ["LOG_SAMPLING_RATE"] = "1.0"
-os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost/testdb"
-os.environ["REDIS_PASSWORD"] = "a_very_long_redis_password_that_is_at_least_32_chars"
-os.environ["RABBITMQ_PASSWORD"] = "a_very_long_rabbitmq_password_that_is_at_least_32_chars"
-os.environ["AUDIT_VAULT_KEY"] = "a_very_long_audit_vault_key_that_is_at_least_32_chars"
-os.environ["BETTER_AUTH_SECRET"] = "a_very_long_better_auth_secret_that_is_at_least_32_chars"
-os.environ["JWT_SECRET"] = "a_very_long_jwt_secret_that_is_at_least_32_chars"
-os.environ["PGBOUNCER_ADMIN_PASSWORD"] = "a_very_long_pgbouncer_admin_password_that_is_at_least_32_chars"
-os.environ["MINIO_ROOT_PASSWORD"] = "a_very_long_minio_root_password_that_is_at_least_32_chars"
-os.environ["MLFLOW_TRACKING_URI"] = "sqlite:///mlflow_test.db"
+os.environ["NUMBA_DISABLE_JIT"] = "1"
+
+# Default fallback credentials for local testing
+os.environ["REDIS_PASSWORD"] = "test_redis_password_v2"
+os.environ["JWT_SECRET"] = "test_secret_key_v2_must_be_long_enough_for_security"
 
 # Force the project root into sys.path
 test_dir = Path(__file__).parent.absolute()
@@ -37,26 +35,15 @@ def pytest_collection_modifyitems(items):
             item.add_marker(pytest.mark.unit)
         if "tests/integration" in str(item.fspath):
             item.add_marker(pytest.mark.integration)
-
-
-def pytest_collection_modifyitems(items):
-    """Automatically mark tests based on their directory."""
-    for item in items:
-        if "tests/unit" in str(item.fspath):
-            item.add_marker(pytest.mark.unit)
-        if "tests/integration" in str(item.fspath):
-            item.add_marker(pytest.mark.integration)
-
-# Global fixtures for Production testing suite
-
+        if "tests/e2e" in str(item.fspath):
+            item.add_marker(pytest.mark.e2e)
 
 @pytest.fixture(scope="session", autouse=True)
-def startup_session(request):
-    """Session-wide initialization with robust retries."""
-    print("\n[conftest] DEBUG: startup_session triggered")
+def startup_session():
+    """Session-wide initialization."""
+    structlog.get_logger().info("test_session_start")
     yield
-
-
+    structlog.get_logger().info("test_session_end")
 
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
@@ -67,108 +54,67 @@ def env_setup(monkeypatch):
 
     db_url = (
         os.getenv("DATABASE_URL")
-        or f"postgresql://admin:29a47839acf362c9ebb5679a@{db_host}:5432/bsopt_test"
+        or f"postgresql+asyncpg://admin:password@{db_host}:5432/bsopt_test"
     )
-    redis_url = os.getenv("REDIS_URL") or f"redis://{redis_host}:6379/0"
+    redis_url = os.getenv("REDIS_URL") or f"redis://:{os.getenv('REDIS_PASSWORD')}@{redis_host}:6379/0"
 
     monkeypatch.setenv("DATABASE_URL", db_url)
     monkeypatch.setenv("REDIS_URL", redis_url)
-    monkeypatch.setenv("JWT_SECRET", os.getenv("JWT_SECRET", "test_secret_key_change_me_in_prod"))
-    monkeypatch.setenv("ENVIRONMENT", "test")
-    monkeypatch.setenv("TESTING", "true")
-    monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
-    monkeypatch.setenv("LOG_SAMPLING_RATE", "1.0")
-
-
-
-@pytest.fixture
-def unmocked_config_settings(monkeypatch):
-    """Fixture to provide a clean src.shared.config.Settings class for validation testing."""
-    import importlib
-
-    import src.shared.config
-
-    # Reload to ensure we have the real class if it was mocked
-    importlib.reload(src.shared.config)
-    yield
-    # Reload again after test to restore any previous state
-    importlib.reload(src.shared.config)
-
 
 @pytest.fixture
 def api_client(request):
-    """Returns a FastAPI TestClient with clean DB state."""
+    """Returns a FastAPI TestClient targeting the real app with NO mocks."""
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
-
     from api.index import app
-    from fastapi import Request
     from src.shared.config import settings
 
-    # Skip DB truncation for pure unit tests that don't need a real DB
-    is_unit_test = "unit" in request.node.nodeid
-    if not is_unit_test:
+    # Clean DB state for integration tests
+    if "integration" in request.node.nodeid:
         try:
-            # Truncate users to avoid ConflictException
-            engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+            # Use sync engine for truncation
+            sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+            engine = create_engine(sync_url)
             with engine.connect() as conn:
                 conn.execute(text("TRUNCATE TABLE users CASCADE"))
                 conn.commit()
-        except Exception:
-            # Fallback for environments where DB is not available
-            pass
-
+        except Exception as e:
+            structlog.get_logger().warning("db_truncation_failed", error=str(e))
 
     with TestClient(app) as client:
-        # Global dependency overrides for all tests
-        from api.middleware.jwt_validator import require_auth
-        from src.auth.core.tokens import TokenData
-        from datetime import datetime, UTC, timedelta
-
-        async def mocked_require_auth(request: Request) -> TokenData:
-            # If a token is provided, we should probably use it, but for now just bypass
-            # Or check if there's already a security_context/jwt_claims in state
-            claims = getattr(request.state, "jwt_claims", None)
-            if claims:
-                return claims
-            
-            # Default mock claims
-            return TokenData(
-                user_id="test-user-id",
-                email="test@example.com",
-                tier="admin",
-                token_type="access",
-                exp=datetime.now(UTC) + timedelta(hours=1),
-                iat=datetime.now(UTC),
-                jti="test-jti",
-                scopes=["admin"]
-            )
-
-        app.dependency_overrides[require_auth] = mocked_require_auth
         yield client
-        app.dependency_overrides = {}
-
 
 @pytest.fixture
-def mock_db_session(mocker):
-    """Returns a mocked SQLAlchemy Session."""
-    from sqlalchemy.orm import Session
+def test_user_token():
+    """Generates a real, valid JWT token for a test user."""
+    from src.auth.core.tokens import token_service
+    
+    token_pair = token_service.create_token_pair(
+        user_id="test-integration-user",
+        email="test@manifold.test",
+        tier="admin",
+        scopes=["admin", "read", "write"]
+    )
+    return token_pair.access_token
 
-    session = mocker.MagicMock(spec=Session)
-    return session
+@pytest.fixture
+def auth_headers(test_user_token):
+    """Standardized Authorization headers for test requests."""
+    return {"Authorization": f"Bearer {test_user_token}"}
 
+@pytest.fixture
+async def db_session():
+    """Provides a real async database session."""
+    from src.database import get_async_db
+    async for session in get_async_db():
+        yield session
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def self_healing_retry(request):
-    """
-    Self-healing test fixture.
-    If a test fails, it attempts to 'heal' the environment and retries.
-    """
+    """Optional self-healing wrapper."""
     try:
         yield
     except Exception as e:
-        # Check if the test is marked for self-healing
         if "self_heal" in request.keywords:
-            print(f"\n[Self-Healing] Test failed: {e}. Attempting recovery...")
-            print("[Self-Healing] Environment stabilized. Retrying...")
+            structlog.get_logger().error("test_failed_triggering_self_heal", error=str(e))
         raise e
