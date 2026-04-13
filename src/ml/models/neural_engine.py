@@ -1,5 +1,5 @@
-from typing import Any, cast
-
+from typing import Any, cast, Final
+import os
 import numpy as np
 import structlog
 import torch
@@ -13,28 +13,39 @@ from src.ml.architectures.neural_network import OptionPricingNN
 
 logger = structlog.get_logger(__name__)
 
+# Constants for configuration-driven design
+DEFAULT_INPUT_DIM: Final[int] = int(os.getenv("ML_INPUT_DIM", "9"))
+DEFAULT_HIDDEN_DIMS: Final[list[int]] = [int(d) for d in os.getenv("ML_HIDDEN_DIMS", "128,128,64").split(",")]
+DEFAULT_BATCH_SIZE: Final[int] = int(os.getenv("ML_BATCH_SIZE", "32"))
+DEFAULT_LEARNING_RATE: Final[float] = float(os.getenv("ML_LEARNING_RATE", "0.001"))
 
 class NeuralPricingEngine(BasePricingEngine):  # type: ignore
     """
     Pricing Engine powered by a Neural Network (MLP).
     Leverages PyTorch for pricing and automatic differentiation for Greeks.
-    OPTIMIZED: Standardized 9-feature vector for high-fidelity pricing.
+    Execution is strictly CPU-bound for lightweight deployment.
     """
 
     def __init__(self, model_path: str | None = None) -> None:
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # Standardized 9 Features: [Spot, Strike, T, is_call, moneyness, log_moneyness, sqrt_T, days_to_T, vol]
-        self.model = OptionPricingNN(input_dim=9, hidden_dims=[128, 128, 64], num_classes=1).to(
-            self.device
-        )
+        # Force CPU-only execution as per system mandate
+        self.device = torch.device("cpu")
+        
+        self.model = OptionPricingNN(
+            input_dim=DEFAULT_INPUT_DIM, 
+            hidden_dims=DEFAULT_HIDDEN_DIMS, 
+            num_classes=1
+        ).to(self.device)
 
-        if model_path:
+        if not model_path:
+            model_path = os.getenv("ML_MODEL_PATH")
+
+        if model_path and os.path.exists(model_path):
             try:
-                self.model.load_state_dict(torch.load(model_path, map_location=self.device))  # nosec B614
+                self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
                 logger.info("neural_engine_model_loaded", path=model_path)
             except Exception as e:
                 logger.error("neural_engine_load_failed", error=str(e))
-
+        
         self.model.eval()
 
     def train_model(
@@ -42,12 +53,12 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         inputs: np.ndarray,
         targets: np.ndarray,
         epochs: int = 10,
-        batch_size: int = 32,
-        lr: float = 0.001,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        lr: float = DEFAULT_LEARNING_RATE,
     ) -> None:
         """
         Train the underlying neural network.
-        Inputs expected shape (N, 9).
+        Inputs expected shape (N, input_dim).
         """
         self.model.train()
         criterion = nn.MSELoss()
@@ -70,13 +81,16 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         self.model.eval()
 
     def _params_to_tensor(self, params: BSParameters, is_call: bool = True) -> torch.Tensor:
-        """Convert BSParameters to a standardized 9-feature tensor with gradients enabled."""
-        # Derived features
+        """Convert BSParameters to a standardized feature tensor with gradients enabled."""
+        if params.strike == 0:
+             raise ValueError("strike_cannot_be_zero")
+             
         moneyness = params.spot / params.strike
         log_moneyness = np.log(moneyness)
         sqrt_t = np.sqrt(params.maturity)
         days_to_t = params.maturity * 365.0
 
+        # Feature vector is configuration-driven based on input_dim
         data = [
             params.spot,
             params.strike,
@@ -88,29 +102,29 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
             days_to_t,
             params.volatility,
         ]
-        tensor = torch.tensor([data], dtype=torch.float32, device=self.device)
+        
+        # Slice or pad data based on expected input_dim if needed, but here we assume dim=9
+        tensor = torch.tensor([data[:DEFAULT_INPUT_DIM]], dtype=torch.float32, device=self.device)
         tensor.requires_grad_(True)
         return tensor
 
     def price(self, params: BSParameters, option_type: str = "call") -> float:
-        """
-        Calculate option price using the Neural Network.
-        """
+        """Calculate option price using the Neural Network."""
         is_call = option_type.lower() == "call"
         input_tensor = self._params_to_tensor(params, is_call)
 
         with torch.no_grad():
-            price = self.model(input_tensor).item()
-
-        return float(price)
+            price_output = self.model(input_tensor)
+            return float(price_output.item())
 
     def optimize_for_inference(
         self, onnx_path: str | None = None, prune_amount: float = 0.2
     ) -> "NeuralPricingEngine":
-        """
-        Fine-tune model for zero-latency inference.
-        """
+        """Optimize model for inference using pruning and ONNX export."""
         self.model.apply_pruning(amount=prune_amount)
+
+        if not onnx_path:
+            onnx_path = os.getenv("ML_ONNX_EXPORT_PATH")
 
         if onnx_path:
             sample = self._params_to_tensor(
@@ -133,13 +147,9 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         dividends: np.ndarray,
         option_types: np.ndarray,
     ) -> np.ndarray:
-        """
-        High-Performance Vectorized Batch Pricing using standardized 9-feature vector.
-        """
-        len(spots)
+        """Vectorized Batch Pricing using standardized feature vector."""
         is_call = (option_types == "call") | (option_types == "CALL")
 
-        # Construct 9 features
         moneyness = spots / strikes
         log_moneyness = np.log(moneyness)
         sqrt_t = np.sqrt(maturities)
@@ -160,10 +170,10 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
             axis=1,
         )
 
-        input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
+        input_tensor = torch.tensor(data[:, :DEFAULT_INPUT_DIM], dtype=torch.float32, device=self.device)
 
         with torch.no_grad():
-            prices = self.model(input_tensor).squeeze().cpu().numpy()
+            prices = self.model(input_tensor).squeeze().numpy()
 
         return cast(np.ndarray[Any, np.dtype[np.float64]], prices)
 
@@ -176,17 +186,8 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         rates: np.ndarray,
         dividends: np.ndarray,
         option_types: np.ndarray,
-    ) -> tuple[
-        np.ndarray,
-        np.ndarray,
-        np.ndarray,
-        np.ndarray,
-        np.ndarray,
-    ]:
-        """
-        High-Performance Vectorized Greeks using Autograd Batching.
-        """
-        len(spots)
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Vectorized Greeks using Autograd Batching."""
         is_call = (option_types == "call") | (option_types == "CALL")
 
         moneyness = spots / strikes
@@ -209,29 +210,24 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
             axis=1,
         )
 
-        input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
+        input_tensor = torch.tensor(data[:, :DEFAULT_INPUT_DIM], dtype=torch.float32, device=self.device)
         input_tensor.requires_grad_(True)
 
         prices = self.model(input_tensor)
 
-        # Batch Gradients
         grads = torch.autograd.grad(
             prices, input_tensor, grad_outputs=torch.ones_like(prices), create_graph=True
         )[0]
 
-        delta = grads[:, 0].detach().cpu().numpy()
-        theta = -grads[:, 2].detach().cpu().numpy()
-        vega = grads[:, 8].detach().cpu().numpy()
+        delta = grads[:, 0].detach().numpy()
+        theta = -grads[:, 2].detach().numpy()
+        vega = grads[:, 8].detach().numpy()
 
-        # Second order (Gamma)
         gamma_grads = torch.autograd.grad(
             grads[:, 0], input_tensor, grad_outputs=torch.ones_like(grads[:, 0]), retain_graph=False
         )[0]
-        gamma = gamma_grads[:, 0].detach().cpu().numpy()
+        gamma = gamma_grads[:, 0].detach().numpy()
 
-        # Rho (Approximate or use parity if rates were in features)
-        # In this 9-feature set, rates/dividends are not features (standard for this specific engine)
-        # If needed, parity can be applied if we assume Black-Scholes dynamics.
         rho = np.zeros_like(delta)
 
         return (
@@ -243,9 +239,7 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         )
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        """
-        Calculate Greeks for a single set of parameters.
-        """
+        """Calculate Greeks for a single set of parameters."""
         res = self.price_batch_greeks(
             np.array([params.spot], dtype=np.float64),
             np.array([params.strike], dtype=np.float64),
