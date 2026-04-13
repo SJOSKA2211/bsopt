@@ -254,7 +254,6 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
         if base_model:
             model.load_state_dict(base_model.state_dict())
 
-        # GPU-specific hardware flags removed for pure CPU execution
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.MSELoss()  # Changed to MSE for regression
         early_stopping = EarlyStopping(patience=patience)

@@ -128,11 +128,6 @@ class Settings(BaseSettings):
     def validate_secret_strength(cls, v: str | None, info: Any) -> str | None:
         if v is None:
             return v
-        # We need to check if the allow flag is set. 
-        # Since this is a field validator, we can't easily check other fields 
-        # unless they are already validated. 
-        # However, pydantic-settings loads values into os.environ in some cases, 
-        # but let's check the env directly or just check os.environ as a fallback.
         allow_weak = os.environ.get("BSOPT_ALLOW_WEAK_SECRETS", "").lower() in ("true", "1", "yes")
         if len(v) < 32 and not allow_weak:
             raise ValueError(

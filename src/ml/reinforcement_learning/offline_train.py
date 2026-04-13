@@ -115,7 +115,7 @@ def train_offline(
     target_q_net = cast(nn.Module, QNetwork(state_dim=128, action_dim=10).to(device))
     target_q_net.load_state_dict(q_net.state_dict())
 
-    # GPU-specific hardware acceleration (AMP, torch.compile) removed for pure CPU execution
+    # Offline DT-v2 training
     optimizer = th.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     th.optim.Adam(q_net.parameters(), lr=3e-4)
     v_optimizer = th.optim.Adam(v_net.parameters(), lr=3e-4)

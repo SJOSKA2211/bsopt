@@ -10,7 +10,7 @@ import redis.asyncio as redis
 import structlog
 from celery import Celery
 
-from src.config import get_settings
+from src.shared.config import get_settings
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
 from src.ingestion.router import MarketDataRouter

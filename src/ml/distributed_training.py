@@ -16,7 +16,7 @@ except ImportError:
     TorchTrainer = None
     HAS_RAY_TRAIN = False
 
-from src.config import settings
+from src.shared.config import settings
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
 from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
 
@@ -45,26 +45,24 @@ def train_func(config: dict[str, Any]):
     )
 
     import ray
+device = th.device("cpu")
+model = model.to(device)
 
-    device = th.device("cpu")
-    model = model.to(device)
+# Wrap for DDP (using 'gloo' backend for CPU)
+model = ray.train.torch.prepare_model(model)
 
-    # GPU-specific compile and hardware flags removed
-    # Wrap for DDP (using 'gloo' backend for CPU if possible, handled by ray.train.torch.prepare_model)
-    model = ray.train.torch.prepare_model(model)
+optimizer = th.optim.AdamW(
+...
+optimizer = th.optim.AdamW(
+    model.parameters(),
+    lr=config.get("lr", 1e-4),
+    weight_decay=config.get("weight_decay", 1e-2),
+    betas=(0.9, 0.95),
+)
+criterion = nn.MSELoss()
 
-    optimizer = th.optim.AdamW(
-        model.parameters(),
-        lr=config.get("lr", 1e-4),
-        weight_decay=config.get("weight_decay", 1e-2),
-        betas=(0.9, 0.95),
-    )
-    criterion = nn.MSELoss()
-
-    #  AMP and GradScaler removed for CPU-only architecture
-    # 3. Setup Data
-    import ray.data
-
+# Setup Data
+import ray.data
     dataset_path = config.get("dataset_path", "data/trajectories.parquet")
 
     try:

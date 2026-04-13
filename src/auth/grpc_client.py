@@ -17,8 +17,8 @@ class AuthGrpcClient:
 
     def _get_stub(self):
         if not self.stub:
-            # gRPC options for stability (Keepalive & HTTP/2)
-            # Retries enabled via service config
+            from src.shared.grpc_util import get_channel_credentials
+
             options = [
                 ("grpc.keepalive_time_ms", 30000),
                 ("grpc.keepalive_timeout_ms", 10000),
@@ -41,44 +41,16 @@ class AuthGrpcClient:
             }
             options.append(("grpc.service_config", str(service_config)))
 
-            SECURE_MODE = os.getenv("GRPC_SECURE", "true").lower() == "true"
-
             try:
-                # mTLS Configuration: Prioritize Docker path (/etc/pki) then local fallback
-                PROJECT_ROOT = os.getcwd()
-                ca_cert_path = os.getenv("GRPC_CA_CERT", "/etc/pki/root_ca.crt")
-                if not os.path.exists(ca_cert_path):
-                    ca_cert_path = os.path.join(PROJECT_ROOT, ".pki/root_ca.crt")
-
-                client_cert_path = os.getenv("GRPC_CLIENT_CERT", "/etc/pki/api-client.crt")
-                if not os.path.exists(client_cert_path):
-                    client_cert_path = os.path.join(PROJECT_ROOT, ".pki/api-client.crt")
-
-                client_key_path = os.getenv("GRPC_CLIENT_KEY", "/etc/pki/api-client.key")
-                if not os.path.exists(client_key_path):
-                    client_key_path = os.path.join(PROJECT_ROOT, ".pki/api-client.key")
-
-                if SECURE_MODE and os.path.exists(ca_cert_path) and os.path.exists(client_cert_path):
-                    with open(ca_cert_path, "rb") as f:
-                        root_certs = f.read()
-                    with open(client_cert_path, "rb") as f:
-                        client_cert = f.read()
-                    with open(client_key_path, "rb") as f:
-                        client_key = f.read()
-
-                    credentials = grpc.ssl_channel_credentials(
-                        root_certificates=root_certs,
-                        private_key=client_key,
-                        certificate_chain=client_cert,
-                    )
+                credentials = get_channel_credentials()
+                if isinstance(credentials, grpc.ChannelCredentials):
                     self.channel = grpc.aio.secure_channel(self.target, credentials, options=options)
-                    logger.info("grpc_client_init_secure", target=self.target, ca=ca_cert_path)
+                    logger.info("grpc_client_init_secure", target=self.target)
                 else:
-                    if SECURE_MODE:
-                        logger.warning("grpc_certs_not_found_falling_back_to_insecure", target=self.target)
                     self.channel = grpc.aio.insecure_channel(self.target, options=options)
+                    logger.warning("grpc_client_init_insecure", target=self.target)
             except Exception as e:
-                logger.exception("grpc_client_secure_init_failed", error=str(e))
+                logger.exception("grpc_client_init_failed", error=str(e))
                 self.channel = grpc.aio.insecure_channel(self.target, options=options)
 
             self.stub = auth_pb2_grpc.AuthServiceStub(self.channel)

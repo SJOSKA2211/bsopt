@@ -12,7 +12,7 @@ from stable_baselines3 import TD3
 from stable_baselines3.common.callbacks import BaseCallback, CallbackList, EvalCallback
 from stable_baselines3.common.noise import NormalActionNoise
 
-from src.config import settings
+from src.shared.config import settings
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 from src.ml.reinforcement_learning.transformer_policy import (
     TransformerFeatureExtractor,

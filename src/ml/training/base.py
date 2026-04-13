@@ -10,7 +10,7 @@ import msgspec
 import numpy as np
 import structlog
 
-from src.config import get_settings
+from src.shared.config import get_settings
 from src.shared.observability import setup_logging
 
 logger = structlog.get_logger(__name__)

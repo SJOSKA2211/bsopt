@@ -17,7 +17,7 @@ def check_mlflow_connection() -> bool:
     try:
         from mlflow.tracking import MlflowClient
 
-        from src.config import settings
+        from src.shared.config import settings
 
         client = MlflowClient(tracking_uri=settings.tracking_uri)
         client.search_experiments(max_results=1)

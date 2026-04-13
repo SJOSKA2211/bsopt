@@ -19,7 +19,7 @@ except ImportError:
     IBMProvider = None  # type: ignore
     IBM_PROVIDER_AVAILABLE = False
 
-from src.config import settings
+from src.shared.config import settings
 
 logger = structlog.get_logger()
 

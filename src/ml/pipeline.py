@@ -7,7 +7,7 @@ import pandas as pd
 import structlog
 from numba import njit
 
-from src.config import settings
+from src.shared.config import settings
 from src.ml.training.base import TrainingConfig, TrainingResult
 
 logger = structlog.get_logger(__name__)

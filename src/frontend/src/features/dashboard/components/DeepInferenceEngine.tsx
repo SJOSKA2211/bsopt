@@ -46,7 +46,7 @@ export const DeepInferenceEngine: React.FC<DeepInferenceEngineProps> = ({ symbol
   }
 
   const prediction = inferenceData?.mlPrediction;
-  const confidence = prediction?.confidence_interval ? (prediction.confidence_interval * 100) : 85;
+  const confidence = prediction?.confidence_interval ? (prediction.confidence_interval * 100) : 0;
   const latestAccuracy = comparisonData?.data?.accuracy || mlAccuracy || 0;
 
   return (

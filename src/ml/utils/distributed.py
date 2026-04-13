@@ -12,7 +12,7 @@ except (ImportError, AttributeError):
 
 from dask.distributed import Client, LocalCluster
 
-from src.config import settings
+from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 

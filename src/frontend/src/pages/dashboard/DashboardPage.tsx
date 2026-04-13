@@ -51,10 +51,14 @@ export const DashboardPage: React.FC = () => {
   });
 
   // Performance-optimized store selectors
-  const systemGamma = usePricingStore((state: PricingState) => state.systemGamma);
+  const systemGammaFromStore = usePricingStore((state: PricingState) => state.systemGamma);
   const portfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
   
+  const { data: systemMetrics } = useSystemMetrics();
   const { data: recentSignals, isLoading: isLoadingSignals } = useSignals(5);
+
+  const systemGamma = systemMetrics?.gamma || systemGammaFromStore || 0;
+  const vegaSens = systemMetrics?.vega ? `${(systemMetrics.vega / 1000).toFixed(2)}k` : "0.00k";
   
   return (
     <div className="p-6 h-[calc(100vh-64px)] overflow-auto bg-bento-bg">
@@ -72,7 +76,7 @@ export const DashboardPage: React.FC = () => {
            <KpiCard label="PORTFOLIO_NAV" value={portfolioTotal} color="#F59E0B" prefix="$" index={1} />
         </div>
         <div className="col-span-12 sm:col-span-6 lg:col-span-3">
-           <KpiCard label="VEGA_SENS" value="4.52k" color="#14B8A6" index={2} />
+           <KpiCard label="VEGA_SENS" value={vegaSens} color="#14B8A6" index={2} />
         </div>
         <div className="col-span-12 sm:col-span-6 lg:col-span-3">
            <KpiCard label="WS_STATUS" value={isConnected ? 'CONNECTED' : 'CONNECTING...'} color={isConnected ? '#00FFA3' : '#F59E0B'} index={3} />

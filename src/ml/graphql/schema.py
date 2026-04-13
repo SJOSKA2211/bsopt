@@ -12,7 +12,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     """
     import grpc
 
-    from src.config import settings
+    from src.shared.config import settings
     from src.shared.protos import inference_pb2, inference_pb2_grpc
 
     try:

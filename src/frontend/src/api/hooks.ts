@@ -244,3 +244,26 @@ export function useSignals(limit: number = 20) {
     refetchInterval: 5000,
   });
 }
+
+export function useHeatmap(payload: any) {
+  return useReactQuery({
+    queryKey: ['pricing', 'heatmap', payload],
+    queryFn: async () => {
+      const { data } = await api.post('/pricing/heatmap', payload);
+      return data;
+    },
+    enabled: !!payload,
+    staleTime: 30000,
+  });
+}
+
+export function useSystemMetrics() {
+  return useReactQuery({
+    queryKey: ['system', 'metrics'],
+    queryFn: async () => {
+      const { data } = await api.get('/system/metrics');
+      return data;
+    },
+    refetchInterval: 10000,
+  });
+}

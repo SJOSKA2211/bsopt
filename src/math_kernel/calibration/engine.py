@@ -7,7 +7,7 @@ import numpy as np
 import structlog
 from scipy.optimize import differential_evolution, minimize
 
-from src.config import settings
+from src.shared.config import settings
 from src.math_kernel.models.heston_fft import HestonModelFFT, HestonParams
 from src.shared.observability import (
     CALIBRATION_DURATION,

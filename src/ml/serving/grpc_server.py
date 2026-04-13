@@ -8,7 +8,7 @@ import grpc
 import numpy as np
 import onnxruntime as ort
 
-from src.config import settings
+from src.shared.config import settings
 from src.shared.protos import inference_pb2, inference_pb2_grpc
 
 logger = logging.getLogger(__name__)
@@ -90,6 +90,8 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
 
 async def serve_grpc(xgb_model, nn_ort_session):
     """Starts the gRPC server and returns the servicer."""
+    from src.shared.grpc_util import get_server_credentials
+
     options = [
         ("grpc.max_send_message_length", 16 * 1024 * 1024),
         ("grpc.max_receive_message_length", 16 * 1024 * 1024),
@@ -110,8 +112,14 @@ async def serve_grpc(xgb_model, nn_ort_session):
         elif host == "localhost":
             listen_addr = f"0.0.0.0:{port}"
 
-    server.add_insecure_port(listen_addr)
-    logger.info(f"Starting gRPC server on {listen_addr}")
+    creds = get_server_credentials()
+    if creds:
+        server.add_secure_port(listen_addr, creds)
+        logger.info(f"Starting SECURE gRPC server on {listen_addr}")
+    else:
+        server.add_insecure_port(listen_addr)
+        logger.warning(f"Starting INSECURE gRPC server on {listen_addr}")
+
     await server.start()
 
     # We return the servicer so the REST app can update its state

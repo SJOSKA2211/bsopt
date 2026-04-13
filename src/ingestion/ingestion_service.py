@@ -134,12 +134,22 @@ class DataIngestionServicer(market_data_pb2_grpc.DataServiceServicer):
 
 
 async def serve():
+    from src.shared.grpc_util import get_server_credentials
+
     server = grpc.aio.server()
     servicer = DataIngestionServicer()
     market_data_pb2_grpc.add_DataServiceServicer_to_server(servicer, server)
-    listen_addr = "[::]:50053"
-    server.add_insecure_port(listen_addr)
-    logger.info("ingestion_grpc_server_started", addr=listen_addr)
+
+    listen_addr = "0.0.0.0:50053"
+    creds = get_server_credentials()
+
+    if creds:
+        server.add_secure_port(listen_addr, creds)
+        logger.info("ingestion_grpc_server_started_secure", addr=listen_addr)
+    else:
+        server.add_insecure_port(listen_addr)
+        logger.warning("ingestion_grpc_server_started_insecure", addr=listen_addr)
+
     await server.start()
 
     # Heartbeat task

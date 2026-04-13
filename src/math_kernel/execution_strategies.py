@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import structlog
 
-from src.config import settings
+from src.shared.config import settings
 from src.math_kernel import service
 from src.shared.utils.shared_memory import shm_manager
 

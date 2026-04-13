@@ -6,7 +6,7 @@ import click
 import mlflow
 import uvicorn
 
-from src.config import settings
+from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
