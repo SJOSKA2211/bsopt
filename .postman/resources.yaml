@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 60886298-10e1-4369-8b76-752c74e7d166
+
+localResources:
+  specs:
+    - ../swagger.json
+    - ../protos/auth.proto
+    - ../protos/common.proto
+    - ../protos/inference.proto
+    - ../protos/market_data.proto
+    - ../protos/pricing.proto
+    - ../src/shared/utils/schemas.proto

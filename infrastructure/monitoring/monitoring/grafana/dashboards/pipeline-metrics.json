@@ -1,0 +1,186 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "targets": [
+        { "expr": "sum(rate(bsopt_ingestion_ticks_total[5m]))", "legendFormat": "Ticks/sec", "refId": "A" }
+      ],
+      "title": "Ingestion Rate (ticks/sec)",
+      "type": "stat"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "targets": [
+        { "expr": "sum(rate(bsopt_ingestion_options_total[5m]))", "legendFormat": "Options/sec", "refId": "A" }
+      ],
+      "title": "Options Ingestion Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 1 },
+            { "color": "green", "value": 5 }
+          ]}
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "expr": "bsopt_active_ingestion_tasks", "legendFormat": "Active Tasks", "refId": "A" }
+      ],
+      "title": "Active Ingestion Tasks",
+      "type": "stat"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "red", "value": 1 }
+          ]}
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "targets": [
+        { "expr": "sum(rate(bsopt_ingestion_errors_total[5m])) by (type)", "legendFormat": "{{type}}", "refId": "A" }
+      ],
+      "title": "Ingestion Errors/sec",
+      "type": "stat"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        { "expr": "job:ingestion_latency:p99", "legendFormat": "p99", "refId": "A" }
+      ],
+      "title": "Batch Ingestion Latency (p99 - Optimized)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(bsopt_db_insert_duration_seconds_bucket[5m])) by (le, table))", "legendFormat": "p50 {{table}}", "refId": "A" },
+        { "expr": "histogram_quantile(0.99, sum(rate(bsopt_db_insert_duration_seconds_bucket[5m])) by (le, table))", "legendFormat": "p99 {{table}}", "refId": "B" }
+      ],
+      "title": "DB Insert Latency by Table",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 7,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "job:pricing_latency:p99", "legendFormat": "p99 {{method}}", "refId": "A" }
+      ],
+      "title": "Pricing Service Latency (p99 - Optimized)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 8,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "ml_model_accuracy_score", "legendFormat": "{{framework}}", "refId": "A" },
+        { "expr": "ml_data_drift_score", "legendFormat": "PSI Drift", "refId": "B" },
+        { "expr": "ml_mmd_drift_score", "legendFormat": "MMD Drift", "refId": "C" }
+      ],
+      "title": "ML Model Health & Drift Scores",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 9,
+      "targets": [
+        { "expr": "process_memory_usage_bytes", "legendFormat": "{{service}}", "refId": "A" }
+      ],
+      "title": "Process Memory Usage by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 10,
+      "targets": [
+        { "expr": "process_cpu_usage_percent", "legendFormat": "{{service}}", "refId": "A" }
+      ],
+      "title": "CPU Usage by Service",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["bsopt", "financial", "monitoring"],
+  "templating": { "list": [] },
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "BS-Opt Financial Platform",
+  "type": "dashboard",
+  "uid": "bsopt-financial-platform",
+  "version": 2
+}

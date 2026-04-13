@@ -1,0 +1,59 @@
+# ==============================================================================
+# Manifold: AUTH SERVICE (v11.1)
+# ==============================================================================
+# High-performance gRPC authentication gateway.
+# Rebased on Production Base.
+# ==============================================================================
+
+# --- BUILDER ---
+FROM manifold-base:latest AS builder
+USER root
+WORKDIR /app
+
+# Install App + Dependencies
+COPY infrastructure/requirements/requirements-auth.txt /tmp/
+RUN  \
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -r /tmp/requirements-auth.txt
+
+COPY . .
+RUN /usr/local/bin/uv pip install --retries 10 --no-cache-dir .
+
+# --- DEVELOPMENT ---
+FROM manifold-base:latest AS development
+USER root
+WORKDIR /app
+
+# Copy source
+COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+RUN chown -R Manifold:Manifold /app
+
+USER Manifold
+
+# Install App
+RUN  \
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -r infrastructure/requirements/requirements-auth.txt && \
+    /usr/local/bin/uv pip install --retries 10 --no-cache-dir -e .
+
+# --- PRODUCTION ---
+FROM manifold-base:latest AS production
+USER root
+WORKDIR /app
+
+# Copy the pre-built virtual environment from the auth builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Production Security & Performance
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+
+USER Manifold
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3001/health').read()" || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
+CMD ["python3", "-m", "src.auth.auth_server"]

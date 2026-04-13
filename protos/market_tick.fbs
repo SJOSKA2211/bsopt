@@ -1,0 +1,12 @@
+namespace BS;
+
+table MarketTick {
+  symbol:string;
+  price:double;
+  volume:long;
+  timestamp:double;
+  bid:double;
+  ask:double;
+}
+
+root_type MarketTick;

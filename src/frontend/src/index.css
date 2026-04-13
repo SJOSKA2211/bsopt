@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  /* High-Performance Institutional Palette - Quantum Financial Deity */
+  --color-bento-bg: #020617; /* deep slate 950 */
+  --color-bento-card: rgba(15, 23, 42, 0.45); /* slate 900 semi-transparent */
+  --color-bento-border: rgba(148, 163, 184, 0.08); /* slate 400 subtle */
+  
+  --color-mint: #10b981; /* emerald 500 */
+  --color-teal: #14b8a6; /* teal 500 */
+  --color-quantum: #06b6d4; /* cyan 500 */
+  --color-nebula: #8b5cf6; /* violet 500 */
+  --color-amber: #f59e0b; /* amber 500 */
+  --color-electrum: #d4af37; /* authentic gold */
+  
+  --radius-bento: 28px;
+}
+
+:root {
+  --bento-glass: blur(16px) saturate(200%);
+}
+
+@layer base {
+  body {
+    @apply bg-bento-bg text-white font-sans antialiased overflow-x-hidden;
+    /* Subdued Grid Backdrop */
+    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.02) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+}
+
+@layer components {
+  .bento-card {
+    @apply bg-bento-card border border-bento-border p-6 relative overflow-hidden transition-all;
+    border-radius: var(--radius-bento);
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: var(--bento-glass);
+    -webkit-backdrop-filter: var(--bento-glass);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .bento-card:hover {
+    @apply -translate-y-1;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.05) inset;
+  }
+
+  .bento-grid {
+    @apply grid grid-cols-12 gap-4 p-4;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold gap-1.5 bg-white/5;
+  }
+
+  .status-pill.healthy { @apply text-mint border border-mint/20; }
+  .status-pill.warning { @apply text-amber border border-amber/20; }
+  .status-pill.critical { @apply text-red-500 border border-red-500/20; }
+}
+
+@layer utilities {
+  .data-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    @apply tracking-tight;
+  }
+
+  .label-secondary {
+    @apply text-[13px] font-medium text-white/60 uppercase tracking-wider;
+  }
+
+  .shimmer-overlay {
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    animation: bento-shimmer 2.5s infinite;
+  }
+
+  /* High-Performance High-Frequency Pulse */
+  .pulse-active {
+    animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  }
+
+  .glow-mint { box-shadow: 0 0 15px -2px var(--color-mint); }
+  .glow-amber { box-shadow: 0 0 15px -2px var(--color-amber); }
+  .glow-purple { box-shadow: 0 0 15px -2px var(--color-purple); }
+}
+
+@keyframes bento-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 0.4; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Custom Lean Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-bento-bg; }
+::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+

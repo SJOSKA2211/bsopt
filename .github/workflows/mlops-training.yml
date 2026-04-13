@@ -1,0 +1,69 @@
+name: BS-Opt MLOps Continuous Training (Dockerized)
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Daily
+  workflow_dispatch:
+
+jobs:
+  containerized-training:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: bsopt
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ci_test_password
+      DATABASE_URL: postgresql://admin:ci_test_password@postgres:5432/bsopt
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ci_test_jwt_secret
+      BETTER_AUTH_SECRET: ci_test_better_auth_secret
+      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # Docker layer caching via actions/cache was previously configured
+      # with a path that never existed, which produced noisy warnings
+      # without any real benefit. The cache step has been removed to
+      # keep logs clean and avoid path validation errors.
+      - name: Build ML Cluster Images
+        run: |
+          docker compose --profile ml build ray-head rl-training-worker api postgres redis
+      - name: Run Training in Ray Cluster
+        run: |
+          # Start the ML infrastructure
+          docker compose --profile ml up -d ray-head rl-training-worker postgres redis
+          # Wait for postgres to be healthy (it has 19 init scripts to run)
+          echo "Waiting for postgres to become healthy..."
+          for i in $(seq 1 60); do
+            if docker compose --profile ml exec -T postgres pg_isready -U admin -d bsopt; then
+              echo "Postgres is ready after ~${i}0 seconds"
+              # Final check to ensure init scripts finished
+              if docker compose --profile ml exec -T postgres psql -U admin -d bsopt -c "SELECT 1" > /dev/null 2>&1; then
+                break
+              fi
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "Postgres failed to become healthy after 600 seconds"
+              docker compose --profile ml logs postgres
+              exit 1
+            fi
+            sleep 10
+          done
+          # Run the orchestrator
+          # Run the orchestrator with SHM growth for Ray components and MLFlow fallback
+          docker compose --profile ml run --rm \
+            -e MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-./mlruns} \
+            api python -m services.ml.pipelines.orchestrator --model-type xgboost --promote-to-production
+      - name: Teardown ML Cluster
+        if: always()
+        run: docker compose --profile ml down -v

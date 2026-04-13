@@ -1,0 +1,13 @@
+# ==============================================================================
+# Manifold: NEURAL PRICING SERVICE (v12.0) - HARDENED & OPTIMIZED
+# ==============================================================================
+
+FROM manifold-base:latest
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start the Neural Pricing service
+CMD ["python", "src/quant/neural_pricing.py"]

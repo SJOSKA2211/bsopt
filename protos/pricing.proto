@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package bsopt.pricing;
+
+import "common.proto";
+
+service PricingService {
+  rpc PriceOption (PriceRequest) returns (PriceResponse);
+  rpc PriceBatch (BatchPriceRequest) returns (BatchPriceResponse);
+  rpc CalculateGreeks (GreeksRequest) returns (GreeksResponse);
+}
+
+message PriceRequest {
+  double spot = 1;
+  double strike = 2;
+  double time_to_expiry = 3;
+  double volatility = 4;
+  double rate = 5;
+  string option_type = 6;
+  double dividend_yield = 7;
+  string model = 8;
+  string symbol = 9;
+}
+
+message PriceResponse {
+  double price = 1;
+  double spot = 2;
+  double strike = 3;
+  double time_to_expiry = 4;
+  double rate = 5;
+  double volatility = 6;
+  string option_type = 7;
+  string model = 8;
+  double computation_time_ms = 9;
+}
+
+message BatchPriceRequest {
+  repeated PriceRequest options = 1;
+}
+
+message BatchPriceResponse {
+  repeated PriceResponse results = 1;
+  int32 total_count = 2;
+  double computation_time_ms = 3;
+}
+
+message GreeksRequest {
+  double spot = 1;
+  double strike = 2;
+  double time_to_expiry = 3;
+  double rate = 4;
+  double volatility = 5;
+  string option_type = 6;
+  double dividend_yield = 7;
+}
+
+message GreeksResponse {
+  double delta = 1;
+  double gamma = 2;
+  double theta = 3;
+  double vega = 4;
+  double rho = 5;
+}

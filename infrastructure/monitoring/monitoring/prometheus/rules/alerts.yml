@@ -1,0 +1,52 @@
+groups:
+  - name: bsopt_infrastructure_alerts
+    rules:
+      # --- API & Pricing Latency Alerts ---
+      - alert: HighApiLatency
+        expr: histogram_quantile(0.99, sum by (le, service) (rate(api_request_duration_seconds_bucket[5m]))) > 0.5
+        for: 2m
+        labels:
+          severity: high
+        annotations:
+          summary: "High API Latency on {{ $labels.service }}"
+          description: "99th percentile latency for {{ $labels.service }} is above 500ms for 2 minutes."
+
+      # --- Redis Alerts ---
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis Memory Saturation"
+          description: "Redis memory usage is above 90% of maxmemory (2GB). Eviction policy 'allkeys-lru' is active."
+
+      # --- Ray Cluster Alerts ---
+      - alert: RayNodeOOMRisk
+        expr: (node_memory_working_set_bytes{container="ray-head"} / node_memory_limit_bytes{container="ray-head"}) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ray Head OOM Risk"
+          description: "Ray head memory usage is above 85% of its 4GB limit."
+
+      # --- MLflow Alerts ---
+      - alert: MlflowServerDown
+        expr: up{job="mlflow"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MLflow Tracking Server Down"
+          description: "MLflow tracking server has been unreachable for over 1 minute."
+
+      # --- System Resource Alerts ---
+      - alert: HighCpuUsage
+        expr: process_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage on {{ $labels.service }}"
+          description: "{{ $labels.service }} CPU usage is above 90% for 5 minutes."

@@ -1,0 +1,102 @@
+import React from 'react';
+
+declare module '@mui/material/styles' {
+  interface Palette {
+    financial: {
+      bid: string;
+      ask: string;
+      positive: string;
+      negative: string;
+      neutral: string;
+      accents: {
+        violet: string;
+        amber: string;
+        rose: string;
+        sky: string;
+        emerald: string;
+      };
+      greeks: {
+        delta: string;
+        gamma: string;
+        vega: string;
+        theta: string;
+        rho: string;
+      };
+      qfd: {
+        emerald: string;
+        amber: string;
+        sky: string;
+        iridescent: string;
+        quantum: string;
+        electrum: string;
+        nebula: string;
+      };
+    };
+  }
+
+  interface PaletteOptions {
+    financial?: {
+      bid?: string;
+      ask?: string;
+      positive?: string;
+      negative?: string;
+      neutral?: string;
+      accents?: {
+        violet?: string;
+        amber?: string;
+        rose?: string;
+        sky?: string;
+        emerald?: string;
+      };
+      greeks?: {
+        delta?: string;
+        gamma?: string;
+        vega?: string;
+        theta?: string;
+        rho?: string;
+      };
+      qfd?: {
+        emerald?: string;
+        amber?: string;
+        sky?: string;
+        iridescent?: string;
+        quantum?: string;
+        electrum?: string;
+        nebula?: string;
+      };
+    };
+  }
+
+  interface TypeBackground {
+    elevation1?: string;
+    elevation2?: string;
+    elevation3?: string;
+  }
+
+  interface TypographyVariants {
+    price: React.CSSProperties;
+    percentage: React.CSSProperties;
+    ticker: React.CSSProperties;
+  }
+
+  interface TypographyVariantsOptions {
+    price?: React.CSSProperties;
+    percentage?: React.CSSProperties;
+    ticker?: React.CSSProperties;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    price: true;
+    percentage: true;
+    ticker: true;
+  }
+}
+
+declare module '@mui/material/Button' {
+  interface ButtonPropsVariantOverrides {
+    buy: true;
+    sell: true;
+  }
+}

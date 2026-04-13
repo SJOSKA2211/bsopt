@@ -1,0 +1,310 @@
+version: "3.8"
+
+services:
+  api:
+    image: bsopt-api-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api-dev
+    network_mode: host
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6381
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+      - ./scripts:/app/scripts
+    env_file:
+      - ../.env
+    command: ["/opt/venv/bin/granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--workers", "4", "--backlog", "2048", "--loop", "uvloop", "--ws"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://192.168.23.33:8008/health').read()"]
+      interval: 30s
+      timeout: 20s
+      retries: 20
+      start_period: 120s
+    depends_on:
+      - postgres
+      - redis
+
+  auth-service:
+    image: bsopt-auth-service-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.auth-service-dev
+    ports:
+      - "3001:3001"
+    networks:
+      - bsopt-network
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
+    volumes:
+      - ./src/auth-service:/app
+      - /app/node_modules
+    env_file:
+      - ../.env
+    depends_on:
+      - postgres
+
+  frontend:
+    image: bsopt-frontend-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      target: development
+    ports:
+      - "5173:5173"
+    networks:
+      - bsopt-network
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      envoy:
+        condition: service_healthy
+
+  neural-pricing:
+    image: bsopt-neural-pricing-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.neural-pricing-dev
+    ports:
+      - "8001:8000"
+    networks:
+      - bsopt-network
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+    env_file:
+      - ../.env
+    command: ["/opt/venv/bin/granian", "--interface", "asgi", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--backlog", "2048", "--loop", "uvloop", "--opt", "--ws"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 20s
+      retries: 20
+      start_period: 120s
+    depends_on:
+      - postgres
+      - redis
+
+  scraper:
+    image: bsopt-scraper-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scraper-dev
+    network_mode: host
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+    environment:
+      - METRICS_PORT=8009
+    env_file:
+      - ../.env
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker-ml:
+    image: bsopt-worker-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker-dev
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+    env_file:
+      - ../.env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    network_mode: host
+    command: postgres -p 5434 -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=bsopt
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 192.168.23.33 -p 5434 -U admin -d bsopt"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    network_mode: host
+    command: redis-server --port 6381 --requirepass ${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "6381", "-a", "${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - bsopt-network
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=secret_cookie_for_dev
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data_dev:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  test-runner:
+    image: bsopt-ci-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ci
+    environment:
+      - ENVIRONMENT=dev
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+
+  # === [Specialized] ML Compute Cluster (Containerized Dev) ===
+  ray-head:
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '4gb'
+    ports:
+      - "8265:8265" # Dashboard
+      - "10001:10001" # Ray Client
+    environment:
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
+      - INSIDE_DOCKER=1
+    volumes:
+      - ./:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
+    working_dir: /app
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+
+  rl-training-worker:
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '4gb'
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
+      - INSIDE_DOCKER=1
+    volumes:
+      - ./:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
+    working_dir: /app
+    command: ray start --address=ray-head:6379 --block
+
+  frontend-test:
+    image: bsopt-frontend-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      target: development
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    command: npm run test -- --run
+
+  e2e-test:
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    working_dir: /app/src/frontend
+    volumes:
+      - .:/app
+    environment:
+      - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
+    depends_on:
+      frontend:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      api:
+        condition: service_healthy
+      envoy:
+        condition: service_healthy
+      neural-pricing:
+        condition: service_healthy
+    command: npx playwright test
+
+  envoy:
+    image: envoyproxy/envoy:v1.30-latest
+    ports:
+      - "80:8080"
+      - "443:443"
+    volumes:
+      - ./infrastructure/configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./.pki:/etc/envoy/ssl:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - bsopt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  bsopt-network:
+    driver: bridge
+
+volumes:
+  postgres_data_dev:
+  rabbitmq_data_dev:

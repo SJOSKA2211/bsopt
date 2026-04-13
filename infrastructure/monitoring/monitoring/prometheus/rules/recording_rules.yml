@@ -1,0 +1,18 @@
+groups:
+  - name: bsopt_performance_aggregates
+    rules:
+      # --- API Throughput (Per Second) ---
+      - record: job:api_request_duration_seconds_count:rate5m
+        expr: sum by (service) (rate(api_request_duration_seconds_count[5m]))
+
+      # --- 99th Percentile Latency (Manifold Hot Path) ---
+      - record: job:manifold_latency_seconds:p99
+        expr: histogram_quantile(0.99, sum by (le, service) (rate(api_request_duration_seconds_bucket[5m])))
+
+      # --- ML Inference Success Rate ---
+      - record: job:ml_predictions_success_rate:ratio
+        expr: sum by (model_type) (rate(ml_predictions_total{status="success"}[5m])) / sum by (model_type) (rate(ml_predictions_total[5m]))
+
+      # --- Cache Hit Ratio ---
+      - record: job:redis_cache_hit_ratio:percent
+        expr: (rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100

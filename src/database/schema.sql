@@ -1,0 +1,12 @@
+-- ============================================================================
+-- LEGACY SCHEMA REDIRECT
+-- ============================================================================
+-- Note: This file is kept for backward compatibility with some legacy scripts.
+-- The SOURCE OF TRUTH for the tight PostgreSQL 16 revamp is:
+-- init-scripts/00-extensions.sql
+-- init-scripts/01-core-schema.sql
+-- init-scripts/02-hypertables.sql
+-- ... and so on.
+-- ============================================================================
+
+-- Use 'make migrate' or 'scripts/deploy_full_db.sh' for deployments.

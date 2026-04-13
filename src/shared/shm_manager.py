@@ -1,0 +1,112 @@
+import struct
+import time
+from multiprocessing import shared_memory
+from typing import TypeVar, cast
+
+import msgspec
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+T = TypeVar("T")
+
+
+class SHMManager[T]:
+    """
+    Manages a shared memory block for a specific data type.
+    """
+
+    def __init__(self, name: str, schema: type[T], size: int = 10 * 1024 * 1024) -> None:
+        self.name = name
+        self.schema = schema
+        self.size = size
+        self._shm: shared_memory.SharedMemory | None = None
+        self._encoder = msgspec.msgpack.Encoder()
+        self._decoder = msgspec.msgpack.Decoder(schema)
+        self._sequence = 0
+
+    def create(self) -> None:
+        """Create the shared memory block."""
+        try:
+            self._shm = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
+            logger.info("shm_created", name=self.name, size=self.size)
+        except FileExistsError:
+            self._shm = shared_memory.SharedMemory(name=self.name)
+            logger.warning("shm_already_exists", name=self.name)
+
+    def write(self, data: T) -> None:
+        """
+        Write data to SHM with OPTIMIZED spin-lock and memoryview access.
+        """
+        if self._shm is None:
+            raise RuntimeError("SHM not initialized.")
+
+        buf = self._shm.buf
+        if buf is None:
+            raise RuntimeError("SHM buffer is None.")
+
+        packed = self._encoder.encode(data)
+        packed_len = len(packed)
+        if packed_len > self.size - 13:
+            raise ValueError(f"Data size {packed_len} exceeds capacity")
+
+        # 1. Optimized Spin-Lock
+        start = time.perf_counter()
+        while buf[0] != 0:
+            if time.perf_counter() - start > 0.05:  # 50ms timeout
+                logger.warning("shm_lock_contention_clearing", name=self.name)
+                buf[0] = 0  # Safety break
+                break
+            # CPU hint for busy wait if available (pass is fine in Python)
+            pass
+
+        buf[0] = 1  # LOCK
+        try:
+            self._sequence += 1
+            # Header: [Lock(1), Sequence(8), Length(4)]
+            buf[1:9] = struct.pack("Q", self._sequence)
+            buf[9:13] = struct.pack("I", packed_len)
+            buf[13 : 13 + packed_len] = packed
+        finally:
+            buf[0] = 0  # UNLOCK
+
+    def read(self) -> T:
+        """Read from SHM with wait-free optimization."""
+        if self._shm is None:
+            self._shm = shared_memory.SharedMemory(name=self.name)
+
+        buf = self._shm.buf
+        if buf is None:
+            raise RuntimeError("SHM buffer is None.")
+
+        # Polling for unlock
+        while buf[0] != 0:
+            pass  # Busy-wait for speed
+
+        length = struct.unpack("I", buf[9:13])[0]
+        # Zero-copy decode from buffer
+        return self._decoder.decode(buf[13 : 13 + length])
+
+    def get_sequence(self) -> int:
+        """Get the current sequence number from the header."""
+        if self._shm is None:
+            self._shm = shared_memory.SharedMemory(name=self.name)
+
+        mv = self._shm.buf
+        if mv is None:
+            raise RuntimeError("SHM buffer is None.")
+
+        seq_tuple = struct.unpack("Q", mv[1:9])
+        return cast(int, seq_tuple[0])
+
+    def close(self) -> None:
+        """Close the SHM handle."""
+        if self._shm:
+            self._shm.close()
+
+    def unlink(self) -> None:
+        """Destroy the SHM block."""
+        if self._shm:
+            self._shm.unlink()
+            self._shm = None
+            logger.info("shm_destroyed", name=self.name)

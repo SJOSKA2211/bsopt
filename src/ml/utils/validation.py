@@ -1,0 +1,49 @@
+"""
+Temporal Cross-Validation Utilities
+"""
+
+from collections.abc import Generator
+
+import numpy as np
+
+
+class WalkForwardValidator:
+    """
+    High-performance temporal cross-validator using index views.
+    """
+
+    def __init__(self, n_splits: int = 5, test_size: int | None = None):
+        self.n_splits = n_splits
+        self.test_size = test_size
+
+    def split(self, X: np.ndarray) -> Generator[tuple[np.ndarray, np.ndarray]]:
+        """
+        Generate temporal splits using index views to minimize memory overhead.
+        """
+        n_samples = len(X)
+        if n_samples < self.n_splits + 1:
+            raise ValueError(f"Insufficient samples ({n_samples}) for {self.n_splits} splits.")
+
+        indices = np.arange(n_samples)
+
+        if self.test_size:
+            # Fixed-size sliding window
+            for i in range(self.n_splits):
+                end = n_samples - (self.n_splits - 1 - i) * self.test_size
+                start = end - self.test_size
+                if start < 0:
+                    continue
+                yield indices[:start], indices[start:end]
+        else:
+            # Expanding window
+            fold_size = n_samples // (self.n_splits + 1)
+            for i in range(self.n_splits):
+                train_end = (i + 1) * fold_size
+                test_end = train_end + fold_size
+                if i == self.n_splits - 1:
+                    test_end = n_samples
+
+                yield indices[:train_end], indices[train_end:test_end]
+
+    def get_n_splits(self):
+        return self.n_splits

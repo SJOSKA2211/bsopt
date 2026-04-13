@@ -1,0 +1,13 @@
+# ==============================================================================
+# Manifold: API SERVICE (v12.0) - HARDENED & OPTIMIZED
+# ==============================================================================
+
+FROM manifold-base:latest
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=15s --timeout=10s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Granian is used for high-performance ASGI serving
+CMD ["granian", "--interface", "asgi", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--ws"]

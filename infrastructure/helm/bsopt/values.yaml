@@ -1,0 +1,178 @@
+# ==
+# BS-OPT: THE HIGH-PERFORMANCE HELM VALUES (v2.0)
+# ==
+# *
+# Standardizing on unified images and optimized resources.
+# ==
+
+# Global settings
+global:
+  environment: production
+  domain: bsopt.local
+
+# Default settings for all src
+defaults:
+  replicaCount: 2
+  image:
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+# Service-specific overrides
+api:
+  enabled: true
+  image:
+    repository: bsopt/api
+  replicaCount: 4
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+  service:
+    port: 80
+    targetPort: 8000
+
+mlInference:
+  enabled: true
+  image:
+    repository: bsopt/ml-inference
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+
+worker:
+  enabled: true
+  image:
+    repository: bsopt/worker
+  replicaCount: 4
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+scraper:
+  enabled: true
+  image:
+    repository: bsopt/scraper
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+auth:
+  enabled: true
+  image:
+    repository: bsopt/auth-service
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    port: 3001
+
+frontend:
+  enabled: true
+  image:
+    repository: bsopt/frontend
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    port: 80
+    targetPort: 80
+
+neuralPricing:
+  enabled: true
+  image:
+    repository: bsopt/neural-pricing
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+
+# Infrastructure pointers
+externalServices:
+  postgres:
+    host: postgres-master
+    port: 5432
+  redis:
+    host: redis-master
+    port: 6379
+  rabbitmq:
+    host: rabbitmq-cluster
+    port: 5672
+
+# Observability Stack
+monitoring:
+  prometheus:
+    enabled: true
+    retention: 15d
+    resources:
+      limits:
+        memory: 2Gi
+  grafana:
+    enabled: true
+    resources:
+      limits:
+        memory: 1Gi
+  loki:
+    enabled: true
+    resources:
+      limits:
+        memory: 2Gi
+
+# Specialized ML Infrastructure
+mlflow:
+  enabled: true
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  artifactRoot: "s3://Manifold-artifacts/mlflow"
+
+ray:
+  enabled: true
+  head:
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 4Gi
+  worker:
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 4Gi

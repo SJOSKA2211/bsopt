@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bsopt-scraper
+  namespace: bsopt
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bsopt-scraper
+  template:
+    metadata:
+      labels:
+        app: bsopt-scraper
+    spec:
+      containers:
+      - name: scraper
+        image: bsopt/scraper:singularity
+        volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        envFrom:
+        - secretRef:
+            name: bsopt-secrets
+      volumes:
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 128Mi

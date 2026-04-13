@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "name": "bsopt_admin",
+      "password": "bsopt_rmq_secret",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "bsopt_admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

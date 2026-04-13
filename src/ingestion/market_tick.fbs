@@ -1,0 +1,10 @@
+namespace src.data.fbs;
+
+table MarketTickFB {
+  symbol:string;
+  price:double;
+  volume:long;
+  timestamp:double;
+}
+
+root_type MarketTickFB;

@@ -1,0 +1,262 @@
+name: bsopt
+
+networks:
+  frontend_edge:
+    driver: bridge
+    internal: false
+  internal_mesh:
+    driver: bridge
+    internal: true
+  data_fabric:
+    driver: bridge
+    internal: true
+
+services:
+  # === Database & Infrastructure (Strictly Internal) ===
+  postgres:
+    image: docker.io/timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    command: >
+      sh -c "
+      cp /etc/pki/postgres.key /tmp/postgres.key &&
+      chown 70:70 /tmp/postgres.key &&
+      chmod 600 /tmp/postgres.key &&
+      exec docker-entrypoint.sh postgres 
+      -c 'config_file=/etc/postgresql/postgresql.conf' 
+      -c 'hba_file=/etc/postgresql/pg_hba.conf' 
+      -c 'ident_file=/etc/postgresql/pg_ident.conf' 
+      -c 'ssl_key_file=/tmp/postgres.key'
+      -c 'ssl_cert_file=/etc/pki/postgres.crt'
+      -c 'ssl_ca_file=/etc/pki/root_ca.crt'
+      "
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bsopt}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    shm_size: '1gb'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../infrastructure/init-scripts/init-scripts:/docker-entrypoint-initdb.d:ro
+      - ../../src/shared/migrations:/migrations:ro
+      - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
+      - ../../.pki:/etc/pki:ro
+      - ../configs/pg_ident.conf:/etc/postgresql/pg_ident.conf:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data_fabric
+
+  pgbouncer:
+    image: docker.io/edoburu/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      LISTEN_PORT: 6432
+      AUTH_TYPE: scram-sha-256
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+      DB_HOST: postgres
+      DB_NAME: ${POSTGRES_DB:-bsopt}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 10000
+    entrypoint: >
+      sh -c "
+      cp /etc/pki/pgbouncer.key /tmp/pgbouncer.key &&
+      chown 70:70 /tmp/pgbouncer.key &&
+      chmod 600 /tmp/pgbouncer.key &&
+      exec /entrypoint.sh pgbouncer /etc/pgbouncer/pgbouncer.ini
+      "
+    volumes:
+      - ../../.pki:/etc/pki:ro,Z
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - data_fabric
+      - internal_mesh
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+    volumes:
+      - redis_data:/data
+      - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro,Z
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - data_fabric
+      - internal_mesh
+
+  rabbitmq:
+    image: docker.io/library/rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bsopt_admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
+    volumes:
+      - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro,Z
+      - ./definitions.json:/etc/rabbitmq/definitions.json:ro,Z
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data_fabric
+      - internal_mesh
+
+  # === Core Microservices ===
+  auth-service:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.auth
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/pki/root_ca.crt&sslcert=/etc/pki/auth-service.crt&sslkey=/etc/pki/auth-service.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
+      - GRPC_SECURE=true
+    volumes:
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal_mesh
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.api
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/pki/root_ca.crt&sslcert=/etc/pki/api.crt&sslkey=/etc/pki/api.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
+      - AUTH_SERVICE_GRPC_URL=auth-service:50051
+    volumes:
+      - shared_shm:/dev/shm
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - frontend_edge
+      - internal_mesh
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/pki/root_ca.crt&sslcert=/etc/pki/worker.crt&sslkey=/etc/pki/worker.key
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@rabbitmq:5672//
+    volumes:
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal_mesh
+
+  neural-pricing:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/pki/root_ca.crt&sslcert=/etc/pki/neural-pricing.crt&sslkey=/etc/pki/neural-pricing.key
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@redis:6379/0
+    volumes:
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal_mesh
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.frontend
+      target: production
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - frontend_edge
+
+  # === Edge Layer ===
+  nginx:
+    image: docker.io/library/nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - frontend_edge
+
+  envoy:
+    build:
+      context: ../..
+      dockerfile: infrastructure/orchestration/Dockerfile.envoy
+    volumes:
+      - ../../.pki:/etc/pki:ro
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    networks:
+      - internal_mesh
+      - frontend_edge
+
+volumes:
+  postgres_data:
+  redis_data:
+  shared_shm:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=7168m"
