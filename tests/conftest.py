@@ -40,10 +40,9 @@ def pytest_collection_modifyitems(items):
 
 @pytest.fixture(scope="session", autouse=True)
 def startup_session():
-    """Session-wide initialization."""
-    structlog.get_logger().info("test_session_start")
+    structlog.get_logger().info("test_session_started")
     yield
-    structlog.get_logger().info("test_session_end")
+    structlog.get_logger().info("test_session_finished")
 
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):

@@ -44,14 +44,6 @@ def train_func(config: dict[str, Any]):
         max_ep_len=config.get("max_ep_len", 1000),
     )
 
-    import ray
-device = th.device("cpu")
-model = model.to(device)
-
-# Wrap for DDP (using 'gloo' backend for CPU)
-model = ray.train.torch.prepare_model(model)
-
-optimizer = th.optim.AdamW(
 ...
 optimizer = th.optim.AdamW(
     model.parameters(),

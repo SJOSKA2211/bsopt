@@ -8,7 +8,7 @@ zero-trust compliant service.
 import hashlib
 import logging
 import secrets
-from datetime import datetime
+from datetime import UTC, datetime
 
 import msgspec
 import structlog
@@ -53,7 +53,6 @@ class AuthService:
 
     @property
     def token_blacklist(self) -> session_service:
-        """Alias for session_service to maintain compatibility with existing routes."""
         return self.sessions
 
     def hash_password(self, password: str) -> str:
@@ -146,7 +145,7 @@ class AuthService:
                     token_type=grpc_resp.token_type,
                     exp=datetime.fromtimestamp(grpc_resp.expires_at, tz=UTC),
                     iat=datetime.fromtimestamp(grpc_resp.issued_at, tz=UTC),
-                    jti=None, # JTI might not be returned over wire for speed
+                    jti=None,
                     scopes=list(grpc_resp.roles)
                 )
                 await centralized_cache_service.set_token_data_cached(token, token_data)

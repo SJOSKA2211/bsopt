@@ -4,45 +4,44 @@ services:
     image: timescale/timescaledb:latest-pg16
     container_name: bsopt_db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB missing}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER missing}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD missing}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - app-network
+      - back-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7.2-alpine
     container_name: bsopt_cache
-    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD not set}
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD missing}
     networks:
-      - app-network
+      - back-network
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: bsopt_broker
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RABBITMQ_USER not set}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD not set}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RABBITMQ_USER missing}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD missing}
     networks:
-      - app-network
+      - back-network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
       interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
 
   vault:
     image: hashicorp/vault:latest
@@ -51,14 +50,14 @@ services:
       VAULT_DEV_ROOT_TOKEN_ID: "root"
       VAULT_ADDR: "http://0.0.0.0:8200"
     networks:
-      - app-network
+      - back-network
     cap_add:
       - IPC_LOCK
     healthcheck:
       test: ["CMD", "vault", "status"]
       interval: 5s
       timeout: 2s
-      retries: 5
+      retries: 10
 
   # --- CORE SERVICES LAYER ---
   auth_api:
@@ -72,10 +71,10 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET not set}
-      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY not set}
-      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY not set}
-      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY not set}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET missing}
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY missing}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY missing}
+      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY missing}
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=root
       - GRPC_SECURE=true
@@ -85,15 +84,12 @@ services:
     volumes:
       - ./.pki:/etc/pki:ro
     networks:
-      - app-network
+      - back-network
       - grpc-network
     depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      vault:
-        condition: service_healthy
+      redis: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+      vault: { condition: service_healthy }
     ports:
       - "3001:3001"
       - "50051:50051"
@@ -102,7 +98,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   pricing_api:
     build:
@@ -119,39 +115,34 @@ services:
       - GRPC_CA_CERT=/etc/pki/root_ca.crt
       - GRPC_CLIENT_CERT=/etc/pki/api-client.crt
       - GRPC_CLIENT_KEY=/etc/pki/api-client.key
-      - OPA_URL=${OPA_URL:?OPA_URL not set}
-      - TRUSTED_PROXIES=${TRUSTED_PROXIES:?TRUSTED_PROXIES not set}
-      - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS not set}
-      - MARKET_TICKER_SYMBOLS=${MARKET_TICKER_SYMBOLS:?MARKET_TICKER_SYMBOLS not set}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:?MINIO_ENDPOINT not set}
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?MINIO_ROOT_USER not set}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD not set}
-      - NSE_SYMBOLS=${NSE_SYMBOLS:?NSE_SYMBOLS not set}
-      - NSE_SCRAPER_SECTORS=${NSE_SCRAPER_SECTORS:?NSE_SCRAPER_SECTORS not set}
+      - OPA_URL=${OPA_URL:?OPA_URL missing}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:?TRUSTED_PROXIES missing}
+      - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS missing}
+      - MARKET_TICKER_SYMBOLS=${MARKET_TICKER_SYMBOLS:?MARKET_TICKER_SYMBOLS missing}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:?MINIO_ENDPOINT missing}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?MINIO_ROOT_USER missing}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD missing}
+      - NSE_SYMBOLS=${NSE_SYMBOLS:?NSE_SYMBOLS missing}
+      - NSE_SCRAPER_SECTORS=${NSE_SCRAPER_SECTORS:?NSE_SCRAPER_SECTORS missing}
     volumes:
       - ./.pki:/etc/pki:ro
     networks:
-      - app-network
+      - back-network
       - grpc-network
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      auth_api:
-        condition: service_healthy
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      auth_api: { condition: service_healthy }
     ports:
       - "8000:8000"
-    command: ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop", "--no-access-log"]
+    command: ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # --- WORKER & COMPUTE LAYER ---
   math_worker:
     build:
       context: .
@@ -162,63 +153,53 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     networks:
-      - app-network
+      - back-network
       - grpc-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      pricing_api:
-        condition: service_healthy
+      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      pricing_api: { condition: service_healthy }
     command: ["celery", "-A", "src.workers.math_worker.app", "worker", "--loglevel=info", "-P", "solo"]
 
-  # --- FRONTEND & GATEWAY ---
   frontend:
     build:
       context: .
       dockerfile: src/frontend/Dockerfile
-    container_name: bsopt_frontend_ui
+    container_name: bsopt_frontend
     networks:
-      - app-network
-      - grpc-network
+      - front-network
+      - back-network
     depends_on:
-      pricing_api:
-        condition: service_healthy
+      pricing_api: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   nginx:
     image: nginx:stable-alpine
     container_name: bsopt_gateway
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
-      - app-network
-      - grpc-network
+      - front-network
+      - back-network
     depends_on:
-      frontend:
-        condition: service_healthy
-      pricing_api:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      frontend: { condition: service_healthy }
+      pricing_api: { condition: service_healthy }
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  app-network:
+  front-network:
+    driver: bridge
+  back-network:
+    internal: true
     driver: bridge
   grpc-network:
     internal: true
