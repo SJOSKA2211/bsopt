@@ -1,5 +1,5 @@
-# Manifold: UNIFIED CPU-ONLY BASE (v13.0)
-# Optimized for pure CPU execution on Debian Slim
+# Manifold: UNIFIED CPU-ONLY BASE (v14.0)
+# Optimized for pure CPU execution on distroless
 
 # --- STAGE 1: BUILDER ---
 FROM python:3.12.13-slim AS builder
@@ -34,9 +34,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install Python dependencies into a temporary location
 COPY pyproject.toml uv.lock ./
+# We skip dev dependencies for production image to speed up build
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install ".[api,auth,shared,observability,ml,quant,distributed,dev]" && \
+    uv pip install ".[api,auth,shared,observability,ml,quant,distributed]" && \
     uv pip install ./wheels/*.whl
 
 # --- RUNTIME STAGE ---
@@ -51,16 +52,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Environment Defaults
+ENV PYTHONPATH=/app \
+    ENVIRONMENT=production \
+    LOG_LEVEL=info
+
 # Copy installed packages from builder
 COPY --from=builder /usr/local /usr/local
 
 # Copy application source
 COPY . .
 
-# Environment Defaults
-ENV PYTHONPATH=/app \
-    ENVIRONMENT=production \
-    LOG_LEVEL=info
-
-# Default to auth_api, but overridden by docker-compose
+# Set default command
 CMD ["python", "api/index.py"]
