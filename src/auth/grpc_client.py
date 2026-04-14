@@ -27,6 +27,7 @@ class AuthGrpcClient:
                 ("grpc.enable_retries", 1),
             ]
 
+            import json
             service_config = {
                 "methodConfig": [{
                     "name": [{"service": "auth.AuthService"}],
@@ -39,7 +40,7 @@ class AuthGrpcClient:
                     },
                 }]
             }
-            options.append(("grpc.service_config", str(service_config)))
+            options.append(("grpc.service_config", json.dumps(service_config)))
 
             try:
                 credentials = get_channel_credentials()
