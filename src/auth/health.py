@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import os
 
 import structlog
@@ -90,5 +91,5 @@ async def get_overall_health() -> dict:
         "redis": "connected" if redis_ok else "disconnected",
         "rabbitmq": "connected" if rmq_ok else "disconnected",
         "service": "auth-service",
-        "timestamp": os.popen("date -u +'%Y-%m-%dT%H:%M:%SZ'").read().strip(),
+        "timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
