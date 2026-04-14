@@ -10,7 +10,7 @@ import { stitchTokens } from '../../theme/stitch-tokens';
 import { DOMLadder } from '../../features/market/components/DOMLadder';
 import { LevelIIQuotes } from '../../features/market/components/LevelIIQuotes';
 import { OrderTicket } from '../../features/market/components/OrderTicket';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // Lazy loaded trading components
 const LivePriceChart = lazy(() =>
@@ -102,27 +102,25 @@ export const MarketPage: React.FC = () => {
       </motion.div>
 
       {/* Connection Toast (Overlay) */}
-      <AnimatePresence>
-        {!isConnected && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
-          >
-            <Box className="stitch-card" sx={{ 
-              p: 2, 
-              bgcolor: 'rgba(255, 46, 126, 0.1)',
-              border: '1px solid #ff2e7e',
-              borderLeft: '4px solid #ff2e7e'
-            }}>
-              <Typography className="stitch-label" sx={{ color: '#ff2e7e', fontWeight: 900 }}>
-                PIPELINE_ERROR // RECONNECTING_SUBSYSTEM...
-              </Typography>
-            </Box>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!isConnected && (
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 50, opacity: 0 }}
+          style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
+        >
+          <Box className="stitch-card" sx={{
+            p: 2,
+            bgcolor: 'rgba(255, 46, 126, 0.1)',
+            border: '1px solid #ff2e7e',
+            borderLeft: '4px solid #ff2e7e'
+          }}>
+            <Typography className="stitch-label" sx={{ color: '#ff2e7e', fontWeight: 900 }}>
+              PIPELINE_ERROR // RECONNECTING_SUBSYSTEM...
+            </Typography>
+          </Box>
+        </motion.div>
+      )}
     </Box>
   );
 };
