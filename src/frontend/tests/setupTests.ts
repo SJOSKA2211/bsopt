@@ -40,6 +40,17 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   writable: true
 });
 
+// Mock IntersectionObserver
+Object.defineProperty(globalThis, 'IntersectionObserver', {
+  value: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() { return []; }
+  },
+  writable: true
+});
+
 // Mock Worker for WASM-based pricing
 Object.defineProperty(globalThis, 'Worker', {
   value: class {
@@ -99,13 +110,18 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock Apollo Client globally for components that do not have their own provider mock
-vi.mock('@apollo/client/react', async (importOriginal) => {
+vi.mock('@apollo/client', async (importOriginal) => {
   const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
     useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
     useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
     useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+    gql: (strings: any, ...values: any[]) => strings[0],
+    ApolloProvider: ({ children }: any) => React.createElement('div', null, children),
+    ApolloClient: class { constructor() {} },
+    InMemoryCache: class { constructor() {} },
+    HttpLink: class { constructor() {} },
   };
 });
 
