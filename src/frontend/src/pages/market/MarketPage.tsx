@@ -57,7 +57,7 @@ export const MarketPage: React.FC = () => {
       >
         <Grid container spacing={2} sx={{ height: '100%' }}>
           {/* Left Column: Analytics & Chain */}
-          <Grid item xs={12} lg={8.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid item xs={12} lg={8.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 } as any}>
             {/* Main Chart Card */}
             <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
               <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
@@ -85,7 +85,7 @@ export const MarketPage: React.FC = () => {
           </Grid>
 
           {/* Right Column: Execution & Depth */}
-          <Grid item xs={12} lg={3.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid item xs={12} lg={3.5} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 } as any}>
             <motion.div variants={itemVariants} style={{ flex: 1.5, minHeight: 0 }}>
                <DOMLadder symbol={currentSymbol} />
             </motion.div>
