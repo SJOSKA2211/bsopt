@@ -531,10 +531,7 @@ def gbm_parameters_from_historical(
 if __name__ == "__main__":
     import time
 
-    print("=" * 60)
-    print("GBM Monte Carlo Benchmark")
-    print("=" * 60)
-
+    # GBM Monte Carlo Benchmark
     s0 = 100.0
     k = 100.0
     t = 1.0
@@ -560,10 +557,7 @@ if __name__ == "__main__":
         print(f"  95% CI: [${result['ci_95_lower']:.4f}, ${result['ci_95_upper']:.4f}]")
         print(f"  Time: {elapsed:.3f}s")
 
-    print("\n" + "=" * 60)
-    print("Parameter Estimation from Historical Data")
-    print("=" * 60)
-
+    # Parameter Estimation from Historical Data
     np.random.seed(42)
     historical = 100 * np.exp(np.cumsum(np.random.normal(0.0005, 0.02, 252)))
 

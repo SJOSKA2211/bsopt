@@ -31,6 +31,9 @@ def train_func(config: dict[str, Any]):
     if not HAS_RAY_TRAIN:
         raise ImportError("Ray Train Torch dependencies missing.")
 
+    # Force CPU Device for all operations
+    device = th.device("cpu")
+
     # 1. Setup MLflow Tracking
     import mlflow
 
@@ -42,19 +45,18 @@ def train_func(config: dict[str, Any]):
         action_dim=config.get("action_dim", 10),
         max_length=config.get("max_length", 20),
         max_ep_len=config.get("max_ep_len", 1000),
+    ).to(device)
+
+    optimizer = th.optim.AdamW(
+        model.parameters(),
+        lr=config.get("lr", 1e-4),
+        weight_decay=config.get("weight_decay", 1e-2),
+        betas=(0.9, 0.95),
     )
+    criterion = nn.MSELoss()
 
-...
-optimizer = th.optim.AdamW(
-    model.parameters(),
-    lr=config.get("lr", 1e-4),
-    weight_decay=config.get("weight_decay", 1e-2),
-    betas=(0.9, 0.95),
-)
-criterion = nn.MSELoss()
-
-# Setup Data
-import ray.data
+    # 3. Setup Data
+    import ray.data
     dataset_path = config.get("dataset_path", "data/trajectories.parquet")
 
     try:
@@ -62,17 +64,14 @@ import ray.data
         if dataset_path.endswith(".parquet"):
             ds = ray.data.read_parquet(dataset_path)
         else:
-            # Fallback to JSON if specified
             ds = ray.data.read_json(dataset_path)
 
-        # Create an iterator that shards the data across Ray workers automatically
         sharded_loader = ds.iter_torch_batches(
             batch_size=config.get("batch_size", 64), local_shuffle_buffer_size=1000
         )
         logger.info("sharded_loader_optimized", path=dataset_path)
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
-        # Fallback to local loading if Ray Data fails
         import pickle  # nosec B403
 
         with open("data/trajectories.pkl", "rb") as f:
@@ -96,7 +95,6 @@ import ray.data
 
             state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
 
-            # Combined Loss
             loss = criterion(action_preds, actions) + \
                    0.1 * criterion(state_preds[:, :-1, :], states[:, 1:, :]) + \
                    0.1 * criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
@@ -162,10 +160,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.tracking_uri:
-        # settings is immutable, but we can bypass it if needed or just use args.tracking_uri
-        pass
-
     # Initialize Ray
     ray.init(ignore_reinit_error=True)
 
@@ -180,6 +174,7 @@ if __name__ == "__main__":
     from src.ml.tracker import ExperimentTracker
 
     tracker = ExperimentTracker(args.study_name, tracking_uri=args.tracking_uri)
+    dt_trainer = BSOptDistributedTrainer(num_workers=args.workers)
 
     with tracker.start_run(nested=True):
-        dt.run(config)
+        dt_trainer.run(config)

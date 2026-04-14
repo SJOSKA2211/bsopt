@@ -7,9 +7,7 @@ from src.shared.config import get_settings
 
 
 def verify_connection():
-    print("  BSOpt High-Performance Database Verification")
-    print("--")
-
+    # High-Performance Database Verification
     try:
         get_settings()
         _, _ = get_settings(), None  # Trigger settings load if needed

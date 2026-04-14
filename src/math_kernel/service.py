@@ -52,33 +52,17 @@ class PricingService:
             # 1. Resolve Engine
             engine = self.factory.get_engine(model)
 
-            # 2. Prepare Kwargs (e.g. Heston Params)
-            kwargs = {}
-            if model == "heston" and symbol:
-                from src.shared.utils.cache import get_redis
-                redis = get_redis()
-                if redis:
-                    try:
-                        cached = await redis.get(f"heston_params:{symbol}")
-                        if cached:
-                            import json
-                            from src.math_kernel.models.heston_fft import HestonParams
-                            data = json.loads(cached)
-                            p = data["params"]
-                            kwargs["heston_params"] = HestonParams(
-                                v0=p["v0"], kappa=p["kappa"], theta=p["theta"], 
-                                sigma=p["sigma"], rho=p["rho"]
-                            )
-                    except Exception as e:
-                        logger.warning("failed_to_fetch_heston_params", symbol=symbol, error=str(e))
+            # 2. Contextual parameters (Heston, etc.)
+            ctx_params = {}
+            if hasattr(engine, "resolve_contextual_params"):
+                ctx_params = await engine.resolve_contextual_params(symbol=symbol)
 
             # 3. Compute Price (Off-load to thread pool for heavy engines)
             from functools import partial
             start_time = time.perf_counter()
-            if kwargs:
-                result = await run_sync(partial(engine.price_european, **kwargs), params, option_type)
-            else:
-                result = await run_sync(engine.price_european, params, option_type)
+            
+            # Engines should handle their own parameter mapping
+            result = await run_sync(partial(engine.price_european, **ctx_params), params, option_type)
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             # 4. Handle Result (Result can be float or object with .price)
@@ -92,10 +76,7 @@ class PricingService:
             # 5. Calculate Greeks if not provided by the engine
             if greeks_obj is None:
                 try:
-                    if kwargs:
-                        greeks_obj = await run_sync(partial(engine.calculate_greeks, **kwargs), params, option_type)
-                    else:
-                        greeks_obj = await run_sync(engine.calculate_greeks, params, option_type)
+                    greeks_obj = await run_sync(partial(engine.calculate_greeks, **ctx_params), params, option_type)
                 except Exception as e:
                     logger.warning("greeks_calculation_failed_during_pricing", error=str(e))
                     from src.math_kernel.models import OptionGreeks
