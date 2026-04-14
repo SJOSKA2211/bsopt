@@ -23,17 +23,23 @@ export const useGatewayHealth = () => {
       const start = performance.now();
       try {
         // We check the API health through the NGINX gateway
-        const response = await axios.get('/api/v1/health', { timeout: 2000 });
+        const [apiRes, authRes] = await Promise.all([
+          axios.get('/api/v1/health', { timeout: 2000 }).catch(e => ({ status: 500, data: {} })),
+          axios.get('/api/auth/health', { timeout: 2000 }).catch(e => ({ status: 500, data: {} }))
+        ]);
+        
         const end = performance.now();
         const latency = end - start;
 
+        const isHealthy = apiRes.status === 200 && authRes.status === 200;
+
         setHealth({
-          status: response.status === 200 ? 'healthy' : 'degraded',
+          status: isHealthy ? 'healthy' : 'degraded',
           latency: Math.round(latency),
           services: {
-            api: response.status === 200,
-            auth: true, // Placeholder: integration with auth check needed
-            ingestion: response.data?.ingestion === 'active' || true
+            api: apiRes.status === 200,
+            auth: authRes.status === 200,
+            ingestion: apiRes.data?.ingestion === 'active' || true
           }
         });
       } catch (err) {

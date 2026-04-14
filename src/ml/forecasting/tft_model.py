@@ -151,8 +151,8 @@ class PriceTFTModel:
 
         return pl.Trainer(
             max_epochs=self.config.get("max_epochs", 10),
-            accelerator="auto",
-            devices="auto",
+            accelerator="cpu",
+            devices=1,
             enable_model_summary=True,
             gradient_clip_val=0.1,
             callbacks=[early_stop_callback, lr_monitor],
@@ -160,9 +160,7 @@ class PriceTFTModel:
         )
 
     def _quantize(self):
-        """
-        OPTIMIZATION: Quantize model to INT8 for faster inference.
-        """
+        """Quantize model to INT8 for faster inference."""
         logger.info("model_quantization_started")
         try:
             self._quantized_model = torch.quantization.quantize_dynamic(
@@ -230,7 +228,7 @@ class PriceTFTModel:
         if "price" not in data.columns and "close" in data.columns:
             data = data.assign(price=data["close"])
 
-        #  OPTIMIZATION: Cached Dynamic Quantization for CPU inference speedup
+        # Cached Dynamic Quantization for CPU inference speedup
             if self._quantized_model is None:
                 self._quantize()
             model_to_use = self._quantized_model

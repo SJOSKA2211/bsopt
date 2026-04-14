@@ -107,13 +107,13 @@ COMPOSE_FILE="docker-compose.yml"
 
 deploy_and_validate() {
     local svc=$1
-    echo "--- Building $svc ---"
+    echo "Building $svc..."
     docker compose -f "$COMPOSE_FILE" build "$svc"
     
-    echo "--- Deploying $svc ---"
+    echo "Deploying $svc..."
     docker compose -f "$COMPOSE_FILE" up -d "$svc"
     
-    echo "⏳ Validating $svc health..."
+    echo "Validating $svc health..."
     local retries=40
     until docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"' || [ $retries -eq 0 ]; do
         echo -n "."
@@ -123,11 +123,11 @@ deploy_and_validate() {
     echo ""
     
     if [ $retries -eq 0 ]; then
-        echo " FAILED: $svc did not reach healthy state."
+        echo "FAILED: $svc did not reach healthy state."
         docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 50
         exit 1
     fi
-    echo " $svc is ONLINE and HEALTHY."
+    echo "$svc is online."
 }
 
 # Core Infra
