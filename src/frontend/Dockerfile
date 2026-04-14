@@ -20,6 +20,9 @@ RUN npm run build
 # Use a lightweight Nginx image based on Alpine
 FROM nginx:stable-alpine
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Copy the optimized build output from the builder stage
 # Assuming the build output is in a 'dist' directory
 COPY --from=frontend_builder /app/frontend/dist /usr/share/nginx/html

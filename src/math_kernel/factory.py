@@ -131,35 +131,29 @@ class PricingEngineFactory:
             "global_engine_optimization_complete", strategies_available=list(cls._engines.keys())
         )
 
+    _registry: dict[str, str] = {
+        "black_scholes": "src.math_kernel.black_scholes.BlackScholesEngine",
+        "monte_carlo": "src.math_kernel.monte_carlo.MonteCarloEngine",
+        "wasm": "src.math_kernel.wasm_engine.WASMPricingEngine",
+        "neural": "src.ml.models.neural_engine.NeuralPricingEngine",
+        "heston": "src.math_kernel.models.heston_strategy.HestonPricingStrategy",
+        "rust": "src.math_kernel.rust_engine.RustPricingEngine",
+    }
+
     @classmethod
     def _lazy_load(cls, name: str):
-        """Lazy load engines to prevent circular imports."""
+        """Dynamic lazy loading of engines to prevent circular imports."""
+        if name not in cls._registry:
+            logger.error("engine_not_in_registry", engine=name)
+            return
+
+        import importlib
+        module_path, class_name = cls._registry[name].rsplit(".", 1)
         try:
-            if name == "black_scholes":
-                from src.math_kernel.black_scholes import BlackScholesEngine
-
-                cls.register("black_scholes", BlackScholesEngine)
-            elif name == "monte_carlo":
-                from src.math_kernel.monte_carlo import MonteCarloEngine
-
-                cls.register("monte_carlo", MonteCarloEngine)
-            elif name == "wasm":
-                from src.math_kernel.wasm_engine import WASMPricingEngine
-
-                cls.register("wasm", WASMPricingEngine)
-            elif name == "neural":
-                from src.ml.models.neural_engine import NeuralPricingEngine
-
-                cls.register("neural", NeuralPricingEngine)
-            elif name == "heston":
-                from src.math_kernel.models.heston_strategy import HestonPricingStrategy
-
-                cls.register("heston", HestonPricingStrategy)
-            elif name == "rust":
-                from src.math_kernel.rust_engine import RustPricingEngine
-
-                cls.register("rust", RustPricingEngine)
-        except ImportError as e:
+            module = importlib.import_module(module_path)
+            engine_cls = getattr(module, class_name)
+            cls.register(name, engine_cls)
+        except (ImportError, AttributeError) as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))
 
 

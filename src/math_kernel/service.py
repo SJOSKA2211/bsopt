@@ -173,6 +173,8 @@ class PricingService:
         async def _process_group(model_type: str, items: list[tuple[int, Any]]) -> None:
             try:
                 engine = self.factory.get_engine(model_type)
+                from src.math_kernel.base import VectorizedPricingStrategy
+                from api.schemas.pricing import OptionGreeksStruct
 
                 # Vectorized parameters
                 spots = np.array([it[1].spot for it in items], dtype=np.float64)
@@ -182,98 +184,45 @@ class PricingService:
                 rates = np.array([it[1].rate for it in items], dtype=np.float64)
                 divs = np.array([it[1].dividend_yield for it in items], dtype=np.float64)
                 types = np.array([it[1].option_type for it in items])
+                is_calls = types == "call"
 
-                from api.schemas.pricing import OptionGreeksStruct
-
-                # Optimized Dispatch
-                if model_type == "black_scholes":
-                    from src.math_kernel.black_scholes import BlackScholesEngine
-
-                    # Concurrently call JIT/Rust batch kernels for price and greeks
-                    prices_task = run_sync(
-                        BlackScholesEngine.price_options,
-                        spots,
-                        strikes,
-                        maturities,
-                        vols,
-                        rates,
-                        divs,
-                        types,
+                if isinstance(engine, VectorizedPricingStrategy):
+                    prices_arr = await run_sync(
+                        engine.price_batch, spots, strikes, maturities, vols, rates, divs, is_calls
                     )
-                    greeks_task = run_sync(
-                        BlackScholesEngine.calculate_greeks,
-                        spots,
-                        strikes,
-                        maturities,
-                        vols,
-                        rates,
-                        divs,
-                        types,
-                    )
-
-                    prices_arr, g_res = await asyncio.gather(prices_task, greeks_task)
-                    prices_arr = cast(np.ndarray[Any, np.dtype[np.float64]], prices_arr)
-
-                    for idx, (original_idx, req) in enumerate(items):
-                        results[original_idx] = PriceResult(
-                            price=float(prices_arr[idx]),
-                            spot=req.spot,
-                            strike=req.strike,
-                            time_to_expiry=req.time_to_expiry,
-                            rate=req.rate,
-                            volatility=req.volatility,
-                            option_type=req.option_type,
-                            model=model_type,
-                            computation_time_ms=0.0,
-                            greeks=OptionGreeksStruct(
-                                delta=float(
-                                    cast(np.ndarray[Any, np.dtype[np.float64]], g_res.delta)[idx]
-                                ),
-                                gamma=float(
-                                    cast(np.ndarray[Any, np.dtype[np.float64]], g_res.gamma)[idx]
-                                ),
-                                theta=float(
-                                    cast(np.ndarray[Any, np.dtype[np.float64]], g_res.theta)[idx]
-                                ),
-                                vega=float(
-                                    cast(np.ndarray[Any, np.dtype[np.float64]], g_res.vega)[idx]
-                                ),
-                                rho=float(
-                                    cast(np.ndarray[Any, np.dtype[np.float64]], g_res.rho)[idx]
-                                ),
-                            ),
+                    
+                    # Concurrently compute greeks if the engine supports batch greeks
+                    if hasattr(engine, "calculate_greeks_batch"):
+                        g_res = await run_sync(
+                            engine.calculate_greeks_batch, spots, strikes, maturities, vols, rates, divs, types
                         )
-                elif model_type == "neural":
-                    from src.math_kernel.base import VectorizedPricingStrategy
-
-                    v_engine = cast(VectorizedPricingStrategy, engine)
-
-                    prices_arr = cast(
-                        np.ndarray[Any, np.dtype[np.float64]],
-                        await run_sync(
-                            v_engine.price_batch,
-                            spots,
-                            strikes,
-                            maturities,
-                            vols,
-                            rates,
-                            divs,
-                            types,
-                        ),
-                    )
-
-                    # Optimized Dispatch for Neural Greeks
-                    greeks_results = await asyncio.gather(
-                        *[
-                            run_sync(
-                                engine.calculate_greeks, it[1].to_bs_params(), it[1].option_type
-                            )
-                            for it in items
-                        ]
-                    )
+                    else:
+                        # Fallback to concurrent scalar greeks
+                        g_tasks = [run_sync(engine.calculate_greeks, it[1].to_bs_params(), it[1].option_type) for it in items]
+                        g_res_list = await asyncio.gather(*g_tasks)
+                        # Create a mock object that mimics the expected structure if needed, or just handle it below
+                        g_res = g_res_list
 
                     for idx, (original_idx, req) in enumerate(items):
-                        g_res = greeks_results[idx]
+                        if isinstance(g_res, list):
+                            cg = g_res[idx]
+                            greeks_struct = OptionGreeksStruct(
+                                delta=float(cg.delta),
+                                gamma=float(cg.gamma),
+                                theta=float(cg.theta),
+                                vega=float(cg.vega),
+                                rho=float(cg.rho),
+                            ) if cg else None
+                        else:
+                            # Assume batch greeks object with array members
+                            greeks_struct = OptionGreeksStruct(
+                                delta=float(g_res.delta[idx]),
+                                gamma=float(g_res.gamma[idx]),
+                                theta=float(g_res.theta[idx]),
+                                vega=float(g_res.vega[idx]),
+                                rho=float(g_res.rho[idx]),
+                            ) if g_res else None
+                        
                         results[original_idx] = PriceResult(
                             price=float(prices_arr[idx]),
                             spot=req.spot,
@@ -284,23 +233,17 @@ class PricingService:
                             option_type=req.option_type,
                             model=model_type,
                             computation_time_ms=0.0,
-                            greeks=OptionGreeksStruct(
-                                delta=float(g_res.delta),
-                                gamma=float(g_res.gamma),
-                                theta=float(g_res.theta),
-                                vega=float(g_res.vega),
-                                rho=float(g_res.rho),
-                            )
-                            if g_res
-                            else None,
+                            greeks=greeks_struct,
                         )
                 else:
                     # Fallback to concurrent scalar pricing for non-vectorized engines
-                    for original_idx, req in items:
-                        params = req.to_bs_params()
-                        res = await run_sync(engine.price_european, params, req.option_type)
+                    tasks = [run_sync(engine.price_european, it[1].to_bs_params(), it[1].option_type) for it in items]
+                    group_results = await asyncio.gather(*tasks)
+                    
+                    for idx, (original_idx, req) in enumerate(items):
+                        res = group_results[idx]
                         results[original_idx] = PriceResult(
-                            price=float(res.price),
+                            price=float(res.price if hasattr(res, "price") else res),
                             spot=req.spot,
                             strike=req.strike,
                             time_to_expiry=req.time_to_expiry,
@@ -315,9 +258,7 @@ class PricingService:
                                 theta=float(res.greeks.theta),
                                 vega=float(res.greeks.vega),
                                 rho=float(res.greeks.rho),
-                            )
-                            if res.greeks
-                            else None,
+                            ) if hasattr(res, "greeks") and res.greeks else None,
                         )
 
             except Exception as exc:

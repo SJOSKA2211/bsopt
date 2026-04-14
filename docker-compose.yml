@@ -9,6 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
       - app-network
     healthcheck:
@@ -67,6 +68,7 @@ services:
     container_name: bsopt_auth_api
     environment:
       - ENVIRONMENT=production
+      - IS_AUTH_SERVICE=true
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -84,6 +86,7 @@ services:
       - ./.pki:/etc/pki:ro
     networks:
       - app-network
+      - grpc-network
     depends_on:
       redis:
         condition: service_healthy
@@ -129,6 +132,7 @@ services:
       - ./.pki:/etc/pki:ro
     networks:
       - app-network
+      - grpc-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,6 +163,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     networks:
       - app-network
+      - grpc-network
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -176,6 +181,7 @@ services:
     container_name: bsopt_frontend_ui
     networks:
       - app-network
+      - grpc-network
     depends_on:
       pricing_api:
         condition: service_healthy
@@ -195,6 +201,7 @@ services:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - app-network
+      - grpc-network
     depends_on:
       frontend:
         condition: service_healthy
@@ -212,4 +219,7 @@ volumes:
 
 networks:
   app-network:
+    driver: bridge
+  grpc-network:
+    internal: true
     driver: bridge

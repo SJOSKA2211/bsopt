@@ -122,20 +122,48 @@ class AuthService:
 
     async def validate_token(self, token: str) -> TokenData:
         """
-        High-performance token validation using centralized cache and revocation check.
+        High-performance token validation.
+        Uses gRPC for centralized validation if configured (Remote), 
+        otherwise falls back to local asymmetric decoding (Lateral).
         """
+        # 1. Check Distributed Cache First
         token_data = await centralized_cache_service.get_token_data_cached(token)
-        if not token_data:
-            token_data = self.decode_token(token)
-            await centralized_cache_service.set_token_data_cached(token, token_data)
-        elif isinstance(token_data, dict):
-            token_data = msgspec.json.decode(msgspec.json.encode(token_data), type=TokenData)
+        if token_data:
+            if isinstance(token_data, dict):
+                token_data = msgspec.json.decode(msgspec.json.encode(token_data), type=TokenData)
+            return token_data
 
+        # 2. Centralized Validation (gRPC) if not the Auth Service itself
+        if settings.AUTH_SERVICE_GRPC_URL and not os.getenv("IS_AUTH_SERVICE") == "true":
+            from src.auth.grpc_client import auth_grpc_client
+            
+            grpc_resp = await auth_grpc_client.validate_token(token)
+            if grpc_resp and grpc_resp.valid:
+                token_data = TokenData(
+                    user_id=grpc_resp.user_id,
+                    email=grpc_resp.email,
+                    tier=grpc_resp.tier,
+                    token_type=grpc_resp.token_type,
+                    exp=datetime.fromtimestamp(grpc_resp.expires_at, tz=UTC),
+                    iat=datetime.fromtimestamp(grpc_resp.issued_at, tz=UTC),
+                    jti=None, # JTI might not be returned over wire for speed
+                    scopes=list(grpc_resp.roles)
+                )
+                await centralized_cache_service.set_token_data_cached(token, token_data)
+                return token_data
+            elif grpc_resp and not grpc_resp.valid:
+                raise TokenRevokedError()
+            else:
+                logger.warning("auth_grpc_fallback_to_local", token_truncated=token[:10])
+
+        # 3. Lateral Validation (Local)
+        token_data = self.decode_token(token)
+        
+        # 4. Consistency Check (Revocation)
         if token_data.jti and await self.sessions.is_token_revoked(token_data.jti):
-            # If revoked, remove from cache to ensure consistent state
-            await centralized_cache_service.revoke_token_cached(token)
             raise TokenRevokedError()
 
+        await centralized_cache_service.set_token_data_cached(token, token_data)
         return token_data
 
     async def authenticate_user(self, db: AsyncSession, email: str, password: str) -> User:
