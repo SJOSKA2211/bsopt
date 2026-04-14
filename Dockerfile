@@ -6,7 +6,8 @@ FROM python:3.12.13-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_SYSTEM_PYTHON=1
 
 WORKDIR /app
 
@@ -28,7 +29,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 # Compile Rust Core Kernel (Performance Substrate)
 COPY src/math_kernel/rust-core ./rust-core
 RUN --mount=type=cache,target=/root/.cache/uv \
-    cd rust-core && uv pip install maturin && maturin build --release --out ../wheels
+    uv pip install maturin[patchelf] && \
+    cd rust-core && maturin build --release --out ../wheels
 
 # Install Python dependencies into a temporary location
 COPY pyproject.toml uv.lock ./
@@ -38,7 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install ./wheels/*.whl
 
 # --- RUNTIME STAGE ---
-FROM python:3.12.13-slim AS runtime
+FROM python:3.12.13-slim AS latest
 
 WORKDIR /app
 
@@ -50,21 +52,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local /usr/local
 
 # Copy application source
 COPY . .
 
 # Environment Defaults
-ENV PORT=3001 \
-    PYTHONPATH=/app \
+ENV PYTHONPATH=/app \
     ENVIRONMENT=production \
     LOG_LEVEL=info
 
-EXPOSE 3001 5001 50051
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
-
-ENTRYPOINT ["python", "api/auth_index.py"]
+# Default to auth_api, but overridden by docker-compose
+CMD ["python", "api/index.py"]
