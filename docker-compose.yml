@@ -64,6 +64,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        EXTRAS: "api,auth,shared,observability"
     container_name: bsopt_auth_api
     environment:
       - ENVIRONMENT=production

@@ -34,10 +34,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install Python dependencies into a temporary location
 COPY pyproject.toml uv.lock ./
+ARG EXTRAS="api,auth,shared,observability,ml,quant,distributed"
 # We skip dev dependencies for production image to speed up build
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install ".[api,auth,shared,observability,ml,quant,distributed]" && \
+    uv pip install ".[${EXTRAS}]" && \
     uv pip install ./wheels/*.whl
 
 # --- RUNTIME STAGE ---
