@@ -1,8 +1,10 @@
+from datetime import UTC, date, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
+
 from api.index import app
-from datetime import date, datetime, UTC
 
 client = TestClient(app)
 

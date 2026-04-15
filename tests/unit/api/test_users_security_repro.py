@@ -15,8 +15,9 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def override_auth(request, free_user, admin_user):
-    from src.auth.core.tokens import TokenData
     from datetime import UTC, datetime, timedelta
+
+    from src.auth.core.tokens import TokenData
 
     current = admin_user if "admin" in request.node.name else free_user
 

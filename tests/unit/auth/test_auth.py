@@ -1,11 +1,13 @@
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
+
 from api.index import app
 from src.database import get_async_db
 from src.database.models import User
-from datetime import datetime, UTC
-from uuid import uuid4
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"
 TEST_PASSWORD = "Short_Secure_Pass_123!"
@@ -134,9 +136,10 @@ def test_refresh_token_success():
         assert response.json()["data"]["access_token"] == "new-access"
 
 def test_logout_success():
+    from datetime import UTC, datetime, timedelta
+
     from src.auth.auth import auth_service, get_current_user
     from src.auth.core.tokens import TokenData, token_service
-    from datetime import datetime, UTC, timedelta
 
     mock_claims = TokenData(
         user_id=str(uuid4()),

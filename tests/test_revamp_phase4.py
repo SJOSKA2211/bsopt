@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.ml.distributed_training import BSOptDistributedTrainer
 from src.math_kernel.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
+from src.ml.distributed_training import BSOptDistributedTrainer
 
 
 class TestRevampPhase4:

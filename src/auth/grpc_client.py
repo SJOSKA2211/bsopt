@@ -1,5 +1,6 @@
-import os
 import asyncio
+import os
+
 import grpc
 import structlog
 
@@ -84,7 +85,7 @@ class AuthGrpcClient:
             # Timeout for RPC calls
             response = await asyncio.wait_for(stub.ValidateToken(request), timeout=5.0)
             return response
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("auth_grpc_timeout")
             return None
         except grpc.RpcError as e:

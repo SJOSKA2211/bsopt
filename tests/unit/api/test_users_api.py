@@ -64,12 +64,12 @@ def admin_user():
 
 @pytest.fixture(autouse=True)
 def override_auth(request, mock_user, admin_user):
+    from datetime import UTC, datetime, timedelta
+
     from src.auth.core.tokens import TokenData
-    from datetime import datetime, UTC, timedelta
     
     # Determine which user to use based on dependencies
     # This is a bit hacky, but works for these tests
-    target_user = mock_user
     if "admin_user" in request.fixturenames:
         # If the test uses admin_user fixture, it's likely an admin test
         # However, we need to be more precise

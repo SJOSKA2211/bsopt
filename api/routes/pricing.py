@@ -11,12 +11,9 @@ from fastapi import APIRouter, Depends, Request
 from api.responses import MsgspecJSONResponse
 from api.schemas.pricing import (
     BatchGreeksRequest,
-    BatchGreeksResult,
     BatchPriceRequest,
-    BatchPriceResult,
     GreeksRequest,
     PriceRequest,
-    PriceResult,
 )
 from src.auth.auth import get_current_active_user
 from src.database.models import User

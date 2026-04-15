@@ -1,5 +1,7 @@
 import pytest
-from src.portfolio.risk import RiskAttributor, PnLExplainer
+
+from src.portfolio.risk import PnLExplainer, RiskAttributor
+
 
 def test_risk_attributor_aggregation():
     portfolio = [
@@ -53,4 +55,4 @@ def test_pnl_explainer():
     assert np.isclose(res["theta_pnl"], -0.027397, atol=1e-5)
     assert np.isclose(res["explained_total"], 100.972602, atol=1e-5)
 
-import numpy as np # Needed for isclose
+import numpy as np  # Needed for isclose

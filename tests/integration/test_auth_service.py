@@ -1,12 +1,14 @@
-import pytest
-import asyncio
-import grpc
-from src.auth.grpc_server import AuthServicer
-from src.auth.grpc_client import AuthGrpcClient
-from src.auth.core.tokens import TokenData
-from src.shared.protos import auth_pb2_grpc
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
-from datetime import datetime, UTC
+
+import grpc
+import pytest
+
+from src.auth.core.tokens import TokenData
+from src.auth.grpc_client import AuthGrpcClient
+from src.auth.grpc_server import AuthServicer
+from src.shared.protos import auth_pb2_grpc
+
 
 @pytest.fixture
 async def grpc_server_port():

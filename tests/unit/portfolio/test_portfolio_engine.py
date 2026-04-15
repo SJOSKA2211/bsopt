@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
+
 from src.portfolio.engine import PortfolioOptimizer, RebalancingEngine
+
 
 @pytest.fixture
 def sample_data():

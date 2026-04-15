@@ -1,8 +1,10 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
-from api.index import app
 from fastapi.websockets import WebSocket
+
+from api.index import app
 
 client = TestClient(app)
 
@@ -18,7 +20,7 @@ def mock_ws_manager():
 
 def test_market_data_ws_unauthenticated(mock_ws_manager):
     # Missing token should result in 1008 close
-    with client.websocket_connect("/ws/market-data") as websocket:
+    with client.websocket_connect("/ws/market-data"):
         # TestClient.websocket_connect will raise an exception or handle the close
         pass
 
@@ -56,6 +58,6 @@ async def test_market_data_ws_full_flow(mock_ws_auth, mock_ws_manager):
 
 def test_greeks_ws_auth_fail(mock_ws_auth):
     mock_ws_auth.side_effect = Exception("Invalid token")
-    with client.websocket_connect("/ws/greeks?token=bad-token") as websocket:
+    with client.websocket_connect("/ws/greeks?token=bad-token"):
         # Should close with 1008
         pass

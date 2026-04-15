@@ -1,5 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
 import pytest
 
 # Mock the cache decorator BEFORE ANY other imports
@@ -7,16 +8,18 @@ patch("src.shared.utils.cache.multi_layer_cache", lambda *args, **kwargs: (lambd
 
 import json
 import time
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 from fastapi.testclient import TestClient
 
 from api.index import app
 from api.routes.pricing import pricing_service
-from src.auth.auth import get_current_active_user, get_current_user, auth_service
+from api.schemas.pricing import BatchPriceResult, OptionGreeksStruct, PriceResult
+from src.auth.auth import auth_service, get_current_active_user, get_current_user
 from src.auth.core.tokens import TokenData
 from src.database.models import User
 from src.shared.utils.cache import get_redis_client
-from api.schemas.pricing import PriceResult, OptionGreeksStruct, BatchPriceResult
+
 
 def create_mock_redis():
     mock_redis = AsyncMock()

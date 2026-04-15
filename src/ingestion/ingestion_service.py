@@ -3,6 +3,7 @@ import json
 import os
 
 import grpc
+
 try:
     import Manifold_core
 except ImportError:

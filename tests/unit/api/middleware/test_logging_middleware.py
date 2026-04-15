@@ -1,8 +1,8 @@
-import pytest
 import json
 import uuid
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
@@ -160,7 +160,7 @@ async def test_persist_log_full(mock_session_local):
 
         # Give background task time to run
         import time
-        time.sleep(0.2)
+        time.sleep(0.2)  # noqa: ASYNC251
 
         mock_session.add.assert_called()
         mock_session.commit.assert_called()

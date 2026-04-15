@@ -1,7 +1,10 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from api.providers.market_data import PolygonProvider, YahooProvider
 from src.shared.schemas.market import MarketQuote
+
 
 @pytest.mark.asyncio
 async def test_polygon_provider_stub():
