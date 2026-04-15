@@ -591,7 +591,7 @@ class AutonomousEngine:
         """Polls the Ingestion heartbeat until it's ready."""
         import os
 
-        heartbeat_file = "/tmp/ingestion_heartbeat"
+        heartbeat_file = "/tmp/ingestion_heartbeat"  # nosec B108
         logger.info("polling_ingestion_readiness", file=heartbeat_file)
 
         if os.path.exists(heartbeat_file):

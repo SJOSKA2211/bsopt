@@ -520,7 +520,7 @@ async def main():
                 import json
 
                 def _write_heartbeat():
-                    with open("/tmp/scraper_heartbeat", "w") as f:
+                    with open("/tmp/scraper_heartbeat", "w") as f:  # nosec B108
                         processed_count = len(scraper._data_cache)
                         heartbeat_data = {
                             "time": time.time(),

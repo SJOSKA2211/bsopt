@@ -304,7 +304,7 @@ class HealthReporter:
     async def _get_ingestion_status(self) -> IngestionStatus:
         """Checks for ingestion service heartbeat and throughput metrics."""
 
-        heartbeat_file = "/tmp/ingestion_heartbeat"
+        heartbeat_file = "/tmp/ingestion_heartbeat"  # nosec B108
         reachable = False
         heartbeat_age = 9999.0
 

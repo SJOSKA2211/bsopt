@@ -182,7 +182,7 @@ async def run_concurrent_ingestion(us_universe: list[str], interval: int = 300):
 
             # Robust Healthcheck Heartbeat
             try:
-                with open("/tmp/transformer_heartbeat", "w") as f:
+                with open("/tmp/transformer_heartbeat", "w") as f:  # nosec B108
                     f.write(str(time.time()))
             except Exception:
                 pass

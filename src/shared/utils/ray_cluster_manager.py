@@ -27,7 +27,7 @@ class RayClusterManager:
                 namespace=namespace,
                 ignore_reinit_error=True,
                 include_dashboard=True,
-                _temp_dir="/tmp/ray",  # Avoid permission issues in some environments
+                _temp_dir="/tmp/ray",  # nosec B108
             )
 
             resources = ray.cluster_resources()

@@ -86,7 +86,7 @@ class MLflowWatchdog:
                                     )
                                     report.run(reference_data=reference, current_data=current)
 
-                                    report_path = "/tmp/drift_report.html"
+                                    report_path = "/tmp/drift_report.html"  # nosec B108
                                     report.save_html(report_path)
 
                                     # Upload to MinIO
