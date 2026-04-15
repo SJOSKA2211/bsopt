@@ -5,7 +5,8 @@ import {
   Avatar, 
   IconButton, 
   useMediaQuery,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import {
   GridViewOutlined as DashboardIcon,
@@ -153,9 +154,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         <header className="h-[72px] px-6 flex items-center justify-between border-b border-bento-border bg-bento-bg/60 backdrop-blur-xl sticky top-0 z-50">
           <div className="flex items-center gap-4">
             {isMobile && (
-              <IconButton onClick={() => setMobileOpen(true)} className="!text-white">
-                <MenuIcon />
-              </IconButton>
+              <Tooltip title="Open navigation menu">
+                <IconButton aria-label="Open navigation menu" onClick={() => setMobileOpen(true)} className="!text-white">
+                  <MenuIcon />
+                </IconButton>
+              </Tooltip>
             )}
             <div className="status-pill bg-white/5 border border-bento-border px-3 py-1.5">
                <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
@@ -165,12 +168,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
 
           <div className="flex items-center gap-1">
-             <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                <NotifIcon />
-             </IconButton>
-             <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                <LogoutIcon />
-             </IconButton>
+             <Tooltip title="Notifications">
+               <IconButton aria-label="Notifications" className="!text-white/40 hover:!text-white transition-colors">
+                  <NotifIcon />
+               </IconButton>
+             </Tooltip>
+             <Tooltip title="Log out">
+               <IconButton aria-label="Log out" className="!text-white/40 hover:!text-white transition-colors">
+                  <LogoutIcon />
+               </IconButton>
+             </Tooltip>
           </div>
         </header>
 
