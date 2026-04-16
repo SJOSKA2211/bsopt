@@ -26,6 +26,9 @@ async def check_database() -> bool:
 
 def check_vault() -> bool:
     """Verifies connectivity and authentication with HashiCorp Vault."""
+    # If Vault is not configured, it's considered OK (optional)
+    if not os.getenv("VAULT_TOKEN"):
+        return True
     try:
         return vault_service.is_authenticated()
     except Exception as e:

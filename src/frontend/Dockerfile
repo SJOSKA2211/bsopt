@@ -4,14 +4,14 @@ FROM node:22-alpine as frontend_builder
 WORKDIR /app/frontend
 
 # Copy dependencies first for better caching
-COPY package.json package-lock.json ./
+COPY src/frontend/package.json src/frontend/package-lock.json ./
 
 # Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
 # Copy the rest of the frontend source code
-COPY . .
+COPY src/frontend/. .
 
 # Build the frontend application for production
 RUN npm run build

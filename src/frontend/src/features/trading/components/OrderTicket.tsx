@@ -1,9 +1,7 @@
-import React from 'react';
-import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, useTheme, IconButton } from '@mui/material';
+import { Box, Typography, Stack, Button, TextField, MenuItem, alpha, IconButton } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 
 export const OrderTicket: React.FC = () => {
-  const theme = useTheme();
 
   return (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 320 }}>
@@ -138,7 +136,7 @@ export const OrderTicket: React.FC = () => {
   );
 };
 
-const Chip = ({ label, size, sx }: any) => (
+const Chip = ({ label, sx }: any) => (
   <Box sx={{ 
     px: 1, 
     borderRadius: 1, 

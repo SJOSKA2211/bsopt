@@ -166,4 +166,8 @@ class HealthResponse(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
     checks: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
+<<<<<<< HEAD
     model_config = ConfigDict(frozen=True)
+=======
+    model_config = ConfigDict(frozen=True)
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

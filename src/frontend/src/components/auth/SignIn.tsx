@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { AnimatedCard } from '../common/AnimatedCard';
 import { useLogin } from '../../api/hooks';
 

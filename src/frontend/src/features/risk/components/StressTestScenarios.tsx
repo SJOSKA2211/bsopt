@@ -1,5 +1,4 @@
-import React from 'react';
-import { Box, Typography, Stack, alpha, useTheme, Chip, Divider } from '@mui/material';
+import { Box, Typography, Stack, alpha, Chip, Divider } from '@mui/material';
 
 const scenarios = [
   { name: 'Standard Stress (SPX -10%)', impact: '-$24,500', pct: '-9.4%', status: 'Warning' },

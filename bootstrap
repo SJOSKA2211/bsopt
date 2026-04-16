@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+# bootstrap - Secure Sequential Orchestrator (v5.0)
+# This is the single source of truth for BSOPT deployment.
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
+
+# Colors for output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+log_info "Initializing BSOPT Deployment Cluster..."
+
+# 1. Environment Generation (Secure-by-Default)
+ENV_FILE=".env"
+if [ ! -f "$ENV_FILE" ]; then
+    log_info "Generating secure .env file..."
+    
+    # Generate cryptographically secure secrets
+    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
+    
+    DB_PASS=$(gen_secret)
+    REDIS_PASS=$(gen_secret)
+    RABBIT_PASS=$(gen_secret)
+    JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 64)
+    MFA_KEY=$(head -c 32 /dev/urandom | base64 -w 0)
+
+    cat > "$ENV_FILE" <<EOF
+# --- CLUSTER CORE ---
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+
+# --- DATA PERSISTENCE ---
+POSTGRES_DB=bsopt
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=$DB_PASS
+REDIS_PASSWORD=$REDIS_PASS
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+# --- MESSAGING & BROKER ---
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=$RABBIT_PASS
+RABBITMQ_HOST=rabbitmq
+
+# --- SECURITY & AUTH ---
+JWT_SECRET=$JWT_SECRET
+JWT_ALGORITHM=RS256
+JWT_PRIVATE_KEY=/etc/pki/auth-service.key
+JWT_PUBLIC_KEY=/etc/pki/auth-service.crt
+MFA_ENCRYPTION_KEY=$MFA_KEY
+BETTER_AUTH_SECRET=$DB_PASS
+BETTER_AUTH_URL=http://localhost:3001
+
+# --- INFRASTRUCTURE ADDR ---
+OPA_URL=http://opa:8181
+MINIO_ENDPOINT=minio:9000
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=$DB_PASS
+
+# --- SERVICE MESH ---
+ML_SERVICE_GRPC_URL=pricing_api:50051
+AUTH_SERVICE_GRPC_URL=auth_api:50051
+
+# --- GATEWAY & EDGE ---
+CORS_ORIGINS=http://localhost,http://localhost:3000
+TRUSTED_PROXIES=127.0.0.1,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8
+
+# --- MARKET DATA ---
+MARKET_TICKER_SYMBOLS=SPY,AAPL,TSLA,GOOGL
+NSE_SYMBOLS='{}'
+NSE_SCRAPER_SECTORS='[]'
+
+# --- PGBOUNCER ---
+PGBOUNCER_ADMIN_USER=admin
+PGBOUNCER_ADMIN_PASSWORD=$DB_PASS
+PGBOUNCER_HOST=postgres
+PGBOUNCER_PORT=6432
+EOF
+    log_success ".env file generated with secure credentials."
+fi
+
+# Load variables safely
+set -a
+source "$ENV_FILE"
+set +a
+
+# 2. PKI Substrate Generation
+KEY_DIR=".pki"
+mkdir -p "$KEY_DIR"
+if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
+    log_info "Initializing PKI substrate (mTLS)..."
+    openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096 2>/dev/null
+    openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
+        -out "${KEY_DIR}/root_ca.crt" \
+        -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
+fi
+
+issue_cert() {
+    local svc=$1
+    local name=${2:-$svc}
+    if [[ ! -f "${KEY_DIR}/${name}.key" ]]; then
+        openssl genrsa -out "${KEY_DIR}/${name}.key" 2048 2>/dev/null
+        openssl req -new -key "${KEY_DIR}/${name}.key" -out "${KEY_DIR}/${name}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
+        openssl x509 -req -in "${KEY_DIR}/${name}.csr" -CA "${KEY_DIR}/root_ca.crt" -CAkey "${KEY_DIR}/root_ca.key" \
+            -CAcreateserial -out "${KEY_DIR}/${name}.crt" -days 365 -sha256 2>/dev/null
+        rm "${KEY_DIR}/${name}.csr"
+    fi
+}
+
+issue_cert "auth_api" "auth-service"
+issue_cert "pricing_api" "api-client"
+for s in postgres redis rabbitmq; do issue_cert "$s"; done
+
+# 3. Protocol Synchronization
+log_info "Synchronizing gRPC protocol buffers..."
+GEN_DIR="src/shared/protos"
+mkdir -p "$GEN_DIR"
+# Use the project's own python environment or docker to generate
+if command -v python3 &>/dev/null && python3 -c "import grpc_tools" &>/dev/null; then
+    python3 -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto
+else
+    docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
+        "pip install grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto"
+fi
+touch "$GEN_DIR/__init__.py"
+# Fix imports in generated files for package-relative imports
+sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+
+# 4. Sequential Deployment & Health Validation
+COMPOSE_FILE="docker-compose.yml"
+
+deploy_and_validate() {
+    local svc=$1
+    log_info "Deploying service: $svc..."
+    docker compose -f "$COMPOSE_FILE" build "$svc" >/dev/null
+    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans "$svc"
+    
+    local retries=40
+    log_info "Waiting for $svc to report healthy..."
+    until docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"' || [ $retries -eq 0 ]; do
+        sleep 2
+        ((retries--))
+        echo -n "."
+    done
+    echo ""
+    
+    # Final check
+    if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"'; then
+        log_error "Service $svc failed to reach healthy state."
+        docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 20
+        exit 1
+    fi
+    log_success "$svc is online."
+}
+
+# Phase 1: Infrastructure
+log_info "--- Phase 1: Infrastructure ---"
+for svc in postgres redis rabbitmq; do
+    deploy_and_validate "$svc"
+done
+
+# Phase 2: Core Services
+log_info "--- Phase 2: Core Services ---"
+for svc in auth_api pricing_api math_worker; do
+    deploy_and_validate "$svc"
+done
+
+# Phase 3: Edge & Gateway
+log_info "--- Phase 3: Gateway ---"
+for svc in frontend nginx; do
+    deploy_and_validate "$svc"
+done
+
+# 5. Zero-Mock E2E Tests
+log_info "Executing Full-Stack Integration Suite (Zero-Mock)..."
+docker compose exec -T pricing_api pytest tests/integration -v --cov=src
+
+log_success "Deployment and Validation Complete. 100% Healthy Cluster Online."

@@ -1,17 +1,93 @@
-.git/
+# .dockerignore - Aggressive BuildKit Optimization (v4.0)
+# Optimized for pure CPU/Alpine distribution
+
+# --- Version Control ---
+.git
+.gitignore
+.github
+.git-rewrite
+.jules
+.omg
+
+# --- Environments & Secrets ---
+.env
+.env.*
+!.env.example
+.venv
+venv
+env
+.pki
+.agent
+.agents
+AGENTS.md
+SESSION_SUMMARY.md
+DIGITAL_CERTIFICATE.md
+PRODUCTION_HANDOVER.md
+
+# --- Python & Cache ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.db
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+.ruff_cache/
+lightning_logs/
+mlruns/
+models/*.onnx
+models/*.pt
+models/*.pth
+models/*.joblib
+build/
+dist/
+
+# --- Development Tools ---
+.vscode/
+.idea/
+.devcontainer/
+.dockerignore
+Makefile
+DOCKER_DEV_GUIDE.md
+Jenkinsfile
+alembic.ini
+pytest.ini
+# uv.lock is required for builds
+!uv.lock
+
+# --- Docs & Reports ---
+docs/
+*.md
+!README.md
+audit_report.md
+coverage_report.txt
+coverage.xml
+ml_unit_report*.txt
+ps_output.txt
+api_log.txt
+api_output.txt
+api_test_output.txt
+auth_output.txt
+collection_debug.txt
+
+# --- Frontend Node Modules (Large) ---
 node_modules/
 src/frontend/node_modules/
-dist/
-build/
-*.pyc
-__pycache__/
-.env
-.pki/
-.cache/
-.pytest_cache/
-.coverage
-htmlcov/
-tests/e2e/test-results/
-tests/e2e/playwright-report/
-playwright-report/
-test-results/
+src/frontend/dist/
+src/frontend/playwright-report/
+src/frontend/test-results/
+
+# --- Infrastructure Exceptions ---
+# We MUST allow nginx and other config files
+!infrastructure/nginx/frontend.conf
+!infrastructure/nginx/nginx.conf
+!init-scripts/
+
+# --- Logs ---
+logs/
+*.log
+api.pid
+auth_server.pid

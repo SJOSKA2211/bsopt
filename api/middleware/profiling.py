@@ -43,4 +43,8 @@ class ProfilingMiddleware(BaseHTTPMiddleware):
             )
 
         response.headers["X-Process-Time-MS"] = f"{process_time:.2f}"
+<<<<<<< HEAD
         return response
+=======
+        return response
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

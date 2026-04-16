@@ -1,5 +1,4 @@
-import React from 'react';
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, alpha, useTheme, Typography } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableHead, TableRow, alpha, Typography } from '@mui/material';
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 const sweepData = [

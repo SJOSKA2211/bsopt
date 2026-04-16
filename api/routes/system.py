@@ -147,4 +147,8 @@ async def get_signals(limit: int = 10, db: AsyncSession = Depends(get_async_db))
     Unified signal feed for the dashboard (Telemetry).
     """
     signals = await crud.get_recent_signals(db, limit)
+<<<<<<< HEAD
     return DataResponseStruct(data=signals)
+=======
+    return DataResponseStruct(data=signals)
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

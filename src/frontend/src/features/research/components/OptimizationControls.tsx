@@ -6,7 +6,7 @@ export const OptimizationControls: React.FC = () => {
   return (
     <Box sx={{ position: 'relative' }}>
       <Grid container spacing={4}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Typography className="stitch-label" sx={{ mb: 2, fontSize: '9px', fontWeight: 900, letterSpacing: '1px' }}>STRIKE_RANGE_SENSITIVITY [$]</Typography>
           <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Typography className="stitch-mono" sx={{ fontSize: '10px', fontWeight: 900 }}>180.0</Typography>
@@ -34,7 +34,7 @@ export const OptimizationControls: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Typography className="stitch-label" sx={{ mb: 2, fontSize: '9px', fontWeight: 900, letterSpacing: '1px' }}>EXPIRY_HORIZON_SCAN [DAYS]</Typography>
           <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Typography className="stitch-mono" sx={{ fontSize: '10px', fontWeight: 900 }}>30</Typography>
@@ -62,7 +62,7 @@ export const OptimizationControls: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Typography className="stitch-label" sx={{ mb: 2, fontSize: '9px', fontWeight: 900, letterSpacing: '1px' }}>HEURISTIC_TARGET_OBJECTIVE</Typography>
           <TextField
               select

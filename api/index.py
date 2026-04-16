@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
@@ -81,7 +81,7 @@ app.add_middleware(
 app.middleware("http")(logging_middleware)
 app.add_middleware(ZeroTrustMiddleware)
 
-@app.exception_handler(Exception)
+@app.exception_handler(BaseException)
 async def global_exception_handler(request: Request, exc: Exception) -> MsgspecJSONResponse:
     from api.exceptions import BaseAPIException
     if isinstance(exc, BaseAPIException):
@@ -97,6 +97,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> MsgspecJ
             status_code=exc.status_code,
             content={"error": "http_error", "message": str(exc.detail)},
         )
+    
     logger.exception("unhandled_exception", path=request.url.path)
     return MsgspecJSONResponse(
         status_code=500,
@@ -123,7 +124,7 @@ async def health_check() -> dict[str, Any]:
     from src.database import health_check as db_check
     from src.math_kernel.rust_engine import is_rust_available
     from src.shared.utils.broker import broker
-    from src.shared.utils.cache import get_redis, get_redis_pool_stats
+    from src.shared.utils.cache import get_redis
 
     redis_ok = False
     try:

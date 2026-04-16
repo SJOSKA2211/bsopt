@@ -1,5 +1,4 @@
-import React from 'react';
-import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, alpha, useTheme } from '@mui/material';
+import { Box, Typography, Table, TableBody, TableCell, TableHead, TableRow, alpha } from '@mui/material';
 
 const quotes = [
   { mmid: 'NSDQ', bid: 4.25, size: 10, ask: 4.26, askSize: 5 },
@@ -13,7 +12,6 @@ const quotes = [
 ];
 
 export const LevelIIQuotes: React.FC = () => {
-  const theme = useTheme();
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 280 }}>

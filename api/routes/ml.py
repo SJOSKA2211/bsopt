@@ -147,7 +147,7 @@ async def ml_health() -> dict[str, Any]:
     Consolidates MLflow, Prometheus, and Redis Anomaly metrics.
     """
     from src.ml.aiops.health_reporter import HealthReporter
-    from src.config import settings
+    from src.shared.config import settings
     import msgspec
 
     reporter = HealthReporter(prometheus_url=settings.PROMETHEUS_URL)

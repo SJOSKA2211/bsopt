@@ -121,7 +121,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   const chartOptions = useMemo(() => {
     if (data.length === 0) return null;
-    const greekColors = financial?.greeks?.[greek] || qfd?.emerald || theme.palette.primary.main;
+    const greekColors = theme.palette.financial?.greeks?.[greek as keyof typeof theme.palette.financial.greeks] || qfd?.emerald || theme.palette.primary.main;
     return {
       tooltip: {
         position: 'top',
@@ -131,7 +131,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
         textStyle: { color: theme.palette.text.primary, fontFamily: 'JetBrains Mono', fontSize: 12 },
         formatter: (params: { data: number[] }) => {
           const val = params.data;
-          const greekColors = theme.palette.financial?.greeks?.[greek] || qfd?.emerald || theme.palette.primary.main;
+          const greekColors = theme.palette.financial?.greeks?.[greek as keyof typeof theme.palette.financial.greeks] || qfd?.emerald || theme.palette.primary.main;
           return `
             <div style="padding: 4px;">
               <div style="color: ${theme.palette.text.secondary}; font-size: 10px; font-weight: 800; margin-bottom: 4px;">RISK MANIFOLD</div>
@@ -177,7 +177,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       }],
       backgroundColor: 'transparent'
     };
-  }, [data, greek, theme, strikes, expiries, financial?.greeks, qfd?.emerald]);
+  }, [data, greek, theme, strikes, expiries, theme.palette.financial?.greeks, qfd?.emerald]);
 
   if (isLoading) {
     return (

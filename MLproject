@@ -1,0 +1,118 @@
+name: bsopt_mlops
+
+entry_points:
+  main:
+    parameters:
+      timesteps: {type: int, default: 1000}
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps}"
+
+  train_regressor:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      framework: {type: string, default: "xgboost"}
+      n_trials: {type: int, default: 20}
+      study_name: {type: string, default: "regressor_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.pipeline --ticker {ticker} --framework {framework} --n_trials {n_trials} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_distributed_dt:
+    parameters:
+      epochs: {type: int, default: 10}
+      lr: {type: float, default: 0.0001}
+      batch_size: {type: int, default: 64}
+      workers: {type: int, default: 4}
+      dataset: {type: string, default: "data/trajectories.parquet"}
+      study_name: {type: string, default: "distributed_dt_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+      ray_address: {type: string, default: "auto"}
+    command: "python -m src.ml.distributed_training --epochs {epochs} --lr {lr} --batch_size {batch_size} --workers {workers} --dataset {dataset} --study_name {study_name} --tracking_uri {tracking_uri} --ray_address {ray_address}"
+
+  ingest_sentiment:
+    parameters:
+      batch_size: {type: int, default: 10}
+      topic: {type: string, default: "scraper.news"}
+    command: "python -m src.ml.sentiment_pipeline --batch_size {batch_size} --topic {topic}"
+
+  offline_train_dt:
+    parameters:
+      dataset: {type: string, default: "data/trajectories.parquet"}
+      epochs: {type: int, default: 10}
+      batch_size: {type: int, default: 64}
+      beta: {type: float, default: 3.0}
+      tau: {type: float, default: 0.7}
+      study_name: {type: string, default: "offline_dt_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.reinforcement_learning.offline_train --dataset {dataset} --epochs {epochs} --batch-size {batch_size} --beta {beta} --tau {tau} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_federated:
+    parameters:
+      rounds: {type: int, default: 3}
+      address: {type: string, default: "0.0.0.0:8080"}
+      strategy: {type: string, default: "FedAvg"}
+      study_name: {type: string, default: "federated_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.federated_learning.coordinator --rounds {rounds} --address {address} --strategy {strategy} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_rl:
+    parameters:
+      timesteps: {type: int, default: 10000}
+      model_path: {type: string, default: "models/best_td3"}
+      study_name: {type: string, default: "rl_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+      warm_start: {type: string, default: ""}
+      sync_freq: {type: int, default: 1000}
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri} --warm_start {warm_start} --sync_freq {sync_freq}"
+
+  train_tft:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      epochs: {type: int, default: 10}
+      batch_size: {type: int, default: 64}
+      hidden_size: {type: int, default: 16}
+      study_name: {type: string, default: "tft_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.forecasting.tft_model --ticker {ticker} --epochs {epochs} --batch-size {batch_size} --hidden_size {hidden_size} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_all:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      study_name: {type: string, default: "autonomous_all_v1"}
+    command: "python -m src.ml.training.train_all"
+
+  detect_drift:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.aiops.drift_detector --ticker {ticker} --tracking_uri {tracking_uri}"
+
+  evaluate_challenger:
+    parameters:
+      model: {type: string}
+      challenger: {type: string}
+      champion: {type: string, default: "Production"}
+    command: "python -m src.ml.evaluation.compare_models --model {model} --challenger {challenger} --champion {champion}"
+
+  promote_model:
+    parameters:
+      model: {type: string}
+      run_id: {type: string}
+      stage: {type: string, default: "Production"}
+    command: "python -m src.ml.registry.promote --model {model} --run_id {run_id} --stage {stage}"
+
+  train_cross_sectional:
+    parameters:
+      epochs: {type: int, default: 10}
+      batch_size: {type: int, default: 1024}
+      study_name: {type: string, default: "cross_sectional_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.cross_sectional_pipeline --epochs {epochs} --batch_size {batch_size} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  watchdog:
+    parameters:
+      experiment: {type: string, default: "distributed_dt_v1"}
+    command: "python scripts/mlflow_watchdog.py"
+
+  rollback_check:
+    parameters:
+      model: {type: string, default: "OptionPricingModel_v2"}
+    command: "python -m src.ml.aiops.backtest_evaluator"

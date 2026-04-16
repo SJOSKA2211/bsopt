@@ -14,9 +14,13 @@ from api.schemas.pricing import (
     BatchGreeksResult,
     BatchPriceRequest,
     BatchPriceResult,
+<<<<<<< HEAD
     BatchPriceResult,
     GreeksRequest,
     HeatmapRequest,
+=======
+    GreeksRequest,
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
     PriceRequest,
     PriceResult,
 )
@@ -143,17 +147,23 @@ async def calculate(
         result = None
 
     greeks_data = {}
+<<<<<<< HEAD
     if not result:
         return _build_calculate_response(None, req, greeks_data)
 
     greeks_raw = getattr(result, "greeks", None)
     if greeks_raw:
+=======
+    if result and getattr(result, "greeks", None):
+        greeks_raw = result.greeks
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
         if hasattr(greeks_raw, "__dict__"):
             greeks_data = vars(greeks_raw)
         elif isinstance(greeks_raw, dict):
             greeks_data = greeks_raw
         greeks_data = {k: float(v) for k, v in greeks_data.items() if v is not None}
 
+<<<<<<< HEAD
     return _build_calculate_response(result, req, greeks_data)
 
 
@@ -170,6 +180,9 @@ async def calculate_heatmap(
 
 
 def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
+=======
+    # Zero-copy Struct response
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
     resp = CalculateResponseStruct(
         price=getattr(result, "price", 0.0) if result else 0.0,
         greeks=greeks_data,
@@ -186,4 +199,8 @@ def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
         cached=getattr(result, "cached", False) if result else False,
         timestamp=getattr(result, "timestamp", datetime.datetime.now(datetime.UTC)),
     )
+<<<<<<< HEAD
     return MsgspecJSONResponse(content=resp)
+=======
+    return MsgspecJSONResponse(content=resp)
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

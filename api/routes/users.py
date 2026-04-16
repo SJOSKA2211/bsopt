@@ -99,4 +99,8 @@ async def list_users(
             has_next=page * page_size < total,
             has_prev=page > 1,
         ),
+<<<<<<< HEAD
     )
+=======
+    )
+>>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

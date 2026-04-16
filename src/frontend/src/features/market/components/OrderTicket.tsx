@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, TextField, Stack, alpha } from '@mui/material';
+import { Box, Typography, Button, Stack, alpha } from '@mui/material';
 import { stitchTokens } from '../../../theme/stitch-tokens';
 
 export const OrderTicket: React.FC<{ symbol: string }> = ({ symbol }) => {

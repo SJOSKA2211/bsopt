@@ -1,6 +1,4 @@
-import React from 'react';
 import { Box, Typography, Stack, Button, alpha } from '@mui/material';
-import { stitchTokens } from '../../../theme/stitch-tokens';
 import { motion } from 'framer-motion';
 
 export const BlackSwanStressTest: React.FC = () => {

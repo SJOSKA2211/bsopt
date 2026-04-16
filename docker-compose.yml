@@ -1,3 +1,4 @@
+
 services:
   # --- INFRASTRUCTURE LAYER ---
   postgres:
@@ -43,23 +44,8 @@ services:
       timeout: 10s
       retries: 10
 
-  vault:
-    image: hashicorp/vault:latest
-    container_name: bsopt_vault
-    environment:
-      VAULT_DEV_ROOT_TOKEN_ID: "root"
-      VAULT_ADDR: "http://0.0.0.0:8200"
-    networks:
-      - back-network
-    cap_add:
-      - IPC_LOCK
-    healthcheck:
-      test: ["CMD", "vault", "status"]
-      interval: 5s
-      timeout: 2s
-      retries: 10
-
   # --- CORE SERVICES LAYER ---
+
   auth_api:
     build:
       context: .
@@ -91,7 +77,6 @@ services:
     depends_on:
       redis: { condition: service_healthy }
       postgres: { condition: service_healthy }
-      vault: { condition: service_healthy }
     ports:
       - "3001:3001"
       - "50051:50051"
@@ -195,9 +180,11 @@ services:
       frontend: { condition: service_healthy }
       pricing_api: { condition: service_healthy }
 
+
 volumes:
   postgres_data:
   redis_data:
+
 
 networks:
   front-network:
@@ -207,4 +194,5 @@ networks:
     driver: bridge
   grpc-network:
     internal: true
+
     driver: bridge

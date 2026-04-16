@@ -1,10 +1,3 @@
-"""
-User Schemas (Optimized msgspec)
-
-High-performance schemas for user management endpoints using msgspec for responses
-and Pydantic V2 for request validation.
-"""
-
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -16,8 +9,6 @@ from .common import PaginationMeta
 
 
 class UserResponse(BaseModel):
-    """User profile response (Pydantic)."""
-
     id: UUID
     email: str
     full_name: str | None
@@ -32,13 +23,12 @@ class UserResponse(BaseModel):
 
     @classmethod
     def from_proto(cls, proto_msg: Any) -> "UserResponse":
-        """Bridge from gRPC UserInfo."""
         return cls(
             id=UUID(proto_msg.user_id),
             email=proto_msg.email,
             full_name=proto_msg.full_name or None,
             tier=proto_msg.tier,
-            is_active=True,  # Assuming active if info is returned, or map from metadata
+            is_active=True,
             is_verified=proto_msg.is_verified,
             is_mfa_enabled=proto_msg.mfa_enabled,
             created_at=proto_msg.created_at.to_datetime(),
@@ -49,8 +39,6 @@ class UserResponse(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    """User profile update request (Pydantic V2 for Validation)."""
-
     full_name: str | None = Field(None, max_length=255)
     email: EmailStr | None = None
 
@@ -67,15 +55,11 @@ class UserUpdateRequest(BaseModel):
 
 
 class UserListResponse(msgspec.Struct):
-    """Paginated user list response."""
-
     items: list[UserResponse]
     pagination: PaginationMeta
 
 
 class UserStatsResponse(msgspec.Struct):
-    """User statistics response."""
-
     total_requests: int
     requests_today: int
     requests_this_month: int
@@ -84,8 +68,6 @@ class UserStatsResponse(msgspec.Struct):
 
 
 class APIKeyCreateRequest(BaseModel):
-    """Request to create a new API key."""
-
     name: str = Field(..., min_length=1, max_length=100)
 
     model_config = ConfigDict(
@@ -99,8 +81,6 @@ class APIKeyCreateRequest(BaseModel):
 
 
 class APIKeyResponse(msgspec.Struct):
-    """Response containing API key metadata."""
-
     id: str
     name: str
     prefix: str
@@ -110,20 +90,17 @@ class APIKeyResponse(msgspec.Struct):
 
     @classmethod
     def from_proto(cls, proto_msg: Any) -> "APIKeyResponse":
-        """Bridge from gRPC APIKeyResponse."""
         return cls(
-            id=proto_msg.user_id,  # Mapping user_id as ID if that's how it's used
+            id=proto_msg.user_id,
             name=proto_msg.key_name,
-            prefix="",  # Prefix not in proto
+            prefix="",
             created_at=proto_msg.created_at.to_datetime(),
-            last_used_at=None,  # Not in proto
+            last_used_at=None,
             raw_key=None,
         )
 
 
 class TierUpgradeRequest(BaseModel):
-    """Tier upgrade request."""
-
     target_tier: str
     payment_method_id: str | None = None
 

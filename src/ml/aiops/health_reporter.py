@@ -282,7 +282,7 @@ class HealthReporter:
             )
             success_rate = float(success_res[0]["value"][1]) if success_res else 1.0
 
-            # 4. Active Tokens (Mocked from Redis or Prometheus gauge)
+            # 4. Active Tokens (Extracted from Prometheus gauge)
             token_query = "sum(auth_active_tokens_gauge)"
             token_res = await asyncio.to_thread(
                 self.prometheus_client.prom.custom_query, query=token_query
