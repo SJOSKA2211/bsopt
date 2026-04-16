@@ -146,6 +146,7 @@ known-first-party = ["src"]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
+exclude = ['src/protos/.*\.py$']
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -183,7 +184,7 @@ show_missing = true
 precision = 2
 
 [tool.bandit]
-exclude_dirs = ["tests", "backups", "scripts", "node_modules", "mlruns", "**/node_modules"]
+exclude_dirs = ["tests", "backups", "scripts", "node_modules", "mlruns", "**/node_modules", "src/protos"]
 # B101: assert_used (standard in internal code)
 # B105: hardcoded_password_string (often false positive on variable names)
 # B106: hardcoded_password_funcarg (often false positive)
