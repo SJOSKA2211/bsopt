@@ -35,7 +35,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
 
   // const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
   
-  const connectRef = useRef<any>(null);
+  
   const connect = useCallback(() => {
     if (!isMountedRef.current || !options.enabled) return;
 

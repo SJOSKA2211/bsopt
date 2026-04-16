@@ -137,7 +137,6 @@ const api = axios.create({
 });
 
 export function useLogin() {
-  const queryClient = useQueryClient();
   return {
     mutateAsync: async (payload: any) => {
       const { data } = await api.post('/auth/login', payload);

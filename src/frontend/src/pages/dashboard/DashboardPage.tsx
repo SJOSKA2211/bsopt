@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { AnimatedCard } from '../../components/common/AnimatedCard';
 import { usePricingStore, type PricingState } from '../../store/usePricingStore';
 import { useDataIntegration } from '../../hooks/useDataIntegration';
-import { useSignals } from '../../api/hooks';
+import { useSignals, useSystemMetrics } from '../../api/hooks';
 import { UI_CONFIG } from '../../lib/config';
 
 // Lazy loaded components

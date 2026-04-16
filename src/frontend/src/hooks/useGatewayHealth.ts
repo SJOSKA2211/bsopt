@@ -24,8 +24,8 @@ export const useGatewayHealth = () => {
       try {
         // We check the API health through the NGINX gateway
         const [apiRes, authRes] = await Promise.all([
-          axios.get('/api/v1/health', { timeout: 2000 }).catch(e => ({ status: 500, data: {} })),
-          axios.get('/api/auth/health', { timeout: 2000 }).catch(e => ({ status: 500, data: {} }))
+          axios.get('/api/v1/health', { timeout: 2000 }).catch(() => ({ status: 500, data: {} })),
+          axios.get('/api/auth/health', { timeout: 2000 }).catch(() => ({ status: 500, data: {} }))
         ]);
         
         const end = performance.now();
