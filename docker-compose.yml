@@ -149,6 +149,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        EXTRAS: "shared,observability,ml,quant,distributed"
     container_name: bsopt_math_worker
     environment:
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
