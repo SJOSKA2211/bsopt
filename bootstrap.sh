@@ -12,11 +12,11 @@ ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
     echo "Generating secure .env..."
     # Using /dev/urandom for cryptographic quality
-    DB_PASS=$(head -c 32 /dev/urandom | base64)
-    REDIS_PASS=$(head -c 32 /dev/urandom | base64)
-    RABBIT_PASS=$(head -c 32 /dev/urandom | base64)
-    JWT_SECRET=$(head -c 64 /dev/urandom | base64)
-    MFA_KEY=$(head -c 32 /dev/urandom | base64)
+    DB_PASS=$(head -c 32 /dev/urandom | base64 -w 0)
+    REDIS_PASS=$(head -c 32 /dev/urandom | base64 -w 0)
+    RABBIT_PASS=$(head -c 32 /dev/urandom | base64 -w 0)
+    JWT_SECRET=$(head -c 64 /dev/urandom | base64 -w 0)
+    MFA_KEY=$(head -c 32 /dev/urandom | base64 -w 0)
 
     cat > "$ENV_FILE" <<EOF
 ENVIRONMENT=production
@@ -31,8 +31,8 @@ RABBITMQ_PASSWORD=$RABBIT_PASS
 RABBITMQ_HOST=rabbitmq
 JWT_SECRET=$JWT_SECRET
 JWT_ALGORITHM=RS256
-JWT_PRIVATE_KEY=/etc/pki/auth_service.key
-JWT_PUBLIC_KEY=/etc/pki/auth_service.crt
+JWT_PRIVATE_KEY=/etc/pki/auth-service.key
+JWT_PUBLIC_KEY=/etc/pki/auth-service.crt
 MFA_ENCRYPTION_KEY=$MFA_KEY
 BETTER_AUTH_SECRET=$DB_PASS
 BETTER_AUTH_URL=http://localhost:3001
