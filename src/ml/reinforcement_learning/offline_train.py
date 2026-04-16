@@ -96,8 +96,7 @@ def train_offline(
         df = pd.read_parquet(dataset_path)
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
-        with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+        raise ValueError("Invalid dataset extension. Only .parquet is allowed for secure loading.")
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(

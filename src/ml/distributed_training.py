@@ -83,10 +83,15 @@ def train_func(config: dict[str, Any]):
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
+        import pandas as pd
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        fallback_path = config.get("dataset_path", "data/trajectories.parquet")
+        if not fallback_path.endswith(".parquet"):
+            raise ValueError(f"Invalid dataset extension for {fallback_path}. Only .parquet is allowed for secure loading.")
+
+        df = pd.read_parquet(fallback_path)
+        trajectories = df.to_dict("records")
+
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
