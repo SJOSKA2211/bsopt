@@ -1,9 +1,11 @@
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
+
 from api.index import app
-from api.schemas.ml import InferenceResponse, InferenceRequest
-from src.ml.service import get_ml_service, MLService
+from api.schemas.ml import InferenceRequest, InferenceResponse
+from src.ml.service import MLService, get_ml_service
 
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -88,8 +90,9 @@ def test_get_predictions_success(mock_ml_service):
 def test_get_drift_metrics_success(mock_db_session):
     # Drift metrics uses get_model_drift_metrics CRUD
     with patch("api.routes.ml.get_model_drift_metrics") as mock_get_metrics:
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
         from uuid import uuid4
+
         from api.schemas.ml import DriftMetrics
         
         mock_get_metrics.return_value = [

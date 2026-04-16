@@ -1,9 +1,8 @@
-import os
 import sys
 import time
-import ray
+
 import numpy as np
-from pprint import pprint
+import ray
 
 # --- Optimization Constants ---
 TOTAL_SIMULATIONS = 20_000_000  # 20M simulations
@@ -25,7 +24,7 @@ def report_health():
 
     alive_nodes = [n for n in nodes if n["Alive"]]
     
-    print(f" Ray is initialized and healthy.")
+    print(" Ray is initialized and healthy.")
     print(f"️  Total Nodes: {len(nodes)} (Alive: {len(alive_nodes)})")
     
     print("\n--- Total Cluster Resources ---")
@@ -63,7 +62,7 @@ def stress_test_task(batch_size):
     
     start = time.time()
     # Execute batch pricing
-    prices = BlackScholesEngine.price_batch(S, K, T, sigma, r, q, option_types)
+    BlackScholesEngine.price_batch(S, K, T, sigma, r, q, option_types)
     duration = time.time() - start
     
     return batch_size, duration
@@ -123,7 +122,7 @@ def revamp_fully():
         total_sims = sum(r[0] for r in results)
         throughput = total_sims / total_duration
         
-        print(f" Stress-test complete.")
+        print(" Stress-test complete.")
         print(f" Throughput: {throughput:,.2f} simulations/sec")
         print(f"⏱️  Total Time: {total_duration:.2f}s")
         

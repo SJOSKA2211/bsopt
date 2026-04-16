@@ -1,6 +1,8 @@
 import time
-import numpy as np
+
 import Manifold_core as mc
+import numpy as np
+
 
 def bench():
     n = 10_000_000
@@ -16,7 +18,7 @@ def bench():
     mc.batch_black_scholes(S[:1000], K[:1000], T[:1000], sigma[:1000], r[:1000], q[:1000], is_call[:1000])
     
     start = time.time()
-    res = mc.batch_black_scholes(S, K, T, sigma, r, q, is_call)
+    mc.batch_black_scholes(S, K, T, sigma, r, q, is_call)
     end = time.time()
     
     duration = end - start

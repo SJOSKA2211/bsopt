@@ -158,6 +158,7 @@ class AnomalyDetector:
             return
 
         import mlflow
+
         from src.ml.tracker import ExperimentTracker
 
         tracker = ExperimentTracker(study_name or f"anomaly_train_{self.engine}")
@@ -267,7 +268,7 @@ class AnomalyDetector:
         if use_ray and RAY_AVAILABLE and ray.is_initialized():
             # Ray-based distributed inference
             # We can parallelize the data and run 'detect' on chunks
-            data_id = ray.put(scaled_features)
+            ray.put(scaled_features)
             model_id = ray.put(self.model)
             
             @ray.remote
@@ -278,7 +279,7 @@ class AnomalyDetector:
             
             # Divide into 4 chunks
             chunks = np.array_split(scaled_features, 4)
-            futures = [remote_detect.remote(c, model_id, self.engine, getattr(self, "threshold", None)) for c in chunks]
+            [remote_detect.remote(c, model_id, self.engine, getattr(self, "threshold", None)) for c in chunks]
             # ... merge results ...
             pass
 

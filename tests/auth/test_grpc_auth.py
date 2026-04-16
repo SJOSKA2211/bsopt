@@ -1,16 +1,15 @@
-import asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import grpc
-from google.protobuf import timestamp_pb2, empty_pb2
-from google.protobuf.json_format import MessageToDict, ParseDict
+import pytest
+from google.protobuf import empty_pb2
+from jwt.exceptions import ExpiredSignatureError
 
 # Import the servicer and its dependencies
 from src.auth.grpc_server import AuthServicer
 from src.protos import auth_pb2
-from jwt.exceptions import ExpiredSignatureError, PyJWTError
+
 
 # Mock User model from src.database.models
 class MockUser:

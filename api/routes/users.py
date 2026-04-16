@@ -16,7 +16,6 @@ from api.schemas.common import (
     PaginatedResponse,
     PaginatedResponseStruct,
     PaginationMetaStruct,
-    SuccessResponse,
 )
 from api.schemas.user import UserResponse, UserUpdateRequest
 from src.auth.auth import get_current_user

@@ -1,9 +1,6 @@
 import asyncio
 import os
 import uuid
-from datetime import UTC, datetime, timedelta
-
-import structlog
 
 # Set environment variables for testing
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
@@ -13,6 +10,7 @@ os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 from src.auth.auth import auth_service
 from src.auth.core.tokens import token_service
 from src.shared.utils.cache import init_redis_cache
+
 
 async def test_auth_validation():
     # Initialize redis mock/connection

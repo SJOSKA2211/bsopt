@@ -1,7 +1,9 @@
 import asyncio
+
 from sqlalchemy import text
+
 from src.database import db_manager
-import os
+
 
 async def report_health():
     # Ensure environment variables are loaded if this script is run standalone

@@ -1,5 +1,6 @@
+
 import pytest
-from uuid import UUID
+
 
 @pytest.mark.asyncio
 @pytest.mark.integration
@@ -22,9 +23,6 @@ async def test_portfolio_lifecycle_integration(api_client):
     # Let's create one manually in the setup or mock it. 
     # Actually, the integration test should use the real DB.
     
-    from src.database.models import Portfolio, User
-    from sqlalchemy import select
-    from src.database import get_async_db
     
     # We need to inject a portfolio for the test-user-id
     # TestClient doesn't share the same DB session easily if we use different engines.
@@ -42,9 +40,8 @@ async def test_portfolio_lifecycle_integration(api_client):
         
         # Manually create portfolio for test-user-id in the DB
         from src.database.session import AsyncSessionLocal
-        async with AsyncSessionLocal() as session:
+        async with AsyncSessionLocal():
             # Check if user exists
-            user_id = "test-user-id"
             # In our integration test, 'test-user-id' needs to be a valid UUID or 
             # we need to be careful with types.
             # models.py says User.id is UUID.

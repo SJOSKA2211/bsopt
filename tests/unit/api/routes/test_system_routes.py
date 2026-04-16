@@ -1,6 +1,8 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi.testclient import TestClient
+
 from api.index import app
 from api.middleware.jwt_validator import require_tier
 
@@ -24,9 +26,9 @@ def mock_shm_probe():
         yield mock_instance
 
 def test_deep_health_all_up(mock_admin_tier, mock_shm_probe):
-    with patch("src.shared.config.settings") as mock_settings, \
+    with patch("src.shared.config.settings"), \
          patch("src.shared.utils.cache.get_redis") as mock_redis_getter, \
-         patch("aio_pika.connect_robust", new_callable=AsyncMock) as mock_pika:
+         patch("aio_pika.connect_robust", new_callable=AsyncMock):
         
         mock_redis = AsyncMock()
         mock_redis.ping.return_value = True
@@ -42,7 +44,7 @@ def test_deep_health_all_up(mock_admin_tier, mock_shm_probe):
         assert data["probes"]["rabbitmq"]["status"] == "connected"
 
 def test_deep_health_degraded(mock_admin_tier, mock_shm_probe):
-    with patch("src.shared.config.settings") as mock_settings, \
+    with patch("src.shared.config.settings"), \
          patch("src.shared.utils.cache.get_redis") as mock_redis_getter, \
          patch("aio_pika.connect_robust", side_effect=Exception("RabbitMQ Down")):
         

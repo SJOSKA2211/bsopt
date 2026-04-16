@@ -1,7 +1,6 @@
-import re
 
 filename = "tests/unit/api/test_pricing_api.py"
-with open(filename, "r") as f:
+with open(filename) as f:
     content = f.read()
 
 content = content.replace('data = response.json()["data"]\n        assert data["price"]', 'data = response.json()\n        assert data["price"]')
@@ -11,7 +10,7 @@ with open(filename, "w") as f:
     f.write(content)
 
 filename = "api/routes/pricing.py"
-with open(filename, "r") as f:
+with open(filename) as f:
     content = f.read()
 
 # For calculate_price

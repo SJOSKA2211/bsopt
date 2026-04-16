@@ -2,7 +2,6 @@ import asyncio
 import hashlib
 import logging
 import os
-from datetime import datetime
 
 import grpc
 import structlog
@@ -13,12 +12,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from src.auth.auth import auth_service
-from src.auth.exceptions import AuthError
 from src.common.caching import centralized_cache_service
 from src.database import db_manager
 from src.database.models import APIKey, User
-from src.shared.protos import auth_pb2, auth_pb2_grpc
 from src.shared.grpc_errors import handle_grpc_error
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 

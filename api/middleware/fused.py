@@ -3,8 +3,8 @@ Zero-Trust Security Middleware (Ultra-High Performance)
 Consolidates all security layers into a single ASGI hop to minimize context-switching overhead.
 """
 
-import re
 import os
+import re
 
 import structlog
 from fastapi import HTTPException, Request
@@ -186,8 +186,9 @@ class ZeroTrustMiddleware:
                 state["auth_type"] = security_context.auth_type
 
                 # Synthetic jwt_claims for compatibility with require_auth
+                from datetime import UTC, datetime, timedelta
+
                 from src.auth.core.tokens import TokenData
-                from datetime import datetime, UTC, timedelta
                 state["jwt_claims"] = TokenData(
                     user_id=security_context.user_id,
                     email=security_context.email or "unknown@example.com",

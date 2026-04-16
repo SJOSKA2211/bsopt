@@ -154,7 +154,6 @@ class DatabaseManager:
             return
 
         sync_url, async_url = self.get_urls()
-        app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
 
         # Driver detection for connect_args
         driver = "psycopg"

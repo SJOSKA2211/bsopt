@@ -1,16 +1,17 @@
 import asyncio
-import time
 import os
+import time
+
 import structlog
-from sqlalchemy import text, create_engine
+from sqlalchemy import text
 
 logger = structlog.get_logger()
 
 
 async def check_network():
     print("Checking Secure Network Layer...", end=" ", flush=True)
-    import urllib.request
     import ssl
+    import urllib.request
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -70,8 +71,9 @@ async def check_database():
 
 async def check_pgbouncer():
     print("Checking PgBouncer Pool Engine...", end=" ", flush=True)
-    from src.shared.config import settings
     import psycopg
+
+    from src.shared.config import settings
     
     host = os.environ.get('PGBOUNCER_HOST', settings.PGBOUNCER_HOST)
     port = int(os.environ.get('PGBOUNCER_PORT', settings.PGBOUNCER_PORT))

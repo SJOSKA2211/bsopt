@@ -1,6 +1,6 @@
 import re
 
-with open("src/math_kernel/rust-core/src/lib.rs", "r") as f:
+with open("src/math_kernel/rust-core/src/lib.rs") as f:
     content = f.read()
 
 # Replace .as_array() with .as_slice().unwrap() for all 1D arrays

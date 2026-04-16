@@ -1,6 +1,5 @@
-import time
 import json
-import os
+import time
 
 heartbeat_path = "/tmp/frontend_heartbeat"
 heartbeat_data = {

@@ -1,6 +1,8 @@
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from fastapi import Request, Response
+
 from api.middleware.security import (
     CSRFMiddleware,
     InputSanitizationMiddleware,
@@ -8,6 +10,7 @@ from api.middleware.security import (
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
+
 
 @pytest.fixture
 def mock_call_next():

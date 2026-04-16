@@ -1,8 +1,9 @@
 import asyncio
+import json
 import os
 import subprocess
 import time
-import json
+
 import structlog
 
 setup_logging = False

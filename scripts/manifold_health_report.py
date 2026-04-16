@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
+
 import numpy as np
 
 # Add src to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.math_kernel.rust_engine import get_rust_metrics
 from src.math_kernel.factory import PricingEngineFactory
 from src.math_kernel.models import BSParameters
+from src.math_kernel.rust_engine import get_rust_metrics
 
 
 def run_health_report():
@@ -36,8 +37,10 @@ def run_health_report():
     Q = np.zeros(1000)
     IsCall = np.ones(1000, dtype=bool)
     
-    from src.math_kernel.rust_engine import price_black_scholes, RustTickBuffer as TickDataBuffer
     import os
+
+    from src.math_kernel.rust_engine import RustTickBuffer as TickDataBuffer
+    from src.math_kernel.rust_engine import price_black_scholes
     
     tick_file = "/tmp/report_ticks.bin"
     with open(tick_file, "wb") as f:

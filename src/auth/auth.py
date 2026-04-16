@@ -6,9 +6,7 @@ zero-trust compliant service.
 """
 
 import hashlib
-import logging
 import secrets
-from datetime import datetime
 
 import structlog
 from fastapi import Depends, HTTPException, Request

@@ -1,9 +1,9 @@
 from datetime import UTC, datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cachetools import TTLCache
-from google.protobuf.json_format import MessageToDict
-from src.shared.utils.cache import get_redis_client, db_cache
+
+from src.shared.utils.cache import db_cache, get_redis_client
 
 # Define constants for cache TTLs
 USER_LOCAL_TTL = 60  # 1 minute for local cache
@@ -23,7 +23,7 @@ class CentralizedCacheService:
         self._user_local_cache = TTLCache(maxsize=10000, ttl=USER_LOCAL_TTL)
         self._api_key_local_cache = TTLCache(maxsize=10000, ttl=API_KEY_LOCAL_TTL)
 
-    async def get_user_cached(self, user_id: str) -> Optional[Dict[str, Any]]:
+    async def get_user_cached(self, user_id: str) -> dict[str, Any] | None:
         """
         Retrieves user data, first from local cache, then from distributed cache.
         Returns None if not found in either.
@@ -46,7 +46,7 @@ class CentralizedCacheService:
         
         return None
 
-    async def set_user_cached(self, user_id: str, user_data: Dict[str, Any]):
+    async def set_user_cached(self, user_id: str, user_data: dict[str, Any]):
         """
         Stores user data in both local and distributed caches.
         """
@@ -60,7 +60,7 @@ class CentralizedCacheService:
             print(f"Error setting user {user_id} in distributed cache: {e}")
             pass
 
-    async def get_api_key_cached(self, key_hash: str) -> Optional[Dict[str, Any]]:
+    async def get_api_key_cached(self, key_hash: str) -> dict[str, Any] | None:
         """
         Retrieves API key data, first from local cache, then from distributed cache.
         Returns None if not found in either.
@@ -82,7 +82,7 @@ class CentralizedCacheService:
         
         return None
 
-    async def set_api_key_cached(self, key_hash: str, api_key_data: Dict[str, Any]):
+    async def set_api_key_cached(self, key_hash: str, api_key_data: dict[str, Any]):
         """
         Stores API key data in both local and distributed caches.
         """
@@ -108,7 +108,7 @@ class CentralizedCacheService:
             print(f"Error updating API key last used time for {key_hash[:10]}...: {e}")
             pass
 
-    async def get_token_data_cached(self, token: str) -> Optional[Any]:
+    async def get_token_data_cached(self, token: str) -> Any | None:
         """
         Retrieves token data from distributed cache.
         """

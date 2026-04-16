@@ -16,7 +16,6 @@ from api.schemas.ml import (
     ComparisonMetrics,
     DriftMetricsResponse,
     InferenceRequest,
-    InferenceResponse,
 )
 from src.auth.auth import get_current_active_user
 from src.database import get_async_db

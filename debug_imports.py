@@ -1,6 +1,5 @@
-import time
-import sys
 import os
+import time
 
 print("--- STARTING IMPORT DEBUGGER ---")
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
