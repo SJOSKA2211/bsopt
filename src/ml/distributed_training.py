@@ -83,10 +83,16 @@ def train_func(config: dict[str, Any]):
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
-        import pickle  # nosec B403
+        dataset_path = config.get("dataset_path", "data/trajectories.parquet")
 
-        with open("data/trajectories.pkl", "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+        if not dataset_path.endswith(".parquet"):
+            raise ValueError(f"Insecure file format detected: {dataset_path}. Only .parquet is supported.")
+
+        import pandas as pd
+
+        df = pd.read_parquet(dataset_path)
+        trajectories = df.to_dict("records")
+
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
