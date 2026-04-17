@@ -3,6 +3,7 @@ import httpx
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List
+import time # For timestamping test data
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
@@ -16,13 +17,13 @@ pytestmark = pytest.mark.integration
 
 # --- Helper Functions ---
 async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_headers: Dict[str, str]) -> Dict[str, Any]:
-    """Helper to create a portfolio specifically for trade tests."""
+    """Helper to create a portfolio via the API for trade tests."""
     timestamp_suffix = str(int(time.time()))
     portfolio_name = f"Portfolio For Trades {timestamp_suffix}"
     portfolio_data = {"name": portfolio_name, "cash": 100000.0}
     
     response = await api_client.post("/api/v1/portfolios/", json=portfolio_data, headers=auth_headers)
-    response.raise_for_status()
+    response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
     return response.json()
 
 # --- Tests ---
@@ -123,9 +124,8 @@ async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: Async
     trade_id_to_check = created_trade["id"]
 
     # Now, attempt to retrieve this trade using auth_headers for a DIFFERENT user.
-    # This requires getting auth headers for a different user, which is complex without more setup.
-    # For now, we rely on the principle that the API route's ownership check will fail.
-    # The current implementation of check_portfolio_ownership uses current_user.id.
+    # This test relies on the API route's ownership check (check_portfolio_ownership).
+    # The current implementation of check_portfolio_ownership uses current_user.id from auth_headers.
     # If the user_id from auth_headers does not match the portfolio owner, it should fail.
     
     # Since we only have 'test-integration-user' headers, we can only test that *this* user
@@ -197,5 +197,7 @@ async def test_list_trades_for_unauthorized_portfolio(api_client: AsyncClient, d
     
     # Test that the user CAN access their own trades.
     response_list_own = await api_client.get(f"/api/v1/trades/?portfolio_id={owner_portfolio_id}", headers=auth_headers)
-    assert response_list_own.status_code == 200
+    assert response_list_own.status_code == 200 # Should pass if trade belongs to the authenticated user
     assert len(response_list_own.json()) >= 1 # Should find the trade created for 'test-integration-user'
+
+# Note: Tests for updating/deleting trades would follow a similar pattern, including ownership checks.

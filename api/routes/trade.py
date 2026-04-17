@@ -7,13 +7,15 @@ from src.database.crud import (
     create_trade as crud_create_trade,
     get_trade_by_id as crud_get_trade_by_id,
     get_trades_for_portfolio as crud_get_trades_for_portfolio,
-    # get_portfolio_by_id for ownership check
-    get_portfolio_by_id as crud_get_portfolio_by_id,
+    get_portfolio_by_id as crud_get_portfolio_by_id, # Needed for ownership check
 )
 from src.database.models import Trade, Portfolio, User
 from src.schemas.trade import TradeCreate, TradeUpdate, Trade as TradeSchema # Import Pydantic schemas
 from src.shared.protos import auth_pb2
 from src.shared.protos import auth_pb2_grpc
+
+# --- Service Instances ---
+# None directly used here, but dependencies are injected.
 
 # --- Logging and Configuration ---
 import logging
@@ -22,9 +24,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])
 
 # --- Authentication and Authorization Dependencies ---
-# Re-defining get_current_user and get_current_user_id for self-containment.
+# Re-defining get_current_user and get_current_user_id for self-containment of the router file example.
 # In a modular structure, these would be imported.
-
 async def get_current_user( # Placeholder: Real implementation from api.index.py
     request: Request, db: AsyncSession = Depends(get_async_db), auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client) 
 ) -> User:
@@ -38,18 +39,14 @@ async def get_current_user( # Placeholder: Real implementation from api.index.py
 async def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
     return current_user.id
 
-# Helper to check portfolio ownership
-async def check_portfolio_ownership(
-    db: AsyncSession, 
-    portfolio_id: str, 
-    user_id: str
-):
+async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id: str) -> str:
     """Verifies that the portfolio belongs to the specified user."""
     portfolio = await crud_get_portfolio_by_id(db, portfolio_id=portfolio_id, user_id=user_id)
     if portfolio is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
-    # The filter in crud_get_portfolio_by_id already ensures ownership.
-    # If it returns a portfolio, ownership is implicitly checked.
+    return portfolio.user_id
+
+# --- Trade Routes ---
 
 @router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_trade_item(

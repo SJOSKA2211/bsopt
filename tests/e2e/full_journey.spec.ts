@@ -10,20 +10,19 @@
  * 6. Trigger ML Training
  * 7. Perform ML Prediction
  * 8. Deploy ML Model (simulated)
+ * 9. Calculate Portfolio Value
  * 
  * Run with: npx playwright test tests/e2e/full_journey.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
-import { gql, ApolloClient, InMemoryCache } from '@apollo/client/core'; // Assuming GraphQL client is used
+// Removed Apollo Client imports as direct usage is not apparent and focus is on UI interaction and API calls.
+// If GraphQL client setup is in a global context or hook, it should work seamlessly.
 import time from 'time'; // Assuming time library for date manipulation in tests
 
 // --- Configuration ---
 const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8000"; // API service URL
 const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8000/api/v1";
-
-// --- GraphQL Client Setup (if needed for frontend interaction) ---
-// const client = new ApolloClient({ ... });
 
 // --- Test Data ---
 const testPassword = "SecurePass123!";
@@ -108,6 +107,8 @@ test.describe("Manifold Full Journey", () => {
         await page.click('button:has-text("Create")');
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
 
+        // Get portfolio ID for subsequent steps. Assumes API returns ID or it's visible.
+        // If ID is not directly returned, might need to query list and find it.
         const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
         expect(listResponse.ok()).toBeTruthy();
         const portfolios = await listResponse.json();
@@ -198,9 +199,7 @@ test.describe("Manifold Full Journey", () => {
       const model_name = `E2E Model ${Date.now()}`;
       const model_version = '1.0.0';
       const model_description = 'E2E Test Model';
-      const model_for_training_name = `TrainModel ${Date.now()}`;
-      const model_for_training_version = '3.0.0';
-
+      
       await test.step("Create an ML model", async () => {
         await page.click('button:has-text("New ML Model")');
         await expect(page.locator('[name="name"]')).toBeVisible();
@@ -231,8 +230,7 @@ test.describe("Manifold Full Journey", () => {
       await test.step("Trigger model training", async () => {
         await page.click('a:has-text("ML Models")'); 
         await page.waitForURL(/\/ml\/models/, { timeout: 5000 });
-        // Ensure we click the train button associated with the model we just created
-        await page.click(`button:has-text("Train") >> nth=0`); // Adjust selector if needed
+        await page.click(`button:has-text("Train") >> nth=0`); 
         await expect(page.locator('[name="epochs"]')).toBeVisible();
         await page.fill('[name="epochs"]', "50");
         await page.fill('[name="batchSize"]', "128");
@@ -241,10 +239,10 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Trigger model deployment", async () => {
-        await page.click('button:has-text("Deploy")'); // Assuming a deploy button
+        await page.click('button:has-text("Deploy")'); 
         await expect(page.locator('[name="version"]')).toBeVisible();
-        await page.fill('[name="version"]', "1.0.0"); // Specific version to deploy
-        await page.selectOption('[name="targetEnvironment"]', "production"); // e.g., staging, production
+        await page.fill('[name="version"]', "1.0.0"); 
+        await page.selectOption('[name="targetEnvironment"]', "production"); 
         await page.click('button:has-text("Deploy Model")');
         await expect(page.locator("text=ML model deployment task enqueued")).toBeVisible({ timeout: 10000 });
       });
@@ -262,7 +260,7 @@ test.describe("Manifold Full Journey", () => {
     });
 
     test("should verify ML service health (simulated)", async ({ request }) => {
-      const response = await request.get(`${API_URL}/ml/models`); // Check if ML models endpoint is accessible
+      const response = await request.get(`${API_URL}/ml/models`); 
       expect(response.ok()).toBeTruthy();
     });
   });

@@ -109,6 +109,7 @@ class MathKernelService:
             raise ValueError("Portfolio not found")
 
         # Simulate current market prices for symbols in trades
+        # This is a crucial part that could be improved by fetching real or more complex simulated prices.
         simulated_market_prices = {}
 
         total_trade_value = 0.0
@@ -118,8 +119,8 @@ class MathKernelService:
 
         for trade in trades:
             if trade.symbol not in simulated_market_prices:
-                # Simulate a market price for the symbol
-                # Price simulation based on trade price with some random variation
+                # Simulate a market price for the symbol based on its trade price with some random variation.
+                # A more advanced simulation could use external data or a more complex model.
                 base_price = trade.price * random.uniform(0.95, 1.05) 
                 simulated_market_prices[trade.symbol] = round(base_price, 2)
             
@@ -145,7 +146,6 @@ class MathKernelService:
 #         except ValueError as e:
 #             print(e)
 #     
-#     # Example of other services
 #     price = MathKernelService().calculate_price("AAPL", 10, 150.0)
 #     print(f"Calculated price: {price}")
 #     
@@ -156,6 +156,4 @@ class MathKernelService:
 #     print(f"Simulated historical data: {historical}")
 #
 # if __name__ == "__main__":
-#     # Note: Running this directly requires setting up the DB engine and potentially mocking DB access
-#     # asyncio.run(main())
-#     pass
+#     asyncio.run(main())
