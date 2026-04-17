@@ -51,7 +51,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   // Performance-optimized store selectors
-  const systemGammaFromStore = usePricingStore((state: PricingState) => state.systemGamma);
+  const systemGammaFromStore = usePricingStore((state: PricingState) => state.prices['SPX']?.gamma); // Fixed incorrect selector
   const portfolioTotal = usePricingStore((state: PricingState) => state.portfolioTotal);
   
   const { data: systemMetrics } = useSystemMetrics();
@@ -61,14 +61,14 @@ export const DashboardPage: React.FC = () => {
   const vegaSens = systemMetrics?.vega ? `${(systemMetrics.vega / 1000).toFixed(2)}k` : "0.00k";
   
   return (
-    <div className="p-6 h-[calc(100vh-64px)] overflow-auto bg-bento-bg">
+    <div className="p-6 h-full overflow-auto bg-bento-bg">
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         className="bento-grid"
       >
-        {/* KPI Row */}
+        {/* KPI Row - Fixed 12-Column Layout */}
         <div className="col-span-12 sm:col-span-6 lg:col-span-3">
            <KpiCard label="SYSTEM_GAMMA" value={systemGamma.toFixed(3)} color="#00FFA3" index={0} />
         </div>
@@ -82,38 +82,38 @@ export const DashboardPage: React.FC = () => {
            <KpiCard label="WS_STATUS" value={isConnected ? 'CONNECTED' : 'CONNECTING...'} color={isConnected ? '#00FFA3' : '#F59E0B'} index={3} />
         </div>
 
-        {/* Intelligence Layer */}
+        {/* Intelligence Layer - Secondary Row */}
         <div className="col-span-12 lg:col-span-4">
-           <AnimatedCard delay={0.2} className="h-full">
+           <AnimatedCard delay={0.2} className="h-full min-h-[400px]">
               <h2 className="label-secondary mb-6 opacity-40">DEEP_INFERENCE_ENGINE // v4.2</h2>
               <DeepInferenceEngine symbol="SPX" />
            </AnimatedCard>
         </div>
         
         <div className="col-span-12 lg:col-span-4">
-           <AnimatedCard delay={0.25} className="h-full">
+           <AnimatedCard delay={0.25} className="h-full min-h-[400px]">
               <h2 className="label-secondary mb-6 opacity-40">RISK_EXPOSURE_GRID</h2>
               <RiskExposureGrid />
            </AnimatedCard>
         </div>
 
         <div className="col-span-12 lg:col-span-4">
-           <AnimatedCard delay={0.3} className="h-full">
+           <AnimatedCard delay={0.3} className="h-full min-h-[400px]">
               <h2 className="label-secondary mb-6 opacity-40">STRATEGY_ALLOCATION</h2>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-8 mt-4">
                  {UI_CONFIG.STRATEGY_ALLOCATIONS.map(strat => (
                    <div key={strat.name}>
-                      <div className="flex justify-between mb-2">
-                         <span className="text-[11px] font-bold text-white/80">{strat.name}</span>
+                      <div className="flex justify-between mb-3">
+                         <span className="text-[11px] font-bold text-white/80 tracking-wide">{strat.name}</span>
                          <span className="data-mono text-[11px] font-bold" style={{ color: strat.color }}>{strat.weight}%</span>
                       </div>
-                      <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                          <motion.div 
                            initial={{ width: 0 }}
                            animate={{ width: `${strat.weight}%` }}
                            transition={{ duration: 1, delay: 0.5 }}
-                           className="h-full"
-                           style={{ backgroundColor: strat.color }} 
+                           className="h-full shadow-[0_0_10px_currentcolor]"
+                           style={{ backgroundColor: strat.color, color: strat.color }} 
                          />
                       </div>
                    </div>
@@ -122,14 +122,14 @@ export const DashboardPage: React.FC = () => {
            </AnimatedCard>
         </div>
 
-        {/* Observation Deck */}
+        {/* Observation Deck - Primary Data Viz */}
         <div className="col-span-12">
-           <AnimatedCard delay={0.4} className="h-[540px] !p-0">
-              <div className="p-6 border-b border-bento-border flex justify-between items-center">
+           <AnimatedCard delay={0.4} className="h-[600px] !p-0 overflow-hidden">
+              <div className="p-6 border-b border-bento-border flex justify-between items-center bg-white/[0.02]">
                  <h2 className="label-secondary opacity-40">TEMPORAL_TRAJECTORY // GLOBAL_INDICES</h2>
                  <div className="flex gap-2">
                     {UI_CONFIG.TIME_FRAMES.map(tf => (
-                      <button key={tf} className={`px-3 py-1 rounded text-[10px] font-bold border transition-colors ${tf === UI_CONFIG.DEFAULT_TIME_FRAME ? 'bg-mint text-black border-mint' : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10'}`}>
+                      <button key={tf} className={`px-4 py-1.5 rounded-lg text-[10px] font-black border transition-all ${tf === UI_CONFIG.DEFAULT_TIME_FRAME ? 'bg-mint text-black border-mint shadow-[0_0_15px_#00FFA3]' : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10'}`}>
                         {tf}
                       </button>
                     ))}
@@ -143,32 +143,36 @@ export const DashboardPage: React.FC = () => {
            </AnimatedCard>
         </div>
 
-        {/* Signals Telemetry */}
-        <div className="col-span-12">
-           <AnimatedCard delay={0.5} className="!p-0">
-              <div className="p-6 border-b border-bento-border flex justify-between items-center">
-                 <h2 className="label-secondary opacity-40">SIGNAL_TELEMETRY</h2>
-                 <div className={`status-pill ${isConnected ? 'healthy bg-mint/10 border-mint/20 text-mint' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'}`}>
-                   {isConnected ? 'LIVE_FEED' : 'CONNECT_ERROR'}
+        {/* Signals Telemetry - System Logs */}
+        <div className="col-span-12 lg:col-span-12">
+           <AnimatedCard delay={0.5} className="!p-0 border-mint/20">
+              <div className="p-6 border-b border-bento-border flex justify-between items-center bg-white/[0.02]">
+                 <h2 className="label-secondary opacity-40 tracking-[0.2em]">SIGNAL_TELEMETRY // LIVE_HEDGE_SUBSYSTEM</h2>
+                 <div className={`status-pill ${isConnected ? 'healthy' : 'warning animate-pulse'}`}>
+                    {isConnected ? 'LIVE_STREAM_ACTIVE' : 'FEED_INITIALIZING'}
                  </div>
               </div>
-              <div className="p-2 min-h-[300px]">
+              <div className="p-2 min-h-[320px]">
                  {isLoadingSignals ? (
-                   <div className="flex justify-center p-12">
-                      <div className="w-5 h-5 border-2 border-mint/20 border-t-mint rounded-full animate-spin" />
+                   <div className="flex flex-col items-center justify-center p-20 gap-4">
+                      <div className="w-8 h-8 border-2 border-mint/10 border-t-mint rounded-full animate-spin" />
+                      <span className="label-secondary opacity-20 text-[9px]">Awaiting Uplink...</span>
                    </div>
                  ) : recentSignals?.data?.length === 0 ? (
-                    <div className="p-8 text-center text-white/30 text-xs">NO_SIGNALS_DETECTED</div>
+                    <div className="p-20 text-center text-white/20 text-[10px] font-black tracking-widest italic"> [ NO_SIGNALS_DETECTED_IN_CURRENT_EPOCH ] </div>
                  ) : (
                     recentSignals?.data?.map((log: any, i: number) => (
-                      <div key={i} className={`flex items-center p-4 px-6 ${i === recentSignals.data.length - 1 ? '' : 'border-b border-white/5'} hover:bg-white/5 transition-colors group cursor-default text-white/90`}>
-                         <span className="data-mono text-[11px] text-white/40 w-24 group-hover:text-mint transition-colors">
+                      <div key={i} className={`flex items-center p-5 px-8 ${i === recentSignals.data.length - 1 ? '' : 'border-b border-white/5'} hover:bg-white/5 transition-all group cursor-default`}>
+                         <span className="data-mono text-[11px] text-white/30 w-32 group-hover:text-mint transition-colors shrink-0">
                            {new Date(log.timestamp).toLocaleTimeString()}
                          </span>
-                         <div className={`status-pill mr-6 font-black scale-90 ${log.type === 'ML' ? 'bg-purple-500/10 text-purple-400' : 'bg-mint/10 text-mint'}`}>
+                         <div className={`status-pill mr-10 font-black scale-90 shrink-0 ${log.type === 'ML' ? 'bg-purple-500/10 text-purple-400' : 'bg-mint/10 text-mint'}`}>
                             {log.type}
                          </div>
-                         <span className="text-sm font-medium">{log.message}</span>
+                         <span className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors tracking-tight">{log.message}</span>
+                         <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] font-black text-mint/40 tracking-widest">DETAILS -&gt;</span>
+                         </div>
                       </div>
                     ))
                  )}

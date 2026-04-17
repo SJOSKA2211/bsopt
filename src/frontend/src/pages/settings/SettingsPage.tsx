@@ -61,6 +61,8 @@ const SettingRow: React.FC<{ label: string; description: string; action: React.R
 export const SettingsPage: React.FC = () => {
   const theme = useTheme();
   const qfd = (theme.palette as any).financial?.qfd;
+  
+  if (!qfd) return null; // Safe guard against theme loading latency
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, pb: 10 }}>

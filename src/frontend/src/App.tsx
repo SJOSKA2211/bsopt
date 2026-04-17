@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from './lib/apollo-client';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from './theme';
+import { CssBaseline } from '@mui/material';
 
 import { Layout } from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
@@ -76,13 +79,16 @@ function AppContent() {
 
 function App() {
   return (
-    <ApolloProvider client={apolloClient}>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ApolloProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ApolloProvider client={apolloClient}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ApolloProvider>
+    </ThemeProvider>
   );
 }
 

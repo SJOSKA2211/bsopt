@@ -54,82 +54,75 @@ export const MarketPage: React.FC = () => {
   const livePrice = priceData?.price ?? 189.45;
 
   return (
-    <Box sx={{ p: 2, height: 'calc(100vh - 64px)', overflow: 'hidden', position: 'relative' }}>
+    <div className="p-6 h-full overflow-hidden bg-bento-bg">
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ height: '100%' }}
+        className="bento-grid h-full"
       >
-        <Grid container spacing={2} sx={{ height: '100%' }}>
-          {/* Left Column: Analytics & Chain */}
-          <Grid size={{ xs: 12, lg: 8.5 }} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Main Chart Card */}
-            <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
-              <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
-                 <Box className="stitch-dots-container" sx={{ opacity: 0.05 }} />
-                 <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.indigo }}>LIVE_PRICE_TRAJECTORY // {currentSymbol}</Box>
-                 <Box sx={{ p: 1, height: 'calc(100% - 32px)' }}>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <LivePriceChart symbol={currentSymbol} />
-                    </Suspense>
-                 </Box>
-              </Box>
-            </motion.div>
+        {/* Left Column: Analytics (spanning 8/12) */}
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6 min-h-0">
+          <motion.div variants={itemVariants} className="flex-[1.2] min-h-0">
+             <AnimatedCard className="h-full !p-0 border-white/5 overflow-hidden">
+                <div className="p-4 border-b border-white/5 bg-white/2 flex justify-between items-center">
+                   <h2 className="label-secondary opacity-40">LIVE_PRICE_TRAJECTORY // {currentSymbol}</h2>
+                   <div className="status-pill healthy scale-75">REAL_TIME</div>
+                </div>
+                <div className="p-2 h-[calc(100%-56px)]">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <LivePriceChart symbol={currentSymbol} />
+                  </Suspense>
+                </div>
+             </AnimatedCard>
+          </motion.div>
 
-            {/* Options Chain Card */}
-            <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
-              <Box className="stitch-card" sx={{ height: '100%', p: 0, position: 'relative' }}>
-                 <Box className="stitch-slanted-header" sx={{ bgcolor: stitchTokens.colors.abstract.teal }}>DERIVATIVE_CHAIN_MATRIX // DEC_2024</Box>
-                 <Box sx={{ height: 'calc(100% - 32px)', overflow: 'auto' }}>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <OptionsChain symbol={currentSymbol} />
-                    </Suspense>
-                 </Box>
-              </Box>
-            </motion.div>
-          </Grid>
+          <motion.div variants={itemVariants} className="flex-1 min-h-0">
+             <AnimatedCard className="h-full !p-0 border-white/5 overflow-hidden">
+                <div className="p-4 border-b border-white/5 bg-white/2">
+                   <h2 className="label-secondary opacity-40 uppercase tracking-widest">DERIVATIVE_CHAIN_MATRIX // OPTION_SERIES</h2>
+                </div>
+                <div className="h-[calc(100%-56px)] overflow-auto">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <OptionsChain symbol={currentSymbol} />
+                  </Suspense>
+                </div>
+             </AnimatedCard>
+          </motion.div>
+        </div>
 
-          {/* Right Column: Execution & Depth */}
-          <Grid size={{ xs: 12, lg: 3.5 }} sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <motion.div variants={itemVariants} style={{ flex: 1.5, minHeight: 0 }}>
-               <DOMLadder symbol={currentSymbol} currentPrice={livePrice} />
-            </motion.div>
+        {/* Right Column: Execution (spanning 4/12) */}
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 min-h-0">
+          <motion.div variants={itemVariants} className="flex-[1.5] min-h-0">
+             <DOMLadder symbol={currentSymbol} currentPrice={livePrice} />
+          </motion.div>
 
-            <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
-               <LevelIIQuotes symbol={currentSymbol} />
-            </motion.div>
+          <motion.div variants={itemVariants} className="flex-1 min-h-0">
+             <LevelIIQuotes symbol={currentSymbol} />
+          </motion.div>
 
-            <motion.div variants={itemVariants} style={{ flex: 1, minHeight: 0 }}>
-               <OrderTicket symbol={currentSymbol} />
-            </motion.div>
-          </Grid>
-        </Grid>
+          <motion.div variants={itemVariants} className="flex-1 min-h-0">
+             <OrderTicket symbol={currentSymbol} />
+          </motion.div>
+        </div>
       </motion.div>
 
-      {/* Connection Toast (Overlay) */}
+      {/* Connection Toast Overlay */}
       <AnimatePresence>
         {!isConnected && (
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
+            className="fixed bottom-6 right-6 z-[100]"
           >
-            <Box className="stitch-card" sx={{ 
-              p: 2, 
-              bgcolor: 'rgba(255, 46, 126, 0.1)',
-              border: '1px solid #ff2e7e',
-              borderLeft: '4px solid #ff2e7e'
-            }}>
-              <Typography className="stitch-label" sx={{ color: '#ff2e7e', fontWeight: 900 }}>
-                PIPELINE_ERROR // RECONNECTING_SUBSYSTEM...
-              </Typography>
-            </Box>
+            <div className="status-pill critical !py-3 !px-6 bg-red-500/10 border-red-500/40 text-red-400 font-black shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+               PIPELINE_ERROR // RECONNECTING_SUBSYSTEM...
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </Box>
+    </div>
   );
 };
 

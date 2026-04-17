@@ -3,32 +3,77 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
 
+// Mock EventSource for SSE support in hooks
+Object.defineProperty(globalThis, 'EventSource', {
+  value: class {
+    onmessage: ((ev: MessageEvent) => unknown) | null = null;
+    onerror: ((ev: any) => unknown) | null = null;
+    onopen: (() => unknown) | null = null;
+    close = vi.fn();
+    constructor(public url: string) {
+      setTimeout(() => this.onopen?.(), 10);
+    }
+  },
+  writable: true
+});
+
+// Mock WebSocket for real-time market data hooks
+Object.defineProperty(globalThis, 'WebSocket', {
+  value: class {
+    onopen: (() => unknown) | null = null;
+    onmessage: ((ev: MessageEvent) => unknown) | null = null;
+    onclose: (() => unknown) | null = null;
+    onerror: ((ev: any) => unknown) | null = null;
+    readyState = 0;
+    send = vi.fn();
+    close = vi.fn();
+    addEventListener = vi.fn();
+    removeEventListener = vi.fn();
+    constructor(public url: string) {
+      setTimeout(() => {
+        this.readyState = 1;
+        this.onopen?.();
+      }, 10);
+    }
+  },
+  writable: true
+});
+
 // Mock lightweight-charts globally for tests
-vi.mock('lightweight-charts', () => ({
-  createChart: vi.fn(() => ({
-    addLineSeries: vi.fn(() => ({
-      setData: vi.fn(),
-      update: vi.fn(),
-    })),
-    addCandlestickSeries: vi.fn(() => ({
-      setData: vi.fn(),
-      update: vi.fn(),
-    })),
-    addSeries: vi.fn(() => ({
-      setData: vi.fn(),
-      update: vi.fn(),
-    })),
+vi.mock('lightweight-charts', () => {
+  const seriesInstance = {
+    setData: vi.fn(),
+    update: vi.fn(),
     applyOptions: vi.fn(),
-    timeScale: vi.fn(() => ({
-      fitContent: vi.fn(),
+    priceScale: vi.fn(() => ({
+      applyOptions: vi.fn(),
     })),
-    remove: vi.fn(),
-    resize: vi.fn(),
-  })),
-  ColorType: { Solid: 'solid' },
-  CrosshairMode: { Normal: 0 },
-  CandlestickSeries: "CandlestickSeries",
-}));
+  };
+  
+  return {
+    createChart: vi.fn(() => ({
+      addLineSeries: vi.fn(() => seriesInstance),
+      addCandlestickSeries: vi.fn(() => seriesInstance),
+      addSeries: vi.fn(() => seriesInstance),
+      applyOptions: vi.fn(),
+      subscribeCrosshairMove: vi.fn(),
+      unsubscribeCrosshairMove: vi.fn(),
+      timeScale: vi.fn(() => ({
+        fitContent: vi.fn(),
+      })),
+      remove: vi.fn(),
+      resize: vi.fn(),
+    })),
+    ColorType: { Solid: 'solid', VerticalGradient: 'vertical-gradient' },
+    CrosshairMode: { Normal: 0, Magnet: 1 },
+    CandlestickSeries: "CandlestickSeries",
+    LineSeries: "LineSeries",
+    HistogramSeries: "HistogramSeries",
+    AreaSeries: "AreaSeries",
+    BarSeries: "BarSeries",
+  };
+});
+
 
 // Mock ResizeObserver which is used by lightweight-charts and echarts but not present in jsdom
 Object.defineProperty(globalThis, 'ResizeObserver', {

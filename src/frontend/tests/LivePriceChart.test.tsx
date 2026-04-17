@@ -20,18 +20,35 @@ import { useQuery, useSubscription } from '@apollo/client/react';
 import { useMotionValue } from 'framer-motion';
 
 // Mock lightweight-charts
-vi.mock('lightweight-charts', () => ({
-  createChart: vi.fn().mockReturnValue({
-    addSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
-    remove: vi.fn(),
+vi.mock('lightweight-charts', () => {
+  const seriesInstance = {
+    setData: vi.fn(),
+    update: vi.fn(),
     applyOptions: vi.fn(),
-    timeScale: vi.fn().mockReturnValue({ fitContent: vi.fn() }),
-    resize: vi.fn(),
-  }),
-  ColorType: { Solid: 0 },
-  CrosshairMode: { Normal: 0 },
-  CandlestickSeries: 'CandlestickSeries',
-}));
+    priceScale: vi.fn(() => ({
+      applyOptions: vi.fn(),
+    })),
+  };
+  
+  return {
+    createChart: vi.fn().mockReturnValue({
+      addSeries: vi.fn().mockReturnValue(seriesInstance),
+      addLineSeries: vi.fn().mockReturnValue(seriesInstance),
+      addCandlestickSeries: vi.fn().mockReturnValue(seriesInstance),
+      remove: vi.fn(),
+      applyOptions: vi.fn(),
+      subscribeCrosshairMove: vi.fn(),
+      timeScale: vi.fn().mockReturnValue({ fitContent: vi.fn() }),
+      resize: vi.fn(),
+    }),
+    ColorType: { Solid: 0 },
+    CrosshairMode: { Normal: 0 },
+    CandlestickSeries: 'CandlestickSeries',
+    HistogramSeries: 'HistogramSeries',
+    LineSeries: 'LineSeries',
+  };
+});
+
 
 const mockHistoricalData = [
   { time: 1768226400, open: 150, high: 155, low: 145, close: 152 },
