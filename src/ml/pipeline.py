@@ -2,8 +2,10 @@
 # This module will orchestrate ML model inference and training workflows.
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List
+
+from src.tasks import trigger_ml_training_task # Import Celery task
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,6 @@ class MLPipeline:
         """
         logger.info(f"Predicting using model {model_id} with data: {str(data)[:50]}...")
         
-        # Simulate a prediction result with some variation based on model_id
         prediction_value = hash(model_id + str(data.get("input_value", ""))) % 1000 / 10.0
         confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
         
@@ -34,24 +35,28 @@ class MLPipeline:
 
     def train_model(self, model_id: str, epochs: int, batch_size: int) -> Dict[str, Any]:
         """
-        Triggers ML model training.
-        This might delegate to a Celery task or a dedicated ML training service.
+        Triggers ML model training by enqueuing a Celery task.
         """
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
         
-        # In a real scenario, this would enqueue a Celery task or call a training service.
-        # For now, logs the request and returns a confirmation.
-        training_info = {
-            "message": "ML training task would be enqueued",
-            "model_id": model_id,
-            "training_parameters": {"epochs": epochs, "batch_size": batch_size},
-            "status": "queued_for_simulation",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        logger.info(f"Simulated training trigger: {training_info}")
-        return training_info
+        try:
+            # Enqueue the Celery task
+            trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
+            training_info = {
+                "message": "ML training task enqueued successfully",
+                "model_id": model_id,
+                "training_parameters": {"epochs": epochs, "batch_size": batch_size},
+                "status": "queued",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            logger.info(f"Training task enqueued: {training_info}")
+            return training_info
+        except Exception as e:
+            logger.error(f"Failed to enqueue ML training task for model {model_id}: {e}")
+            # In a real app, handle task enqueueing errors more gracefully
+            raise RuntimeError(f"Failed to enqueue training task: {e}") from e
 
-# Example usage (would be called by API or workers)
+# Example usage:
 # ml_pipeline = MLPipeline()
 # prediction = ml_pipeline.predict("model-v1.0.0", {"input_value": 123.45})
 # print(f"Prediction: {prediction}")

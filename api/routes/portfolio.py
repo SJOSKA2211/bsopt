@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any
-from datetime import datetime, timezone # Import datetime and timezone
+from datetime import datetime, timezone
 
 from src.database.session import get_async_db
 from src.database.crud import (
@@ -9,14 +9,19 @@ from src.database.crud import (
     get_portfolio_by_id as crud_get_portfolio_by_id,
     get_portfolios_for_user as crud_get_portfolios_for_user,
     update_portfolio as crud_update_portfolio,
+    # Import CRUD for user lookup if needed for portfolio ownership checks
+    get_user_by_id 
 )
 from src.database.models import Portfolio, User # Import models
-from src.database.crud import get_user_by_id # Import CRUD for user lookup
-from src.shared.protos import auth_pb2 # Import proto types
-from src.shared.protos import auth_pb2_grpc # Import gRPC stubs
+from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate, Portfolio as PortfolioSchema # Import Pydantic schemas
+from src.shared.protos import auth_pb2
+from src.shared.protos import auth_pb2_grpc
 
-# Import Pydantic schemas
-from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate, Portfolio as PortfolioSchema # Import schemas
+# Import MathKernelService
+from src.math_kernel.service import MathKernelService
+
+# --- Service Instances ---
+math_kernel_service = MathKernelService()
 
 # --- Logging and Configuration ---
 import logging
@@ -76,6 +81,13 @@ async def get_current_user(
 async def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
     return current_user.id
 
+async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id: str) -> str:
+    """Verifies that the portfolio belongs to the specified user."""
+    portfolio = await crud_get_portfolio_by_id(db, portfolio_id=portfolio_id, user_id=user_id)
+    if portfolio is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
+    return portfolio.user_id # Return user_id for confirmation if needed
+
 # --- Portfolio Routes ---
 
 @router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
@@ -86,11 +98,12 @@ async def create_portfolio_item(
 ):
     """Creates a new portfolio for the authenticated user."""
     
-    portfolio_data = portfolio_in.dict() # Convert Pydantic model to dict
+    portfolio_data = portfolio_in.dict()
     portfolio_data["user_id"] = user_id
     
     try:
         db_portfolio = await crud_create_portfolio(db, portfolio_data)
+        # Return a simplified response, or the full model if response_model is set appropriately
         return {
             "id": db_portfolio.id,
             "name": db_portfolio.name,
@@ -112,7 +125,6 @@ async def read_portfolios_list(
 ):
     """Retrieves a list of portfolios for the authenticated user."""
     db_portfolios = await crud_get_portfolios_for_user(db, user_id=current_user.id, skip=skip, limit=limit)
-    # Convert SQLAlchemy models to Pydantic schemas for response
     return [PortfolioSchema.from_orm(p) for p in db_portfolios]
 
 @router.get("/{portfolio_id}", response_model=PortfolioSchema) # Use schema for response model
@@ -139,7 +151,7 @@ async def update_portfolio_item(
     if db_portfolio is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
     
-    update_data = portfolio_in.dict(exclude_unset=True) # Get only fields that were provided
+    update_data = portfolio_in.dict(exclude_unset=True) 
     
     try:
         updated_portfolio = await crud_update_portfolio(db, db_portfolio, update_data)
@@ -148,6 +160,35 @@ async def update_portfolio_item(
         logger.error(f"Failed to update portfolio {portfolio_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update portfolio")
 
-# --- Trade Routes (Requires Authentication) ---
+# --- Trade Routes ---
 # These routes will also require authentication and will use get_current_user dependency.
 # They will also need Pydantic schemas for TradeCreate and TradeUpdate.
+# (Assuming api/routes/trade.py is updated similarly)
+
+# --- Portfolio Valuation Route ---
+@router.get("/value/{portfolio_id}", response_model=Dict[str, Any])
+async def get_portfolio_value_route(
+    portfolio_id: str,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user) # Ensure user is authenticated
+):
+    """
+    Calculates and returns the simulated total value of a portfolio.
+    """
+    # Verify portfolio ownership first
+    await check_portfolio_ownership(db, portfolio_id, current_user.id)
+    
+    try:
+        total_value = await math_kernel_service.calculate_portfolio_value(portfolio_id, db)
+        return {
+            "portfolio_id": portfolio_id,
+            "total_value": round(total_value, 2),
+            "currency": "USD", # Assuming USD for now
+            "calculation_timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except ValueError as ve: # Catch specific error for portfolio not found
+        logger.error(f"Error calculating value for portfolio {portfolio_id}: {ve}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Error calculating portfolio value for {portfolio_id}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to calculate portfolio value")

@@ -181,6 +181,11 @@ app.include_router(trade_router)
 from api.routes.ml import router as ml_router
 app.include_router(ml_router)
 
+# Import and include market_data router
+from api.routes.market_data import router as market_data_router
+app.include_router(market_data_router)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
