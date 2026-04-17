@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// Import Apollo Client hooks and gql tag
-import { gql } from '@apollo/client'; // gql is needed for defining queries
+import { useQuery, gql } from '@apollo/client'; // Import GraphQL hooks
+import { useFetchDataGQL } from '../hooks/api'; // Import the GraphQL fetch hook
 
-// Import custom GraphQL hooks
-import { useFetchDataGQL } from '../hooks/api'; // Assuming hooks are now GraphQL-specific
-
-// --- GraphQL Queries ---
-// Query to fetch historical market data
-const GET_HISTORICAL_MARKET_DATA_QUERY = gql` # Renamed for clarity
+// --- GraphQL Query ---
+const GET_HISTORICAL_MARKET_DATA_QUERY = gql`
   query GetHistoricalData($symbol: String!, $startDate: String!, $endDate: String!) {
-    historicalData(symbol: $symbol, startDate: $startDate, endDate: $end) { # Assuming query structure and arguments
+    historicalData(symbol: $symbol, startDate: $startDate, endDate: $end) { 
       date
       open
       high
@@ -23,83 +19,94 @@ const GET_HISTORICAL_MARKET_DATA_QUERY = gql` # Renamed for clarity
 // --- Page Component ---
 const MarketDataPage = () => {
   const [symbol, setSymbol] = useState('AAPL');
-  // Default to last 30 days for start date
-  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]); 
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]); // Default to last 30 days
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Fetch historical data using GraphQL hook
-  // Pass query and variables. Skip query if parameters are not ready.
   const { data: historicalData, loading, error, refetch } = useFetchDataGQL<any>(GET_HISTORICAL_MARKET_DATA_QUERY, {
     variables: { symbol, startDate, endDate },
-    skip: !symbol || !startDate || !endDate, // Only run query if all parameters are valid
+    skip: !symbol || !startDate || !endDate, // Only run query if all parameters are ready
   });
 
   const handleFetchData = () => {
-    // Manually trigger refetch with updated variables
-    refetch({ variables: { symbol, startDate, endDate } });
+    refetch({ variables: { symbol, startDate, endDate } }); // Refetch with updated variables
   };
 
-  // Extracting data points from the fetched result
-  // Assumes the query returns data under a key matching the query name (e.g., historicalData)
-  const marketDataPoints = historicalData?.historicalData || []; 
+  const marketDataPoints = historicalData?.historicalData || [];
 
+  // Styling considerations: Use bento-card-like styling for sections, mint for accents.
   return (
-    <div>
-      <h1>Market Data</h1>
+    <div className="container mx-auto p-6 bg-bento-bg text-white min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">Market Data</h1>
 
       {/* Controls for fetching data */}
-      <div>
-        <input
-          type="text"
-          placeholder="Symbol (e.g., AAPL)"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-        />
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-        <button onClick={handleFetchData} disabled={!symbol || !startDate || !endDate}>
-          Fetch Data
-        </button>
+      <div className="mb-8 p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4">Historical Data Query</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 items-center">
+          <input
+            type="text"
+            placeholder="Symbol (e.g., AAPL)"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <button 
+            onClick={handleFetchData} 
+            disabled={!symbol || !startDate || !endDate}
+            className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50"
+          >
+            Fetch Data
+          </button>
+        </div>
       </div>
 
       {/* Displaying Data */}
-      {loading && <p>Loading market data...</p>}
-      {error && <p>Error loading market data: {error}</p>}
-      
-      {marketDataPoints && marketDataPoints.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Open</th>
-              <th>High</th>
-              <th>Low</th>
-              <th>Close</th>
-              <th>Volume</th>
-            </tr>
-          </thead>
-          <tbody>
-            {marketDataPoints.map((point) => (
-              <tr key={point.date}>
-                <td>{point.date}</td>
-                <td>{point.open.toFixed(2)}</td>
-                <td>{point.high.toFixed(2)}</td>
-                <td>{point.low.toFixed(2)}</td>
-                <td>{point.close.toFixed(2)}</td>
-                <td>{point.volume.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (!loading && !error && <p>No market data available for the selected criteria.</p>)}
+      <div className="p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4">Historical Data</h2>
+        {loading && <p className="text-lg">Loading market data...</p>}
+        {error && <p className="text-red-500 text-lg">Error loading market data: {error}</p>}
+        
+        {marketDataPoints && marketDataPoints.length > 0 ? (
+          <div className="overflow-x-auto"> {/* Scrollable table on small screens */}
+            <table className="min-w-full table-auto">
+              <thead className="bg-gray-700 bg-opacity-75">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Open</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">High</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Low</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Close</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Volume</th>
+                </tr>
+              </thead>
+              <tbody className="bg-bento-bg divide-y divide-gray-700">
+                {marketDataPoints.map((point) => (
+                  <tr key={point.date} className="hover:bg-gray-700 hover:bg-opacity-50">
+                    <td className="px-4 py-3 whitespace-nowrap">{point.date}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{point.open.toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{point.high.toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{point.low.toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{point.close.toFixed(2)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{point.volume.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (!loading && !error && <p>No market data available for the selected criteria.</p>)}
+      </div>
     </div>
   );
 };

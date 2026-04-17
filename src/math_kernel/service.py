@@ -44,7 +44,6 @@ class MathKernelService:
         """
         logger.warning(f"Risk metric calculation for portfolio {portfolio_id} is using simulated data.")
         
-        # Use a seed based on portfolio_id for deterministic simulation per portfolio
         seed_value = hash(portfolio_id) 
         random.seed(seed_value)
         
@@ -75,27 +74,24 @@ class MathKernelService:
             current_date = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
             
-            # Initial base price for simulation, slightly randomized
-            base_price = random.uniform(50, 500) 
+            base_price = random.uniform(50, 500) # Initial base price for simulation
             
             while current_date <= end_dt:
-                # Simulate daily price variations based on previous close for smoother trend
-                open_price = round(base_price * random.uniform(0.99, 1.01), 2) # Open price near previous close
-                change_percent = random.uniform(-0.03, 0.03) # Daily change +/- 3%
-                daily_range_factor = random.uniform(0.005, 0.015) # Daily range as % of open price
+                open_price = round(base_price * random.uniform(0.99, 1.01), 2) 
+                change_percent = random.uniform(-0.03, 0.03) 
+                daily_range_factor = random.uniform(0.005, 0.015) 
                 
                 price_change = open_price * change_percent
-                high_offset = abs(price_change) * random.uniform(0.5, 2.0) # High relative to open/change
-                low_offset = abs(price_change) * random.uniform(0.5, 1.5)  # Low relative to open/change
+                high_offset = abs(price_change) * random.uniform(0.5, 2.0) 
+                low_offset = abs(price_change) * random.uniform(0.5, 1.5)  
 
                 high_price = round(open_price + high_offset, 2)
                 low_price = round(open_price - low_offset, 2)
                 close_price = round(low_price + random.uniform(0, high_price - low_price), 2) 
                 
-                # Ensure prices are logical: low <= open/close <= high
                 high_price = max(high_price, open_price, close_price)
                 low_price = min(low_price, open_price, close_price)
-                low_price = max(0.01, low_price) # Ensure price doesn't go below a minimal value
+                low_price = max(0.01, low_price) 
 
                 volume = random.randint(100000, 10000000)
                 
@@ -108,7 +104,7 @@ class MathKernelService:
                     "volume": volume
                 })
                 current_date += timedelta(days=1)
-                base_price = close_price # Use previous day's close as next day's base open for trend continuation
+                base_price = close_price # Use previous day's close for trend continuation
                 
         except ValueError:
             logger.error("Invalid date format provided for historical data simulation. Use YYYY-MM-DD.")
@@ -128,7 +124,6 @@ class MathKernelService:
             logger.error(f"Portfolio {portfolio_id} not found for value calculation.")
             raise ValueError("Portfolio not found")
 
-        # Simulate current market prices for symbols in trades
         simulated_market_prices = {}
 
         total_trade_value = 0.0
@@ -139,9 +134,8 @@ class MathKernelService:
         for trade in trades:
             if trade.symbol not in simulated_market_prices:
                 # Simulate a market price for the symbol based on its trade price with random variation.
-                # The price can fluctuate daily, so simulate a slightly different price each time it's accessed.
-                base_price = trade.price * random.uniform(0.98, 1.02) 
-                simulated_market_prices[trade.symbol] = round(base_price, 2)
+                current_market_price = trade.price * random.uniform(0.98, 1.02) 
+                simulated_market_prices[trade.symbol] = round(current_market_price, 2)
             
             market_price = simulated_market_prices[trade.symbol]
             
@@ -155,18 +149,32 @@ class MathKernelService:
         logger.info(f"Simulated portfolio value for {portfolio_id}: ${total_portfolio_value:.2f}")
         return round(total_portfolio_value, 2)
 
+    # --- New method to simulate fetching current market prices ---
+    def get_current_market_prices(self, symbols: List[str]) -> Dict[str, float]:
+        """
+        Simulates fetching current market prices for a list of symbols.
+        Returns a dictionary mapping symbols to their simulated current prices.
+        """
+        logger.info(f"Simulating current market prices for symbols: {symbols}")
+        current_prices = {}
+        for symbol in symbols:
+            # Simulate a price based on a base range and add some random variation
+            base_price = random.uniform(10, 1000) # Simulate a range of stock prices
+            current_price = round(base_price * random.uniform(0.98, 1.02), 2)
+            current_prices[symbol] = current_price
+        logger.info(f"Simulated current prices: {current_prices}")
+        return current_prices
+
 # Example usage:
 # async def main():
 #     # This requires an async DB session to be available
-#     # For standalone testing, you'd setup engine and session manually
-#     # async with AsyncSession(db_engine) as db: 
-#     #     try:
-#     #         value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
-#     #         print(f"Calculated portfolio value: {value}")
-#     #     except ValueError as e:
-#     #         print(e)
+#     async with AsyncSession(db_engine) as db: 
+#         try:
+#             value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
+#             print(f"Calculated portfolio value: {value}")
+#         except ValueError as e:
+#             print(e)
 #     
-#     # Example of other services
 #     price = MathKernelService().calculate_price("AAPL", 10, 150.0)
 #     print(f"Calculated price: {price}")
 #     
@@ -175,6 +183,9 @@ class MathKernelService:
 #     
 #     historical = MathKernelService().get_historical_data("GOOG", "2023-01-01", "2023-01-03")
 #     print(f"Simulated historical data: {historical}")
+#     
+#     current_prices = MathKernelService().get_current_market_prices(["MSFT", "AMZN"])
+#     print(f"Simulated current prices: {current_prices}")
 #
 # if __name__ == "__main__":
 #     asyncio.run(main())

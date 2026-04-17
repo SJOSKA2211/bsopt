@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, gql } from '@apollo/client';
-import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; 
-import { graphqlClient } from '../lib/apiClient'; // Assume this client is configured and exported
+import { useQuery, useMutation, gql } from '@apollo/client'; 
+import { ApolloError } from '@apollo/client'; // Import ApolloError for type checking
 
 // --- GraphQL Queries and Mutations ---
 const GET_PORTFOLIOS_QUERY = gql`
@@ -82,16 +81,17 @@ const PortfolioPage = () => {
           alert(`Portfolio ${portfolioId} updated successfully!`);
           refetch(); // Refetch the list to show changes
       } catch (err: any) {
-          console.error(`Failed to update portfolio ${portfolio_id}:`, err);
+          console.error(`Failed to update portfolio ${portfolioId}:`, err);
           alert(`Error updating portfolio: ${err.message}`);
       }
   };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
-      <p className="text-lg">Loading portfolios...</p>
+      <p className="text-lg animate-pulse">Loading portfolios...</p> {/* Added loading animation */}
     </div>
   );
+  // Check for ApolloError specifically if needed, or general error message
   if (error) return (
     <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
       <p className="text-lg text-red-500">Error loading portfolios: {error.message}</p>
@@ -107,7 +107,7 @@ const PortfolioPage = () => {
       {/* Create New Portfolio Form */}
       <div className="mb-8 p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Create New Portfolio</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <input
             type="text"
             placeholder="Portfolio Name"
@@ -126,7 +126,7 @@ const PortfolioPage = () => {
         <button 
           onClick={handleCreatePortfolio} 
           disabled={!newPortfolioName || newPortfolioCash <= 0 || creatingPortfolio}
-          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50"
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 transition-colors duration-200"
         >
           {creatingPortfolio ? 'Creating...' : 'Create Portfolio'}
         </button>
@@ -148,16 +148,14 @@ const PortfolioPage = () => {
                 {/* TODO: Add links to view/edit portfolio details */}
                 <button 
                   onClick={() => handleUpdatePortfolio(p.id, p.cash + 100)} 
-                  className="ml-4 px-4 py-2 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90"
+                  className="px-4 py-2 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 transition-colors duration-200"
                 >
                   Update Cash (Simulated)
                 </button>
               </li>
             ))}
           </ul>
-        ) : (
-          <p>No portfolios found.</p>
-        )}
+        ) : (!loading && !error && <p>No portfolios found.</p>)}
       </div>
     </div>
   );

@@ -106,7 +106,6 @@ test.describe("Manifold Full Journey", () => {
         await page.click('button:has-text("Create")');
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
 
-        // Get portfolio ID for subsequent steps.
         const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token retrieval
         expect(listResponse.ok()).toBeTruthy();
         const portfolios = await listResponse.json();
@@ -268,6 +267,13 @@ test.describe("Manifold Full Journey", () => {
     test("should verify ML service health (simulated)", async ({ request }) => {
       const response = await request.get(`${API_URL}/ml/models`); 
       expect(response.ok()).toBeTruthy();
+    });
+
+    test("should verify Market Data service health", async ({ request }) => {
+        const response = await request.get(`${API_URL}/market/historical?symbol=TEST&startDate=2023-01-01&endDate=2023-01-01`);
+        // Expecting success or potentially a specific health check endpoint if available
+        // For now, checking if the endpoint is reachable and returns some response
+        expect(response.ok()).toBeTruthy(); 
     });
   });
 
