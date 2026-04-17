@@ -1,164 +1,164 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* High-Performance Institutional Palette - The Quantum Financial Deity */
-:root {
-  --color-bento-bg: #010409; 
-  --color-bento-card: rgba(13, 17, 23, 0.75); 
-  --color-bento-border: rgba(48, 54, 61, 0.4); 
-  
-  --color-mint: #00ffa3; 
-  --color-teal: #14b8a6; 
-  --color-quantum: #00d1ff; 
-  --color-nebula: #bd00ff; 
-  --color-amber: #f59e0b; 
-  --color-electrum: #ffd700;
-  
-  --radius-bento: 16px;
-  
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  
-  --bento-glass: blur(12px);
-  --card-glow: 0 0 20px rgba(0, 255, 163, 0.03);
-}
-
-body {
-  background-color: var(--color-bento-bg);
-  color: #ffffff;
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  margin: 0;
-  padding: 0;
-  
-  /* Ultra-subtle geometric backdrop */
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(0, 209, 255, 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(189, 0, 255, 0.03) 0px, transparent 50%),
-    linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-}
-
-.bento-card {
-  background-color: var(--color-bento-card);
-  border: 1px solid var(--color-bento-border);
-  padding: 1.5rem;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-bento);
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: var(--bento-glass);
-  -webkit-backdrop-filter: var(--bento-glass);
-  display: flex;
-  flex-direction: column;
-}
-
-.bento-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.5s;
-  pointer-events: none;
-  background: linear-gradient(to bottom right, rgba(255,255,255,0.03), transparent);
-}
-
-.bento-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255,255,255,0.15);
-  box-shadow: 0 0 30px rgba(0, 255, 163, 0.05), 0 20px 40px -10px rgba(0, 0, 0, 0.5);
-}
-
-/* Stricter grid column spans for Tailwind integration */
-.col-span-1 { grid-column: span 1 / span 1; }
-.col-span-2 { grid-column: span 2 / span 2; }
-.col-span-3 { grid-column: span 3 / span 3; }
-.col-span-4 { grid-column: span 4 / span 4; }
-.col-span-6 { grid-column: span 6 / span 6; }
-.col-span-8 { grid-column: span 8 / span 8; }
-.col-span-9 { grid-column: span 9 / span 9; }
-.col-span-12 { grid-column: span 12 / span 12; }
-
-/* Stitch Component Legacy Support (Unifying) */
-.stitch-card { @apply bento-card; }
-.stitch-label { @apply label-secondary; }
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  gap: 8px;
-  background-color: rgba(255,255,255,0.05);
-}
-
-.status-pill.healthy { color: var(--color-mint); background: rgba(0, 255, 163, 0.1); border: 1px solid rgba(0, 255, 163, 0.2); }
-.status-pill.warning { color: var(--color-amber); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
-.status-pill.critical { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
-
-.data-mono {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  font-variant-numeric: tabular-nums;
-}
-
-.label-secondary {
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.gradient-text {
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  background-image: linear-gradient(to right, #ffffff, rgba(255,255,255,0.8));
-}
-
-.scanline {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  opacity: 0.05;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 255, 163, 0.15) 50%, transparent 100%);
-  background-size: 100% 4px;
-  animation: scanline_scroll 12s linear infinite;
-}
-
-@keyframes scanline_scroll {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
 
 
-@keyframes loading-slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(200%); }
-}
 
-.ticker-mask {
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
