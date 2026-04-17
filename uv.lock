@@ -493,7 +493,6 @@ observability = [
 ]
 quant = [
     { name = "qiskit" },
-    { name = "qiskit-aer" },
     { name = "qiskit-algorithms" },
     { name = "wasmer" },
     { name = "wasmer-compiler-cranelift" },
@@ -591,7 +590,6 @@ requires-dist = [
     { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.9" },
     { name = "pytorch-forecasting", marker = "extra == 'ml'", specifier = ">=1.0.0" },
     { name = "qiskit", marker = "extra == 'quant'", specifier = ">=1.0.0" },
-    { name = "qiskit-aer", marker = "extra == 'quant'", specifier = ">=0.13.0" },
     { name = "qiskit-algorithms", marker = "extra == 'quant'", specifier = ">=0.3.0" },
     { name = "qrcode", marker = "extra == 'auth'", specifier = ">=7.4.2" },
     { name = "ray", extras = ["default", "train", "tune"], marker = "extra == 'distributed'", specifier = ">=2.30.0" },
@@ -3625,29 +3623,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1b/0c/19ffdb15d2e72156de406fe27cad26c6015071a385e6b48c6db87d8ce676/qiskit-2.3.1-cp310-abi3-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:a1a030b4a0cd75f3299c9866a3e9489a02078efc343abd42eec74ad2a5f2fa80", size = 8513126, upload-time = "2026-03-13T02:30:30.288Z" },
     { url = "https://files.pythonhosted.org/packages/11/06/41f4197fcb3c38e99f22f400ea25375c9057190cd094cd6c0f97be730796/qiskit-2.3.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:350027279bb171e9746fee5756c674872df97f4608b079129d4edb25b5bb1fdd", size = 8833222, upload-time = "2026-03-13T00:42:59.092Z" },
     { url = "https://files.pythonhosted.org/packages/a5/db/6ddc52eaf22ab1f95ee6251ff7a375c0a1a7453b5864528992303b166198/qiskit-2.3.1-cp310-abi3-win_amd64.whl", hash = "sha256:f884abd92c0173e246705f89f8b4808badaa0e1b167ed3277a3cb83c2564b4b8", size = 8639580, upload-time = "2026-03-13T00:43:01.022Z" },
-]
-
-[[package]]
-name = "qiskit-aer"
-version = "0.17.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "psutil" },
-    { name = "python-dateutil" },
-    { name = "qiskit" },
-    { name = "scipy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/07/6c/6b8b35f67159401580665c59ae64d676bef9e85aac4d2a50831cbe32f652/qiskit_aer-0.17.2.tar.gz", hash = "sha256:134eef8e509311955a15be543d2ba368f988f3583a2bc1f548af3196da820eb4", size = 6551618, upload-time = "2025-09-17T13:55:25.165Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0a/2c/7039b1891377ef081c92af79cee230be0a01e52c21561469f6807f17fe96/qiskit_aer-0.17.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:5f03bf3f45f7f6cc6e480df473e4750178cb66ee7fb44d85d98c13901e81c42c", size = 2508338, upload-time = "2025-09-17T13:54:19.202Z" },
-    { url = "https://files.pythonhosted.org/packages/50/02/f1d6906c2cb3ff3ec94f97656abbc56b80b80c4677ff603ee40063cf9c84/qiskit_aer-0.17.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:abb03d621cfd30e608ba8ddbb9e673707e6f790a744130d1d6355e3e10554d13", size = 2117032, upload-time = "2025-09-17T13:54:21.009Z" },
-    { url = "https://files.pythonhosted.org/packages/10/b3/86a9687b2123201badcca23c0954fe17e83d648cfb1737558c00783e3ea6/qiskit_aer-0.17.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6e3ee2debad4dd9d1ff021002e82363a83ee22b1440ccbc293a444072c9fd0c1", size = 6454082, upload-time = "2025-09-17T15:22:24.811Z" },
-    { url = "https://files.pythonhosted.org/packages/ca/05/45a3d07b0372317f33ce3abaa438d668b57f3ecdd0c62dcb4c2d43e44d17/qiskit_aer-0.17.2-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:782f6ba0bdd08faec19f7bbb65e95fc70b0c2d097b056fc929a95c084b57c203", size = 7974594, upload-time = "2025-09-17T13:54:22.628Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/c3/91ea504db5ba2c43f1fc5918ff60098aa730a5db40830a096855325b2b66/qiskit_aer-0.17.2-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:2e91fc4f0a26540ff0e9d0a30b8be3e0f12b4c9c59ec1afffb753944d47e1888", size = 7926812, upload-time = "2025-09-17T14:51:09.356Z" },
-    { url = "https://files.pythonhosted.org/packages/30/cc/c47b356b90dd00b9b19fdcaa8f6776613db0885630f7095f92659f62b5c8/qiskit_aer-0.17.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7a8857aad723036ff818af14bbd4c3375559741366bffce7b36b4eeb306b88cf", size = 12375640, upload-time = "2025-09-17T13:54:24.582Z" },
-    { url = "https://files.pythonhosted.org/packages/06/eb/8b796a34622392ee1f66b7d03ba31385ef559cd3a145ec6de2556ebb983e/qiskit_aer-0.17.2-cp312-cp312-win32.whl", hash = "sha256:a9abdb24318c417b69867c6d43aed4684b67320b1e7010f4c57c84fdeff89a13", size = 6922323, upload-time = "2025-09-17T13:54:26.703Z" },
-    { url = "https://files.pythonhosted.org/packages/30/f7/5943ba7f6be0a02667593ef5f684359a62d5a46ba9dac9a0367c3ab3d1d8/qiskit_aer-0.17.2-cp312-cp312-win_amd64.whl", hash = "sha256:80c419bb3fb65a5135286ce4e98abd68b9dc836b77affbbc4b06721d53ce1e3c", size = 9563069, upload-time = "2025-09-17T13:54:28.885Z" },
 ]
 
 [[package]]

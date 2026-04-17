@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { 
   Box, 
   Drawer, 
@@ -32,7 +32,7 @@ const drawerWidth = 280;
 const menuItems = [
   { text: 'DASHBOARD', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'MARKET_DATA', icon: <MarketIcon />, path: '/market' },
-  { text: 'RESEARCH_LAB', icon: <ResearchIcon />, path: '/market/research' },
+  { text: 'RESEARCH_LAB', icon: <ResearchIcon />, path: '/research' },
   { text: 'PORTFOLIO_CORE', icon: <PortfolioIcon />, path: '/portfolio' },
   { text: 'RISK_MANIFOLD', icon: <RiskIcon />, path: '/risk' },
   { text: 'SYSTEM_SETTINGS', icon: <SettingsIcon />, path: '/settings' },
@@ -90,7 +90,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           return (
             <ListItem 
               key={item.text}
-              onClick={() => {}}
+              component={Link}
+              to={item.path}
               sx={{
                 mb: 1,
                 borderRadius: '12px',
@@ -98,6 +99,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 bgcolor: isActive ? alpha('#00ffa3', 0.05) : 'transparent',
                 border: isActive ? '1px solid rgba(0, 255, 163, 0.15)' : '1px solid transparent',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                textDecoration: 'none',
+                color: 'inherit',
                 '&:hover': {
                   bgcolor: isActive ? alpha('#00ffa3', 0.08) : 'rgba(255,255,255,0.03)',
                   transform: 'translateX(4px)'
@@ -125,7 +128,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               />
               {isActive && (
                 <motion.div 
-                  layoutId="active-pill"
+                  layoutId="active-marker"
                   className="w-1 h-4 bg-mint rounded-full shadow-[0_0_10px_#00ffa3]"
                 />
               )}
@@ -149,7 +152,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 
   return (
-    <div className="flex min-h-screen bg-bento-bg text-white font-sans antialiased">
+    <div className="flex w-full h-screen overflow-hidden bg-bento-bg text-white font-sans antialiased">
 
       {!isMobile && (
         <aside className="w-[280px] shrink-0 border-r border-bento-border bg-bento-bg/50">
@@ -162,56 +165,59 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         sx={{
-          '& .MuiDrawer-paper': { width: drawerWidth, background: '#050505', backgroundImage: 'none' },
+          '& .MuiDrawer-paper': { width: drawerWidth, background: '#050505', backgroundImage: 'none', borderRight: '1px solid rgba(255,255,255,0.1)' },
         }}
       >
         <SidebarContent />
       </Drawer>
 
-      <main className="flex-grow flex flex-col relative min-w-0 h-screen overflow-hidden">
+      <div className="flex-grow flex flex-col relative min-w-0 h-screen">
         {/* Fixed Header & Ticker System */}
-        <div className="shrink-0 flex flex-col z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-          <header className="h-[72px] px-6 flex items-center justify-between border-b border-bento-border bg-bento-bg/60 backdrop-blur-xl">
+        <header className="shrink-0 z-50 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.5)] bg-bento-bg/80 backdrop-blur-2xl">
+          <div className="h-[64px] px-6 flex items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-4">
               {isMobile && (
                 <IconButton onClick={() => setMobileOpen(true)} className="!text-white">
                   <MenuIcon />
                 </IconButton>
               )}
-              <div className="status-pill bg-white/5 border border-bento-border px-3 py-1.5">
-                 <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">
-                   NODE: <span className="text-white">QUANT_042</span>
-                 </span>
+              <div className="flex items-center gap-2">
+                 <div className="status-pill bg-white/5 border border-white/5 px-2 py-0.5">
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">NODE:</span>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest ml-1">QUANT_042</span>
+                 </div>
+                 <div className="status-pill healthy scale-90">ONLINE</div>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
                <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                  <NotifIcon />
+                  <NotifIcon sx={{ fontSize: 20 }} />
                </IconButton>
                <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                  <LogoutIcon />
+                  <LogoutIcon sx={{ fontSize: 20 }} />
                </IconButton>
             </div>
-          </header>
+          </div>
           <TickerTape />
-        </div>
+        </header>
 
-        <div className="flex-grow flex flex-col min-h-0 overflow-auto">
+        {/* Dynamic Content Area */}
+        <main className="flex-grow overflow-auto relative bg-bento-bg">
            <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="flex-grow"
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full min-h-0"
               >
                  {children}
               </motion.div>
            </AnimatePresence>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

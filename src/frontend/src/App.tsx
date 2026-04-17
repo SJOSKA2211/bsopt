@@ -1,9 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from './lib/apollo-client';
-import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from './theme';
 import { CssBaseline } from '@mui/material';
@@ -31,13 +30,8 @@ const queryClient = new QueryClient({
 
 const PageLoader = () => (
   <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/90 backdrop-blur-xl">
-    <div className="w-[200px] h-[2px] bg-white/5 rounded-full overflow-hidden relative">
-      <motion.div
-        initial={{ x: '-100%' }}
-        animate={{ x: '100%' }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0 w-1/2 bg-blue-500"
-      />
+    <div className="w-[120px] h-[1px] bg-white/5 rounded-full overflow-hidden relative">
+      <div className="absolute inset-0 w-1/2 bg-mint animate-[loading-slide_1.5s_infinite_ease-in-out]" />
     </div>
   </div>
 );
@@ -46,35 +40,31 @@ function AppContent() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
-  const content = (
-    <AnimatePresence mode="wait">
-      <Suspense fallback={<PageLoader />}>
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="w-full min-h-screen"
-        >
-          <Routes location={location}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/market" element={<TradeExecutionPage />} />
-            <Route path="/research" element={<StrategyOptimizerPage />} />
-            <Route path="/portfolio" element={<PortfolioAnalyticsPage />} />
-            <Route path="/positions" element={<PortfolioAnalyticsPage />} />
-            <Route path="/risk" element={<RiskManagementPage />} />
-            <Route path="/analysis" element={<RiskManagementPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/login" element={<SignIn />} />
-            <Route path="/signup" element={<SignUpPage />} />
-          </Routes>
-        </motion.div>
-      </Suspense>
-    </AnimatePresence>
+  const routes = (
+    <Suspense fallback={<PageLoader />}>
+      <Routes location={location}>
+        {/* Redirect base / to /dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Core Pages */}
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/market" element={<TradeExecutionPage />} />
+        <Route path="/research" element={<StrategyOptimizerPage />} />
+        <Route path="/portfolio" element={<PortfolioAnalyticsPage />} />
+        <Route path="/positions" element={<Navigate to="/portfolio" replace />} />
+        <Route path="/risk" element={<RiskManagementPage />} />
+        <Route path="/analysis" element={<Navigate to="/risk" replace />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        
+        {/* Auth Pages */}
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/signup" element={<SignUpPage />} />
+      </Routes>
+    </Suspense>
   );
 
-  return isAuthPage ? content : <Layout>{content}</Layout>;
+  // Layout contains its own AnimatePresence and motion.div for page transitions
+  return isAuthPage ? routes : <Layout>{routes}</Layout>;
 }
 
 function App() {
