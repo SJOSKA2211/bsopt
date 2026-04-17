@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-from src.tasks import trigger_ml_training_task, deploy_ml_model_task # Import Celery task
+from src.tasks import trigger_ml_training_task # Import Celery task
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ class MLPipeline:
     def train_model(self, model_id: str, epochs: int, batch_size: int) -> Dict[str, Any]:
         """
         Triggers ML model training by enqueuing a Celery task.
+        Returns a dictionary confirming task enqueueing.
         """
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
         
@@ -59,7 +60,7 @@ class MLPipeline:
 
     def deploy_model(self, model_id: str, version: str, target_environment: str) -> Dict[str, Any]:
         """
-        Simulates triggering an ML model deployment.
+        Simulates triggering an ML model deployment by enqueuing a Celery task.
         """
         logger.info(f"Triggering deployment for model {model_id} version {version} to {target_environment}")
         
@@ -69,7 +70,7 @@ class MLPipeline:
                 "message": "ML model deployment task enqueued successfully",
                 "model_id": model_id,
                 "version": version,
-                "target_environment": target_env,
+                "target_environment": target_environment,
                 "status": "queued",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }

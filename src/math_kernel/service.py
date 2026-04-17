@@ -7,12 +7,14 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 import random
 
-from sqlalchemy.ext.asyncio import AsyncSession # For DB session type hinting
-from sqlalchemy.orm import Session # For sync session if needed
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
+from sqlalchemy import update, delete
 
 from src.database.models import Portfolio, Trade # Import necessary models
 from src.database.session import engine as db_engine # Import the global async engine
+from src.tasks import simulate_market_data_ingestion # Import Celery task for simulation
 
 logger = logging.getLogger(__name__)
 
@@ -59,26 +61,38 @@ class MathKernelService:
 
     def get_historical_data(self, symbol: str, start_date: str, end_date: str) -> List[Dict[str, Any]]:
         """
-        Simulates fetching historical market data.
+        Simulates fetching historical market data. Returns a list of daily data points.
         """
         logger.info(f"Simulating historical data for {symbol} from {start_date} to {end_date}")
         data = []
         try:
             current_date = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            
+            base_open_price = random.uniform(100, 200) # Base price for simulation
+            
             while current_date <= end_dt:
+                # Simulate daily price variations
+                open_price = round(base_open_price * random.uniform(0.98, 1.02), 2)
+                high_price = round(open_price * random.uniform(1.001, 1.01), 2)
+                low_price = round(open_price * random.uniform(0.99, 0.999), 2)
+                close_price = round(low_price + random.uniform(0, high_price - low_price), 2)
+                volume = random.randint(100000, 1000000)
+                
                 data.append({
                     "date": current_date.strftime("%Y-%m-%d"),
-                    "open": round(random.uniform(100, 200), 2),
-                    "high": round(random.uniform(101, 201), 2),
-                    "low": round(random.uniform(99, 199), 2),
-                    "close": round(random.uniform(100, 200), 2),
-                    "volume": random.randint(100000, 1000000)
+                    "open": open_price,
+                    "high": high_price,
+                    "low": low_price,
+                    "close": close_price,
+                    "volume": volume
                 })
                 current_date += timedelta(days=1)
+                base_open_price = close_price # Use previous day's close as next day's base open for smoother trend
+                
         except ValueError:
-            logger.error("Invalid date format provided for historical data simulation.")
-            return []
+            logger.error("Invalid date format provided for historical data simulation. Use YYYY-MM-DD.")
+            return [] 
         
         return data
 
@@ -89,18 +103,15 @@ class MathKernelService:
         """
         logger.info(f"Calculating simulated portfolio value for {portfolio_id}")
         
-        # Fetch portfolio and its trades
         portfolio = await db.get(Portfolio, portfolio_id)
         if not portfolio:
             logger.error(f"Portfolio {portfolio_id} not found for value calculation.")
-            raise ValueError("Portfolio not found") # Or handle appropriately
+            raise ValueError("Portfolio not found")
 
-        # Simulate current market prices (in a real app, this would come from a market data service)
-        # For simulation, we'll use a random price based on symbol and current cash.
+        # Simulate current market prices for symbols in trades
         simulated_market_prices = {}
 
         total_trade_value = 0.0
-        # Fetch trades for the portfolio (this would ideally be a more efficient query)
         stmt = select(Trade).filter(Trade.portfolio_id == portfolio_id)
         result = await db.execute(stmt)
         trades = result.scalars().all()
@@ -108,16 +119,16 @@ class MathKernelService:
         for trade in trades:
             if trade.symbol not in simulated_market_prices:
                 # Simulate a market price for the symbol
-                base_price = trade.price * random.uniform(0.95, 1.05) # Simulate price variation
+                # Price simulation based on trade price with some random variation
+                base_price = trade.price * random.uniform(0.95, 1.05) 
                 simulated_market_prices[trade.symbol] = round(base_price, 2)
             
             market_price = simulated_market_prices[trade.symbol]
             
-            # Calculate value based on quantity and current simulated market price
             trade_value = trade.quantity * market_price
-            if trade.side == "sell": # Assuming sell decreases value, buy increases (or adjusts holdings)
+            if trade.side.lower() == "sell": 
                 total_trade_value -= trade_value
-            else: # Assume buy increases value
+            else: # Assume buy
                 total_trade_value += trade_value
 
         total_portfolio_value = portfolio.cash + total_trade_value
@@ -127,11 +138,24 @@ class MathKernelService:
 # Example usage:
 # async def main():
 #     # This requires an async DB session to be available
-#     # For standalone testing, you'd setup engine and session manually
-#     # async with AsyncSession(db_engine) as db: 
-#     #     value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
-#     #     print(f"Calculated portfolio value: {value}")
-#     pass
-# 
+#     async with AsyncSession(db_engine) as db: 
+#         try:
+#             value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
+#             print(f"Calculated portfolio value: {value}")
+#         except ValueError as e:
+#             print(e)
+#     
+#     # Example of other services
+#     price = MathKernelService().calculate_price("AAPL", 10, 150.0)
+#     print(f"Calculated price: {price}")
+#     
+#     risk = MathKernelService().get_risk_metrics("port-123")
+#     print(f"Simulated risk metrics: {risk}")
+#     
+#     historical = MathKernelService().get_historical_data("GOOG", "2023-01-01", "2023-01-03")
+#     print(f"Simulated historical data: {historical}")
+#
 # if __name__ == "__main__":
-#     asyncio.run(main())
+#     # Note: Running this directly requires setting up the DB engine and potentially mocking DB access
+#     # asyncio.run(main())
+#     pass
