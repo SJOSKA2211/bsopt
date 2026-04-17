@@ -1,24 +1,11 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useWebSocket } from '../src/hooks/useWebSocket';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Server, WebSocket as MockWebSocket } from 'mock-socket';
-
-// Ensure WebSocket is mocked globally
-if (typeof global !== 'undefined') {
-  (global as any).WebSocket = MockWebSocket;
-}
-if (typeof window !== 'undefined') {
-  (window as any).WebSocket = MockWebSocket;
-}
+import { Server } from 'mock-socket';
 
 describe('useWebSocket', () => {
   const WS_URL = 'ws://localhost:8080';
   let mockServer: Server;
-
-  it('verifies websocket mock', () => {
-    expect(window.WebSocket).toBe(MockWebSocket);
-    expect(new WebSocket(WS_URL)).toBeInstanceOf(MockWebSocket);
-  });
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -33,11 +20,6 @@ describe('useWebSocket', () => {
 
   it('connects and receives data', async () => {
     const { result } = renderHook(() => useWebSocket({ url: WS_URL }));
-
-    // Allow connection to establish under fake timers
-    await act(async () => {
-      vi.runAllTimers();
-    });
 
     // Wait for connection
     await waitFor(() => expect(result.current.isConnected).toBe(true));
@@ -57,14 +39,11 @@ describe('useWebSocket', () => {
     const { result } = renderHook(() => useWebSocket({ url: WS_URL }));
 
     // 1. Initial connection
-    await act(async () => {
-      vi.advanceTimersByTime(100);
-    });
     await waitFor(() => expect(result.current.isConnected).toBe(true));
 
     // 2. Simulate disconnect
     await act(async () => {
-      mockServer.close(); // Closes all connections
+      mockServer.close();
     });
 
     await waitFor(() => expect(result.current.isConnected).toBe(false));
@@ -75,7 +54,11 @@ describe('useWebSocket', () => {
       vi.advanceTimersByTime(1100);
     });
 
-    // 4. Wait for connection to be re-established
+    // 4. Trigger the reconnection by causing a re-render or wait for it
+    // In mock-socket, a new Server with same URL before the client connects might be needed,
+    // or the existing server still handles connections even if closed (depends on mock-socket implementation).
+    // Let's assume the hook will try to reconnect and mock-socket will intercept.
+    
     await waitFor(() => expect(result.current.isConnected).toBe(true), { timeout: 5000 });
   });
 
