@@ -4,8 +4,10 @@
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List
+import random
 
-from src.tasks import trigger_ml_training_task # Import Celery task
+# Import Celery task and potentially other services
+from src.tasks import trigger_ml_training_task 
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +18,22 @@ class MLPipeline:
 
     def predict(self, model_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Performs ML model prediction.
-        Requires loading a specific model and performing inference.
+        Performs ML model prediction with simulated results.
         """
         logger.info(f"Predicting using model {model_id} with data: {str(data)[:50]}...")
         
-        prediction_value = hash(model_id + str(data.get("input_value", ""))) % 1000 / 10.0
-        confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
-        
+        # Simulate a prediction result with more variation based on model_id and input data
+        try:
+            # Use hash of model_id and a predictable part of data for deterministic simulation
+            prediction_value = (hash(model_id) % 1000 + hash(str(data.get("input_value", ""))) % 500) / 10.0
+            confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
+        except TypeError: # Handle cases where data might not be stringifiable well
+            prediction_value = hash(model_id) % 1000 / 10.0
+            confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
+
         prediction_result = {
             "prediction": round(prediction_value, 2),
-            "confidence": round(confidence_score, 2),
+            "confidence": round(min(confidence_score, 0.99), 2), # Ensure confidence is not > 1.0
             "model_used": model_id,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
@@ -40,7 +47,6 @@ class MLPipeline:
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
         
         try:
-            # Enqueue the Celery task
             trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
             training_info = {
                 "message": "ML training task enqueued successfully",
@@ -53,7 +59,6 @@ class MLPipeline:
             return training_info
         except Exception as e:
             logger.error(f"Failed to enqueue ML training task for model {model_id}: {e}")
-            # In a real app, handle task enqueueing errors more gracefully
             raise RuntimeError(f"Failed to enqueue training task: {e}") from e
 
 # Example usage:
