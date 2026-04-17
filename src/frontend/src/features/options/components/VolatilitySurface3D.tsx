@@ -124,6 +124,7 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
 
   return (
     <Box
+      data-testid="volatility-surface-container"
       sx={{ 
         width: '100%', 
         height: '100%', 
