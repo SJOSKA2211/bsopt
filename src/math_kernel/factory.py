@@ -5,7 +5,6 @@ Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, Rust).
 """
 
-import os
 
 import structlog
 

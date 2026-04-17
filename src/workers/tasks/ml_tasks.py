@@ -1,9 +1,11 @@
 import os
+
+import numpy as np
 import structlog
-from src.workers.tasks.celery_app import celery_app
+
 from src.ml.trainer import ModelTrainer
 from src.ml.training.base import TrainingConfig
-import numpy as np
+from src.workers.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 

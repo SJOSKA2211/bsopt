@@ -1,14 +1,14 @@
 import asyncio
 import os
+from datetime import UTC, datetime
 
 import structlog
-from datetime import UTC, datetime
 from sqlalchemy import text
 
-from src.shared.vault import vault_service
 from src.database import db_manager
 from src.shared.rabbitmq import get_rabbitmq
 from src.shared.utils.cache import get_redis_client
+from src.shared.vault import vault_service
 
 logger = structlog.get_logger(__name__)
 

@@ -1,12 +1,9 @@
 import asyncio
 import hashlib
 import logging
-import os
-from datetime import datetime
 
 import grpc
 import structlog
-from google.protobuf import empty_pb2, timestamp_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 from sqlalchemy import select
@@ -17,8 +14,8 @@ from src.auth.exceptions import AuthError
 from src.common.caching import centralized_cache_service
 from src.database import db_manager
 from src.database.models import APIKey, User
-from src.shared.protos import auth_pb2, auth_pb2_grpc
 from src.shared.grpc_errors import handle_grpc_error
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
@@ -82,7 +79,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
             logger.error("token_refresh_failed", error=str(e))
             handle_grpc_error(e, context)
             return auth_pb2.TokenResponse(valid=False)
-        except Exception as e:
+        except Exception:
             logger.exception("unexpected_token_refresh_error")
             context.set_code(grpc.StatusCode.INTERNAL)
             return auth_pb2.TokenResponse(valid=False)

@@ -13,9 +13,9 @@ import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
-from src.shared.config import settings
 from src.ingestion.mesh_publisher import get_market_publisher
 from src.ingestion.rust_parser import RustTickParser
+from src.shared.config import settings
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,

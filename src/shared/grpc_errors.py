@@ -1,5 +1,7 @@
 import grpc
+
 from src.auth.exceptions import AuthError
+
 
 def handle_grpc_error(e: Exception, context: grpc.ServicerContext):
     """

@@ -154,8 +154,8 @@ class PricingService:
         async def _process_group(model_type: str, items: list[tuple[int, Any]]) -> None:
             try:
                 engine = self.factory.get_engine(model_type)
-                from src.math_kernel.base import VectorizedPricingStrategy
                 from api.schemas.pricing import OptionGreeksStruct
+                from src.math_kernel.base import VectorizedPricingStrategy
 
                 # Vectorized parameters
                 spots = np.array([it[1].spot for it in items], dtype=np.float64)

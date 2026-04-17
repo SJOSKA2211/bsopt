@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import mlflow
 import msgspec
@@ -6,8 +7,6 @@ import numpy as np
 import structlog
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-
-from typing import Any
 
 from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
 from src.ml.training.registry import training_registry

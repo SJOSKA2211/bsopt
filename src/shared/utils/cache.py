@@ -8,9 +8,9 @@ Optimized for 1000+ concurrent users with connection pooling and keepalive.
 import asyncio
 import hashlib
 import time
-from datetime import timedelta
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import timedelta
 from enum import StrEnum
 from functools import wraps
 from typing import TYPE_CHECKING, Any, cast
@@ -180,8 +180,9 @@ def multi_layer_cache(
             import random
 
             from fastapi import Request, Response
-            from src.database.models import User
             from pydantic import BaseModel
+
+            from src.database.models import User
 
             key_params = kwargs.copy()
             for i, arg in enumerate(args[1:]):

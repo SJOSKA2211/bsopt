@@ -1,5 +1,4 @@
 import asyncio
-import os
 from collections.abc import Callable
 from typing import Any
 

@@ -6,13 +6,10 @@ zero-trust compliant service.
 """
 
 import hashlib
-import logging
 import secrets
 from datetime import UTC, datetime
 
-import msgspec
 import structlog
-from src.shared.config import settings
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -32,6 +29,7 @@ from src.auth.exceptions import (
 from src.common.caching import centralized_cache_service
 from src.database import get_async_db
 from src.database.models import APIKey, OAuth2Client, User
+from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
