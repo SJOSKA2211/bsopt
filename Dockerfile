@@ -42,21 +42,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install ./wheels/*.whl
 
 # --- RUNTIME STAGE ---
-FROM python:3.12.13-slim AS latest
+FROM python:3.12.13-alpine AS latest
 
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    libssl3 \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl openssl ca-certificates
 
 # Environment Defaults
-ENV PYTHONPATH=/app \
-    ENVIRONMENT=production \
-    LOG_LEVEL=info
+ENV PYTHONPATH=/app
 
 # Copy installed packages from builder
 COPY --from=builder /usr/local /usr/local

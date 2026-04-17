@@ -129,8 +129,19 @@ class AuthService:
         token_data = await centralized_cache_service.get_token_data_cached(token)
         if token_data:
             if isinstance(token_data, dict):
-                token_data = msgspec.json.decode(msgspec.json.encode(token_data), type=TokenData)
-            return token_data
+                try:
+                    # Use a safe fallback for dictionary-to-TokenData conversion
+                    if "exp" in token_data and isinstance(token_data["exp"], (int, float, str)):
+                        token_data["exp"] = datetime.fromtimestamp(float(token_data["exp"]), tz=UTC) if isinstance(token_data["exp"], (int, float)) else datetime.fromisoformat(token_data["exp"].replace("Z", "+00:00"))
+                    if "iat" in token_data and isinstance(token_data["iat"], (int, float, str)):
+                        token_data["iat"] = datetime.fromtimestamp(float(token_data["iat"]), tz=UTC) if isinstance(token_data["iat"], (int, float)) else datetime.fromisoformat(token_data["iat"].replace("Z", "+00:00"))
+                    
+                    token_data = TokenData(**token_data)
+                except Exception as e:
+                    logger.warning("token_cache_decode_failed", error=str(e))
+                    pass # Fallthrough to fetch again
+            if isinstance(token_data, TokenData):
+                return token_data
 
         # 2. Centralized Validation (gRPC) if not the Auth Service itself
         if settings.AUTH_SERVICE_GRPC_URL and not os.getenv("IS_AUTH_SERVICE") == "true":

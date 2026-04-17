@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* High-Performance Institutional Palette - The Quantum Financial Deity */
 :root {
   --color-bento-bg: #010409; 

@@ -1,4 +1,3 @@
-
 services:
   # --- INFRASTRUCTURE LAYER ---
   postgres:
@@ -25,7 +24,7 @@ services:
     networks:
       - back-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD missing}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -54,21 +53,21 @@ services:
         EXTRAS: "api,auth,shared,observability"
     container_name: bsopt_auth_api
     environment:
-      - ENVIRONMENT=production
+      - ENVIRONMENT=${ENVIRONMENT:?ENVIRONMENT missing}
       - IS_AUTH_SERVICE=true
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL:?REDIS_URL missing}
+      - RABBITMQ_URL=${RABBITMQ_URL:?RABBITMQ_URL missing}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL missing}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET missing}
       - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY missing}
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY missing}
       - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY missing}
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=root
-      - GRPC_SECURE=true
-      - GRPC_CA_CERT=/etc/pki/root_ca.crt
-      - GRPC_SERVER_CERT=/etc/pki/auth-service.crt
-      - GRPC_SERVER_KEY=/etc/pki/auth-service.key
+      - VAULT_ADDR=${VAULT_ADDR:?VAULT_ADDR missing}
+      - VAULT_TOKEN=${VAULT_TOKEN:?VAULT_TOKEN missing}
+      - GRPC_SECURE=${GRPC_SECURE:?GRPC_SECURE missing}
+      - GRPC_CA_CERT=${GRPC_CA_CERT:?GRPC_CA_CERT missing}
+      - GRPC_SERVER_CERT=${GRPC_SERVER_CERT:?GRPC_SERVER_CERT missing}
+      - GRPC_SERVER_KEY=${GRPC_SERVER_KEY:?GRPC_SERVER_KEY missing}
     volumes:
       - ./.pki:/etc/pki:ro
     networks:
@@ -77,6 +76,7 @@ services:
     depends_on:
       redis: { condition: service_healthy }
       postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "3001:3001"
       - "50051:50051"
@@ -93,15 +93,15 @@ services:
       dockerfile: Dockerfile
     container_name: bsopt_pricing_api
     environment:
-      - ENVIRONMENT=production
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
-      - AUTH_SERVICE_GRPC_URL=auth_api:50051
-      - GRPC_SECURE=true
-      - GRPC_CA_CERT=/etc/pki/root_ca.crt
-      - GRPC_CLIENT_CERT=/etc/pki/api-client.crt
-      - GRPC_CLIENT_KEY=/etc/pki/api-client.key
+      - ENVIRONMENT=${ENVIRONMENT:?ENVIRONMENT missing}
+      - REDIS_URL=${REDIS_URL:?REDIS_URL missing}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL missing}
+      - RABBITMQ_URL=${RABBITMQ_URL:?RABBITMQ_URL missing}
+      - AUTH_SERVICE_GRPC_URL=${AUTH_SERVICE_GRPC_URL:?AUTH_SERVICE_GRPC_URL missing}
+      - GRPC_SECURE=${GRPC_SECURE:?GRPC_SECURE missing}
+      - GRPC_CA_CERT=${GRPC_CA_CERT:?GRPC_CA_CERT missing}
+      - GRPC_CLIENT_CERT=${GRPC_CLIENT_CERT:?GRPC_CLIENT_CERT missing}
+      - GRPC_CLIENT_KEY=${GRPC_CLIENT_KEY:?GRPC_CLIENT_KEY missing}
       - OPA_URL=${OPA_URL:?OPA_URL missing}
       - TRUSTED_PROXIES=${TRUSTED_PROXIES:?TRUSTED_PROXIES missing}
       - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS missing}
@@ -138,15 +138,16 @@ services:
         EXTRAS: "shared,observability,ml,quant,distributed"
     container_name: bsopt_math_worker
     environment:
-      - CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:?CELERY_BROKER_URL missing}
+      - REDIS_URL=${REDIS_URL:?REDIS_URL missing}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL missing}
     networks:
       - back-network
       - grpc-network
     depends_on:
       rabbitmq: { condition: service_healthy }
       redis: { condition: service_healthy }
+      postgres: { condition: service_healthy }
       pricing_api: { condition: service_healthy }
     command: ["celery", "-A", "src.workers.math_worker.app", "worker", "--loglevel=info", "-P", "solo"]
 
@@ -194,5 +195,4 @@ networks:
     driver: bridge
   grpc-network:
     internal: true
-
     driver: bridge
