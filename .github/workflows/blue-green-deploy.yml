@@ -25,7 +25,7 @@ jobs:
         run: pip install bandit
 
       - name: Run Bandit (SAST)
-        run: bandit -r src/ -c pyproject.toml -ll
+        run: bandit -r src/ -ll -ii -c pyproject.toml
 
       - name: Build Docker Image for Scanning
         run: docker build -t bsopt-api-scan:latest -f docker/Dockerfile.api .
