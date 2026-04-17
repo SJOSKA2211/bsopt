@@ -4,22 +4,6 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    port: 5175,
-    host: '0.0.0.0',
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-    },
-  },
-  optimizeDeps: {
-    include: ['@apollo/client', 'framer-motion', '@mui/material'],
-  },
+  resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  server: { port: 5175, host: '0.0.0.0' }
 });
