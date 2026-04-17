@@ -1,5 +1,6 @@
-from typing import Any, cast, Final
 import os
+from typing import Any, Final, cast
+
 import numpy as np
 import structlog
 import torch

@@ -4,6 +4,7 @@ from typing import Annotated, Any
 import structlog
 from pydantic import AliasChoices, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from src.shared.vault import vault_service
 
 logger = structlog.get_logger(__name__)
@@ -359,7 +360,7 @@ class Settings(BaseSettings):
             if os.path.isabs(raw_key) or os.sep in raw_key:
                 if os.path.exists(raw_key):
                     try:
-                        with open(raw_key, "r") as f:
+                        with open(raw_key) as f:
                             logger.info("loaded_rsa_private_key_from_file", path=raw_key)
                             return f.read()
                     except Exception as e:
@@ -396,7 +397,7 @@ class Settings(BaseSettings):
             if os.path.isabs(raw_key) or os.sep in raw_key:
                 if os.path.exists(raw_key):
                     try:
-                        with open(raw_key, "r") as f:
+                        with open(raw_key) as f:
                             logger.info("loaded_rsa_public_key_from_file", path=raw_key)
                             return f.read()
                     except Exception as e:
@@ -435,7 +436,7 @@ class Settings(BaseSettings):
             # Check if it's a file path
             if os.path.exists(raw_key):
                 try:
-                    with open(raw_key, "r") as f:
+                    with open(raw_key) as f:
                         return f.read()
                 except Exception as e:
                     logger.error("failed_to_read_es256_private_key_file", path=raw_key, error=str(e))
@@ -467,7 +468,7 @@ class Settings(BaseSettings):
             # Check if it's a file path
             if os.path.exists(raw_key):
                 try:
-                    with open(raw_key, "r") as f:
+                    with open(raw_key) as f:
                         return f.read()
                 except Exception as e:
                     logger.error("failed_to_read_es256_public_key_file", path=raw_key, error=str(e))

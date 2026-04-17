@@ -136,6 +136,7 @@ class AnomalyDetector:
             return
 
         import mlflow
+
         from src.ml.tracker import ExperimentTracker
 
         tracker = ExperimentTracker(study_name or f"anomaly_train_{self.engine}")

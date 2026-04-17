@@ -4,11 +4,11 @@ Provides a unified interface for multiple brokerage execution venues.
 """
 
 import abc
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 import structlog
+
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
@@ -16,11 +16,11 @@ logger = structlog.get_logger(__name__)
 
 class TradingBroker(abc.ABC):
     @abc.abstractmethod
-    async def submit_order(self, symbol: str, qty: float, side: str, type: str = "market") -> Dict[str, Any]:
+    async def submit_order(self, symbol: str, qty: float, side: str, type: str = "market") -> dict[str, Any]:
         pass
 
     @abc.abstractmethod
-    async def get_order_status(self, order_id: str) -> Dict[str, Any]:
+    async def get_order_status(self, order_id: str) -> dict[str, Any]:
         pass
 
     @abc.abstractmethod
@@ -42,7 +42,7 @@ class AlpacaBroker(TradingBroker):
             "APCA-API-SECRET-KEY": settings.ALPACA_API_SECRET,
         }
 
-    async def submit_order(self, symbol: str, qty: float, side: str, type: str = "market") -> Dict[str, Any]:
+    async def submit_order(self, symbol: str, qty: float, side: str, type: str = "market") -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             payload = {
                 "symbol": symbol,
@@ -66,7 +66,7 @@ class AlpacaBroker(TradingBroker):
                 logger.error("alpaca_submission_error", error=str(e))
                 raise
 
-    async def get_order_status(self, order_id: str) -> Dict[str, Any]:
+    async def get_order_status(self, order_id: str) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(

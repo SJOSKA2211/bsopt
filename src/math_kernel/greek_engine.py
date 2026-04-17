@@ -4,7 +4,6 @@ Greek Engine — orchestrates real-time Greek calculations and mesh updates.
 
 from __future__ import annotations
 
-import numpy as np
 import structlog
 
 from src.shared.math_utils import calculate_greeks

@@ -1,11 +1,12 @@
 import os
-import orjson
 
+import orjson
 import structlog
 from celery import Celery
 from celery.signals import worker_process_init
 from kombu import Exchange, Queue
 from kombu.serialization import register
+
 
 def orjson_dumps(obj):
     return orjson.dumps(obj)

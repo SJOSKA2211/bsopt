@@ -1,18 +1,17 @@
-import logging
-import uuid
 import asyncio
+import uuid
+from datetime import UTC, datetime
 from decimal import Decimal
-from datetime import datetime, timezone
 
-import structlog
 import numpy as np
+import structlog
 import yfinance as yf
 from sqlalchemy import select, update
 
 from src.database import db_manager
 from src.database.models import Order, Portfolio
-from src.workers.tasks.celery_app import celery_app
 from src.shared.trading.broker import get_broker
+from src.workers.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +57,7 @@ def execute_trade_task(order_id_str: str):
                 await db.execute(
                     update(Order)
                     .where(Order.id == order_id)
-                    .values(status="rejected", updated_at=datetime.now(timezone.utc))
+                    .values(status="rejected", updated_at=datetime.now(UTC))
                 )
                 await db.commit()
                 logger.warning("trade_rejected", order_id=order_id_str, reason=reason)
@@ -86,7 +85,7 @@ def execute_trade_task(order_id_str: str):
                     .values(
                         status="pending", 
                         broker_order_id=broker_res.get("id"),
-                        updated_at=datetime.now(timezone.utc)
+                        updated_at=datetime.now(UTC)
                     )
                 )
                 await db.commit()
@@ -99,7 +98,7 @@ def execute_trade_task(order_id_str: str):
                 await db.execute(
                     update(Order)
                     .where(Order.id == order_id)
-                    .values(status="failed", updated_at=datetime.now(timezone.utc))
+                    .values(status="failed", updated_at=datetime.now(UTC))
                 )
                 await db.commit()
                 return {"status": "failed", "error": str(e)}
@@ -119,7 +118,7 @@ def backtest_strategy_task(strategy_name: str, params: dict):
     High-fidelity backtesting task.
     Fully integrated with the Math Kernel and Historical Data.
     """
-    from src.math_kernel.backtesting.kernel import run_simulation_kernel, calculate_metrics_kernel
+    from src.math_kernel.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
     
     # 1. Fetch parameters
     initial_capital = params.get("initial_capital", 100000.0)

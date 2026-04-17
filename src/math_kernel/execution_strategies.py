@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 import structlog
 
-from src.shared.config import settings
 from src.math_kernel import service
+from src.shared.config import settings
 from src.shared.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)

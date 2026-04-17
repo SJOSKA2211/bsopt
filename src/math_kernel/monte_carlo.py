@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from src.shared.config import settings
 from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.quant_utils import (

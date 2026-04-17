@@ -10,12 +10,12 @@ import redis.asyncio as redis
 import structlog
 from celery import Celery
 
-from src.shared.config import get_settings
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
 from src.ingestion.router import MarketDataRouter
 from src.math_kernel.calibration.engine import HestonCalibrator
 from src.math_kernel.models.heston_fft import HestonParams
+from src.shared.config import get_settings
 from src.shared.observability import (
     CALIBRATION_DURATION,
     setup_logging,

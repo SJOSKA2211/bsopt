@@ -16,9 +16,9 @@ except ImportError:
     TorchTrainer = None
     HAS_RAY_TRAIN = False
 
-from src.shared.config import settings
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
 from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
+from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
