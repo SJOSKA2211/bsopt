@@ -211,7 +211,7 @@ vi.mock('@react-three/fiber', async (importOriginal) => {
   const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
-    Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'canvas' }, children),
+    Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'three-canvas-mock' }, children),
     useFrame: vi.fn(),
     useThree: vi.fn(() => ({
       viewport: { width: 1000, height: 1000, factor: 1 },
