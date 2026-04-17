@@ -18,26 +18,23 @@ Object.defineProperty(globalThis, 'EventSource', {
 });
 
 // Mock WebSocket for real-time market data hooks
-Object.defineProperty(globalThis, 'WebSocket', {
-  value: class {
-    onopen: (() => unknown) | null = null;
-    onmessage: ((ev: MessageEvent) => unknown) | null = null;
-    onclose: (() => unknown) | null = null;
-    onerror: ((ev: any) => unknown) | null = null;
-    readyState = 0;
-    send = vi.fn();
-    close = vi.fn();
-    addEventListener = vi.fn();
-    removeEventListener = vi.fn();
-    constructor(public url: string) {
-      setTimeout(() => {
-        this.readyState = 1;
-        this.onopen?.();
-      }, 10);
-    }
-  },
-  writable: true
-});
+(globalThis as any).WebSocket = class {
+  onopen: (() => unknown) | null = null;
+  onmessage: ((ev: MessageEvent) => unknown) | null = null;
+  onclose: (() => unknown) | null = null;
+  onerror: ((ev: any) => unknown) | null = null;
+  readyState = 0;
+  send = vi.fn();
+  close = vi.fn();
+  addEventListener = vi.fn();
+  removeEventListener = vi.fn();
+  constructor(public url: string) {
+    setTimeout(() => {
+      this.readyState = 1;
+      this.onopen?.();
+    }, 10);
+  }
+};
 
 // Mock lightweight-charts globally for tests
 vi.mock('lightweight-charts', () => {

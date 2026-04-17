@@ -37,6 +37,7 @@ describe('useWebSocket', () => {
   });
 
   test('useWebSocket handles reconnection', async () => {
+    vi.useFakeTimers();
     mockServer = new Server(WS_URL);
     const mockData = { price: 101, symbol: 'TEST' };
     
@@ -44,9 +45,8 @@ describe('useWebSocket', () => {
     mockServer.on('connection', socket => {
       connectionCount++;
       if (connectionCount === 1) {
-        // Close first connection to simulate disconnect after a short delay
-        // to ensure onopen is triggered on the client
-        setTimeout(() => socket.close(), 100);
+        // Force close from server side
+        socket.close();
       } else {
         socket.send(JSON.stringify(mockData));
       }
@@ -54,23 +54,25 @@ describe('useWebSocket', () => {
 
     const { result } = renderHook(() => useWebSocket({ url: WS_URL, symbols: ['TEST'], enabled: true }));
 
-    // Wait for initial connection
-    await waitFor(() => {
-      expect(result.current.isConnected).toBe(true);
-    }, { timeout: 2000 });
+    // Advance for initial connection
+    await vi.advanceTimersByTimeAsync(100);
 
-    // Wait for disconnection
+    // Initial connection should happen, then be closed by server immediately
     await waitFor(() => {
       expect(result.current.isConnected).toBe(false);
-    }, { timeout: 2000 });
+    });
+
+    // Advance timers to trigger reconnection (default backoff starts at 1000ms)
+    await vi.advanceTimersByTimeAsync(1500);
 
     // Wait for reconnection and data
     await waitFor(() => {
       expect(result.current.isConnected).toBe(true);
       expect(result.current.data).toEqual(mockData);
-    }, { timeout: 10000 }); // Longer timeout for reconnection
+    });
 
     expect(connectionCount).toBeGreaterThanOrEqual(2);
+    vi.useRealTimers();
   });
 
   test('useWebSocket does not connect when disabled', async () => {
