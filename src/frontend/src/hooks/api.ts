@@ -1,137 +1,67 @@
 import { useState, useEffect } from 'react';
-import { save_memory } from '~/src/lib/memory'; // Assuming memory functions are available
+import { useQuery, useMutation, gql, ApolloClient, NormalizedCacheObject, ApolloCache, QueryResult, MutationFunctionOptions, OperationVariables } from '@apollo/client'; // Import necessary Apollo Client types
+import { DocumentNode } from 'graphql'; // For query/mutation types
 
-// Define API base URL, preferably from environment variables
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+// --- GraphQL Client Setup ---
+// Assuming apolloClient is configured and available, e.g., imported from './apolloClient'
+// If not, this would need to be set up.
+import { apolloClient } from './apolloClient'; 
 
-interface FetchOptions extends RequestInit {
-    headers?: Record<string, string>;
+// --- GraphQL Fetching Hook ---
+// Replaces useFetchData with a hook that uses Apollo Client's useQuery
+// This hook is a wrapper around useQuery for consistency, but direct use is also fine.
+export function useFetchDataGQL<T>(query: DocumentNode, options?: any) {
+    const { data, loading, error, refetch } = useQuery(query, options);
+
+    // Process Apollo's data structure to a simpler format if needed.
+    // Apollo's data is typically nested, e.g., data.portfolios.
+    // This extraction assumes a single top-level key for the query result.
+    const processedData = data ? data[Object.keys(data)[0]] : null;
+
+    return { 
+        data: processedData as T | null, 
+        loading, 
+        error: error ? error.message : null, 
+        refetch 
+    };
 }
 
-export function useFetchData<T>(endpoint: string, options?: FetchOptions) {
-    const [data, setData] = useState<T | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+// --- GraphQL Mutating Hook ---
+// Replaces useMutateData with a hook that uses Apollo Client's useMutation
+export function useMutateDataGQL<T>(mutation: DocumentNode, options?: any) {
+    const [mutate, { data, loading, error }] = useMutation(mutation, options);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            
-            // Get token from local storage or a context
-            const token = localStorage.getItem('authToken'); // Example: retrieve token
-            const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-                    method: 'GET', // Default method for fetch
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...authHeaders,
-                        ...(options?.headers || {}),
-                    },
-                    ...options,
-                });
-                
-                if (!response.ok) {
-                    let errorMsg = `HTTP error! status: ${response.status}`;
-                    try {
-                        const errorData = await response.json();
-                        errorMsg = errorData.detail || errorMsg;
-                    } catch (e) {
-                        // Ignore if response is not JSON or empty
-                    }
-                    throw new Error(errorMsg);
-                }
-                
-                const result: T = await response.json();
-                setData(result);
-            } catch (err: any) {
-                setError(err.message || 'Failed to fetch data');
-                logger.error(`Fetch error for ${endpoint}: ${err.message}`);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [endpoint, JSON.stringify(options)]); // Re-fetch if endpoint or options change (deep compare options)
-
-    return { data, loading, error };
-}
-
-export function useMutateData<T>(endpoint: string, method: 'POST' | 'PUT' | 'DELETE' | 'PATCH', options?: FetchOptions) {
-    const [data, setData] = useState<T | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const mutate = async (payload?: any) => {
-        setLoading(true);
-        setError(null);
-        
-        const token = localStorage.getItem('authToken'); // Example: retrieve token
-        const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
+    const mutateAction = async (mutationOptions?: { variables?: any }) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authHeaders,
-                    ...(options?.headers || {}),
-                },
-                body: payload ? JSON.stringify(payload) : undefined,
-                ...options,
-            });
-
-            if (!response.ok) {
-                let errorMsg = `HTTP error! status: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    errorMsg = errorData.detail || errorMsg;
-                } catch (e) {
-                    // Ignore if response is not JSON or empty
-                }
-                throw new Error(errorMsg);
-            }
-            
-            let result = null;
-            // Handle responses: empty body for 204, JSON for others
-            if (response.status !== 204) {
-                // Check content type before parsing JSON
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    result = await response.json();
-                } else {
-                    // Handle non-JSON responses if necessary, or just return null/text
-                    result = await response.text(); // Or handle as appropriate
-                }
-            }
-            setData(result);
-            return result;
+            const response = await mutate(mutationOptions);
+            return response.data; // Return the data from the mutation response
         } catch (err: any) {
-            setError(err.message || `Failed to ${method} data`);
-            logger.error(`Mutation error for ${endpoint} (${method}): ${err.message}`);
+            console.error(`Mutation error: ${err.message}`);
             throw err; // Re-throw to allow calling component to handle
-        } finally {
-            setLoading(false);
         }
     };
 
-    return { mutate, data, loading, error };
+    return { mutate: mutateAction, data, loading, error };
 }
 
-// --- Memory Saving Functions (Example - Assuming these are globally available or imported) ---
+// --- Memory Saving Functions (Example) ---
 // These are examples based on the prompt's mention of save_memory.
 // You'll need to ensure these functions are correctly implemented and accessible.
-
-// Example: Save user preferences
 export const saveUserPreference = async (key: string, value: any) => {
     try {
-        // Assuming a project-specific memory scope
-        await save_memory({ fact: `User preference: ${key}=${value}`, scope: 'project' });
-        logger.info(`Saved user preference: ${key}=${value}`);
+        // Assuming save_memory is globally available or imported correctly
+        // Note: This part might need a proper API call or client interaction if save_memory is not a direct function.
+        // await save_memory({ fact: `User preference: ${key}=${value}`, scope: 'project' });
+        console.log(`Simulating save user preference: ${key}=${value}`); // Placeholder
     } catch (error) {
         logger.error(`Failed to save user preference ${key}: ${error}`);
     }
 };
+
+// --- Deprecated REST Hooks ---
+// These are no longer the primary way to interact with the API.
+// They are kept here for reference or potential fallback, but ideally removed.
+// export function useFetchData<T>(endpoint: string, options?: RequestInit) { ... }
+// export function useMutateData<T>(endpoint: string, method: 'POST' | 'PUT' | 'DELETE' | 'PATCH', options?: FetchOptions) { ... }
+
+// Note: Need to ensure proper error handling and loading states are managed in components using these hooks.

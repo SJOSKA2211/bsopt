@@ -49,9 +49,7 @@ const PortfolioPage = () => {
   const [newPortfolioCash, setNewPortfolioCash] = useState<number>(0);
   
   // Fetch portfolios using Apollo useQuery hook
-  const { data: portfolioData, loading, error, refetch } = useQuery(GET_PORTFOLIOS, {
-      // fetchPolicy: 'cache-and-network' // Optional: configure fetch policy
-  });
+  const { data: portfolioData, loading, error, refetch } = useQuery(GET_PORTFOLIOS);
 
   // Mutation hook for creating portfolios
   const [createPortfolioMutation, { loading: creatingPortfolio, error: createError }] = useMutation(CREATE_PORTFOLIO, {
@@ -86,7 +84,7 @@ const PortfolioPage = () => {
   if (loading) return <p>Loading portfolios...</p>;
   if (error) return <p>Error loading portfolios: {error.message}</p>;
 
-  const portfolios = portfolioData?.portfolios || []; // Access portfolios from query result
+  const portfolios = portfolioData?.portfolios || []; 
 
   return (
     <div>
