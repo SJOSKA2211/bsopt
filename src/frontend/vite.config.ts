@@ -5,5 +5,10 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-  server: { port: 5175, host: '0.0.0.0' }
-});
+  server: { port: 5175, host: '0.0.0.0' },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './tests/setupTests.tsx',
+  },
+} as any);

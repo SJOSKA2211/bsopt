@@ -96,18 +96,5 @@ vi.mock('@react-three/drei', () => ({
   Html: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Global WebSocket Mock using mock-socket
-let server: Server | null = null;
-const WS_URL = 'ws://localhost:8080';
-
-beforeAll(() => {
-  server = new Server(WS_URL);
-});
-
-afterAll(() => {
-  if (server) {
-    server.stop();
-  }
-});
-
-export { server, WS_URL };
+// Global WebSocket and other mocks
+export {};
