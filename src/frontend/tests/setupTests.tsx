@@ -97,4 +97,6 @@ vi.mock('@react-three/drei', () => ({
 }));
 
 // Global WebSocket and other mocks
+import { WebSocket as MockWebSocket } from 'mock-socket';
+global.WebSocket = MockWebSocket as any;
 export {};
