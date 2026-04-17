@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 // Import Apollo Client hooks and gql tag
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 
 // Import custom GraphQL hooks
-import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; 
+import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; // Import the GraphQL hooks
 
 // --- GraphQL Queries and Mutations ---
 // Query to fetch ML models
@@ -92,16 +92,17 @@ const MLPage = () => {
   const [deployEnv, setDeployEnv] = useState<string>('staging');
 
   // Fetch active ML models using GraphQL hook
-  const { data: mlModelsData, loading: modelsLoading, error: modelsError, refetch: refetchModels } = useQuery(GET_ML_MODELS_QUERY);
+  const { data: mlModelsData, loading: modelsLoading, error: modelsError, refetch: refetchModels } = useFetchDataGQL<any>(GET_ML_MODELS_QUERY);
 
   // Mutations
-  const [createModelMutation, { loading: creatingModel, error: createModelError }] = useMutation(CREATE_ML_MODEL_MUTATION);
-  const [predictMutation, { data: predictionResult, loading: predicting, error: predictionError }] = useMutation(PREDICT_ML_MODEL_MUTATION);
-  const [triggerTrainingMutation, { loading: training, error: trainingError }] = useMutation(TRAIN_ML_MODEL_MUTATION);
-  const [deployModelMutation] = useMutation(DEPLOY_ML_MODEL_MUTATION);
+  const [createModel, { loading: creatingModel, error: createModelError }] = useMutateDataGQL<any>(CREATE_ML_MODEL_MUTATION);
+  const [predict, { data: predictionResult, loading: predicting, error: predictionError }] = useMutateDataGQL<any>(PREDICT_ML_MODEL_MUTATION);
+  const [triggerTraining, { loading: training, error: trainingError }] = useMutateDataGQL<any>(TRAIN_ML_MODEL_MUTATION);
+  const [deployModel, { loading: deploying, error: deployError }] = useMutateDataGQL<any>(DEPLOY_ML_MODEL_MUTATION);
 
   const models = mlModelsData?.mlModels || [];
 
+  // Effect to auto-select the first model if available
   useEffect(() => {
     if (models && models.length > 0 && !selectedModelId) {
       setSelectedModelId(models[0].id); 
@@ -116,7 +117,7 @@ const MLPage = () => {
       return;
     }
     try {
-      await createModelMutation({
+      await createModel({
         variables: { name: newModelName, version: newModelVersion, description: newModelDescription, isActive: true },
       });
       alert(`Model "${newModelName} v${newModelVersion}" created successfully!`);
@@ -136,7 +137,7 @@ const MLPage = () => {
       return;
     }
     try {
-      const response = await predictMutation({
+      const response = await predict({
         variables: { modelId: selectedModelId, data: { inputValue: parseFloat(predictionInput) } }, 
       });
       alert(`Prediction: ${response.data.predict.prediction} (Confidence: ${response.data.predict.confidence})`);
@@ -152,7 +153,7 @@ const MLPage = () => {
       return;
     }
     try {
-      const response = await triggerTrainingMutation({
+      const response = await triggerTraining({
         variables: { modelId: trainingModelId, trainingParams: { epochs, batchSize } },
       });
       alert(`Training task enqueued: ${response.data.triggerTraining.message}`);
@@ -168,7 +169,7 @@ const MLPage = () => {
         return;
     }
     try {
-        const response = await deployModelMutation({
+        const response = await deployModel({
             variables: { modelId: deployModelId, deploymentParams: { version: deployVersion, targetEnvironment: deployEnv } },
         });
         alert(`Deployment task enqueued: ${response.data.deployModel.message}`);

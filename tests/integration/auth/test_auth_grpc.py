@@ -2,49 +2,12 @@ import pytest
 import grpc
 import asyncio
 from unittest.mock import MagicMock
-
-# Assume necessary imports for gRPC client and proto definitions
-# These would typically be generated client libraries
-# from src.shared.protos import auth_pb2
-# from src.shared.protos import auth_pb2_grpc
+import time # For timestamping and simulating delays
 
 # Mocking gRPC client and proto messages for the test environment
-# In a real setup, you'd import generated clients and run a test gRPC server
-class MockAuthServiceStub:
-    def __init__(self, channel):
-        self.channel = channel
+# In a real test setup, you would import generated clients and run a test gRPC server.
 
-    async def ValidateToken(self, request):
-        if request.token == "valid-token-abc":
-            return auth_pb2.TokenResponse(valid=True, user_id="test-user-123", email="test@example.com", tier="premium", expires_at=int(time.time()) + 3600, issued_at=int(time.time()), token_type="access", roles=["user"])
-        elif request.token == "revoked-token-xyz":
-            # Simulate gRPC error for revoked token
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token has been revoked")
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
-
-    async def CreateTokenPair(self, request):
-        if request.user_id == "test-user-123":
-            return auth_pb2.TokenPairResponse(access_token="new-access-token", refresh_token="new-refresh-token", token_type="Bearer", expires_in=3600)
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid user credentials")
-
-    async def RefreshToken(self, request):
-        if request.refresh_token == "valid-refresh-token":
-            return auth_pb2.TokenResponse(valid=True, user_id="test-user-123", expires_at=int(time.time()) + 3600, token_type="access")
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid refresh token")
-
-    async def RevokeToken(self, request):
-        return empty_pb2.Empty()
-
-    async def GetUserInfo(self, request):
-        if request.token == "valid-token-abc":
-            return auth_pb2.UserInfo(user_id="test-user-123", email="test@example.com", tier="premium", full_name="Test User", roles=["user"])
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid token for user info")
-
-# Mocking proto messages
+# Mock proto messages and services
 class MockTokenResponse:
     def __init__(self, valid, user_id, email, tier, expires_at, issued_at, token_type, roles):
         self.valid = valid
@@ -93,7 +56,22 @@ class MockTokenRequest:
     def __init__(self, token):
         self.token = token
 
-# Mock gRPC channel and server setup
+class MockRevokeTokenRequest:
+    def __init__(self, token):
+        self.token = token
+        
+class MockCreateTokenPairRequest:
+    def __init__(self, user_id, email, tier, scopes):
+        self.user_id = user_id
+        self.email = email
+        self.tier = tier
+        self.scopes = scopes
+        
+class MockRefreshTokenRequest:
+    def __init__(self, refresh_token):
+        self.refresh_token = refresh_token
+
+# Mock gRPC channel and server components
 class MockChannel:
     async def close(self):
         pass
@@ -135,21 +113,28 @@ class MockHealthServicer:
     def set(self, service, status): pass
 def add_HealthServicer_to_server(servicer, server): pass
 
-# Mocking the main server run logic
+# Mocking the main server run logic for testing standalone servicer methods
 async def mock_serve():
     server = MockGrpcServer()
-    add_AuthServiceServicer_to_server(MockAuthServiceStub(None), server)
+    mock_servicer = MockAuthServiceStub(None)
+    add_AuthServiceServicer_to_server(mock_servicer, server)
     health_servicer = MockHealthServicer()
     add_HealthServicer_to_server(health_servicer, server)
     health_servicer.set("", health_pb2.HealthCheckResponse.SERVING)
     await server.start()
-    await server.wait_for_termination()
+    # In tests, we don't need to wait for termination, just ensure methods can be called.
+    # await server.wait_for_termination() 
 
-# Mocking asyncio.run
+# Mocking asyncio.run for simplicity in testing servicer methods directly
 def mock_asyncio_run(coro):
-    # In a real test, you might use a testing framework's async runner
-    # For this mock, we'll just assume the server starts and finishes without blocking indefinitely
-    print("Mock server started (asyncio.run called)")
+    # This bypasses actual async execution for direct method calls in tests
+    # In real tests, you'd use pytest-asyncio or similar.
+    # For this mock, we'll assume the coro completes.
+    print("Mock asyncio.run called for a coroutine.")
+    # You might want to run the coroutine in a test loop if needed.
+    # For now, just acknowledge it's called.
+    asyncio.get_event_loop().run_until_complete(coro)
+
 
 # Monkey patch original modules/functions for testing
 original_grpc = grpc
@@ -162,8 +147,11 @@ original_grpc_ssl_server_credentials = grpc.ssl_server_credentials
 original_add_auth_service_servicer = auth_pb2_grpc.add_AuthServiceServicer_to_server
 original_add_health_servicer = health_pb2_grpc.add_HealthServicer_to_server
 original_health_servicer = health.HealthServicer
+original_auth_revoke_token = auth.revoke_token # Mock auth functions too
 
-def setup_mocks():
+@pytest.fixture(scope="module", autouse=True)
+def mock_grpc_environment():
+    """Mocks gRPC components and auth functions for testing."""
     grpc.aio.server = MockGrpcServer
     grpc.aio.server.add_secure_port = mock_grpc_aio_server
     grpc.composite_channel_credentials = mock_composite_channel_credentials
@@ -172,8 +160,16 @@ def setup_mocks():
     auth_pb2_grpc.add_AuthServiceServicer_to_server = add_AuthServiceServicer_to_server
     health_pb2_grpc.add_HealthServicer_to_server = add_HealthServicer_to_server
     health.HealthServicer = MockHealthServicer
+    auth.revoke_token = lambda token: REVOKED_TOKENS.add(token) # Mock revoke_token
+    asyncio.run = mock_asyncio_run
+    
+    # Mocking the global REVOKED_TOKENS set used by auth.py and servicer
+    global REVOKED_TOKENS
+    REVOKED_TOKENS = set()
 
-def teardown_mocks():
+    yield
+
+    # Teardown mocks
     grpc.aio.server = original_grpc_aio_server
     grpc.aio.server.add_secure_port = original_grpc_aio_secure_port
     grpc.composite_channel_credentials = original_grpc_composite_channel_credentials
@@ -182,32 +178,25 @@ def teardown_mocks():
     auth_pb2_grpc.add_AuthServiceServicer_to_server = original_add_auth_service_servicer
     health_pb2_grpc.add_HealthServicer_to_server = original_add_health_servicer
     health.HealthServicer = original_health_servicer
+    auth.revoke_token = original_auth_revoke_token # Restore original revoke_token
     asyncio.run = original_asyncio_run
-
-@pytest.fixture(scope="module", autouse=True)
-def mock_grpc_environment():
-    """Mocks gRPC components for testing."""
-    setup_mocks()
-    yield
-    teardown_mocks()
 
 @pytest.fixture(scope="module")
 def auth_service_servicer():
     """Provides a mock AuthServicer instance."""
-    # The mock server starts automatically when serve() is called,
-    # and the servicer instance is accessible through the mock server.
-    # We'll simulate accessing it.
+    # This fixture sets up the mock server and servicer for tests
     mock_server = MockGrpcServer()
     mock_servicer = MockAuthServiceStub(None)
     add_AuthServiceServicer_to_server(mock_servicer, mock_server)
-    # In a real test, you'd need to manage the server lifecycle more robustly.
+    # Mocking serve() to not block indefinitely in tests
+    auth_pb2_grpc.AuthService.Serve = mock_serve 
     return mock_servicer
 
 @pytest.mark.asyncio
 async def test_validate_token_valid(auth_service_servicer: MockAuthServiceStub):
     """Tests validating a valid token."""
     mock_request = MockTokenRequest(token="valid-token-abc")
-    mock_context = MagicMock() # Mock context object
+    mock_context = MagicMock()
 
     response = await auth_service_servicer.ValidateToken(mock_request)
     
@@ -261,7 +250,6 @@ async def test_create_token_pair(auth_service_servicer: MockAuthServiceStub):
 @pytest.mark.asyncio
 async def test_refresh_token(auth_service_servicer: MockAuthServiceStub):
     """Tests refreshing a token."""
-    # Mocking a valid refresh token scenario
     mock_request = auth_pb2.RefreshTokenRequest(refresh_token="valid-refresh-token")
     mock_context = MagicMock()
 
@@ -277,14 +265,14 @@ async def test_revoke_token(auth_service_servicer: MockAuthServiceStub):
     """Tests revoking a token."""
     token_to_revoke = "token-to-revoke-123"
     # Simulate adding to revoked set (done within auth.py)
-    auth.revoke_token(token_to_revoke) # This should add to REVOKED_TOKENS set
+    auth.revoke_token(token_to_revoke) 
 
     mock_request = auth_pb2.RevokeTokenRequest(token=token_to_revoke)
     mock_context = MagicMock()
 
     response = await auth_service_servicer.RevokeToken(mock_request)
     
-    assert response == empty_pb2.Empty() # RevokeToken returns an empty message
+    assert response == empty_pb2.Empty() 
 
     # Verify revocation by attempting to validate the revoked token
     invalid_request = auth_pb2.TokenRequest(token=token_to_revoke)
@@ -305,8 +293,8 @@ async def test_get_user_info(auth_service_servicer: MockAuthServiceStub):
     assert response.user_id == "test-user-123"
     assert response.email == "test@example.com"
     assert response.tier == "premium"
-    assert response.full_name == "User Full Name Placeholder" # Check placeholder
-    assert response.roles == ["user"] # Check placeholder roles
+    assert response.full_name == "User Full Name Placeholder" 
+    assert response.roles == ["user"] 
 
 @pytest.mark.asyncio
 async def test_get_user_info_invalid_token(auth_service_servicer: MockAuthServiceStub):

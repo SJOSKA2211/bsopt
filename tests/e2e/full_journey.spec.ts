@@ -11,13 +11,12 @@
  * 7. Perform ML Prediction
  * 8. Deploy ML Model (simulated)
  * 9. Calculate Portfolio Value
+ * 10. View Market Data
  * 
  * Run with: npx playwright test tests/e2e/full_journey.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
-// Removed Apollo Client imports as direct usage is not apparent and focus is on UI interaction and API calls.
-// If GraphQL client setup is in a global context or hook, it should work seamlessly.
 import time from 'time'; // Assuming time library for date manipulation in tests
 
 // --- Configuration ---
@@ -31,6 +30,7 @@ const testUserName = "Test User";
 // --- Test Suite ---
 test.describe("Manifold Full Journey", () => {
   let uniqueEmail: string;
+  let portfolio_id: string = ''; // To store created portfolio ID for reuse
 
   test.beforeAll(async () => {
     uniqueEmail = `user_${Date.now()}@Manifold.test`;
@@ -91,8 +91,7 @@ test.describe("Manifold Full Journey", () => {
       });
     });
 
-    test("should create, get, list, and update a portfolio", async ({ page, request }) => {
-      let portfolio_id = '';
+    test("should create, get, list, update, and get value of a portfolio", async ({ page, request }) => {
       const initial_cash = 10000.0;
       const updated_cash = 10500.50;
       const portfolio_name_base = `E2E Portfolio ${Date.now()}`;
@@ -107,9 +106,8 @@ test.describe("Manifold Full Journey", () => {
         await page.click('button:has-text("Create")');
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
 
-        // Get portfolio ID for subsequent steps. Assumes API returns ID or it's visible.
-        // If ID is not directly returned, might need to query list and find it.
-        const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
+        // Get portfolio ID for subsequent steps.
+        const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token retrieval
         expect(listResponse.ok()).toBeTruthy();
         const portfolios = await listResponse.json();
         const created = portfolios.find(p => p.name.startsWith(portfolio_name_base));
@@ -130,6 +128,14 @@ test.describe("Manifold Full Journey", () => {
         await expect(page.locator("text=Portfolio updated")).toBeVisible({ timeout: 10000 });
         await page.reload(); 
         await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(updated_cash.toString());
+      });
+
+      await test.step("Get portfolio value", async () => {
+        await page.goto(`${BASE_URL}/portfolios/value/${portfolio_id}`); // Navigate to portfolio value page
+        await expect(page.locator("h1")).toHaveText("Portfolio Value"); 
+        await expect(page.locator("text=total_value")).toBeVisible(); 
+        const valueText = await page.locator("text=total_value").textContent(); 
+        expect(valueText).toContain("$"); 
       });
 
       await test.step("List portfolios and verify update", async () => {

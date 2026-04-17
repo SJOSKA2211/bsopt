@@ -4,8 +4,10 @@
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List
+import random
 
 from src.tasks import trigger_ml_training_task, deploy_ml_model_task # Import Celery tasks
+# Assume other necessary imports like ML model loading libraries would be here
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ class MLPipeline:
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
         
         try:
+            # Enqueue the Celery task
             trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
             training_info = {
                 "message": "ML training task enqueued successfully",
@@ -81,11 +84,5 @@ class MLPipeline:
             logger.error(f"Failed to enqueue ML model deployment task for model {model_id}: {e}")
             raise RuntimeError(f"Failed to enqueue deployment task: {e}") from e
 
-# Example usage:
-# ml_pipeline = MLPipeline()
-# prediction = ml_pipeline.predict("model-v1.0.0", {"input_value": 123.45})
-# print(f"Prediction: {prediction}")
-# training_status = ml_pipeline.train_model("model-v1.0.0", epochs=50, batch_size=128)
-# print(f"Training status: {training_status}")
-# deployment_status = ml_pipeline.deploy_model("model-v1.0.0", "1.0.0", "production")
-# print(f"Deployment status: {deployment_status}")
+# Note: Further implementation would involve loading actual ML models (e.g., from files, a model registry)
+# and integrating with more robust task queues or orchestration tools for training and deployment.
