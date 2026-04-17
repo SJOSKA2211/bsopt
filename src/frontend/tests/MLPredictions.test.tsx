@@ -20,11 +20,11 @@ import { useQuery } from '@apollo/client/react';
 const mockPrediction = {
   mlPrediction: {
     symbol: 'AAPL',
-    predictedPrice: 155.20,
-    confidenceInterval: [153.50, 157.00],
+    predicted_price: 155.20,
+    confidence_interval: [153.50, 157.00],
     drift: 0.02,
-    modelName: 'XGBoost-V4-Optimized',
-    lastUpdated: '2026-03-19T00:00:00Z',
+    model_name: 'XGBoost-V4-Optimized',
+    last_updated: '2026-03-19T00:00:00Z',
   },
 };
 

@@ -4,3 +4,6 @@
 ## 2024-05-24 - WasmGreeksCell Unnecessary Renders
 **Learning:** `WasmGreeksCell` is rendered inside a large DataGrid inside `OptionsChain`. Whenever `OptionsChain` state updates (e.g., search or filter changes), all `WasmGreeksCell` instances re-render. Since `WasmGreeksCell` sends messages to the WASM worker, this caused massive overhead.
 **Action:** Wrap row components (like `WasmGreeksCell`) that perform expensive async operations (like worker calls) in `React.memo` so they only re-render when their specific props change.
+## 2024-05-25 - Redundant WASM Computation in Grid Cells
+**Learning:** `WasmGreeksCell` instances inside `OptionsChain` were individually fetching the `useWasmPricing` hook to compute greeks/prices independently. Even though `OptionsChain` was already computing batch calculations for the entire grid, each cell still executed isolated queries, creating extreme redundancy and potentially blocking the worker.
+**Action:** Lift the computation state to the parent. Let the parent component execute a single `batchCalculate` and pass down the pre-calculated metrics (`greeks` and `price`) directly into the cell components as props, completely removing redundant worker calls and avoiding overlapping hooks.
