@@ -224,8 +224,5 @@ class ZeroTrustMiddleware:
                 message["headers"] = headers
             await send(message)
 
-<<<<<<< HEAD
         await self.app(scope, receive, send_wrapper)
-=======
         await self.app(scope, receive, send_wrapper)
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

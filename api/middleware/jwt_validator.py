@@ -56,11 +56,8 @@ class JWTValidator:
         # 1. Fast Path (Redis)
         cached = await self.sessions.get_cached_session(token)
         if cached:
-<<<<<<< HEAD
             return cached
-=======
             return JWTClaims(**cached.model_dump())
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
 
         # 2. Signature & Revocation Check
         token_data = self.tokens.decode_token(token)
@@ -70,11 +67,8 @@ class JWTValidator:
         # 3. Cache valid result
         await self.sessions.cache_session(token, token_data)
 
-<<<<<<< HEAD
         return token_data
-=======
         return JWTClaims(**token_data.model_dump())
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
 
     def create_token(
         self,
@@ -157,17 +151,14 @@ class JWTValidatorMiddleware(BaseHTTPMiddleware):
             claims = await self.validator.validate(token)
 
             request.state.user = {
-<<<<<<< HEAD
                 "user_id": claims.user_id,
                 "email": claims.email,
                 "tier": claims.tier,
                 "roles": claims.scopes,
-=======
                 "user_id": claims.sub,
                 "email": claims.email,
                 "tier": claims.tier,
                 "roles": claims.roles,
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
             }
             request.state.jwt_claims = claims
             request.state.token_jti = claims.jti
@@ -227,8 +218,5 @@ def require_role(required_roles: list[str]):
 
         return claims
 
-<<<<<<< HEAD
     return _require_role
-=======
     return _require_role
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

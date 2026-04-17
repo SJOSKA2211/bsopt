@@ -18,8 +18,5 @@ __all__ = [
     "CSRFMiddleware",
     "RequestLoggingMiddleware",
     "RequestIDMiddleware",
-<<<<<<< HEAD
 ]
-=======
 ]
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

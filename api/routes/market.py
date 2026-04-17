@@ -72,8 +72,5 @@ async def sse_market_data(request: Request, symbols: str = ""):
                 logger.error("sse_error", error=str(e))
             await asyncio.sleep(5)
 
-<<<<<<< HEAD
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-=======
     return StreamingResponse(event_generator(), media_type="text/event-stream")
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

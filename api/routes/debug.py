@@ -66,8 +66,5 @@ async def get_sluggish_queries(db=Depends(get_async_db)):
     """Fetch top 20 sluggish queries from the performance manifold."""
     result = await db.execute(text("SELECT * FROM pg_stat_sluggish_queries"))
     queries = [dict(row._mapping) for row in result]
-<<<<<<< HEAD
     return DataResponse(data=queries, message="Sluggish queries retrieved.")
-=======
     return DataResponse(data=queries, message="Sluggish queries retrieved.")
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

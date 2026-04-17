@@ -148,8 +148,5 @@ async def get_options_chain(
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
 
-<<<<<<< HEAD
     return DataResponse(data=[], message="No option chain data found in persistence layer")
-=======
     return DataResponse(data=[], message="No option chain data found in persistence layer")
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

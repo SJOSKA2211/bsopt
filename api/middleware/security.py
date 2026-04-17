@@ -677,8 +677,5 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Invalid input detected"},
             )
 
-<<<<<<< HEAD
         return cast(Response, await call_next(request))
-=======
         return cast(Response, await call_next(request))
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

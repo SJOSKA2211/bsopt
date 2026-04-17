@@ -123,8 +123,5 @@ async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Port
         except Exception as e:
             await session.rollback()
             logger.error("portfolio_creation_failed", user_id=user_id, error=str(e))
-<<<<<<< HEAD
             raise e
-=======
             raise e
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

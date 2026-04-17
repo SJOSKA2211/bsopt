@@ -110,8 +110,5 @@ async def get_historical_ohlcv(
                 )
             )
 
-<<<<<<< HEAD
     return results
-=======
     return results
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

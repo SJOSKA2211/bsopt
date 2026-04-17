@@ -61,7 +61,6 @@ async def market_data_ws(
             action = msg.get("action")
             request_id = msg.get("request_id", "ws-" + str(int(time.time())))
 
-<<<<<<< HEAD
             if action == "heartbeat":
                 websocket.metadata.update_heartbeat()
                 await websocket.send_bytes(
@@ -79,7 +78,6 @@ async def market_data_ws(
             elif action == "unsubscribe":
                 await manager.unsubscribe_from_symbol(websocket, sym)
                 logger.info("ws_audit_unsubscribe", symbol=sym, request_id=request_id)
-=======
             if action == "subscribe":
                 sym = msg.get("symbol")
                 if sym:
@@ -98,7 +96,6 @@ async def market_data_ws(
                 await websocket.send_bytes(
                     WebSocketCodec.encode({"status": "ok", "type": "heartbeat"}, protocol)
                 )
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
 
     except WebSocketDisconnect:
         pass
@@ -167,8 +164,5 @@ async def greeks_ws(
     except Exception as e:
         logger.error("ws_greeks_route_error", error=str(e))
     finally:
-<<<<<<< HEAD
         await manager.disconnect(websocket)
-=======
         await manager.disconnect(websocket)
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

@@ -41,36 +41,37 @@ const PageLoader = () => (
 
 function AppContent() {
   const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
-  return (
-    <Layout>
-      <AnimatePresence mode="wait">
-        <Suspense fallback={<PageLoader />}>
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="w-full min-h-screen"
-          >
-            <Routes location={location}>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/market" element={<TradeExecutionPage />} />
-              <Route path="/research" element={<StrategyOptimizerPage />} />
-              <Route path="/portfolio" element={<PortfolioAnalyticsPage />} />
-              <Route path="/positions" element={<PortfolioAnalyticsPage />} />
-              <Route path="/risk" element={<RiskManagementPage />} />
-              <Route path="/analysis" element={<RiskManagementPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/login" element={<SignIn />} />
-              <Route path="/signup" element={<SignUpPage />} />
-            </Routes>
-          </motion.div>
-        </Suspense>
-      </AnimatePresence>
-    </Layout>
+  const content = (
+    <AnimatePresence mode="wait">
+      <Suspense fallback={<PageLoader />}>
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="w-full min-h-screen"
+        >
+          <Routes location={location}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/market" element={<TradeExecutionPage />} />
+            <Route path="/research" element={<StrategyOptimizerPage />} />
+            <Route path="/portfolio" element={<PortfolioAnalyticsPage />} />
+            <Route path="/positions" element={<PortfolioAnalyticsPage />} />
+            <Route path="/risk" element={<RiskManagementPage />} />
+            <Route path="/analysis" element={<RiskManagementPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/login" element={<SignIn />} />
+            <Route path="/signup" element={<SignUpPage />} />
+          </Routes>
+        </motion.div>
+      </Suspense>
+    </AnimatePresence>
   );
+
+  return isAuthPage ? content : <Layout>{content}</Layout>;
 }
 
 function App() {

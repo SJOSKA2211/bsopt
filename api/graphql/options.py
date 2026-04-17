@@ -13,8 +13,5 @@ class Query:
         return await get_option_by_id(contract_symbol)
 
 
-<<<<<<< HEAD
 schema = Schema(query=Query)
-=======
 schema = Schema(query=Query)
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

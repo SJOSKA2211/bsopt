@@ -343,8 +343,5 @@ class StructuredLogger:
         if exc_info:
             kwargs["traceback"] = traceback.format_exc()
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-<<<<<<< HEAD
         self.logger.error(msgspec.json.encode(entry).decode("utf-8"))
-=======
         self.logger.error(msgspec.json.encode(entry).decode("utf-8"))
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

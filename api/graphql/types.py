@@ -58,8 +58,5 @@ class OHLCV:
     async def resolve_reference(cls, id: strawberry.ID) -> "Option | None":
         from api.graphql.resolvers.option_service import get_option_by_id
 
-<<<<<<< HEAD
         return await get_option_by_id(str(id))
-=======
         return await get_option_by_id(str(id))
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

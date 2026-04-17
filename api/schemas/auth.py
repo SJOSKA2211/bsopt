@@ -312,8 +312,5 @@ class WebAuthnAuthenticationVerificationRequest(BaseModel):
         ..., description="Credential object from navigator.credentials.get"
     )
     challenge: str = Field(..., description="The original challenge sent to the client")
-<<<<<<< HEAD
     email: EmailStr = Field(..., description="User email for lookup")
-=======
     email: EmailStr = Field(..., description="User email for lookup")
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6

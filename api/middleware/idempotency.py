@@ -97,8 +97,5 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
             return response
         finally:
-<<<<<<< HEAD
             await self.redis.delete(lock_key)
-=======
             await self.redis.delete(lock_key)
->>>>>>> 5caa3dce9008ff117281a41908376e5ea45180e6
