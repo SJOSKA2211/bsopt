@@ -45,5 +45,5 @@ test('PortfolioSummary displays values correctly', async () => {
   expect(await screen.findByText(/125,000\.50/)).toBeInTheDocument();
   expect(await screen.findByText(/1,200\.25/)).toBeInTheDocument();
   expect(await screen.findByText(/0\.97%/)).toBeInTheDocument();
-  expect(await screen.findByText(/12 Positions/)).toBeInTheDocument();
+  expect(await screen.findByText(/12\s*UNITS/)).toBeInTheDocument();
 });

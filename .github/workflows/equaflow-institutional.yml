@@ -10,7 +10,7 @@ on:
 env:
   REGISTRY: ghcr.io
   PYTHON_VERSION: "3.12"
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
 
 jobs:
   static-analysis:
@@ -70,6 +70,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'src/frontend/package-lock.json'
 
       - name: Frontend Tests
         if: matrix.layer == 'frontend'
@@ -90,7 +92,7 @@ jobs:
 
       - name: Build API Container (Institutional)
         run: |
-          docker build -t equaflow/api:${{ github.sha }} -f docker/Dockerfile.api .
+          docker build -t equaflow/api:${{ github.sha }} -f Dockerfile .
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@master
