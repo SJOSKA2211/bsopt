@@ -8,6 +8,7 @@ import {
   ListItem, 
   ListItemIcon, 
   ListItemText,
+  Tooltip,
   Typography,
   alpha,
   useMediaQuery,
@@ -177,9 +178,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <div className="h-[64px] px-6 flex items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-4">
               {isMobile && (
-                <IconButton onClick={() => setMobileOpen(true)} className="!text-white">
-                  <MenuIcon />
-                </IconButton>
+                <Tooltip title="Open menu">
+                  <IconButton aria-label="Open menu" onClick={() => setMobileOpen(true)} className="!text-white">
+                    <MenuIcon />
+                  </IconButton>
+                </Tooltip>
               )}
               <div className="flex items-center gap-2">
                  <div className="status-pill bg-white/5 border border-white/5 px-2 py-0.5">
@@ -191,12 +194,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
 
             <div className="flex items-center gap-1">
-               <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                  <NotifIcon sx={{ fontSize: 20 }} />
-               </IconButton>
-               <IconButton className="!text-white/40 hover:!text-white transition-colors">
-                  <LogoutIcon sx={{ fontSize: 20 }} />
-               </IconButton>
+               <Tooltip title="Notifications">
+                 <IconButton aria-label="Notifications" className="!text-white/40 hover:!text-white transition-colors">
+                    <NotifIcon sx={{ fontSize: 20 }} />
+                 </IconButton>
+               </Tooltip>
+               <Tooltip title="Logout">
+                 <IconButton aria-label="Logout" className="!text-white/40 hover:!text-white transition-colors">
+                    <LogoutIcon sx={{ fontSize: 20 }} />
+                 </IconButton>
+               </Tooltip>
             </div>
           </div>
           <TickerTape />
