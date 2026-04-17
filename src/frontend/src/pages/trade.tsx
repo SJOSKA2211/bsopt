@@ -42,10 +42,12 @@ const TradePage = () => {
   const [orderType, setOrderType] = useState<string>('market');
 
   // Fetch portfolios using GraphQL hook
-  const { data: portfolioListData, loading: portfoliosLoading, error: portfoliosError, refetch: refetchPortfolios } = useFetchDataGQL<any>(GET_PORTFOLIOS_FOR_TRADES);
+  const { data: portfolioListData, loading: portfoliosLoading, error: portfoliosError, refetch: refetchPortfolios } = useQuery(GET_PORTFOLIOS_FOR_TRADES);
 
   // Mutation hook for creating trades
-  const { mutate: createTrade, data: createdTradeData, loading: creatingTrade, error: createTradeError } = useMutateDataGQL<any>(CREATE_TRADE_MUTATION);
+  const [createTradeMutation, { data: createdTradeData, loading: creatingTrade, error: createTradeError }] = useMutation(CREATE_TRADE_MUTATION, {
+      refetchQueries: [{ query: GET_PORTFOLIOS_FOR_TRADES }], // Refetch portfolio list after trade, or use a specific trade list query
+  });
 
   const portfolios = portfolioListData?.portfolios || [];
 
@@ -71,7 +73,7 @@ const TradePage = () => {
         orderType
       };
       
-      const response = await createTrade({
+      const response = await createTradeMutation({
         variables: { 
           portfolioId: selectedPortfolioId, 
           symbol, 
@@ -80,9 +82,8 @@ const TradePage = () => {
           side, 
           orderType 
         },
-        refetchQueries: [{ query: GET_PORTFOLIOS_FOR_TRADES }], // Refetch portfolio list on trade submission (optional)
       });
-      alert(`Trade submitted successfully! ID: ${response.createTrade.id}`);
+      alert(`Trade submitted successfully! ID: ${response.data.createTrade.id}`);
       // Reset form or navigate away
       setSymbol('');
       setQuantity(0);
@@ -94,19 +95,20 @@ const TradePage = () => {
   };
 
   if (portfoliosLoading) return <p>Loading portfolios...</p>;
-  if (portfoliosError) return <p>Error loading portfolios: {portfoliosError}</p>;
+  if (portfoliosError) return <p>Error loading portfolios: {portfoliosError.message}</p>;
 
   return (
-    <div>
-      <h1>Trade Execution</h1>
+    <div className="container mx-auto p-6 bg-bento-bg text-white min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">Trade Execution</h1>
 
       {/* Portfolio Selection */}
-      <div>
-        <label htmlFor="portfolio-select">Select Portfolio:</label>
+      <div className="mb-8 p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
+        <label htmlFor="portfolio-select" className="block text-lg font-semibold mb-3">Select Portfolio:</label>
         <select
           id="portfolio-select"
           value={selectedPortfolioId}
           onChange={(e) => setSelectedPortfolioId(e.target.value)}
+          className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint w-full"
         >
           {portfolios.map((p) => (
             <option key={p.id} value={p.id}>{p.name} (${p.cash.toFixed(2)})</option>
@@ -115,26 +117,50 @@ const TradePage = () => {
       </div>
 
       {/* Trade Order Form */}
-      <div>
-        <h2>New Trade Order</h2>
-        <input type="text" placeholder="Symbol (e.g., AAPL)" value={symbol} onChange={(e) => setSymbol(e.target.value)} />
-        <input type="number" placeholder="Quantity" value={quantity} onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)} />
-        <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)} />
-        
-        <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')}>
-          <option value="buy">Buy</option>
-          <option value="sell">Sell</option>
-        </select>
-        
-        <select value={orderType} onChange={(e) => setOrderType(e.target.value)}>
-          <option value="market">Market</option>
-          <option value="limit">Limit</option>
-        </select>
+      <div className="p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4">New Trade Order</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Symbol (e.g., AAPL)"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          
+          <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+          </select>
+          
+          <select value={orderType} onChange={(e) => setOrderType(e.target.value)} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+            <option value="market">Market</option>
+            <option value="limit">Limit</option>
+          </select>
+        </div>
 
-        <button onClick={handleTradeSubmit} disabled={creatingTrade}>
+        <button 
+          onClick={handleTradeSubmit} 
+          disabled={creatingTrade}
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50"
+        >
           {creatingTrade ? 'Submitting...' : 'Submit Trade'}
         </button>
-        {createTradeError && <p style={{ color: 'red' }}>Error: {createTradeError}</p>}
+        {createTradeError && <p className="text-red-500 mt-4">Error: {createTradeError.message}</p>}
       </div>
 
       {/* TODO: Display recent trades for the selected portfolio */}
