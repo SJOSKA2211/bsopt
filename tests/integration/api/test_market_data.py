@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List
 import time # For timestamping test data
+from datetime import datetime, timezone # For date comparisons
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
@@ -26,8 +27,7 @@ async def create_test_portfolio_for_market_tests(api_client: AsyncClient, auth_h
     response.raise_for_status()
     return response.json()
 
-# --- Tests ---
-
+# --- Tests for Historical Data ---
 @pytest.mark.asyncio
 async def test_get_historical_data(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests fetching historical market data via API."""
@@ -51,6 +51,12 @@ async def test_get_historical_data(api_client: AsyncClient, auth_headers: Dict[s
     assert "low" in first_point and isinstance(first_point["low"], float)
     assert "close" in first_point and isinstance(first_point["close"], float)
     assert "volume" in first_point and isinstance(first_point["volume"], int)
+    
+    # Basic date format check for the first entry
+    try:
+        datetime.strptime(first_point["date"], "%Y-%m-%d")
+    except ValueError:
+        pytest.fail("Date format is incorrect in historical data")
 
 async def test_get_historical_data_invalid_date(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests fetching historical data with invalid date format."""
@@ -72,11 +78,12 @@ async def test_get_historical_data_no_data(api_client: AsyncClient, auth_headers
     assert response.status_code == 200
     assert response.json() == [] # Expect an empty list when no data is found
 
+# --- Tests for Risk Metrics ---
 @pytest.mark.asyncio
 async def test_get_portfolio_risk_metrics(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
     """Tests retrieving risk metrics for a portfolio."""
     # Create a portfolio first
-    portfolio = await create_test_portfolio_for_trades(api_client, auth_headers)
+    portfolio = await create_test_portfolio_for_market_tests(api_client, auth_headers)
     portfolio_id = portfolio["id"]
     
     response = await api_client.get(f"/api/v1/market/risk/{portfolio_id}", headers=auth_headers)
@@ -86,10 +93,15 @@ async def test_get_portfolio_risk_metrics(api_client: AsyncClient, auth_headers:
     
     assert risk_metrics["portfolio_id"] == portfolio_id
     assert "greeks" in risk_metrics
-    assert "delta" in risk_metrics["greeks"]
-    assert "gamma" in risk_metrics["greeks"]
-    assert "var_99_1_day" in risk_metrics
+    assert "delta" in risk_metrics["greeks"] and isinstance(risk_metrics["greeks"]["delta"], float)
+    assert "gamma" in risk_metrics["greeks"] and isinstance(risk_metrics["greeks"]["gamma"], float)
+    assert "var_99_1_day" in risk_metrics and isinstance(risk_metrics["var_99_1_day"], float)
     assert "timestamp" in risk_metrics
+    try:
+        datetime.strptime(risk_metrics["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ") # Check ISO format
+    except ValueError:
+        pytest.fail("Timestamp format is incorrect")
+
 
 async def test_get_risk_metrics_portfolio_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests retrieving risk metrics for a non-existent portfolio."""
@@ -98,6 +110,7 @@ async def test_get_risk_metrics_portfolio_not_found(api_client: AsyncClient, aut
     assert response.status_code == 404
     assert response.json()["detail"] == "Portfolio not found"
 
+# --- Tests for Price Calculation ---
 @pytest.mark.asyncio
 async def test_calculate_price(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests the price calculation endpoint."""
@@ -116,24 +129,25 @@ async def test_calculate_price(api_client: AsyncClient, auth_headers: Dict[str, 
     assert result["quantity"] == 25.0
     assert result["unit_price"] == 300.50
     assert "total_price" in result
+    assert isinstance(result["total_price"], float)
     assert result["total_price"] > 0
     assert "calculation_timestamp" in result
 
 async def test_calculate_price_missing_params(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests price calculation with missing required parameters."""
     calculation_data = {"symbol": "GOOG", "quantity": 5} # Missing price
-    
     response = await api_client.post("/api/v1/market/calculate_price", json=calculation_data, headers=auth_headers)
     assert response.status_code == 400
     assert "Missing required parameters" in response.json()["detail"]
 
 async def test_calculate_price_invalid_params(api_client: AsyncClient, auth_headers: Dict[str, str]):
-    """Tests price calculation with invalid parameter types."""
+    """Tests price calculation with invalid parameter types or values."""
     calculation_data = {"symbol": "AMZN", "quantity": -5, "price": 100.0} # Negative quantity
     response = await api_client.post("/api/v1/market/calculate_price", json=calculation_data, headers=auth_headers)
     assert response.status_code == 400
     assert "Quantity must be a positive number" in response.json()["detail"]
 
+# --- Tests for Market Data Ingestion Task Trigger ---
 @pytest.mark.asyncio
 async def test_trigger_market_data_ingestion(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests triggering market data ingestion task."""
@@ -157,6 +171,7 @@ async def test_trigger_market_data_ingestion_missing_symbol(api_client: AsyncCli
     assert response.status_code == 400
     assert response.json()["detail"] == "Symbol is required for market data ingestion"
 
+# --- Tests for Current Market Prices ---
 @pytest.mark.asyncio
 async def test_get_current_market_prices(api_client: AsyncClient, auth_headers: Dict[str, str]):
     """Tests fetching current market prices for multiple symbols."""
@@ -180,3 +195,6 @@ async def test_get_current_market_prices_no_symbols(api_client: AsyncClient, aut
     response = await api_client.get("/api/v1/market/current_prices", params={}, headers=auth_headers)
     assert response.status_code == 400
     assert "At least one symbol is required" in response.json()["detail"]
+
+# Note: Additional tests could be added for edge cases, authentication failures, etc.
+# These tests assume the backend API endpoints are running and correctly configured.

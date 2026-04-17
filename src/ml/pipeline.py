@@ -2,7 +2,7 @@
 # This module will orchestrate ML model inference and training workflows.
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 import random
 import time # For simulating delays
@@ -14,8 +14,13 @@ logger = logging.getLogger(__name__)
 class MLPipeline:
     def __init__(self):
         logger.info("MLPipeline initialized.")
-        self.active_models = {} # In-memory store for active models {model_id: {version, status, deploy_info}}
-        self.training_jobs = {} # In-memory store for training jobs {job_id: {model_id, status, progress}}
+        # In a real application, this might load model registry configurations or initialize clients.
+        # For simulation purposes, we can initialize some dummy models.
+        self.available_models = {
+            "model_abc": {"version": "1.0.0", "status": "deployed", "target_env": "production"},
+            "model_xyz": {"version": "2.1.0", "status": "deployed", "target_env": "staging"},
+        }
+        self.training_jobs = {} # Store details about ongoing or recently triggered training jobs
         pass
 
     def predict(self, model_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -31,6 +36,7 @@ class MLPipeline:
 
         try:
             input_hash = hash(str(data.get("input_value", ""))) if "input_value" in data else hash("default_input")
+            # Simulate prediction value based on model ID and input hash
             prediction_value = (hash(model_id) % 1000 + input_hash % 500) / 10.0
             confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
         except TypeError: 
@@ -51,12 +57,11 @@ class MLPipeline:
         """
         Triggers ML model training by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing and simulating basic training parameters.
+        Includes simulated ETA.
         """
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
         
         try:
-            # Enqueue the Celery task
-            # In a real system, this might involve saving training job details to DB first.
             trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
             training_info = {
                 "message": "ML training task enqueued successfully",
@@ -79,7 +84,6 @@ class MLPipeline:
         """
         logger.info(f"Triggering deployment for model {model_id} version {version} to {target_environment}")
         
-        # Simulate deployment status updates or checks
         deployment_status = "queued"
         try:
             deploy_ml_model_task.delay(model_id=model_id, version=version, target_environment=target_environment)
@@ -88,8 +92,6 @@ class MLPipeline:
             logger.error(f"Failed to enqueue ML model deployment task for model {model_id}: {e}")
             status_message = f"Failed to enqueue deployment task: {e}"
             deployment_status = "failed_to_enqueue"
-            # Raise runtime error or handle appropriately
-            # raise RuntimeError(f"Failed to enqueue deployment task: {e}") from e
 
         deployment_info = {
             "message": status_message,

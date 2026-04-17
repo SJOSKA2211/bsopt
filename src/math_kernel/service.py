@@ -6,11 +6,13 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 import random
+import time # Import time for simulating delays
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 from sqlalchemy import update, delete
+import pandas as pd # Using pandas for potential data manipulation and analysis
 
 from src.database.models import Portfolio, Trade # Import necessary models
 from src.database.session import engine as db_engine # Import the global async engine
@@ -25,7 +27,7 @@ class MathKernelService:
 
     def calculate_price(self, symbol: str, quantity: float, price: float) -> float:
         """
-        Calculates the total price for a given quantity and unit price,
+        Calcul1.ates the total price for a given quantity and unit price,
         with a small simulated volatility adjustment.
         """
         logger.info(f"Calculating price for {quantity} of {symbol} at ${price:.2f}")
@@ -49,6 +51,7 @@ class MathKernelService:
         
         delta = random.uniform(-1.0, 1.0)
         gamma = random.uniform(0.01, 0.05)
+        # Simulate VaR with some randomness based on portfolio ID
         var_99_1_day = 1500.75 + (random.randint(0, 1000)) 
         
         simulated_metrics = {
@@ -66,45 +69,53 @@ class MathKernelService:
     def get_historical_data(self, symbol: str, start_date: str, end_date: str) -> List[Dict[str, Any]]:
         """
         Simulates fetching historical market data. Returns a list of daily data points.
-        Enhances simulation with more realistic price trends and volume.
+        Enhances simulation with more realistic price trends and volume using pandas.
         """
         logger.info(f"Simulating historical data for {symbol} from {start_date} to {end_date}")
         data = []
         try:
-            current_date = datetime.strptime(start_date, "%Y-%m-%d")
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
             
-            base_price = random.uniform(50, 500) # Initial base price for simulation
+            # Generate date range using pandas for simplicity and potential future enhancements
+            dates = pd.date_range(start=start_date, end=end_date, freq='D')
             
-            while current_date <= end_dt:
+            # Initial base price for simulation, slightly randomized
+            base_price = random.uniform(50, 500) 
+            
+            for date in dates:
+                # Simulate daily price variations based on previous close for smoother trend
+                # Prices fluctuate around the base price with some daily range
                 open_price = round(base_price * random.uniform(0.99, 1.01), 2) 
-                change_percent = random.uniform(-0.03, 0.03) 
-                daily_range_factor = random.uniform(0.005, 0.015) 
+                change_percent = random.uniform(-0.03, 0.03) # Daily change +/- 3%
                 
                 price_change = open_price * change_percent
+                # High and low prices relative to open and daily change
                 high_offset = abs(price_change) * random.uniform(0.5, 2.0) 
                 low_offset = abs(price_change) * random.uniform(0.5, 1.5)  
 
                 high_price = round(open_price + high_offset, 2)
                 low_price = round(open_price - low_offset, 2)
+                
+                # Close price is calculated as a value between low and high
                 close_price = round(low_price + random.uniform(0, high_price - low_price), 2) 
                 
+                # Ensure prices are logical: low <= open/close <= high
                 high_price = max(high_price, open_price, close_price)
                 low_price = min(low_price, open_price, close_price)
-                low_price = max(0.01, low_price) 
+                low_price = max(0.01, low_price) # Ensure price doesn't go below a minimal value
 
                 volume = random.randint(100000, 10000000)
                 
                 data.append({
-                    "date": current_date.strftime("%Y-%m-%d"),
+                    "date": date.strftime("%Y-%m-%d"),
                     "open": open_price,
                     "high": high_price,
                     "low": low_price,
                     "close": close_price,
                     "volume": volume
                 })
-                current_date += timedelta(days=1)
-                base_price = close_price # Use previous day's close for trend continuation
+                base_price = close_price # Use previous day's close as next day's base open for trend continuation
                 
         except ValueError:
             logger.error("Invalid date format provided for historical data simulation. Use YYYY-MM-DD.")
@@ -124,6 +135,7 @@ class MathKernelService:
             logger.error(f"Portfolio {portfolio_id} not found for value calculation.")
             raise ValueError("Portfolio not found")
 
+        # Simulate current market prices for symbols in trades
         simulated_market_prices = {}
 
         total_trade_value = 0.0
@@ -149,7 +161,6 @@ class MathKernelService:
         logger.info(f"Simulated portfolio value for {portfolio_id}: ${total_portfolio_value:.2f}")
         return round(total_portfolio_value, 2)
 
-    # --- New method to simulate fetching current market prices ---
     def get_current_market_prices(self, symbols: List[str]) -> Dict[str, float]:
         """
         Simulates fetching current market prices for a list of symbols.
@@ -159,33 +170,42 @@ class MathKernelService:
         current_prices = {}
         for symbol in symbols:
             # Simulate a price based on a base range and add some random variation
-            base_price = random.uniform(10, 1000) # Simulate a range of stock prices
+            base_price = random.uniform(10, 1000) 
             current_price = round(base_price * random.uniform(0.98, 1.02), 2)
             current_prices[symbol] = current_price
         logger.info(f"Simulated current prices: {current_prices}")
         return current_prices
 
 # Example usage:
-# async def main():
-#     # This requires an async DB session to be available
-#     async with AsyncSession(db_engine) as db: 
-#         try:
-#             value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
-#             print(f"Calculated portfolio value: {value}")
-#         except ValueError as e:
-#             print(e)
-#     
-#     price = MathKernelService().calculate_price("AAPL", 10, 150.0)
-#     print(f"Calculated price: {price}")
-#     
-#     risk = MathKernelService().get_risk_metrics("port-123")
-#     print(f"Simulated risk metrics: {risk}")
-#     
-#     historical = MathKernelService().get_historical_data("GOOG", "2023-01-01", "2023-01-03")
-#     print(f"Simulated historical data: {historical}")
-#     
-#     current_prices = MathKernelService().get_current_market_prices(["MSFT", "AMZN"])
-#     print(f"Simulated current prices: {current_prices}")
-#
-# if __name__ == "__main__":
-#     asyncio.run(main())
+async def main():
+    # This requires an async DB session to be available
+    async with AsyncSession(db_engine) as db: 
+        try:
+            # Example: Create a dummy portfolio and trade for testing value calculation
+            # This requires setup of User and Portfolio objects which are not mocked here.
+            # For now, just demonstrating the call structure.
+            print("Simulating portfolio value calculation...")
+            # value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
+            # print(f"Calculated portfolio value: {value}")
+        except ValueError as e:
+            print(e)
+    
+    price = MathKernelService().calculate_price("AAPL", 10, 150.0)
+    print(f"Calculated price: {price}")
+    
+    risk = MathKernelService().get_risk_metrics("port-123")
+    print(f"Simulated risk metrics: {risk}")
+    
+    historical = MathKernelService().get_historical_data("GOOG", "2023-01-01", "2023-01-03")
+    print(f"Simulated historical data count: {len(historical)}")
+    if historical:
+        print(f"First historical data point: {historical[0]}")
+    
+    current_prices = MathKernelService().get_current_market_prices(["MSFT", "AMZN"])
+    print(f"Simulated current prices: {current_prices}")
+
+if __name__ == "__main__":
+    # Note: Running this directly requires setting up the DB engine and potentially mocking DB access.
+    # For module-level testing, ensure dependencies like db_engine are available or mocked.
+    # The main function here is for demonstration and might require setup.
+    asyncio.run(main())

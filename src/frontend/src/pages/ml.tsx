@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-// Import Apollo Client hooks and gql tag
-import { gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client'; // Import GraphQL hooks
+import { ApolloError } from '@apollo/client'; // Import ApolloError for specific error handling
 
 // Import custom GraphQL hooks
 import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; // Import the GraphQL hooks
 
 // --- GraphQL Queries and Mutations ---
-// Query to fetch ML models
 const GET_ML_MODELS_QUERY = gql`
   query GetMlModels {
-    mlModels { 
+    mlModels { # Assuming a 'mlModels' query exists
       id
       name
       version
@@ -19,7 +18,6 @@ const GET_ML_MODELS_QUERY = gql`
   }
 `;
 
-// Mutation to create an ML model
 const CREATE_ML_MODEL_MUTATION = gql`
   mutation CreateMLModel($name: String!, $version: String!, $description: String, $isActive: Boolean) {
     createMlModel(name: $name, version: $version, description: $description, isActive: $isActive) { 
@@ -32,7 +30,6 @@ const CREATE_ML_MODEL_MUTATION = gql`
   }
 `;
 
-// Mutation to trigger ML model prediction
 const PREDICT_ML_MODEL_MUTATION = gql`
   mutation PredictMLModel($modelId: String!, $data: JSONObject!) { 
     predict(modelId: $modelId, data: $data) {
@@ -44,7 +41,6 @@ const PREDICT_ML_MODEL_MUTATION = gql`
   }
 `;
 
-// Mutation to trigger ML model training
 const TRAIN_ML_MODEL_MUTATION = gql`
   mutation TriggerTraining($modelId: String!, $trainingParams: TrainingParamsInput!) { 
     triggerTraining(modelId: $modelId, trainingParams: $trainingParams) {
@@ -56,7 +52,6 @@ const TRAIN_ML_MODEL_MUTATION = gql`
   }
 `;
 
-// Mutation to trigger ML model deployment
 const DEPLOY_ML_MODEL_MUTATION = gql`
   mutation DeployMLModel($modelId: String!, $deploymentParams: DeploymentParamsInput!) { 
     deployModel(modelId: $modelId, deploymentParams: $deploymentParams) {
@@ -92,6 +87,7 @@ const MLPage = () => {
   const [deployEnv, setDeployEnv] = useState<string>('staging');
 
   // Fetch active ML models using GraphQL hook
+  // Corrected query name and adapted data access
   const { data: mlModelsData, loading: modelsLoading, error: modelsError, refetch: refetchModels } = useFetchDataGQL<any>(GET_ML_MODELS_QUERY);
 
   // Mutations
@@ -100,9 +96,8 @@ const MLPage = () => {
   const [triggerTraining, { loading: training, error: trainingError }] = useMutateDataGQL<any>(TRAIN_ML_MODEL_MUTATION);
   const [deployModel, { loading: deploying, error: deployError }] = useMutateDataGQL<any>(DEPLOY_ML_MODEL_MUTATION);
 
-  const models = mlModelsData?.mlModels || [];
+  const models = mlModelsData?.mlModels || []; // Accessing data based on query structure
 
-  // Effect to auto-select the first model if available
   useEffect(() => {
     if (models && models.length > 0 && !selectedModelId) {
       setSelectedModelId(models[0].id); 
@@ -117,7 +112,7 @@ const MLPage = () => {
       return;
     }
     try {
-      await createModel({
+      const response = await createModel({
         variables: { name: newModelName, version: newModelVersion, description: newModelDescription, isActive: true },
       });
       alert(`Model "${newModelName} v${newModelVersion}" created successfully!`);
@@ -140,6 +135,7 @@ const MLPage = () => {
       const response = await predict({
         variables: { modelId: selectedModelId, data: { inputValue: parseFloat(predictionInput) } }, 
       });
+      // Assuming the prediction result structure matches the schema
       alert(`Prediction: ${response.data.predict.prediction} (Confidence: ${response.data.predict.confidence})`);
     } catch (err: any) {
       console.error("Failed to predict:", err);
@@ -212,7 +208,7 @@ const MLPage = () => {
         <button 
           onClick={handleCreateModel} 
           disabled={!newModelName || !newModelVersion || creatingModel}
-          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50"
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 transition-colors duration-200"
         >
           {creatingModel ? 'Creating...' : 'Add ML Model'}
         </button>
@@ -323,12 +319,12 @@ const MLPage = () => {
           </select>
           <button 
             onClick={handleDeployModel} 
-            disabled={/* deploy loading state if available */}
+            disabled={deploying}
             className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:opacity-50 ml-4"
           >
-            Deploy Model
+            {deploying ? 'Deploying...' : 'Deploy Model'}
           </button>
-          {/* Add error handling for deployment */}
+          {deployError && <p className="text-red-500 mt-4">Error: {deployError.message}</p>}
         </div>
       )}
     </div>

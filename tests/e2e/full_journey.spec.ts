@@ -268,11 +268,9 @@ test.describe("Manifold Full Journey", () => {
       const response = await request.get(`${API_URL}/ml/models`); 
       expect(response.ok()).toBeTruthy();
     });
-
+    
     test("should verify Market Data service health", async ({ request }) => {
         const response = await request.get(`${API_URL}/market/historical?symbol=TEST&startDate=2023-01-01&endDate=2023-01-01`);
-        // Expecting success or potentially a specific health check endpoint if available
-        // For now, checking if the endpoint is reachable and returns some response
         expect(response.ok()).toBeTruthy(); 
     });
   });
