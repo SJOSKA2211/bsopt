@@ -40,6 +40,16 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   writable: true
 });
 
+// Mock IntersectionObserver for Framer Motion and other components
+Object.defineProperty(globalThis, 'IntersectionObserver', {
+  value: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+  writable: true
+});
+
 // Mock Worker for WASM-based pricing
 Object.defineProperty(globalThis, 'Worker', {
   value: class {
