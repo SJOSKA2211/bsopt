@@ -678,4 +678,3 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             )
 
         return cast(Response, await call_next(request))
-        return cast(Response, await call_next(request))

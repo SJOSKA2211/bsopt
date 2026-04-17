@@ -100,4 +100,3 @@ async def list_users(
             has_prev=page > 1,
         ),
     )
-    )

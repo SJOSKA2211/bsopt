@@ -13,6 +13,11 @@ class ProtocolType(StrEnum):
 
 
 class WebSocketCodec:
+    """
+    Ultra-high-performance codec for multi-protocol serialization.
+    FUSED: Uses msgspec for binary speed.
+    """
+
     _msgpack_encoder = msgspec.msgpack.Encoder()
     _msgpack_decoder = msgspec.msgpack.Decoder()
     _json_encoder = msgspec.json.Encoder()
@@ -29,6 +34,7 @@ class WebSocketCodec:
         if protocol == ProtocolType.PROTO:
             if not isinstance(data, Message):
                 raise ValueError("Data must be a Protobuf Message for PROTO protocol")
+            # Explicitly cast to bytes to satisfy mypy
             return cast(bytes, data.SerializeToString())
         raise ValueError(f"Unsupported protocol: {protocol}")
 
@@ -37,11 +43,13 @@ class WebSocketCodec:
         if protocol == ProtocolType.JSON:
             return WebSocketCodec._json_decoder.decode(data)
 
+        # Binary protocols require bytes
         binary_data = data.encode() if isinstance(data, str) else data
 
         if protocol == ProtocolType.MSGPACK:
             return WebSocketCodec._msgpack_decoder.decode(binary_data)
         if protocol == ProtocolType.PROTO:
+            # High-performance binary decoding
             if message_type is None:
                 raise ValueError("message_type required for PROTO decoding")
             message = message_type()

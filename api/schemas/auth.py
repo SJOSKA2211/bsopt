@@ -313,4 +313,3 @@ class WebAuthnAuthenticationVerificationRequest(BaseModel):
     )
     challenge: str = Field(..., description="The original challenge sent to the client")
     email: EmailStr = Field(..., description="User email for lookup")
-    email: EmailStr = Field(..., description="User email for lookup")

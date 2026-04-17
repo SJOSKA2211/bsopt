@@ -142,4 +142,3 @@ class YahooProvider:
         except Exception as e:
             logger.error("yahoo_search_failed", query=query, error=str(e))
             return []
-            return []

@@ -1,93 +1,75 @@
-# .dockerignore - Aggressive BuildKit Optimization (v4.0)
-# Optimized for pure CPU/Alpine distribution
-
-# --- Version Control ---
+# === Version Control ===
 .git
 .gitignore
 .github
-.git-rewrite
-.jules
-.omg
 
-# --- Environments & Secrets ---
+# === Environments ===
 .env
 .env.*
 !.env.example
 .venv
 venv
 env
-.pki
-.agent
-.agents
-AGENTS.md
-SESSION_SUMMARY.md
-DIGITAL_CERTIFICATE.md
-PRODUCTION_HANDOVER.md
 
-# --- Python & Cache ---
-__pycache__/
+# === Python ===
+__pycache__
 *.pyc
 *.pyo
 *.pyd
-*.egg-info/
+*.egg-info
 .db
-.ipynb_checkpoints/
-.pytest_cache/
-.mypy_cache/
-.hypothesis/
-.ruff_cache/
+.ipynb_checkpoints
+.pytest_cache
+.mypy_cache
+.hypothesis
 lightning_logs/
 mlruns/
-models/*.onnx
-models/*.pt
-models/*.pth
-models/*.joblib
-build/
-dist/
+models/
 
-# --- Development Tools ---
-.vscode/
-.idea/
-.devcontainer/
+# === Development Tools ===
+.vscode
+.idea
+.devcontainer
 .dockerignore
+Dockerfile*
+docker-compose*
 Makefile
-DOCKER_DEV_GUIDE.md
+# README.md
+LICENSE
 Jenkinsfile
-alembic.ini
-pytest.ini
-# uv.lock is required for builds
-!uv.lock
+deploy.sh
+DOCKER_DEV_GUIDE.md
 
-# --- Docs & Reports ---
+# === Docs ===
 docs/
-*.md
-!README.md
 audit_report.md
 coverage_report.txt
 coverage.xml
 ml_unit_report*.txt
 ps_output.txt
-api_log.txt
-api_output.txt
-api_test_output.txt
-auth_output.txt
-collection_debug.txt
 
-# --- Frontend Node Modules (Large) ---
-node_modules/
-src/frontend/node_modules/
-src/frontend/dist/
-src/frontend/playwright-report/
-src/frontend/test-results/
-
-# --- Infrastructure Exceptions ---
-# We MUST allow nginx and other config files
-!infrastructure/nginx/frontend.conf
-!infrastructure/nginx/nginx.conf
-!init-scripts/
-
-# --- Logs ---
+# === Sessions & Backups ===
+sessions/
+backups/
+tickets/
+.gemini/
+.gemini_security/
+# === Infrastructure (allow configs) ===
+# infrastructure/  (removed to allow configs)
+infrastructure/**/
+init-scripts/
 logs/
-*.log
-api.pid
-auth_server.pid
+monitoring/
+protos/
+ref0003/
+scripts/
+src/frontend/node_modules/
+src/auth-service/node_modules/
+src/gateway/node_modules/
+.ruff_cache
+
+# === Whitelists (Must be at the end) ===
+!infrastructure/configs/
+!infrastructure/orchestration/
+!infrastructure/requirements/
+!infrastructure/scripts/

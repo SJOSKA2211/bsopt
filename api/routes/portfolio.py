@@ -176,4 +176,3 @@ async def delete_position(
     await db.commit()
 
     return SuccessResponse(message="Position purged from manifold")
-    return SuccessResponse(message="Position purged from manifold")

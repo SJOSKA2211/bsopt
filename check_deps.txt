@@ -1,0 +1,3 @@
+".venv/lib/python3.14/site-packages/fastapi*": No such file or directory (os error 2)
+".venv/lib/python3.14/site-packages/msgspec*": No such file or directory (os error 2)
+".venv/lib/python3.14/site-packages/structlog*": No such file or directory (os error 2)

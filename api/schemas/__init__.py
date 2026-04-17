@@ -1,3 +1,13 @@
+"""
+API Schemas
+
+Pydantic models for request/response validation:
+- Authentication schemas
+- User management schemas
+- Pricing schemas
+- Error responses
+"""
+
 from .auth import (
     LoginRequest,
     LoginResponse,
@@ -32,6 +42,7 @@ from .user import (
 )
 
 __all__ = [
+    # Auth
     "LoginRequest",
     "LoginResponse",
     "RegisterRequest",
@@ -43,15 +54,18 @@ __all__ = [
     "PasswordChangeRequest",
     "MFASetupResponse",
     "MFAVerifyRequest",
+    # User
     "UserResponse",
     "UserUpdateRequest",
     "UserListResponse",
+    # Pricing
     "PriceRequest",
     "PriceResponse",
     "BatchPriceRequest",
     "BatchPriceResponse",
     "GreeksRequest",
     "GreeksResponse",
+    # Common
     "ErrorResponse",
     "SuccessResponse",
     "PaginatedResponse",

@@ -40,4 +40,3 @@ async def get_vol_surface(
         slices = [VolatilitySlice(strike=100.0, implied_vol=0.2)]
 
     return VolatilitySurface(underlying=str(underlying), slices=slices)
-    return VolatilitySurface(underlying=str(underlying), slices=slices)

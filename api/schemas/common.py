@@ -167,4 +167,3 @@ class HealthResponse(BaseModel):
     checks: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     model_config = ConfigDict(frozen=True)
-    model_config = ConfigDict(frozen=True)

@@ -225,4 +225,3 @@ class ZeroTrustMiddleware:
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
-        await self.app(scope, receive, send_wrapper)

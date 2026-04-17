@@ -14,9 +14,6 @@ from api.schemas.pricing import (
     BatchGreeksResult,
     BatchPriceRequest,
     BatchPriceResult,
-    BatchPriceResult,
-    GreeksRequest,
-    HeatmapRequest,
     GreeksRequest,
     PriceRequest,
     PriceResult,
@@ -144,11 +141,6 @@ async def calculate(
         result = None
 
     greeks_data = {}
-    if not result:
-        return _build_calculate_response(None, req, greeks_data)
-
-    greeks_raw = getattr(result, "greeks", None)
-    if greeks_raw:
     if result and getattr(result, "greeks", None):
         greeks_raw = result.greeks
         if hasattr(greeks_raw, "__dict__"):
@@ -157,22 +149,6 @@ async def calculate(
             greeks_data = greeks_raw
         greeks_data = {k: float(v) for k, v in greeks_data.items() if v is not None}
 
-    return _build_calculate_response(result, req, greeks_data)
-
-
-@router.post("/heatmap")
-@pricing_circuit
-async def calculate_heatmap(
-    request: HeatmapRequest, current_user: User = Depends(get_current_active_user)
-) -> MsgspecJSONResponse:
-    """
-    Generate multidimensional risk heatmap.
-    """
-    res = await pricing_service.generate_heatmap(request)
-    return MsgspecJSONResponse(content=res)
-
-
-def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
     # Zero-copy Struct response
     resp = CalculateResponseStruct(
         price=getattr(result, "price", 0.0) if result else 0.0,
@@ -190,5 +166,4 @@ def _build_calculate_response(result, req, greeks_data) -> MsgspecJSONResponse:
         cached=getattr(result, "cached", False) if result else False,
         timestamp=getattr(result, "timestamp", datetime.datetime.now(datetime.UTC)),
     )
-    return MsgspecJSONResponse(content=resp)
     return MsgspecJSONResponse(content=resp)

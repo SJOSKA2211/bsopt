@@ -148,4 +148,3 @@ async def get_signals(limit: int = 10, db: AsyncSession = Depends(get_async_db))
     """
     signals = await crud.get_recent_signals(db, limit)
     return DataResponseStruct(data=signals)
-    return DataResponseStruct(data=signals)

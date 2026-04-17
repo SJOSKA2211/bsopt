@@ -73,4 +73,3 @@ async def sse_market_data(request: Request, symbols: str = ""):
             await asyncio.sleep(5)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-    return StreamingResponse(event_generator(), media_type="text/event-stream")

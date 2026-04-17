@@ -67,4 +67,3 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 def get_request_id(request: Request) -> str | None:
     """Get request ID from request state."""
     return getattr(request.state, "request_id", None)
-    return getattr(request.state, "request_id", None)

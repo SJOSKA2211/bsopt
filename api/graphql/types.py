@@ -59,4 +59,3 @@ class OHLCV:
         from api.graphql.resolvers.option_service import get_option_by_id
 
         return await get_option_by_id(str(id))
-        return await get_option_by_id(str(id))

@@ -34,4 +34,3 @@ __all__ = [
     "websocket_router",
     "market_router",
 ]
-]

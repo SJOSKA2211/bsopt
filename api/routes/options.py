@@ -149,4 +149,3 @@ async def get_options_chain(
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
 
     return DataResponse(data=[], message="No option chain data found in persistence layer")
-    return DataResponse(data=[], message="No option chain data found in persistence layer")

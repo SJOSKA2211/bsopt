@@ -111,4 +111,3 @@ async def get_historical_ohlcv(
             )
 
     return results
-    return results

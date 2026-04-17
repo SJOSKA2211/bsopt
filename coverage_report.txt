@@ -1,0 +1,2281 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.3, pytest-8.4.2, pluggy-1.6.0 -- /home/kamau/bsopt/.venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/kamau/bsopt
+configfile: pytest.ini
+testpaths: tests/unit, tests/integration
+plugins: hypothesis-6.151.10, cov-7.1.0, asyncio-1.3.0, anyio-4.13.0, Faker-40.12.0, xdist-3.8.0, mock-3.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 133 items / 103 errors
+
+==================================== ERRORS ====================================
+______ ERROR collecting tests/unit/api/middleware/test_idempotency_v3.py _______
+tests/unit/api/middleware/test_idempotency_v3.py:7: in <module>
+    from api.middleware.idempotency import IdempotencyMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____ ERROR collecting tests/unit/api/middleware/test_security_middleware.py ____
+tests/unit/api/middleware/test_security_middleware.py:7: in <module>
+    from api.middleware.security import (
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_ ERROR collecting tests/unit/api/middleware/test_security_middleware_unit.py __
+tests/unit/api/middleware/test_security_middleware_unit.py:7: in <module>
+    from api.middleware.security import (
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__ ERROR collecting tests/unit/api/middleware/test_security_middleware_v2.py ___
+tests/unit/api/middleware/test_security_middleware_v2.py:6: in <module>
+    from api.middleware.security import SecurityHeadersMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/api/routes/test_auth_v3.py ____________
+tests/unit/api/routes/test_auth_v3.py:8: in <module>
+    from api.routes.auth import (
+api/routes/__init__.py:12: in <module>
+    from api.routes.auth import router as auth_router
+api/routes/auth.py:15: in <module>
+    from api.schemas.auth import (
+api/schemas/__init__.py:11: in <module>
+    from .auth import (
+api/schemas/auth.py:13: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/api/routes/test_debug_unit.py ___________
+tests/unit/api/routes/test_debug_unit.py:6: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______________ ERROR collecting tests/unit/api/test_auth_api.py _______________
+tests/unit/api/test_auth_api.py:9: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________________ ERROR collecting tests/unit/api/test_ml_api.py ________________
+tests/unit/api/test_ml_api.py:7: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/api/test_pricing_api.py ______________
+tests/unit/api/test_pricing_api.py:8: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/api/test_providers.py _______________
+tests/unit/api/test_providers.py:3: in <module>
+    from api.providers.market_data import PolygonProvider, YahooProvider
+api/providers/__init__.py:1: in <module>
+    from .market_data import PolygonProvider as PolygonProvider
+api/providers/market_data.py:3: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/api/test_security_v3.py ______________
+tests/unit/api/test_security_v3.py:6: in <module>
+    from api.middleware.security import (
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/api/test_users_api.py _______________
+tests/unit/api/test_users_api.py:9: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/api/test_users_security_repro.py _________
+tests/unit/api/test_users_security_repro.py:8: in <module>
+    from api.index import app
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________________ ERROR collecting tests/unit/auth/test_auth.py _________________
+tests/unit/auth/test_auth.py:10: in <module>
+    from src.database.models import User
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/auth/test_auth_refinement.py ___________
+tests/unit/auth/test_auth_refinement.py:5: in <module>
+    from src.auth.auth import AuthService
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/config/test_core_config.py ____________
+tests/unit/config/test_core_config.py:8: in <module>
+    import src.shared.config
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/config/test_security_config.py __________
+tests/unit/config/test_security_config.py:4: in <module>
+    from src.shared.config import _DEFAULT_MFA_KEY_SEED, Settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/database/test_crud.py _______________
+tests/unit/database/test_crud.py:8: in <module>
+    from src.database.crud import (
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______ ERROR collecting tests/unit/database/test_crud_comprehensive.py ________
+tests/unit/database/test_crud_comprehensive.py:10: in <module>
+    from src.database import crud
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/database/test_crud_optimized.py __________
+tests/unit/database/test_crud_optimized.py:8: in <module>
+    from src.database import crud
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/database/test_crud_unit.py ____________
+tests/unit/database/test_crud_unit.py:8: in <module>
+    from src.database.crud import (
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/database/test_crud_v3.py _____________
+tests/unit/database/test_crud_v3.py:8: in <module>
+    from src.database import crud
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/database/test_models.py ______________
+tests/unit/database/test_models.py:3: in <module>
+    from src.database.models import MarketTick, OptionPrice, User
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/database/test_verify.py ______________
+tests/unit/database/test_verify.py:3: in <module>
+    from src.database.verify import verify_connection
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/ingestion/test_mesh_publisher.py _________
+tests/unit/ingestion/test_mesh_publisher.py:5: in <module>
+    from src.ingestion.mesh_publisher import MarketMeshPublisher
+src/ingestion/mesh_publisher.py:11: in <module>
+    from src.shared.rabbitmq import get_rabbitmq
+src/shared/rabbitmq.py:11: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/ml/forecasting/test_tft_model.py _________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/forecasting/test_tft_model.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/forecasting/test_tft_model.py:7: in <module>
+    from src.ml.forecasting.tft_model import PriceTFTModel
+src/ml/forecasting/tft_model.py:3: in <module>
+    import lightning.pytorch as pl
+E   ModuleNotFoundError: No module named 'lightning'
+________ ERROR collecting tests/unit/ml/forecasting/test_tft_predict.py ________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/forecasting/test_tft_predict.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/forecasting/test_tft_predict.py:3: in <module>
+    from src.ml.forecasting.tft_model import PriceTFTModel
+src/ml/forecasting/tft_model.py:3: in <module>
+    import lightning.pytorch as pl
+E   ModuleNotFoundError: No module named 'lightning'
+_________ ERROR collecting tests/unit/ml/pipelines/test_retraining.py __________
+tests/unit/ml/pipelines/test_retraining.py:5: in <module>
+    from src.ml.pipelines.retraining import NeuralGreeksRetrainer
+src/ml/pipelines/retraining.py:11: in <module>
+    from src.ml.aiops.data_drift_detector import DataDriftDetector
+src/ml/aiops/data_drift_detector.py:11: in <module>
+    from src.ml.drift import calculate_ks_test, calculate_psi
+src/ml/drift.py:8: in <module>
+    from src.shared.observability import PERFORMANCE_DRIFT_ALERT
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/ml/serving/test_quantization.py __________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/serving/test_quantization.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/serving/test_quantization.py:4: in <module>
+    import torch
+E   ModuleNotFoundError: No module named 'torch'
+__________ ERROR collecting tests/unit/ml/test_autonomous_pipeline.py __________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/test_autonomous_pipeline.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/test_autonomous_pipeline.py:7: in <module>
+    from src.ml.autonomous_pipeline import AutonomousMLPipeline
+src/ml/autonomous_pipeline.py:1: in <module>
+    from src.ml.pipeline import MLPipeline as AutonomousMLPipeline
+src/ml/pipeline.py:3: in <module>
+    import mlflow
+E   ModuleNotFoundError: No module named 'mlflow'
+________________ ERROR collecting tests/unit/ml/test_rl_gnn.py _________________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/test_rl_gnn.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/test_rl_gnn.py:5: in <module>
+    import torch
+E   ModuleNotFoundError: No module named 'torch'
+___________ ERROR collecting tests/unit/ml/test_scraper_extended.py ____________
+tests/unit/ml/test_scraper_extended.py:5: in <module>
+    from src.ml.scraper import MarketDataScraper
+src/ml/scraper.py:10: in <module>
+    from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________________ ERROR collecting tests/unit/ml/test_serving.py ________________
+tests/unit/ml/test_serving.py:13: in <module>
+    from api.schemas.ml import InferenceRequest
+api/schemas/__init__.py:11: in <module>
+    from .auth import (
+api/schemas/auth.py:13: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/ml/test_trading_env_v3.py _____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/test_trading_env_v3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/test_trading_env_v3.py:5: in <module>
+    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+src/ml/reinforcement_learning/trading_env.py:4: in <module>
+    import gymnasium as gym
+E   ModuleNotFoundError: No module named 'gymnasium'
+___________ ERROR collecting tests/unit/ml/test_trainer_extended.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/test_trainer_extended.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/test_trainer_extended.py:6: in <module>
+    from src.ml.trainer import ModelTrainer
+src/ml/trainer.py:3: in <module>
+    import mlflow
+E   ModuleNotFoundError: No module named 'mlflow'
+____________ ERROR collecting tests/unit/ml/test_trainer_phase5.py _____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/ml/test_trainer_phase5.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/ml/test_trainer_phase5.py:13: in <module>
+    from src.ml.trainer import ModelTrainer
+src/ml/trainer.py:7: in <module>
+    import xgboost as xgb
+E   ModuleNotFoundError: No module named 'xgboost'
+_____ ERROR collecting tests/unit/pricing/calibration/test_calibration.py ______
+tests/unit/pricing/calibration/test_calibration.py:4: in <module>
+    from src.math_kernel.calibration.engine import HestonCalibrator, MarketOption
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/pricing/test_arbiter.py ______________
+tests/unit/pricing/test_arbiter.py:4: in <module>
+    from src.math_kernel.arbiter import EngineArbiter, PricingModel, PricingRequest
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/pricing/test_exotic.py ______________
+tests/unit/pricing/test_exotic.py:4: in <module>
+    from src.math_kernel.exotic import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/pricing/test_factory.py ______________
+tests/unit/pricing/test_factory.py:6: in <module>
+    from src.math_kernel.factory import PricingEngineFactory, PricingEngineNotFound
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________ ERROR collecting tests/unit/pricing/test_finite_difference.py _________
+tests/unit/pricing/test_finite_difference.py:3: in <module>
+    from src.math_kernel.finite_difference import CrankNicolsonSolver
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/pricing/test_implied_vol.py ____________
+tests/unit/pricing/test_implied_vol.py:5: in <module>
+    from src.math_kernel.implied_vol import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/pricing/test_lattice.py ______________
+tests/unit/pricing/test_lattice.py:3: in <module>
+    from src.math_kernel.lattice import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/pricing/test_monte_carlo.py ____________
+tests/unit/pricing/test_monte_carlo.py:6: in <module>
+    from src.math_kernel.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/pricing/test_quant_utils.py ____________
+tests/unit/pricing/test_quant_utils.py:4: in <module>
+    from src.math_kernel.quant_utils import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/pricing/test_quant_utils_v3.py __________
+tests/unit/pricing/test_quant_utils_v3.py:3: in <module>
+    from src.math_kernel import quant_utils
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/pricing/test_vol_surface.py ____________
+tests/unit/pricing/test_vol_surface.py:4: in <module>
+    from src.math_kernel.vol_surface import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______ ERROR collecting tests/unit/pricing/test_vol_surface_extended.py _______
+tests/unit/pricing/test_vol_surface_extended.py:4: in <module>
+    from src.math_kernel.vol_surface import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/scrapers/test_concurrency.py ___________
+tests/unit/scrapers/test_concurrency.py:6: in <module>
+    from src.ingestion.engine import NSEScraper
+src/ingestion/engine.py:16: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/scrapers/test_nse_parsing.py ___________
+tests/unit/scrapers/test_nse_parsing.py:3: in <module>
+    from src.ingestion.engine import NSEScraper
+src/ingestion/engine.py:16: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/scrapers/test_scrapers.py _____________
+tests/unit/scrapers/test_scrapers.py:5: in <module>
+    from src.ingestion.engine import NSEScraper
+src/ingestion/engine.py:16: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/security/test_audit.py ______________
+tests/unit/security/test_audit.py:3: in <module>
+    from src.auth.audit import AuditEvent, log_audit
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______ ERROR collecting tests/unit/security/test_breach_notification.py _______
+tests/unit/security/test_breach_notification.py:6: in <module>
+    from src.auth.breach_notification import BreachNotificationService
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______________ ERROR collecting tests/unit/security/test_mfa.py _______________
+tests/unit/security/test_mfa.py:13: in <module>
+    from src.auth.mfa import MfaService
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/security/test_password.py _____________
+tests/unit/security/test_password.py:3: in <module>
+    from src.auth.password import PasswordService, PasswordValidator
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/security/test_password_v3.py ___________
+tests/unit/security/test_password_v3.py:3: in <module>
+    from src.auth.password import PasswordService, PasswordValidator
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/security/test_security_auth.py __________
+tests/unit/security/test_security_auth.py:5: in <module>
+    from src.auth.auth import AuthService, TokenBlacklist
+src/auth/__init__.py:11: in <module>
+    from src.auth.core import hashing as password
+src/auth/core/hashing.py:10: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/services/test_ml_service_v3.py __________
+tests/unit/services/test_ml_service_v3.py:6: in <module>
+    from api.schemas.ml import InferenceRequest
+api/schemas/__init__.py:11: in <module>
+    from .auth import (
+api/schemas/auth.py:13: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/shared/test_observability_v3.py __________
+tests/unit/shared/test_observability_v3.py:3: in <module>
+    from src.shared import observability
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/tasks/test_audit_tasks_v3.py ___________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_audit_tasks_v3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_audit_tasks_v3.py:5: in <module>
+    from src.workers.tasks.audit_tasks import persist_audit_log
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_____________ ERROR collecting tests/unit/tasks/test_data_tasks.py _____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_data_tasks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_data_tasks.py:5: in <module>
+    from src.workers.tasks.data_tasks import collect_options_data_task
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+____________ ERROR collecting tests/unit/tasks/test_email_tasks.py _____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_email_tasks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_email_tasks.py:5: in <module>
+    from src.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+___________ ERROR collecting tests/unit/tasks/test_email_tasks_v3.py ___________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_email_tasks_v3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_email_tasks_v3.py:5: in <module>
+    from src.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+______________ ERROR collecting tests/unit/tasks/test_ml_tasks.py ______________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_ml_tasks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_ml_tasks.py:3: in <module>
+    from src.workers.tasks.ml_tasks import hyperparameter_search_task, train_model_task
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+___________ ERROR collecting tests/unit/tasks/test_pricing_tasks.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_pricing_tasks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_pricing_tasks.py:6: in <module>
+    from src.workers.tasks.pricing_tasks import (
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_________ ERROR collecting tests/unit/tasks/test_security_tasks_v3.py __________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_security_tasks_v3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_security_tasks_v3.py:5: in <module>
+    from src.workers.tasks.security_tasks import rehash_legacy_passwords
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+___________ ERROR collecting tests/unit/tasks/test_trading_tasks.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_trading_tasks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_trading_tasks.py:3: in <module>
+    from src.workers.tasks.trading_tasks import (
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+__________ ERROR collecting tests/unit/tasks/test_trading_tasks_v3.py __________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/tasks/test_trading_tasks_v3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/tasks/test_trading_tasks_v3.py:3: in <module>
+    from src.workers.tasks.trading_tasks import (
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_______________ ERROR collecting tests/unit/test_aiops_engine.py _______________
+tests/unit/test_aiops_engine.py:7: in <module>
+    from src.ml.aiops.autonomous_engine import AutonomousEngine
+src/ml/aiops/autonomous_engine.py:9: in <module>
+    from src.ml.aiops.autonomous_guardian import AutonomousGuardian
+src/ml/aiops/autonomous_guardian.py:6: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+------------------------------- Captured stdout --------------------------------
+2026-04-05 18:30:28 [warning  ] torch_not_available_falling_back_to_classical_ml error="No module named 'torch'"
+______________ ERROR collecting tests/unit/test_api_exceptions.py ______________
+tests/unit/test_api_exceptions.py:14: in <module>
+    from api.index import api_exception_handler
+api/index.py:17: in <module>
+    from api.middleware.fused import ZeroTrustMiddleware
+api/middleware/__init__.py:14: in <module>
+    from .security import CSRFMiddleware, SecurityHeadersMiddleware
+api/middleware/security.py:28: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_arbiter_improved.py _____________
+tests/unit/test_arbiter_improved.py:13: in <module>
+    from src.math_kernel.arbiter import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______ ERROR collecting tests/unit/test_autonomous_pipeline_improved.py _______
+tests/unit/test_autonomous_pipeline_improved.py:13: in <module>
+    from src.ml.autonomous_pipeline import AutonomousMLPipeline
+src/ml/autonomous_pipeline.py:1: in <module>
+    from src.ml.pipeline import MLPipeline as AutonomousMLPipeline
+src/ml/pipeline.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+____________ ERROR collecting tests/unit/test_callbacks_improved.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/test_callbacks_improved.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_callbacks_improved.py:3: in <module>
+    from src.ml.callbacks import EarlyStopping
+src/ml/callbacks.py:5: in <module>
+    import torch
+E   ModuleNotFoundError: No module named 'torch'
+_______ ERROR collecting tests/unit/test_data_drift_detector_improved.py _______
+tests/unit/test_data_drift_detector_improved.py:4: in <module>
+    from src.ml.aiops.data_drift_detector import DataDriftDetector
+src/ml/aiops/data_drift_detector.py:11: in <module>
+    from src.ml.drift import calculate_ks_test, calculate_psi
+src/ml/drift.py:8: in <module>
+    from src.shared.observability import PERFORMANCE_DRIFT_ALERT
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/test_drift_improved.py ______________
+tests/unit/test_drift_improved.py:4: in <module>
+    from src.ml.drift import (
+src/ml/drift.py:8: in <module>
+    from src.shared.observability import PERFORMANCE_DRIFT_ALERT
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_exotic_improved.py ______________
+tests/unit/test_exotic_improved.py:3: in <module>
+    from src.math_kernel.exotic import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_factory_improved.py _____________
+tests/unit/test_factory_improved.py:11: in <module>
+    from src.math_kernel.factory import PricingEngineFactory, PricingEngineNotFound
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_health_reporter.py ______________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/test_health_reporter.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_health_reporter.py:12: in <module>
+    from src.ml.aiops.health_reporter import HealthReporter
+src/ml/aiops/health_reporter.py:14: in <module>
+    from mlflow.tracking import MlflowClient
+E   ModuleNotFoundError: No module named 'mlflow.tracking'; 'mlflow' is not a package
+___________ ERROR collecting tests/unit/test_implied_vol_improved.py ___________
+tests/unit/test_implied_vol_improved.py:4: in <module>
+    from src.math_kernel.implied_vol import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_lattice_improved.py _____________
+tests/unit/test_lattice_improved.py:3: in <module>
+    from src.math_kernel.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/test_ml_distributed_real.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/test_ml_distributed_real.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_ml_distributed_real.py:2: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+__________________ ERROR collecting tests/unit/test_ml_gnn.py __________________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/test_ml_gnn.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_ml_gnn.py:1: in <module>
+    import torch
+E   ModuleNotFoundError: No module named 'torch'
+___________ ERROR collecting tests/unit/test_monte_carlo_improved.py ___________
+tests/unit/test_monte_carlo_improved.py:3: in <module>
+    from src.math_kernel.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________ ERROR collecting tests/unit/test_pricing_main_improved.py ___________
+tests/unit/test_pricing_main_improved.py:16: in <module>
+    patch("src.shared.observability.setup_logging"),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1487: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+/usr/lib/python3.14/pkgutil.py:463: in resolve_name
+    mod = importlib.import_module(s)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1398: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:759: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_pricing_quantum.py ______________
+tests/unit/test_pricing_quantum.py:5: in <module>
+    from src.math_kernel.quantum_pricing import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/test_pricing_quantum_real.py ___________
+tests/unit/test_pricing_quantum_real.py:3: in <module>
+    from src.math_kernel.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/test_quant_utils_improved.py ___________
+tests/unit/test_quant_utils_improved.py:4: in <module>
+    from src.math_kernel.quant_utils import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+__________________ ERROR collecting tests/unit/test_router.py __________________
+tests/unit/test_router.py:5: in <module>
+    from src.ingestion.router import MarketDataRouter
+src/ingestion/router.py:7: in <module>
+    from api.providers import PolygonProvider, YahooProvider
+api/providers/__init__.py:1: in <module>
+    from .market_data import PolygonProvider as PolygonProvider
+api/providers/market_data.py:3: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+______________ ERROR collecting tests/unit/test_router_metrics.py ______________
+tests/unit/test_router_metrics.py:5: in <module>
+    from src.ingestion.router import MarketDataRouter
+src/ingestion/router.py:7: in <module>
+    from api.providers import PolygonProvider, YahooProvider
+api/providers/__init__.py:1: in <module>
+    from .market_data import PolygonProvider as PolygonProvider
+api/providers/market_data.py:3: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/test_strategies_improved.py ____________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/test_strategies_improved.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_strategies_improved.py:12: in <module>
+    from src.ml.strategies import (
+src/ml/strategies.py:4: in <module>
+    import torch
+E   ModuleNotFoundError: No module named 'torch'
+_____________ ERROR collecting tests/unit/test_tracker_improved.py _____________
+tests/unit/test_tracker_improved.py:14: in <module>
+    from src.ml.tracker import ExperimentTracker
+src/ml/tracker.py:10: in <module>
+    from src.shared.observability import (
+src/shared/observability.py:26: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_____________ ERROR collecting tests/unit/test_trainer_improved.py _____________
+tests/unit/test_trainer_improved.py:13: in <module>
+    from src.ml.trainer import ModelTrainer
+src/ml/trainer.py:10: in <module>
+    from src.ml.training.base import BaseTrainer, TrainingConfig, TrainingResult
+src/ml/training/base.py:13: in <module>
+    from src.config import get_settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/test_vol_surface_improved.py ___________
+tests/unit/test_vol_surface_improved.py:4: in <module>
+    from src.math_kernel.vol_surface import (
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_________ ERROR collecting tests/unit/trading/test_incremental_risk.py _________
+tests/unit/trading/test_incremental_risk.py:3: in <module>
+    from src.math_kernel.risk_kernels import IncrementalDeltaTracker
+src/math_kernel/__init__.py:2: in <module>
+    from .calibration.engine import HestonCalibrator
+src/math_kernel/calibration/engine.py:10: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/unit/workers/test_math_worker.py ____________
+tests/unit/workers/test_math_worker.py:16: in <module>
+    with patch("src.workers.math_worker.get_settings", return_value=mock_settings):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1487: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+/usr/lib/python3.14/pkgutil.py:473: in resolve_name
+    result = getattr(result, p)
+             ^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'src' has no attribute 'workers'
+_________ ERROR collecting tests/unit/workers/test_math_worker_unit.py _________
+ImportError while importing test module '/home/kamau/bsopt/tests/unit/workers/test_math_worker_unit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/workers/test_math_worker_unit.py:5: in <module>
+    from src.workers.math_worker import (
+src/workers/__init__.py:1: in <module>
+    from . import (
+src/workers/math_worker.py:8: in <module>
+    import ray
+E   ModuleNotFoundError: No module named 'ray'
+_________ ERROR collecting tests/integration/api/test_ml_endpoints.py __________
+tests/integration/api/test_ml_endpoints.py:4: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________ ERROR collecting tests/integration/market/test_ticker_flow.py _________
+tests/integration/market/test_ticker_flow.py:3: in <module>
+    from src.ingestion.ingestion_service import DataIngestionServicer
+src/ingestion/ingestion_service.py:13: in <module>
+    from src.shared.rabbitmq import get_rabbitmq
+src/shared/rabbitmq.py:11: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+_______ ERROR collecting tests/integration/ml/test_sentiment_pipeline.py _______
+ImportError while importing test module '/home/kamau/bsopt/tests/integration/ml/test_sentiment_pipeline.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/integration/ml/test_sentiment_pipeline.py:3: in <module>
+    from src.ml.sentiment_pipeline import SentimentIngestor
+src/ml/sentiment_pipeline.py:6: in <module>
+    from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
+src/ml/reinforcement_learning/augmented_agent.py:5: in <module>
+    from stable_baselines3 import TD3
+E   ModuleNotFoundError: No module named 'stable_baselines3'
+____________ ERROR collecting tests/integration/test_auth_bypass.py ____________
+tests/integration/test_auth_bypass.py:6: in <module>
+    from src.database.models import User
+src/database/__init__.py:25: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+___________ ERROR collecting tests/integration/test_market_router.py ___________
+tests/integration/test_market_router.py:3: in <module>
+    from src.ingestion.router import MarketDataRouter
+src/ingestion/router.py:7: in <module>
+    from api.providers import PolygonProvider, YahooProvider
+api/providers/__init__.py:1: in <module>
+    from .market_data import PolygonProvider as PolygonProvider
+api/providers/market_data.py:3: in <module>
+    from src.config import settings
+src/config.py:6: in <module>
+    from src.shared.config import Settings, get_settings, settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________ ERROR collecting tests/integration/test_rabbitmq_ingestion.py _________
+tests/integration/test_rabbitmq_ingestion.py:5: in <module>
+    from src.ingestion.ingestion_service import DataIngestionServicer
+src/ingestion/ingestion_service.py:13: in <module>
+    from src.shared.rabbitmq import get_rabbitmq
+src/shared/rabbitmq.py:11: in <module>
+    from src.shared.config import settings
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+________ ERROR collecting tests/integration/workers/test_math_worker.py ________
+tests/integration/workers/test_math_worker.py:7: in <module>
+    with patch("src.shared.config.get_settings") as mock_settings_getter:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1487: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+/usr/lib/python3.14/pkgutil.py:463: in resolve_name
+    mod = importlib.import_module(s)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1398: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:759: in exec_module
+    ???
+<frozen importlib._bootstrap>:491: in _call_with_frames_removed
+    ???
+src/shared/config.py:563: in <module>
+    settings = Settings()
+               ^^^^^^^^^^
+.venv/lib/python3.14/site-packages/pydantic_settings/main.py:242: in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+E   pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+E   REDIS_PASSWORD
+E     Value error, REDIS_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='bsopt_redis_secret', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   RABBITMQ_PASSWORD
+E     Value error, RABBITMQ_PASSWORD must be at least 32 characters for production security. [type=value_error, input_value='password', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+E   AUDIT_VAULT_KEY
+E     Value error, AUDIT_VAULT_KEY must be at least 32 characters for production security. [type=value_error, input_value='manifold-vault-key-base-v1', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.12/v/value_error
+=============================== warnings summary ===============================
+api/exceptions.py:53
+  /home/kamau/bsopt/api/exceptions.py:53: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    class ValidationException(BaseAPIException):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/unit/api/middleware/test_idempotency_v3.py - pydantic_core._pydan...
+ERROR tests/unit/api/middleware/test_security_middleware.py - pydantic_core._...
+ERROR tests/unit/api/middleware/test_security_middleware_unit.py - pydantic_c...
+ERROR tests/unit/api/middleware/test_security_middleware_v2.py - pydantic_cor...
+ERROR tests/unit/api/routes/test_auth_v3.py - pydantic_core._pydantic_core.Va...
+ERROR tests/unit/api/routes/test_debug_unit.py - pydantic_core._pydantic_core...
+ERROR tests/unit/api/test_auth_api.py - pydantic_core._pydantic_core.Validati...
+ERROR tests/unit/api/test_ml_api.py - pydantic_core._pydantic_core.Validation...
+ERROR tests/unit/api/test_pricing_api.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/api/test_providers.py - pydantic_core._pydantic_core.Validat...
+ERROR tests/unit/api/test_security_v3.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/api/test_users_api.py - pydantic_core._pydantic_core.Validat...
+ERROR tests/unit/api/test_users_security_repro.py - pydantic_core._pydantic_c...
+ERROR tests/unit/auth/test_auth.py - pydantic_core._pydantic_core.ValidationE...
+ERROR tests/unit/auth/test_auth_refinement.py - pydantic_core._pydantic_core....
+ERROR tests/unit/config/test_core_config.py - pydantic_core._pydantic_core.Va...
+ERROR tests/unit/config/test_security_config.py - pydantic_core._pydantic_cor...
+ERROR tests/unit/database/test_crud.py - pydantic_core._pydantic_core.Validat...
+ERROR tests/unit/database/test_crud_comprehensive.py - pydantic_core._pydanti...
+ERROR tests/unit/database/test_crud_optimized.py - pydantic_core._pydantic_co...
+ERROR tests/unit/database/test_crud_unit.py - pydantic_core._pydantic_core.Va...
+ERROR tests/unit/database/test_crud_v3.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/database/test_models.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/database/test_verify.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/ingestion/test_mesh_publisher.py - pydantic_core._pydantic_c...
+ERROR tests/unit/ml/forecasting/test_tft_model.py
+ERROR tests/unit/ml/forecasting/test_tft_predict.py
+ERROR tests/unit/ml/pipelines/test_retraining.py - pydantic_core._pydantic_co...
+ERROR tests/unit/ml/serving/test_quantization.py
+ERROR tests/unit/ml/test_autonomous_pipeline.py
+ERROR tests/unit/ml/test_rl_gnn.py
+ERROR tests/unit/ml/test_scraper_extended.py - pydantic_core._pydantic_core.V...
+ERROR tests/unit/ml/test_serving.py - pydantic_core._pydantic_core.Validation...
+ERROR tests/unit/ml/test_trading_env_v3.py
+ERROR tests/unit/ml/test_trainer_extended.py
+ERROR tests/unit/ml/test_trainer_phase5.py
+ERROR tests/unit/pricing/calibration/test_calibration.py - pydantic_core._pyd...
+ERROR tests/unit/pricing/test_arbiter.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/pricing/test_exotic.py - pydantic_core._pydantic_core.Valida...
+ERROR tests/unit/pricing/test_factory.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/pricing/test_finite_difference.py - pydantic_core._pydantic_...
+ERROR tests/unit/pricing/test_implied_vol.py - pydantic_core._pydantic_core.V...
+ERROR tests/unit/pricing/test_lattice.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/pricing/test_monte_carlo.py - pydantic_core._pydantic_core.V...
+ERROR tests/unit/pricing/test_quant_utils.py - pydantic_core._pydantic_core.V...
+ERROR tests/unit/pricing/test_quant_utils_v3.py - pydantic_core._pydantic_cor...
+ERROR tests/unit/pricing/test_vol_surface.py - pydantic_core._pydantic_core.V...
+ERROR tests/unit/pricing/test_vol_surface_extended.py - pydantic_core._pydant...
+ERROR tests/unit/scrapers/test_concurrency.py - pydantic_core._pydantic_core....
+ERROR tests/unit/scrapers/test_nse_parsing.py - pydantic_core._pydantic_core....
+ERROR tests/unit/scrapers/test_scrapers.py - pydantic_core._pydantic_core.Val...
+ERROR tests/unit/security/test_audit.py - pydantic_core._pydantic_core.Valida...
+ERROR tests/unit/security/test_breach_notification.py - pydantic_core._pydant...
+ERROR tests/unit/security/test_mfa.py - pydantic_core._pydantic_core.Validati...
+ERROR tests/unit/security/test_password.py - pydantic_core._pydantic_core.Val...
+ERROR tests/unit/security/test_password_v3.py - pydantic_core._pydantic_core....
+ERROR tests/unit/security/test_security_auth.py - pydantic_core._pydantic_cor...
+ERROR tests/unit/services/test_ml_service_v3.py - pydantic_core._pydantic_cor...
+ERROR tests/unit/shared/test_observability_v3.py - pydantic_core._pydantic_co...
+ERROR tests/unit/tasks/test_audit_tasks_v3.py
+ERROR tests/unit/tasks/test_data_tasks.py
+ERROR tests/unit/tasks/test_email_tasks.py
+ERROR tests/unit/tasks/test_email_tasks_v3.py
+ERROR tests/unit/tasks/test_ml_tasks.py
+ERROR tests/unit/tasks/test_pricing_tasks.py
+ERROR tests/unit/tasks/test_security_tasks_v3.py
+ERROR tests/unit/tasks/test_trading_tasks.py
+ERROR tests/unit/tasks/test_trading_tasks_v3.py
+ERROR tests/unit/test_aiops_engine.py - pydantic_core._pydantic_core.Validati...
+ERROR tests/unit/test_api_exceptions.py - pydantic_core._pydantic_core.Valida...
+ERROR tests/unit/test_arbiter_improved.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/test_autonomous_pipeline_improved.py - pydantic_core._pydant...
+ERROR tests/unit/test_callbacks_improved.py
+ERROR tests/unit/test_data_drift_detector_improved.py - pydantic_core._pydant...
+ERROR tests/unit/test_drift_improved.py - pydantic_core._pydantic_core.Valida...
+ERROR tests/unit/test_exotic_improved.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/test_factory_improved.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/test_health_reporter.py
+ERROR tests/unit/test_implied_vol_improved.py - pydantic_core._pydantic_core....
+ERROR tests/unit/test_lattice_improved.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/test_ml_distributed_real.py
+ERROR tests/unit/test_ml_gnn.py
+ERROR tests/unit/test_monte_carlo_improved.py - pydantic_core._pydantic_core....
+ERROR tests/unit/test_pricing_main_improved.py - pydantic_core._pydantic_core...
+ERROR tests/unit/test_pricing_quantum.py - pydantic_core._pydantic_core.Valid...
+ERROR tests/unit/test_pricing_quantum_real.py - pydantic_core._pydantic_core....
+ERROR tests/unit/test_quant_utils_improved.py - pydantic_core._pydantic_core....
+ERROR tests/unit/test_router.py - pydantic_core._pydantic_core.ValidationErro...
+ERROR tests/unit/test_router_metrics.py - pydantic_core._pydantic_core.Valida...
+ERROR tests/unit/test_strategies_improved.py
+ERROR tests/unit/test_tracker_improved.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/test_trainer_improved.py - pydantic_core._pydantic_core.Vali...
+ERROR tests/unit/test_vol_surface_improved.py - pydantic_core._pydantic_core....
+ERROR tests/unit/trading/test_incremental_risk.py - pydantic_core._pydantic_c...
+ERROR tests/unit/workers/test_math_worker.py - AttributeError: module 'src' h...
+ERROR tests/unit/workers/test_math_worker_unit.py
+ERROR tests/integration/api/test_ml_endpoints.py - pydantic_core._pydantic_co...
+ERROR tests/integration/market/test_ticker_flow.py - pydantic_core._pydantic_...
+ERROR tests/integration/ml/test_sentiment_pipeline.py
+ERROR tests/integration/test_auth_bypass.py - pydantic_core._pydantic_core.Va...
+ERROR tests/integration/test_market_router.py - pydantic_core._pydantic_core....
+ERROR tests/integration/test_rabbitmq_ingestion.py - pydantic_core._pydantic_...
+ERROR tests/integration/workers/test_math_worker.py - pydantic_core._pydantic...
+!!!!!!!!!!!!!!!!!! Interrupted: 103 errors during collection !!!!!!!!!!!!!!!!!!!
+================== 1 warning, 103 errors in 135.51s (0:02:15) ==================

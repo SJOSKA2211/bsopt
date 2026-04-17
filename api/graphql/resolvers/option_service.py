@@ -260,4 +260,3 @@ async def search_options_paginated(
         results.append(opt)
 
     return results, has_next, next_cursor
-    return results, has_next, next_cursor

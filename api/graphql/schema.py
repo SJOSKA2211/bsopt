@@ -161,4 +161,3 @@ class Query:
 
 # APOLLO FEDERATION - Subgraph Schema
 schema: Schema = Schema(query=Query, types=[Option, Portfolio])
-schema: Schema = Schema(query=Query, types=[Option, Portfolio])
