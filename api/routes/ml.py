@@ -1,25 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session # Needed for ORM interactions in crud/models if not fully async
-from sqlalchemy.sql import select
 from typing import List, Dict, Any
 
 from src.database.session import get_async_db
 from src.database.crud import (
     create_ml_model as crud_create_ml_model,
     get_ml_model_by_name_version as crud_get_ml_model_by_name_version,
-    # Add other CRUD functions as needed, e.g., update_ml_model, delete_ml_model, list_ml_models
+    # Add other CRUD functions as needed
 )
 from src.database.models import MLModel, User
 from src.schemas.ml import MLModelCreate, MLModelUpdate, MLModel as MLModelSchema # Import Pydantic schemas
-from src.shared.protos import auth_pb2 # Import proto types
-from src.shared.protos import auth_pb2_grpc # Import gRPC stubs
+from src.ml.pipeline import MLPipeline
+from src.tasks import deploy_ml_model_task # Import the new Celery task
 
-# --- Logging and Configuration ---
-import logging
-logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/api/v1/ml", tags=["ML"])
+# --- Service Instances ---
+ml_pipeline_service = MLPipeline()
 
 # --- Authentication Dependency ---
 async def get_current_user( # Placeholder: Real implementation from api.index.py
@@ -35,18 +30,17 @@ async def get_current_user( # Placeholder: Real implementation from api.index.py
 async def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
     return current_user.id
 
-# --- ML Model Routes ---
+router = APIRouter(prefix="/api/v1/ml", tags=["ML"])
 
-@router.post("/models", response_model=MLModelSchema, status_code=status.HTTP_201_CREATED) # Use schema for response
+@router.post("/models", response_model=MLModelSchema, status_code=status.HTTP_201_CREATED)
 async def create_ml_model_item_route(
-    ml_model_in: MLModelCreate, # Use Pydantic schema for request body
+    ml_model_in: MLModelCreate,
     db: AsyncSession = Depends(get_async_db),
-    user_id: str = Depends(get_current_user_id) # Use authenticated user ID
+    user_id: str = Depends(get_current_user_id) 
 ):
     """Creates a new ML model entry."""
-    
     model_data = ml_model_in.dict()
-    model_data["user_id"] = user_id # Associate model with user if needed, though not in DB model yet
+    model_data["user_id"] = user_id # Associate model with user if needed
 
     try:
         existing_model = await crud_get_ml_model_by_name_version(db, name=model_data["name"], version=model_data["version"])
@@ -54,14 +48,14 @@ async def create_ml_model_item_route(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ML model with this name and version already exists")
 
         db_ml_model = await crud_create_ml_model(db, model_data)
-        return MLModelSchema.from_orm(db_ml_model) # Return as Pydantic schema
+        return MLModelSchema.from_orm(db_ml_model)
     except HTTPException as e:
         raise e
     except Exception as e:
         logger.error(f"Failed to create ML model: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create ML model")
 
-@router.get("/models", response_model=List[MLModelSchema]) # Use schema for response model
+@router.get("/models", response_model=List[MLModelSchema])
 async def read_ml_models_list(
     db: AsyncSession = Depends(get_async_db),
     skip: int = 0,
@@ -74,7 +68,7 @@ async def read_ml_models_list(
 
     return [MLModelSchema.from_orm(m) for m in db_models]
 
-@router.get("/models/{model_id}", response_model=MLModelSchema) # Use schema for response model
+@router.get("/models/{model_id}", response_model=MLModelSchema)
 async def read_ml_model_item_route(
     model_id: str,
     db: AsyncSession = Depends(get_async_db)
@@ -139,10 +133,45 @@ async def trigger_training(
 
     try:
         # Import Celery task here to avoid potential circular dependencies or import issues
-        from src.tasks import trigger_ml_training_task 
+        # Assumes src.tasks.trigger_ml_training_task is correctly defined and importable.
+        # from src.tasks import trigger_ml_training_task # This import is already at the top level of the file
         trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
         return {"message": "ML training task enqueued successfully", "model_id": model_id, "status": "accepted"}
     except Exception as e:
         logger.error(f"Failed to enqueue ML training task for model {model_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to enqueue ML training task")
 
+# --- New Endpoint: Deploy ML Model ---
+@router.post("/deploy/{model_id}", status_code=status.HTTP_202_ACCEPTED)
+async def deploy_ml_model_endpoint(
+    model_id: str,
+    deployment_params: Dict[str, Any], # e.g., {"version": "1.1.0", "target_environment": "production"}
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user) # Ensure user is authenticated
+):
+    """
+    Triggers ML model deployment asynchronously using Celery.
+    """
+    # Validate model exists and retrieve version
+    stmt = select(MLModel).filter(MLModel.id == model_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+
+    if model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ML model not found")
+    
+    version_to_deploy = deployment_params.get("version", model.version) # Use provided version or current active version
+    target_env = deployment_params.get("target_environment", "staging") # Default to staging
+
+    try:
+        deploy_ml_model_task.delay(model_id=model_id, version=version_to deploy, target_environment=target_env)
+        return {
+            "message": "ML model deployment task enqueued successfully", 
+            "model_id": model_id, 
+            "version": version_to_deploy,
+            "target_environment": target_env,
+            "status": "queued"
+        }
+    except Exception as e:
+        logger.error(f"Failed to enqueue ML model deployment task for model {model_id}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to enqueue ML model deployment task")

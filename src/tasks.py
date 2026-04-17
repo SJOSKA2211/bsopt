@@ -39,8 +39,16 @@ def simulate_market_data_ingestion(symbol: str, num_days: int):
     timestamp = datetime.utcnow().isoformat()
     result = f"Simulating ingestion of {num_days} days of market data for {symbol} at {timestamp}"
     print(result)
-    # Simulate variable ingestion time based on number of days
-    time.sleep(num_days * 0.1) 
+    time.sleep(num_days * 0.1) # Simulate variable ingestion time
+    return result
+
+@celery_app.task
+def deploy_ml_model_task(model_id: str, version: str):
+    """Simulates deploying an ML model."""
+    timestamp = datetime.utcnow().isoformat()
+    result = f"Simulating deployment for model {model_id} version {version} at {timestamp}"
+    print(result)
+    time.sleep(7) # Simulate deployment time
     return result
 
 # Add more tasks as needed for various background operations.
