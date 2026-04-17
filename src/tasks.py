@@ -1,6 +1,7 @@
 from celery import Celery
 from datetime import datetime
 import time
+import random
 
 # Basic configuration will be loaded from environment variables via docker-compose
 # These defaults are for local development if .env is not fully populated yet.
@@ -38,7 +39,8 @@ def simulate_market_data_ingestion(symbol: str, num_days: int):
     timestamp = datetime.utcnow().isoformat()
     result = f"Simulating ingestion of {num_days} days of market data for {symbol} at {timestamp}"
     print(result)
-    time.sleep(3) # Simulate work
+    # Simulate variable ingestion time based on number of days
+    time.sleep(num_days * 0.1) 
     return result
 
 # Add more tasks as needed for various background operations.
