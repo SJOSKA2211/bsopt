@@ -15,7 +15,7 @@ def export_to_onnx(model_path: str, output_path: str, input_dim: int):
 
     # 1. Load the model
     model = CrossSectionalPricingModel(input_dim=input_dim)
-    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
+    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu"), weights_only=True))
     model.eval()
 
     # 2. Create dummy input for tracing
