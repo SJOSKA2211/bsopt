@@ -39,16 +39,25 @@ def simulate_market_data_ingestion(symbol: str, num_days: int):
     timestamp = datetime.utcnow().isoformat()
     result = f"Simulating ingestion of {num_days} days of market data for {symbol} at {timestamp}"
     print(result)
-    time.sleep(num_days * 0.1) # Simulate variable ingestion time
+    time.sleep(num_days * 0.1) 
     return result
 
 @celery_app.task
-def deploy_ml_model_task(model_id: str, version: str):
+def deploy_ml_model_task(model_id: str, version: str, target_environment: str):
     """Simulates deploying an ML model."""
     timestamp = datetime.utcnow().isoformat()
-    result = f"Simulating deployment for model {model_id} version {version} at {timestamp}"
+    result = f"Simulating deployment for model {model_id} version {version} to {target_environment} at {timestamp}"
     print(result)
     time.sleep(7) # Simulate deployment time
+    return result
+
+@celery_app.task
+def process_payment_task(payment_details: Dict[str, Any]):
+    """Simulates processing a payment."""
+    timestamp = datetime.utcnow().isoformat()
+    result = f"Processing payment for amount {payment_details.get('amount')} for user {payment_details.get('user_id')} at {timestamp}"
+    print(result)
+    time.sleep(3) # Simulate payment processing time
     return result
 
 # Add more tasks as needed for various background operations.

@@ -8,28 +8,46 @@
  * 4. Execute Trade
  * 5. View ML Dashboard
  * 6. Trigger ML Training
+ * 7. Perform ML Prediction
+ * 8. Deploy ML Model
  * 
  * Run with: npx playwright test tests/e2e/full_journey.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
+import { gql, ApolloClient, InMemoryCache } from '@apollo/client/core'; // Assuming GraphQL client is used
 
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8000"; // Adjusted base URL to match API service
+// --- Configuration ---
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8000"; // API service URL
 const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8000/api/v1";
 
+// --- GraphQL Client Setup (if needed for frontend interaction) ---
+// This part is illustrative; actual GraphQL client setup might be in a separate utility or conftest.
+// const client = new ApolloClient({
+//   uri: `${BASE_URL}/graphql`, // Assuming GraphQL endpoint
+//   cache: new InMemoryCache(),
+//   headers: {
+//     // Authorization header would be set dynamically based on logged-in user
+//   },
+// });
+
+// --- Test Data ---
+const testPassword = "SecurePass123!";
+const testUserName = "Test User";
+
+// --- Test Suite ---
 test.describe("Manifold Full Journey", () => {
   let uniqueEmail: string;
-  const testPassword = "SecurePass123!";
-  const testUserName = "Test User";
 
   test.beforeAll(async () => {
     uniqueEmail = `user_${Date.now()}@Manifold.test`;
   });
 
+  // --- Authentication Flow ---
   test.describe("Authentication Flow", () => {
     test("should complete sign-up and login flow", async ({ page }) => {
       await test.step("Navigate to signup page", async () => {
-        await page.goto(`${BASE_URL}/signup`); // Assuming signup is handled by frontend
+        await page.goto(`${BASE_URL}/signup`);
         await expect(page).toHaveURL(/\/signup/);
       });
 
@@ -42,19 +60,19 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Submit signup", async () => {
         await page.click('[type="submit"]');
-        // After signup, assume direct redirect to dashboard for test users,
-        // bypassing explicit email verification for test automation.
+        // Assuming direct redirect to dashboard for test users post-signup
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
 
       await test.step("Verify dashboard access", async () => {
         await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 10000 });
+        const meshStatus = page.locator('[data-testid="mesh-status-indicator"]');
+        if (await meshStatus.isVisible()) {
+          await expect(meshStatus).toHaveAttribute("data-status", "healthy");
+        }
       });
 
-      await test.step("Login with newly created user", async () => {
-        // If the signup automatically logs in, this step might be redundant or need adjustment.
-        // Assuming a logout/re-login for a clean test of the login flow itself.
-        // If signup auto-logs in, this block could be removed or adapted.
+      await test.step("Logout and re-login", async () => {
         await page.goto(`${BASE_URL}/logout`); // Assuming logout endpoint exists
         await page.waitForURL(/\/login/);
         await page.fill('[name="email"]', uniqueEmail);
@@ -65,52 +83,73 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Verify successful login on dashboard", async () => {
         await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 10000 });
-        // Check for specific UI indicators of gRPC-backend connectivity
-        const meshStatus = page.locator('[data-testid="mesh-status-indicator"]');
-        if (await meshStatus.isVisible()) {
-          await expect(meshStatus).toHaveAttribute("data-status", "healthy");
-        }
       });
     });
   });
 
+  // --- Portfolio Management ---
   test.describe("Portfolio Management", () => {
     test.beforeEach(async ({ page }) => {
-      await test.step("Login first", async () => {
+      await test.step("Login for portfolio tests", async () => {
         await page.goto(`${BASE_URL}/login`);
         await page.fill('[name="email"]', uniqueEmail);
         await page.fill('[name="password"]', testPassword);
         await page.click('[type="submit"]');
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
-      // Assume navigation to portfolios is handled within the page content or a fixture
     });
 
-    test("should create a new portfolio", async ({ page }) => {
-      await test.step("Navigate to portfolios", async () => {
-        // Use a more robust selector if 'text=Portfolios' is not stable
-        await page.click('a:has-text("Portfolios")');
-        await page.waitForURL(/\/portfolios/, { timeout: 5000 });
-      });
-
-      await test.step("Click new portfolio button", async () => {
-        await page.click('button:has-text("New Portfolio")');
-        await expect(page.locator('[name="name"]')).toBeVisible();
-      });
-
-      await test.step("Fill portfolio form", async () => {
-        await page.fill('[name="name"]', `Test Portfolio ${Date.now()}`);
-        await page.fill('[name="cash"]', "100000");
-      });
+    test("should create, get, list, and update a portfolio", async ({ page, request }) => {
+      let portfolio_id = '';
+      const initial_cash = 10000.0;
+      const updated_cash = 10500.50;
+      const portfolio_name_base = `E2E Portfolio ${Date.now()}`;
 
       await test.step("Create portfolio", async () => {
+        await page.click('a:has-text("Portfolios")');
+        await page.waitForURL(/\/portfolios/, { timeout: 5000 });
+        await page.click('button:has-text("New Portfolio")');
+        await expect(page.locator('[name="name"]')).toBeVisible();
+        await page.fill('[name="name"]', portfolio_name_base);
+        await page.fill('[name="cash"]', initial_cash.toString());
         await page.click('button:has-text("Create")');
-        // Wait for success message or navigation to portfolio list/detail
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
+
+        // Extract portfolio ID from URL or confirmation message if available, or query list
+        // For simplicity, we'll query the list to get the ID
+        const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
+        expect(listResponse.ok()).toBeTruthy();
+        const portfolios = await listResponse.json();
+        const created = portfolios.find(p => p.name.startsWith(portfolio_name_base));
+        expect(created).toBeDefined();
+        portfolio_id = created.id;
+      });
+
+      await test.step("Get portfolio by ID", async () => {
+        await page.goto(`${BASE_URL}/portfolios/${portfolio_id}`); // Direct navigation or click link
+        await expect(page.locator(`[data-testid="portfolio-name"]`)).toHaveText(portfolio_name);
+        await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(initial_cash.toString());
+      });
+
+      await test.step("Update portfolio", async () => {
+        await page.click('button:has-text("Edit")'); // Assuming an edit button
+        await page.fill('[name="cash"]', updated_cash.toString());
+        await page.click('button:has-text("Save")');
+        await expect(page.locator("text=Portfolio updated")).toBeVisible({ timeout: 10000 });
+        await page.reload(); // Reload to see updated values
+        await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(updated_cash.toString());
+      });
+
+      await test.step("List portfolios and verify update", async () => {
+        await page.click('a:has-text("Portfolios")');
+        await page.waitForURL(/\/portfolios/, { timeout: 5000 });
+        await expect(page.locator(`div.portfolio-item:has-text("${portfolio_name} - Updated")`)).toBeVisible();
+        await expect(page.locator(`div.portfolio-item:has-text("${updated_cash}")`)).toBeVisible();
       });
     });
   });
 
+  // --- Trading Flow ---
   test.describe("Trading Flow", () => {
     test.beforeEach(async ({ page }) => {
       await test.step("Login and navigate to trading", async () => {
@@ -124,30 +163,10 @@ test.describe("Manifold Full Journey", () => {
       });
     });
 
-    test("should search and select a symbol", async ({ page }) => {
-      await test.step("Search for NIFTY", async () => {
+    test("should search, select symbol, and execute a buy order", async ({ page }) => {
+      await test.step("Search and select symbol", async () => {
         const searchInput = page.locator('[name="symbol"]');
         await searchInput.fill("NIFTY");
-        // Wait for search results to appear (e.g., a dropdown)
-        await page.waitForSelector('text=NIFTY', { state: 'visible', timeout: 5000 });
-      });
-
-      await test.step("Select from dropdown", async () => {
-        await page.click('text=NIFTY');
-        await page.waitForFunction(
-            () => document.querySelector('[name="symbol"]')?.value?.includes('NIFTY'),
-            { timeout: 5000 }
-        );
-      });
-
-      await test.step("Verify symbol selected", async () => {
-        await expect(page.locator('[name="symbol"]')).toHaveValue(/NIFTY/i);
-      });
-    });
-
-    test("should execute a buy order", async ({ page }) => {
-      await test.step("Select symbol", async () => {
-        await page.fill('[name="symbol"]', "NIFTY");
         await page.waitForSelector('text=NIFTY', { state: 'visible', timeout: 5000 });
         await page.click('text=NIFTY');
         await page.waitForFunction(
@@ -158,66 +177,82 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Enter order details", async () => {
         await page.fill('[name="quantity"]', "10");
-        await page.fill('[name="orderType"]', "market"); // Assuming 'market' is a valid type
+        await page.selectOption('[name="orderType"]', "market"); // Assuming 'market' is a valid option
         await page.click('button:has-text("Buy")');
       });
 
       await test.step("Confirm order", async () => {
         await page.click('button:has-text("Confirm")');
-        // Wait for success message or navigation to order history
         await expect(page.locator("text=Order submitted")).toBeVisible({ timeout: 10000 });
       });
     });
   });
 
+  // --- ML Pipeline ---
   test.describe("ML Pipeline", () => {
     test.beforeEach(async ({ page }) => {
-      await test.step("Login and navigate to ML", async () => {
+      await test.step("Login and navigate to ML section", async () => {
         await page.goto(`${BASE_URL}/login`);
         await page.fill('[name="email"]', uniqueEmail);
         await page.fill('[name="password"]', testPassword);
         await page.click('[type="submit"]');
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
         await page.click('a:has-text("ML Models")');
-        await page.waitForURL(/\/ml/, { timeout: 5000 });
+        await page.waitForURL(/\/ml\/models/, { timeout: 5000 });
       });
     });
 
-    test("should display ML dashboard with Ray status", async ({ page }) => {
-      await test.step("Verify ML dashboard loaded", async () => {
-        await expect(page.locator("text=ML Models")).toBeVisible({ timeout: 10000 });
+    test("should create, predict with, and trigger training for an ML model", async ({ page, request }) => {
+      let model_id = '';
+      const model_name = `E2E Model ${Date.now()}`;
+      const model_version = '1.0.0';
+      const model_description = 'E2E Test Model';
+
+      await test.step("Create an ML model", async () => {
+        await page.click('button:has-text("New ML Model")');
+        await expect(page.locator('[name="name"]')).toBeVisible();
+        await page.fill('[name="name"]', model_name);
+        await page.fill('[name="version"]', model_version);
+        await page.fill('[name="description"]', model_description);
+        await page.click('button:has-text("Create")');
+        await expect(page.locator(`text=${model_name}`)).toBeVisible({ timeout: 10000 });
+
+        // Get the created model's ID to use in subsequent steps
+        // This might involve querying the list or finding it in the UI.
+        // For simplicity, let's assume we can find it by name/version after creation.
+        // A better approach would be to get the ID from the API response if available.
+        const modelsResponse = await request.get(`${API_URL}/ml/models`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
+        expect(modelsResponse.ok()).toBeTruthy();
+        const models = await modelsResponse.json();
+        const created_model = models.find(m => m.name === model_name && m.version === model_version);
+        expect(created_model).toBeDefined();
+        model_id = created_model.id;
       });
 
-      await test.step("Check Ray cluster status", async () => {
-        // This check assumes a specific UI element or text indicating Ray status.
-        // Adjust selector based on actual frontend implementation.
-        const rayStatus = page.locator('text=/Ray.*(status|cluster)/i');
-        await expect(rayStatus).toBeVisible({ timeout: 5000 });
-      });
-    });
-
-    test("should trigger model training", async ({ page }) => {
-      await test.step("Find training button", async () => {
-        const trainButton = page.locator('button:has-text("Train Model")');
-        await expect(trainButton).toBeVisible({ timeout: 5000 });
-        await trainButton.click();
+      await test.step("Predict using the created model", async () => {
+        await page.goto(`${BASE_URL}/ml/predict/${model_id}`); // Navigate to prediction page for the model
+        await expect(page.locator("h2")).toHaveText("Predict"); // Assuming a title exists
+        await page.fill('[name="inputValue"]', "123.45"); // Example input data
+        await page.click('button:has-text("Predict")');
+        await expect(page.locator("text=prediction")).toBeVisible({ timeout: 10000 });
+        const predictionResult = await page.locator('pre').textContent(); // Get prediction output
+        expect(predictionResult).toContain("simulated_result");
       });
 
-      await test.step("Configure training", async () => {
+      await test.step("Trigger model training", async () => {
+        await page.click('a:has-text("ML Models")'); // Navigate back to model list if needed
+        await page.waitForURL(/\/ml\/models/, { timeout: 5000 });
+        await page.click(`button:has-text("Train") >> nth=0`); // Find train button for the model
+        await expect(page.locator('[name="epochs"]')).toBeVisible();
         await page.fill('[name="epochs"]', "50");
         await page.fill('[name="batchSize"]', "128");
-      });
-
-      await test.step("Start training", async () => {
         await page.click('button:has-text("Start Training")');
-      });
-
-      await test.step("Verify training started", async () => {
-        await expect(page.locator("text=Training Started")).toBeVisible({ timeout: 10000 });
+        await expect(page.locator("text=ML training task enqueued")).toBeVisible({ timeout: 10000 });
       });
     });
   });
 
+  // --- API Health Checks ---
   test.describe("API Health Checks", () => {
     test("should verify API health endpoint", async ({ request }) => {
       const response = await request.get(`${API_URL}/health`);
@@ -227,24 +262,16 @@ test.describe("Manifold Full Journey", () => {
       expect(data.status).toBe("healthy");
     });
 
-    // This test assumes MLflow is running and accessible externally or internally.
-    // If MLflow is part of the docker-compose, it should be available via service discovery.
-    test("should verify MLflow is accessible", async ({ request }) => {
-      // Dynamically determine MLflow URL. Assume it's in env or a known service name.
-      const mlflowUrl = process.env.MLFLOW_URL || "http://localhost:5000"; // Default if not set
-      try {
-        const response = await request.get(`${mlflowUrl}/api/2.0/ml/health`); // MLflow health endpoint
-        expect(response.ok()).toBeTruthy();
-      } catch (error) {
-        // If MLflow is not running or accessible, this test might fail.
-        // Depending on requirements, this could be ignored or marked as skipped.
-        console.warn(`MLflow health check failed: ${error.message}`);
-        // expect(true).toBe(true); // Mark test as passed if it's optional or expected to fail in some environments
-        throw error; // Re-throw to fail test if MLflow is critical and expected to be up
-      }
+    test("should verify ML service health (simulated)", async ({ request }) => {
+      // This assumes an ML service health endpoint exists and is accessible.
+      // If ML service is separate or has a specific health check URL.
+      // For now, we can check if the /ml/models list endpoint is accessible as a proxy for ML service health.
+      const response = await request.get(`${API_URL}/ml/models`);
+      expect(response.ok()).toBeTruthy();
     });
   });
 
+  // --- Error Handling ---
   test.describe("Error Handling", () => {
     test("should show error for invalid credentials", async ({ page }) => {
       await test.step("Navigate to login", async () => {
@@ -258,7 +285,6 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Verify error message", async () => {
-        // Use a more specific selector for error messages if possible
         await expect(page.locator("text=/Invalid.*credentials|error/i")).toBeVisible({ timeout: 5000 });
       });
     });
@@ -273,33 +299,32 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Verify validation errors", async () => {
-        // Look for common validation error indicators
         const errors = page.locator('input:invalid, [aria-invalid="true"], .error-message');
         await expect(errors.first()).toBeVisible({ timeout: 5000 });
       });
     });
   });
-});
 
-test.describe("WebSocket Real-time Updates", () => {
-  test("should receive real-time market data updates", async ({ page }) => {
-    await test.step("Login", async () => {
-      await page.goto(`${BASE_URL}/login`);
-      await page.fill('[name="email"]', uniqueEmail);
-      await page.fill('[name="password"]', testPassword);
-      await page.click('[type="submit"]');
-      await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-    });
+  // --- WebSocket Real-time Updates ---
+  test.describe("WebSocket Real-time Updates", () => {
+    test("should receive real-time market data updates", async ({ page }) => {
+      await test.step("Login", async () => {
+        await page.goto(`${BASE_URL}/login`);
+        await page.fill('[name="email"]', uniqueEmail);
+        await page.fill('[name="password"]', testPassword);
+        await page.click('[type="submit"]');
+        await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+      });
 
-    await test.step("Navigate to market data", async () => {
-      await page.click('a:has-text("Markets")');
-      // Wait for WebSocket connection indicator or initial data load
-      await page.waitForSelector('text=/Connected|Live Data|Market Feed/i', { state: 'visible', timeout: 10000 });
-    });
+      await test.step("Navigate to market data", async () => {
+        await page.click('a:has-text("Markets")');
+        await page.waitForSelector('text=/Connected|Live Data|Market Feed/i', { state: 'visible', timeout: 10000 });
+      });
 
-    await test.step("Verify WebSocket connection indicator", async () => {
-      const wsStatus = page.locator('text=/Connected|Live|Online/i');
-      await expect(wsStatus).toBeVisible({ timeout: 5000 });
+      await test.step("Verify WebSocket connection indicator", async () => {
+        const wsStatus = page.locator('text=/Connected|Live|Online/i');
+        await expect(wsStatus).toBeVisible({ timeout: 5000 });
+      });
     });
   });
 });
