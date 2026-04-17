@@ -33,10 +33,10 @@ describe('useWebSocket', () => {
 
   it('connects and receives data', async () => {
     const { result } = renderHook(() => useWebSocket({ url: WS_URL }));
-    
+
     // Allow connection to establish under fake timers
     await act(async () => {
-      vi.advanceTimersByTime(100);
+      vi.runAllTimers();
     });
 
     // Wait for connection
