@@ -20,7 +20,7 @@ RUN maturin build --release --out /build/wheels
 # --- Stage 2: Base Runtime Image ---
 FROM python:3.12.13-slim as runtime-base
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y \
     libssl3 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -34,7 +34,7 @@ FROM runtime-base as py-builder
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y \
     build-essential \
     libssl-dev \
     git \
