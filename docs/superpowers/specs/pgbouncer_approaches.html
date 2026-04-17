@@ -1,48 +1,48 @@
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-body { font-family: sans-serif; background: #1a1a1a; color: #eee; padding: 20px; }
-.card { background: #2a2a2a; border-radius: 8px; padding: 15px; margin-bottom: 20px; border-left: 5px solid #4CAF50; }
-h2 { margin-top: 0; color: #4CAF50; }
-.tag { font-size: 0.8em; background: #444; padding: 2px 8px; border-radius: 4px; margin-right: 5px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { text-align: left; padding: 8px; border-bottom: 1px solid #444; }
-th { color: #888; }
-.recom { border-left-color: #2196F3; }
-</style>
-</head>
-<body>
-    <div class="card recom">
-        <h2>Approach 1: Integrated Sentinel (Recommended)</h2>
-        <p><span class="tag">Health</span> <span class="tag">Metrics</span> <span class="tag">Python</span></p>
-        <p>Integrate PgBouncer internal stats directly into <code>system_sentinel.py</code>. It will query the <code>pgbouncer</code> admin console for <code>SHOW POOLS</code> and <code>SHOW STATS</code>.</p>
-        <ul>
-            <li><b>Pro:</b> Single point of truth for system health.</li>
-            <li><b>Pro:</b> Deep visibility into connection leakage.</li>
-            <li><b>Con:</b> Requires admin credentials in the sentinel script.</li>
-        </ul>
-    </div>
 
-    <div class="card">
-        <h2>Approach 2: Robust Orchestrator</h2>
-        <p><span class="tag">Startup</span> <span class="tag">Automation</span> <span class="tag">Bash/Python</span></p>
-        <p>Revamp <code>run_pgbouncer.sh</code> to wait not just for the process, but for the upstream Postgres to satisfy specific health criteria (like Timescale extension readiness).</p>
-        <ul>
-            <li><b>Pro:</b> Prevents application startup until full stack is ready.</li>
-            <li><b>Pro:</b> Auto-healing loops.</li>
-            <li><b>Con:</b> Slightly more complex startup logic.</li>
-        </ul>
-    </div>
 
-    <div class="card">
-        <h2>Approach 3: Dynamic Config Revamp</h2>
-        <p><span class="tag">Optimization</span> <span class="tag">Configuration</span></p>
-        <p>Analyze <code>pg_stat_activity</code> and <code>pgbouncer</code> pools to automatically calculate and apply optimized pool sizes based on observed peak concurrency.</p>
-        <ul>
-            <li><b>Pro:</b> Tailored performance tuning.</li>
-            <li><b>Con:</b> Risk of over-provisioning if not carefully bounded.</li>
-        </ul>
-    </div>
-</body>
-</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

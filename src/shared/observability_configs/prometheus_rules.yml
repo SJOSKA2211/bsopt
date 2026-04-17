@@ -1,58 +1,58 @@
-groups:
-  - name: ml_pipeline_alerts
-    rules:
-      - alert: SignificantModelDrift
-        expr: ml_performance_drift_alert == 1
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Significant performance drift detected for model"
-          description: "The model's performance has dropped below the threshold compared to historical baseline."
 
-      - alert: LowTrainingAccuracy
-        expr: ml_model_accuracy_score < 0.7
-        for: 0m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Low model accuracy detected"
-          description: "The trained model accuracy ({{ $value }}) is below the acceptable threshold (0.7)."
 
-      - alert: ScrapeErrorsHigh
-        expr: rate(market_scrape_errors_total[5m]) > 0.1
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "High market data scrape error rate"
-          description: "Market data scraper is failing significantly for API {{ $labels.api }}."
 
-  - name: system_health_alerts
-    rules:
-      - alert: LatencyAnomaly
-        expr: (avg_over_time(api_request_duration_ms[5m]) - avg_over_time(api_request_duration_ms[1h])) / stddev_over_time(api_request_duration_ms[1h]) > 3
-        for: 2m
-        labels:
-          severity: warning
-        annotations:
-          summary: "API Latency Anomaly Detected"
-          description: "P99 latency is 3 standard deviations above the 1-hour mean."
 
-      - alert: SHMMeshSaturation
-        expr: (bsopt_shm_buffer_head % 100000) > 90000
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Shared Memory Mesh nearly full"
-          description: "SHM Mesh is at >90% capacity. Potential data loss imminent."
 
-      - alert: CircuitBreakerOpened
-        expr: bsopt_circuit_breaker_state == 1
-        for: 0m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Circuit Breaker Opened: {{ $labels.name }}"
-          description: "Service '{{ $labels.name }}' has tripped its circuit breaker."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
