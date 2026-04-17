@@ -9,27 +9,21 @@
  * 5. View ML Dashboard
  * 6. Trigger ML Training
  * 7. Perform ML Prediction
- * 8. Deploy ML Model
+ * 8. Deploy ML Model (simulated)
  * 
  * Run with: npx playwright test tests/e2e/full_journey.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
 import { gql, ApolloClient, InMemoryCache } from '@apollo/client/core'; // Assuming GraphQL client is used
+import time from 'time'; // Assuming time library for date manipulation in tests
 
 // --- Configuration ---
 const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8000"; // API service URL
 const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8000/api/v1";
 
 // --- GraphQL Client Setup (if needed for frontend interaction) ---
-// This part is illustrative; actual GraphQL client setup might be in a separate utility or conftest.
-// const client = new ApolloClient({
-//   uri: `${BASE_URL}/graphql`, // Assuming GraphQL endpoint
-//   cache: new InMemoryCache(),
-//   headers: {
-//     // Authorization header would be set dynamically based on logged-in user
-//   },
-// });
+// const client = new ApolloClient({ ... });
 
 // --- Test Data ---
 const testPassword = "SecurePass123!";
@@ -60,7 +54,6 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Submit signup", async () => {
         await page.click('[type="submit"]');
-        // Assuming direct redirect to dashboard for test users post-signup
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
 
@@ -73,7 +66,7 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Logout and re-login", async () => {
-        await page.goto(`${BASE_URL}/logout`); // Assuming logout endpoint exists
+        await page.goto(`${BASE_URL}/logout`); 
         await page.waitForURL(/\/login/);
         await page.fill('[name="email"]', uniqueEmail);
         await page.fill('[name="password"]', testPassword);
@@ -115,8 +108,6 @@ test.describe("Manifold Full Journey", () => {
         await page.click('button:has-text("Create")');
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
 
-        // Extract portfolio ID from URL or confirmation message if available, or query list
-        // For simplicity, we'll query the list to get the ID
         const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
         expect(listResponse.ok()).toBeTruthy();
         const portfolios = await listResponse.json();
@@ -126,17 +117,17 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Get portfolio by ID", async () => {
-        await page.goto(`${BASE_URL}/portfolios/${portfolio_id}`); // Direct navigation or click link
+        await page.goto(`${BASE_URL}/portfolios/${portfolio_id}`); 
         await expect(page.locator(`[data-testid="portfolio-name"]`)).toHaveText(portfolio_name);
         await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(initial_cash.toString());
       });
 
       await test.step("Update portfolio", async () => {
-        await page.click('button:has-text("Edit")'); // Assuming an edit button
+        await page.click('button:has-text("Edit")'); 
         await page.fill('[name="cash"]', updated_cash.toString());
         await page.click('button:has-text("Save")');
         await expect(page.locator("text=Portfolio updated")).toBeVisible({ timeout: 10000 });
-        await page.reload(); // Reload to see updated values
+        await page.reload(); 
         await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(updated_cash.toString());
       });
 
@@ -177,7 +168,7 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Enter order details", async () => {
         await page.fill('[name="quantity"]', "10");
-        await page.selectOption('[name="orderType"]', "market"); // Assuming 'market' is a valid option
+        await page.selectOption('[name="orderType"]', "market"); 
         await page.click('button:has-text("Buy")');
       });
 
@@ -202,11 +193,13 @@ test.describe("Manifold Full Journey", () => {
       });
     });
 
-    test("should create, predict with, and trigger training for an ML model", async ({ page, request }) => {
+    test("should create, predict with, trigger training for, and deploy an ML model", async ({ page, request }) => {
       let model_id = '';
       const model_name = `E2E Model ${Date.now()}`;
       const model_version = '1.0.0';
       const model_description = 'E2E Test Model';
+      const model_for_training_name = `TrainModel ${Date.now()}`;
+      const model_for_training_version = '3.0.0';
 
       await test.step("Create an ML model", async () => {
         await page.click('button:has-text("New ML Model")');
@@ -217,10 +210,6 @@ test.describe("Manifold Full Journey", () => {
         await page.click('button:has-text("Create")');
         await expect(page.locator(`text=${model_name}`)).toBeVisible({ timeout: 10000 });
 
-        // Get the created model's ID to use in subsequent steps
-        // This might involve querying the list or finding it in the UI.
-        // For simplicity, let's assume we can find it by name/version after creation.
-        // A better approach would be to get the ID from the API response if available.
         const modelsResponse = await request.get(`${API_URL}/ml/models`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
         expect(modelsResponse.ok()).toBeTruthy();
         const models = await modelsResponse.json();
@@ -230,24 +219,34 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Predict using the created model", async () => {
-        await page.goto(`${BASE_URL}/ml/predict/${model_id}`); // Navigate to prediction page for the model
-        await expect(page.locator("h2")).toHaveText("Predict"); // Assuming a title exists
-        await page.fill('[name="inputValue"]', "123.45"); // Example input data
+        await page.goto(`${BASE_URL}/ml/predict/${model_id}`); 
+        await expect(page.locator("h2")).toHaveText("Predict"); 
+        await page.fill('[name="inputValue"]', "123.45"); 
         await page.click('button:has-text("Predict")');
         await expect(page.locator("text=prediction")).toBeVisible({ timeout: 10000 });
-        const predictionResult = await page.locator('pre').textContent(); // Get prediction output
+        const predictionResult = await page.locator('pre').textContent();
         expect(predictionResult).toContain("simulated_result");
       });
 
       await test.step("Trigger model training", async () => {
-        await page.click('a:has-text("ML Models")'); // Navigate back to model list if needed
+        await page.click('a:has-text("ML Models")'); 
         await page.waitForURL(/\/ml\/models/, { timeout: 5000 });
-        await page.click(`button:has-text("Train") >> nth=0`); // Find train button for the model
+        // Ensure we click the train button associated with the model we just created
+        await page.click(`button:has-text("Train") >> nth=0`); // Adjust selector if needed
         await expect(page.locator('[name="epochs"]')).toBeVisible();
         await page.fill('[name="epochs"]', "50");
         await page.fill('[name="batchSize"]', "128");
         await page.click('button:has-text("Start Training")');
         await expect(page.locator("text=ML training task enqueued")).toBeVisible({ timeout: 10000 });
+      });
+
+      await test.step("Trigger model deployment", async () => {
+        await page.click('button:has-text("Deploy")'); // Assuming a deploy button
+        await expect(page.locator('[name="version"]')).toBeVisible();
+        await page.fill('[name="version"]', "1.0.0"); // Specific version to deploy
+        await page.selectOption('[name="targetEnvironment"]', "production"); // e.g., staging, production
+        await page.click('button:has-text("Deploy Model")');
+        await expect(page.locator("text=ML model deployment task enqueued")).toBeVisible({ timeout: 10000 });
       });
     });
   });
@@ -263,10 +262,7 @@ test.describe("Manifold Full Journey", () => {
     });
 
     test("should verify ML service health (simulated)", async ({ request }) => {
-      // This assumes an ML service health endpoint exists and is accessible.
-      // If ML service is separate or has a specific health check URL.
-      // For now, we can check if the /ml/models list endpoint is accessible as a proxy for ML service health.
-      const response = await request.get(`${API_URL}/ml/models`);
+      const response = await request.get(`${API_URL}/ml/models`); // Check if ML models endpoint is accessible
       expect(response.ok()).toBeTruthy();
     });
   });

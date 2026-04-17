@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-from src.tasks import trigger_ml_training_task # Import Celery task
+from src.tasks import trigger_ml_training_task, deploy_ml_model_task # Import Celery tasks
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,7 @@ class MLPipeline:
     def deploy_model(self, model_id: str, version: str, target_environment: str) -> Dict[str, Any]:
         """
         Simulates triggering an ML model deployment by enqueuing a Celery task.
+        Returns a dictionary confirming task enqueueing.
         """
         logger.info(f"Triggering deployment for model {model_id} version {version} to {target_environment}")
         
