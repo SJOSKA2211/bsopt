@@ -81,6 +81,7 @@ export interface OptionChainRow {
   call_delta: number;
   call_gamma: number;
   call_theor?: number;
+  call_greeks?: Greeks;
   put_bid: number;
   put_ask: number;
   put_last: number;
@@ -90,6 +91,7 @@ export interface OptionChainRow {
   put_delta: number;
   put_gamma: number;
   put_theor?: number;
+  put_greeks?: Greeks;
 }
 export interface Ticker {
   symbol: string;

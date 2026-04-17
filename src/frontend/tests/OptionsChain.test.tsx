@@ -58,13 +58,13 @@ test('OptionsChain fetches and displays data', async () => {
   render(<OptionsChain symbol="AAPL" />, { wrapper: createWrapper() });
 
   // Verify accessibility labels
-  expect(screen.getByLabelText('Search by strike price')).toBeInTheDocument();
+  expect(screen.getByLabelText('Filter strike')).toBeInTheDocument();
   expect(screen.getByLabelText('Select pricing model')).toBeInTheDocument();
-  expect(screen.getByLabelText('Filter by expiration')).toBeInTheDocument();
+  expect(screen.getByLabelText('Expiry Filter')).toBeInTheDocument();
 
   // Wait for the mock data to appear
   await waitFor(() => {
-    expect(screen.getByText('Options Chain - AAPL')).toBeInTheDocument();
+    expect(screen.getByText('OptX Matrix: AAPL')).toBeInTheDocument();
     expect(screen.getByText('$1.50')).toBeInTheDocument(); // call_bid
     expect(screen.getByText('100')).toBeInTheDocument(); // strike
 
