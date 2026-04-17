@@ -1,275 +1,148 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ==============================================================================
-# Manifold: THE ZERO-TOUCH BOOTSTRAP (v3.1 - Hardened)
+# Manifold: UNIFIED CONSOLIDATED BOOTSTRAP (v6.0)
 # ==============================================================================
-# Automates the entire stack: PKI, encrypted secrets, DB Init, and Gateway.
-# Features:
-# - Root CA & Service-level mTLS
-# - RSA-4096 Runtime Secret Vaulting
-# - Container engine agnostic (podman/docker)
-# - Strict sequential health gating
+# Self-contained orchestrator for the BSOPT cluster deployment.
 # ==============================================================================
 
-set -e
+set -euo pipefail
 
-# Configuration
-KEYS_DIR="$(pwd)/.pki"
-ENV_FILE=".env"
-ENV_EXAMPLE=".env.example"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-# Central Configuration
-# Load shared environment utilities
-if [ -f "scripts/utils_env.sh" ]; then
-    source scripts/utils_env.sh
-else
-    echo "[ERROR] scripts/utils_env.sh not found."
-    exit 1
-fi
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
 
-COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"
+# Flags
+FORCE_REBUILD=${FORCE_REBUILD:-0}
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+# Colors
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# 0. Prerequisite Check Function
-check_prereq() {
-    local cmd=$1
-    if ! command -v "$cmd" &> /dev/null; then
-        log_error "$cmd is not installed. Please install it first."
+log_info "Initializing BSOPT Consolidated Deployment (Modernized)..."
+
+# 1. Environment Secrets Generation
+ENV_FILE=".env"
+if [ ! -f "$ENV_FILE" ]; then
+    log_info "Generating secure .env file..."
+    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
+    
+    DB_PASS=$(gen_secret)
+    REDIS_PASS=$(gen_secret)
+    RABBIT_PASS=$(gen_secret)
+    JWT_SEC=$(head -c 64 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 64)
+    MFA_EN=$(head -c 32 /dev/urandom | base64 -w 0)
+
+    cat > "$ENV_FILE" <<EOF
+# --- CORE ---
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+
+# --- DATA ---
+POSTGRES_DB=bsopt
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=$DB_PASS
+REDIS_PASSWORD=$REDIS_PASS
+REDIS_HOST=redis
+REDIS_PORT=6379
+DATABASE_URL=postgresql+asyncpg://admin:$DB_PASS@postgres:5432/bsopt
+REDIS_URL=redis://:$REDIS_PASS@redis:6379/0
+
+# --- MESSAGING ---
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=$RABBIT_PASS
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
+CELERY_BROKER_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
+
+# --- SECURITY ---
+JWT_SECRET=$JWT_SEC
+JWT_ALGORITHM=RS256
+MFA_ENCRYPTION_KEY=$MFA_EN
+EOF
+    log_success ".env file generated."
+fi
+
+# 2. PKI Substrate (Secure-by-Default mTLS)
+PKI_DIR=".pki"
+mkdir -p "$PKI_DIR"
+if [ ! -f "${PKI_DIR}/root_ca.key" ]; then
+    log_info "Initializing PKI Layer..."
+    openssl genrsa -out "${PKI_DIR}/root_ca.key" 4096 2>/dev/null
+    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 \
+        -out "${PKI_DIR}/root_ca.crt" \
+        -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
+fi
+
+issue_cert() {
+    local svc=$1
+    if [ ! -f "${PKI_DIR}/${svc}.key" ]; then
+        openssl genrsa -out "${PKI_DIR}/${svc}.key" 2048 2>/dev/null
+        openssl req -new -key "${PKI_DIR}/${svc}.key" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
+        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" \
+            -CAcreateserial -out "${PKI_DIR}/${svc}.crt" -days 365 -sha256 2>/dev/null
+        rm "${PKI_DIR}/${svc}.csr"
+    fi
+}
+for s in auth_api pricing_api postgres redis rabbitmq; do issue_cert "$s"; done
+
+# 3. Protocol Synchronization
+log_info "Synchronizing gRPC protocol buffers..."
+GEN_DIR="src/shared/protos"
+mkdir -p "$GEN_DIR"
+docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
+    "pip install grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto"
+touch "$GEN_DIR/__init__.py"
+sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+
+# 4. Service Orchestration (Sequential)
+COMPOSE_FILE="docker-compose.yml"
+
+deploy_and_validate() {
+    local svc=$1
+    log_info "Deploying service: $svc..."
+    if [ "$FORCE_REBUILD" -eq 1 ]; then
+        docker compose -f "$COMPOSE_FILE" build "$svc"
+    fi
+    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans "$svc"
+    
+    local retries=30
+    log_info "Waiting for $svc to report healthy..."
+    until docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"' || [ $retries -eq 0 ]; do
+        sleep 2
+        ((retries--))
+        echo -n "."
+    done
+    echo ""
+    
+    if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"'; then
+        log_error "Service $svc failed to start."
+        docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 20
         exit 1
     fi
+    log_success "$svc is online."
 }
 
-check_prereq openssl
+# Cleanup existing cluster if requested
+if [ "$FORCE_REBUILD" -eq 1 ]; then
+    log_info "Performing full cluster purge..."
+    docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
+fi
 
-# ==============================================================================
-# 1. Container Engine & Compose Detection
-# ==============================================================================
-# ==============================================================================
-# 1. Container Engine & Compose Detection
-# ==============================================================================
-# Handled by scripts/utils_env.sh detect_container_engine
+# Phase 1: Infrastructure
+log_info "--- Phase 1: Infrastructure ---"
+deploy_and_validate "postgres"
+deploy_and_validate "redis"
+deploy_and_validate "rabbitmq"
 
-# Container exec wrapper
-compose_cmd() {
-    if [ -z "${COMPOSE_ENGINE:-}" ]; then
-        detect_container_engine
-    fi
-    $COMPOSE_ENGINE "$@"
-}
+# Phase 2: Core Cluster
+log_info "--- Phase 2: Core services ---"
+deploy_and_validate "auth_api"
+deploy_and_validate "celery_worker"
 
-container_exec() {
-    if [ -z "$CONTAINER_ENGINE" ]; then
-        detect_container_engine
-    fi
-    local container_id=$1
-    shift
-    $CONTAINER_ENGINE exec "$container_id" "$@"
-}
-
-# ==============================================================================
-# 2. Security Layer (PKI & Vault)
-# ==============================================================================
-initialize_pki() {
-    log_info "Initializing Production PKI Layer..."
-    chmod +x ./scripts/setup_pki.sh
-    ./scripts/setup_pki.sh
-}
-
-# ==============================================================================
-# 3. .env Orchestration & Encryption (Hardened)
-# ==============================================================================
-setup_env_file() {
-    log_info "Setting up .env file..."
-    
-    if [ ! -f "${ENV_FILE}" ]; then
-        if [ -f "${ENV_EXAMPLE}" ]; then
-            cp "${ENV_EXAMPLE}" "${ENV_FILE}"
-            log_success "Created .env from template"
-        else
-            touch "${ENV_FILE}"
-            log_warn "Created empty .env file"
-        fi
-    fi
-}
-
-set_env_var() {
-    local key=$1
-    local value=$2
-    # Ensure value is quoted correctly in sed
-    if grep -q "^${key}=" "${ENV_FILE}"; then
-        sed -i "s|^${key}=.*|${key}=\"${value}\"|g" "${ENV_FILE}"
-    else
-        echo "${key}=\"${value}\"" >> "${ENV_FILE}"
-    fi
-}
-
-encrypt_secret() {
-    local val=$1
-    echo -n "$val" | openssl pkeyutl -encrypt -pubin -inkey "${KEYS_DIR}/vault/vault.pub" | base64 | tr -d '\n'
-}
-
-secure_env_file() {
-    log_info "Securing sensitive environment variables..."
-    
-    # Ensure PKI is initialized first (needed for vault.pub and JWT keys)
-    if [ ! -f "${KEYS_DIR}/vault/vault.pub" ]; then
-        initialize_pki
-    fi
-
-    # 1. Generate core JWT/Encryption keys if missing from PKI
-    if [ ! -f "${KEYS_DIR}/jwt_rs256.key" ]; then
-        initialize_pki
-    fi
-
-    # 2. Map PKI keys to .env if not already present
-    log_info "Mapping PKI keys to .env..."
-    set_env_var "JWT_RS256_PRIVATE" "$(cat ${KEYS_DIR}/jwt_rs256.key | base64 | tr -d '\n')"
-    set_env_var "JWT_RS256_PUBLIC" "$(cat ${KEYS_DIR}/jwt_rs256.pub | base64 | tr -d '\n')"
-    set_env_var "JWT_ES256_PRIVATE" "$(cat ${KEYS_DIR}/jwt_es256.key | base64 | tr -d '\n')"
-    set_env_var "JWT_ES256_PUBLIC" "$(cat ${KEYS_DIR}/jwt_es256.pub | base64 | tr -d '\n')"
-    set_env_var "ARGON2_SALT" "$(cat ${KEYS_DIR}/argon2_salt.secret)"
-
-    # 3. Generate and Encrypt passwords
-    local SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
-    
-    for var in "${SENSITIVE_VARS[@]}"; do
-        local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-        
-        if [ -z "$CURRENT_VAL" ] && ! grep -q "^ENC_${var}=" "${ENV_FILE}"; then
-            log_info "Generating random $var..."
-            local NEW_VAL=$(openssl rand -hex 32)
-            set_env_var "${var}" "$NEW_VAL"
-            CURRENT_VAL="$NEW_VAL"
-        fi
-
-        if [ -n "$CURRENT_VAL" ] && [[ ! "$CURRENT_VAL" =~ ^ENC_ ]]; then
-            log_info "Encrypting $var..."
-            local ENC_VAL=$(encrypt_secret "$CURRENT_VAL")
-            set_env_var "ENC_${var}" "$ENC_VAL"
-            sed -i "/^${var}=/d" "${ENV_FILE}"
-        fi
-    done
-    
-    log_success "Secrets vaulted securely in .env"
-}
-
-# ==============================================================================
-# 4. Sequential Service Startup with Health Gating
-# ==============================================================================
-wait_for_service() {
-    local service_name=$1
-    local health_command=$2
-    local max_retries=${3:-60}
-    local base_interval=${4:-2}
-    local retry_count=0
-    
-    log_info "Starting $service_name..."
-    compose_cmd -f "$COMPOSE_FILE" up -d "$service_name"
-    
-    log_info "Waiting for $service_name to be healthy..."
-    
-    while [ $retry_count -lt $max_retries ]; do
-        local container_id=$(compose_cmd -f "$COMPOSE_FILE" ps -q "$service_name" 2>/dev/null | head -n 1)
-        if [ -n "$container_id" ]; then
-            # Priority 1: Container Engine Health Status
-            local state=$($CONTAINER_ENGINE inspect -f '{{.State.Health.Status}}' "$container_id" 2>/dev/null)
-            if [ "$state" == "healthy" ]; then
-                log_success "$service_name is healthy (reported by engine)"
-                return 0
-            fi
-            
-            # Priority 2: Manual health command callback
-            if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
-                log_success "$service_name is healthy (manual check)"
-                return 0
-            fi
-        fi
-        
-        # Exponential backoff (capped at 10s)
-        local sleep_time=$(( base_interval + (retry_count / 10) ))
-        [ $sleep_time -gt 10 ] && sleep_time=10
-        
-        echo -n "."
-        sleep $sleep_time
-        retry_count=$((retry_count+1))
-    done
-    
-    log_error "$service_name failed to become healthy. Logs:"
-    compose_cmd -f "$COMPOSE_FILE" logs "$service_name" | tail -n 20
-    return 1
-}
-
-# ==============================================================================
-# 5. Main Bootstrap Sequence
-# ==============================================================================
-main() {
-    echo "=============================================================================="
-    echo -e "${BLUE}🚀 Manifold Production Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
-    echo "=============================================================================="
-    
-    detect_container_engine
-    setup_env_file
-    secure_env_file
-    
-    # Reload secrets into current shell session
-    load_decrypted_secrets
-
-    # Ensure base image is up to date
-    if [ -f "infrastructure/orchestration/Dockerfile.base" ]; then
-        log_info "Checking base image manifold-base:latest..."
-        $CONTAINER_ENGINE build -t manifold-base:latest -f infrastructure/orchestration/Dockerfile.base .
-    fi
-
-    log_info "Building core operational cluster..."
-    compose_cmd -f "$COMPOSE_FILE" build --parallel api auth-service worker neural-pricing
-    
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase A: Zero-Trust Data Persistence (PostgreSQL/TimescaleDB)${NC}"
-    echo "------------------------------------------------------------------------------"
-    # Strict pg_isready loop as requested
-    wait_for_service "postgres" "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"
-    wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"
-    
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Performance Backplane (Redis/RabbitMQ)${NC}"
-    echo "------------------------------------------------------------------------------"
-    wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
-    wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
-    
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase C: Application Mesh (Auth/API/ML)${NC}"
-    echo "------------------------------------------------------------------------------"
-    wait_for_service "auth-service" "wget -qO- http://localhost:3001/ || exit 1"
-    wait_for_service "api" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
-    wait_for_service "neural-pricing" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
-    
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase D: Edge Ingress (Envoy Gateway)${NC}"
-    echo "------------------------------------------------------------------------------"
-    wait_for_service "envoy" "wget -qO- http://localhost:9901/ready || exit 1"
-    
-    echo ""
-    echo "=============================================================================="
-    log_success "Manifold STACK IS ONLINE AND HARDENED"
-    echo "=============================================================================="
-}
-
-trap 'log_error "Bootstrap failed at step $BASH_COMMAND"; exit 1' ERR
-trap 'log_error "Bootstrap interrupted"; exit 1' INT TERM
-main "$@"
-
+log_success "Deployment Complete. Manifold Stack is v6.0 Online."

@@ -75,7 +75,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    command: ["python", "src/auth/auth_server.py"]
+    command: ["python", "src/auth/grpc_server.py"]
 
   # Celery Worker
   celery_worker:
