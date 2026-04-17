@@ -1,5 +1,4 @@
-# --- Stage 1: Rust Core Builder ---
-FROM python:3.12-slim as rust-builder
+FROM python:3.12.13-slim as rust-builder
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -19,7 +18,7 @@ RUN pip install --no-cache-dir maturin
 RUN maturin build --release --out /build/wheels
 
 # --- Stage 2: Base Runtime Image ---
-FROM python:3.12-slim as runtime-base
+FROM python:3.12.13-slim as runtime-base
 
 RUN apt-get update && apt-get install -y \
     libssl3 \

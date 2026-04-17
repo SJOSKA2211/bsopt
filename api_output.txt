@@ -1,9 +1,0 @@
-2026-04-12 12:07:50 [debug    ] derived_mfa_key
-2026-04-12 12:07:51 [info     ] initializing_shared_http_client_c100k
-2026-04-12 12:07:51 [info     ] redis_client_initialized       max_connections=200 url=redis://:bsopt_redis_secret_long_enough_32_chars@127.0.0.1:6380/0
-Manifold_core not found. Falling back to Python/GPU engines
-CuPy not found or non-functional. Falling back to Numba/NumPy (CPU)
-2026-04-12 12:07:56 [warning  ] greeks_snapshot_missing_recovering_from_persistence error="[Errno 2] No such file or directory: '/greeks_snapshot'"
-2026-04-12 12:07:56 [info     ] shm_persistence_recovery_triggered mesh=greeks
-2026-04-12 12:07:58 [warning  ] rust_core_not_found_falling_back_to_python
-2026-04-12 12:07:58 [info     ] pricing_engine_registered      engine=black_scholes
