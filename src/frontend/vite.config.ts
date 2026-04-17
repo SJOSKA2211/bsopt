@@ -1,25 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import compression from 'vite-plugin-compression';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    compression({
-      algorithm: 'brotliCompress',
-      ext: '.br',
-    }),
-    compression({
-      algorithm: 'gzip',
-      ext: '.gz',
-    }),
-  ],
+  plugins: [react()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-  server: { port: 5175, host: '0.0.0.0' },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './tests/setupTests.tsx',
-  },
-} as any);
+  server: { port: 5175, host: '0.0.0.0' }
+});

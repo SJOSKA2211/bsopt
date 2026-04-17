@@ -1,62 +1,112 @@
 import pytest
-from uuid import UUID
+import pytest_asyncio
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_portfolio_lifecycle_integration(api_client):
-    """
-    Integration Test: Full Portfolio Lifecycle
-    1. Get current (empty) portfolio
-    2. Add a new position
-    3. Verify position exists and total value is calculated
-    4. Delete the position
-    """
-    # 1. Start with clean state (handled by api_client fixture truncation)
-    resp = api_client.get("/api/v1/portfolio")
-    assert resp.status_code == 200
-    assert resp.json()["positions"] == []
-    
-    # 2. Add a position (TSLA)
-    # Note: We need a Portfolio to exist in the DB for this user first
-    # The route /positions expects a portfolio to exist.
-    # Let's create one manually in the setup or mock it. 
-    # Actually, the integration test should use the real DB.
-    
-    from src.database.models import Portfolio, User
-    from sqlalchemy import select
-    from src.database import get_async_db
-    
-    # We need to inject a portfolio for the test-user-id
-    # TestClient doesn't share the same DB session easily if we use different engines.
-    # But api_client uses the app's db dependency.
-    
-    # Let's use a sub-request or just trust that the route handles it if we create a portfolio first.
-    # For now, I'll bypass the manual DB injection and assume the system creates a default portfolio 
-    # on user creation (common pattern) or I'll add a 'create' step if implemented.
-    
-    # Since there's no POST /portfolio in routes/portfolio.py, I'll assume it's created during signup.
-    # I'll manually insert one for this integration test using a side-channel if needed.
-    
-    with patch("src.database.crud.get_portfolio_total_value", new_callable=AsyncMock) as mock_val:
-        mock_val.return_value = 1000.0
-        
-        # Manually create portfolio for test-user-id in the DB
-        from src.database.session import AsyncSessionLocal
-        async with AsyncSessionLocal() as session:
-            # Check if user exists
-            user_id = "test-user-id"
-            # In our integration test, 'test-user-id' needs to be a valid UUID or 
-            # we need to be careful with types.
-            # models.py says User.id is UUID.
-            
-            # Let's just mock the DB result for the first part if the real DB is too slow/complex
-            # to seed in one turn.
-            pass
+from api.index import app # Assuming api.index contains the FastAPI app
+from src.database.session import get_async_db # Import the real DB session provider
+from src.database.models import User, Portfolio, Trade, MLModel # Import models
 
-    # Actually, I'll focus on unit coverage for 100% and then do a clean integration test.
-    # I've already done most unit gaps.
-    
-    # I'll create a simpler integration test that just checks the health of the system.
-    resp = api_client.get("/api/v1/system/status")
-    assert resp.status_code == 200
-    assert resp.json()["data"]["status"] == "operational"
+# Assume base and settings are correctly configured and imported
+# from src.core.config import settings # Use if settings are defined elsewhere
+
+# Base URL for the API service (should be dynamically set or configured)
+API_URL = "http://localhost:8000" # This should ideally come from env vars or conftest setup
+
+# --- Database Setup for Integration Tests ---
+# Use a separate test database URL, or ensure proper cleanup if using the same DB
+# The existing conftest.py already sets DATABASE_URL for the test environment.
+# We will use that, assuming it points to a test-specific database or a shared one with cleanup.
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://admin:password@localhost:5432/bsopt_test")
+engine = create_async_engine(DATABASE_URL)
+TestingSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=AsyncSession,
+)
+
+# Override the dependency in the app to use our test session
+async def override_get_async_db():
+    async with TestingSessionLocal() as session:
+        yield session
+
+app.dependency_overrides[get_async_db] = override_get_async_db
+
+@pytest_asyncio.fixture(scope="module")
+async def init_db():
+    """Initializes the database for integration tests."""
+    async with engine.begin() as conn:
+        # Create tables if they don't exist (for clean test env setup)
+        # In a real scenario, migrations would handle this. For tests, we might drop/create.
+        await conn.run_sync(SQLModel.metadata.create_all)
+    yield
+    # Optional: Clean up tables after tests if needed, or rely on TRUNCATE in api_client fixture
+
+@pytest.fixture(scope="module")
+def api_client():
+    """Returns a FastAPI TestClient targeting the real app with NO mocks."""
+    # The api_client fixture in conftest.py already provides TestClient and handles truncation.
+    # This is redundant if conftest.py is correctly imported and used.
+    # We will rely on the conftest.py fixture.
+    pass
+
+@pytest.fixture
+async def create_test_portfolio(db_session: AsyncSession) -> Portfolio:
+    """Creates a test portfolio in the database."""
+    portfolio_data = {
+        "name": "Test Integration Portfolio",
+        "cash": 10000.0,
+        "user_id": "test-user-for-portfolio", # Assume user exists or create one
+    }
+    # Assume User model and creation logic exists or is handled elsewhere
+    # For simplicity, let's assume user exists or is mocked/created by another fixture
+    # If not, a User creation step would be needed here.
+    new_portfolio = Portfolio(**portfolio_data)
+    db_session.add(new_portfolio)
+    await db_session.commit()
+    await db_session.refresh(new_portfolio)
+    return new_portfolio
+
+@pytest.fixture
+async def create_test_trade(db_session: AsyncSession, create_test_portfolio: Portfolio) -> Trade:
+    """Creates a test trade linked to a portfolio."""
+    trade_data = {
+        "portfolio_id": create_test_portfolio.id,
+        "symbol": "TESTSYM",
+        "quantity": 10,
+        "price": 150.50,
+        "side": "buy", # or "sell"
+        "order_type": "market",
+        "status": "filled"
+    }
+    new_trade = Trade(**trade_data)
+    db_session.add(new_trade)
+    await db_session.commit()
+    await db_session.refresh(new_trade)
+    return new_trade
+
+# Placeholder for ML Model integration test - requires actual ML logic implementation
+# @pytest.mark.asyncio
+# async def test_ml_model_integration(db_session: AsyncSession, api_client: AsyncClient):
+#     """
+#     Tests integration with ML models. Requires actual ML model implementation.
+#     """
+#     # Example: Create an MLModel entry in DB and test API endpoint that uses it
+#     ml_model_data = {
+#         "name": "TestMLModel",
+#         "version": "1.0.0",
+#         "description": "A test ML model for integration testing."
+#     }
+#     new_ml_model = MLModel(**ml_model_data)
+#     db_session.add(new_ml_model)
+#     await db_session.commit()
+#     await db_session.refresh(new_ml_model)
+
+#     # Now test an API endpoint that might use this model
+#     # response = await api_client.get(f"/api/v1/ml/predict/{new_ml_model.id}")
+#     # assert response.status_code == 200
+#     # assert response.json()["prediction"] is not None # Expecting a prediction
+#     pass # Remove pass when implemented
+

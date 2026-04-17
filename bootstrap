@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# Manifold: UNIFIED CONSOLIDATED BOOTSTRAP (v6.0)
-# ==============================================================================
-# Self-contained orchestrator for the BSOPT cluster deployment.
-# ==============================================================================
-
 set -euo pipefail
+
+# ==
+# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.2)
+# ==
+# Orchestrates the sequential deployment and health-gating of the BSOPT cluster.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
-
-# Flags
-FORCE_REBUILD=${FORCE_REBUILD:-0}
 
 # Colors
 BLUE='\033[0;34m'
@@ -23,126 +19,121 @@ log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-log_info "Initializing BSOPT Consolidated Deployment (Modernized)..."
-
-# 1. Environment Secrets Generation
+# 1. Environment Generation (Strict & Secure)
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
-    log_info "Generating secure .env file..."
-    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
+    log_info "Generating cryptographically secure .env..."
+    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '
+' | tr -d '=' | head -c 32; }
     
-    DB_PASS=$(gen_secret)
-    REDIS_PASS=$(gen_secret)
-    RABBIT_PASS=$(gen_secret)
-    JWT_SEC=$(head -c 64 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 64)
-    MFA_EN=$(head -c 32 /dev/urandom | base64 -w 0)
-
     cat > "$ENV_FILE" <<EOF
-# --- CORE ---
 ENVIRONMENT=production
 DEBUG=false
-LOG_LEVEL=INFO
-
-# --- DATA ---
+POSTGRES_USER=manifold_admin
+POSTGRES_PASSWORD=$(gen_secret)
 POSTGRES_DB=bsopt
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=$DB_PASS
-REDIS_PASSWORD=$REDIS_PASS
-REDIS_HOST=redis
-REDIS_PORT=6379
-DATABASE_URL=postgresql+asyncpg://admin:$DB_PASS@postgres:5432/bsopt
-REDIS_URL=redis://:$REDIS_PASS@redis:6379/0
-
-# --- MESSAGING ---
-RABBITMQ_USER=guest
-RABBITMQ_PASSWORD=$RABBIT_PASS
-RABBITMQ_HOST=rabbitmq
-RABBITMQ_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
-CELERY_BROKER_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
-
-# --- SECURITY ---
-JWT_SECRET=$JWT_SEC
-JWT_ALGORITHM=RS256
-MFA_ENCRYPTION_KEY=$MFA_EN
+REDIS_PASSWORD=$(gen_secret)
+JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '
+')
+MFA_ENCRYPTION_KEY=$(gen_secret)
+RABBITMQ_USER=manifold_mq
+RABBITMQ_PASSWORD=$(gen_secret)
+DATABASE_URL=postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
+REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
 EOF
-    log_success ".env file generated."
+    log_success ".env generated."
 fi
 
-# 2. PKI Substrate (Secure-by-Default mTLS)
+# 2. PKI Substrate (mTLS)
 PKI_DIR=".pki"
 mkdir -p "$PKI_DIR"
+
+# Generate Root CA first
 if [ ! -f "${PKI_DIR}/root_ca.key" ]; then
-    log_info "Initializing PKI Layer..."
+    log_info "Initializing PKI substrate: Generating Root CA..."
     openssl genrsa -out "${PKI_DIR}/root_ca.key" 4096 2>/dev/null
-    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 \
-        -out "${PKI_DIR}/root_ca.crt" \
+    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 
+        -out "${PKI_DIR}/root_ca.crt" 
         -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
+    log_success "Root CA generated."
+else
+    log_info "Root CA already exists."
 fi
 
 issue_cert() {
     local svc=$1
-    if [ ! -f "${PKI_DIR}/${svc}.key" ]; then
-        openssl genrsa -out "${PKI_DIR}/${svc}.key" 2048 2>/dev/null
-        openssl req -new -key "${PKI_DIR}/${svc}.key" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
-        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" \
-            -CAcreateserial -out "${PKI_DIR}/${svc}.crt" -days 365 -sha256 2>/dev/null
+    local cert_path="${PKI_DIR}/${svc}.crt"
+    local key_path="${PKI_DIR}/${svc}.key"
+
+    if [ ! -f "$key_path" ]; then
+        log_info "Issuing certificate for: $svc"
+        openssl genrsa -out "$key_path" 2048 2>/dev/null
+        openssl req -new -key "$key_path" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
+        
+        # Ensure root CA files exist before using them
+        if [ ! -f "${PKI_DIR}/root_ca.crt" ] || [ ! -f "${PKI_DIR}/root_ca.key" ]; then
+            log_error "Root CA certificate or key not found. Cannot issue service certificate for $svc."
+            exit 1
+        fi
+
+        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" 
+            -CAcreateserial -out "$cert_path" -days 365 -sha256 2>/dev/null
         rm "${PKI_DIR}/${svc}.csr"
+        log_success "Certificate issued for $svc."
+    else
+        log_info "Certificate already exists for $svc."
     fi
 }
-for s in auth_api pricing_api postgres redis rabbitmq; do issue_cert "$s"; done
+# Ensure all services that require mTLS have certificates issued
+for s in auth_service api_service worker mlops gateway; do issue_cert "$s"; done
 
-# 3. Protocol Synchronization
-log_info "Synchronizing gRPC protocol buffers..."
-GEN_DIR="src/shared/protos"
-mkdir -p "$GEN_DIR"
-docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
-    "pip install grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto"
-touch "$GEN_DIR/__init__.py"
-sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+# 3. Docker Infrastructure & Orchestration
+COMPOSE_FILE="infrastructure/docker-compose.yml"
 
-# 4. Service Orchestration (Sequential)
-COMPOSE_FILE="docker-compose.yml"
-
-deploy_and_validate() {
+deploy_step() {
     local svc=$1
-    log_info "Deploying service: $svc..."
-    if [ "$FORCE_REBUILD" -eq 1 ]; then
-        docker compose -f "$COMPOSE_FILE" build "$svc"
-    fi
-    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans "$svc"
+    log_info "Deploying and health-gating: $svc..."
+    docker compose -f "$COMPOSE_FILE" up -d --build "$svc"
     
     local retries=30
-    log_info "Waiting for $svc to report healthy..."
-    until docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"Health":"healthy"|"State":"running"' || [ $retries -eq 0 ]; do
+    # Use 'docker inspect' to check health status. Fallback to 'running' state if healthcheck is not yet 'healthy'.
+    until [ "$(docker inspect -f '{{.State.Health.Status}}' "manifold-$svc" 2>/dev/null)" == "healthy" ] || 
+          [ "$(docker inspect -f '{{.State.Status}}' "manifold-$svc" 2>/dev/null)" == "running" ] || 
+          [ $retries -eq 0 ]; do
         sleep 2
         ((retries--))
         echo -n "."
     done
     echo ""
     
-    if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"'; then
-        log_error "Service $svc failed to start."
+    # Final check after loop
+    if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"|"Health":"healthy"'; then
+        log_error "Service $svc failed to reach healthy state."
         docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 20
         exit 1
     fi
     log_success "$svc is online."
 }
 
-# Cleanup existing cluster if requested
-if [ "$FORCE_REBUILD" -eq 1 ]; then
-    log_info "Performing full cluster purge..."
-    docker compose -f "$COMPOSE_FILE" down --remove-orphans || true
-fi
+# 4. Sequential Rollout
+log_info "--- Starting Sequential Deployment ---"
 
-# Phase 1: Infrastructure
-log_info "--- Phase 1: Infrastructure ---"
-deploy_and_validate "postgres"
-deploy_and_validate "redis"
-deploy_and_validate "rabbitmq"
+log_info "--- Phase 1: Data Persistence Layer ---"
+deploy_step "timescaledb"
+deploy_step "redis"
+deploy_step "rabbitmq"
+deploy_step "pgbouncer" # Depends on timescaledb
 
-# Phase 2: Core Cluster
-log_info "--- Phase 2: Core services ---"
-deploy_and_validate "auth_api"
-deploy_and_validate "celery_worker"
+log_info "--- Phase 2: Core Services Layer ---"
+deploy_step "auth_service" # Depends on data persistence and PKI
+deploy_step "api_service"   # Depends on auth_service, data persistence, PKI
+deploy_step "worker"        # Depends on data persistence, auth_service, PKI, RabbitMQ
+deploy_step "mlops"         # Depends on worker, auth_service, PKI
 
-log_success "Deployment Complete. Manifold Stack is v6.0 Online."
+log_info "--- Phase 3: Edge Layer ---"
+deploy_step "frontend"      # Depends on api_service
+deploy_step "nginx"         # Depends on frontend and api_service
+
+log_success "Sequential Deployment Complete. Manifold Cluster v7.2 is Online."
+log_info "Next steps: Run integration and E2E tests."

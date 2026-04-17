@@ -1,0 +1,28 @@
+[project]
+name = "bsopt"
+version = "6.4.0"
+description = "BS-OPT: High-Performance Quantitative Trading Manifold"
+readme = "README.md"
+requires-python = "==3.12.13"
+dependencies = [
+    "fastapi[standard]>=0.115.0",
+    "grpcio>=1.70.0",
+    "grpcio-tools>=1.70.0",
+    "sqlalchemy[asyncio]>=2.0.38",
+    "asyncpg>=0.30.0",
+    "redis>=5.2.1",
+    "aio-pika>=9.5.4",
+    "pydantic-settings>=2.7.0",
+    "msgspec>=0.19.0",
+    "structlog>=25.1.0",
+    "bcrypt>=4.2.1",
+    "PyJWT[crypto]>=2.10.1",
+    "python-multipart>=0.0.20",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "httpx[http2]>=0.28.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

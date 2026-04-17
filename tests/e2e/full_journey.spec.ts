@@ -3,20 +3,19 @@
  * 
  * Tests the complete user journey:
  * 1. Sign Up
- * 2. Email Verification (mocked)
- * 3. Login
- * 4. Create Portfolio
- * 5. Execute Trade
- * 6. View ML Dashboard
- * 7. Trigger ML Training
+ * 2. Login
+ * 3. Create Portfolio
+ * 4. Execute Trade
+ * 5. View ML Dashboard
+ * 6. Trigger ML Training
  * 
  * Run with: npx playwright test tests/e2e/full_journey.spec.ts
  */
 
 import { test, expect, Page } from "@playwright/test";
 
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8080";
-const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8080/api/v1";
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:8000"; // Adjusted base URL to match API service
+const API_URL = process.env.PLAYWRIGHT_API_URL || "http://localhost:8000/api/v1";
 
 test.describe("Manifold Full Journey", () => {
   let uniqueEmail: string;
@@ -28,9 +27,9 @@ test.describe("Manifold Full Journey", () => {
   });
 
   test.describe("Authentication Flow", () => {
-    test("should complete sign-up flow", async ({ page }) => {
+    test("should complete sign-up and login flow", async ({ page }) => {
       await test.step("Navigate to signup page", async () => {
-        await page.goto(`${BASE_URL}/signup`);
+        await page.goto(`${BASE_URL}/signup`); // Assuming signup is handled by frontend
         await expect(page).toHaveURL(/\/signup/);
       });
 
@@ -43,33 +42,28 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Submit signup", async () => {
         await page.click('[type="submit"]');
-        await page.waitForURL(/\/(dashboard|verify-email|login)/, { timeout: 10000 });
+        // After signup, assume direct redirect to dashboard for test users,
+        // bypassing explicit email verification for test automation.
+        await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
 
-      await test.step("Verify success", async () => {
-        const currentUrl = page.url();
-        expect(currentUrl).not.toContain("/signup");
-      });
-    });
-
-    test("should complete login flow", async ({ page }) => {
-      await test.step("Navigate to login page", async () => {
-        await page.goto(`${BASE_URL}/login`);
-        await expect(page).toHaveURL(/\/login/);
+      await test.step("Verify dashboard access", async () => {
+        await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 10000 });
       });
 
-      await test.step("Fill login form", async () => {
+      await test.step("Login with newly created user", async () => {
+        // If the signup automatically logs in, this step might be redundant or need adjustment.
+        // Assuming a logout/re-login for a clean test of the login flow itself.
+        // If signup auto-logs in, this block could be removed or adapted.
+        await page.goto(`${BASE_URL}/logout`); // Assuming logout endpoint exists
+        await page.waitForURL(/\/login/);
         await page.fill('[name="email"]', uniqueEmail);
         await page.fill('[name="password"]', testPassword);
-      });
-
-      await test.step("Submit login", async () => {
         await page.click('[type="submit"]');
-        // Increased timeout for gRPC cold-start or mesh initialization
-        await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+        await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
 
-      await test.step("Verify dashboard access and Auth Mesh health", async () => {
+      await test.step("Verify successful login on dashboard", async () => {
         await expect(page.locator("text=Dashboard")).toBeVisible({ timeout: 10000 });
         // Check for specific UI indicators of gRPC-backend connectivity
         const meshStatus = page.locator('[data-testid="mesh-status-indicator"]');
@@ -89,16 +83,18 @@ test.describe("Manifold Full Journey", () => {
         await page.click('[type="submit"]');
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
       });
+      // Assume navigation to portfolios is handled within the page content or a fixture
     });
 
     test("should create a new portfolio", async ({ page }) => {
       await test.step("Navigate to portfolios", async () => {
-        await page.click('text=Portfolios');
+        // Use a more robust selector if 'text=Portfolios' is not stable
+        await page.click('a:has-text("Portfolios")');
         await page.waitForURL(/\/portfolios/, { timeout: 5000 });
       });
 
       await test.step("Click new portfolio button", async () => {
-        await page.click('text=New Portfolio');
+        await page.click('button:has-text("New Portfolio")');
         await expect(page.locator('[name="name"]')).toBeVisible();
       });
 
@@ -109,10 +105,7 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Create portfolio", async () => {
         await page.click('button:has-text("Create")');
-        await page.waitForTimeout(2000);
-      });
-
-      await test.step("Verify portfolio created", async () => {
+        // Wait for success message or navigation to portfolio list/detail
         await expect(page.locator("text=Portfolio created")).toBeVisible({ timeout: 10000 });
       });
     });
@@ -126,7 +119,7 @@ test.describe("Manifold Full Journey", () => {
         await page.fill('[name="password"]', testPassword);
         await page.click('[type="submit"]');
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-        await page.click('text=Trade');
+        await page.click('a:has-text("Trade")');
         await page.waitForURL(/\/trade/, { timeout: 5000 });
       });
     });
@@ -135,12 +128,16 @@ test.describe("Manifold Full Journey", () => {
       await test.step("Search for NIFTY", async () => {
         const searchInput = page.locator('[name="symbol"]');
         await searchInput.fill("NIFTY");
-        await page.waitForTimeout(500);
+        // Wait for search results to appear (e.g., a dropdown)
+        await page.waitForSelector('text=NIFTY', { state: 'visible', timeout: 5000 });
       });
 
       await test.step("Select from dropdown", async () => {
         await page.click('text=NIFTY');
-        await page.waitForTimeout(1000);
+        await page.waitForFunction(
+            () => document.querySelector('[name="symbol"]')?.value?.includes('NIFTY'),
+            { timeout: 5000 }
+        );
       });
 
       await test.step("Verify symbol selected", async () => {
@@ -151,22 +148,23 @@ test.describe("Manifold Full Journey", () => {
     test("should execute a buy order", async ({ page }) => {
       await test.step("Select symbol", async () => {
         await page.fill('[name="symbol"]', "NIFTY");
-        await page.waitForTimeout(500);
+        await page.waitForSelector('text=NIFTY', { state: 'visible', timeout: 5000 });
         await page.click('text=NIFTY');
+        await page.waitForFunction(
+            () => document.querySelector('[name="symbol"]')?.value?.includes('NIFTY'),
+            { timeout: 5000 }
+        );
       });
 
       await test.step("Enter order details", async () => {
         await page.fill('[name="quantity"]', "10");
-        await page.fill('[name="orderType"]', "market");
-        await page.click('text=Buy');
+        await page.fill('[name="orderType"]', "market"); // Assuming 'market' is a valid type
+        await page.click('button:has-text("Buy")');
       });
 
       await test.step("Confirm order", async () => {
         await page.click('button:has-text("Confirm")');
-        await page.waitForTimeout(3000);
-      });
-
-      await test.step("Verify order success", async () => {
+        // Wait for success message or navigation to order history
         await expect(page.locator("text=Order submitted")).toBeVisible({ timeout: 10000 });
       });
     });
@@ -180,7 +178,7 @@ test.describe("Manifold Full Journey", () => {
         await page.fill('[name="password"]', testPassword);
         await page.click('[type="submit"]');
         await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-        await page.click('text=ML Models');
+        await page.click('a:has-text("ML Models")');
         await page.waitForURL(/\/ml/, { timeout: 5000 });
       });
     });
@@ -191,6 +189,8 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Check Ray cluster status", async () => {
+        // This check assumes a specific UI element or text indicating Ray status.
+        // Adjust selector based on actual frontend implementation.
         const rayStatus = page.locator('text=/Ray.*(status|cluster)/i');
         await expect(rayStatus).toBeVisible({ timeout: 5000 });
       });
@@ -199,9 +199,8 @@ test.describe("Manifold Full Journey", () => {
     test("should trigger model training", async ({ page }) => {
       await test.step("Find training button", async () => {
         const trainButton = page.locator('button:has-text("Train Model")');
-        if (await trainButton.isVisible()) {
-          await trainButton.click();
-        }
+        await expect(trainButton).toBeVisible({ timeout: 5000 });
+        await trainButton.click();
       });
 
       await test.step("Configure training", async () => {
@@ -228,10 +227,21 @@ test.describe("Manifold Full Journey", () => {
       expect(data.status).toBe("healthy");
     });
 
+    // This test assumes MLflow is running and accessible externally or internally.
+    // If MLflow is part of the docker-compose, it should be available via service discovery.
     test("should verify MLflow is accessible", async ({ request }) => {
-      const mlflowUrl = process.env.MLFLOW_URL || "http://localhost:5000";
-      const response = await request.get(`${mlflowUrl}/health`);
-      expect(response.ok()).toBeTruthy();
+      // Dynamically determine MLflow URL. Assume it's in env or a known service name.
+      const mlflowUrl = process.env.MLFLOW_URL || "http://localhost:5000"; // Default if not set
+      try {
+        const response = await request.get(`${mlflowUrl}/api/2.0/ml/health`); // MLflow health endpoint
+        expect(response.ok()).toBeTruthy();
+      } catch (error) {
+        // If MLflow is not running or accessible, this test might fail.
+        // Depending on requirements, this could be ignored or marked as skipped.
+        console.warn(`MLflow health check failed: ${error.message}`);
+        // expect(true).toBe(true); // Mark test as passed if it's optional or expected to fail in some environments
+        throw error; // Re-throw to fail test if MLflow is critical and expected to be up
+      }
     });
   });
 
@@ -248,7 +258,8 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Verify error message", async () => {
-        await expect(page.locator("text=/Invalid|error|wrong/i")).toBeVisible({ timeout: 5000 });
+        // Use a more specific selector for error messages if possible
+        await expect(page.locator("text=/Invalid.*credentials|error/i")).toBeVisible({ timeout: 5000 });
       });
     });
 
@@ -262,8 +273,9 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Verify validation errors", async () => {
-        const errors = page.locator('[class*="error"], [class*="Error"]');
-        await expect(errors.first()).toBeVisible();
+        // Look for common validation error indicators
+        const errors = page.locator('input:invalid, [aria-invalid="true"], .error-message');
+        await expect(errors.first()).toBeVisible({ timeout: 5000 });
       });
     });
   });
@@ -280,12 +292,13 @@ test.describe("WebSocket Real-time Updates", () => {
     });
 
     await test.step("Navigate to market data", async () => {
-      await page.click('text=Markets');
-      await page.waitForTimeout(2000);
+      await page.click('a:has-text("Markets")');
+      // Wait for WebSocket connection indicator or initial data load
+      await page.waitForSelector('text=/Connected|Live Data|Market Feed/i', { state: 'visible', timeout: 10000 });
     });
 
-    await test.step("Verify WebSocket connection", async () => {
-      const wsStatus = page.locator('text=/Connected|Live/i');
+    await test.step("Verify WebSocket connection indicator", async () => {
+      const wsStatus = page.locator('text=/Connected|Live|Online/i');
       await expect(wsStatus).toBeVisible({ timeout: 5000 });
     });
   });

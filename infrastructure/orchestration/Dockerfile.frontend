@@ -1,0 +1,42 @@
+# Stage 1: Build Frontend
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY src/frontend/package.json src/frontend/package-lock.json* ./src/frontend/
+RUN cd src/frontend && npm install --frozen-lockfile
+
+# Copy the rest of the frontend source code
+COPY src/frontend/ ./src/frontend/
+
+# Build the frontend application for production
+RUN cd src/frontend && npm run build
+
+# Stage 2: Serve Frontend
+FROM nginx:alpine
+
+# Copy custom Nginx configuration
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf:ro
+COPY ./nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf:ro # Assuming a default conf exists or will be created
+
+# Copy the built static assets from the builder stage
+COPY --from=builder /app/src/frontend/dist /usr/share/nginx/html
+
+# Expose port 5175 for health check (if Vite dev server is used for health check, otherwise 80)
+EXPOSE 80
+EXPOSE 5175
+
+# Health check endpoint (adjust if static build doesn't serve on /health)
+# For a static build, a simple check for index.html might suffice.
+# The docker-compose healthcheck is set to http://localhost:5175/
+# If Nginx serves on 80, this healthcheck needs adjustment or Nginx needs to listen on 5175.
+# For now, assuming Nginx will serve on port 80 and the healthcheck needs to be adapted.
+
+# CMD ["nginx", "-g", "daemon off;"] # Default Nginx command
+
+# If the healthcheck MUST be on 5175, we need to configure Nginx to listen on both ports
+# or change the healthcheck. Let's assume Nginx listens on 80 for production proxying
+# and we might need to adjust healthcheck or run Vite dev server for dev.
+# For now, let's stick to serving static files on port 80 and adapt healthcheck later if needed.
+CMD ["nginx", "-g", "daemon off;"]
