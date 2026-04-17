@@ -11,13 +11,18 @@ vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="three-canvas-mock">{children}</div>,
   useFrame: vi.fn(),
   useThree: vi.fn(() => ({ viewport: { width: 100, height: 100 } })),
+  useLoader: vi.fn(),
 }));
 
 vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls-mock" />,
   PerspectiveCamera: () => <div data-testid="camera-mock" />,
   Text: () => <div data-testid="text-mock" />,
+  Float: ({ children }: any) => <div data-testid="float-mock">{children}</div>,
+  Points: ({ children }: any) => <div data-testid="points-mock">{children}</div>,
+  PointMaterial: () => null,
 }));
+
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
