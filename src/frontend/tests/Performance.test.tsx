@@ -24,9 +24,9 @@ test('Dashboard uses lazy loading for heavy components', async () => {
 
   // Initially should show loading fallbacks or at least not the components
   // Since we are in a test env, they might load fast, but we can check for their containers
-  expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
+  expect(await screen.findByTestId('live-price-chart-container')).toBeInTheDocument();
   
   // These should eventually appear
-  expect(await screen.findByTestId('options-chain-container')).toBeInTheDocument();
-  expect(await screen.findByTestId('greeks-heatmap-paper')).toBeInTheDocument();
+  expect(await screen.findByTestId('deep-inference-engine-container')).toBeInTheDocument();
+  expect(await screen.findByTestId('risk-exposure-grid-container')).toBeInTheDocument();
 });

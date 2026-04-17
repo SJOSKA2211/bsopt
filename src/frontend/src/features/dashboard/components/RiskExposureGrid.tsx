@@ -45,7 +45,7 @@ export const RiskExposureGrid: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div data-testid="risk-exposure-grid-container" className="h-full flex flex-col">
       <div className="grid grid-cols-4 gap-1 auto-rows-fr flex-grow min-h-0">
         {flatData.map((val: number, i: number) => (
           <div 

@@ -50,7 +50,7 @@ export const DeepInferenceEngine: React.FC<DeepInferenceEngineProps> = ({ symbol
   const latestAccuracy = comparisonData?.data?.accuracy || mlAccuracy || 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div data-testid="deep-inference-engine-container" className="flex flex-col h-full">
       <div className="space-y-4">
         <ModelMetric 
           label="Directional Prob (Bullish)" 
