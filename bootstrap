@@ -2,31 +2,21 @@
 set -euo pipefail
 
 # ==
-# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.7)
+# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.8)
 # ==
-# Orchestrates the sequential deployment and health-gating of the BSOPT cluster.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-# Colors for logging
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
+BLUE='\033[0;34m'; GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
-# --- 1. Environment Generation ---
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
     log_info "Generating cryptographically secure .env..."
     gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
-    
     cat > "$ENV_FILE" <<EOF
 ENVIRONMENT=production
 DEBUG=false
@@ -45,21 +35,13 @@ EOF
     log_success ".env generated."
 fi
 
-# --- 2. PKI Substrate (mTLS) ---
 PKI_DIR=".pki"
 mkdir -p "$PKI_DIR"
-log_info "Setting up PKI substrate..."
-
 ROOT_CA_KEY="${PKI_DIR}/root_ca.key"
 ROOT_CA_CERT="${PKI_DIR}/root_ca.crt"
-
-if [ ! -f "$ROOT_CA_KEY" ] || [ ! -f "$ROOT_CA_CERT" ]; then
-    log_info "Generating Root CA certificate and key..."
+if [ ! -f "$ROOT_CA_KEY" ]; then
     openssl genrsa -out "$ROOT_CA_KEY" 4096
     openssl req -x509 -new -nodes -key "$ROOT_CA_KEY" -sha256 -days 3650 -out "$ROOT_CA_CERT" -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA"
-    log_success "Root CA generated."
-else
-    log_info "Root CA already exists."
 fi
 
 issue_cert() {
@@ -67,33 +49,20 @@ issue_cert() {
     local cert_path="${PKI_DIR}/${svc}.crt"
     local key_path="${PKI_DIR}/${svc}.key"
     local csr_path="${PKI_DIR}/${svc}.csr"
-
     if [ ! -f "$key_path" ]; then
-        log_info "Issuing certificate for: $svc"
         openssl genrsa -out "$key_path" 2048
         openssl req -new -key "$key_path" -out "$csr_path" -subj "/C=US/O=BSOPT/CN=${svc}"
         openssl x509 -req -in "$csr_path" -CA "$ROOT_CA_CERT" -CAkey "$ROOT_CA_KEY" -CAcreateserial -out "$cert_path" -days 365 -sha256
         rm "$csr_path"
-        log_success "Certificate issued for $svc."
-    else
-        log_info "Certificate already exists for $svc."
     fi
 }
+for s in auth_service api_service worker mlops gateway; do issue_cert "$s"; done
 
-log_info "Issuing certificates for services..."
-for s in auth_service api_service worker mlops gateway; do 
-    issue_cert "$s"
-done
-log_success "PKI setup complete."
-
-# --- 3. Sequential Deployment ---
 COMPOSE_FILE="infrastructure/docker-compose.yml"
-
 deploy_step() {
     local svc=$1
     log_info "Deploying and health-gating: $svc..."
     docker compose -f "$COMPOSE_FILE" up -d --build "$svc"
-    
     local retries=30
     until [ "$(docker inspect -f '{{.State.Health.Status}}' "manifold-$svc" 2>/dev/null)" == "healthy" ] || \
           [ "$(docker inspect -f '{{.State.Status}}' "manifold-$svc" 2>/dev/null)" == "running" ] || \
@@ -102,16 +71,13 @@ deploy_step() {
         ((retries--))
         echo -n "."
     done
-    echo ""
-    
     if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"|"Health":"healthy"'; then
-        log_error "Service $svc failed to reach healthy state."
+        log_error "Service $svc failed."
         exit 1
     fi
     log_success "$svc is online."
 }
 
-log_info "--- Starting Sequential Deployment ---"
 deploy_step "timescaledb"
 deploy_step "redis"
 deploy_step "rabbitmq"
@@ -123,4 +89,4 @@ deploy_step "mlops"
 deploy_step "frontend"
 deploy_step "nginx"
 
-log_success "Deployment Complete. Cluster v7.7 Online."
+log_success "Deployment Complete. Cluster Online."
