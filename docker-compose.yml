@@ -1,113 +1,301 @@
-version: "3.9"
+# ==
+# BS-OPT: Production Docker Compose Configuration (v12.0 - Optimized)
+# ==
+# This compose file orchestrates the entire BS-OPT microservice architecture,
+# adhering to production best practices for stability, security, and scalability.
+# It integrates multiple networks for service isolation, strict secrets management,
+# resource constraints, health checks, and optimized build contexts.
+# ==
+# Usage: docker-compose -f docker-compose.yml up -d --build
+# ==
 
+version: '3.9'
+
+# --- Networks ---
+# Define networks for microservice isolation and communication.
+networks:
+  frontend_net:
+    driver: bridge
+    name: bsopt_frontend_net
+  backend_net:
+    driver: bridge
+    name: bsopt_backend_net
+  data_net:
+    driver: bridge
+    name: bsopt_data_net
+  ml_net:
+    driver: bridge
+    name: bsopt_ml_net
+
+# --- Volumes ---
+# Define named volumes for persistent data storage.
+volumes:
+  timescaledb_data:
+    name: bsopt_timescaledb_data
+  redis_data:
+    name: bsopt_redis_data
+  rabbitmq_data:
+    name: bsopt_rabbitmq_data
+  # Note: pki_data volume is intended for host mapping, not managed by compose directly.
+
+# --- Services ---
 services:
-  # Database Services
-  postgres:
-    image: timescale/timescaledb:latest-pg16
-    container_name: postgres_db
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set. Ensure POSTGRES_DB is provided in .env}
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set. Ensure POSTGRES_USER is provided in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set. Ensure POSTGRES_PASSWORD is provided in .env}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # --- 1. Data Persistence Layer ---
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15 # Production-grade TimescaleDB image
+    container_name: bsopt-manifold-db
     networks:
-      - app-network
+      - data_net
+    environment:
+      # Strict checking for essential PostgreSQL environment variables.
+      POSTGRES_USER: ${POSTGRES_USER:?PostgreSQL user is not set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?PostgreSQL password is not set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?PostgreSQL DB name is not set in .env}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data # Persistent data storage
     healthcheck:
+      # Robust health check for PostgreSQL
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G # Adequately provisioned memory for data services
 
   redis:
-    image: redis:7-alpine
-    container_name: redis_cache
-    ports:
-      - "6379:6379"
-    environment:
-      # Use REDIS_PASSWORD from .env for Redis server authentication
-      REDIS_ARGS: "--requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}"
-    volumes:
-      - redis_data:/data
+    image: redis:7-alpine # Optimized Redis image for caching
+    container_name: bsopt-manifold-redis
     networks:
-      - app-network
+      - data_net
+      - backend_net
+    command: redis-server --requirepass ${REDIS_PASSWORD:?Redis password is not set in .env} --appendonly yes # Enable persistence and password
+    volumes:
+      - redis_data:/data # Persistent Redis data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is not set.}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq_broker
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      # RabbitMQ user/pass are managed by the bootstrap script via RABBITMQ_URL
-      # Ensure RABBITMQ_URL is correctly formatted in .env
-      # Example: RABBITMQ_URL=amqp://guest:mysecretpassword@localhost:5672//
-      # For direct password auth if needed by the service:
-      # RABBITMQ_DEFAULT_USER=guest
-      # RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is not set.}
-      # For now, relying on bootstrap script setting RABBITMQ_URL and using guest user/pass
+    image: rabbitmq:3-management-alpine # Management UI included
+    container_name: bsopt-manifold-mq
     networks:
-      - app-network
+      - data_net
+      - backend_net
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RabbitMQ user is not set in .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RabbitMQ password is not set in .env}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq # Persistent RabbitMQ data
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running", "-q"]
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest # Production-ready PgBouncer for connection pooling
+    container_name: bsopt-manifold-pgbouncer
+    networks:
+      - data_net
+      - backend_net
+    environment:
+      # Connect to TimescaleDB via its service name and port 5432
+      DATABASE_URL: "postgres://${POSTGRES_USER:?PostgreSQL user is not set in .env}:${POSTGRES_PASSWORD:?PostgreSQL password is not set in .env}@timescaledb:5432/${POSTGRES_DB:?PostgreSQL DB name is not set in .env}"
+      PGBOUNCER_MAX_CLIENT_CONN: 1000 # Configurable connection limits
+      PGBOUNCER_POOL_MODE: transaction # Transaction pooling mode for better resource usage
+    depends_on:
+      timescaledb:
+        condition: service_healthy # Ensure DB is healthy before starting PgBouncer
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # --- 2. Core Services Layer ---
+  auth_service:
+    build:
+      context: ./infrastructure/orchestration # Build context for auth service
+      dockerfile: Dockerfile.auth # Specific Dockerfile for auth service
+    container_name: bsopt-manifold-auth
+    networks:
+      - backend_net
+      - data_net
+    environment:
+      # Core authentication service configuration
+      AUTH_SVC_ADDR: "auth_service:50051" # Internal gRPC address
+      JWT_SECRET: ${JWT_SECRET:?JWT secret is not set in .env} # JWT signing secret
+      JWT_ALGORITHM: "RS256" # JWT algorithm
+      ACCESS_TOKEN_EXPIRE_MINUTES: "15" # Token expiry durations
+      REFRESH_TOKEN_EXPIRE_DAYS: "30"
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?MFA encryption key is not set in .env} # MFA key
+      REDIS_HOST: redis # Connect to Redis service
+      POSTGRES_HOST: timescaledb # Connect to PostgreSQL service
+      RABBITMQ_HOST: rabbitmq # Connect to RabbitMQ service
+      # Use PgBouncer for database connection pooling
+      DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set in .env}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set in .env}"
+    volumes:
+      # Mount TLS certificates from host for secure gRPC communication
+      - ./.pki:/etc/ssl/certs:ro # Read-only mount for certificates
+      - ./.pki:/etc/ssl/private:ro # Read-only mount for private keys
+    depends_on:
+      timescaledb: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      pgbouncer: { condition: service_healthy }
+    healthcheck:
+      # gRPC health check using grpc_health_probe
+      test: ["CMD", "grpc_health_probe", "-addr=auth_service:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  api_service:
+    build:
+      context: ./infrastructure/orchestration # Build context for API service
+      dockerfile: Dockerfile.api # Specific Dockerfile for API service
+    container_name: bsopt-manifold-api
+    networks:
+      - frontend_net
+      - backend_net
+      - data_net
+    environment:
+      # Configuration for API service
+      AUTH_SVC_ADDR: "auth_service:50051" # Address of the auth service
+      REDIS_HOST: redis
+      POSTGRES_HOST: timescaledb
+      RABBITMQ_HOST: rabbitmq
+      PGBOUNCER_HOST: pgbouncer
+      # Use PgBouncer for database access
+      DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set in .env}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set in .env}"
+    volumes:
+      # Mount TLS certificates if API service requires them for inter-service communication
+      - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
+    depends_on:
+      timescaledb: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      pgbouncer: { condition: service_healthy }
+      auth_service: { condition: service_healthy } # API depends on auth service
+    healthcheck:
+      # Health check for the FastAPI application
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  worker:
+    build:
+      context: ./infrastructure/orchestration # Build context for worker service
+      dockerfile: Dockerfile.worker # Specific Dockerfile for worker service
+    container_name: bsopt-manifold-worker
+    networks:
+      - backend_net
+      - ml_net
+      - data_net
+    environment:
+      # Configuration for the worker service
+      REDIS_HOST: redis
+      POSTGRES_HOST: timescaledb
+      RABBITMQ_HOST: rabbitmq
+      # Use PgBouncer for database access
+      DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set in .env}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set in .env}"
+    volumes:
+      # Mount TLS certificates if worker service requires them for inter-service communication
+      - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
+    depends_on:
+      rabbitmq: { condition: service_healthy } # Worker depends on message queue
+      redis: { condition: service_healthy }
+      pgbouncer: { condition: service_healthy }
+      auth_service: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  mlops:
+    build:
+      context: ./infrastructure/orchestration # Build context for MLops service
+      dockerfile: Dockerfile.mlops # Specific Dockerfile for MLops service
+    container_name: bsopt-manifold-mlops
+    networks:
+      - ml_net
+      - backend_net
+    environment:
+      REDIS_HOST: redis
+      POSTGRES_HOST: timescaledb
+    volumes:
+      # Mount TLS certificates if MLops service requires them for inter-service communication
+      - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
+    depends_on:
+      worker: { condition: service_healthy } # MLops might depend on worker for processing
+      auth_service: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+  # --- 3. Frontend Layer ---
+  frontend:
+    build:
+      context: ./infrastructure/orchestration # Build context for frontend
+      dockerfile: Dockerfile.frontend # Specific Dockerfile for frontend service
+    container_name: bsopt-manifold-frontend
+    networks:
+      - frontend_net
+    environment:
+      # Frontend configuration - example URLs, adjust as needed
+      VITE_API_URL: "http://localhost:8000" # API service endpoint
+      VITE_AUTH_GRPC_URL: "auth_service:50051" # Auth service gRPC endpoint
+    depends_on:
+      api_service: { condition: service_healthy } # Frontend depends on API service
+    healthcheck:
+      # Health check for the frontend application (running on port 80)
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Auth Service (gRPC + HTTP Health)
-  auth_api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: auth_api_server
-    environment:
-      - GRPC_SECURE=true # Set to true in production with real certs
-      # Use strict syntax for all required environment variables
-      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}@redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER is not set.}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set.}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is not set.}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is not set. Ensure JWT_SECRET is provided in .env}
-      - JWT_ALGORITHM=${JWT_ALGORITHM:?JWT_ALGORITHM is not set.}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:?ACCESS_TOKEN_EXPIRE_MINUTES is not set.}
-      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:?REFRESH_TOKEN_EXPIRE_DAYS is not set.}
-      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is not set.}
-      # Add other necessary env vars like RABBITMQ_URL if auth_api uses it
-      # Add environment variable for GUNICORN workers if needed
-    ports:
-      - "50051:50051" # gRPC port
-      - "3001:3001"   # HTTP Health check port (for gRPC server)
-      - "8000:8000"   # FastAPI HTTP/2 port
+  # --- 4. Edge Layer (Reverse Proxy/Gateway) ---
+  nginx:
+    image: nginx:alpine # Use official Nginx image
+    container_name: bsopt-manifold-edge
     networks:
-      - app-network
+      - frontend_net
+    ports:
+      - "80:80" # HTTP port
+      # - "443:443" # HTTPS port - uncomment and configure if using TLS termination
+    volumes:
+      # Mount custom Nginx configuration files
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq: # Added RabbitMQ dependency as auth might use async tasks
-        condition: service_healthy
+      frontend: { condition: service_healthy } # Nginx routes to frontend
+      api_service: { condition: service_healthy } # Nginx routes to API
     healthcheck:
-      # Health check for the FastAPI app (port 8000)
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
+      test: ["CMD", "nginx", "-t"] # Check Nginx configuration syntax
       interval: 10s
       timeout: 5s
-      retries: 3
-    # Override the command to run Uvicorn with HTTP/2 support for the FastAPI app
-    # Ensure api.index:app is the correct entry point for the FastAPI app
-    # The original CMD in Dockerfile is python src/auth/grpc_server.py, so we override it here.
-    command: ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--http", "h2"]
+      retries: 5
 
-volumes:
-  postgres_data:
-  redis_data:
-  mlflow_data:
-
-networks:
-  app-network:
-    driver: bridge
+# == End of Docker Compose Configuration ==
