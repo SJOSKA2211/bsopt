@@ -39,7 +39,7 @@ RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml .
-RUN uv pip install --no-cache-dir .[api,shared]
+RUN uv pip install --no-cache-dir .[api,shared] grpcio-tools
 
 COPY --from=rust-builder /build/wheels/*.whl /tmp/
 RUN uv pip install --no-cache-dir /tmp/*.whl && rm /tmp/*.whl

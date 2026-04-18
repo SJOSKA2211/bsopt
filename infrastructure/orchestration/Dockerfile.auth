@@ -24,7 +24,7 @@ COPY pyproject.toml .
 # Create virtualenv and install dependencies
 RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN uv pip install --no-cache-dir .[auth,shared]
+RUN uv pip install --no-cache-dir .[auth,shared] grpcio-tools
 
 COPY src ./src
 COPY protos ./protos
