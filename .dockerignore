@@ -60,7 +60,7 @@ infrastructure/**/
 init-scripts/
 logs/
 monitoring/
-protos/
+# protos/ -- kept in context for gRPC stub generation
 ref0003/
 scripts/
 src/frontend/node_modules/
