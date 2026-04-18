@@ -1,5 +1,5 @@
 # ==============================================================================
-# BSOPT: Auth Service - Production Hardened (v9.0 - Alpine)
+# BSOPT: Auth Service - Production Hardened (v9.1 - Alpine)
 # ==============================================================================
 
 # --- Stage 1: Builder ---
@@ -16,14 +16,17 @@ ENV PATH="/root/.cargo/bin:$PATH"
 
 COPY pyproject.toml .
 
-# Install dependencies including auth group
-RUN uv pip install --system --no-cache-dir .[auth,shared]
+# Create virtualenv and install dependencies
+RUN uv venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN uv pip install --no-cache-dir .[auth,shared]
 
 COPY src ./src
 COPY protos ./protos
 
-# Generate gRPC code
-RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared --grpc_python_out=./src/shared ./protos/*.proto
+# Generate gRPC code and fix imports
+RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared/protos --grpc_python_out=./src/shared/protos ./protos/*.proto && \
+    sed -i 's/^import \([^ ]*\)_pb2/from . import \1_pb2/g' ./src/shared/protos/*_pb2*.py
 
 # --- Stage 2: Final Runtime ---
 FROM python:3.12.13-alpine
@@ -31,13 +34,13 @@ FROM python:3.12.13-alpine
 WORKDIR /app
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Install runtime dependencies
-RUN apk add --no-cache openssl ca-certificates
+RUN apk add --no-cache openssl ca-certificates libstdc++
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy virtualenv and source from builder
+COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /build/src /app/src
 
 # Security: Non-root user
@@ -47,5 +50,4 @@ USER appuser
 
 EXPOSE 50051
 
-# Note: Certs are mounted via volumes at /etc/ssl/certs and /etc/ssl/private
 CMD ["python", "src/auth/grpc_server.py"]

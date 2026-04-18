@@ -36,6 +36,10 @@
     }
   ],
   "env": {
-    "PYTHONPATH": ".:src"
-  }
+    "PYTHONPATH": ".:src",
+    "AUTH_SVC_ADDR": "auth-service-internal.manifold.test:50051",
+    "ENVIRONMENT": "production"
+  },
+  "installCommand": "pip install --upgrade pip && pip install -r requirements.txt && npm install --production",
+  "buildCommand": "cd src/frontend && npm run build"
 }

@@ -17,7 +17,7 @@ from src.database.session import get_async_db
 from src.math_kernel.service import MathKernelService
 from src.schemas.portfolio import Portfolio as PortfolioSchema
 from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate
-from api.index import get_current_user, get_current_user_id
+from api.dependencies import get_current_user, get_current_user_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/portfolios", tags=["Portfolios"])

@@ -163,17 +163,18 @@ def mock_asyncio_run(coro):
     print("Mock asyncio.run called for a coroutine.")
     asyncio.get_event_loop().run_until_complete(coro)
 
-# --- Global mocks for testing ---
+# --- Global mocks for testing (Restored to working state) ---
 original_grpc = grpc
 original_asyncio_run = asyncio.run
 original_grpc_aio_server = grpc.aio.server
-original_grpc_aio_secure_port = grpc.aio.server.add_secure_port
+# Removed invalid add_secure_port mock
 original_grpc_composite_channel_credentials = grpc.composite_channel_credentials
 original_grpc_ssl_channel_credentials = grpc.ssl_channel_credentials
 original_grpc_ssl_server_credentials = grpc.ssl_server_credentials
 original_add_auth_service_servicer = auth_pb2_grpc.add_AuthServiceServicer_to_server
-original_add_health_servicer = health_pb2_grpc.add_HealthServicer_to_server
-original_health_servicer = health.HealthServicer
+# health_pb2_grpc might not be available or needed here if we mock health
+# original_add_health_servicer = health_pb2_grpc.add_HealthServicer_to_server
+# original_health_servicer = health.HealthServicer
 original_auth_revoke_token = auth.revoke_token # Mock auth functions too
 
 # --- Mocking REVOKED_TOKENS set ---
@@ -188,14 +189,13 @@ def mock_revoke_token_func(token: str):
 @pytest.fixture(scope="module", autouse=True)
 def mock_grpc_environment():
     """Mocks gRPC components and auth functions for testing."""
-    grpc.aio.server = MockGrpcServer
-    grpc.aio.server.add_secure_port = mock_grpc_aio_server
+    # grpc.aio.server = MockGrpcServer # This is also problematic if it's not a function
     grpc.composite_channel_credentials = mock_composite_channel_credentials
     grpc.ssl_channel_credentials = mock_ssl_channel_credentials
     grpc.ssl_server_credentials = mock_ssl_server_credentials
     auth_pb2_grpc.add_AuthServiceServicer_to_server = add_AuthServiceServicer_to_server
-    health_pb2_grpc.add_HealthServicer_to_server = add_HealthServicer_to_server
-    health.HealthServicer = MockHealthServicer
+    # auth_pb2_grpc.add_HealthServicer_to_server = add_HealthServicer_to_server
+    # health.HealthServicer = MockHealthServicer
     auth.revoke_token = mock_revoke_token_func # Use mock revoke token
     asyncio.run = mock_asyncio_run
 
@@ -206,14 +206,13 @@ def mock_grpc_environment():
     yield
 
     # Teardown mocks
-    grpc.aio.server = original_grpc_aio_server
-    grpc.aio.server.add_secure_port = original_grpc_aio_secure_port
+    # grpc.aio.server = original_grpc_aio_server
     grpc.composite_channel_credentials = original_grpc_composite_channel_credentials
     grpc.ssl_channel_credentials = original_grpc_ssl_channel_credentials
     grpc.ssl_server_credentials = original_grpc_ssl_server_credentials
     auth_pb2_grpc.add_AuthServiceServicer_to_server = original_add_auth_service_servicer
-    health_pb2_grpc.add_HealthServicer_to_server = original_add_health_servicer
-    health.HealthServicer = original_health_servicer
+    # auth_pb2_grpc.add_HealthServicer_to_server = original_add_health_servicer
+    # health.HealthServicer = original_health_servicer
     auth.revoke_token = original_auth_revoke_token # Restore original revoke_token
     asyncio.run = original_asyncio_run
 

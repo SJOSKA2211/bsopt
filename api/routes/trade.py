@@ -15,7 +15,7 @@ from src.database.models import User
 from src.database.session import get_async_db
 from src.schemas.trade import Trade as TradeSchema
 from src.schemas.trade import TradeCreate
-from api.index import get_current_user
+from api.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])
