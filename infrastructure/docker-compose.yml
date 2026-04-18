@@ -4,42 +4,28 @@
 version: '3.9'
 
 # --- Networks ---
-# Frontend network for external access via Nginx and for frontend-backend communication
-frontend_net:
-  driver: bridge
-  internal: false # Accessible from host if needed, but primarily for Nginx ingress
-
-# Backend network for inter-service communication (gRPC, REST)
-backend_net:
-  driver: bridge
-  internal: true
-
-# Data network for services needing direct access to databases/caches
-data_net:
-  driver: bridge
-  internal: true
-
-# ML network for worker-MLOps communication
-ml_net:
-  driver: bridge
-  internal: true
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
+  data_net:
+    driver: bridge
+  ml_net:
+    driver: bridge
 
 # --- Volumes ---
 volumes:
   timescaledb_data:
-    driver: local
   redis_data:
-    driver: local
   rabbitmq_data:
-    driver: local
-  pki_data: # Persistent storage for PKI certificates
-    driver: local
+  pki_data:
 
 # --- Services ---
 services:
   # --- 1. Data Persistence Layer ---
   timescaledb:
-    image: timescale/timescaledb:latest-pg15-alpine
+    image: timescale/timescaledb:latest-pg15
     container_name: manifold-db
     networks:
       - data_net
@@ -49,13 +35,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?PostgreSQL DB name is not set}
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
-      - ./init-scripts/init-scripts:/docker-entrypoint-initdb.d # For custom init scripts
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    shm_size: 1gb # For performance
     deploy:
       resources:
         limits:
@@ -101,12 +85,9 @@ services:
       - data_net
       - backend_net
     environment:
-      # Use Pgbouncer to connect to TimescaleDB
       DATABASE_URL: "postgres://${POSTGRES_USER:?PostgreSQL user is not set}:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@timescaledb:5432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
       PGBOUNCER_MAX_CLIENT_CONN: 1000
-      PGBOUNCER_POOL_MODE: transaction # Transaction pooling is often a good default
-    volumes:
-      - ./infrastructure/configs/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro # Mount custom config
+      PGBOUNCER_POOL_MODE: transaction
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -119,31 +100,20 @@ services:
     container_name: manifold-auth
     networks:
       - backend_net
-      - data_net # Needs access to PKI secrets and potentially DB for user lookup
+      - data_net
     environment:
-      # Service discovery for dependent services
-      AUTH_SVC_ADDR: "auth_service:50051" # This service itself
+      AUTH_SVC_ADDR: "auth_service:50051"
       JWT_SECRET: ${JWT_SECRET:?JWT secret is not set}
-      JWT_ALGORITHM: "RS256" # Production standard
+      JWT_ALGORITHM: "RS256"
       ACCESS_TOKEN_EXPIRE_MINUTES: "15"
       REFRESH_TOKEN_EXPIRE_DAYS: "30"
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?MFA encryption key is not set}
-      # Dependencies
       REDIS_HOST: redis
       POSTGRES_HOST: timescaledb
-      POSTGRES_USER: ${POSTGRES_USER:?PostgreSQL user is not set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?PostgreSQL password is not set}
-      POSTGRES_DB: ${POSTGRES_DB:?PostgreSQL DB name is not set}
       RABBITMQ_HOST: rabbitmq
-      DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}" # Connect via pgbouncer
-      # PKI Secrets for mTLS (mounted volumes)
-      GRPC_SERVER_CERT: "/etc/ssl/certs/auth_service.crt"
-      GRPC_SERVER_KEY: "/etc/ssl/private/auth_service.key"
-      GRPC_CA_CERT: "/etc/ssl/certs/root_ca.crt"
+      DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro # Mount CA certs
-      - ./.pki/auth_service.crt:/etc/ssl/certs/auth_service.crt:ro # Mount service cert
-      - ./.pki/auth_service.key:/etc/ssl/private/auth_service.key:ro # Mount service key
+      - ./.pki:/etc/ssl/certs:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -154,7 +124,7 @@ services:
       pgbouncer:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "grpc_health_probe", "-addr=auth_service:50051"] # Use service name for internal checks
+      test: ["CMD", "grpc_health_probe", "-addr=auth_service:50051"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -170,25 +140,18 @@ services:
       dockerfile: Dockerfile.api
     container_name: manifold-api
     networks:
-      - frontend_net # For Nginx to reach it
-      - backend_net # For inter-service communication
-      - data_net # For DB access
+      - frontend_net
+      - backend_net
+      - data_net
     environment:
-      # Service discovery and config
       AUTH_SVC_ADDR: "auth_service:50051"
       REDIS_HOST: redis
       POSTGRES_HOST: timescaledb
       RABBITMQ_HOST: rabbitmq
       PGBOUNCER_HOST: pgbouncer
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
-      # PKI Secrets for mTLS client connection to Auth Service
-      GRPC_CLIENT_CERT: "/etc/ssl/certs/api_service.crt"
-      GRPC_CLIENT_KEY: "/etc/ssl/private/api_service.key"
-      GRPC_CA_CERT: "/etc/ssl/certs/root_ca.crt"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro # Mount CA certs
-      - ./.pki/api_service.crt:/etc/ssl/certs/api_service.crt:ro # Mount service cert
-      - ./.pki/api_service.key:/etc/ssl/private/api_service.key:ro # Mount service key
+      - ./.pki:/etc/ssl/certs:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -199,9 +162,9 @@ services:
       pgbouncer:
         condition: service_healthy
       auth_service:
-        condition: service_healthy # Critical dependency on Auth service
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"] # FastAPI health check
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -214,7 +177,7 @@ services:
   worker:
     build:
       context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.worker # Placeholder: Will create this later
+      dockerfile: Dockerfile.worker
     container_name: manifold-worker
     networks:
       - backend_net
@@ -225,14 +188,8 @@ services:
       POSTGRES_HOST: timescaledb
       RABBITMQ_HOST: rabbitmq
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
-      # Add mTLS certs if worker needs to talk to Auth/API gRPC securely
-      GRPC_CLIENT_CERT: "/etc/ssl/certs/worker.crt"
-      GRPC_CLIENT_KEY: "/etc/ssl/private/worker.key"
-      GRPC_CA_CERT: "/etc/ssl/certs/root_ca.crt"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro # Mount CA certs
-      - ./.pki/worker.crt:/etc/ssl/certs/worker.crt:ro
-      - ./.pki/worker.key:/etc/ssl/private/worker.key:ro
+      - ./.pki:/etc/ssl/certs:ro
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -251,26 +208,19 @@ services:
   mlops:
     build:
       context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.mlops # Placeholder: Will create this later
+      dockerfile: Dockerfile.mlops
     container_name: manifold-mlops
     networks:
       - ml_net
       - backend_net
     environment:
-      # Add ML specific env vars and dependencies
       REDIS_HOST: redis
       POSTGRES_HOST: timescaledb
-      # Add mTLS certs if needed for internal communication
-      GRPC_CLIENT_CERT: "/etc/ssl/certs/mlops.crt"
-      GRPC_CLIENT_KEY: "/etc/ssl/private/mlops.key"
-      GRPC_CA_CERT: "/etc/ssl/certs/root_ca.crt"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro # Mount CA certs
-      - ./.pki/mlops.crt:/etc/ssl/certs/mlops.crt:ro
-      - ./.pki/mlops.key:/etc/ssl/private/mlops.key:ro
+      - ./.pki:/etc/ssl/certs:ro
     depends_on:
       worker:
-        condition: service_healthy # MLops depends on worker for task execution
+        condition: service_healthy
       auth_service:
         condition: service_healthy
     deploy:
@@ -283,19 +233,18 @@ services:
   frontend:
     build:
       context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.frontend # Placeholder: Will create this later
+      dockerfile: Dockerfile.frontend
     container_name: manifold-frontend
     networks:
-      - frontend_net # Nginx will proxy to this
+      - frontend_net
     environment:
-      # Frontend specific env vars
-      VITE_API_URL: "http://localhost:8000" # Development URL, will be proxied in production
-      VITE_AUTH_GRPC_URL: "auth_service:50051" # Internal gRPC URL
+      VITE_API_URL: "http://localhost:8000"
+      VITE_AUTH_GRPC_URL: "auth_service:50051"
     depends_on:
       api_service:
-        condition: service_healthy # Frontend needs the API to be ready
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5175/"] # Basic check for Vite dev server or static build
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -307,21 +256,17 @@ services:
     networks:
       - frontend_net
     ports:
-      - "80:80"   # HTTP
-      - "443:443" # HTTPS (if TLS termination is handled here)
+      - "80:80"
     volumes:
-      # Mount Nginx configuration files
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      # Mount shared utilities if Nginx needs to access them (e.g., Lua scripts)
-      - shared_utils:/opt/manifold/utils:ro
     depends_on:
       frontend:
         condition: service_healthy
       api_service:
-        condition: service_healthy # Nginx needs to proxy to the API
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "nginx-module-digest", "-t"] # Nginx health check
+      test: ["CMD", "nginx", "-t"]
       interval: 10s
       timeout: 5s
       retries: 5

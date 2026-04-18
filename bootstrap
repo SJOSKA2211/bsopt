@@ -2,29 +2,30 @@
 set -euo pipefail
 
 # ==
-# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.2)
+# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.7)
 # ==
 # Orchestrates the sequential deployment and health-gating of the BSOPT cluster.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-# Colors
+# Colors for logging
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 NC='\033[0m'
 
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
-# 1. Environment Generation (Strict & Secure)
+# --- 1. Environment Generation ---
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
     log_info "Generating cryptographically secure .env..."
-    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '
-' | tr -d '=' | head -c 32; }
+    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
     
     cat > "$ENV_FILE" <<EOF
 ENVIRONMENT=production
@@ -33,8 +34,7 @@ POSTGRES_USER=manifold_admin
 POSTGRES_PASSWORD=$(gen_secret)
 POSTGRES_DB=bsopt
 REDIS_PASSWORD=$(gen_secret)
-JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '
-')
+JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '\n')
 MFA_ENCRYPTION_KEY=$(gen_secret)
 RABBITMQ_USER=manifold_mq
 RABBITMQ_PASSWORD=$(gen_secret)
@@ -45,17 +45,18 @@ EOF
     log_success ".env generated."
 fi
 
-# 2. PKI Substrate (mTLS)
+# --- 2. PKI Substrate (mTLS) ---
 PKI_DIR=".pki"
 mkdir -p "$PKI_DIR"
+log_info "Setting up PKI substrate..."
 
-# Generate Root CA first
-if [ ! -f "${PKI_DIR}/root_ca.key" ]; then
-    log_info "Initializing PKI substrate: Generating Root CA..."
-    openssl genrsa -out "${PKI_DIR}/root_ca.key" 4096 2>/dev/null
-    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 
-        -out "${PKI_DIR}/root_ca.crt" 
-        -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
+ROOT_CA_KEY="${PKI_DIR}/root_ca.key"
+ROOT_CA_CERT="${PKI_DIR}/root_ca.crt"
+
+if [ ! -f "$ROOT_CA_KEY" ] || [ ! -f "$ROOT_CA_CERT" ]; then
+    log_info "Generating Root CA certificate and key..."
+    openssl genrsa -out "$ROOT_CA_KEY" 4096
+    openssl req -x509 -new -nodes -key "$ROOT_CA_KEY" -sha256 -days 3650 -out "$ROOT_CA_CERT" -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA"
     log_success "Root CA generated."
 else
     log_info "Root CA already exists."
@@ -65,30 +66,27 @@ issue_cert() {
     local svc=$1
     local cert_path="${PKI_DIR}/${svc}.crt"
     local key_path="${PKI_DIR}/${svc}.key"
+    local csr_path="${PKI_DIR}/${svc}.csr"
 
     if [ ! -f "$key_path" ]; then
         log_info "Issuing certificate for: $svc"
-        openssl genrsa -out "$key_path" 2048 2>/dev/null
-        openssl req -new -key "$key_path" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
-        
-        # Ensure root CA files exist before using them
-        if [ ! -f "${PKI_DIR}/root_ca.crt" ] || [ ! -f "${PKI_DIR}/root_ca.key" ]; then
-            log_error "Root CA certificate or key not found. Cannot issue service certificate for $svc."
-            exit 1
-        fi
-
-        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" 
-            -CAcreateserial -out "$cert_path" -days 365 -sha256 2>/dev/null
-        rm "${PKI_DIR}/${svc}.csr"
+        openssl genrsa -out "$key_path" 2048
+        openssl req -new -key "$key_path" -out "$csr_path" -subj "/C=US/O=BSOPT/CN=${svc}"
+        openssl x509 -req -in "$csr_path" -CA "$ROOT_CA_CERT" -CAkey "$ROOT_CA_KEY" -CAcreateserial -out "$cert_path" -days 365 -sha256
+        rm "$csr_path"
         log_success "Certificate issued for $svc."
     else
         log_info "Certificate already exists for $svc."
     fi
 }
-# Ensure all services that require mTLS have certificates issued
-for s in auth_service api_service worker mlops gateway; do issue_cert "$s"; done
 
-# 3. Docker Infrastructure & Orchestration
+log_info "Issuing certificates for services..."
+for s in auth_service api_service worker mlops gateway; do 
+    issue_cert "$s"
+done
+log_success "PKI setup complete."
+
+# --- 3. Sequential Deployment ---
 COMPOSE_FILE="infrastructure/docker-compose.yml"
 
 deploy_step() {
@@ -97,9 +95,8 @@ deploy_step() {
     docker compose -f "$COMPOSE_FILE" up -d --build "$svc"
     
     local retries=30
-    # Use 'docker inspect' to check health status. Fallback to 'running' state if healthcheck is not yet 'healthy'.
-    until [ "$(docker inspect -f '{{.State.Health.Status}}' "manifold-$svc" 2>/dev/null)" == "healthy" ] || 
-          [ "$(docker inspect -f '{{.State.Status}}' "manifold-$svc" 2>/dev/null)" == "running" ] || 
+    until [ "$(docker inspect -f '{{.State.Health.Status}}' "manifold-$svc" 2>/dev/null)" == "healthy" ] || \
+          [ "$(docker inspect -f '{{.State.Status}}' "manifold-$svc" 2>/dev/null)" == "running" ] || \
           [ $retries -eq 0 ]; do
         sleep 2
         ((retries--))
@@ -107,33 +104,23 @@ deploy_step() {
     done
     echo ""
     
-    # Final check after loop
     if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"|"Health":"healthy"'; then
         log_error "Service $svc failed to reach healthy state."
-        docker compose -f "$COMPOSE_FILE" logs "$svc" | tail -n 20
         exit 1
     fi
     log_success "$svc is online."
 }
 
-# 4. Sequential Rollout
 log_info "--- Starting Sequential Deployment ---"
-
-log_info "--- Phase 1: Data Persistence Layer ---"
 deploy_step "timescaledb"
 deploy_step "redis"
 deploy_step "rabbitmq"
-deploy_step "pgbouncer" # Depends on timescaledb
+deploy_step "pgbouncer"
+deploy_step "auth_service"
+deploy_step "api_service"
+deploy_step "worker"
+deploy_step "mlops"
+deploy_step "frontend"
+deploy_step "nginx"
 
-log_info "--- Phase 2: Core Services Layer ---"
-deploy_step "auth_service" # Depends on data persistence and PKI
-deploy_step "api_service"   # Depends on auth_service, data persistence, PKI
-deploy_step "worker"        # Depends on data persistence, auth_service, PKI, RabbitMQ
-deploy_step "mlops"         # Depends on worker, auth_service, PKI
-
-log_info "--- Phase 3: Edge Layer ---"
-deploy_step "frontend"      # Depends on api_service
-deploy_step "nginx"         # Depends on frontend and api_service
-
-log_success "Sequential Deployment Complete. Manifold Cluster v7.2 is Online."
-log_info "Next steps: Run integration and E2E tests."
+log_success "Deployment Complete. Cluster v7.7 Online."

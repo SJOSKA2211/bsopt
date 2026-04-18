@@ -2,7 +2,7 @@
 # This module will orchestrate ML model inference and training workflows.
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 import random
 import time # For simulating delays
@@ -15,12 +15,12 @@ class MLPipeline:
     def __init__(self):
         logger.info("MLPipeline initialized.")
         # In a real application, this might load model registry configurations or initialize clients.
-        # For simulation purposes, we can initialize some dummy models.
-        self.available_models = {
-            "model_abc": {"version": "1.0.0", "status": "deployed", "target_env": "production"},
-            "model_xyz": {"version": "2.1.0", "status": "deployed", "target_env": "staging"},
+        # For simulation purposes, we can initialize some dummy models and training job states.
+        self.active_models = {
+            "model_abc": {"version": "1.0.0", "status": "deployed", "target_env": "production", "name": "SentimentAnalyzer"},
+            "model_xyz": {"version": "2.1.0", "status": "deployed", "target_env": "staging", "name": "ImageClassifier"},
         }
-        self.training_jobs = {} # Store details about ongoing or recently triggered training jobs
+        self.training_jobs = {} # Store details about ongoing or recently triggered training jobs {job_id: {model_id, status, progress}}
         pass
 
     def predict(self, model_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -35,17 +35,18 @@ class MLPipeline:
         time.sleep(processing_time)
 
         try:
-            input_hash = hash(str(data.get("input_value", ""))) if "input_value" in data else hash("default_input")
-            # Simulate prediction value based on model ID and input hash
-            prediction_value = (hash(model_id) % 1000 + input_hash % 500) / 10.0
+            input_str = str(data.get("input_value", data)) 
+            # Simulate prediction value based on model ID and input data hash
+            prediction_value = (hash(model_id) % 1000 + hash(input_str) % 500) / 10.0
             confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
         except TypeError: 
+            # Fallback if data is not easily hashable
             prediction_value = hash(model_id) % 1000 / 10.0
             confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
 
         prediction_result = {
             "prediction": round(prediction_value, 2),
-            "confidence": round(min(confidence_score, 0.99), 2), 
+            "confidence": round(min(confidence_score, 0.99), 2), # Ensure confidence is not > 1.0
             "model_used": model_id,
             "processing_time_ms": int(processing_time * 1000),
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -57,19 +58,29 @@ class MLPipeline:
         """
         Triggers ML model training by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing and simulating basic training parameters.
-        Includes simulated ETA.
+        Includes simulated ETA and status updates.
         """
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
+        
+        job_id = f"train_{model_id}_{int(time.time())}"
+        self.training_jobs[job_id] = {
+            "model_id": model_id,
+            "status": "queued",
+            "progress": 0,
+            "start_time": datetime.now(timezone.utc),
+            "eta_seconds_simulated": random.randint(60, 300) # Simulate ETA for training
+        }
         
         try:
             trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
             training_info = {
                 "message": "ML training task enqueued successfully",
+                "job_id": job_id,
                 "model_id": model_id,
                 "training_parameters": {"epochs": epochs, "batch_size": batch_size},
-                "status": "queued",
-                "eta_seconds_simulated": random.randint(60, 300), # Simulate ETA for training
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "status": self.training_jobs[job_id]["status"],
+                "eta_seconds_simulated": self.training_jobs[job_id]["eta_seconds_simulated"],
+                "timestamp": self.training_jobs[job_id]["start_time"].isoformat()
             }
             logger.info(f"Training task enqueued: {training_info}")
             return training_info

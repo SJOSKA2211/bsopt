@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client'; 
-import { ApolloError } from '@apollo/client'; // Import ApolloError for type checking
+import { ApolloError } from '@apollo/client'; // Import ApolloError for specific error handling
+
+// Import custom GraphQL hooks
+import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; 
 
 // --- GraphQL Queries and Mutations ---
 const GET_PORTFOLIOS_QUERY = gql`
@@ -88,13 +91,12 @@ const PortfolioPage = () => {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
-      <p className="text-lg animate-pulse">Loading portfolios...</p> {/* Added loading animation */}
+      <p className="text-lg animate-pulse">Loading portfolios...</p>
     </div>
   );
-  // Check for ApolloError specifically if needed, or general error message
   if (error) return (
     <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
-      <p className="text-lg text-red-500">Error loading portfolios: {error.message}</p>
+      <p className="text-lg text-red-500">Error loading portfolios: {error.message}</p> 
     </div>
   );
 

@@ -31,6 +31,7 @@ const testUserName = "Test User";
 test.describe("Manifold Full Journey", () => {
   let uniqueEmail: string;
   let portfolio_id: string = ''; // To store created portfolio ID for reuse
+  let model_id: string = ''; // To store created model ID for reuse
 
   test.beforeAll(async () => {
     uniqueEmail = `user_${Date.now()}@Manifold.test`;
@@ -109,9 +110,10 @@ test.describe("Manifold Full Journey", () => {
         const listResponse = await request.get(`${API_URL}/portfolios/`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token retrieval
         expect(listResponse.ok()).toBeTruthy();
         const portfolios = await listResponse.json();
-        const created = portfolios.find(p => p.name.startsWith(portfolio_name_base));
+        const created = portfolios.find((p: any) => p.name.startsWith(portfolio_name_base));
         expect(created).toBeDefined();
         portfolio_id = created.id;
+        expect(portfolio_id).toBeDefined(); // Ensure ID is captured
       });
 
       await test.step("Get portfolio by ID", async () => {
@@ -217,9 +219,10 @@ test.describe("Manifold Full Journey", () => {
         const modelsResponse = await request.get(`${API_URL}/ml/models`, { headers: { Authorization: `Bearer ${await page.request.storageState().cookies.find(c => c.name === 'access_token')?.value || ''}` }}); // Needs actual token
         expect(modelsResponse.ok()).toBeTruthy();
         const models = await modelsResponse.json();
-        const created_model = models.find(m => m.name === model_name && m.version === model_version);
+        const created_model = models.find((m: any) => m.name === model_name && m.version === model_version);
         expect(created_model).toBeDefined();
         model_id = created_model.id;
+        expect(model_id).toBeDefined(); // Ensure ID is captured
       });
 
       await test.step("Predict using the created model", async () => {

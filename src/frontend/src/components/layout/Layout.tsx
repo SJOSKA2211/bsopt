@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom'; // Assuming React Router is used for navigation
 
-const Layout = ({ children }: { children: React.ReactNode }) => (
+export const Layout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-screen bg-bento-bg text-white overflow-hidden">
      {/* Sidebar */}
      <aside className="w-[280px] border-r border-white/10 p-8 flex flex-col justify-between">

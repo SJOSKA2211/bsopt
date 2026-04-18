@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// Import Apollo Client hooks and gql tag
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client'; // Import GraphQL hooks
+import { ApolloError } from '@apollo/client'; // Import ApolloError for specific error handling
 
 // Import custom GraphQL hooks
 import { useFetchDataGQL, useMutateDataGQL } from '../hooks/api'; 
@@ -45,7 +45,7 @@ const TradePage = () => {
   const { data: portfolioListData, loading: portfoliosLoading, error: portfoliosError, refetch: refetchPortfolios } = useQuery(GET_PORTFOLIOS_FOR_TRADES);
 
   // Mutation hook for creating trades
-  const [createTradeMutation, { data: createdTradeData, loading: creatingTrade, error: createTradeError }] = useMutation(CREATE_TRADE_MUTATION, {
+  const [createTradeMutation, { loading: creatingTrade, error: createTradeError }] = useMutation(CREATE_TRADE_MUTATION, {
       refetchQueries: [{ query: GET_PORTFOLIOS_FOR_TRADES }], // Refetch portfolio list after trade, or use a specific trade list query
   });
 
@@ -94,8 +94,16 @@ const TradePage = () => {
     }
   };
 
-  if (portfoliosLoading) return <p>Loading portfolios...</p>;
-  if (portfoliosError) return <p>Error loading portfolios: {portfoliosError.message}</p>;
+  if (portfoliosLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
+      <p className="text-lg animate-pulse">Loading portfolios...</p>
+    </div>
+  );
+  if (portfoliosError) return (
+    <div className="min-h-screen flex items-center justify-center bg-bento-bg text-white">
+      <p className="text-lg text-red-500">Error loading portfolios: {portfoliosError.message}</p>
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-6 bg-bento-bg text-white min-h-screen">
@@ -119,7 +127,7 @@ const TradePage = () => {
       {/* Trade Order Form */}
       <div className="p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">New Trade Order</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <input
             type="text"
             placeholder="Symbol (e.g., AAPL)"
@@ -156,7 +164,7 @@ const TradePage = () => {
         <button 
           onClick={handleTradeSubmit} 
           disabled={creatingTrade}
-          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50"
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 transition-colors duration-200"
         >
           {creatingTrade ? 'Submitting...' : 'Submit Trade'}
         </button>

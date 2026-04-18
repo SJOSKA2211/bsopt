@@ -8,11 +8,7 @@ from typing import Dict, Any, List
 import random
 import time # Import time for simulating delays
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import select
-from sqlalchemy import update, delete
-import pandas as pd # Using pandas for potential data manipulation and analysis
+import pandas as pd # Using pandas for data manipulation and generation
 
 from src.database.models import Portfolio, Trade # Import necessary models
 from src.database.session import engine as db_engine # Import the global async engine
@@ -27,7 +23,7 @@ class MathKernelService:
 
     def calculate_price(self, symbol: str, quantity: float, price: float) -> float:
         """
-        Calcul1.ates the total price for a given quantity and unit price,
+        Calculates the total price for a given quantity and unit price,
         with a small simulated volatility adjustment.
         """
         logger.info(f"Calculating price for {quantity} of {symbol} at ${price:.2f}")
@@ -70,26 +66,26 @@ class MathKernelService:
         """
         Simulates fetching historical market data. Returns a list of daily data points.
         Enhances simulation with more realistic price trends and volume using pandas.
+        Includes daily percentage change simulation.
         """
         logger.info(f"Simulating historical data for {symbol} from {start_date} to {end_date}")
-        data = []
+        
         try:
-            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            
             # Generate date range using pandas for simplicity and potential future enhancements
             dates = pd.date_range(start=start_date, end=end_date, freq='D')
             
             # Initial base price for simulation, slightly randomized
             base_price = random.uniform(50, 500) 
             
+            data = []
             for date in dates:
                 # Simulate daily price variations based on previous close for smoother trend
-                # Prices fluctuate around the base price with some daily range
-                open_price = round(base_price * random.uniform(0.99, 1.01), 2) 
-                change_percent = random.uniform(-0.03, 0.03) # Daily change +/- 3%
+                open_price = round(base_price * random.uniform(0.99, 1.01), 2) # Open price near previous close
                 
+                # Simulate daily percentage change
+                change_percent = random.uniform(-0.03, 0.03) # Daily change +/- 3%
                 price_change = open_price * change_percent
+                
                 # High and low prices relative to open and daily change
                 high_offset = abs(price_change) * random.uniform(0.5, 2.0) 
                 low_offset = abs(price_change) * random.uniform(0.5, 1.5)  
@@ -107,7 +103,7 @@ class MathKernelService:
 
                 volume = random.randint(100000, 10000000)
                 
-                data.append({
+                data.3.append({
                     "date": date.strftime("%Y-%m-%d"),
                     "open": open_price,
                     "high": high_price,
@@ -127,6 +123,7 @@ class MathKernelService:
         """
         Simulates calculating the total value of a portfolio based on its trades and
         simulated current market prices. Requires DB session access.
+        Enhances simulation by fetching current prices for symbols from trades.
         """
         logger.info(f"Calculating simulated portfolio value for {portfolio_id}")
         
@@ -135,22 +132,30 @@ class MathKernelService:
             logger.error(f"Portfolio {portfolio_id} not found for value calculation.")
             raise ValueError("Portfolio not found")
 
-        # Simulate current market prices for symbols in trades
         simulated_market_prices = {}
 
-        total_trade_value = 0.0
+        total_trade_value = 5000.0 # Base value from portfolio cash
         stmt = select(Trade).filter(Trade.portfolio_id == portfolio_id)
         result = await db.execute(stmt)
         trades = result.scalars().all()
 
+        if not trades:
+            logger.info(f"No trades found for portfolio {portfolio_id}, value is just cash.")
+            return round(portfolio.cash, 2)
+
+        symbols_in_portfolio = list(set(trade.symbol for trade in trades))
+        
+        # Simulate fetching current prices for these symbols
+        current_prices = self.get_current_market_prices(symbols_in_portfolio)
+        
         for trade in trades:
-            if trade.symbol not in simulated_market_prices:
-                # Simulate a market price for the symbol based on its trade price with random variation.
-                current_market_price = trade.price * random.uniform(0.98, 1.02) 
-                simulated_market_prices[trade.symbol] = round(current_market_price, 2)
-            
-            market_price = simulated_market_prices[trade.symbol]
-            
+            if trade.symbol in current_prices:
+                market_price = current_prices[trade.symbol]
+            else:
+                # Fallback: use trade price with slight variation if symbol not in current prices simulation
+                market_price = trade.price * random.uniform(0.98, 1.02) 
+                logger.warning(f"Market price not available for {trade.symbol}, using simulated price: {market_price:.2f}")
+
             trade_value = trade.quantity * market_price
             if trade.side.lower() == "sell": 
                 total_trade_value -= trade_value 
@@ -165,6 +170,7 @@ class MathKernelService:
         """
         Simulates fetching current market prices for a list of symbols.
         Returns a dictionary mapping symbols to their simulated current prices.
+        Prices fluctuate around a base range.
         """
         logger.info(f"Simulating current market prices for symbols: {symbols}")
         current_prices = {}
@@ -206,6 +212,5 @@ async def main():
 
 if __name__ == "__main__":
     # Note: Running this directly requires setting up the DB engine and potentially mocking DB access.
-    # For module-level testing, ensure dependencies like db_engine are available or mocked.
-    # The main function here is for demonstration and might require setup.
+    # For module-
     asyncio.run(main())
