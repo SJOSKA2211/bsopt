@@ -7,14 +7,13 @@ from httpx import AsyncClient
 pytestmark = pytest.mark.integration
 
 async def test_auth_verify_valid_token(api_client: AsyncClient, test_user_token: str):
-    """
-    Tests the /api/v1/auth/verify endpoint with a valid token.
+    """Tests the /api/v1/auth/verify endpoint with a valid token.
     """
     response = await api_client.get(
         "/api/v1/auth/verify",
-        params={"token": test_user_token}
+        params={"token": test_user_token},
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["valid"] is True
@@ -25,24 +24,22 @@ async def test_auth_verify_valid_token(api_client: AsyncClient, test_user_token:
     assert "admin" in data["roles"]
 
 async def test_auth_verify_invalid_token(api_client: AsyncClient):
-    """
-    Tests the /api/v1/auth/verify endpoint with an invalid token.
+    """Tests the /api/v1/auth/verify endpoint with an invalid token.
     """
     response = await api_client.get(
         "/api/v1/auth/verify",
-        params={"token": "invalid-token-string"}
+        params={"token": "invalid-token-string"},
     )
-    
+
     assert response.status_code == 401 # Unauthorized
     data = response.json()
     assert "Token is invalid or expired" in data["detail"]
 
 async def test_auth_verify_missing_token(api_client: AsyncClient):
-    """
-    Tests the /api/v1/auth/verify endpoint when the token is missing.
+    """Tests the /api/v1/auth/verify endpoint when the token is missing.
     """
     response = await api_client.get("/api/v1/auth/verify")
-    
+
     assert response.status_code == 400 # Bad Request
     data = response.json()
     assert "Token is required" in data["detail"]

@@ -23,33 +23,30 @@ class MockAuthServiceStub:
     async def ValidateToken(self, request):
         if request.token == "valid-token-abc":
             return auth_pb2.TokenResponse(valid=True, user_id="test-user-123", email="test@example.com", tier="premium", expires_at=int(time.time()) + 3600, issued_at=int(time.time()), token_type="access", roles=["user"])
-        elif request.token == "revoked-token-xyz":
+        if request.token == "revoked-token-xyz":
             raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token has been revoked")
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
+        raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
 
     async def CreateTokenPair(self, request):
         if request.user_id == "test-user-123":
             return auth_pb2.TokenPairResponse(access_token="new-access-token", refresh_token="new-refresh-token", token_type="Bearer", expires_in=3600, issued_at=int(time.time()))
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid user credentials")
+        raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid user credentials")
 
     async def RefreshToken(self, request):
         if request.refresh_token == "valid-refresh-token":
             return auth_pb2.TokenResponse(valid=True, user_id="test-user-123", expires_at=int(time.time()) + 3600, token_type="access")
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid or expired refresh token")
+        raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid or expired refresh token")
 
     async def RevokeToken(self, request):
         # Use the mocked revoke_token function which adds to REVOKED_TOKENS set
-        auth.revoke_token(request.token) 
+        auth.revoke_token(request.token)
         return empty_pb2.Empty() # Return empty message for success
 
     async def GetUserInfo(self, request):
         payload = auth.verify_token(request.token) # Use verify_token to check validity and get payload
         if payload is None:
             raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
-        
+
         # In a real test, you'd use a mock DB session to fetch user details.
         # For this mock, we simulate user data retrieval based on payload.
         if payload.get("sub") == "test-user-123":
@@ -63,10 +60,9 @@ class MockAuthServiceStub:
                 created_at=int(time.time() - 86400), # 1 day ago
                 last_login=int(time.time()),
                 roles=payload.get("roles", []),
-                metadata={"source": "mock_grpc_userinfo"}
+                metadata={"source": "mock_grpc_userinfo"},
             )
-        else:
-            raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "User not found for token")
+        raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "User not found for token")
 
     async def ValidateAPIKey(self, request):
         raise grpc.RpcError(grpc.StatusCode.UNIMPLEMENTED, "Method not implemented")
@@ -89,7 +85,7 @@ class MockUserInfo:
         self.user_id, self.email, self.full_name, self.tier, self.is_verified, self.mfa_enabled, self.created_at, self.last_login, self.roles, self.metadata = user_id, email, full_name, tier, is_verified, mfa_enabled, created_at, last_login, roles, metadata
 
 class MockAPIKeyResponse: pass
-class MockIntrospectionResponse: 
+class MockIntrospectionResponse:
     def __init__(self, active, sub=None, username=None, token_type=None, exp=0, iat=0, scope=None, iss=None):
         self.active, self.sub, self.username, self.token_type, self.exp, self.iat, self.scope, self.iss = active, sub, username, token_type, exp, iat, scope, iss
 
@@ -98,11 +94,11 @@ class MockTokenRequest:
 
 class MockRevokeTokenRequest:
     def __init__(self, token): self.token = token
-        
+
 class MockCreateTokenPairRequest:
     def __init__(self, user_id, email, tier, scopes):
         self.user_id, self.email, self.tier, self.scopes = user_id, email, tier, scopes
-        
+
 class MockRefreshTokenRequest:
     def __init__(self, refresh_token): self.refresh_token = refresh_token
 
@@ -136,12 +132,12 @@ class MockGrpcServer:
 
     def add_secure_port(self, addr, creds):
         pass
-        
+
     def add_insecure_port(self, addr):
         pass
 
 def add_AuthServiceServicer_to_server(servicer, server):
-    server.servicer_registry['AuthService'] = servicer
+    server.servicer_registry["AuthService"] = servicer
 
 # Mocking the health servicer
 class MockHealthServicer:
@@ -202,7 +198,7 @@ def mock_grpc_environment():
     health.HealthServicer = MockHealthServicer
     auth.revoke_token = mock_revoke_token_func # Use mock revoke token
     asyncio.run = mock_asyncio_run
-    
+
     # Reset the mocked REVOKED_TOKENS set before each module test run
     global MOCKED_REVOKED_TOKENS
     MOCKED_REVOKED_TOKENS = set()
@@ -238,7 +234,7 @@ async def test_validate_token_valid(auth_service_servicer: MockAuthServiceStub):
     MagicMock()
 
     response = await auth_service_servicer.ValidateToken(mock_request)
-    
+
     assert response.valid is True
     assert response.user_id == "test-user-123"
     assert response.email == "test@example.com"
@@ -252,7 +248,7 @@ async def test_validate_token_invalid(auth_service_servicer: MockAuthServiceStub
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateToken(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNAUTHENTICATED
     assert "Token is invalid or expired" in str(excinfo.value.details())
 
@@ -261,14 +257,14 @@ async def test_validate_token_revoked(auth_service_servicer: MockAuthServiceStub
     """Tests validating a revoked token."""
     token_to_revoke = "revoked-token-xyz"
     # Ensure the token is added to the mocked revoked set
-    auth.revoke_token(token_to_revoke) 
+    auth.revoke_token(token_to_revoke)
 
     mock_request = MockTokenRequest(token=token_to_revoke)
     MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateToken(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNAUTHENTICATED
     assert "Token has been revoked" in str(excinfo.value.details())
 
@@ -280,12 +276,12 @@ async def test_create_token_pair(auth_service_servicer: MockAuthServiceStub):
         user_id="user-for-tokens",
         email="user@example.com",
         tier="basic",
-        scopes=["read:data"]
+        scopes=["read:data"],
     )
     MagicMock()
 
     response = await auth_service_servicer.CreateTokenPair(mock_request)
-    
+
     assert response.access_token is not None
     assert response.refresh_token is not None
     assert response.token_type == "Bearer"
@@ -299,7 +295,7 @@ async def test_refresh_token(auth_service_servicer: MockAuthServiceStub):
     MagicMock()
 
     response = await auth_service_servicer.RefreshToken(mock_request)
-    
+
     assert response.valid is True
     assert response.token_type == "access"
     assert response.access_token is not None
@@ -313,7 +309,7 @@ async def test_refresh_token_invalid(auth_service_servicer: MockAuthServiceStub)
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.RefreshToken(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNAUTHENTICATED
     assert "Invalid or expired refresh token" in str(excinfo.value.details())
 
@@ -323,21 +319,21 @@ async def test_revoke_token(auth_service_servicer: MockAuthServiceStub):
     """Tests revoking a token."""
     token_to_revoke = "token-to-revoke-123"
     # Ensure the token is added to the mocked revoked set via auth.revoke_token
-    auth.revoke_token(token_to_revoke) 
+    auth.revoke_token(token_to_revoke)
 
     mock_request = auth_pb2.RevokeTokenRequest(token=token_to_revoke)
     MagicMock()
 
     response = await auth_service_servicer.RevokeToken(mock_request)
-    
+
     # RevokeToken is expected to return an empty message
-    assert response == empty_pb2.Empty 
+    assert response == empty_pb2.Empty
 
     # Verify revocation by attempting to validate the revoked token
     invalid_request = auth_pb2.TokenRequest(token=token_to_revoke)
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateToken(invalid_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNAUTHENTICATED
     assert "Token has been revoked" in str(excinfo.value.details())
 
@@ -349,7 +345,7 @@ async def test_get_user_info(auth_service_servicer: MockAuthServiceStub):
     MagicMock()
 
     response = await auth_service_servicer.GetUserInfo(mock_request)
-    
+
     assert response.user_id == "test-user-123"
     assert response.email == "test@example.com"
     assert response.tier == "premium"
@@ -364,7 +360,7 @@ async def test_get_user_info_invalid_token(auth_service_servicer: MockAuthServic
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.GetUserInfo(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNAUTHENTICATED
     assert "Token is invalid or expired" in str(excinfo.value.details())
 
@@ -379,7 +375,7 @@ async def test_validate_api_key_unimplemented(auth_service_servicer: MockAuthSer
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateAPIKey(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNIMPLEMENTED
     assert "Method not implemented" in str(excinfo.value.details())
 
@@ -391,6 +387,6 @@ async def test_introspect_token_unimplemented(auth_service_servicer: MockAuthSer
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.IntrospectToken(mock_request)
-    
+
     assert excinfo.value.code() == grpc.StatusCode.UNIMPLEMENTED
     assert "Method not implemented" in str(excinfo.value.details())

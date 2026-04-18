@@ -33,10 +33,10 @@ router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])
 # Re-defining get_current_user and get_current_user_id for self-containment of the router file example.
 # In a modular structure, these would be imported.
 async def get_current_user( # Placeholder: Real implementation from api.index.py
-    request: Request, db: AsyncSession = Depends(get_async_db), auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client) 
+    request: Request, db: AsyncSession = Depends(get_async_db), auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client),
 ) -> User:
     from src.database.crud import get_user_by_id
-    test_user_id = "test-integration-user" 
+    test_user_id = "test-integration-user"
     db_user = await get_user_by_id(db, user_id=test_user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
@@ -58,16 +58,15 @@ async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id
 async def create_trade_item(
     trade_in: TradeCreate, # Use Pydantic schema for request body
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user) # Use the authenticated user object
+    current_user: User = Depends(get_current_user), # Use the authenticated user object
 ):
     """Creates a new trade."""
-    
     portfolio_id = trade_in.portfolio_id
     # Verify portfolio ownership
     await check_portfolio_ownership(db, portfolio_id, current_user.id)
 
     trade_data = trade_in.dict() # Convert Pydantic model to dict
-    
+
     try:
         db_trade = await crud_create_trade(db, trade_data)
         # Return a simplified response, or a TradeSchema object
@@ -92,10 +91,9 @@ async def read_trades_list(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user), # Use the authenticated user object
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ):
     """Retrieves a list of trades for a specific portfolio."""
-    
     # Verify portfolio ownership first
     await check_portfolio_ownership(db, portfolio_id, current_user.id)
 
@@ -106,13 +104,13 @@ async def read_trades_list(
 async def read_trade_item(
     trade_id: str,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user) # Use the authenticated user object
+    current_user: User = Depends(get_current_user), # Use the authenticated user object
 ):
     """Retrieves a specific trade by its ID."""
     db_trade = await crud_get_trade_by_id(db, trade_id=trade_id)
     if db_trade is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trade not found")
-    
+
     # Verify ownership indirectly by checking the trade's portfolio
     await check_portfolio_ownership(db, db_trade.portfolio_id, current_user.id)
 

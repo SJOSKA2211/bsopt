@@ -39,7 +39,7 @@ def simulate_market_data_ingestion(symbol: str, num_days: int):
     timestamp = datetime.utcnow().isoformat()
     result = f"Simulating ingestion of {num_days} days of market data for {symbol} at {timestamp}"
     print(result)
-    time.sleep(num_days * 0.1) 
+    time.sleep(num_days * 0.1)
     return result
 
 @celery_app.task

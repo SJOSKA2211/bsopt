@@ -9,8 +9,7 @@ from src.shared.config import settings
 
 @pytest.mark.asyncio
 async def test_auth_registration_email_bypass(db: AsyncSession, client: AsyncClient):
-    """
-    Verify that @Manifold.test users are automatically verified when the bypass is enabled.
+    """Verify that @Manifold.test users are automatically verified when the bypass is enabled.
     """
     # 1. Enable bypass temporarily
     settings.ALLOW_E2E_EMAIL_BYPASS = True
@@ -33,7 +32,7 @@ async def test_auth_registration_email_bypass(db: AsyncSession, client: AsyncCli
     else:
         # Fallback: check via /auth/me if we can login
         login_res = await client.post(
-            "/api/v1/auth/login", json={"email": unique_email, "password": payload["password"]}
+            "/api/v1/auth/login", json={"email": unique_email, "password": payload["password"]},
         )
         assert login_res.status_code == 200
         token = login_res.json()["data"]["access_token"]

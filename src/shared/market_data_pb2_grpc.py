@@ -5,7 +5,7 @@ import grpc
 
 from . import market_data_pb2 as market__data__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = "1.80.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -17,11 +17,11 @@ except ImportError:
 
 if _version_not_supported:
     raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in market_data_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
+        f"The grpc package installed is at version {GRPC_VERSION},"
+         " but the generated code in market_data_pb2_grpc.py depends on"
+         f" grpcio>={GRPC_GENERATED_VERSION}."
+         f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+         f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.",
     )
 
 
@@ -33,14 +33,15 @@ class DataServiceStub:
 
         Args:
             channel: A grpc.Channel.
+
         """
         self.IngestTicks = channel.unary_unary(
-                '/bsopt.market_data.DataService/IngestTicks',
+                "/bsopt.market_data.DataService/IngestTicks",
                 request_serializer=market__data__pb2.IngestRequest.SerializeToString,
                 response_deserializer=market__data__pb2.IngestResponse.FromString,
                 _registered_method=True)
         self.GetHistoricalData = channel.unary_unary(
-                '/bsopt.market_data.DataService/GetHistoricalData',
+                "/bsopt.market_data.DataService/GetHistoricalData",
                 request_serializer=market__data__pb2.HistoryRequest.SerializeToString,
                 response_deserializer=market__data__pb2.HistoryResponse.FromString,
                 _registered_method=True)
@@ -52,33 +53,33 @@ class DataServiceServicer:
     def IngestTicks(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetHistoricalData(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_DataServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'IngestTicks': grpc.unary_unary_rpc_method_handler(
+            "IngestTicks": grpc.unary_unary_rpc_method_handler(
                     servicer.IngestTicks,
                     request_deserializer=market__data__pb2.IngestRequest.FromString,
                     response_serializer=market__data__pb2.IngestResponse.SerializeToString,
             ),
-            'GetHistoricalData': grpc.unary_unary_rpc_method_handler(
+            "GetHistoricalData": grpc.unary_unary_rpc_method_handler(
                     servicer.GetHistoricalData,
                     request_deserializer=market__data__pb2.HistoryRequest.FromString,
                     response_serializer=market__data__pb2.HistoryResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'bsopt.market_data.DataService', rpc_method_handlers)
+            "bsopt.market_data.DataService", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('bsopt.market_data.DataService', rpc_method_handlers)
+    server.add_registered_method_handlers("bsopt.market_data.DataService", rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -99,7 +100,7 @@ class DataService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.market_data.DataService/IngestTicks',
+            "/bsopt.market_data.DataService/IngestTicks",
             market__data__pb2.IngestRequest.SerializeToString,
             market__data__pb2.IngestResponse.FromString,
             options,
@@ -126,7 +127,7 @@ class DataService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.market_data.DataService/GetHistoricalData',
+            "/bsopt.market_data.DataService/GetHistoricalData",
             market__data__pb2.HistoryRequest.SerializeToString,
             market__data__pb2.HistoryResponse.FromString,
             options,

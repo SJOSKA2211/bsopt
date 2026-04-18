@@ -20,7 +20,7 @@ async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_he
     timestamp_suffix = str(int(time.time()))
     portfolio_name = f"Portfolio For Trades {timestamp_suffix}"
     portfolio_data = {"name": portfolio_name, "cash": 100000.0}
-    
+
     response = await api_client.post("/api/v1/portfolios/", json=portfolio_data, headers=auth_headers)
     response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
     return response.json()
@@ -33,21 +33,21 @@ async def test_create_trade(api_client: AsyncClient, auth_headers: dict[str, str
     # First, create a portfolio that the trade will be associated with
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers)
     portfolio_id = portfolio["id"]
-    
+
     trade_data = {
         "portfolio_id": portfolio_id,
         "symbol": "TESTSYM",
         "quantity": 10.0,
         "price": 150.50,
         "side": "buy",
-        "order_type": "market"
+        "order_type": "market",
     }
 
     response = await api_client.post("/api/v1/trades/", json=trade_data, headers=auth_headers)
-    
+
     assert response.status_code == 201
     created_trade = response.json()
-    
+
     assert created_trade["portfolio_id"] == portfolio_id
     assert created_trade["symbol"] == "TESTSYM"
     assert created_trade["quantity"] == 10.0
@@ -69,16 +69,16 @@ async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: dict[str, 
     # Create a portfolio and a trade first
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
     portfolio_id = portfolio["id"]
-    
+
     trade_data = {
         "portfolio_id": portfolio_id,
         "symbol": "TESTSYM2",
         "quantity": 5.0,
         "price": 200.0,
         "side": "sell",
-        "order_type": "limit"
+        "order_type": "limit",
     }
-    
+
     response_create = await api_client.post("/api/v1/trades/", json=trade_data, headers=auth_headers)
     response_create.raise_for_status()
     created_trade = response_create.json()
@@ -86,10 +86,10 @@ async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: dict[str, 
 
     # Retrieve the trade via API
     response = await api_client.get(f"/api/v1/trades/{trade_id}", headers=auth_headers)
-    
+
     assert response.status_code == 200
     retrieved_trade = response.json()
-    
+
     assert retrieved_trade["id"] == trade_id
     assert retrieved_trade["portfolio_id"] == portfolio_id
     assert retrieved_trade["symbol"] == "TESTSYM2"
@@ -113,9 +113,9 @@ async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: Async
     await db_session.commit()
     await db_session.refresh(owner_portfolio)
     owner_portfolio_id = owner_portfolio.id
-    
+
     trade_data_owner = {
-        "portfolio_id": owner_portfolio_id, "symbol": "OWNTRADE", "quantity": 1, "price": 100.0, "side": "buy", "order_type": "market"
+        "portfolio_id": owner_portfolio_id, "symbol": "OWNTRADE", "quantity": 1, "price": 100.0, "side": "buy", "order_type": "market",
     }
     response_create_trade = await api_client.post("/api/v1/trades/", json=trade_data_owner, headers=auth_headers)
     response_create_trade.raise_for_status()
@@ -126,10 +126,10 @@ async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: Async
     # This test relies on the API route's ownership check (check_portfolio_ownership).
     # The current implementation of check_portfolio_ownership uses current_user.id from auth_headers.
     # If the user_id from auth_headers does not match the portfolio owner, it should fail.
-    
+
     # Since we only have 'test-integration-user' headers, we can only test that *this* user
     # can access their own trades. For unauthorized access tests, we'd need different user contexts.
-    
+
     # Test that the user CAN access their own trades.
     response_list_own = await api_client.get(f"/api/v1/trades/{trade_id_to_check}", headers=auth_headers)
     assert response_list_own.status_code == 200 # Should pass if trade belongs to the authenticated user
@@ -140,29 +140,29 @@ async def test_list_trades_for_portfolio(api_client: AsyncClient, auth_headers: 
     # Create a portfolio
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
     portfolio_id = portfolio["id"]
-    
+
     # Create multiple trades for this portfolio
     trade1_data = {"portfolio_id": portfolio_id, "symbol": "SYM1", "quantity": 20.0, "price": 50.0, "side": "buy", "order_type": "market", "status": "filled"}
     trade2_data = {"portfolio_id": portfolio_id, "symbol": "SYM2", "quantity": 15.0, "price": 75.0, "side": "sell", "order_type": "limit", "status": "pending"}
-    
+
     response1 = await api_client.post("/api/v1/trades/", json=trade1_data, headers=auth_headers)
     response1.raise_for_status()
     trade1_id = response1.json()["id"]
-    
+
     response2 = await api_client.post("/api/v1/trades/", json=trade2_data, headers=auth_headers)
     response2.raise_for_status()
     trade2_id = response2.json()["id"]
-    
+
     # List trades for the portfolio
     response_list = await api_client.get(f"/api/v1/trades/?portfolio_id={portfolio_id}", headers=auth_headers)
-    
+
     assert response_list.status_code == 200
     trades = response_list.json()
-    
+
     # Check if the created trades are in the list
     found_trade1 = any(t["id"] == trade1_id for t in trades)
     found_trade2 = any(t["id"] == trade2_id for t in trades)
-    
+
     assert found_trade1
     assert found_trade2
     assert len(trades) >= 2
@@ -178,22 +178,22 @@ async def test_list_trades_for_unauthorized_portfolio(api_client: AsyncClient, d
     owner_portfolio_id = owner_portfolio.id
 
     trade_data_owner = {
-        "portfolio_id": owner_portfolio_id, "symbol": "OWNTRADE", "quantity": 1, "price": 100.0, "side": "buy", "order_type": "market"
+        "portfolio_id": owner_portfolio_id, "symbol": "OWNTRADE", "quantity": 1, "price": 100.0, "side": "buy", "order_type": "market",
     }
     response_create_trade = await api_client.post("/api/v1/trades/", json=trade_data_owner, headers=auth_headers)
     response_create_trade.raise_for_status()
-    
+
     # Now, try to list trades for this portfolio using headers for a DIFFERENT user.
     # This requires getting auth headers for a different user, which is complex without more setup.
     # For now, we rely on the principle that the API route's ownership check will fail.
     # The current implementation of check_portfolio_ownership uses current_user.id.
     # If the user_id from auth_headers does not match the portfolio owner, it should fail.
-    
+
     # Mocking the scenario: If we had headers for 'other_user_id' and portfolio_id belonged to them,
     # we'd expect a 404 or 403.
     # Since we only have 'test-integration-user' headers, we can only test that *this* user
     # can access their own trades.
-    
+
     # Test that the user CAN access their own trades.
     response_list_own = await api_client.get(f"/api/v1/trades/?portfolio_id={owner_portfolio_id}", headers=auth_headers)
     assert response_list_own.status_code == 200 # Should pass if trade belongs to the authenticated user

@@ -20,7 +20,7 @@ async def create_test_portfolio_for_market_tests(api_client: AsyncClient, auth_h
     timestamp_suffix = str(int(time.time()))
     portfolio_name = f"MarketDataPortfolio {timestamp_suffix}"
     portfolio_data = {"name": portfolio_name, "cash": 50000.0}
-    
+
     response = await api_client.post("/api/v1/portfolios/", json=portfolio_data, headers=auth_headers)
     response.raise_for_status()
     return response.json()
@@ -34,13 +34,13 @@ async def test_get_historical_data(api_client: AsyncClient, auth_headers: dict[s
     end_date = "2023-01-03" # Fetch 3 days of data
 
     response = await api_client.get("/api/v1/market/historical", params={"symbol": symbol, "start_date": start_date, "end_date": end_date}, headers=auth_headers)
-    
+
     assert response.status_code == 200
     historical_data = response.json()
-    
+
     assert isinstance(historical_data, list)
     assert len(historical_data) == 3 # Expecting 3 days of data
-    
+
     # Check structure of the first data point
     first_point = historical_data[0]
     assert "date" in first_point
@@ -49,7 +49,7 @@ async def test_get_historical_data(api_client: AsyncClient, auth_headers: dict[s
     assert "low" in first_point and isinstance(first_point["low"], float)
     assert "close" in first_point and isinstance(first_point["close"], float)
     assert "volume" in first_point and isinstance(first_point["volume"], int)
-    
+
     # Basic date format check for the first entry
     try:
         datetime.strptime(first_point["date"], "%Y-%m-%d")
@@ -61,7 +61,7 @@ async def test_get_historical_data_invalid_date(api_client: AsyncClient, auth_he
     symbol = "TESTSYM"
     start_date = "01-01-2023" # Invalid format
     end_date = "2023-12-31"
-    
+
     response = await api_client.get("/api/v1/market/historical", params={"symbol": symbol, "start_date": start_date, "end_date": end_date}, headers=auth_headers)
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid date format. Use YYYY-MM-DD."
@@ -71,7 +71,7 @@ async def test_get_historical_data_no_data(api_client: AsyncClient, auth_headers
     symbol = "NODATA" # Assume this symbol yields no data in simulation
     start_date = "2024-01-01"
     end_date = "2024-01-02"
-    
+
     response = await api_client.get("/api/v1/market/historical", params={"symbol": symbol, "start_date": start_date, "end_date": end_date}, headers=auth_headers)
     assert response.status_code == 200
     assert response.json() == [] # Expect an empty list when no data is found
@@ -83,12 +83,12 @@ async def test_get_portfolio_risk_metrics(api_client: AsyncClient, auth_headers:
     # Create a portfolio first
     portfolio = await create_test_portfolio_for_market_tests(api_client, auth_headers)
     portfolio_id = portfolio["id"]
-    
+
     response = await api_client.get(f"/api/v1/market/risk/{portfolio_id}", headers=auth_headers)
-    
+
     assert response.status_code == 200
     risk_metrics = response.json()
-    
+
     assert risk_metrics["portfolio_id"] == portfolio_id
     assert "greeks" in risk_metrics
     assert "delta" in risk_metrics["greeks"] and isinstance(risk_metrics["greeks"]["delta"], float)
@@ -115,14 +115,14 @@ async def test_calculate_price(api_client: AsyncClient, auth_headers: dict[str, 
     calculation_data = {
         "symbol": "MSFT",
         "quantity": 25.0,
-        "price": 300.50
+        "price": 300.50,
     }
-    
+
     response = await api_client.post("/api/v1/market/calculate_price", json=calculation_data, headers=auth_headers)
-    
+
     assert response.status_code == 200
     result = response.json()
-    
+
     assert result["symbol"] == "MSFT"
     assert result["quantity"] == 25.0
     assert result["unit_price"] == 300.50
@@ -150,12 +150,12 @@ async def test_calculate_price_invalid_params(api_client: AsyncClient, auth_head
 async def test_trigger_market_data_ingestion(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests triggering market data ingestion task."""
     ingestion_params = {"symbol": "TESTSYM_INGEST", "num_days": 10}
-    
+
     response = await api_client.post("/api/v1/market/ingest_market_data", json=ingestion_params, headers=auth_headers)
-    
+
     assert response.status_code == 202 # Accepted
     task_info = response.json()
-    
+
     assert task_info["message"] == "Market data ingestion task enqueued successfully"
     assert task_info["symbol"] == "TESTSYM_INGEST"
     assert task_info["num_days"] == 10
@@ -174,15 +174,15 @@ async def test_trigger_market_data_ingestion_missing_symbol(api_client: AsyncCli
 async def test_get_current_market_prices(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests fetching current market prices for multiple symbols."""
     symbols = ["MSFT", "AMZN", "GOOG"]
-    
+
     response = await api_client.get("/api/v1/market/current_prices", params={"symbols": symbols}, headers=auth_headers)
-    
+
     assert response.status_code == 200
     current_prices = response.json()
-    
+
     assert isinstance(current_prices, dict)
     assert len(current_prices) == len(symbols) # Should return prices for all requested symbols
-    
+
     for symbol in symbols:
         assert symbol in current_prices
         assert isinstance(current_prices[symbol], float)

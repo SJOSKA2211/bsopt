@@ -7,8 +7,7 @@ from src.shared.schemas.market import MarketQuote
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_market_router_integration():
-    """
-    Data-Driven Integration Test: Verifies the MarketDataRouter races real providers.
+    """Data-Driven Integration Test: Verifies the MarketDataRouter races real providers.
     Requires internet access and valid API keys (or Yahoo fallback).
     """
     router = MarketDataRouter()
@@ -33,8 +32,7 @@ async def test_market_router_integration():
 @pytest.mark.asyncio
 @pytest.mark.integration
 async def test_market_router_staggered_race():
-    """
-    Verifies the staggered race logic doesn't crash and returns the fastest results.
+    """Verifies the staggered race logic doesn't crash and returns the fastest results.
     """
     router = MarketDataRouter()
 

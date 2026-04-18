@@ -5,7 +5,7 @@ import grpc
 
 from . import inference_pb2 as inference__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = "1.80.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -17,11 +17,11 @@ except ImportError:
 
 if _version_not_supported:
     raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in inference_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
+        f"The grpc package installed is at version {GRPC_VERSION},"
+         " but the generated code in inference_pb2_grpc.py depends on"
+         f" grpcio>={GRPC_GENERATED_VERSION}."
+         f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+         f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.",
     )
 
 
@@ -33,9 +33,10 @@ class MLInferenceStub:
 
         Args:
             channel: A grpc.Channel.
+
         """
         self.Predict = channel.unary_unary(
-                '/bsopt.inference.MLInference/Predict',
+                "/bsopt.inference.MLInference/Predict",
                 request_serializer=inference__pb2.InferenceRequest.SerializeToString,
                 response_deserializer=inference__pb2.InferenceResponse.FromString,
                 _registered_method=True)
@@ -47,22 +48,22 @@ class MLInferenceServicer:
     def Predict(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_MLInferenceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Predict': grpc.unary_unary_rpc_method_handler(
+            "Predict": grpc.unary_unary_rpc_method_handler(
                     servicer.Predict,
                     request_deserializer=inference__pb2.InferenceRequest.FromString,
                     response_serializer=inference__pb2.InferenceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'bsopt.inference.MLInference', rpc_method_handlers)
+            "bsopt.inference.MLInference", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('bsopt.inference.MLInference', rpc_method_handlers)
+    server.add_registered_method_handlers("bsopt.inference.MLInference", rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -83,7 +84,7 @@ class MLInference:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.inference.MLInference/Predict',
+            "/bsopt.inference.MLInference/Predict",
             inference__pb2.InferenceRequest.SerializeToString,
             inference__pb2.InferenceResponse.FromString,
             options,

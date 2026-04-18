@@ -7,7 +7,6 @@ from src.shared.rabbitmq import get_rabbitmq
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_real_rabbitmq():
     """Verify sentiment ingestor works with RabbitMQ substrate (Data-Driven)."""
-
     # We use the real SentimentIngestor but we may need to mock the connection
     # if not running in a full-blown Docker environment during unit test phase.
     # However, for Phase 33, we align to the REAL RabbitMQ.

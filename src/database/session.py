@@ -5,7 +5,7 @@ from src.core.config import settings  # Assuming settings are loaded from .env v
 
 # Database connection URL (should be loaded from environment variables)
 # Example: DATABASE_URL = "postgresql+asyncpg://user:password@host:port/dbname"
-DATABASE_URL = settings.DATABASE_URL 
+DATABASE_URL = settings.DATABASE_URL
 
 # Create an async engine
 engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
@@ -14,13 +14,12 @@ engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 # sessionmaker returns a configured "Session" class
 # For async, we use AsyncSession from sqlalchemy.ext.asyncio
 AsyncSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
+    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession,
 )
 
 # Dependency factory function to get a DB session
 async def get_async_db():
-    """
-    Provides an asynchronous database session.
+    """Provides an asynchronous database session.
     Yields a session and ensures it's closed after use.
     """
     async with AsyncSessionLocal() as session:

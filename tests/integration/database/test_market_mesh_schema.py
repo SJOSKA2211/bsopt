@@ -21,7 +21,7 @@ def test_market_data_mesh_table_exists(db_connection):
             SELECT FROM information_schema.tables 
             WHERE table_name = 'market_data_mesh'
         );
-    """
+    """,
     )
     assert cur.fetchone()[0] is True
 
@@ -33,7 +33,7 @@ def test_market_data_mesh_columns(db_connection):
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_name = 'market_data_mesh';
-    """
+    """,
     )
     columns = [row[0] for row in cur.fetchall()]
     assert "symbol" in columns

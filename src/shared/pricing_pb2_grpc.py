@@ -5,7 +5,7 @@ import grpc
 
 from . import pricing_pb2 as pricing__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = "1.80.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -17,11 +17,11 @@ except ImportError:
 
 if _version_not_supported:
     raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in pricing_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
+        f"The grpc package installed is at version {GRPC_VERSION},"
+         " but the generated code in pricing_pb2_grpc.py depends on"
+         f" grpcio>={GRPC_GENERATED_VERSION}."
+         f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+         f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.",
     )
 
 
@@ -33,19 +33,20 @@ class PricingServiceStub:
 
         Args:
             channel: A grpc.Channel.
+
         """
         self.PriceOption = channel.unary_unary(
-                '/bsopt.pricing.PricingService/PriceOption',
+                "/bsopt.pricing.PricingService/PriceOption",
                 request_serializer=pricing__pb2.PriceRequest.SerializeToString,
                 response_deserializer=pricing__pb2.PriceResponse.FromString,
                 _registered_method=True)
         self.PriceBatch = channel.unary_unary(
-                '/bsopt.pricing.PricingService/PriceBatch',
+                "/bsopt.pricing.PricingService/PriceBatch",
                 request_serializer=pricing__pb2.BatchPriceRequest.SerializeToString,
                 response_deserializer=pricing__pb2.BatchPriceResponse.FromString,
                 _registered_method=True)
         self.CalculateGreeks = channel.unary_unary(
-                '/bsopt.pricing.PricingService/CalculateGreeks',
+                "/bsopt.pricing.PricingService/CalculateGreeks",
                 request_serializer=pricing__pb2.GreeksRequest.SerializeToString,
                 response_deserializer=pricing__pb2.GreeksResponse.FromString,
                 _registered_method=True)
@@ -57,44 +58,44 @@ class PricingServiceServicer:
     def PriceOption(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def PriceBatch(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def CalculateGreeks(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_PricingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'PriceOption': grpc.unary_unary_rpc_method_handler(
+            "PriceOption": grpc.unary_unary_rpc_method_handler(
                     servicer.PriceOption,
                     request_deserializer=pricing__pb2.PriceRequest.FromString,
                     response_serializer=pricing__pb2.PriceResponse.SerializeToString,
             ),
-            'PriceBatch': grpc.unary_unary_rpc_method_handler(
+            "PriceBatch": grpc.unary_unary_rpc_method_handler(
                     servicer.PriceBatch,
                     request_deserializer=pricing__pb2.BatchPriceRequest.FromString,
                     response_serializer=pricing__pb2.BatchPriceResponse.SerializeToString,
             ),
-            'CalculateGreeks': grpc.unary_unary_rpc_method_handler(
+            "CalculateGreeks": grpc.unary_unary_rpc_method_handler(
                     servicer.CalculateGreeks,
                     request_deserializer=pricing__pb2.GreeksRequest.FromString,
                     response_serializer=pricing__pb2.GreeksResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'bsopt.pricing.PricingService', rpc_method_handlers)
+            "bsopt.pricing.PricingService", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('bsopt.pricing.PricingService', rpc_method_handlers)
+    server.add_registered_method_handlers("bsopt.pricing.PricingService", rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -115,7 +116,7 @@ class PricingService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.pricing.PricingService/PriceOption',
+            "/bsopt.pricing.PricingService/PriceOption",
             pricing__pb2.PriceRequest.SerializeToString,
             pricing__pb2.PriceResponse.FromString,
             options,
@@ -142,7 +143,7 @@ class PricingService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.pricing.PricingService/PriceBatch',
+            "/bsopt.pricing.PricingService/PriceBatch",
             pricing__pb2.BatchPriceRequest.SerializeToString,
             pricing__pb2.BatchPriceResponse.FromString,
             options,
@@ -169,7 +170,7 @@ class PricingService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bsopt.pricing.PricingService/CalculateGreeks',
+            "/bsopt.pricing.PricingService/CalculateGreeks",
             pricing__pb2.GreeksRequest.SerializeToString,
             pricing__pb2.GreeksResponse.FromString,
             options,

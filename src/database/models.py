@@ -15,7 +15,7 @@ class User(Base):
     roles = Column(String, server_default="[]", nullable=False) # Store as JSON string or use JSON type if DB supports
     is_verified = Column(Boolean, default=False)
     mfa_enabled = Column(Boolean, default=False)
-    
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
 
@@ -48,6 +48,7 @@ class Trade(Base):
     order_type = Column(String, nullable=False) # e.g., 'market', 'limit'
     status = Column(String, index=True, default="pending") # e.g., 'pending', 'filled', 'cancelled'
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()) # Added for tracking updates
 
     # Relationships
     # portfolio = relationship("Portfolio", back_populates="trades")

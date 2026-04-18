@@ -1,12 +1,12 @@
 import datetime
+from collections.abc import Iterable as _Iterable
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar
 
-from google.protobuf import empty_pb2 as _empty_pb2
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from google.protobuf.internal import containers as _containers
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -14,10 +14,10 @@ class TokenRequest(_message.Message):
     __slots__ = ("token",)
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     token: str
-    def __init__(self, token: _Optional[str] = ...) -> None: ...
+    def __init__(self, token: str | None = ...) -> None: ...
 
 class TokenResponse(_message.Message):
-    __slots__ = ("valid", "user_id", "email", "tier", "expires_at", "issued_at", "token_type", "roles")
+    __slots__ = ("email", "expires_at", "issued_at", "roles", "tier", "token_type", "user_id", "valid")
     VALID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
@@ -34,13 +34,13 @@ class TokenResponse(_message.Message):
     issued_at: int
     token_type: str
     roles: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, valid: bool = ..., user_id: _Optional[str] = ..., email: _Optional[str] = ..., tier: _Optional[str] = ..., expires_at: _Optional[int] = ..., issued_at: _Optional[int] = ..., token_type: _Optional[str] = ..., roles: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, valid: bool = ..., user_id: str | None = ..., email: str | None = ..., tier: str | None = ..., expires_at: int | None = ..., issued_at: int | None = ..., token_type: str | None = ..., roles: _Iterable[str] | None = ...) -> None: ...
 
 class RefreshRequest(_message.Message):
     __slots__ = ("refresh_token",)
     REFRESH_TOKEN_FIELD_NUMBER: _ClassVar[int]
     refresh_token: str
-    def __init__(self, refresh_token: _Optional[str] = ...) -> None: ...
+    def __init__(self, refresh_token: str | None = ...) -> None: ...
 
 class RevokeRequest(_message.Message):
     __slots__ = ("token", "token_type_hint")
@@ -48,17 +48,17 @@ class RevokeRequest(_message.Message):
     TOKEN_TYPE_HINT_FIELD_NUMBER: _ClassVar[int]
     token: str
     token_type_hint: str
-    def __init__(self, token: _Optional[str] = ..., token_type_hint: _Optional[str] = ...) -> None: ...
+    def __init__(self, token: str | None = ..., token_type_hint: str | None = ...) -> None: ...
 
 class UserInfo(_message.Message):
-    __slots__ = ("user_id", "email", "tier", "full_name", "is_verified", "mfa_enabled", "created_at", "last_login", "roles", "metadata")
+    __slots__ = ("created_at", "email", "full_name", "is_verified", "last_login", "metadata", "mfa_enabled", "roles", "tier", "user_id")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     TIER_FIELD_NUMBER: _ClassVar[int]
@@ -79,10 +79,10 @@ class UserInfo(_message.Message):
     last_login: _timestamp_pb2.Timestamp
     roles: _containers.RepeatedScalarFieldContainer[str]
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, user_id: _Optional[str] = ..., email: _Optional[str] = ..., tier: _Optional[str] = ..., full_name: _Optional[str] = ..., is_verified: bool = ..., mfa_enabled: bool = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., last_login: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., roles: _Optional[_Iterable[str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, user_id: str | None = ..., email: str | None = ..., tier: str | None = ..., full_name: str | None = ..., is_verified: bool = ..., mfa_enabled: bool = ..., created_at: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., last_login: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., roles: _Iterable[str] | None = ..., metadata: _Mapping[str, str] | None = ...) -> None: ...
 
 class CreateTokenRequest(_message.Message):
-    __slots__ = ("user_id", "email", "tier", "access_token_minutes", "refresh_token_days", "scopes")
+    __slots__ = ("access_token_minutes", "email", "refresh_token_days", "scopes", "tier", "user_id")
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     TIER_FIELD_NUMBER: _ClassVar[int]
@@ -95,10 +95,10 @@ class CreateTokenRequest(_message.Message):
     access_token_minutes: int
     refresh_token_days: int
     scopes: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, user_id: _Optional[str] = ..., email: _Optional[str] = ..., tier: _Optional[str] = ..., access_token_minutes: _Optional[int] = ..., refresh_token_days: _Optional[int] = ..., scopes: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, user_id: str | None = ..., email: str | None = ..., tier: str | None = ..., access_token_minutes: int | None = ..., refresh_token_days: int | None = ..., scopes: _Iterable[str] | None = ...) -> None: ...
 
 class TokenPairResponse(_message.Message):
-    __slots__ = ("access_token", "refresh_token", "token_type", "expires_in", "issued_at")
+    __slots__ = ("access_token", "expires_in", "issued_at", "refresh_token", "token_type")
     ACCESS_TOKEN_FIELD_NUMBER: _ClassVar[int]
     REFRESH_TOKEN_FIELD_NUMBER: _ClassVar[int]
     TOKEN_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -109,16 +109,16 @@ class TokenPairResponse(_message.Message):
     token_type: str
     expires_in: int
     issued_at: _timestamp_pb2.Timestamp
-    def __init__(self, access_token: _Optional[str] = ..., refresh_token: _Optional[str] = ..., token_type: _Optional[str] = ..., expires_in: _Optional[int] = ..., issued_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, access_token: str | None = ..., refresh_token: str | None = ..., token_type: str | None = ..., expires_in: int | None = ..., issued_at: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...) -> None: ...
 
 class APIKeyRequest(_message.Message):
     __slots__ = ("api_key",)
     API_KEY_FIELD_NUMBER: _ClassVar[int]
     api_key: str
-    def __init__(self, api_key: _Optional[str] = ...) -> None: ...
+    def __init__(self, api_key: str | None = ...) -> None: ...
 
 class APIKeyResponse(_message.Message):
-    __slots__ = ("valid", "user_id", "email", "tier", "key_name", "created_at", "expires_at", "scopes")
+    __slots__ = ("created_at", "email", "expires_at", "key_name", "scopes", "tier", "user_id", "valid")
     VALID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     EMAIL_FIELD_NUMBER: _ClassVar[int]
@@ -135,10 +135,10 @@ class APIKeyResponse(_message.Message):
     created_at: _timestamp_pb2.Timestamp
     expires_at: _timestamp_pb2.Timestamp
     scopes: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, valid: bool = ..., user_id: _Optional[str] = ..., email: _Optional[str] = ..., tier: _Optional[str] = ..., key_name: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., expires_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., scopes: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, valid: bool = ..., user_id: str | None = ..., email: str | None = ..., tier: str | None = ..., key_name: str | None = ..., created_at: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., expires_at: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., scopes: _Iterable[str] | None = ...) -> None: ...
 
 class IntrospectionResponse(_message.Message):
-    __slots__ = ("active", "sub", "client_id", "username", "token_type", "exp", "iat", "scope", "iss")
+    __slots__ = ("active", "client_id", "exp", "iat", "iss", "scope", "sub", "token_type", "username")
     ACTIVE_FIELD_NUMBER: _ClassVar[int]
     SUB_FIELD_NUMBER: _ClassVar[int]
     CLIENT_ID_FIELD_NUMBER: _ClassVar[int]
@@ -157,24 +157,24 @@ class IntrospectionResponse(_message.Message):
     iat: int
     scope: str
     iss: str
-    def __init__(self, active: bool = ..., sub: _Optional[str] = ..., client_id: _Optional[str] = ..., username: _Optional[str] = ..., token_type: _Optional[str] = ..., exp: _Optional[int] = ..., iat: _Optional[int] = ..., scope: _Optional[str] = ..., iss: _Optional[str] = ...) -> None: ...
+    def __init__(self, active: bool = ..., sub: str | None = ..., client_id: str | None = ..., username: str | None = ..., token_type: str | None = ..., exp: int | None = ..., iat: int | None = ..., scope: str | None = ..., iss: str | None = ...) -> None: ...
 
 class AuthChallenge(_message.Message):
-    __slots__ = ("method", "challenge", "session_id")
+    __slots__ = ("challenge", "method", "session_id")
     METHOD_FIELD_NUMBER: _ClassVar[int]
     CHALLENGE_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     method: str
     challenge: str
     session_id: str
-    def __init__(self, method: _Optional[str] = ..., challenge: _Optional[str] = ..., session_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, method: str | None = ..., challenge: str | None = ..., session_id: str | None = ...) -> None: ...
 
 class AuthResponse(_message.Message):
-    __slots__ = ("authenticated", "user_id", "factors_verified")
+    __slots__ = ("authenticated", "factors_verified", "user_id")
     AUTHENTICATED_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     FACTORS_VERIFIED_FIELD_NUMBER: _ClassVar[int]
     authenticated: bool
     user_id: str
     factors_verified: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, authenticated: bool = ..., user_id: _Optional[str] = ..., factors_verified: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, authenticated: bool = ..., user_id: str | None = ..., factors_verified: _Iterable[str] | None = ...) -> None: ...

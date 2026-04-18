@@ -49,7 +49,6 @@ def api_client():
     # The api_client fixture in conftest.py already provides TestClient and handles truncation.
     # This is redundant if conftest.py is correctly imported and used.
     # We will rely on the conftest.py fixture.
-    pass
 
 @pytest.fixture
 async def create_test_portfolio(db_session: AsyncSession) -> Portfolio:
@@ -78,7 +77,7 @@ async def create_test_trade(db_session: AsyncSession, create_test_portfolio: Por
         "price": 150.50,
         "side": "buy", # or "sell"
         "order_type": "market",
-        "status": "filled"
+        "status": "filled",
     }
     new_trade = Trade(**trade_data)
     db_session.add(new_trade)

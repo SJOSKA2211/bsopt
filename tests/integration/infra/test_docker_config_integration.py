@@ -21,7 +21,7 @@ def test_docker_neural_pricing_optimization():
     # Note: cpuset is usually in deploy.resources.reservations or similar in v3,
     # but in compose it can be top level
     assert "cpuset" in np_service or "cpuset" in np_service.get("deploy", {}).get(
-        "resources", {}
+        "resources", {},
     ).get("reservations", {}), "CPU src.shared pinning (cpuset) should be configured"
 
     # Check for environment variables

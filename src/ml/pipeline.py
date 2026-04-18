@@ -21,25 +21,23 @@ class MLPipeline:
             "model_xyz": {"version": "2.1.0", "status": "deployed", "target_env": "staging", "name": "ImageClassifier"},
         }
         self.training_jobs = {} # Store details about ongoing or recently triggered training jobs {job_id: {model_id, status, progress}}
-        pass
 
     def predict(self, model_id: str, data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Performs ML model prediction with simulated results.
+        """Performs ML model prediction with simulated results.
         Simulates varying prediction outputs based on model ID and input data, and latency.
         """
         logger.info(f"Predicting using model {model_id} with data: {str(data)[:50]}...")
-        
+
         # Simulate processing time
         processing_time = random.uniform(0.1, 0.5) # Simulate 100-500ms processing time
         time.sleep(processing_time)
 
         try:
-            input_str = str(data.get("input_value", data)) 
+            input_str = str(data.get("input_value", data))
             # Simulate prediction value based on model ID and input data hash
             prediction_value = (hash(model_id) % 1000 + hash(input_str) % 500) / 10.0
             confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
-        except TypeError: 
+        except TypeError:
             # Fallback if data is not easily hashable
             prediction_value = hash(model_id) % 1000 / 10.0
             confidence_score = 0.8 + (hash(model_id) % 20) / 100.0
@@ -49,28 +47,27 @@ class MLPipeline:
             "confidence": round(min(confidence_score, 0.99), 2), # Ensure confidence is not > 1.0
             "model_used": model_id,
             "processing_time_ms": int(processing_time * 1000),
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         logger.info(f"Prediction generated: {prediction_result}")
         return prediction_result
 
     def train_model(self, model_id: str, epochs: int, batch_size: int) -> dict[str, Any]:
-        """
-        Triggers ML model training by enqueuing a Celery task.
+        """Triggers ML model training by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing and simulating basic training parameters.
         Includes simulated ETA and status updates.
         """
         logger.info(f"Triggering training for model {model_id} with epochs={epochs}, batch_size={batch_size}")
-        
+
         job_id = f"train_{model_id}_{int(time.time())}"
         self.training_jobs[job_id] = {
             "model_id": model_id,
             "status": "queued",
             "progress": 0,
             "start_time": datetime.now(UTC),
-            "eta_seconds_simulated": random.randint(60, 300) # Simulate ETA for training
+            "eta_seconds_simulated": random.randint(60, 300), # Simulate ETA for training
         }
-        
+
         try:
             trigger_ml_training_task.delay(model_id=model_id, epochs=epochs, batch_size=batch_size)
             training_info = {
@@ -80,7 +77,7 @@ class MLPipeline:
                 "training_parameters": {"epochs": epochs, "batch_size": batch_size},
                 "status": self.training_jobs[job_id]["status"],
                 "eta_seconds_simulated": self.training_jobs[job_id]["eta_seconds_simulated"],
-                "timestamp": self.training_jobs[job_id]["start_time"].isoformat()
+                "timestamp": self.training_jobs[job_id]["start_time"].isoformat(),
             }
             logger.info(f"Training task enqueued: {training_info}")
             return training_info
@@ -89,12 +86,11 @@ class MLPipeline:
             raise RuntimeError(f"Failed to enqueue training task: {e}") from e
 
     def deploy_model(self, model_id: str, version: str, target_environment: str) -> dict[str, Any]:
-        """
-        Simulates triggering an ML model deployment by enqueuing a Celery task.
+        """Simulates triggering an ML model deployment by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing.
         """
         logger.info(f"Triggering deployment for model {model_id} version {version} to {target_environment}")
-        
+
         deployment_status = "queued"
         try:
             deploy_ml_model_task.delay(model_id=model_id, version=version, target_environment=target_environment)
@@ -110,7 +106,7 @@ class MLPipeline:
             "version": version,
             "target_environment": target_environment,
             "status": deployment_status,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         logger.info(f"Deployment task status: {deployment_info}")
         return deployment_info

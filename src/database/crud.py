@@ -25,7 +25,7 @@ async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
 async def create_user(db: AsyncSession, user_in: dict[str, Any]) -> User:
     """Creates a new user with a hashed password."""
     hashed_password = pwd_context.hash(user_in["password"]) # Hash password from input
-    
+
     user_data = {
         "email": user_in["email"],
         "hashed_password": hashed_password,
@@ -46,11 +46,11 @@ async def update_user(db: AsyncSession, db_user: User, user_in: dict[str, Any]) 
     if "password" in user_in:
         user_in["hashed_password"] = pwd_context.hash(user_in["password"])
         del user_in["password"] # Remove plain password before updating
-    
+
     for field, value in user_in.items():
         if hasattr(db_user, field) and value is not None:
             setattr(db_user, field, value)
-    
+
     await db.commit()
     await db.refresh(db_user)
     return db_user

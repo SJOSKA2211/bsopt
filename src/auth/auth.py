@@ -60,9 +60,8 @@ async def is_token_revoked(token: str) -> bool:
         is_revoked = await redis_client.get(f"revoked_token:{token}")
         # logger.debug(f"Checking revocation for token {token[:10]}... Result: {is_revoked}") # Requires logger
         return is_revoked is not None
-    else:
-        # logger.warning("Redis client not available, cannot check token revocation.") # Requires logger
-        return False # Assume not revoked if Redis is down, or handle more gracefully
+    # logger.warning("Redis client not available, cannot check token revocation.") # Requires logger
+    return False # Assume not revoked if Redis is down, or handle more gracefully
 
 # --- Password Hashing Context ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -80,7 +79,7 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     else:
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
-    
+
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
@@ -91,7 +90,7 @@ def create_refresh_token(data: dict[str, Any], expires_delta: timedelta | None =
     else:
         expire = datetime.now(UTC) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
-    
+
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
@@ -101,9 +100,9 @@ async def verify_token(token: str) -> dict[str, Any] | None:
         if await is_token_revoked(token):
             # logger.warning("Token is revoked.") # Requires logger
             return None
-            
+
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        
+
         # Check token expiry
         token_exp_timestamp = payload.get("exp")
         if token_exp_timestamp is None:
@@ -112,11 +111,11 @@ async def verify_token(token: str) -> dict[str, Any] | None:
 
         # Convert JWT expiry (usually float seconds) to datetime object for comparison
         token_exp_dt = datetime.fromtimestamp(token_exp_timestamp, tz=UTC)
-        
+
         if datetime.now(UTC) > token_exp_dt:
             # logger.warning("Token has expired.") # Requires logger
             return None # Token expired
-        
+
         return payload
     except jwt.ExpiredSignatureError:
         # logger.warning("Token signature has expired.") # Requires logger
@@ -136,14 +135,13 @@ async def revoke_token(token: str):
     if payload and "exp" in payload:
         expires_at = datetime.fromtimestamp(payload["exp"], tz=UTC)
         await add_revoked_token(token, expires_at)
-    else:
-        # If token is already expired or invalid, we might not get expiry.
-        # For simplicity, we can still mark it as revoked, but it won't have a specific expiry in Redis.
-        # A more robust solution might be to handle this differently or use a fixed TTL.
-        # logger.warning(f"Could not determine expiry for token {token[:10]} to set revocation TTL. Revoking without expiry.") # Requires logger
-        if redis_client:
-            await redis_client.set(f"revoked_token:{token}", "true") # No expiry, might accumulate
-        
+    # If token is already expired or invalid, we might not get expiry.
+    # For simplicity, we can still mark it as revoked, but it won't have a specific expiry in Redis.
+    # A more robust solution might be to handle this differently or use a fixed TTL.
+    # logger.warning(f"Could not determine expiry for token {token[:10]} to set revocation TTL. Revoking without expiry.") # Requires logger
+    elif redis_client:
+        await redis_client.set(f"revoked_token:{token}", "true") # No expiry, might accumulate
+
 async def create_mfa_challenge(user_id: str) -> dict[str, Any]:
     """Placeholder for MFA challenge generation."""
     session_id = f"mfa_session_{uuid.uuid4()}" # Use UUID for session IDs
@@ -152,7 +150,7 @@ async def create_mfa_challenge(user_id: str) -> dict[str, Any]:
     return {
         "method": "TOTP",
         "challenge": "some_encrypted_challenge_data", # Encrypt actual challenge data with MFA_ENCRYPTION_KEY
-        "session_id": session_id
+        "session_id": session_id,
     }
 
 def verify_mfa_response(session_id: str, response_code: str) -> bool:
