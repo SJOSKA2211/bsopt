@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Omarchy: THE META-COGNITIVE BOOTSTRAP (v8.2 - Hardened CPU-Only)
+# Omarchy: THE META-COGNITIVE BOOTSTRAP (v8.3 - Hardened CPU-Only)
 # ==============================================================================
 # Unified orchestrator for the BSOPT cluster deployment.
 # Sequential, health-gated, and zero-mock.
@@ -49,6 +49,8 @@ if [ ! -f "$ENV_FILE" ]; then
     RABBIT_PASS=$(gen_secret)
     JWT_SEC=$(openssl rand -hex 64)
     MFA_EN=$(openssl rand -base64 32)
+    ACCESS_TOKEN_EXPIRE_MINUTES=15 # Explicitly set default value
+    REFRESH_TOKEN_EXPIRE_DAYS=30 # Explicitly set default value
 
     cat > "$ENV_FILE" <<EOF
 # --- CORE ---
@@ -78,6 +80,8 @@ JWT_SECRET=$JWT_SEC
 JWT_ALGORITHM=RS256
 MFA_ENCRYPTION_KEY=$MFA_EN
 GRPC_SECURE=false
+ACCESS_TOKEN_EXPIRE_MINUTES=$ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS=$REFRESH_TOKEN_EXPIRE_DAYS
 EOF
     log_success ".env file generated."
 fi
@@ -87,8 +91,8 @@ mkdir -p "$PKI_DIR"
 if [ ! -f "${PKI_DIR}/root_ca.key" ]; then
     log_info "Initializing PKI Layer..."
     openssl genrsa -out "${PKI_DIR}/root_ca.key" 4096 2>/dev/null
-    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 \
-        -out "${PKI_DIR}/root_ca.crt" \
+    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 
+        -out "${PKI_DIR}/root_ca.crt" 
         -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
 fi
 
@@ -97,7 +101,7 @@ issue_cert() {
     if [ ! -f "${PKI_DIR}/${svc}.key" ]; then
         openssl genrsa -out "${PKI_DIR}/${svc}.key" 2048 2>/dev/null
         openssl req -new -key "${PKI_DIR}/${svc}.key" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
-        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" \
+        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" 
             -CAcreateserial -out "${PKI_DIR}/${svc}.crt" -days 365 -sha256 2>/dev/null
         rm "${PKI_DIR}/${svc}.csr"
     fi
@@ -110,8 +114,9 @@ GEN_DIR="src/shared/protos"
 if [ -d "$PROTO_DIR" ] && ls "$PROTO_DIR"/*.proto &>/dev/null; then
     log_info "Synchronizing gRPC protocol buffers..."
     mkdir -p "$GEN_DIR"
-    docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
-        "pip install -q grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto" 2>/dev/null || true
+    # Modified docker run command to use single quotes for sh -c and double quotes for internal variables.
+    # Re-added '2>/dev/null || true' to suppress potential verbose output and allow script to proceed if protoc has minor issues.
+    docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c 'pip install -q grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out="$GEN_DIR" --grpc_python_out="$GEN_DIR" protos/*.proto' 2>/dev/null || true
     touch "$GEN_DIR/__init__.py"
     sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
 else

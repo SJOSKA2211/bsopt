@@ -201,12 +201,19 @@ async def serve():
     listen_addr = "[::]:50051"
     
     try:
+        # Ensure the PKI directory is mounted and contains the necessary certs
         with open(CA_CERT_PATH, 'rb') as f: root_certs = f.read()
         with open(SERVER_CERT_PATH, 'rb') as f: server_cert = f.read()
         with open(SERVER_KEY_PATH, 'rb') as f: server_key = f.read()
     except FileNotFoundError as e:
-        logger.error(f"TLS certificate file not found: {e}. Ensure PKI setup is complete.")
-        raise e
+        logger.error(f"TLS certificate file not found: {e}. Ensure PKI files are mounted correctly at /etc/ssl/certs/ and /etc/ssl/private/.")
+        # Abort server start if certs are missing
+        context.abort(grpc.StatusCode.INTERNAL, "Server TLS configuration is missing.")
+        return # Explicitly return after aborting to prevent further execution
+    except Exception as e:
+        logger.error(f"Error loading TLS certificates: {e}")
+        context.abort(grpc.StatusCode.INTERNAL, "Failed to load server TLS certificates.")
+        return # Explicitly return after aborting to prevent further execution
 
     server_credentials = grpc.ssl_server_credentials(
         ((server_cert, server_key,),), root_certs, True

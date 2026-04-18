@@ -8,9 +8,9 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-manifold}
-      POSTGRES_USER: ${POSTGRES_USER:-manifold}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-manifold}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set. Ensure POSTGRES_DB is provided in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set. Ensure POSTGRES_USER is provided in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set. Ensure POSTGRES_PASSWORD is provided in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -26,12 +26,15 @@ services:
     container_name: redis_cache
     ports:
       - "6379:6379"
+    environment:
+      # Use REDIS_PASSWORD from .env for Redis server authentication
+      REDIS_ARGS: "--requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}"
     volumes:
       - redis_data:/data
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is not set.}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -42,6 +45,14 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      # RabbitMQ user/pass are managed by the bootstrap script via RABBITMQ_URL
+      # Ensure RABBITMQ_URL is correctly formatted in .env
+      # Example: RABBITMQ_URL=amqp://guest:mysecretpassword@localhost:5672//
+      # For direct password auth if needed by the service:
+      # RABBITMQ_DEFAULT_USER=guest
+      # RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is not set.}
+      # For now, relying on bootstrap script setting RABBITMQ_URL and using guest user/pass
     networks:
       - app-network
     healthcheck:
@@ -58,17 +69,26 @@ services:
     container_name: auth_api_server
     environment:
       - GRPC_SECURE=false # Set to true in production with real certs
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Use strict syntax for all required environment variables
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}@redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER is not set.}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set.}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is not set.}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is not set. Ensure JWT_SECRET is provided in .env}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:?JWT_ALGORITHM is not set.}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:?ACCESS_TOKEN_EXPIRE_MINUTES is not set.}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:?REFRESH_TOKEN_EXPIRE_DAYS is not set.}
+      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is not set.}
+      # Add other necessary env vars like RABBITMQ_URL if auth_api uses it
     ports:
       - "50051:50051"
       - "3001:3001"
     networks:
       - app-network
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
-      postgres:
+      rabbitmq: # Added RabbitMQ dependency as auth might use async tasks
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
@@ -84,15 +104,20 @@ services:
       dockerfile: Dockerfile
     container_name: celery_worker
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - CELERY_BROKER_URL=pyamqp://guest@rabbitmq//
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}@redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER is not set.}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set.}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is not set.}
+      - CELERY_BROKER_URL=${RABBITMQ_URL:?RABBITMQ_URL is not set. Ensure RABBITMQ_URL is provided in .env} # Use URL from bootstrap script
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is not set.}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:?JWT_ALGORITHM is not set.}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:?ACCESS_TOKEN_EXPIRE_MINUTES is not set.}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:?REFRESH_TOKEN_EXPIRE_DAYS is not set.}
+      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is not set.}
     networks:
       - app-network
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -108,6 +133,12 @@ services:
       - app-network
     volumes:
       - mlflow_data:/mlruns
+    # Add healthcheck for MLflow
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     command: mlflow server --host 0.0.0.0 --port 5000
 
 volumes:
