@@ -129,16 +129,21 @@ async def grpc_exception_handler(request: Request, exc: grpc.RpcError) -> HTTPEx
     detail = exc.details() if exc.details() else "gRPC service error"
     return HTTPException(status_code=status_code, detail=detail)
 
-# Consider adding handlers for other common exceptions like ValidationError from Pydantic, etc.
-st: The incoming FastAPI request.
+async def get_current_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client),
+) -> User:
+    """
+    Authenticates the user using a JWT token via gRPC Auth service.
+
+    Args:
+        request: The incoming FastAPI request.
         db: SQLAlchemy asynchronous database session.
         auth_client: The gRPC client stub for the Auth service.
 
     Returns:
         User: The authenticated user object.
-
-    Raises:
-        HTTPException: If authentication fails (missing header, invalid token, user not found, or service errors).
     """
     auth_header = request.headers.get("Authorization")
     if not auth_header:

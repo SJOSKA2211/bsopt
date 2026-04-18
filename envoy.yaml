@@ -66,8 +66,9 @@ static_resources:
   clusters:
     - name: auth_service
       connect_timeout: 0.25s
-      type: STATIC
+      type: STRICT_DNS
       lb_policy: ROUND_ROBIN
+      http2_protocol_options: {}
       load_assignment:
         cluster_name: auth_service
         endpoints:
@@ -75,15 +76,14 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 127.0.0.1
+                      address: auth_service
                       port_value: 50051
       health_checks:
         - timeout: 1s
           interval: 5s
           unhealthy_threshold: 2
           healthy_threshold: 2
-          http_health_check:
-            path: "/health"
+          grpc_health_check: {}
       outlier_detection:
         consecutive_5xx: 5
         interval: 10s
@@ -99,7 +99,7 @@ static_resources:
 
     - name: api_service
       connect_timeout: 0.25s
-      type: STATIC
+      type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
         cluster_name: api_service
@@ -108,7 +108,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 127.0.0.1
+                      address: api_service
                       port_value: 8000
       health_checks:
         - timeout: 1s

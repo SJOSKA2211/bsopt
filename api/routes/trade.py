@@ -1,119 +1,87 @@
-# --- Service Instances ---
-# None directly used here, but dependencies are injected.
-# --- Logging and Configuration ---
 import logging
 from typing import Any
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.crud import (
     create_trade as crud_create_trade,
-)
-from src.database.crud import (
-    get_portfolio_by_id as crud_get_portfolio_by_id,  # Needed for ownership check
-)
-from src.database.crud import (
+    get_portfolio_by_id as crud_get_portfolio_by_id,
     get_trade_by_id as crud_get_trade_by_id,
-)
-from src.database.crud import (
     get_trades_for_portfolio as crud_get_trades_for_portfolio,
 )
 from src.database.models import User
 from src.database.session import get_async_db
 from src.schemas.trade import Trade as TradeSchema
-from src.schemas.trade import TradeCreate  # Import Pydantic schemas
-from src.shared.protos import auth_pb2_grpc
+from src.schemas.trade import TradeCreate
+from api.index import get_current_user
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])
 
-# --- Authentication and Authorization Dependencies ---
-# Re-defining get_current_user and get_current_user_id for self-containment of the router file example.
-# In a modular structure, these would be imported.
-async def get_current_user( # Placeholder: Real implementation from api.index.py
-    request: Request, db: AsyncSession = Depends(get_async_db), auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client),
-) -> User:
-    from src.database.crud import get_user_by_id
-    test_user_id = "test-integration-user"
-    db_user = await get_user_by_id(db, user_id=test_user_id)
-    if not db_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    return db_user
-
-async def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
-    return current_user.id
-
-async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id: str) -> str:
+async def check_portfolio_ownership(db: AsyncSession, portfolio_id: UUID, user_id: UUID) -> UUID:
     """Verifies that the portfolio belongs to the specified user."""
     portfolio = await crud_get_portfolio_by_id(db, portfolio_id=portfolio_id, user_id=user_id)
     if portfolio is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
     return portfolio.user_id
 
-# --- Trade Routes ---
-
 @router.post("/", response_model=dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_trade_item(
-    trade_in: TradeCreate, # Use Pydantic schema for request body
+    trade_in: TradeCreate,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user), # Use the authenticated user object
+    current_user: User = Depends(get_current_user),
 ):
-    """Creates a new trade."""
-    portfolio_id = trade_in.portfolio_id
-    # Verify portfolio ownership
-    await check_portfolio_ownership(db, portfolio_id, current_user.id)
+    """Creates a new trade for a portfolio owned by the user."""
+    # Ensure trade_in.portfolio_id is cast to UUID if it's a string from the schema
+    p_id = UUID(str(trade_in.portfolio_id))
+    await check_portfolio_ownership(db, p_id, current_user.id)
 
-    trade_data = trade_in.dict() # Convert Pydantic model to dict
+    trade_data = trade_in.dict()
+    trade_data["portfolio_id"] = p_id
 
     try:
         db_trade = await crud_create_trade(db, trade_data)
-        # Return a simplified response, or a TradeSchema object
         return {
-            "id": db_trade.id,
-            "portfolio_id": db_trade.portfolio_id,
+            "id": str(db_trade.id),
+            "portfolio_id": str(db_trade.portfolio_id),
             "symbol": db_trade.symbol,
             "quantity": db_trade.quantity,
             "price": db_trade.price,
             "side": db_trade.side,
             "order_type": db_trade.order_type,
             "status": db_trade.status,
-            "timestamp": db_trade.timestamp.isoformat() if db_trade.timestamp else None,
+            "timestamp": db_trade.created_at.isoformat(),
         }
     except Exception as e:
-        logger.error(f"Failed to create trade: {e}")
+        logger.error("Failed to create trade: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create trade")
 
-@router.get("/", response_model=list[TradeSchema]) # Use schema for response model
+@router.get("/", response_model=list[TradeSchema])
 async def read_trades_list(
-    portfolio_id: str, # Filter trades by portfolio
+    portfolio_id: UUID,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user), # Use the authenticated user object
+    current_user: User = Depends(get_current_user),
     skip: int = 0,
     limit: int = 100,
 ):
-    """Retrieves a list of trades for a specific portfolio."""
-    # Verify portfolio ownership first
+    """Retrieves all trades for a specific portfolio."""
     await check_portfolio_ownership(db, portfolio_id, current_user.id)
 
     db_trades = await crud_get_trades_for_portfolio(db, portfolio_id=portfolio_id, skip=skip, limit=limit)
     return [TradeSchema.from_orm(t) for t in db_trades]
 
-@router.get("/{trade_id}", response_model=TradeSchema) # Use schema for response model
+@router.get("/{trade_id}", response_model=TradeSchema)
 async def read_trade_item(
-    trade_id: str,
+    trade_id: UUID,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user), # Use the authenticated user object
+    current_user: User = Depends(get_current_user),
 ):
-    """Retrieves a specific trade by its ID."""
+    """Retrieves a specific trade and verifies ownership."""
     db_trade = await crud_get_trade_by_id(db, trade_id=trade_id)
     if db_trade is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trade not found")
 
-    # Verify ownership indirectly by checking the trade's portfolio
     await check_portfolio_ownership(db, db_trade.portfolio_id, current_user.id)
-
     return TradeSchema.from_orm(db_trade)
-
-# --- Add other routes as needed (e.g., update_trade, delete_trade) ---

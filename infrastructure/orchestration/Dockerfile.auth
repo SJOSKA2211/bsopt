@@ -1,42 +1,51 @@
-# Stage 1: Builder
-FROM python:3.12.13-slim-bookworm as builder
-WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential && rm -rf /var/lib/apt/lists/*
+# ==============================================================================
+# BSOPT: Auth Service - Production Hardened (v9.0 - Alpine)
+# ==============================================================================
+
+# --- Stage 1: Builder ---
+FROM python:3.12.13-alpine AS builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apk add --no-cache build-base curl git openssl-dev
+
+# Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.cargo/bin:$PATH"
+
 COPY pyproject.toml .
-# Install dependencies using uv
-RUN uv pip install --system --no-cache-dir -r pyproject.toml
-COPY src /app/src
-COPY protos /app/protos
-# --- TLS Certificate Integration ---
-RUN mkdir -p /app/certs
-COPY infrastructure/configs/auth_service.crt /app/certs/auth_service.crt
-COPY infrastructure/configs/auth_service.key /app/certs/auth_service.key
-COPY infrastructure/configs/root_ca.crt /app/certs/root_ca.crt
-# --- End TLS Certificate Integration ---
-# Generate gRPC code if needed
-RUN python -m grpc_tools.protoc -I/app/protos --python_out=/app/src/shared --grpc_python_out=/app/src/shared /app/protos/*.proto
 
-# Stage 2: Runtime
-FROM python:3.12.13-slim-bookworm
+# Install dependencies including auth group
+RUN uv pip install --system --no-cache-dir .[auth,shared]
+
+COPY src ./src
+COPY protos ./protos
+
+# Generate gRPC code
+RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared --grpc_python_out=./src/shared ./protos/*.proto
+
+# --- Stage 2: Final Runtime ---
+FROM python:3.12.13-alpine
+
 WORKDIR /app
-# Copy installed uv binary and libraries from builder stage
-COPY --from=builder /root/.cargo /root/.cargo
-ENV PATH="/root/.cargo/bin:$PATH"
-# Copy installed python packages
-COPY --from=builder /root/.venv /root/.venv
-# Copy application code and generated proto files
-COPY src /app/src
-COPY protos /app/protos
-# --- TLS Certificate Integration ---
-RUN mkdir -p /app/certs
-COPY infrastructure/configs/auth_service.crt /app/certs/auth_service.crt
-COPY infrastructure/configs/auth_service.key /app/certs/auth_service.key
-COPY infrastructure/configs/root_ca.crt /app/certs/root_ca.crt
-# --- End TLS Certificate Integration ---
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
-# Expose the port for the authentication gRPC service
+# Install runtime dependencies
+RUN apk add --no-cache openssl ca-certificates
+
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /build/src /app/src
+
+# Security: Non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN chown -R appuser:appgroup /app
+USER appuser
+
 EXPOSE 50051
-# Command to run the authentication gRPC server with TLS
-CMD ["python", "-m", "src.auth.grpc_server", "--tls_cert_path=/app/certs/auth_service.crt", "--tls_key_path=/app/certs/auth_service.key", "--tls_ca_path=/app/certs/root_ca.crt"]
+
+# Note: Certs are mounted via volumes at /etc/ssl/certs and /etc/ssl/private
+CMD ["python", "src/auth/grpc_server.py"]

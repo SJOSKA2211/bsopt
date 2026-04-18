@@ -95,8 +95,8 @@ services:
   # --- 2. Core Services Layer ---
   auth_service:
     build:
-      context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.auth
+      context: ..
+      dockerfile: infrastructure/orchestration/Dockerfile.auth
     container_name: manifold-auth
     networks:
       - backend_net
@@ -104,17 +104,16 @@ services:
     environment:
       AUTH_SVC_ADDR: "auth_service:50051"
       JWT_SECRET: ${JWT_SECRET:?JWT secret is not set}
-      JWT_ALGORITHM: "RS256"
+      JWT_ALGORITHM: "HS256"
       ACCESS_TOKEN_EXPIRE_MINUTES: "15"
       REFRESH_TOKEN_EXPIRE_DAYS: "30"
-      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?MFA encryption key is not set}
       REDIS_HOST: redis
       POSTGRES_HOST: timescaledb
       RABBITMQ_HOST: rabbitmq
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro
-      - ./.pki:/etc/ssl/private:ro
+      - ../.pki:/etc/ssl/certs:ro
+      - ../.pki:/etc/ssl/private:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -137,8 +136,8 @@ services:
 
   api_service:
     build:
-      context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.api
+      context: ..
+      dockerfile: infrastructure/orchestration/Dockerfile.api
     container_name: manifold-api
     networks:
       - frontend_net
@@ -152,8 +151,8 @@ services:
       PGBOUNCER_HOST: pgbouncer
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro
-      - ./.pki:/etc/ssl/private:ro
+      - ../.pki:/etc/ssl/certs:ro
+      - ../.pki:/etc/ssl/private:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -178,8 +177,8 @@ services:
 
   worker:
     build:
-      context: ./infrastructure/orchestration
-      dockerfile: Dockerfile.worker
+      context: ..
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
     container_name: manifold-worker
     networks:
       - backend_net
@@ -191,8 +190,8 @@ services:
       RABBITMQ_HOST: rabbitmq
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
-      - ./.pki:/etc/ssl/certs:ro
-      - ./.pki:/etc/ssl/private:ro
+      - ../.pki:/etc/ssl/certs:ro
+      - ../.pki:/etc/ssl/private:ro
     depends_on:
       rabbitmq:
         condition: service_healthy
