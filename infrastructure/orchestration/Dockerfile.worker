@@ -5,12 +5,12 @@
 # --- Stage 1: Builder ---
 FROM python:3.12.13-slim AS builder
 WORKDIR /build
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    git \
-    libssl-dev \
-    pkg-config \
+RUN apt-get update && apt-get install -y --no-install-recommends 
+    build-essential 
+    curl 
+    git 
+    libssl-dev 
+    pkg-config 
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -24,7 +24,7 @@ RUN uv pip install --no-cache-dir .[distributed,shared] grpcio-tools
 
 COPY src ./src
 COPY protos ./protos
-RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared/protos --grpc_python_out=./src/shared/protos ./protos/*.proto && \
+RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared/protos --grpc_python_out=./src/shared/protos ./protos/*.proto && 
     sed -i 's/^import \([^ ]*\)_pb2/from . import \1_pb2/g' ./src/shared/protos/*_pb2*.py
 
 # --- Stage 2: Final Runtime ---
@@ -34,10 +34,10 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssl \
-    ca-certificates \
-    libstdc++6 \
+RUN apt-get update && apt-get install -y --no-install-recommends 
+    openssl 
+    ca-certificates 
+    libstdc++6 
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv
