@@ -1,44 +1,15 @@
-# Stage 1: Build
-FROM python:3.12.13-slim-bookworm AS builder
-
+FROM python:3.12.13-slim-bookworm
 WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-RUN apt-get update && apt-get install -y --no-install-recommends 
-    build-essential 
-    curl 
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends     build-essential     curl     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:\$PATH"
-
+ENV PATH="/root/.cargo/bin:$PATH"
 COPY pyproject.toml .
 RUN uv pip install --system --no-cache -r pyproject.toml
 
-# Stage 2: Runtime
-FROM python:3.12.13-slim-bookworm
-
-WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
-
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
 COPY src /app/src
 COPY protos /app/protos
-COPY .env /app/.env # Copy .env for runtime configuration if needed by worker
-
-# Generate gRPC code
 RUN python -m grpc_tools.protoc -I/app/protos --python_out=/app/src/shared --grpc_python_out=/app/src/shared /app/protos/*.proto
 
-# Example command for a Celery worker. Adjust as needed for your specific worker setup.
-# This assumes a Celery app is defined in src/tasks.py or similar.
-# We also need to specify the broker URL and backend URL.
-# These should be loaded from environment variables.
-# For example: export CELERY_BROKER_URL="amqp://guest:guest@rabbitmq:5672//"
-# It is better to pass these via docker-compose environment variables.
-
-CMD ["celery", "-A", "src.tasks", "worker", "-l", "info", "--concurrency=4", "--prefetch-multiplier=1", "--broker=${CELERY_BROKER_URL:?Celery broker URL is not set}", "--result-backend=${REDIS_URL:?Redis URL is not set}"]
+EXPOSE 50051
+CMD ["python", "-m", "src.auth.grpc_server"]

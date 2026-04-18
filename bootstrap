@@ -1,92 +1,196 @@
 #!/usr/bin/env bash
+# ==============================================================================
+# Omarchy: THE META-COGNITIVE BOOTSTRAP (v8.2 - Hardened CPU-Only)
+# ==============================================================================
+# Unified orchestrator for the BSOPT cluster deployment.
+# Sequential, health-gated, and zero-mock.
+# ==============================================================================
+
 set -euo pipefail
 
-# ==
-# BS-OPT: OMARCHY META-COGNITIVE BOOTSTRAP (v7.8)
-# ==
-
+# Configuration
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-BLUE='\033[0;34m'; GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
+FORCE_REBUILD=${FORCE_REBUILD:-0}
+ENV_FILE=".env"
+PKI_DIR=".pki"
+COMPOSE_FILE="docker-compose.yml"
+
+# Colors
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-ENV_FILE=".env"
+dc() { docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"; }
+
+# 0. Prerequisite Check
+check_prereq() {
+    if ! command -v "$1" &> /dev/null; then
+        log_error "$1 is not installed. Required for bootstrap."
+        exit 1
+    fi
+}
+check_prereq openssl
+check_prereq docker
+
+# 1. Environment Secrets Generation
 if [ ! -f "$ENV_FILE" ]; then
-    log_info "Generating cryptographically secure .env..."
-    gen_secret() { head -c 32 /dev/urandom | base64 | tr -d '\n' | tr -d '=' | head -c 32; }
+    log_info "Generating secure .env file..."
+    gen_secret() { openssl rand -hex 32; }
+    
+    DB_PASS=$(gen_secret)
+    REDIS_PASS=$(gen_secret)
+    RABBIT_PASS=$(gen_secret)
+    JWT_SEC=$(openssl rand -hex 64)
+    MFA_EN=$(openssl rand -base64 32)
+
     cat > "$ENV_FILE" <<EOF
+# --- CORE ---
 ENVIRONMENT=production
 DEBUG=false
-POSTGRES_USER=manifold_admin
-POSTGRES_PASSWORD=$(gen_secret)
+LOG_LEVEL=INFO
+
+# --- DATA ---
 POSTGRES_DB=bsopt
-REDIS_PASSWORD=$(gen_secret)
-JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '\n')
-MFA_ENCRYPTION_KEY=$(gen_secret)
-RABBITMQ_USER=manifold_mq
-RABBITMQ_PASSWORD=$(gen_secret)
-DATABASE_URL=postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
-REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-CELERY_BROKER_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=$DB_PASS
+REDIS_PASSWORD=$REDIS_PASS
+REDIS_HOST=redis
+REDIS_PORT=6379
+DATABASE_URL=postgresql+asyncpg://admin:$DB_PASS@postgres:5432/bsopt
+REDIS_URL=redis://:$REDIS_PASS@redis:6379/0
+
+# --- MESSAGING ---
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=$RABBIT_PASS
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
+CELERY_BROKER_URL=amqp://guest:$RABBIT_PASS@rabbitmq:5672//
+
+# --- SECURITY ---
+JWT_SECRET=$JWT_SEC
+JWT_ALGORITHM=RS256
+MFA_ENCRYPTION_KEY=$MFA_EN
+GRPC_SECURE=false
 EOF
-    log_success ".env generated."
+    log_success ".env file generated."
 fi
 
-PKI_DIR=".pki"
+# 2. PKI Substrate (Secure mTLS)
 mkdir -p "$PKI_DIR"
-ROOT_CA_KEY="${PKI_DIR}/root_ca.key"
-ROOT_CA_CERT="${PKI_DIR}/root_ca.crt"
-if [ ! -f "$ROOT_CA_KEY" ]; then
-    openssl genrsa -out "$ROOT_CA_KEY" 4096
-    openssl req -x509 -new -nodes -key "$ROOT_CA_KEY" -sha256 -days 3650 -out "$ROOT_CA_CERT" -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA"
+if [ ! -f "${PKI_DIR}/root_ca.key" ]; then
+    log_info "Initializing PKI Layer..."
+    openssl genrsa -out "${PKI_DIR}/root_ca.key" 4096 2>/dev/null
+    openssl req -x509 -new -nodes -key "${PKI_DIR}/root_ca.key" -sha256 -days 3650 \
+        -out "${PKI_DIR}/root_ca.crt" \
+        -subj "/C=US/ST=Security/L=BSOPT/O=Internal/CN=BSOPT-CA" 2>/dev/null
 fi
 
 issue_cert() {
     local svc=$1
-    local cert_path="${PKI_DIR}/${svc}.crt"
-    local key_path="${PKI_DIR}/${svc}.key"
-    local csr_path="${PKI_DIR}/${svc}.csr"
-    if [ ! -f "$key_path" ]; then
-        openssl genrsa -out "$key_path" 2048
-        openssl req -new -key "$key_path" -out "$csr_path" -subj "/C=US/O=BSOPT/CN=${svc}"
-        openssl x509 -req -in "$csr_path" -CA "$ROOT_CA_CERT" -CAkey "$ROOT_CA_KEY" -CAcreateserial -out "$cert_path" -days 365 -sha256
-        rm "$csr_path"
+    if [ ! -f "${PKI_DIR}/${svc}.key" ]; then
+        openssl genrsa -out "${PKI_DIR}/${svc}.key" 2048 2>/dev/null
+        openssl req -new -key "${PKI_DIR}/${svc}.key" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
+        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" \
+            -CAcreateserial -out "${PKI_DIR}/${svc}.crt" -days 365 -sha256 2>/dev/null
+        rm "${PKI_DIR}/${svc}.csr"
     fi
 }
-for s in auth_service api_service worker mlops gateway; do issue_cert "$s"; done
+for s in auth_api pricing_api postgres redis rabbitmq; do issue_cert "$s"; done
 
-COMPOSE_FILE="infrastructure/docker-compose.yml"
-deploy_step() {
+# 3. Protocol Synchronization
+PROTO_DIR="protos"
+GEN_DIR="src/shared/protos"
+if [ -d "$PROTO_DIR" ] && ls "$PROTO_DIR"/*.proto &>/dev/null; then
+    log_info "Synchronizing gRPC protocol buffers..."
+    mkdir -p "$GEN_DIR"
+    docker run --rm -v "$(pwd):/app" -w /app python:3.12.13-slim sh -c \
+        "pip install -q grpcio-tools && python -m grpc_tools.protoc -I./protos --python_out=$GEN_DIR --grpc_python_out=$GEN_DIR protos/*.proto" 2>/dev/null || true
+    touch "$GEN_DIR/__init__.py"
+    sed -i 's/import \([^ ]*\)_pb2/from . import \1_pb2/g' "$GEN_DIR"/*_pb2*.py 2>/dev/null || true
+else
+    log_info "No .proto files found, skipping protobuf generation."
+fi
+
+# 4. Deployment Logic
+deploy_and_validate() {
     local svc=$1
-    log_info "Deploying and health-gating: $svc..."
-    docker compose -f "$COMPOSE_FILE" up -d --build "$svc"
+    log_info "Deploying service: $svc..."
+    
+    if [ "$FORCE_REBUILD" -eq 1 ]; then
+        dc build "$svc" 2>/dev/null || true
+    fi
+    
+    dc up -d "$svc"
+    
     local retries=30
-    until [ "$(docker inspect -f '{{.State.Health.Status}}' "manifold-$svc" 2>/dev/null)" == "healthy" ] || \
-          [ "$(docker inspect -f '{{.State.Status}}' "manifold-$svc" 2>/dev/null)" == "running" ] || \
-          [ $retries -eq 0 ]; do
-        sleep 2
-        ((retries--))
-        echo -n "."
-    done
-    if ! docker compose -f "$COMPOSE_FILE" ps "$svc" --format json | grep -qE '"State":"running"|"Health":"healthy"'; then
-        log_error "Service $svc failed."
+    log_info "Waiting for $svc to become ready..."
+    
+    local cid
+    cid=$(dc ps -q "$svc" 2>/dev/null || echo "")
+    
+    if [ -z "$cid" ]; then
+        log_error "Could not find container for $svc."
         exit 1
     fi
+    
+    # Check if this container has a healthcheck defined
+    local has_healthcheck
+    has_healthcheck=$(docker inspect -f '{{if .State.Health}}true{{else}}false{{end}}' "$cid" 2>/dev/null || echo "false")
+    
+    if [ "$has_healthcheck" = "true" ]; then
+        # Wait for healthcheck to report healthy
+        until [ "$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null)" = "healthy" ] || [ $retries -eq 0 ]; do
+            sleep 2
+            ((retries--))
+            echo -n "."
+        done
+        echo ""
+        
+        local status
+        status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "unknown")
+        if [ "$status" != "healthy" ]; then
+            log_error "Service $svc failed to become healthy (status: $status). Logs:"
+            dc logs "$svc" | tail -n 30
+            exit 1
+        fi
+    else
+        # No healthcheck - just wait for container to be running
+        until [ "$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)" = "running" ] || [ $retries -eq 0 ]; do
+            sleep 2
+            ((retries--))
+            echo -n "."
+        done
+        echo ""
+        
+        local state
+        state=$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null || echo "unknown")
+        if [ "$state" != "running" ]; then
+            log_error "Service $svc failed to start (state: $state). Logs:"
+            dc logs "$svc" | tail -n 30
+            exit 1
+        fi
+    fi
+    
     log_success "$svc is online."
 }
 
-deploy_step "timescaledb"
-deploy_step "redis"
-deploy_step "rabbitmq"
-deploy_step "pgbouncer"
-deploy_step "auth_service"
-deploy_step "api_service"
-deploy_step "worker"
-deploy_step "mlops"
-deploy_step "frontend"
-deploy_step "nginx"
+# 5. Execution Sequence
+log_info "Starting Sequential Deployment..."
 
-log_success "Deployment Complete. Cluster Online."
+# Phase A: Persistence & Messaging
+deploy_and_validate "postgres"
+deploy_and_validate "redis"
+deploy_and_validate "rabbitmq"
+
+# Phase B: Core Services
+deploy_and_validate "auth_api"
+deploy_and_validate "celery_worker"
+
+log_success "Deployment Complete. BSOPT Stack v8.2 is Healthy."

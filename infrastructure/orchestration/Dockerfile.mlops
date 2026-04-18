@@ -1,43 +1,15 @@
-# Stage 1: Build
-FROM python:3.12.13-slim-bookworm AS builder
-
+FROM python:3.12.13-slim-bookworm
 WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-RUN apt-get update && apt-get install -y --no-install-recommends 
-    build-essential 
-    curl 
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends     build-essential     curl     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:\$PATH"
-
+ENV PATH="/root/.cargo/bin:$PATH"
 COPY pyproject.toml .
 RUN uv pip install --system --no-cache -r pyproject.toml
 
-# Stage 2: Runtime
-FROM python:3.12.13-slim-bookworm
-
-WORKDIR /app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
-
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
 COPY src /app/src
 COPY protos /app/protos
-COPY .env /app/.env # Copy .env for runtime configuration
-
-# Generate gRPC code
 RUN python -m grpc_tools.protoc -I/app/protos --python_out=/app/src/shared --grpc_python_out=/app/src/shared /app/protos/*.proto
 
-# Placeholder for MLOps specific commands.
-# This might involve starting a gRPC server, a prediction service, or a training orchestrator.
-# For now, we'll use a simple command that keeps the container running.
-# CMD ["python", "-m", "src.mlops.service"] # Assuming a service module exists
-
-# Example: CMD ["tail", "-f", "/dev/null"] # Keep container running for now
-CMD ["echo", "MLops container started. Logic to be implemented."]
+EXPOSE 50051
+CMD ["python", "-m", "src.auth.grpc_server"]
