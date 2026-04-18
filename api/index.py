@@ -1,12 +1,15 @@
 import logging
 import os
+from collections import defaultdict
 from datetime import UTC, datetime
-from collections import defaultdict # Added import
+from typing import Any, Dict # Added for response_model
 
 import grpc
+import aiofiles # Added for async file operations
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from aiolimiter import AsyncLimiter # Import AsyncLimiter
+from sqlalchemy.ext.asyncio import AsyncSession # Added for type hinting
 
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
@@ -22,11 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Add the rate limiting middleware to the FastAPI application.
-# This middleware will enforce a rate limit of 100 requests per minute per IP address.
-app.middleware("http")(rate_limit_middleware)
-
 
 # --- Rate Limiting Configuration ---
 # Allow 100 requests per minute per IP address
@@ -51,6 +49,11 @@ async def rate_limit_middleware(request: Request, call_next):
         response = await call_next(request)
     return response
 
+# Add the rate limiting middleware to the FastAPI application.
+# This middleware will enforce a rate limit of 100 requests per minute per IP address.
+app.middleware("http")(rate_limit_middleware)
+
+
 # --- Auth Service Client ---
 AUTH_SVC_ADDR = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
 GRPC_CLIENT_CERT_PATH = "/etc/ssl/certs/api_service.crt"
@@ -61,9 +64,10 @@ async def get_auth_client():
     """Provides a secure gRPC channel to the Auth service using mTLS."""
     channel = None
     try:
-        with open(GRPC_CLIENT_CERT_PATH, 'rb') as f: client_cert = f.read()
-        with open(GRPC_CLIENT_KEY_PATH, 'rb') as f: client_key = f.read()
-        with open(GRPC_CA_CERT_PATH, 'rb') as f: root_certs = f.read()
+        # Use aiofiles for asynchronous file reading
+        async with aiofiles.open(GRPC_CLIENT_CERT_PATH, 'rb') as f: client_cert = await f.read()
+        async with aiofiles.open(GRPC_CLIENT_KEY_PATH, 'rb') as f: client_key = await f.read()
+        async with aiofiles.open(GRPC_CA_CERT_PATH, 'rb') as f: root_certs = await f.read()
 
         client_call_credentials = grpc.ssl_client_credentials(
             root_certificates=root_certs,

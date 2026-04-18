@@ -3,8 +3,8 @@
 import grpc
 import warnings
 
-from . from . from . import auth_pb2 as auth__pb2
-from google.protobuf from . from . from . import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+import auth_pb2 as auth__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
