@@ -90,8 +90,16 @@ COPY --from=py-builder /usr/local/bin /usr/local/bin
 # Copy source code
 COPY . .
 
+# Create a non-root user and group for running the application
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Set ownership of the application directory to the new user
+RUN chown -R appuser:appgroup /app
+
 # Expose ports for various services
 EXPOSE 50051 3001 8000
 
 # Default entrypoint (overridden by docker-compose)
+# Run the command as the non-root user
+USER appuser
 CMD ["python", "src/auth/grpc_server.py"]

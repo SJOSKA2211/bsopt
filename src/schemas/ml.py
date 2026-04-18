@@ -1,20 +1,21 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class MLModelBase(BaseModel):
     name: str = Field(..., example="SentimentAnalyzer")
     version: str = Field(..., example="1.0.0")
-    description: Optional[str] = Field(None, example="Analyzes text sentiment")
+    description: str | None = Field(None, example="Analyzes text sentiment")
     is_active: bool = Field(default=True)
 
 class MLModelCreate(MLModelBase):
     pass
 
 class MLModelUpdate(BaseModel):
-    description: Optional[str] = Field(None, example="Updated description")
-    is_active: Optional[bool] = Field(None, example=False)
+    description: str | None = Field(None, example="Updated description")
+    is_active: bool | None = Field(None, example=False)
 
 class MLModel(MLModelBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

@@ -1,7 +1,7 @@
-from celery import Celery
-from datetime import datetime
 import time
-import random
+from datetime import datetime
+
+from celery import Celery
 
 # Basic configuration will be loaded from environment variables via docker-compose
 # These defaults are for local development if .env is not fully populated yet.

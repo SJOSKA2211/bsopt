@@ -1,12 +1,11 @@
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from api.index import app # Assuming api.index contains the FastAPI app
-from src.database.session import get_async_db # Import the real DB session provider
-from src.database.models import User, Portfolio, Trade, MLModel # Import models
+from api.index import app  # Assuming api.index contains the FastAPI app
+from src.database.models import Portfolio, Trade  # Import models
+from src.database.session import get_async_db  # Import the real DB session provider
 
 # Assume base and settings are correctly configured and imported
 # from src.core.config import settings # Use if settings are defined elsewhere

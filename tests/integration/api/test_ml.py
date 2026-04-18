@@ -1,14 +1,14 @@
+import time  # For timestamping test data
+from typing import Any
+
 import pytest
-import httpx
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any, List
-import time # For timestamping test data
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
-from src.database.models import MLModel # For direct DB checks
-from src.schemas.ml import MLModelCreate, MLModel # Import schemas for request/response
+from src.database.models import MLModel  # For direct DB checks
+from src.schemas.ml import MLModel  # Import schemas for request/response
 
 # Base URL for the API service
 API_URL = "http://localhost:8000/api/v1"
@@ -16,7 +16,7 @@ API_URL = "http://localhost:8000/api/v1"
 pytestmark = pytest.mark.integration
 
 # --- Helper Functions ---
-async def create_test_ml_model_via_api(api_client: AsyncClient, auth_headers: Dict[str, str], model_data: Dict[str, Any]) -> Dict[str, Any]:
+async def create_test_ml_model_via_api(api_client: AsyncClient, auth_headers: dict[str, str], model_data: dict[str, Any]) -> dict[str, Any]:
     """Helper to create an ML model via the API."""
     response = await api_client.post("/api/v1/ml/models/", json=model_data, headers=auth_headers)
     response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
@@ -25,7 +25,7 @@ async def create_test_ml_model_via_api(api_client: AsyncClient, auth_headers: Di
 # --- Tests ---
 
 @pytest.mark.asyncio
-async def test_create_and_get_ml_model(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_create_and_get_ml_model(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests creating and retrieving an ML model via API."""
     timestamp_suffix = str(int(time.time()))
     model_name = f"TestModel {timestamp_suffix}"
@@ -63,14 +63,14 @@ async def test_create_and_get_ml_model(api_client: AsyncClient, auth_headers: Di
     assert retrieved_model["description"] == model_description
     assert retrieved_model["is_active"] is True
 
-async def test_get_ml_model_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
+async def test_get_ml_model_not_found(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests retrieving a non-existent ML model."""
     non_existent_id = "non-existent-ml-model-id"
     response = await api_client.get(f"/api/v1/ml/models/{non_existent_id}", headers=auth_headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "ML model not found"
 
-async def test_list_ml_models(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_list_ml_models(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests listing active ML models."""
     # Create a couple of models to ensure listing works
     model1_name = f"ListModel1 {int(time.time())}"
@@ -105,7 +105,7 @@ async def test_list_ml_models(api_client: AsyncClient, auth_headers: Dict[str, s
     assert not found_m3 # Ensure inactive model is not listed
 
 @pytest.mark.asyncio
-async def test_predict_with_model(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_predict_with_model(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests the ML prediction endpoint."""
     # Create a model first
     model_name = f"PredictModel {int(time.time())}"
@@ -127,7 +127,7 @@ async def test_predict_with_model(api_client: AsyncClient, auth_headers: Dict[st
     assert prediction_output["model_used"] == f"{model_name}@{model_version}"
     assert "timestamp" in prediction_output
 
-async def test_predict_model_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
+async def test_predict_model_not_found(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests prediction with a non-existent model ID."""
     non_existent_model_id = "non-existent-model-123"
     prediction_input = {"input_value": 10.0}
@@ -137,7 +137,7 @@ async def test_predict_model_not_found(api_client: AsyncClient, auth_headers: Di
     assert response.json()["detail"] == "ML model not found or is inactive"
 
 @pytest.mark.asyncio
-async def test_trigger_ml_training(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_trigger_ml_training(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests triggering ML model training via API."""
     # Create a model first to have a valid model_id
     model_name = f"TrainModel {int(time.time())}"
@@ -161,7 +161,7 @@ async def test_trigger_ml_training(api_client: AsyncClient, auth_headers: Dict[s
     assert task_info["status"] == "queued"
     assert "timestamp" in task_info
 
-async def test_trigger_training_model_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
+async def test_trigger_training_model_not_found(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests triggering training for a non-existent ML model."""
     non_existent_model_id = "non-existent-model-id-for-training"
     training_params = {"epochs": 10}
@@ -171,7 +171,7 @@ async def test_trigger_training_model_not_found(api_client: AsyncClient, auth_he
     assert response.json()["detail"] == "ML model not found"
 
 @pytest.mark.asyncio
-async def test_deploy_ml_model(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_deploy_ml_model(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests triggering ML model deployment via API."""
     # Create a model first to have a valid model_id
     model_name = f"DeployModel {int(time.time())}"
@@ -195,7 +195,7 @@ async def test_deploy_ml_model(api_client: AsyncClient, auth_headers: Dict[str, 
     assert deployment_info["status"] == "queued"
     assert "timestamp" in deployment_info
 
-async def test_deploy_model_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
+async def test_deploy_model_not_found(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests triggering deployment for a non-existent ML model."""
     non_existent_model_id = "non-existent-model-id-for-deploy"
     deployment_params = {"version": "1.0.0", "target_environment": "staging"}

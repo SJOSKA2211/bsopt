@@ -103,7 +103,7 @@ class MathKernelService:
 
                 volume = random.randint(100000, 10000000)
                 
-                data.3.append({
+                data.append({
                     "date": date.strftime("%Y-%m-%d"),
                     "open": open_price,
                     "high": high_price,
@@ -131,8 +131,6 @@ class MathKernelService:
         if not portfolio:
             logger.error(f"Portfolio {portfolio_id} not found for value calculation.")
             raise ValueError("Portfolio not found")
-
-        simulated_market_prices = {}
 
         total_trade_value = 5000.0 # Base value from portfolio cash
         stmt = select(Trade).filter(Trade.portfolio_id == portfolio_id)

@@ -68,7 +68,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_api_server
     environment:
-      - GRPC_SECURE=false # Set to true in production with real certs
+      - GRPC_SECURE=true # Set to true in production with real certs
       # Use strict syntax for all required environment variables
       - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}@redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER is not set.}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set.}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is not set.}
@@ -78,9 +78,11 @@ services:
       - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:?REFRESH_TOKEN_EXPIRE_DAYS is not set.}
       - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is not set.}
       # Add other necessary env vars like RABBITMQ_URL if auth_api uses it
+      # Add environment variable for GUNICORN workers if needed
     ports:
-      - "50051:50051"
-      - "3001:3001"
+      - "50051:50051" # gRPC port
+      - "3001:3001"   # HTTP Health check port (for gRPC server)
+      - "8000:8000"   # FastAPI HTTP/2 port
     networks:
       - app-network
     depends_on:
@@ -91,55 +93,15 @@ services:
       rabbitmq: # Added RabbitMQ dependency as auth might use async tasks
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      # Health check for the FastAPI app (port 8000)
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
-    command: ["python", "src/auth/grpc_server.py"]
-
-  # Celery Worker
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: celery_worker
-    environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is not set. Ensure REDIS_PASSWORD is provided in .env}@redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:?POSTGRES_USER is not set.}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set.}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is not set.}
-      - CELERY_BROKER_URL=${RABBITMQ_URL:?RABBITMQ_URL is not set. Ensure RABBITMQ_URL is provided in .env} # Use URL from bootstrap script
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is not set.}
-      - JWT_ALGORITHM=${JWT_ALGORITHM:?JWT_ALGORITHM is not set.}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:?ACCESS_TOKEN_EXPIRE_MINUTES is not set.}
-      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:?REFRESH_TOKEN_EXPIRE_DAYS is not set.}
-      - MFA_ENCRYPTION_KEY=${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is not set.}
-    networks:
-      - app-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    command: ["celery", "-A", "src.workers.tasks.celery_app", "worker", "--loglevel=info"]
-
-  # MLflow Tracking Server
-  mlflow:
-    image: ghcr.io/mlflow/mlflow:latest
-    container_name: mlflow_server
-    ports:
-      - "5000:5000"
-    networks:
-      - app-network
-    volumes:
-      - mlflow_data:/mlruns
-    # Add healthcheck for MLflow
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    command: mlflow server --host 0.0.0.0 --port 5000
+    # Override the command to run Uvicorn with HTTP/2 support for the FastAPI app
+    # Ensure api.index:app is the correct entry point for the FastAPI app
+    # The original CMD in Dockerfile is python src/auth/grpc_server.py, so we override it here.
+    command: ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000", "--http", "h2"]
 
 volumes:
   postgres_data:

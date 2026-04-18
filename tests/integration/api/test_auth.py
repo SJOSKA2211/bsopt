@@ -1,8 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-from src.shared.protos import auth_pb2 # Import necessary proto types
-
 # Assuming these tests will run against the API service which calls Auth gRPC
 
 # Marker for auth-related tests

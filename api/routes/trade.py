@@ -1,24 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Dict, Any
-
-from src.database.session import get_async_db
-from src.database.crud import (
-    create_trade as crud_create_trade,
-    get_trade_by_id as crud_get_trade_by_id,
-    get_trades_for_portfolio as crud_get_trades_for_portfolio,
-    get_portfolio_by_id as crud_get_portfolio_by_id, # Needed for ownership check
-)
-from src.database.models import Trade, Portfolio, User
-from src.schemas.trade import TradeCreate, TradeUpdate, Trade as TradeSchema # Import Pydantic schemas
-from src.shared.protos import auth_pb2
-from src.shared.protos import auth_pb2_grpc
-
 # --- Service Instances ---
 # None directly used here, but dependencies are injected.
-
 # --- Logging and Configuration ---
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.crud import (
+    create_trade as crud_create_trade,
+)
+from src.database.crud import (
+    get_portfolio_by_id as crud_get_portfolio_by_id,  # Needed for ownership check
+)
+from src.database.crud import (
+    get_trade_by_id as crud_get_trade_by_id,
+)
+from src.database.crud import (
+    get_trades_for_portfolio as crud_get_trades_for_portfolio,
+)
+from src.database.models import User
+from src.database.session import get_async_db
+from src.schemas.trade import Trade as TradeSchema
+from src.schemas.trade import TradeCreate  # Import Pydantic schemas
+from src.shared.protos import auth_pb2_grpc
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])
@@ -48,7 +54,7 @@ async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id
 
 # --- Trade Routes ---
 
-@router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_trade_item(
     trade_in: TradeCreate, # Use Pydantic schema for request body
     db: AsyncSession = Depends(get_async_db),
@@ -80,7 +86,7 @@ async def create_trade_item(
         logger.error(f"Failed to create trade: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create trade")
 
-@router.get("/", response_model=List[TradeSchema]) # Use schema for response model
+@router.get("/", response_model=list[TradeSchema]) # Use schema for response model
 async def read_trades_list(
     portfolio_id: str, # Filter trades by portfolio
     db: AsyncSession = Depends(get_async_db),

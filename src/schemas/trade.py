@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class TradeBase(BaseModel):
     symbol: str = Field(..., example="AAPL")
@@ -15,7 +16,7 @@ class TradeCreate(TradeBase):
 
 class TradeUpdate(BaseModel):
     # Define fields that can be updated, e.g., status
-    status: Optional[str] = Field(None, example="filled")
+    status: str | None = Field(None, example="filled")
 
 class Trade(TradeBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

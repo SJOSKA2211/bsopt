@@ -114,6 +114,7 @@ services:
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
       - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -152,6 +153,7 @@ services:
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
       - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -190,6 +192,7 @@ services:
       DATABASE_URL: "postgresql+asyncpg://manifold_admin:${POSTGRES_PASSWORD:?PostgreSQL password is not set}@pgbouncer:6432/${POSTGRES_DB:?PostgreSQL DB name is not set}"
     volumes:
       - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -218,6 +221,7 @@ services:
       POSTGRES_HOST: timescaledb
     volumes:
       - ./.pki:/etc/ssl/certs:ro
+      - ./.pki:/etc/ssl/private:ro
     depends_on:
       worker:
         condition: service_healthy

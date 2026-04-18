@@ -1,14 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Dict, Any
+from typing import Any
 
-from src.database.session import get_async_db
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.crud import get_user_by_id  # For user lookup in auth dependency
+
 # Import necessary models and services
-from src.database.models import User # Assuming User model is needed for auth context
-from src.math_kernel.service import MathKernelService # Import the Math Kernel Service
-from src.database.crud import get_user_by_id # For user lookup in auth dependency
-from src.shared.protos import auth_pb2 # Import proto types
-from src.shared.protos import auth_pb2_grpc # Import gRPC stubs
+from src.database.models import User  # Assuming User model is needed for auth context
+from src.database.session import get_async_db
+from src.math_kernel.service import MathKernelService  # Import the Math Kernel Service
+from src.shared.protos import (
+    auth_pb2,  # Import proto types
+    auth_pb2_grpc,  # Import gRPC stubs
+)
 
 # --- Service Instances ---
 math_kernel_service = MathKernelService()
@@ -58,7 +62,7 @@ async def get_current_user_id(current_user: User = Depends(get_current_user)) ->
 
 router = APIRouter(prefix="/api/v1/market", tags=["Market Data"])
 
-@router.get("/historical", response_model=List[Dict[str, Any]])
+@router.get("/historical", response_model=list[dict[str, Any]])
 async def get_historical_data_route(
     symbol: str,
     start_date: str, # e.g., "2023-01-01"
@@ -85,7 +89,7 @@ async def get_historical_data_route(
 
     return historical_data
 
-@router.get("/risk/{portfolio_id}", response_model=Dict[str, Any])
+@router.get("/risk/{portfolio_id}", response_model=dict[str, Any])
 async def get_portfolio_risk_metrics_route(
     portfolio_id: str,
     db: AsyncSession = Depends(get_async_db),
@@ -102,9 +106,9 @@ async def get_portfolio_risk_metrics_route(
     
     return risk_metrics
 
-@router.post("/calculate_price", response_model=Dict[str, Any])
+@router.post("/calculate_price", response_model=dict[str, Any])
 async def calculate_price_endpoint(
-    calculation_data: Dict[str, Any], 
+    calculation_data: dict[str, Any], 
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user) 
 ):
@@ -139,7 +143,7 @@ async def calculate_price_endpoint(
 # --- Endpoint to trigger market data ingestion (using Celery task) ---
 @router.post("/ingest_market_data", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_market_data_ingestion_route(
-    ingestion_params: Dict[str, Any], # e.g., {"symbol": "GOOG", "num_days": 30}
+    ingestion_params: dict[str, Any], # e.g., {"symbol": "GOOG", "num_days": 30}
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user) 
 ):
@@ -166,9 +170,9 @@ async def trigger_market_data_ingestion_route(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to enqueue market data ingestion task")
 
 # --- New Endpoint: Get Current Market Prices ---
-@router.get("/current_prices", response_model=Dict[str, float])
+@router.get("/current_prices", response_model=dict[str, float])
 async def get_current_prices_route(
-    symbols: List[str], # Query parameter for symbols, e.g., /current_prices?symbols=AAPL&symbols=GOOG
+    symbols: list[str], # Query parameter for symbols, e.g., /current_prices?symbols=AAPL&symbols=GOOG
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user) # Ensure user is authenticated
 ):

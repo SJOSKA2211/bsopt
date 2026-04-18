@@ -1,11 +1,14 @@
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status, Request
-from fastapi.middleware.cors import CORSMiddleware
-import grpc
-from src.shared.protos import auth_pb2
-from src.shared.protos import auth_pb2_grpc
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime
+from collections import defaultdict # Added import
+
+import grpc
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from aiolimiter import AsyncLimiter # Import AsyncLimiter
+
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 # --- Configuration ---
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +22,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add the rate limiting middleware to the FastAPI application.
+# This middleware will enforce a rate limit of 100 requests per minute per IP address.
+app.middleware("http")(rate_limit_middleware)
+
+
+# --- Rate Limiting Configuration ---
+# Allow 100 requests per minute per IP address
+RATE_LIMIT_MAX_REQUESTS = 100
+RATE_LIMIT_PERIOD_SECONDS = 60
+# Use a dictionary to store limiters per IP address.
+# Each limiter allows RATE_LIMIT_MAX_REQUESTS requests per RATE_LIMIT_PERIOD_SECONDS.
+per_ip_limiters = defaultdict(lambda: AsyncLimiter(RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_PERIOD_SECONDS))
+
+async def rate_limit_middleware(request: Request, call_next):
+    """Middleware to apply rate limiting based on client IP address."""
+    # Skip rate limiting for health check, docs, and openapi.json
+    if request.url.path in ["/health", "/docs", "/openapi.json", "/redoc"]:
+        return await call_next(request)
+
+    client_ip = request.client.host
+    # In a more robust system, you might consider X-Forwarded-For or authenticated user ID.
+    
+    # Acquire a permit from the rate limiter for the specific client IP.
+    # This will block if the rate limit has been exceeded until a permit is available.
+    async with per_ip_limiters[client_ip]:
+        response = await call_next(request)
+    return response
 
 # --- Auth Service Client ---
 AUTH_SVC_ADDR = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
@@ -55,13 +86,10 @@ async def get_auth_client():
             await channel.close()
 
 # --- Database Session Dependency ---
+from src.database.crud import get_user_by_id as crud_get_user_by_id
+from src.database.models import User  # Import models
 from src.database.session import get_async_db
-from src.database.crud import (
-    get_user_by_id as crud_get_user_by_id,
-    get_portfolio_by_id as crud_get_portfolio_by_id,
-    get_user_by_email # Import if needed for signup/login API
-)
-from src.database.models import User, Portfolio # Import models
+
 
 # --- Authentication Dependency ---
 async def get_current_user(
@@ -120,7 +148,7 @@ async def get_current_user_id(current_user: User = Depends(get_current_user)) ->
 @app.get("/health")
 async def health_check():
     """Basic health check endpoint."""
-    return {"status": "healthy", "version": "6.4.0", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "healthy", "version": "6.4.0", "timestamp": datetime.now(UTC).isoformat()}
 
 @app.get("/api/v1/auth/verify")
 async def verify_token_endpoint(
@@ -173,15 +201,19 @@ async def get_current_user_info(
 
 # --- Include Routers ---
 from api.routes.portfolio import router as portfolio_router
+
 app.include_router(portfolio_router)
 
 from api.routes.trade import router as trade_router
+
 app.include_router(trade_router)
 
 from api.routes.ml import router as ml_router
+
 app.include_router(ml_router)
 
 from api.routes.market_data import router as market_data_router
+
 app.include_router(market_data_router)
 
 

@@ -1,28 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Dict, Any
+from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.crud import create_portfolio as crud_create_portfolio
+from src.database.crud import get_portfolio_by_id as crud_get_portfolio_by_id
+from src.database.crud import get_portfolios_for_user as crud_get_portfolios_for_user
+from src.database.crud import get_user_by_id  # Import CRUD for user lookup
+from src.database.crud import update_portfolio as crud_update_portfolio
+from src.database.models import User  # Import models
 from src.database.session import get_async_db
-from src.database.crud import (
-    create_portfolio as crud_create_portfolio,
-    get_portfolio_by_id as crud_get_portfolio_by_id,
-    get_portfolios_for_user as crud_get_portfolios_for_user,
-    update_portfolio as crud_update_portfolio,
-    get_user_by_id # Import CRUD for user lookup
-)
-from src.database.models import Portfolio, User # Import models
-from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate, Portfolio as PortfolioSchema # Import Pydantic schemas
-from src.shared.protos import auth_pb2
-from src.shared.protos import auth_pb2_grpc
 
 # Import MathKernelService
 from src.math_kernel.service import MathKernelService
+from src.schemas.portfolio import Portfolio as PortfolioSchema
+from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate  # Import Pydantic schemas
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 # --- Service Instances ---
 math_kernel_service = MathKernelService()
 
 # --- Logging and Configuration ---
 import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/portfolios", tags=["Portfolios"])
@@ -80,7 +80,7 @@ async def check_portfolio_ownership(db: AsyncSession, portfolio_id: str, user_id
 
 # --- Portfolio Routes ---
 
-@router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_portfolio_item(
     portfolio_in: PortfolioCreate, 
     db: AsyncSession = Depends(get_async_db),
@@ -104,7 +104,7 @@ async def create_portfolio_item(
         logger.error(f"Failed to create portfolio: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create portfolio")
 
-@router.get("/", response_model=List[PortfolioSchema]) 
+@router.get("/", response_model=list[PortfolioSchema]) 
 async def read_portfolios_list(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user), 
@@ -154,7 +154,7 @@ async def update_portfolio_item(
 # (Assuming api/routes/trade.py is updated similarly)
 
 # --- Portfolio Valuation Route ---
-@router.get("/value/{portfolio_id}", response_model=Dict[str, Any])
+@router.get("/value/{portfolio_id}", response_model=dict[str, Any])
 async def get_portfolio_value_route(
     portfolio_id: str,
     db: AsyncSession = Depends(get_async_db),

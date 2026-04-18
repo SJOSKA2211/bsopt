@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from src.core.config import settings # Assuming settings are loaded from .env via pydantic-settings
+
+from src.core.config import settings  # Assuming settings are loaded from .env via pydantic-settings
 
 # Database connection URL (should be loaded from environment variables)
 # Example: DATABASE_URL = "postgresql+asyncpg://user:password@host:port/dbname"

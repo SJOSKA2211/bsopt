@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import structlog
-from datetime import datetime, UTC, timedelta
 
 # Set testing environment variables before any imports
 os.environ["BSOPT_ALLOW_WEAK_SECRETS"] = "true"
@@ -65,6 +64,7 @@ def api_client(request):
     """Returns a FastAPI TestClient targeting the real app with NO mocks."""
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
+
     from api.index import app
     from src.shared.config import settings
 

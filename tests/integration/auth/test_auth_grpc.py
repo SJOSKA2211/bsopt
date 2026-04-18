@@ -1,16 +1,18 @@
-import pytest
-import grpc
 import asyncio
+import time  # For timestamping and simulating delays
 from unittest.mock import MagicMock
-import time # For timestamping and simulating delays
+
+import grpc
+import pytest
+from google.protobuf import empty_pb2  # For empty responses
+
+from src.auth import auth  # Import auth module for revoke_token function access
 
 # Assume necessary imports for gRPC client and proto definitions
 # These would typically be generated client libraries from your proto files.
 # For testing, we mock these components.
-from src.shared.protos import auth_pb2
-from src.shared.protos import auth_pb2_grpc
-from src.auth import auth # Import auth module for revoke_token function access
-from google.protobuf import empty_pb2 # For empty responses
+from src.shared.protos import auth_pb2, auth_pb2_grpc
+
 
 # --- Mock gRPC Components ---
 # Mocking the Auth Service Stub and its methods
@@ -233,7 +235,7 @@ def auth_service_servicer():
 async def test_validate_token_valid(auth_service_servicer: MockAuthServiceStub):
     """Tests validating a valid token."""
     mock_request = MockTokenRequest(token="valid-token-abc")
-    mock_context = MagicMock()
+    MagicMock()
 
     response = await auth_service_servicer.ValidateToken(mock_request)
     
@@ -246,7 +248,7 @@ async def test_validate_token_valid(auth_service_servicer: MockAuthServiceStub):
 async def test_validate_token_invalid(auth_service_servicer: MockAuthServiceStub):
     """Tests validating an invalid token."""
     mock_request = MockTokenRequest(token="invalid-token")
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateToken(mock_request)
@@ -262,7 +264,7 @@ async def test_validate_token_revoked(auth_service_servicer: MockAuthServiceStub
     auth.revoke_token(token_to_revoke) 
 
     mock_request = MockTokenRequest(token=token_to_revoke)
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateToken(mock_request)
@@ -280,7 +282,7 @@ async def test_create_token_pair(auth_service_servicer: MockAuthServiceStub):
         tier="basic",
         scopes=["read:data"]
     )
-    mock_context = MagicMock()
+    MagicMock()
 
     response = await auth_service_servicer.CreateTokenPair(mock_request)
     
@@ -294,7 +296,7 @@ async def test_create_token_pair(auth_service_servicer: MockAuthServiceStub):
 async def test_refresh_token(auth_service_servicer: MockAuthServiceStub):
     """Tests refreshing a token."""
     mock_request = auth_pb2.RefreshTokenRequest(refresh_token="valid-refresh-token")
-    mock_context = MagicMock()
+    MagicMock()
 
     response = await auth_service_servicer.RefreshToken(mock_request)
     
@@ -307,7 +309,7 @@ async def test_refresh_token(auth_service_servicer: MockAuthServiceStub):
 async def test_refresh_token_invalid(auth_service_servicer: MockAuthServiceStub):
     """Tests refreshing with an invalid refresh token."""
     mock_request = auth_pb2.RefreshTokenRequest(refresh_token="invalid-refresh-token")
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.RefreshToken(mock_request)
@@ -324,7 +326,7 @@ async def test_revoke_token(auth_service_servicer: MockAuthServiceStub):
     auth.revoke_token(token_to_revoke) 
 
     mock_request = auth_pb2.RevokeTokenRequest(token=token_to_revoke)
-    mock_context = MagicMock()
+    MagicMock()
 
     response = await auth_service_servicer.RevokeToken(mock_request)
     
@@ -344,7 +346,7 @@ async def test_revoke_token(auth_service_servicer: MockAuthServiceStub):
 async def test_get_user_info(auth_service_servicer: MockAuthServiceStub):
     """Tests retrieving user info via token."""
     mock_request = auth_pb2.GetUserInfoRequest(token="valid-token-abc")
-    mock_context = MagicMock()
+    MagicMock()
 
     response = await auth_service_servicer.GetUserInfo(mock_request)
     
@@ -358,7 +360,7 @@ async def test_get_user_info(auth_service_servicer: MockAuthServiceStub):
 async def test_get_user_info_invalid_token(auth_service_servicer: MockAuthServiceStub):
     """Tests getting user info with an invalid token."""
     mock_request = auth_pb2.GetUserInfoRequest(token="invalid-token-for-userinfo")
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.GetUserInfo(mock_request)
@@ -373,7 +375,7 @@ async def test_get_user_info_invalid_token(auth_service_servicer: MockAuthServic
 async def test_validate_api_key_unimplemented(auth_service_servicer: MockAuthServiceStub):
     """Tests that ValidateAPIKey is correctly marked as UNIMPLEMENTED."""
     mock_request = auth_pb2.APIKeyRequest(key="dummy-key") # Mock request object
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.ValidateAPIKey(mock_request)
@@ -385,7 +387,7 @@ async def test_validate_api_key_unimplemented(auth_service_servicer: MockAuthSer
 async def test_introspect_token_unimplemented(auth_service_servicer: MockAuthServiceStub):
     """Tests that IntrospectToken is correctly marked as UNIMPLEMENTED."""
     mock_request = auth_pb2.IntrospectTokenRequest(token="some-token") # Mock request object
-    mock_context = MagicMock()
+    MagicMock()
 
     with pytest.raises(grpc.RpcError) as excinfo:
         await auth_service_servicer.IntrospectToken(mock_request)

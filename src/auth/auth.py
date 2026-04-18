@@ -1,15 +1,13 @@
 import os
-import time
-import bcrypt
+import uuid  # For generating IDs
+from datetime import UTC, datetime, timedelta
+from typing import Any  # Import Set for revoked tokens
+
 import jwt
-from jwt.algorithms import RSAAlgorithm
-from passlib.context import CryptContext
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional, Set # Import Set for revoked tokens
-import uuid # For generating IDs
 
 # --- Redis Client Setup ---
-import redis # Import the redis library
+import redis  # Import the redis library
+from passlib.context import CryptContext
 
 # Use REDIS_URL from environment variables, defaulting to localhost if not set
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -28,7 +26,7 @@ try:
     # Running ping_redis() directly here will block module import if not handled asynchronously.
     # A better approach is to ensure connection happens on first use or during app startup.
     # For now, we assume connection will be established when first used.
-except redis.exceptions.ConnectionError as e:
+except redis.exceptions.ConnectionError:
     # Handle connection errors during import if necessary, or rely on first use to fail.
     # logger.error(f"Could not connect to Redis at {REDIS_URL}: {e}") # Requires logger
     redis_client = None # Set to None if connection fails at import time
@@ -75,29 +73,29 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
     
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_refresh_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
+        expire = datetime.now(UTC) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
     
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-async def verify_token(token: str) -> Optional[Dict[str, Any]]:
+async def verify_token(token: str) -> dict[str, Any] | None:
     try:
         # First, check if the token is in our revocation list
         if await is_token_revoked(token):
@@ -113,9 +111,9 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
             return None
 
         # Convert JWT expiry (usually float seconds) to datetime object for comparison
-        token_exp_dt = datetime.fromtimestamp(token_exp_timestamp, tz=timezone.utc)
+        token_exp_dt = datetime.fromtimestamp(token_exp_timestamp, tz=UTC)
         
-        if datetime.now(timezone.utc) > token_exp_dt:
+        if datetime.now(UTC) > token_exp_dt:
             # logger.warning("Token has expired.") # Requires logger
             return None # Token expired
         
@@ -123,10 +121,10 @@ async def verify_token(token: str) -> Optional[Dict[str, Any]]:
     except jwt.ExpiredSignatureError:
         # logger.warning("Token signature has expired.") # Requires logger
         return None
-    except jwt.InvalidTokenError as e:
+    except jwt.InvalidTokenError:
         # logger.warning(f"Invalid token: {e}") # Requires logger
         return None
-    except Exception as e:
+    except Exception:
         # Catch any other unexpected errors during token verification
         # logger.error(f"An unexpected error occurred during token verification: {e}") # Requires logger
         return None
@@ -136,7 +134,7 @@ async def revoke_token(token: str):
     # Retrieve token expiry from payload to set Redis TTL correctly
     payload = await verify_token(token) # Re-verify to get payload and expiry if token is still valid
     if payload and "exp" in payload:
-        expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+        expires_at = datetime.fromtimestamp(payload["exp"], tz=UTC)
         await add_revoked_token(token, expires_at)
     else:
         # If token is already expired or invalid, we might not get expiry.
@@ -146,7 +144,7 @@ async def revoke_token(token: str):
         if redis_client:
             await redis_client.set(f"revoked_token:{token}", "true") # No expiry, might accumulate
         
-async def create_mfa_challenge(user_id: str) -> Dict[str, Any]:
+async def create_mfa_challenge(user_id: str) -> dict[str, Any]:
     """Placeholder for MFA challenge generation."""
     session_id = f"mfa_session_{uuid.uuid4()}" # Use UUID for session IDs
     # In a real system, this would involve generating a TOTP secret or similar

@@ -1,29 +1,28 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import select, update, delete
-from typing import Dict, Any, Optional, List
-from passlib.context import CryptContext # For password hashing
+from typing import Any
 
-from src.database.models import User, Portfolio, Trade, MLModel
-from src.database.base import Base
+from passlib.context import CryptContext  # For password hashing
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import select
+
+from src.database.models import MLModel, Portfolio, Trade, User
 
 # --- Password Hashing Context (should be consistent with auth.py) ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- User CRUD ---
-async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
+async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     """Retrieves a user by their email address."""
     stmt = select(User).filter(User.email == email)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def get_user_by_id(db: AsyncSession, user_id: str) -> Optional[User]:
+async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
     """Retrieves a user by their ID."""
     stmt = select(User).filter(User.id == user_id)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def create_user(db: AsyncSession, user_in: Dict[str, Any]) -> User:
+async def create_user(db: AsyncSession, user_in: dict[str, Any]) -> User:
     """Creates a new user with a hashed password."""
     hashed_password = pwd_context.hash(user_in["password"]) # Hash password from input
     
@@ -42,7 +41,7 @@ async def create_user(db: AsyncSession, user_in: Dict[str, Any]) -> User:
     await db.refresh(db_user)
     return db_user
 
-async def update_user(db: AsyncSession, db_user: User, user_in: Dict[str, Any]) -> User:
+async def update_user(db: AsyncSession, db_user: User, user_in: dict[str, Any]) -> User:
     """Updates an existing user."""
     if "password" in user_in:
         user_in["hashed_password"] = pwd_context.hash(user_in["password"])
@@ -57,19 +56,19 @@ async def update_user(db: AsyncSession, db_user: User, user_in: Dict[str, Any]) 
     return db_user
 
 # --- Portfolio CRUD ---
-async def get_portfolio_by_id(db: AsyncSession, portfolio_id: str, user_id: str) -> Optional[Portfolio]:
+async def get_portfolio_by_id(db: AsyncSession, portfolio_id: str, user_id: str) -> Portfolio | None:
     """Retrieves a portfolio by its ID and user ID."""
     stmt = select(Portfolio).filter(Portfolio.id == portfolio_id, Portfolio.user_id == user_id)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def get_portfolios_for_user(db: AsyncSession, user_id: str, skip: int = 0, limit: int = 100) -> List[Portfolio]:
+async def get_portfolios_for_user(db: AsyncSession, user_id: str, skip: int = 0, limit: int = 100) -> list[Portfolio]:
     """Retrieves all portfolios for a given user."""
     stmt = select(Portfolio).filter(Portfolio.user_id == user_id).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
 
-async def create_portfolio(db: AsyncSession, portfolio_in: Dict[str, Any]) -> Portfolio:
+async def create_portfolio(db: AsyncSession, portfolio_in: dict[str, Any]) -> Portfolio:
     """Creates a new portfolio."""
     db_portfolio = Portfolio(**portfolio_in)
     db.add(db_portfolio)
@@ -77,7 +76,7 @@ async def create_portfolio(db: AsyncSession, portfolio_in: Dict[str, Any]) -> Po
     await db.refresh(db_portfolio)
     return db_portfolio
 
-async def update_portfolio(db: AsyncSession, db_portfolio: Portfolio, portfolio_in: Dict[str, Any]) -> Portfolio:
+async def update_portfolio(db: AsyncSession, db_portfolio: Portfolio, portfolio_in: dict[str, Any]) -> Portfolio:
     """Updates an existing portfolio."""
     for field, value in portfolio_in.items():
         if hasattr(db_portfolio, field):
@@ -87,19 +86,19 @@ async def update_portfolio(db: AsyncSession, db_portfolio: Portfolio, portfolio_
     return db_portfolio
 
 # --- Trade CRUD ---
-async def get_trade_by_id(db: AsyncSession, trade_id: str) -> Optional[Trade]:
+async def get_trade_by_id(db: AsyncSession, trade_id: str) -> Trade | None:
     """Retrieves a trade by its ID."""
     stmt = select(Trade).filter(Trade.id == trade_id)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def get_trades_for_portfolio(db: AsyncSession, portfolio_id: str, skip: int = 0, limit: int = 100) -> List[Trade]:
+async def get_trades_for_portfolio(db: AsyncSession, portfolio_id: str, skip: int = 0, limit: int = 100) -> list[Trade]:
     """Retrieves all trades for a given portfolio."""
     stmt = select(Trade).filter(Trade.portfolio_id == portfolio_id).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
 
-async def create_trade(db: AsyncSession, trade_in: Dict[str, Any]) -> Trade:
+async def create_trade(db: AsyncSession, trade_in: dict[str, Any]) -> Trade:
     """Creates a new trade."""
     db_trade = Trade(**trade_in)
     db.add(db_trade)
@@ -108,13 +107,13 @@ async def create_trade(db: AsyncSession, trade_in: Dict[str, Any]) -> Trade:
     return db_trade
 
 # --- ML Model CRUD ---
-async def get_ml_model_by_name_version(db: AsyncSession, name: str, version: str) -> Optional[MLModel]:
+async def get_ml_model_by_name_version(db: AsyncSession, name: str, version: str) -> MLModel | None:
     """Retrieves an ML model by name and version."""
     stmt = select(MLModel).filter(MLModel.name == name, MLModel.version == version)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def create_ml_model(db: AsyncSession, ml_model_in: Dict[str, Any]) -> MLModel:
+async def create_ml_model(db: AsyncSession, ml_model_in: dict[str, Any]) -> MLModel:
     """Creates a new ML model entry."""
     db_ml_model = MLModel(**ml_model_in)
     db.add(db_ml_model)

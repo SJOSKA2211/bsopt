@@ -1,14 +1,13 @@
+import time  # For timestamping test data
+from typing import Any
+
 import pytest
-import httpx
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any, List
-import time # For timestamping test data
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
-from src.database.models import User, Portfolio, Trade
-from src.schemas.trade import TradeCreate # Import schema for request body
+from src.database.models import Portfolio, Trade
 
 # Base URL for the API service
 API_URL = "http://localhost:8000/api/v1"
@@ -16,7 +15,7 @@ API_URL = "http://localhost:8000/api/v1"
 pytestmark = pytest.mark.integration
 
 # --- Helper Functions ---
-async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_headers: Dict[str, str]) -> Dict[str, Any]:
+async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_headers: dict[str, str]) -> dict[str, Any]:
     """Helper to create a portfolio via the API for trade tests."""
     timestamp_suffix = str(int(time.time()))
     portfolio_name = f"Portfolio For Trades {timestamp_suffix}"
@@ -29,7 +28,7 @@ async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_he
 # --- Tests ---
 
 @pytest.mark.asyncio
-async def test_create_trade(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_create_trade(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests creating a new trade via the API."""
     # First, create a portfolio that the trade will be associated with
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers)
@@ -65,7 +64,7 @@ async def test_create_trade(api_client: AsyncClient, auth_headers: Dict[str, str
     assert db_trade.portfolio_id == portfolio_id
     assert db_trade.symbol == "TESTSYM"
 
-async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests retrieving a specific trade by ID via the API."""
     # Create a portfolio and a trade first
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
@@ -98,14 +97,14 @@ async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: Dict[str, 
     assert retrieved_trade["price"] == 200.0
     assert retrieved_trade["side"] == "sell"
 
-async def test_get_trade_not_found(api_client: AsyncClient, auth_headers: Dict[str, str]):
+async def test_get_trade_not_found(api_client: AsyncClient, auth_headers: dict[str, str]):
     """Tests retrieving a non-existent trade."""
     non_existent_id = "non-existent-trade-id"
     response = await api_client.get(f"/api/v1/trades/{non_existent_id}", headers=auth_headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Trade not found"
 
-async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: AsyncSession, auth_headers: Dict[str, str]):
+async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: AsyncSession, auth_headers: dict[str, str]):
     """Tests retrieving a trade from another user's portfolio."""
     # Create a portfolio and trade for 'test-integration-user'
     portfolio_data_owner = {"name": "Owner Portfolio", "cash": 10000.0, "user_id": "test-integration-user"}
@@ -136,7 +135,7 @@ async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: Async
     assert response_list_own.status_code == 200 # Should pass if trade belongs to the authenticated user
 
 @pytest.mark.asyncio
-async def test_list_trades_for_portfolio(api_client: AsyncClient, auth_headers: Dict[str, str], db_session: AsyncSession):
+async def test_list_trades_for_portfolio(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests listing trades for a portfolio."""
     # Create a portfolio
     portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
@@ -168,7 +167,7 @@ async def test_list_trades_for_portfolio(api_client: AsyncClient, auth_headers: 
     assert found_trade2
     assert len(trades) >= 2
 
-async def test_list_trades_for_unauthorized_portfolio(api_client: AsyncClient, db_session: AsyncSession, auth_headers: Dict[str, str]):
+async def test_list_trades_for_unauthorized_portfolio(api_client: AsyncClient, db_session: AsyncSession, auth_headers: dict[str, str]):
     """Tests listing trades for a portfolio belonging to another user."""
     # Create a portfolio for 'test-integration-user'
     portfolio_data_owner = {"name": "Owner Portfolio", "cash": 10000.0, "user_id": "test-integration-user"}

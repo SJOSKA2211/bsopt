@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text, UniqueConstraint, text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.sql import func
-from src.database.base import Base # Assuming Base is defined in src/database/base.py
+
+from src.database.base import Base  # Assuming Base is defined in src/database/base.py
+
 
 class User(Base):
     __tablename__ = "users"

@@ -1,12 +1,31 @@
-FROM python:3.12.13-slim-bookworm
+# Stage 1: Builder
+FROM python:3.12.13-slim-bookworm as builder
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential && rm -rf /var/lib/apt/lists/*
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.cargo/bin:$PATH"
 COPY pyproject.toml .
-RUN uv pip install --system --no-cache -r pyproject.toml
+# Install dependencies using uv
+RUN uv pip install --system --no-cache-dir -r pyproject.toml
 COPY src /app/src
 COPY protos /app/protos
+# Generate gRPC code if needed
 RUN python -m grpc_tools.protoc -I/app/protos --python_out=/app/src/shared --grpc_python_out=/app/src/shared /app/protos/*.proto
-EXPOSE 50051
-CMD ["python", "-m", "src.auth.grpc_server"]
+
+# Stage 2: Runtime
+FROM python:3.12.13-slim-bookworm
+WORKDIR /app
+# Copy installed uv binary and libraries from builder stage
+COPY --from=builder /root/.cargo /root/.cargo
+ENV PATH="/root/.cargo/bin:$PATH"
+# Copy installed python packages
+COPY --from=builder /root/.venv /root/.venv
+# Copy application code and generated proto files
+COPY src /app/src
+COPY protos /app/protos
+
+# Expose the port for the ML service
+EXPOSE 5001
+# Command to run the ML service (placeholder, may need adjustment)
+# Assuming a service module exists at src.ml.service
+CMD ["python", "-m", "src.ml.service"]

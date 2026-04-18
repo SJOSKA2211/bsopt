@@ -2,12 +2,12 @@
 # This module will orchestrate ML model inference and training workflows.
 
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List
 import random
-import time # For simulating delays
+import time  # For simulating delays
+from datetime import UTC, datetime
+from typing import Any
 
-from src.tasks import trigger_ml_training_task, deploy_ml_model_task # Import Celery tasks
+from src.tasks import deploy_ml_model_task, trigger_ml_training_task  # Import Celery tasks
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class MLPipeline:
         self.training_jobs = {} # Store details about ongoing or recently triggered training jobs {job_id: {model_id, status, progress}}
         pass
 
-    def predict(self, model_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def predict(self, model_id: str, data: dict[str, Any]) -> dict[str, Any]:
         """
         Performs ML model prediction with simulated results.
         Simulates varying prediction outputs based on model ID and input data, and latency.
@@ -49,12 +49,12 @@ class MLPipeline:
             "confidence": round(min(confidence_score, 0.99), 2), # Ensure confidence is not > 1.0
             "model_used": model_id,
             "processing_time_ms": int(processing_time * 1000),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         logger.info(f"Prediction generated: {prediction_result}")
         return prediction_result
 
-    def train_model(self, model_id: str, epochs: int, batch_size: int) -> Dict[str, Any]:
+    def train_model(self, model_id: str, epochs: int, batch_size: int) -> dict[str, Any]:
         """
         Triggers ML model training by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing and simulating basic training parameters.
@@ -67,7 +67,7 @@ class MLPipeline:
             "model_id": model_id,
             "status": "queued",
             "progress": 0,
-            "start_time": datetime.now(timezone.utc),
+            "start_time": datetime.now(UTC),
             "eta_seconds_simulated": random.randint(60, 300) # Simulate ETA for training
         }
         
@@ -88,7 +88,7 @@ class MLPipeline:
             logger.error(f"Failed to enqueue ML training task for model {model_id}: {e}")
             raise RuntimeError(f"Failed to enqueue training task: {e}") from e
 
-    def deploy_model(self, model_id: str, version: str, target_environment: str) -> Dict[str, Any]:
+    def deploy_model(self, model_id: str, version: str, target_environment: str) -> dict[str, Any]:
         """
         Simulates triggering an ML model deployment by enqueuing a Celery task.
         Returns a dictionary confirming task enqueueing.
@@ -110,7 +110,7 @@ class MLPipeline:
             "version": version,
             "target_environment": target_environment,
             "status": deployment_status,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         logger.info(f"Deployment task status: {deployment_info}")
         return deployment_info
