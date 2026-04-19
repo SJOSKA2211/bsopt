@@ -1,7 +1,7 @@
-import logging
 import time
-from datetime import UTC, datetime
-from typing import Any
+import logging
+from datetime import datetime, UTC
+from typing import Dict, Any
 
 from celery import Celery
 
@@ -43,7 +43,7 @@ def deploy_ml_model_task(model_id: str, version: str, target_environment: str):
     return {"status": "deployed", "model_id": model_id, "version": version, "at": timestamp}
 
 @celery_app.task(bind=True)
-def process_payment_task(self, transaction_id: str, payment_details: dict[str, Any]):
+def process_payment_task(self, transaction_id: str, payment_details: Dict[str, Any]):
     """
     Processes a payment.
     CRITICAL IDEMPOTENCY: Required transaction_id to prevent double-charging (Phase 2).

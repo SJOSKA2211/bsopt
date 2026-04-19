@@ -1,6 +1,7 @@
+import asyncio
 import logging
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, Dict, Protocol
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +25,7 @@ except ImportError:
 
 class BlackScholesSolver:
     """Analytical Black-Scholes solver using the Rust-core."""
-    def compute(self, s: float, k: float, t: float, r: float, sigma: float, is_call: bool = True) -> float:
+    def compute(self, s: f64, k: f64, t: f64, r: f64, sigma: f64, is_call: bool = True) -> float:
         if bsopt_core:
             if is_call:
                 return bsopt_core.bs_call(s, k, t, r, sigma)
@@ -71,7 +72,7 @@ class MathKernelService:
 
         return round(float(total_value), 2)
 
-    def get_risk_metrics(self, portfolio_id: UUID) -> dict[str, Any]:
+    def get_risk_metrics(self, portfolio_id: UUID) -> Dict[str, Any]:
         """Provides simulated risk metrics for the portfolio."""
         return {
             "portfolio_id": str(portfolio_id),

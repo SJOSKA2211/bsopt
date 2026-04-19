@@ -7,14 +7,13 @@ to prevent "Auth dropping" during high-throughput requests.
 import logging
 import os
 from typing import Optional
-
 import grpc
 
 logger = logging.getLogger(__name__)
 
-class GRPCManager:
-    _instance: Optional['GRPCManager'] = None
-    _auth_channel: grpc.aio.Channel | None = None
+class gRPCManager:
+    _instance: Optional['gRPCManager'] = None
+    _auth_channel: Optional[grpc.aio.Channel] = None
 
     def __init__(self):
         self.auth_addr = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
@@ -23,12 +22,12 @@ class GRPCManager:
         self._client_key_path = "/etc/ssl/certs/api_service.key"
 
     @classmethod
-    def get_instance(cls) -> 'GRPCManager':
+    def get_instance(cls) -> 'gRPCManager':
         if cls._instance is None:
-            cls._instance = GRPCManager()
+            cls._instance = gRPCManager()
         return cls._instance
 
-    def _get_credentials(self) -> grpc.ChannelCredentials | None:
+    def _get_credentials(self) -> Optional[grpc.ChannelCredentials]:
         """Load mTLS credentials (Axiom: DevSecOps Phase 3)."""
         if all(os.path.exists(p) for p in [self._ca_cert_path, self._client_cert_path, self._client_key_path]):
             with open(self._ca_cert_path, "rb") as f:
@@ -80,4 +79,4 @@ class GRPCManager:
             await self._auth_channel.close()
             self._auth_channel = None
 
-grpc_manager = GRPCManager.get_instance()
+grpc_manager = gRPCManager.get_instance()

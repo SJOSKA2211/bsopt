@@ -1,12 +1,11 @@
-from typing import Any
-
+import os
+from typing import Any, Dict
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Registry:
     """Dynamic component registry (Phase 2)."""
-    _components: dict[str, Any] = {}
+    _components: Dict[str, Any] = {}
 
     @classmethod
     def register(cls, name: str, component: Any):

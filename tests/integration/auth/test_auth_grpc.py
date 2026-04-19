@@ -84,8 +84,7 @@ class MockUserInfo:
     def __init__(self, user_id, email, full_name, tier, is_verified, mfa_enabled, created_at, last_login, roles, metadata):
         self.user_id, self.email, self.full_name, self.tier, self.is_verified, self.mfa_enabled, self.created_at, self.last_login, self.roles, self.metadata = user_id, email, full_name, tier, is_verified, mfa_enabled, created_at, last_login, roles, metadata
 
-class MockAPIKeyResponse:
-    pass
+class MockAPIKeyResponse: pass
 class MockIntrospectionResponse:
     def __init__(self, active, sub=None, username=None, token_type=None, exp=0, iat=0, scope=None, iss=None):
         self.active, self.sub, self.username, self.token_type, self.exp, self.iat, self.scope, self.iss = active, sub, username, token_type, exp, iat, scope, iss
@@ -155,7 +154,7 @@ async def mock_serve():
     add_AuthServiceServicer_to_server(mock_servicer, server)
     health_servicer = MockHealthServicer()
     add_HealthServicer_to_server(health_servicer, server)
-    health_servicer.set("", 1)
+    health_servicer.set("", health_pb2.HealthCheckResponse.SERVING)
     await server.start()
     # In tests, we don't need to wait for termination, just ensure methods can be called.
 

@@ -1,11 +1,8 @@
+import pytest
+import grpc
 import os
 import uuid
-
-import grpc
-import pytest
-
 from src.shared.protos import auth_pb2, auth_pb2_grpc
-
 
 @pytest.mark.asyncio
 async def test_auth_grpc_mtls_connection():
@@ -18,14 +15,14 @@ async def test_auth_grpc_mtls_connection():
     client_cert_path = ".pki/api_service.crt"
     client_key_path = ".pki/api_service.key"
 
-    if not all(os.path.exists(p) for p in [ca_cert_path, client_cert_path, client_key_path]):  # noqa: ASYNC240
+    if not all(os.path.exists(p) for p in [ca_cert_path, client_cert_path, client_key_path]):
         pytest.skip("mTLS certificates not found in .pki")
 
-    with open(ca_cert_path, "rb") as f:  # noqa: ASYNC230
+    with open(ca_cert_path, "rb") as f:
         root_certs = f.read()
-    with open(client_cert_path, "rb") as f:  # noqa: ASYNC230
+    with open(client_cert_path, "rb") as f:
         cert_chain = f.read()
-    with open(client_key_path, "rb") as f:  # noqa: ASYNC230
+    with open(client_key_path, "rb") as f:
         private_key = f.read()
 
     creds = grpc.ssl_channel_credentials(
@@ -64,14 +61,14 @@ async def test_auth_grpc_token_lifecycle():
     client_cert_path = ".pki/api_service.crt"
     client_key_path = ".pki/api_service.key"
 
-    if not all(os.path.exists(p) for p in [ca_cert_path, client_cert_path, client_key_path]):  # noqa: ASYNC240
+    if not all(os.path.exists(p) for p in [ca_cert_path, client_cert_path, client_key_path]):
         pytest.skip("mTLS certificates not found in .pki")
 
-    with open(ca_cert_path, "rb") as f:  # noqa: ASYNC230
+    with open(ca_cert_path, "rb") as f:
         root_certs = f.read()
-    with open(client_cert_path, "rb") as f:  # noqa: ASYNC230
+    with open(client_cert_path, "rb") as f:
         cert_chain = f.read()
-    with open(client_key_path, "rb") as f:  # noqa: ASYNC230
+    with open(client_key_path, "rb") as f:
         private_key = f.read()
 
     creds = grpc.ssl_channel_credentials(root_certs, private_key, cert_chain)

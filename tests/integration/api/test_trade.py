@@ -31,7 +31,7 @@ async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_he
 async def test_create_trade(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests creating a new trade via the API."""
     # First, create a portfolio that the trade will be associated with
-    portfolio = await create_test_portfolio_for_trade_tests(api_client, auth_headers)
+    portfolio = await create_test_portfolio_for_trades(api_client, auth_headers)
     portfolio_id = portfolio["id"]
 
     trade_data = {
@@ -67,7 +67,7 @@ async def test_create_trade(api_client: AsyncClient, auth_headers: dict[str, str
 async def test_get_trade_by_id(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests retrieving a specific trade by ID via the API."""
     # Create a portfolio and a trade first
-    portfolio = await create_test_portfolio_for_trade_tests(api_client, auth_headers, db_session)
+    portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
     portfolio_id = portfolio["id"]
 
     trade_data = {
@@ -138,7 +138,7 @@ async def test_get_trade_unauthorized(api_client: AsyncClient, db_session: Async
 async def test_list_trades_for_portfolio(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession):
     """Tests listing trades for a portfolio."""
     # Create a portfolio
-    portfolio = await create_test_portfolio_for_trade_tests(api_client, auth_headers, db_session)
+    portfolio = await create_test_portfolio_for_trades(api_client, auth_headers, db_session)
     portfolio_id = portfolio["id"]
 
     # Create multiple trades for this portfolio

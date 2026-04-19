@@ -3,10 +3,9 @@ Chaos & Edge-Case Testing Suite (Phase 4).
 Simulates adversarial inputs and network instability.
 """
 
-import os
-
-import httpx
 import pytest
+import httpx
+import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
 
