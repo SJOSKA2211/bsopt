@@ -22,11 +22,11 @@ dependencies = [
     "selectolax>=0.4.7",
     "beautifulsoup4>=4.14.3",
     "evidently>=0.7.21",
-    "onnxruntime>=1.20.0",
     "scipy>=1.14.1",
     "numba>=0.64.0",
     "passlib[argon2]>=1.7.4",
     "sendgrid>=6.12.5",
+    "onnxruntime==1.20.0",
 ]
 
 [project.optional-dependencies]
