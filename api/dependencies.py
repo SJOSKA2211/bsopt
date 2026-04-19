@@ -32,7 +32,7 @@ async def get_auth_client() -> AsyncGenerator[auth_pb2_grpc.AuthServiceStub, Non
     """Dependency factory for gRPC Auth service client."""
     # In production, we'd use settings.GRPC_AUTH_SERVICE_ADDR
     # and potentially secure credentials if settings.GRPC_SECURE is True
-    addr = "auth:50051" # Default internal address
+    addr = "auth_service:50051" # Default internal address matching docker-compose.yml
     
     # We use insecure channel for now as per bootstrap config
     async with grpc.aio.insecure_channel(addr) as channel:

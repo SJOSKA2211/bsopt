@@ -57,6 +57,20 @@ class MathKernelService:
 
         return round(total_value, 2)
 
+    def get_historical_data(self, symbol: str, start_date: str, end_date: str) -> list[dict[str, Any]]:
+        """Simulates historical price data."""
+        logger.info("Fetching historical data for %s from %s to %s", symbol, start_date, end_date)
+        return [
+            {"date": "2023-01-01", "close": 150.0},
+            {"date": "2023-01-02", "close": 152.0},
+            {"date": "2023-01-03", "close": 151.0},
+        ]
+
+    def get_current_market_prices(self, symbols: list[str]) -> dict[str, float]:
+        """Simulates current market prices for a list of symbols."""
+        logger.info("Fetching current market prices for %s", symbols)
+        return {symbol: round(random.uniform(100.0, 500.0), 2) for symbol in symbols}
+
 # Example usage:
 async def main():
     # This requires an async DB session to be available

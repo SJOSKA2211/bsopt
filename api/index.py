@@ -44,20 +44,18 @@ app.include_router(trade_router, prefix="/api/v1")
 @app.exception_handler(grpc.RpcError)
 async def grpc_exception_handler(request: Request, exc: grpc.RpcError):
     """Custom handler for gRPC RpcErrors."""
-    logger.error(f"gRPC RpcError: Code={exc.code()}, Details={exc.details()}")
+    logger.error("gRPC RpcError: Code=%s, Details=%s", exc.code(), exc.details())
 
-    if exc.code() == grpc.StatusCode.UNAUTHENTICATED:
-        status_code = status.HTTP_401_UNAUTHORIZED
-    elif exc.code() == grpc.StatusCode.PERMISSION_DENIED:
-        status_code = status.HTTP_403_FORBIDDEN
-    elif exc.code() == grpc.StatusCode.NOT_FOUND:
-        status_code = status.HTTP_404_NOT_FOUND
-    elif exc.code() == grpc.StatusCode.UNAVAILABLE:
-        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    else:
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
+    status_map = {
+        grpc.StatusCode.UNAUTHENTICATED: status.HTTP_401_UNAUTHORIZED,
+        grpc.StatusCode.PERMISSION_DENIED: status.HTTP_403_FORBIDDEN,
+        grpc.StatusCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+        grpc.StatusCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
+    }
+    
+    status_code = status_map.get(exc.code(), status.HTTP_500_INTERNAL_SERVER_ERROR)
     detail = exc.details() if exc.details() else "gRPC service error"
+    
     return HTTPException(status_code=status_code, detail=detail)
 
 # --- Health Check Endpoint ---
