@@ -21,7 +21,7 @@ from src.schemas.ml import MLModelCreate
 from src.tasks import trigger_ml_training_task
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/ml", tags=["ML"])
+router = APIRouter(prefix="/api/v1/models", tags=["Models"])
 ml_pipeline_service = MLPipeline()
 
 @router.post("/models", response_model=MLModelSchema, status_code=status.HTTP_201_CREATED)

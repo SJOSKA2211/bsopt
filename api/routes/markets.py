@@ -11,7 +11,7 @@ from src.math_kernel.service import MathKernelService
 from src.tasks import simulate_market_data_ingestion
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/market", tags=["Market Data"])
+router = APIRouter(prefix="/api/v1/markets", tags=["Markets"])
 math_kernel_service = MathKernelService()
 
 @router.get("/historical-data", response_model=list[dict[str, Any]])

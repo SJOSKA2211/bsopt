@@ -24,6 +24,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?PostgreSQL DB name is missing}
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -38,6 +42,9 @@ services:
     command: redis-server --requirepass ${REDIS_PASSWORD:?Redis password is missing} --appendonly yes
     volumes:
       - redis_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
@@ -54,6 +61,10 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RabbitMQ password is missing}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/lib/rabbitmq/mnesia
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
@@ -70,6 +81,10 @@ services:
       PGBOUNCER_MAX_CLIENT_CONN: 1000
     depends_on:
       timescaledb: { condition: service_healthy }
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/pgbouncer
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
       interval: 5s

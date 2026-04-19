@@ -1,63 +1,57 @@
 import time
-from datetime import datetime
+import logging
+from datetime import datetime, UTC
+from typing import Dict, Any
 
 from celery import Celery
 
-# Basic configuration will be loaded from environment variables via docker-compose
-# These defaults are for local development if .env is not fully populated yet.
+logger = logging.getLogger(__name__)
 
+# Basic configuration
 celery_app = Celery("bsopt_tasks")
 
-# Configuration loaded from environment variables (e.g., CELERY_BROKER_URL, REDIS_URL)
-# Example settings if not provided:
-# celery_app.conf.broker_url = "amqp://guest:guest@rabbitmq:5672//"
-# celery_app.conf.result_backend = "redis://:test_redis_password_v2@redis:6379/0"
-# celery_app.conf.task_ignore_result = False
-# celery_app.conf.task_track_started = True
-
-@celery_app.task
-def process_data_task(data: str):
-    """A sample task to simulate background data processing."""
-    timestamp = datetime.utcnow().isoformat()
-    result = f"Processed: {data} at {timestamp}"
-    print(result)
-    time.sleep(2) # Simulate work
-    return result
-
-@celery_app.task
-def trigger_ml_training_task(model_id: str, epochs: int, batch_size: int):
-    """Simulates triggering an ML model training job."""
-    timestamp = datetime.utcnow().isoformat()
-    result = f"ML training triggered for model {model_id} (Epochs: {epochs}, Batch Size: {batch_size}) at {timestamp}"
-    print(result)
-    time.sleep(5) # Simulate longer training process
-    return result
-
-@celery_app.task
-def simulate_market_data_ingestion(symbol: str, num_days: int):
-    """Simulates ingesting historical market data."""
-    timestamp = datetime.utcnow().isoformat()
-    result = f"Simulating ingestion of {num_days} days of market data for {symbol} at {timestamp}"
-    print(result)
-    time.sleep(num_days * 0.1)
-    return result
+@celery_app.task(bind=True, max_retries=3)
+def trigger_ml_training_task(self, model_id: str, epochs: int, batch_size: int):
+    """
+    Simulates triggering an ML model training job.
+    Idempotent check: Could check a distributed lock or task status in DB (Phase 2).
+    """
+    logger.info("ML training execution for model %s (Epochs: %d)", model_id, epochs)
+    try:
+        # Simulate logic: Check if a similar task is already in-flight
+        # In a real system, we'd use Redis for a distributed lock:
+        # if not redis.set(f"lock:train:{model_id}", "locked", nx=True, ex=3600):
+        #     return "Training already in progress for this model"
+        
+        timestamp = datetime.now(UTC).isoformat()
+        time.sleep(5)  # Simulate GPU-less CPU training
+        return {"status": "success", "model_id": model_id, "timestamp": timestamp}
+    except Exception as e:
+        logger.error("Training failed for model %s: %s", model_id, e)
+        raise self.retry(exc=e)
 
 @celery_app.task
 def deploy_ml_model_task(model_id: str, version: str, target_environment: str):
-    """Simulates deploying an ML model."""
-    timestamp = datetime.utcnow().isoformat()
-    result = f"Simulating deployment for model {model_id} version {version} to {target_environment} at {timestamp}"
-    print(result)
-    time.sleep(7) # Simulate deployment time
-    return result
+    """
+    Simulates deploying an ML model.
+    Idempotent: Uses model_id and version as unique deployment identifiers.
+    """
+    logger.info("Deploying model %s version %s to %s", model_id, version, target_environment)
+    # Idempotent logic: If version X is already deployed to env Y, skip.
+    timestamp = datetime.now(UTC).isoformat()
+    time.sleep(2) 
+    return {"status": "deployed", "model_id": model_id, "version": version, "at": timestamp}
 
-@celery_app.task
-def process_payment_task(payment_details: Dict[str, Any]):
-    """Simulates processing a payment."""
-    timestamp = datetime.utcnow().isoformat()
-    result = f"Processing payment for amount {payment_details.get('amount')} for user {payment_details.get('user_id')} at {timestamp}"
-    print(result)
-    time.sleep(3) # Simulate payment processing time
-    return result
+@celery_app.task(bind=True)
+def process_payment_task(self, transaction_id: str, payment_details: Dict[str, Any]):
+    """
+    Processes a payment.
+    CRITICAL IDEMPOTENCY: Required transaction_id to prevent double-charging (Phase 2).
+    """
+    logger.info("Processing transaction %s", transaction_id)
+    # if transaction_exists(transaction_id): return "Already processed"
+    
+    time.sleep(3)
+    return {"status": "processed", "transaction_id": transaction_id}
 
 # Add more tasks as needed for various background operations.

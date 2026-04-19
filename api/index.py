@@ -8,10 +8,10 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes.market_data import router as market_data_router
-from api.routes.ml import router as ml_router
-from api.routes.portfolio import router as portfolio_router
-from api.routes.trade import router as trade_router
+from api.routes.markets import router as markets_router
+from api.routes.models import router as models_router
+from api.routes.portfolios import router as portfolios_router
+from api.routes.trades import router as trades_router
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)
@@ -37,10 +37,10 @@ app.add_middleware(
 )
 
 # --- Routers ---
-app.include_router(market_data_router, prefix="/api/v1")
-app.include_router(ml_router, prefix="/api/v1")
-app.include_router(portfolio_router, prefix="/api/v1")
-app.include_router(trade_router, prefix="/api/v1")
+app.include_router(markets_router)
+app.include_router(models_router)
+app.include_router(portfolios_router)
+app.include_router(trades_router)
 
 # --- Exception Handlers ---
 @app.exception_handler(grpc.RpcError)
