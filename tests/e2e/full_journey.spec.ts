@@ -118,7 +118,7 @@ test.describe("Manifold Full Journey", () => {
 
       await test.step("Get portfolio by ID", async () => {
         await page.goto(`${BASE_URL}/portfolios/${portfolio_id}`); 
-        await expect(page.locator(`[data-testid="portfolio-name"]`)).toHaveText(portfolio_name);
+        await expect(page.locator(`[data-testid="portfolio-name"]`)).toHaveText(portfolio_name_base);
         await expect(page.locator(`[data-testid="portfolio-cash"]`)).toHaveText(initial_cash.toString());
       });
 
@@ -132,8 +132,8 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Get portfolio value", async () => {
-        await page.goto(`${BASE_URL}/portfolios/value/${portfolio_id}`); // Navigate to portfolio value page
-        await expect(page.locator("h1")).toHaveText("Portfolio Value"); 
+        await page.goto(`${BASE_URL}/portfolios/${portfolio_id}/valuation`); // Updated to Noun-based route
+        await expect(page.locator("h1")).toHaveText("Portfolio Valuation"); 
         await expect(page.locator("text=total_value")).toBeVisible(); 
         const valueText = await page.locator("text=total_value").textContent(); 
         expect(valueText).toContain("$"); 
@@ -226,13 +226,13 @@ test.describe("Manifold Full Journey", () => {
       });
 
       await test.step("Predict using the created model", async () => {
-        await page.goto(`${BASE_URL}/ml/predict/${model_id}`); 
-        await expect(page.locator("h2")).toHaveText("Predict"); 
+        await page.goto(`${BASE_URL}/models/${model_id}/predictions`); // Updated to Noun-based
+        await expect(page.locator("h2")).toHaveText("Predictions"); 
         await page.fill('[name="inputValue"]', "123.45"); 
         await page.click('button:has-text("Predict")');
         await expect(page.locator("text=prediction")).toBeVisible({ timeout: 10000 });
         const predictionResult = await page.locator('pre').textContent();
-        expect(predictionResult).toContain("simulated_result");
+        expect(predictionResult).toContain("result");
       });
 
       await test.step("Trigger model training", async () => {

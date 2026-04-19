@@ -34,18 +34,18 @@ test.describe('Market Data Page E2E Tests', () => {
       await expect(page.locator('[type="date"]').nth(1)).toBeVisible();
     });
 
-    await test.step('Fetch data for a specific symbol and date range', async () => {
+    await test.step("Fetch data for a specific symbol and date range", async () => {
       await page.fill('[placeholder="Symbol (e.g., AAPL)"]', 'GOOG');
       // Set specific dates for predictability, e.g., first 3 days of Jan 2023
       await page.fill('[type="date"]', '2023-01-01'); // Start date
-      await page.fill('[type="date"]').nth(1), '2023-01-03'); // End date
+      await page.fill('[type="date"]:nth-child(2)', '2023-01-03'); // Adjusted selector and fixed paren
       await page.click('button:has-text("Fetch Data")');
       
       // Wait for data to load and table rows to appear
       await page.waitForSelector('table tbody tr', { state: 'visible', timeout: 10000 });
     });
 
-    await test.step('Verify historical data is displayed correctly', async () => {
+    await test.step("Verify historical data is displayed correctly", async () => {
       const rows = page.locator('table tbody tr');
       await expect(rows).toHaveCount(3); // Expecting 3 days of data (Jan 1, 2, 3)
 
@@ -59,7 +59,7 @@ test.describe('Market Data Page E2E Tests', () => {
     await test.step('Fetch data for a symbol with no simulated data', async () => {
       await page.fill('[name="symbol"]', 'NODATA'); // Assume this symbol yields no data
       await page.fill('[type="date"]', '2024-01-01');
-      await page.fill('[type="date"]').nth(1), '2024-01-02');
+      await page.fill('[type="date"]:nth-child(2)', '2024-01-02');
       await page.click('button:has-text("Fetch Data")');
       
       // Wait for loading to finish and then check for "no data" message

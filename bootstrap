@@ -101,7 +101,7 @@ issue_cert() {
     if [ ! -f "${PKI_DIR}/${svc}.key" ]; then
         openssl genrsa -out "${PKI_DIR}/${svc}.key" 2048 2>/dev/null
         openssl req -new -key "${PKI_DIR}/${svc}.key" -out "${PKI_DIR}/${svc}.csr" -subj "/C=US/O=BSOPT/CN=${svc}" 2>/dev/null
-        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" 
+        openssl x509 -req -in "${PKI_DIR}/${svc}.csr" -CA "${PKI_DIR}/root_ca.crt" -CAkey "${PKI_DIR}/root_ca.key" \
             -CAcreateserial -out "${PKI_DIR}/${svc}.crt" -days 365 -sha256 2>/dev/null
         rm "${PKI_DIR}/${svc}.csr"
     fi

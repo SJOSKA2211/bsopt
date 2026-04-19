@@ -5,16 +5,22 @@ logging, database connection, and the migration context. It supports
 both online (connected to DB) and offline (generating SQL) modes.
 """
 
+import os
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config, pool
-
 from alembic import context
 
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# this is the Alembic Config object
 config = context.config
+
+# Dynamic URL Injection (Phase 2)
+if not context.is_offline_mode():
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        # Swap asyncpg for asyncpg-compatible sync driver for migrations if needed,
+        # or just strip the async segment if using standard psycopg.
+        sync_url = db_url.replace("+asyncpg", "")
+        config.set_main_option("sqlalchemy.url", sync_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

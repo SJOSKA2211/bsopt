@@ -25,20 +25,12 @@ def _raise_auth_exception(detail: str) -> None:
         detail=detail,
     )
 
-async def get_auth_client() -> AsyncGenerator[auth_pb2_grpc.AuthServiceStub, None]:
-    """Provide a gRPC Auth service client."""
-    import os
-    addr = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
-    ca_cert_path = "/etc/ssl/certs/root_ca.crt"
-    
-    if os.path.exists(ca_cert_path):
-        with open(ca_cert_path, "rb") as f:
-            creds = grpc.ssl_channel_credentials(f.read())
-        async with grpc.aio.secure_channel(addr, creds) as channel:
-            yield auth_pb2_grpc.AuthServiceStub(channel)
-    else:
-        async with grpc.aio.insecure_channel(addr) as channel:
-            yield auth_pb2_grpc.AuthServiceStub(channel)
+from src.shared.grpc_manager import grpc_manager
+
+async def get_auth_client() -> auth_pb2_grpc.AuthServiceStub:
+    """Provide a gRPC Auth service client using persistent pooled connections."""
+    channel = await grpc_manager.get_auth_channel()
+    return auth_pb2_grpc.AuthServiceStub(channel)
 
 async def _get_token_from_header(auth_header: str | None) -> str:
     """Extract the Bearer token from the Authorization header."""
