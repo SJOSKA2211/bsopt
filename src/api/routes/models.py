@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -55,7 +55,7 @@ async def read_ml_models_list(
     limit: int = 100
 ):
     """Retrieves a list of active ML models."""
-    stmt = select(MLModel).filter(MLModel.is_active == True).offset(skip).limit(limit)
+    stmt = select(MLModel).filter(MLModel.is_active).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return [MLModelSchema.from_orm(m) for m in result.scalars().all()]
 
@@ -90,7 +90,7 @@ async def create_model_prediction(
         return {
             "model_id": str(model_id),
             "prediction": result,
-            "timestamp": datetime.now(timezone.utc).isoformat() if "datetime" in globals() else None
+            "timestamp": datetime.now(UTC).isoformat() if "datetime" in globals() else None
         }
     except Exception as e:
         logger.error("Prediction failed for model %s: %s", model_id, e)
@@ -120,7 +120,7 @@ async def create_model_training_job(
         batch_size=params_in.get("batch_size", 32)
     )
     return {
-        "job_id": f"job_{model_id}_{int(datetime.now(timezone.utc).timestamp())}" if "datetime" in globals() else str(model_id),
+        "job_id": f"job_{model_id}_{int(datetime.now(UTC).timestamp())}" if "datetime" in globals() else str(model_id),
         "status": "enqueued",
         "model_id": str(model_id)
     }

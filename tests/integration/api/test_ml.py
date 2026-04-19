@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
-from src.database.models import MLModel  # For direct DB checks
-from src.schemas.ml import MLModel  # Import schemas for request/response
+from src.database.models import MLModel as DBMLModel  # For direct DB checks
 
 # Base URL for the API service
 API_URL = "http://localhost:8000/api/v1"
@@ -81,9 +80,9 @@ async def test_list_ml_models(api_client: AsyncClient, auth_headers: dict[str, s
     model3_data = {"name": "InactiveModel", "version": "1.0.0", "is_active": False} # Inactive model
 
     # Manually create in DB to ensure they exist and have specific states
-    m1 = MLModel(**model1_data)
-    m2 = MLModel(**model2_data)
-    m3 = MLModel(**model3_data)
+    m1 = DBMLModel(**model1_data)
+    m2 = DBMLModel(**model2_data)
+    m3 = DBMLModel(**model3_data)
     db_session.add_all([m1, m2, m3])
     await db_session.commit()
     await db_session.refresh(m1)
