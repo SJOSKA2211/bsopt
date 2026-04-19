@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import get_current_user, get_current_user_id
+from src.api.dependencies import get_current_user, get_current_user_id
 from src.database.crud import (
     create_portfolio as crud_create_portfolio,
 )

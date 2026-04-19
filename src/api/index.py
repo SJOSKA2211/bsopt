@@ -8,10 +8,10 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes.markets import router as markets_router
-from api.routes.models import router as models_router
-from api.routes.portfolios import router as portfolios_router
-from api.routes.trades import router as trades_router
+from src.api.routes.markets import router as markets_router
+from src.api.routes.models import router as models_router
+from src.api.routes.portfolios import router as portfolios_router
+from src.api.routes.trades import router as trades_router
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO)

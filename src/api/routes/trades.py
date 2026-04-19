@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import get_current_user
+from src.api.dependencies import get_current_user
 from src.database.crud import (
     create_trade as crud_create_trade,
 )

@@ -14,7 +14,7 @@ volumes:
 services:
   # --- 1. Data Persistence Layer ---
   timescaledb:
-    image: timescale/timescaledb:latest-pg15
+    image: timescale/timescaledb@sha256:95a7997408e3295935e4afe8af8c09aae22bd51732131d1e7351c63d6198a71c
     container_name: bsopt-manifold-db
     networks:
       - internal_net
@@ -195,7 +195,7 @@ services:
       api_service: { condition: service_healthy }
 
   nginx:
-    image: nginx:alpine
+    image: nginx@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
     container_name: bsopt-manifold-edge
     networks:
       - public_net

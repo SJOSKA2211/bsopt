@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from api.dependencies import get_current_user
+from src.api.dependencies import get_current_user
 from src.database.models import User
 from src.math_kernel.service import MathKernelService
 from src.tasks import simulate_market_data_ingestion
