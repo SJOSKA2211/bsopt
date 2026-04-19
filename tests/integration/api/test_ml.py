@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Assuming api_client, db_session, test_user_token, auth_headers fixtures are available from conftest.py
 # Import necessary models and schemas
-from src.database.models import MLModel  # For direct DB checks
+from src.database.models import MLModel as DBMLModel  # For direct DB checks
 from src.schemas.ml import MLModel  # Import schemas for request/response
 
 # Base URL for the API service

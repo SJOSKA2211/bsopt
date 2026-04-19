@@ -430,7 +430,7 @@ api = [
     { name = "gunicorn" },
     { name = "httpx", extra = ["http2"] },
     { name = "python-multipart" },
-    { name = "strawberry-graphql", extra = ["fastapi"] },
+    { name = "strawberry-graphql" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "uvloop" },
 ]
@@ -474,11 +474,15 @@ ml = [
     { name = "onnxmltools" },
     { name = "optuna" },
     { name = "pytorch-forecasting" },
+    { name = "qiskit" },
+    { name = "qiskit-algorithms" },
     { name = "scikit-learn" },
     { name = "skl2onnx" },
     { name = "stable-baselines3" },
     { name = "torch" },
     { name = "torch-geometric" },
+    { name = "wasmer" },
+    { name = "wasmer-compiler-cranelift" },
     { name = "xgboost" },
 ]
 observability = [
@@ -491,15 +495,11 @@ observability = [
     { name = "prometheus-api-client" },
     { name = "prometheus-client" },
 ]
-quant = [
-    { name = "qiskit" },
-    { name = "qiskit-algorithms" },
-    { name = "wasmer" },
-    { name = "wasmer-compiler-cranelift" },
-]
 shared = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "grpcio" },
+    { name = "grpcio-health-checking" },
     { name = "minio" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary"] },
@@ -546,7 +546,9 @@ requires-dist = [
     { name = "faker", marker = "extra == 'dev'", specifier = ">=25.0.0" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.111.0" },
     { name = "granian", marker = "extra == 'api'", specifier = ">=1.5.0" },
+    { name = "grpcio", marker = "extra == 'shared'", specifier = ">=1.62.0" },
     { name = "grpcio-health-checking", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "grpcio-health-checking", marker = "extra == 'shared'", specifier = ">=1.62.0" },
     { name = "grpcio-tools", marker = "extra == 'dev'", specifier = ">=1.78.0" },
     { name = "gunicorn", marker = "extra == 'api'", specifier = "==22.0.0" },
     { name = "gymnasium", marker = "extra == 'ml'", specifier = ">=0.29.1" },
@@ -589,8 +591,8 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.9" },
     { name = "pytorch-forecasting", marker = "extra == 'ml'", specifier = ">=1.0.0" },
-    { name = "qiskit", marker = "extra == 'quant'", specifier = ">=1.0.0" },
-    { name = "qiskit-algorithms", marker = "extra == 'quant'", specifier = ">=0.3.0" },
+    { name = "qiskit", marker = "extra == 'ml'", specifier = ">=1.0.0" },
+    { name = "qiskit-algorithms", marker = "extra == 'ml'", specifier = ">=0.3.0" },
     { name = "qrcode", marker = "extra == 'auth'", specifier = ">=7.4.2" },
     { name = "ray", extras = ["default", "train", "tune"], marker = "extra == 'distributed'", specifier = ">=2.30.0" },
     { name = "redis", extras = ["hiredis"], marker = "extra == 'shared'", specifier = ">=5.0.3" },
@@ -603,20 +605,20 @@ requires-dist = [
     { name = "skl2onnx", marker = "extra == 'ml'", specifier = ">=1.16.0" },
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'shared'", specifier = ">=2.0.29" },
     { name = "stable-baselines3", marker = "extra == 'ml'", specifier = ">=2.2.1" },
-    { name = "strawberry-graphql", extras = ["fastapi", "federation"], marker = "extra == 'api'", specifier = "~=0.200" },
+    { name = "strawberry-graphql", extras = ["fastapifederation"], marker = "extra == 'api'", specifier = "~=0.200" },
     { name = "structlog", specifier = ">=24.1.0" },
     { name = "tenacity", specifier = ">=8.3.0" },
     { name = "torch", marker = "extra == 'ml'", specifier = ">=2.2.0" },
     { name = "torch-geometric", marker = "extra == 'ml'", specifier = ">=2.5.0" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'api'", specifier = ">=0.30.0" },
     { name = "uvloop", marker = "extra == 'api'", specifier = ">=0.19.0" },
-    { name = "wasmer", marker = "extra == 'quant'", specifier = ">=1.1.0" },
-    { name = "wasmer-compiler-cranelift", marker = "extra == 'quant'", specifier = ">=1.1.0" },
+    { name = "wasmer", marker = "extra == 'ml'", specifier = ">=1.1.0" },
+    { name = "wasmer-compiler-cranelift", marker = "extra == 'ml'", specifier = ">=1.1.0" },
     { name = "webauthn", marker = "extra == 'auth'", specifier = ">=2.2.0" },
     { name = "xgboost", marker = "extra == 'ml'", specifier = ">=2.0.0" },
     { name = "yfinance", specifier = ">=1.2.0" },
 ]
-provides-extras = ["shared", "api", "auth", "observability", "ml", "quant", "distributed", "dev"]
+provides-extras = ["shared", "api", "auth", "observability", "ml", "distributed", "dev"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -4163,12 +4165,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/00/4d/df1240ee4d8fe925d0b6f0eff15cf9947f0345ab44c39eb58355b6026425/strawberry_graphql-0.314.3.tar.gz", hash = "sha256:2a841c35af61e9d5df1e215ca991cfac364c00a05fc192d9f38d0733da163097", size = 222131, upload-time = "2026-04-08T18:04:42.727Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/be/25/13773a2944cc5975d44db58233b3610ddc88d4be49e6576adf7ed4b62250/strawberry_graphql-0.314.3-py3-none-any.whl", hash = "sha256:4ef4442cea79014487acd7a0d1a2ce55c9d2a42dcd34a307d4c01f2ab477ecfa", size = 324471, upload-time = "2026-04-08T18:04:44.088Z" },
-]
-
-[package.optional-dependencies]
-fastapi = [
-    { name = "fastapi" },
-    { name = "python-multipart" },
 ]
 
 [[package]]

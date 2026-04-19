@@ -72,19 +72,7 @@ class MathKernelService:
         return {symbol: round(random.uniform(100.0, 500.0), 2) for symbol in symbols}
 
 # Example usage:
-async def main():
-    # This requires an async DB session to be available
-    async with AsyncSession(db_engine) as db:
-        try:
-            # Example: Create a dummy portfolio and trade for testing value calculation
-            # This requires setup of User and Portfolio objects which are not mocked here.
-            # For now, just demonstrating the call structure.
-            print("Simulating portfolio value calculation...")
-            # value = await MathKernelService().calculate_portfolio_value("some_portfolio_id", db)
-            # print(f"Calculated portfolio value: {value}")
-        except ValueError as e:
-            print(e)
-
+async def main() -> None:
     price = MathKernelService().calculate_price("AAPL", 10, 150.0)
     print(f"Calculated price: {price}")
 

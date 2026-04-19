@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import grpc
 import pytest
 from google.protobuf import empty_pb2  # For empty responses
+from grpc_health.v1 import health_pb2
 
 from src.auth import auth  # Import auth module for revoke_token function access
 
@@ -84,7 +85,9 @@ class MockUserInfo:
     def __init__(self, user_id, email, full_name, tier, is_verified, mfa_enabled, created_at, last_login, roles, metadata):
         self.user_id, self.email, self.full_name, self.tier, self.is_verified, self.mfa_enabled, self.created_at, self.last_login, self.roles, self.metadata = user_id, email, full_name, tier, is_verified, mfa_enabled, created_at, last_login, roles, metadata
 
-class MockAPIKeyResponse: pass
+class MockAPIKeyResponse:
+    pass
+
 class MockIntrospectionResponse:
     def __init__(self, active, sub=None, username=None, token_type=None, exp=0, iat=0, scope=None, iss=None):
         self.active, self.sub, self.username, self.token_type, self.exp, self.iat, self.scope, self.iss = active, sub, username, token_type, exp, iat, scope, iss

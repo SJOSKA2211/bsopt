@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -95,7 +95,7 @@ async def get_portfolio_value_route(
             "portfolio_id": str(portfolio_id),
             "total_value": round(total_value, 2),
             "currency": "USD",
-            "calculation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "calculation_timestamp": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         logger.error("Error calculating portfolio value for %s: %s", portfolio_id, e)

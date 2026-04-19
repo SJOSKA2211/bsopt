@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.crud import get_user_by_id
 from src.database.models import User
 from src.database.session import get_async_db
-
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = logging.getLogger(__name__)

@@ -1,9 +1,11 @@
+import os
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from api.index import app  # Assuming api.index contains the FastAPI app
+from src.database.base import Base
 from src.database.models import Portfolio, Trade  # Import models
 from src.database.session import get_async_db  # Import the real DB session provider
 
@@ -39,7 +41,7 @@ async def init_db():
     async with engine.begin() as conn:
         # Create tables if they don't exist (for clean test env setup)
         # In a real scenario, migrations would handle this. For tests, we might drop/create.
-        await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield
     # Optional: Clean up tables after tests if needed, or rely on TRUNCATE in api_client fixture
 

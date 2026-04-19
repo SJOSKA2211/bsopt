@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -58,7 +58,7 @@ async def calculate_price_endpoint(
             "quantity": quantity,
             "unit_price": price,
             "total_price": round(total_price, 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         logger.error("Price calculation failed: %s", e)

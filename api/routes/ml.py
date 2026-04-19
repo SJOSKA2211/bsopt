@@ -51,7 +51,7 @@ async def read_ml_models_list(
     limit: int = 100
 ):
     """Retrieves a list of active ML models."""
-    stmt = select(MLModel).filter(MLModel.is_active == True).offset(skip).limit(limit)
+    stmt = select(MLModel).filter(MLModel.is_active).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return [MLModelSchema.from_orm(m) for m in result.scalars().all()]
 
