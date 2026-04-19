@@ -22,11 +22,11 @@ dependencies = [
     "selectolax>=0.4.7",
     "beautifulsoup4>=4.14.3",
     "evidently>=0.7.21",
+    "onnxruntime>=1.24.4",
     "scipy>=1.14.1",
     "numba>=0.64.0",
     "passlib[argon2]>=1.7.4",
     "sendgrid>=6.12.5",
-    "onnxruntime==1.20.0",
 ]
 
 [project.optional-dependencies]
@@ -144,7 +144,6 @@ known-first-party = ["src"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-exclude = ['src/protos/.*\.py$', 'src/shared/protos/.*\.py$']
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -183,7 +182,7 @@ show_missing = true
 precision = 2
 
 [tool.bandit]
-exclude_dirs = ["tests", "backups", "scripts", "node_modules", "mlruns", "**/node_modules", "src/protos", "src/shared/protos"]
+exclude_dirs = ["tests", "backups", "scripts", "node_modules", "mlruns", "**/node_modules"]
 # B101: assert_used (standard in internal code)
 # B105: hardcoded_password_string (often false positive on variable names)
 # B106: hardcoded_password_funcarg (often false positive)
