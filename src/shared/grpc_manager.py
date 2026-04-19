@@ -45,25 +45,32 @@ class gRPCManager:
         return None
 
     async def get_auth_channel(self) -> grpc.aio.Channel:
-        """Retrieve or initialize the persistent gRPC channel."""
-        if self._auth_channel is None:
+        """Retrieve, initialize, or recover the persistent gRPC channel."""
+        recreate = False
+        if self._auth_channel is not None:
+            # Check state of existing channel
+            state = self._auth_channel.get_state(True)
+            if state in (grpc.ChannelConnectivity.SHUTDOWN, grpc.ChannelConnectivity.TRANSIENT_FAILURE):
+                logger.warning("Existing gRPC channel is in terminal state: %s. Re-initializing...", state)
+                await self.close()
+                recreate = True
+
+        if self._auth_channel is None or recreate:
             creds = self._get_credentials()
+            options = [
+                ('grpc.keepalive_time_ms', 10000),
+                ('grpc.keepalive_timeout_ms', 5000),
+                ('grpc.keepalive_permit_without_calls', True),
+                ('grpc.http2.max_pings_without_data', 0),
+                ('grpc.http2.min_sent_ping_interval_without_data_ms', 5000),
+            ]
             if creds:
                 logger.info("Initializing PERSISTENT SECURE gRPC channel for %s", self.auth_addr)
-                self._auth_channel = grpc.aio.secure_channel(
-                    self.auth_addr, 
-                    creds,
-                    options=[
-                        ('grpc.keepalive_time_ms', 10000),
-                        ('grpc.keepalive_timeout_ms', 5000),
-                        ('grpc.keepalive_permit_without_calls', True),
-                        ('grpc.http2.max_pings_without_data', 0),
-                        ('grpc.http2.min_sent_ping_interval_without_data_ms', 5000),
-                    ]
-                )
+                self._auth_channel = grpc.aio.secure_channel(self.auth_addr, creds, options=options)
             else:
                 logger.warning("Initializing PERSISTENT INSECURE gRPC channel for %s", self.auth_addr)
-                self._auth_channel = grpc.aio.insecure_channel(self.auth_addr)
+                self._auth_channel = grpc.aio.insecure_channel(self.auth_addr, options=options)
+        
         return self._auth_channel
 
     async def close(self):

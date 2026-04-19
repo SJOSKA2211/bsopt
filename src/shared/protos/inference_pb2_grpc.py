@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from . from . from . from . from . import inference_pb2 as inference__pb2
+from . from . from . from . from . from . import inference_pb2 as inference__pb2
 
 GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__

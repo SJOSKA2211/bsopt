@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import auth
 from src.database.crud import get_user_by_id
-from src.database.session import engine as db_engine
+from src.database.session import AsyncSessionLocal, engine as db_engine
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 # --- Configuration ---
@@ -54,7 +54,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
         if payload is None:
             await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
 
-        async with AsyncSession(db_engine) as db:
+        async with AsyncSessionLocal() as db:
             user_id_str = payload.get("sub")
             if not user_id_str:
                 await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Missing subject in token")
@@ -122,7 +122,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
         if payload is None or payload.get("token_type") != "refresh":
             await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid or expired refresh token")
 
-        async with AsyncSession(db_engine) as db:
+        async with AsyncSessionLocal() as db:
             user_id_str = payload.get("sub")
             if not user_id_str:
                 await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid token payload")
@@ -165,7 +165,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
         if payload is None:
             await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
 
-        async with AsyncSession(db_engine) as db:
+        async with AsyncSessionLocal() as db:
             user_id_str = payload.get("sub")
             if not user_id_str:
                 await context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid token payload")
