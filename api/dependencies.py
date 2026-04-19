@@ -1,5 +1,8 @@
+"""Dependencies for the API."""
+
 import logging
 from collections.abc import AsyncGenerator
+from typing import Annotated
 
 import grpc
 from fastapi import Depends, HTTPException, Request, status
@@ -8,41 +11,48 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.crud import get_user_by_id
 from src.database.models import User
 from src.database.session import get_async_db
-
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
 AUTH_HEADER_PARTS_COUNT = 2
-HTTP_STATUS_OK = 200
-HTTP_STATUS_CREATED = 201
-HTTP_STATUS_UNAUTHORIZED = status.HTTP_401_UNAUTHORIZED
-HTTP_STATUS_SERVICE_UNAVAILABLE = status.HTTP_503_SERVICE_UNAVAILABLE
-HTTP_STATUS_INTERNAL_SERVER_ERROR = status.HTTP_500_INTERNAL_SERVER_ERROR
-
 
 def _raise_auth_exception(detail: str) -> None:
+    """Raise an 401 Unauthorized exception."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
     )
 
 async def get_auth_client() -> AsyncGenerator[auth_pb2_grpc.AuthServiceStub, None]:
-    """Dependency factory for gRPC Auth service client."""
-    # In production, we'd use settings.GRPC_AUTH_SERVICE_ADDR
-    # and potentially secure credentials if settings.GRPC_SECURE is True
-    addr = "auth_service:50051" # Default internal address matching docker-compose.yml
+    """Provide a gRPC Auth service client."""
+    import os
+    addr = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
     
-    # We use insecure channel for now as per bootstrap config
     async with grpc.aio.insecure_channel(addr) as channel:
         yield auth_pb2_grpc.AuthServiceStub(channel)
 
-async def get_current_user(request: Request) -> User:
+async def _get_token_from_header(auth_header: str | None) -> str:
+    """Extract the Bearer token from the Authorization header."""
+    if not auth_header:
+        _raise_auth_exception("Authorization header missing")
+    
+    parts = auth_header.split()
+    if len(parts) != AUTH_HEADER_PARTS_COUNT or parts[0].lower() != "bearer":
+        _raise_auth_exception("Invalid Authorization header format")
+    
+    return parts[1]
+
+async def get_current_user(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    auth_client: Annotated[auth_pb2_grpc.AuthServiceStub, Depends(get_auth_client)],
+) -> User:
     """Authenticate the user using a JWT token via gRPC Auth service."""
-    db: AsyncSession = Depends(get_async_db)
-    auth_client: auth_pb2_grpc.AuthServiceStub = Depends(get_auth_client)
     auth_header = request.headers.get("Authorization")
+    
+    # Handle development mock bypass
     if not auth_header:
         mock_user_id = request.headers.get("X-User-ID")
         if mock_user_id:
@@ -51,48 +61,39 @@ async def get_current_user(request: Request) -> User:
                 return db_user
         _raise_auth_exception("Authorization header missing")
     
-    parts = auth_header.split()
-    if (
-        parts[0].lower() != "bearer"
-        or len(parts) != AUTH_HEADER_PARTS_COUNT
-    ):
-        _raise_auth_exception("Invalid Authorization header format")
-    
-    token = parts[1]
+    token = await _get_token_from_header(auth_header)
 
     try:
-        token_validation_response = await auth_client.ValidateToken(
-            auth_pb2.TokenRequest(token=token)
+        response = await auth_client.ValidateToken(
+            auth_pb2.TokenRequest(token=token),
         )
         
-        if not token_validation_response.valid:
+        if not response.valid:
             _raise_auth_exception("Token is invalid or expired")
         
-        user_id = token_validation_response.user_id
-        if not user_id:
+        if not response.user_id:
             _raise_auth_exception("User ID not found in token payload")
 
-        db_user = await get_user_by_id(db, user_id=user_id)
+        db_user = await get_user_by_id(db, user_id=response.user_id)
         if not db_user:
             _raise_auth_exception("User not found")
         
-        return str(db_user.id)
+        return db_user
 
     except grpc.RpcError as e:
         logger.exception("Auth gRPC error: %s - %s", e.code(), e.details())
         if e.code() == grpc.StatusCode.UNAUTHENTICATED:
             _raise_auth_exception(e.details())
-        else:
-            _raise_auth_exception("Auth service unavailable")
-    except Exception as e:
-        logger.exception(f"Unexpected authentication error: {e}")
+        _raise_auth_exception("Auth service unavailable")
+    except Exception:
+        logger.exception("Unexpected authentication error")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error during authentication",
-        ) from e
+        ) from None
 
-async def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
-    """Retrieve the current user's ID."""
-    return str(
-        current_user.id,
-    )
+async def get_current_user_id(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> str:
+    """Retrieve the current user's ID as a string."""
+    return str(current_user.id)

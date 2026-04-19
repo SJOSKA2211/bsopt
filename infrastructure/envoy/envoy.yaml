@@ -33,13 +33,14 @@ static_resources:
     connect_timeout: 0.25s
     type: STRICT_DNS
     lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
     load_assignment:
       cluster_name: auth_service
       endpoints:
       - lb_endpoints:
         - endpoint:
             address:
-              socket_address: { address: auth_service, port_value: 8000 }
+              socket_address: { address: auth_service, port_value: 50051 }
   - name: api_service
     connect_timeout: 0.25s
     type: STRICT_DNS
@@ -50,7 +51,7 @@ static_resources:
       - lb_endpoints:
         - endpoint:
             address:
-              socket_address: { address: api_service, port_value: 8001 }
+              socket_address: { address: api_service, port_value: 8000 }
   - name: ml_service
     connect_timeout: 0.25s
     type: STRICT_DNS
@@ -61,7 +62,7 @@ static_resources:
       - lb_endpoints:
         - endpoint:
             address:
-              socket_address: { address: ml_service, port_value: 8002 }
+              socket_address: { address: ml_worker, port_value: 8080 }
 
 admin:
   address:

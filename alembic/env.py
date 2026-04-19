@@ -22,9 +22,9 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None # Set to None as we don't have myapp.mymodel
+from src.database.base import Base
+from src.database.models import User, Portfolio, Trade, MLModel # Ensure all models are loaded
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

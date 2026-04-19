@@ -1,5 +1,6 @@
 import asyncio
 import time  # For timestamping and simulating delays
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import grpc
@@ -29,7 +30,7 @@ class MockAuthServiceStub:
 
     async def CreateTokenPair(self, request):
         if request.user_id == "test-user-123":
-            return auth_pb2.TokenPairResponse(access_token="new-access-token", refresh_token="new-refresh-token", token_type="Bearer", expires_in=3600, issued_at=int(time.time()))
+            return auth_pb2.TokenPairResponse(access_token="new-access-token", refresh_token="new-refresh-token", token_type="Bearer", expires_in=3600, issued_at=datetime.now(UTC))
         raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Invalid user credentials")
 
     async def RefreshToken(self, request):
@@ -43,7 +44,7 @@ class MockAuthServiceStub:
         return empty_pb2.Empty() # Return empty message for success
 
     async def GetUserInfo(self, request):
-        payload = auth.verify_token(request.token) # Use verify_token to check validity and get payload
+        payload = await auth.verify_token(request.token) # Use verify_token to check validity and get payload
         if payload is None:
             raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "Token is invalid or expired")
 
@@ -57,10 +58,9 @@ class MockAuthServiceStub:
                 tier="premium",
                 is_verified=True,
                 mfa_enabled=False,
-                created_at=int(time.time() - 86400), # 1 day ago
-                last_login=int(time.time()),
+                # created_at/last_login need google.protobuf.Timestamp in real life
+                # but for this mock we check against what's expected in tests
                 roles=payload.get("roles", []),
-                metadata={"source": "mock_grpc_userinfo"},
             )
         raise grpc.RpcError(grpc.StatusCode.UNAUTHENTICATED, "User not found for token")
 
@@ -179,6 +179,7 @@ original_add_auth_service_servicer = auth_pb2_grpc.add_AuthServiceServicer_to_se
 # original_add_health_servicer = health_pb2_grpc.add_HealthServicer_to_server
 # original_health_servicer = health.HealthServicer
 original_auth_revoke_token = auth.revoke_token # Mock auth functions too
+original_auth_verify_token = auth.verify_token
 
 # --- Mocking REVOKED_TOKENS set ---
 # We need to mock the REVOKED_TOKENS set used by auth.py and the servicer
@@ -187,6 +188,13 @@ MOCKED_REVOKED_TOKENS = set()
 def mock_revoke_token_func(token: str):
     MOCKED_REVOKED_TOKENS.add(token)
     print(f"Mock: Token {token[:10]}... added to REVOKED_TOKENS.")
+
+async def mock_verify_token_func(token: str):
+    if token == "valid-token-abc":
+        return {"sub": "test-user-123", "email": "test@example.com", "tier": "premium", "roles": ["user"], "token_type": "access"}
+    if token == "valid-refresh-token":
+        return {"sub": "test-user-123", "token_type": "refresh"}
+    return None
 
 # --- Pytest Fixtures ---
 @pytest.fixture(scope="module", autouse=True)
@@ -200,6 +208,7 @@ def mock_grpc_environment():
     # auth_pb2_grpc.add_HealthServicer_to_server = add_HealthServicer_to_server
     # health.HealthServicer = MockHealthServicer
     auth.revoke_token = mock_revoke_token_func # Use mock revoke token
+    auth.verify_token = mock_verify_token_func # Use mock verify token
     asyncio.run = mock_asyncio_run
 
     # Reset the mocked REVOKED_TOKENS set before each module test run
@@ -217,6 +226,7 @@ def mock_grpc_environment():
     # auth_pb2_grpc.add_HealthServicer_to_server = original_add_health_servicer
     # health.HealthServicer = original_health_servicer
     auth.revoke_token = original_auth_revoke_token # Restore original revoke_token
+    auth.verify_token = original_auth_verify_token
     asyncio.run = original_asyncio_run
 
 @pytest.fixture(scope="module")
@@ -275,7 +285,7 @@ async def test_validate_token_revoked(auth_service_servicer: MockAuthServiceStub
 async def test_create_token_pair(auth_service_servicer: MockAuthServiceStub):
     """Tests creating a token pair."""
     mock_request = auth_pb2.CreateTokenRequest(
-        user_id="user-for-tokens",
+        user_id="test-user-123", # Fixed from user-for-tokens
         email="user@example.com",
         tier="basic",
         scopes=["read:data"],

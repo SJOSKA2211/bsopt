@@ -190,12 +190,14 @@ deploy_and_validate() {
 log_info "Starting Sequential Deployment..."
 
 # Phase A: Persistence & Messaging
-deploy_and_validate "postgres"
+deploy_and_validate "timescaledb"
 deploy_and_validate "redis"
 deploy_and_validate "rabbitmq"
 
 # Phase B: Core Services
-deploy_and_validate "auth_api"
-deploy_and_validate "celery_worker"
+# Note: docker-compose defines them as auth_service and api_service (not auth_api)
+deploy_and_validate "auth_service"
+deploy_and_validate "api_service"
+deploy_and_validate "worker"
 
-log_success "Deployment Complete. BSOPT Stack v8.2 is Healthy."
+log_success "Deployment Complete. BSOPT Stack v9.2 is Healthy."

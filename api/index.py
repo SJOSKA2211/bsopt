@@ -1,10 +1,12 @@
 """FastAPI application entry point."""
 
 import logging
+from typing import Any
 
 import grpc
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from api.routes.market_data import router as market_data_router
 from api.routes.ml import router as ml_router
@@ -42,8 +44,8 @@ app.include_router(trade_router, prefix="/api/v1")
 
 # --- Exception Handlers ---
 @app.exception_handler(grpc.RpcError)
-async def grpc_exception_handler(request: Request, exc: grpc.RpcError):
-    """Custom handler for gRPC RpcErrors."""
+async def grpc_exception_handler(_: Request, exc: grpc.RpcError) -> JSONResponse:
+    """Handle gRPC RpcErrors by converting them to FastAPI HTTPExceptions."""
     logger.error("gRPC RpcError: Code=%s, Details=%s", exc.code(), exc.details())
 
     status_map = {
@@ -54,18 +56,21 @@ async def grpc_exception_handler(request: Request, exc: grpc.RpcError):
     }
     
     status_code = status_map.get(exc.code(), status.HTTP_500_INTERNAL_SERVER_ERROR)
-    detail = exc.details() if exc.details() else "gRPC service error"
+    detail = exc.details() or "gRPC service error"
     
-    return HTTPException(status_code=status_code, detail=detail)
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": detail},
+    )
 
 # --- Health Check Endpoint ---
 @app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check() -> dict[str, str]:
-    """Basic health check endpoint."""
+    """Provide a basic health check endpoint."""
     return {"status": "ok", "message": "API is healthy"}
 
 # --- Root Endpoint ---
 @app.get("/")
 async def root() -> dict[str, str]:
-    """Root endpoint for the API."""
+    """Provide a root endpoint for the API."""
     return {"message": "Welcome to the BSOPT API!"}
