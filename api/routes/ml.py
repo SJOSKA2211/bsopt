@@ -66,39 +66,57 @@ async def read_ml_model_item_route(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ML model not found")
     return MLModelSchema.from_orm(db_model)
 
-@router.post("/predict/{model_id}", response_model=dict[str, Any])
-async def predict_with_model(
+@router.post("/models/{model_id}/predictions", response_model=dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def create_model_prediction(
     model_id: UUID,
-    prediction_data: dict[str, Any],
+    prediction_in: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Performs prediction using a specified ML model UUID."""
+    """Performs prediction (Noun-based resource)."""
     model = await db.get(MLModel, model_id)
     if not model or not model.is_active:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Model inactive or not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail={"code": "MODEL_NOT_FOUND", "message": "ML model is inactive or does not exist"}
+        )
 
     try:
-        return ml_pipeline_service.predict(model_id=f"{model.name}@{model.version}", data=prediction_data)
+        result = ml_pipeline_service.predict(model_id=f"{model.name}@{model.version}", data=prediction_in)
+        return {
+            "model_id": str(model_id),
+            "prediction": result,
+            "timestamp": datetime.now(timezone.utc).isoformat() if "datetime" in globals() else None
+        }
     except Exception as e:
         logger.error("Prediction failed for model %s: %s", model_id, e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Prediction failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "PREDICTION_FAILED", "message": "The ML kernel encountered an error during inference"}
+        )
 
-@router.post("/train/{model_id}", status_code=status.HTTP_202_ACCEPTED)
-async def trigger_training(
+@router.post("/models/{model_id}/training-jobs", status_code=status.HTTP_202_ACCEPTED)
+async def create_model_training_job(
     model_id: UUID,
-    training_params: dict[str, Any],
+    params_in: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Triggers ML training via Celery."""
+    """Triggers ML training job (Noun-based resource)."""
     model = await db.get(MLModel, model_id)
     if not model:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Model not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail={"code": "MODEL_NOT_FOUND", "message": "ML model not found"}
+        )
 
     trigger_ml_training_task.delay(
         model_id=str(model_id), 
-        epochs=training_params.get("epochs", 10), 
-        batch_size=training_params.get("batch_size", 32)
+        epochs=params_in.get("epochs", 10), 
+        batch_size=params_in.get("batch_size", 32)
     )
-    return {"message": "Training enqueued", "model_id": str(model_id)}
+    return {
+        "job_id": f"job_{model_id}_{int(datetime.now(timezone.utc).timestamp())}" if "datetime" in globals() else str(model_id),
+        "status": "enqueued",
+        "model_id": str(model_id)
+    }

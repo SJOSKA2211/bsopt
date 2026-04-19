@@ -1,8 +1,5 @@
-.PHONY: help bootstrap up down ps logs test lint clean
-
-# --- Core Protocol Commands ---
 help:
-	@echo "OMARCHY PRIME: Deterministic Execution Engine"
+	@echo "BSOPT: Production Management CLI"
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"

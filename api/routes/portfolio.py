@@ -80,13 +80,13 @@ async def read_portfolio_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
     return PortfolioSchema.from_orm(db_portfolio)
 
-@router.get("/value/{portfolio_id}", response_model=dict[str, Any])
-async def get_portfolio_value_route(
+@router.get("/{portfolio_id}/valuation", response_model=dict[str, Any])
+async def get_portfolio_valuation(
     portfolio_id: UUID,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Calculates the total value of a portfolio using the math kernel."""
+    """Calculates the total value of a portfolio (Noun-based)."""
     await check_portfolio_ownership(db, portfolio_id, current_user.id)
 
     try:
@@ -95,8 +95,11 @@ async def get_portfolio_value_route(
             "portfolio_id": str(portfolio_id),
             "total_value": round(total_value, 2),
             "currency": "USD",
-            "calculation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat() if "datetime" in globals() else None,
         }
     except Exception as e:
-        logger.error("Error calculating portfolio value for %s: %s", portfolio_id, e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Value calculation failed")
+        logger.error("Valuation failed for %s: %s", portfolio_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "VALUATION_ERROR", "message": "Failed to compute portfolio market value"}
+        )

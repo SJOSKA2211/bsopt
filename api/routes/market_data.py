@@ -38,18 +38,21 @@ async def get_portfolio_risk_metrics_route(
     """Retrieves simulated risk metrics for a given portfolio UUID."""
     return math_kernel_service.get_risk_metrics(portfolio_id)
 
-@router.post("/calculate_price", response_model=dict[str, Any])
-async def calculate_price_endpoint(
-    calculation_data: dict[str, Any],
+@router.post("/calculations", response_model=dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def create_market_calculation(
+    calculation_in: dict[str, Any],
     current_user: User = Depends(get_current_user),
 ):
-    """Calculates total price for a given asset."""
-    symbol = calculation_data.get("symbol")
-    quantity = calculation_data.get("quantity")
-    price = calculation_data.get("price")
+    """Calculates total price for a given asset (Noun-based)."""
+    symbol = calculation_in.get("symbol")
+    quantity = calculation_in.get("quantity")
+    price = calculation_in.get("price")
 
     if not all([symbol, quantity is not None, price is not None]):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing parameters")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail={"code": "INVALID_PARAMS", "message": "Symbol, quantity, and price are required"}
+        )
 
     try:
         total_price = math_kernel_service.calculate_price(symbol, quantity, price)
@@ -62,17 +65,27 @@ async def calculate_price_endpoint(
         }
     except Exception as e:
         logger.error("Price calculation failed: %s", e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Calculation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "CALCULATION_ERROR", "message": "Failed to compute financial metrics"}
+        )
 
-@router.post("/ingest", status_code=status.HTTP_202_ACCEPTED)
-async def trigger_market_data_ingestion_route(
-    params: dict[str, Any],
+@router.post("/ingestions", status_code=status.HTTP_202_ACCEPTED)
+async def create_market_ingestion(
+    ingestion_in: dict[str, Any],
     current_user: User = Depends(get_current_user),
 ):
-    """Triggers market data ingestion via Celery."""
-    symbol = params.get("symbol")
+    """Triggers market data ingestion (Noun-based)."""
+    symbol = ingestion_in.get("symbol")
     if not symbol:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Symbol required")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail={"code": "MISSING_SYMBOL", "message": "Market symbol is required for ingestion"}
+        )
 
-    simulate_market_data_ingestion.delay(symbol=symbol, num_days=params.get("num_days", 30))
-    return {"message": "Ingestion enqueued", "symbol": symbol}
+    simulate_market_data_ingestion.delay(symbol=symbol, num_days=ingestion_in.get("num_days", 30))
+    return {
+        "id": f"ingest_{symbol}_{int(datetime.now(timezone.utc).timestamp())}",
+        "status": "enqueued",
+        "symbol": symbol
+    }
