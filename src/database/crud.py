@@ -25,9 +25,13 @@ async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
 
 async def create_user(db: AsyncSession, user_in: dict[str, Any]) -> User:
     """Creates a new user with a hashed password."""
+    # Enforce mandatory fields
+    if "password" not in user_in or "email" not in user_in:
+        raise ValueError("Password and email are mandatory for user creation")
+
     hashed_password = pwd_context.hash(user_in["password"])
 
-    user_data = {
+    user_data: dict[str, Any] = {
         "email": user_in["email"],
         "hashed_password": hashed_password,
         "full_name": user_in.get("full_name"),

@@ -29,9 +29,16 @@ async def get_auth_client() -> AsyncGenerator[auth_pb2_grpc.AuthServiceStub, Non
     """Provide a gRPC Auth service client."""
     import os
     addr = os.getenv("AUTH_SVC_ADDR", "auth_service:50051")
+    ca_cert_path = "/etc/ssl/certs/root_ca.crt"
     
-    async with grpc.aio.insecure_channel(addr) as channel:
-        yield auth_pb2_grpc.AuthServiceStub(channel)
+    if os.path.exists(ca_cert_path):
+        with open(ca_cert_path, "rb") as f:
+            creds = grpc.ssl_channel_credentials(f.read())
+        async with grpc.aio.secure_channel(addr, creds) as channel:
+            yield auth_pb2_grpc.AuthServiceStub(channel)
+    else:
+        async with grpc.aio.insecure_channel(addr) as channel:
+            yield auth_pb2_grpc.AuthServiceStub(channel)
 
 async def _get_token_from_header(auth_header: str | None) -> str:
     """Extract the Bearer token from the Authorization header."""
@@ -56,7 +63,12 @@ async def get_current_user(
     if not auth_header:
         mock_user_id = request.headers.get("X-User-ID")
         if mock_user_id:
-            db_user = await get_user_by_id(db, user_id=mock_user_id)
+            import uuid
+            try:
+                user_uuid = uuid.UUID(mock_user_id)
+            except ValueError:
+                _raise_auth_exception("Invalid X-User-ID format")
+            db_user = await get_user_by_id(db, user_id=user_uuid)
             if db_user:
                 return db_user
         _raise_auth_exception("Authorization header missing")
@@ -74,7 +86,13 @@ async def get_current_user(
         if not response.user_id:
             _raise_auth_exception("User ID not found in token payload")
 
-        db_user = await get_user_by_id(db, user_id=response.user_id)
+        import uuid
+        try:
+            user_uuid = uuid.UUID(response.user_id)
+        except ValueError:
+            _raise_auth_exception("Invalid user ID format")
+
+        db_user = await get_user_by_id(db, user_id=user_uuid)
         if not db_user:
             _raise_auth_exception("User not found")
         

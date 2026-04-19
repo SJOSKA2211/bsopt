@@ -14,6 +14,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
+from sqlalchemy.orm import relationship
+
 from src.database.base import Base
 
 
@@ -33,6 +35,10 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     last_login = Column(DateTime(timezone=True), nullable=True)
 
+    # Relationships
+    portfolios = relationship("Portfolio", back_populates="user", cascade="all, delete-orphan")
+
+
 class Portfolio(Base):
     __tablename__ = "portfolios"
 
@@ -44,6 +50,11 @@ class Portfolio(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    # Relationships
+    user = relationship("User", back_populates="portfolios")
+    trades = relationship("Trade", back_populates="portfolio", cascade="all, delete-orphan")
+
+
 class Trade(Base):
     __tablename__ = "trades"
 
@@ -52,12 +63,16 @@ class Trade(Base):
     symbol = Column(String, index=True, nullable=False)
     quantity = Column(Float, nullable=False)
     price = Column(Float, nullable=False)
-    side = Column(String, nullable=False) # 'buy' or 'sell'
-    order_type = Column(String, nullable=False) # 'market', 'limit'
+    side = Column(String, nullable=False)  # 'buy' or 'sell'
+    order_type = Column(String, nullable=False)  # 'market', 'limit'
     status = Column(String, index=True, default="pending")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    portfolio = relationship("Portfolio", back_populates="trades")
+
 
 class MLModel(Base):
     __tablename__ = "ml_models"

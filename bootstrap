@@ -126,78 +126,96 @@ fi
 # 4. Deployment Logic
 deploy_and_validate() {
     local svc=$1
-    log_info "Deploying service: $svc..."
+    local attempt=1
+    local max_attempts=3
     
-    if [ "$FORCE_REBUILD" -eq 1 ]; then
-        dc build "$svc" 2>/dev/null || true
-    fi
-    
-    dc up -d "$svc"
-    
-    local retries=30
-    log_info "Waiting for $svc to become ready..."
-    
-    local cid
-    cid=$(dc ps -q "$svc" 2>/dev/null || echo "")
-    
-    if [ -z "$cid" ]; then
-        log_error "Could not find container for $svc."
-        exit 1
-    fi
-    
-    # Check if this container has a healthcheck defined
-    local has_healthcheck
-    has_healthcheck=$(docker inspect -f '{{if .State.Health}}true{{else}}false{{end}}' "$cid" 2>/dev/null || echo "false")
-    
-    if [ "$has_healthcheck" = "true" ]; then
-        # Wait for healthcheck to report healthy
-        until [ "$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null)" = "healthy" ] || [ $retries -eq 0 ]; do
-            sleep 2
-            ((retries--))
-            echo -n "."
-        done
-        echo ""
+    while [ $attempt -le $max_attempts ]; do
+        log_info "Deploying service: $svc (Attempt $attempt/$max_attempts)..."
         
-        local status
-        status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "unknown")
-        if [ "$status" != "healthy" ]; then
-            log_error "Service $svc failed to become healthy (status: $status). Logs:"
-            dc logs "$svc" | tail -n 30
-            exit 1
+        if [ "$FORCE_REBUILD" -eq 1 ]; then
+            dc build "$svc" 2>/dev/null || true
         fi
-    else
-        # No healthcheck - just wait for container to be running
-        until [ "$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)" = "running" ] || [ $retries -eq 0 ]; do
-            sleep 2
-            ((retries--))
-            echo -n "."
-        done
-        echo ""
         
-        local state
-        state=$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null || echo "unknown")
-        if [ "$state" != "running" ]; then
-            log_error "Service $svc failed to start (state: $state). Logs:"
-            dc logs "$svc" | tail -n 30
-            exit 1
+        dc up -d --force-recreate "$svc"
+        
+        local retries=30
+        log_info "Waiting for $svc to become ready..."
+        
+        local cid
+        cid=$(dc ps -q "$svc" 2>/dev/null || echo "")
+        
+        if [ -z "$cid" ]; then
+            log_error "Could not find container for $svc."
+            ((attempt++))
+            continue
         fi
-    fi
+        
+        local is_ready=0
+        local has_healthcheck
+        has_healthcheck=$(docker inspect -f '{{if .State.Health}}true{{else}}false{{end}}' "$cid" 2>/dev/null || echo "false")
+        
+        if [ "$has_healthcheck" = "true" ]; then
+            until [ "$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null)" = "healthy" ] || [ $retries -eq 0 ]; do
+                sleep 2
+                ((retries--))
+                echo -n "."
+            done
+            echo ""
+            if [ "$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null)" = "healthy" ]; then
+                is_ready=1
+            fi
+        else
+            until [ "$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)" = "running" ] || [ $retries -eq 0 ]; do
+                sleep 2
+                ((retries--))
+                echo -n "."
+            done
+            echo ""
+            if [ "$(docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)" = "running" ]; then
+                is_ready=1
+            fi
+        fi
+        
+        if [ $is_ready -eq 1 ]; then
+            log_success "$svc is online."
+            return 0
+        fi
+        
+        log_error "Attempt $attempt failed for $svc. Reading logs..."
+        dc logs "$svc" | tail -n 50
+        
+        # CIRCUIT BREAKER: Cleanup before retry
+        log_info "Circuit Breaker: Resetting service $svc..."
+        dc stop "$svc" 2>/dev/null || true
+        dc rm -f "$svc" 2>/dev/null || true
+        
+        ((attempt++))
+        sleep 5
+    done
     
-    log_success "$svc is online."
+    log_error "Service $svc failed after $max_attempts attempts. HALTING."
+    exit 1
 }
 
 # 5. Execution Sequence
-log_info "Starting Sequential Deployment..."
+log_info "Starting Sequential Deployment (OMARCHY ABSOLUTE Protocol)..."
 
 # Phase A: Persistence & Messaging
 deploy_and_validate "timescaledb"
 deploy_and_validate "redis"
 deploy_and_validate "rabbitmq"
+deploy_and_validate "pgbouncer"
 
 # Phase B: Core Services
-# Note: docker-compose defines them as auth_service and api_service (not auth_api)
 deploy_and_validate "auth_service"
 deploy_and_validate "api_service"
-deploy_and_validate "worker"
 
-log_success "Deployment Complete. BSOPT Stack v9.2 is Healthy."
+# Phase C: Distributed Worker & MLOps
+deploy_and_validate "worker"
+deploy_and_validate "mlops"
+
+# Phase D: Edge & Frontend
+deploy_and_validate "frontend"
+deploy_and_validate "nginx"
+
+log_success "Deployment Complete. BSOPT Stack v10.0 is Healthy and Secure."

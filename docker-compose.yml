@@ -84,6 +84,10 @@ services:
     container_name: bsopt-manifold-auth
     networks:
       - internal_net
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
     environment:
       JWT_SECRET: ${JWT_SECRET:?JWT secret is missing}
       REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
@@ -107,6 +111,10 @@ services:
     networks:
       - public_net
       - internal_net
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
     environment:
       AUTH_SVC_ADDR: "auth_service:50051"
       JWT_SECRET: ${JWT_SECRET:?JWT secret is missing}
@@ -129,6 +137,10 @@ services:
     container_name: bsopt-manifold-worker
     networks:
       - internal_net
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
     environment:
       REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//"
@@ -145,6 +157,10 @@ services:
     container_name: bsopt-manifold-mlops
     networks:
       - internal_net
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
     environment:
       REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}"

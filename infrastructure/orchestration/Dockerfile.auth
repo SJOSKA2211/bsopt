@@ -1,62 +1,72 @@
 # ==============================================================================
-# BSOPT: Auth Service - Production Hardened (v9.2 - Slim)
+# BSOPT: Auth Service - OMARCHY ABSOLUTE Hardened (v10.0 - Alpine Multi-Stage)
 # ==============================================================================
 
-# --- Stage 1: Builder ---
-FROM python:3.12.13-slim AS builder
+# --- Stage 1: Build Environment ---
+# Pinning to exact SHA256 for deterministic builds
+FROM python:3.12.13-alpine@sha256:47708573fc0952d763efbe3ba97ddf9693cf7db931e846101c4c81f706935cc5 AS builder
 
 WORKDIR /build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+# Install build dependencies for C-extensions and uv
+RUN apk add --no-cache \
+    build-base \
     curl \
     git \
-    libssl-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    libffi-dev \
+    openssl-dev \
+    python3-dev
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Install uv for high-speed, deterministic dependency management
+COPY --from=ghcr.io/astral-sh/uv:0.1.35 /uv /uvx /bin/
 
-COPY pyproject.toml .
+# Copy dependency definitions
+COPY pyproject.toml uv.lock ./
 
-# Create virtualenv and install dependencies
-RUN uv venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN uv pip install --no-cache-dir .[auth,shared] grpcio-tools
+# Synchronize dependencies with exact hashes from uv.lock
+RUN uv sync --no-dev --extra auth --extra shared --frozen
 
+# Copy source and protos
 COPY src ./src
 COPY protos ./protos
 
-# Generate gRPC code and fix imports
-RUN python -m grpc_tools.protoc -I./protos --python_out=./src/shared/protos --grpc_python_out=./src/shared/protos ./protos/*.proto && \
+# Generate gRPC manifests
+RUN .venv/bin/python -m grpc_tools.protoc -I./protos \
+    --python_out=./src/shared/protos \
+    --grpc_python_out=./src/shared/protos \
+    protos/*.proto && \
     sed -i 's/^import \([^ ]*\)_pb2/from . import \1_pb2/g' ./src/shared/protos/*_pb2*.py
 
 # --- Stage 2: Final Runtime ---
-FROM python:3.12.13-slim
+FROM python:3.12.13-alpine@sha256:47708573fc0952d763efbe3ba97ddf9693cf7db931e846101c4c81f706935cc5 AS final
 
 WORKDIR /app
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install runtime dependencies (OpenSSL for mTLS)
+RUN apk add --no-cache \
     openssl \
     ca-certificates \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
+    libstdc++
 
-# Copy virtualenv and source from builder
-COPY --from=builder /opt/venv /opt/venv
+# Create non-root user (Principle of Least Privilege)
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copy only the virtualenv and necessary source from builder
+COPY --from=builder /build/.venv /app/.venv
 COPY --from=builder /build/src /app/src
 
-# Security: Non-root user
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+# Set ownership and security context
 RUN chown -R appuser:appgroup /app
 USER appuser
 
+# Expose gRPC port
 EXPOSE 50051
+
+# Healthcheck for orchestration
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD nc -z localhost 50051 || exit 1
 
 CMD ["python", "src/auth/grpc_server.py"]

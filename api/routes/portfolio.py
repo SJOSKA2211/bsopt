@@ -55,7 +55,10 @@ async def create_portfolio_item(
         }
     except Exception as e:
         logger.error("Failed to create portfolio: %s", e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create portfolio")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "PORTFOLIO_CREATION_FAILED", "message": "Failed to create portfolio"}
+        )
 
 @router.get("/", response_model=list[PortfolioSchema])
 async def read_portfolios_list(
@@ -77,7 +80,10 @@ async def read_portfolio_item(
     """Retrieves a specific portfolio by its UUID."""
     db_portfolio = await crud_get_portfolio_by_id(db, portfolio_id=portfolio_id, user_id=current_user.id)
     if db_portfolio is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail={"code": "PORTFOLIO_NOT_FOUND", "message": "Portfolio not found"}
+        )
     return PortfolioSchema.from_orm(db_portfolio)
 
 @router.get("/{portfolio_id}/valuation", response_model=dict[str, Any])

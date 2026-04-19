@@ -62,7 +62,10 @@ async def create_trade_item(
         }
     except Exception as e:
         logger.error("Failed to create trade: %s", e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create trade")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "TRADE_CREATION_FAILED", "message": "Failed to create trade"}
+        )
 
 @router.get("/", response_model=list[TradeSchema])
 async def read_trades_list(
@@ -87,7 +90,10 @@ async def read_trade_item(
     """Retrieves a specific trade and verifies ownership."""
     db_trade = await crud_get_trade_by_id(db, trade_id=trade_id)
     if db_trade is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trade not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail={"code": "TRADE_NOT_FOUND", "message": "Trade not found"}
+        )
 
     await check_portfolio_ownership(db, db_trade.portfolio_id, current_user.id)
     return TradeSchema.from_orm(db_trade)

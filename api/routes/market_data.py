@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/market", tags=["Market Data"])
 math_kernel_service = MathKernelService()
 
-@router.get("/historical", response_model=list[dict[str, Any]])
+@router.get("/historical-data", response_model=list[dict[str, Any]])
 async def get_historical_data_route(
     symbol: str,
     start_date: str,
@@ -26,11 +26,14 @@ async def get_historical_data_route(
         datetime.strptime(start_date, "%Y-%m-%d")
         datetime.strptime(end_date, "%Y-%m-%d")
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format. Use YYYY-MM-DD.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail={"code": "INVALID_DATE_FORMAT", "message": "Invalid date format. Use YYYY-MM-DD."}
+        )
 
     return math_kernel_service.get_historical_data(symbol, start_date, end_date)
 
-@router.get("/risk/{portfolio_id}", response_model=dict[str, Any])
+@router.get("/risk-metrics/{portfolio_id}", response_model=dict[str, Any])
 async def get_portfolio_risk_metrics_route(
     portfolio_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -65,6 +68,8 @@ async def create_market_calculation(
         }
     except Exception as e:
         logger.error("Price calculation failed: %s", e)
+        # Exception handler in index.py will catch this if it's a gRPC error
+        # Otherwise, wrap it:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail={"code": "CALCULATION_ERROR", "message": "Failed to compute financial metrics"}

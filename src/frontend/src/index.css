@@ -1,46 +1,82 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
 :root { 
-  --color-bento-bg: #010409; 
+  /* 8-Point Grid tokens */
+  --s-1: 8px;
+  --s-2: 16px;
+  --s-3: 24px;
+  --s-4: 32px;
+  --s-5: 40px;
+  --s-6: 48px;
+  --s-8: 64px;
+  --s-10: 80px;
+  --s-12: 96px;
+
+  /* Semantic Colors - High Performance Palette */
+  --color-bg: #010409; 
+  --color-surface: rgba(13, 17, 23, 0.8);
+  --color-border: rgba(48, 54, 61, 0.4);
   --color-mint: #00ffa3; 
-  --spacing-unit: 8px;
+  --color-mint-glow: rgba(0, 255, 163, 0.15);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #8b949e;
+  --color-error: #ff4d4d;
+  --color-success: #7ee787;
+  --color-warning: #e3b341;
+
+  /* Transitions */
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body { 
-  background: var(--color-bento-bg); 
-  color: #fff; 
+  background: var(--color-bg); 
+  color: var(--color-text-primary); 
   margin: 0; 
-  font-family: 'Inter', -apple-system, sans-serif; 
-  line-height: 1.5;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  line-height: 1.1;
-  margin-bottom: calc(var(--spacing-unit) * 2);
+  line-height: 1.2;
+  margin: 0 0 var(--s-3);
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 
 .bento-grid { 
   display: grid; 
   grid-template-columns: repeat(12, 1fr); 
-  gap: calc(var(--spacing-unit) * 3); 
+  gap: var(--s-3); 
   width: 100%; 
+  padding: var(--s-4);
 }
 
 .bento-card { 
-  background: rgba(13,17,23,0.75); 
-  border: 1px solid rgba(48,54,61,0.4); 
-  border-radius: 16px; 
-  padding: calc(var(--spacing-unit) * 3); 
-  backdrop-filter: blur(12px); 
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+  background: var(--color-surface); 
+  border: 1px solid var(--color-border); 
+  border-radius: var(--s-2); 
+  padding: var(--s-3); 
+  backdrop-filter: blur(16px); 
+  transition: 
+    transform 0.3s var(--transition-smooth), 
+    box-shadow 0.3s var(--transition-smooth),
+    border-color 0.3s var(--transition-smooth);
 }
 
 .bento-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,255,163,0.1);
+  border-color: var(--color-mint);
+  box-shadow: 0 12px 24px var(--color-mint-glow);
 }
 
 .bento-card:active {
   transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.bento-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }

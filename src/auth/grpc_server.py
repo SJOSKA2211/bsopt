@@ -28,7 +28,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
 # --- TLS Configuration ---
 SERVER_CERT_PATH = Path("/etc/ssl/certs/auth_service.crt")
-SERVER_KEY_PATH = Path("/etc/ssl/private/auth_service.key")
+SERVER_KEY_PATH = Path("/etc/ssl/certs/auth_service.key")
 CA_CERT_PATH = Path("/etc/ssl/certs/root_ca.crt")
 
 def dt_to_timestamp(dt: datetime | None) -> timestamp_pb2.Timestamp:

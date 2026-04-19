@@ -57,10 +57,11 @@ async def grpc_exception_handler(_: Request, exc: grpc.RpcError) -> JSONResponse
     
     status_code = status_map.get(exc.code(), status.HTTP_500_INTERNAL_SERVER_ERROR)
     detail = exc.details() or "gRPC service error"
+    code = exc.code().name
     
     return JSONResponse(
         status_code=status_code,
-        content={"detail": detail},
+        content={"code": code, "message": detail},
     )
 
 # --- Health Check Endpoint ---

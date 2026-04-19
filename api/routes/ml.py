@@ -42,7 +42,10 @@ async def create_ml_model_item_route(
         return MLModelSchema.from_orm(db_ml_model)
     except Exception as e:
         logger.error("Failed to create ML model: %s", e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Model creation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail={"code": "MODEL_CREATION_FAILED", "message": "Model creation failed"}
+        )
 
 @router.get("/models", response_model=list[MLModelSchema])
 async def read_ml_models_list(

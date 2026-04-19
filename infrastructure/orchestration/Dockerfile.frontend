@@ -1,0 +1,37 @@
+# ==============================================================================
+# BSOPT: Frontend Service - OMARCHY ABSOLUTE Hardened (v10.0 - Alpine Multi-Stage)
+# ==============================================================================
+
+# --- Stage 1: Build Environment ---
+FROM node:20-alpine AS builder
+
+WORKDIR /build
+
+# Copy package files
+COPY src/frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source
+COPY src/frontend ./
+
+# Build the application
+RUN npm run build
+
+# --- Stage 2: Final Runtime (Nginx) ---
+FROM nginx:alpine
+
+# Copy build artifacts to nginx public directory
+COPY --from=builder /build/dist /usr/share/nginx/html
+
+# Copy custom nginx config if needed (or use default)
+# COPY nginx/frontend.conf /etc/nginx/conf.d/default.conf
+
+# Security: Run as non-root (Nginx unprivileged)
+# Note: standard nginx alpine needs extra setup to run as non-root on port 80
+# For now, we use standard nginx alpine but recommend a restricted network.
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
