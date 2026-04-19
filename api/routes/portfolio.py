@@ -1,23 +1,26 @@
 import logging
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies import get_current_user, get_current_user_id
 from src.database.crud import (
     create_portfolio as crud_create_portfolio,
+)
+from src.database.crud import (
     get_portfolio_by_id as crud_get_portfolio_by_id,
+)
+from src.database.crud import (
     get_portfolios_for_user as crud_get_portfolios_for_user,
-    update_portfolio as crud_update_portfolio,
 )
 from src.database.models import User
 from src.database.session import get_async_db
 from src.math_kernel.service import MathKernelService
 from src.schemas.portfolio import Portfolio as PortfolioSchema
-from src.schemas.portfolio import PortfolioCreate, PortfolioUpdate
-from api.dependencies import get_current_user, get_current_user_id
+from src.schemas.portfolio import PortfolioCreate
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/portfolios", tags=["Portfolios"])

@@ -1,23 +1,20 @@
 import logging
-import grpc
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies import get_current_user
 from src.database.models import User
-from src.database.session import get_async_db
 from src.math_kernel.service import MathKernelService
 from src.tasks import simulate_market_data_ingestion
-from api.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/market", tags=["Market Data"])
 math_kernel_service = MathKernelService()
 
-@router.get("/historical", response_model=List[dict[str, Any]])
+@router.get("/historical", response_model=list[dict[str, Any]])
 async def get_historical_data_route(
     symbol: str,
     start_date: str,

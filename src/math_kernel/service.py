@@ -1,11 +1,10 @@
 import asyncio
 import logging
 import random
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select
 

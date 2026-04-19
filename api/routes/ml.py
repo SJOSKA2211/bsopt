@@ -1,21 +1,24 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select
 
-from src.database.models import MLModel, User
-from src.database.session import get_async_db
+from api.dependencies import get_current_user, get_current_user_id
 from src.database.crud import (
     create_ml_model as crud_create_ml_model,
+)
+from src.database.crud import (
     get_ml_model_by_name_version as crud_get_ml_model_by_name_version,
 )
-from src.schemas.ml import MLModelCreate, MLModelUpdate, MLModel as MLModelSchema
+from src.database.models import MLModel, User
+from src.database.session import get_async_db
 from src.ml.pipeline import MLPipeline
-from src.tasks import deploy_ml_model_task, trigger_ml_training_task
-from api.dependencies import get_current_user, get_current_user_id
+from src.schemas.ml import MLModel as MLModelSchema
+from src.schemas.ml import MLModelCreate
+from src.tasks import trigger_ml_training_task
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/ml", tags=["ML"])
@@ -41,7 +44,7 @@ async def create_ml_model_item_route(
         logger.error("Failed to create ML model: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Model creation failed")
 
-@router.get("/models", response_model=List[MLModelSchema])
+@router.get("/models", response_model=list[MLModelSchema])
 async def read_ml_models_list(
     db: AsyncSession = Depends(get_async_db),
     skip: int = 0,
@@ -63,10 +66,10 @@ async def read_ml_model_item_route(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ML model not found")
     return MLModelSchema.from_orm(db_model)
 
-@router.post("/predict/{model_id}", response_model=Dict[str, Any])
+@router.post("/predict/{model_id}", response_model=dict[str, Any])
 async def predict_with_model(
     model_id: UUID,
-    prediction_data: Dict[str, Any],
+    prediction_data: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -74,7 +77,7 @@ async def predict_with_model(
     model = await db.get(MLModel, model_id)
     if not model or not model.is_active:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Model inactive or not found")
-    
+
     try:
         return ml_pipeline_service.predict(model_id=f"{model.name}@{model.version}", data=prediction_data)
     except Exception as e:
@@ -84,7 +87,7 @@ async def predict_with_model(
 @router.post("/train/{model_id}", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_training(
     model_id: UUID,
-    training_params: Dict[str, Any],
+    training_params: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):

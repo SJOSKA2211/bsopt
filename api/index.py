@@ -1,7 +1,6 @@
 """FastAPI application entry point."""
 
 import logging
-from typing import Dict
 
 import grpc
 from fastapi import FastAPI, HTTPException, Request, status
@@ -46,7 +45,7 @@ app.include_router(trade_router, prefix="/api/v1")
 async def grpc_exception_handler(request: Request, exc: grpc.RpcError):
     """Custom handler for gRPC RpcErrors."""
     logger.error(f"gRPC RpcError: Code={exc.code()}, Details={exc.details()}")
-    
+
     if exc.code() == grpc.StatusCode.UNAUTHENTICATED:
         status_code = status.HTTP_401_UNAUTHORIZED
     elif exc.code() == grpc.StatusCode.PERMISSION_DENIED:
@@ -57,18 +56,18 @@ async def grpc_exception_handler(request: Request, exc: grpc.RpcError):
         status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     else:
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    
+
     detail = exc.details() if exc.details() else "gRPC service error"
     return HTTPException(status_code=status_code, detail=detail)
 
 # --- Health Check Endpoint ---
 @app.get("/health", status_code=status.HTTP_200_OK)
-async def health_check() -> Dict[str, str]:
+async def health_check() -> dict[str, str]:
     """Basic health check endpoint."""
     return {"status": "ok", "message": "API is healthy"}
 
 # --- Root Endpoint ---
 @app.get("/")
-async def root() -> Dict[str, str]:
+async def root() -> dict[str, str]:
     """Root endpoint for the API."""
     return {"message": "Welcome to the BSOPT API!"}

@@ -5,17 +5,23 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies import get_current_user
 from src.database.crud import (
     create_trade as crud_create_trade,
+)
+from src.database.crud import (
     get_portfolio_by_id as crud_get_portfolio_by_id,
+)
+from src.database.crud import (
     get_trade_by_id as crud_get_trade_by_id,
+)
+from src.database.crud import (
     get_trades_for_portfolio as crud_get_trades_for_portfolio,
 )
 from src.database.models import User
 from src.database.session import get_async_db
 from src.schemas.trade import Trade as TradeSchema
 from src.schemas.trade import TradeCreate
-from api.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/trades", tags=["Trades"])

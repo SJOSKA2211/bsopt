@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select
 
-from src.database.models import MLModel, Portfolio, Trade, User
+from src.database.models import Portfolio, Trade, User
 
 # --- Password Hashing Context ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
