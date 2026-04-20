@@ -53,8 +53,9 @@ async def get_current_user(
     
     # Handle development mock bypass
     if not auth_header:
+        from src.shared.config import settings
         mock_user_id = request.headers.get("X-User-ID")
-        if mock_user_id:
+        if mock_user_id and settings.ENVIRONMENT != "production":
             import uuid
             try:
                 user_uuid = uuid.UUID(mock_user_id)
