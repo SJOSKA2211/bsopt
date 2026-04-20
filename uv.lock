@@ -668,7 +668,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.4,<2.5" },
     { name = "onnx", marker = "extra == 'ml'", specifier = ">=1.16.0" },
     { name = "onnxmltools", marker = "extra == 'ml'", specifier = ">=1.12.0" },
-    { name = "onnxruntime", specifier = ">=1.24.4" },
+    { name = "onnxruntime" },
     { name = "opentelemetry-api", marker = "extra == 'observability'", specifier = ">=1.24.0" },
     { name = "opentelemetry-exporter-otlp", marker = "extra == 'observability'", specifier = ">=1.24.0" },
     { name = "opentelemetry-instrumentation-celery", marker = "extra == 'observability'", specifier = ">=0.45b0" },

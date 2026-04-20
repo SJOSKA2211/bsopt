@@ -130,6 +130,7 @@ const TradePage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <input
             type="text"
+            aria-label="Symbol"
             placeholder="Symbol (e.g., AAPL)"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
@@ -137,6 +138,7 @@ const TradePage = () => {
           />
           <input
             type="number"
+            aria-label="Quantity"
             placeholder="Quantity"
             value={quantity}
             onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
@@ -144,18 +146,19 @@ const TradePage = () => {
           />
           <input
             type="number"
+            aria-label="Price"
             placeholder="Price"
             value={price}
             onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
             className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
           />
           
-          <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+          <select aria-label="Side" value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
             <option value="buy">Buy</option>
             <option value="sell">Sell</option>
           </select>
           
-          <select value={orderType} onChange={(e) => setOrderType(e.target.value)} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+          <select aria-label="Order Type" value={orderType} onChange={(e) => setOrderType(e.target.value)} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
             <option value="market">Market</option>
             <option value="limit">Limit</option>
           </select>
@@ -164,7 +167,8 @@ const TradePage = () => {
         <button 
           onClick={handleTradeSubmit} 
           disabled={creatingTrade}
-          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 transition-colors duration-200"
+          title={creatingTrade ? "Submitting trade..." : "Submit Trade"}
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           {creatingTrade ? 'Submitting...' : 'Submit Trade'}
         </button>
