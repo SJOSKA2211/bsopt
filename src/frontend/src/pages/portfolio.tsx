@@ -112,6 +112,7 @@ const PortfolioPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <input
             type="text"
+            aria-label="Portfolio Name"
             placeholder="Portfolio Name"
             value={newPortfolioName}
             onChange={(e) => setNewPortfolioName(e.target.value)}
@@ -119,6 +120,7 @@ const PortfolioPage = () => {
           />
           <input
             type="number"
+            aria-label="Initial Cash"
             placeholder="Initial Cash"
             value={newPortfolioCash}
             onChange={(e) => setNewPortfolioCash(parseFloat(e.target.value) || 0)}
@@ -128,7 +130,8 @@ const PortfolioPage = () => {
         <button 
           onClick={handleCreatePortfolio} 
           disabled={!newPortfolioName || newPortfolioCash <= 0 || creatingPortfolio}
-          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 transition-colors duration-200"
+          title={creatingPortfolio ? "Creating portfolio..." : "Create Portfolio"}
+          className="px-6 py-3 bg-mint text-bento-bg font-semibold rounded-lg shadow-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
           {creatingPortfolio ? 'Creating...' : 'Create Portfolio'}
         </button>
