@@ -15,7 +15,7 @@ API_URL = "http://localhost:8000/api/v1"
 pytestmark = pytest.mark.integration
 
 # --- Helper Functions ---
-async def create_test_portfolio_for_trade_tests(api_client: AsyncClient, auth_headers: dict[str, str]) -> dict[str, Any]:
+async def create_test_portfolio_for_trades(api_client: AsyncClient, auth_headers: dict[str, str], db_session: AsyncSession = None) -> dict[str, Any]:
     """Helper to create a portfolio via the API for trade tests."""
     timestamp_suffix = str(int(time.time()))
     portfolio_name = f"Portfolio For Trades {timestamp_suffix}"
