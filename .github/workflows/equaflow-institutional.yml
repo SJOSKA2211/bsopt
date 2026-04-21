@@ -53,21 +53,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python
+        if: matrix.layer == 'backend'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Backend Tests
         if: matrix.layer == 'backend'
         run: |
-          uses: actions/setup-python@v5
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
           pip install .[dev,api,ml]
           pytest tests/unit
+
+      - name: Setup Node
+        if: matrix.layer == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Frontend Tests
         if: matrix.layer == 'frontend'
         run: |
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
           cd src/frontend
           npm install
           npm run test
@@ -103,8 +109,8 @@ jobs:
 
       - name: Spin up Institutional Stack
         run: |
-          chmod +x scripts/bootstrap.sh
-          ./scripts/bootstrap.sh --headless --skip-scan
+          chmod +x scripts/bootstrap_omarchy.sh
+          ./scripts/bootstrap_omarchy.sh --headless --skip-scan
         env:
           ENV: testing
           POSTGRES_PASSWORD: "testing_secret"

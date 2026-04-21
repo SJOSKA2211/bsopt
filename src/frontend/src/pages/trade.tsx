@@ -128,55 +128,37 @@ const TradePage = () => {
       <div className="p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">New Trade Order</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="symbol" className="text-sm font-medium">Symbol</label>
-            <input
-              id="symbol"
-              type="text"
-              placeholder="Symbol (e.g., AAPL)"
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="quantity" className="text-sm font-medium">Quantity</label>
-            <input
-              id="quantity"
-              type="number"
-              placeholder="Quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
-              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="price" className="text-sm font-medium">Price</label>
-            <input
-              id="price"
-              type="number"
-              placeholder="Price"
-              value={price}
-              onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Symbol (e.g., AAPL)"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+          />
           
-          <div className="flex flex-col gap-2">
-            <label htmlFor="side" className="text-sm font-medium">Side</label>
-            <select id="side" value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
-              <option value="buy">Buy</option>
-              <option value="sell">Sell</option>
-            </select>
-          </div>
+          <select value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+          </select>
           
-          <div className="flex flex-col gap-2">
-            <label htmlFor="orderType" className="text-sm font-medium">Order Type</label>
-            <select id="orderType" value={orderType} onChange={(e) => setOrderType(e.target.value)} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
-              <option value="market">Market</option>
-              <option value="limit">Limit</option>
-            </select>
-          </div>
+          <select value={orderType} onChange={(e) => setOrderType(e.target.value)} className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint">
+            <option value="market">Market</option>
+            <option value="limit">Limit</option>
+          </select>
         </div>
 
         <button 
