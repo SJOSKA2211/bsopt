@@ -1,5 +1,5 @@
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -64,7 +64,7 @@ async def create_market_calculation(
             "quantity": quantity,
             "unit_price": price,
             "total_price": round(total_price, 2),
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         logger.error("Price calculation failed: %s", e)
@@ -90,7 +90,7 @@ async def create_market_ingestion(
 
     simulate_market_data_ingestion.delay(symbol=symbol, num_days=ingestion_in.get("num_days", 30))
     return {
-        "id": f"ingest_{symbol}_{int(datetime.now(UTC).timestamp())}",
+        "id": f"ingest_{symbol}_{int(datetime.now(timezone.utc).timestamp())}",
         "status": "enqueued",
         "symbol": symbol
     }

@@ -1,6 +1,7 @@
+import asyncio
 import logging
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, Dict, Protocol
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -71,7 +72,7 @@ class MathKernelService:
 
         return round(float(total_value), 2)
 
-    def get_risk_metrics(self, portfolio_id: UUID) -> dict[str, Any]:
+    def get_risk_metrics(self, portfolio_id: UUID) -> Dict[str, Any]:
         """Provides simulated risk metrics for the portfolio."""
         return {
             "portfolio_id": str(portfolio_id),

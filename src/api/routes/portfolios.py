@@ -1,5 +1,5 @@
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -101,7 +101,7 @@ async def get_portfolio_valuation(
             "portfolio_id": str(portfolio_id),
             "total_value": round(total_value, 2),
             "currency": "USD",
-            "timestamp": datetime.now(UTC).isoformat() if "datetime" in globals() else None,
+            "timestamp": datetime.now(timezone.utc).isoformat() if "datetime" in globals() else None,
         }
     except Exception as e:
         logger.error("Valuation failed for %s: %s", portfolio_id, e)

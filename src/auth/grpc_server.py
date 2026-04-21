@@ -10,10 +10,11 @@ from uuid import UUID
 import grpc
 from google.protobuf import empty_pb2, timestamp_pb2
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import auth
 from src.database.crud import get_user_by_id
-from src.database.session import AsyncSessionLocal
+from src.database.session import AsyncSessionLocal, engine as db_engine
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 # --- Configuration ---
