@@ -1,0 +1,4 @@
+## 2026-04-21 - Hardcoded JWT Secret Fallback
+**Vulnerability:** A hardcoded secret (`super-dev-secret-change-me-in-prod`) was used as a fallback for the `JWT_SECRET_KEY` in `src/auth/grpc_server.py`.
+**Learning:** Developers sometimes use hardcoded secrets as fallbacks for development convenience. However, if environment variables fail to load in production, the application silently falls back to the insecure, hardcoded secret, creating a critical vulnerability.
+**Prevention:** Instead of providing hardcoded string fallbacks in `os.getenv`, configuration variables should be validated strictly on application startup (e.g., using a schema like Pydantic). Always rely on the centralized secure configuration object (like `settings.JWT_SECRET`) which fails loudly if the secret is absent, rather than deleting ostensibly unused variables which might be imported elsewhere causing exceptions.
