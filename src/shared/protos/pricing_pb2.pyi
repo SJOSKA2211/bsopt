@@ -9,7 +9,17 @@ from google.protobuf.internal import containers as _containers
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class PriceRequest(_message.Message):
-    __slots__ = ("dividend_yield", "model", "option_type", "rate", "spot", "strike", "symbol", "time_to_expiry", "volatility")
+    __slots__ = (
+        "dividend_yield",
+        "model",
+        "option_type",
+        "rate",
+        "spot",
+        "strike",
+        "symbol",
+        "time_to_expiry",
+        "volatility",
+    )
     SPOT_FIELD_NUMBER: _ClassVar[int]
     STRIKE_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_EXPIRY_FIELD_NUMBER: _ClassVar[int]
@@ -28,10 +38,31 @@ class PriceRequest(_message.Message):
     dividend_yield: float
     model: str
     symbol: str
-    def __init__(self, spot: float | None = ..., strike: float | None = ..., time_to_expiry: float | None = ..., volatility: float | None = ..., rate: float | None = ..., option_type: str | None = ..., dividend_yield: float | None = ..., model: str | None = ..., symbol: str | None = ...) -> None: ...
+    def __init__(
+        self,
+        spot: float | None = ...,
+        strike: float | None = ...,
+        time_to_expiry: float | None = ...,
+        volatility: float | None = ...,
+        rate: float | None = ...,
+        option_type: str | None = ...,
+        dividend_yield: float | None = ...,
+        model: str | None = ...,
+        symbol: str | None = ...,
+    ) -> None: ...
 
 class PriceResponse(_message.Message):
-    __slots__ = ("computation_time_ms", "model", "option_type", "price", "rate", "spot", "strike", "time_to_expiry", "volatility")
+    __slots__ = (
+        "computation_time_ms",
+        "model",
+        "option_type",
+        "price",
+        "rate",
+        "spot",
+        "strike",
+        "time_to_expiry",
+        "volatility",
+    )
     PRICE_FIELD_NUMBER: _ClassVar[int]
     SPOT_FIELD_NUMBER: _ClassVar[int]
     STRIKE_FIELD_NUMBER: _ClassVar[int]
@@ -50,7 +81,18 @@ class PriceResponse(_message.Message):
     option_type: str
     model: str
     computation_time_ms: float
-    def __init__(self, price: float | None = ..., spot: float | None = ..., strike: float | None = ..., time_to_expiry: float | None = ..., rate: float | None = ..., volatility: float | None = ..., option_type: str | None = ..., model: str | None = ..., computation_time_ms: float | None = ...) -> None: ...
+    def __init__(
+        self,
+        price: float | None = ...,
+        spot: float | None = ...,
+        strike: float | None = ...,
+        time_to_expiry: float | None = ...,
+        rate: float | None = ...,
+        volatility: float | None = ...,
+        option_type: str | None = ...,
+        model: str | None = ...,
+        computation_time_ms: float | None = ...,
+    ) -> None: ...
 
 class BatchPriceRequest(_message.Message):
     __slots__ = ("options",)
@@ -66,10 +108,23 @@ class BatchPriceResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[PriceResponse]
     total_count: int
     computation_time_ms: float
-    def __init__(self, results: _Iterable[PriceResponse | _Mapping] | None = ..., total_count: int | None = ..., computation_time_ms: float | None = ...) -> None: ...
+    def __init__(
+        self,
+        results: _Iterable[PriceResponse | _Mapping] | None = ...,
+        total_count: int | None = ...,
+        computation_time_ms: float | None = ...,
+    ) -> None: ...
 
 class GreeksRequest(_message.Message):
-    __slots__ = ("dividend_yield", "option_type", "rate", "spot", "strike", "time_to_expiry", "volatility")
+    __slots__ = (
+        "dividend_yield",
+        "option_type",
+        "rate",
+        "spot",
+        "strike",
+        "time_to_expiry",
+        "volatility",
+    )
     SPOT_FIELD_NUMBER: _ClassVar[int]
     STRIKE_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_EXPIRY_FIELD_NUMBER: _ClassVar[int]
@@ -84,7 +139,16 @@ class GreeksRequest(_message.Message):
     volatility: float
     option_type: str
     dividend_yield: float
-    def __init__(self, spot: float | None = ..., strike: float | None = ..., time_to_expiry: float | None = ..., rate: float | None = ..., volatility: float | None = ..., option_type: str | None = ..., dividend_yield: float | None = ...) -> None: ...
+    def __init__(
+        self,
+        spot: float | None = ...,
+        strike: float | None = ...,
+        time_to_expiry: float | None = ...,
+        rate: float | None = ...,
+        volatility: float | None = ...,
+        option_type: str | None = ...,
+        dividend_yield: float | None = ...,
+    ) -> None: ...
 
 class GreeksResponse(_message.Message):
     __slots__ = ("delta", "gamma", "rho", "theta", "vega")
@@ -98,4 +162,11 @@ class GreeksResponse(_message.Message):
     theta: float
     vega: float
     rho: float
-    def __init__(self, delta: float | None = ..., gamma: float | None = ..., theta: float | None = ..., vega: float | None = ..., rho: float | None = ...) -> None: ...
+    def __init__(
+        self,
+        delta: float | None = ...,
+        gamma: float | None = ...,
+        theta: float | None = ...,
+        vega: float | None = ...,
+        rho: float | None = ...,
+    ) -> None: ...
