@@ -30,7 +30,6 @@ class HealthCheckResponse(_message.Message):
         key: str
         value: str
         def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
-
     HEALTHY_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
@@ -39,13 +38,7 @@ class HealthCheckResponse(_message.Message):
     status: str
     metadata: _containers.ScalarMap[str, str]
     timestamp: _timestamp_pb2.Timestamp
-    def __init__(
-        self,
-        healthy: bool = ...,
-        status: str | None = ...,
-        metadata: _Mapping[str, str] | None = ...,
-        timestamp: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, healthy: bool = ..., status: str | None = ..., metadata: _Mapping[str, str] | None = ..., timestamp: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...) -> None: ...
 
 class PaginationRequest(_message.Message):
     __slots__ = ("descending", "page", "page_size", "sort_by")
@@ -57,23 +50,10 @@ class PaginationRequest(_message.Message):
     page_size: int
     sort_by: str
     descending: bool
-    def __init__(
-        self,
-        page: int | None = ...,
-        page_size: int | None = ...,
-        sort_by: str | None = ...,
-        descending: bool = ...,
-    ) -> None: ...
+    def __init__(self, page: int | None = ..., page_size: int | None = ..., sort_by: str | None = ..., descending: bool = ...) -> None: ...
 
 class PaginationResponse(_message.Message):
-    __slots__ = (
-        "current_page",
-        "has_next",
-        "has_previous",
-        "page_size",
-        "total_items",
-        "total_pages",
-    )
+    __slots__ = ("current_page", "has_next", "has_previous", "page_size", "total_items", "total_pages")
     TOTAL_ITEMS_FIELD_NUMBER: _ClassVar[int]
     TOTAL_PAGES_FIELD_NUMBER: _ClassVar[int]
     CURRENT_PAGE_FIELD_NUMBER: _ClassVar[int]
@@ -86,15 +66,7 @@ class PaginationResponse(_message.Message):
     page_size: int
     has_next: bool
     has_previous: bool
-    def __init__(
-        self,
-        total_items: int | None = ...,
-        total_pages: int | None = ...,
-        current_page: int | None = ...,
-        page_size: int | None = ...,
-        has_next: bool = ...,
-        has_previous: bool = ...,
-    ) -> None: ...
+    def __init__(self, total_items: int | None = ..., total_pages: int | None = ..., current_page: int | None = ..., page_size: int | None = ..., has_next: bool = ..., has_previous: bool = ...) -> None: ...
 
 class TimestampRange(_message.Message):
     __slots__ = ("end", "start")
@@ -102,11 +74,7 @@ class TimestampRange(_message.Message):
     END_FIELD_NUMBER: _ClassVar[int]
     start: _timestamp_pb2.Timestamp
     end: _timestamp_pb2.Timestamp
-    def __init__(
-        self,
-        start: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...,
-        end: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...,
-    ) -> None: ...
+    def __init__(self, start: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., end: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...) -> None: ...
 
 class ErrorResponse(_message.Message):
     __slots__ = ("code", "details", "errors", "message", "request_id", "timestamp")
@@ -122,15 +90,7 @@ class ErrorResponse(_message.Message):
     errors: _containers.RepeatedCompositeFieldContainer[ErrorField]
     timestamp: _timestamp_pb2.Timestamp
     request_id: str
-    def __init__(
-        self,
-        code: str | None = ...,
-        message: str | None = ...,
-        details: str | None = ...,
-        errors: _Iterable[ErrorField | _Mapping] | None = ...,
-        timestamp: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ...,
-        request_id: str | None = ...,
-    ) -> None: ...
+    def __init__(self, code: str | None = ..., message: str | None = ..., details: str | None = ..., errors: _Iterable[ErrorField | _Mapping] | None = ..., timestamp: datetime.datetime | _timestamp_pb2.Timestamp | _Mapping | None = ..., request_id: str | None = ...) -> None: ...
 
 class ErrorField(_message.Message):
     __slots__ = ("code", "field", "message")
@@ -140,9 +100,7 @@ class ErrorField(_message.Message):
     field: str
     message: str
     code: str
-    def __init__(
-        self, field: str | None = ..., message: str | None = ..., code: str | None = ...
-    ) -> None: ...
+    def __init__(self, field: str | None = ..., message: str | None = ..., code: str | None = ...) -> None: ...
 
 class Metadata(_message.Message):
     __slots__ = ("counters", "gauges", "tags")
@@ -153,7 +111,6 @@ class Metadata(_message.Message):
         key: str
         value: str
         def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
-
     class CountersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -161,7 +118,6 @@ class Metadata(_message.Message):
         key: str
         value: int
         def __init__(self, key: str | None = ..., value: int | None = ...) -> None: ...
-
     class GaugesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -169,19 +125,13 @@ class Metadata(_message.Message):
         key: str
         value: float
         def __init__(self, key: str | None = ..., value: float | None = ...) -> None: ...
-
     TAGS_FIELD_NUMBER: _ClassVar[int]
     COUNTERS_FIELD_NUMBER: _ClassVar[int]
     GAUGES_FIELD_NUMBER: _ClassVar[int]
     tags: _containers.ScalarMap[str, str]
     counters: _containers.ScalarMap[str, int]
     gauges: _containers.ScalarMap[str, float]
-    def __init__(
-        self,
-        tags: _Mapping[str, str] | None = ...,
-        counters: _Mapping[str, int] | None = ...,
-        gauges: _Mapping[str, float] | None = ...,
-    ) -> None: ...
+    def __init__(self, tags: _Mapping[str, str] | None = ..., counters: _Mapping[str, int] | None = ..., gauges: _Mapping[str, float] | None = ...) -> None: ...
 
 class BatchRequest(_message.Message):
     __slots__ = ("ids", "parameters")
@@ -192,14 +142,11 @@ class BatchRequest(_message.Message):
         key: str
         value: str
         def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
-
     IDS_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     ids: _containers.RepeatedScalarFieldContainer[str]
     parameters: _containers.ScalarMap[str, str]
-    def __init__(
-        self, ids: _Iterable[str] | None = ..., parameters: _Mapping[str, str] | None = ...
-    ) -> None: ...
+    def __init__(self, ids: _Iterable[str] | None = ..., parameters: _Mapping[str, str] | None = ...) -> None: ...
 
 class BatchResponse(_message.Message):
     __slots__ = ("errors", "failure_count", "results", "success_count")
@@ -211,13 +158,7 @@ class BatchResponse(_message.Message):
     errors: _containers.RepeatedCompositeFieldContainer[ErrorResponse]
     success_count: int
     failure_count: int
-    def __init__(
-        self,
-        results: _Iterable[_struct_pb2.Value | _Mapping] | None = ...,
-        errors: _Iterable[ErrorResponse | _Mapping] | None = ...,
-        success_count: int | None = ...,
-        failure_count: int | None = ...,
-    ) -> None: ...
+    def __init__(self, results: _Iterable[_struct_pb2.Value | _Mapping] | None = ..., errors: _Iterable[ErrorResponse | _Mapping] | None = ..., success_count: int | None = ..., failure_count: int | None = ...) -> None: ...
 
 class VersionInfo(_message.Message):
     __slots__ = ("arch", "build_date", "build_hash", "go_version", "os", "version")
@@ -233,15 +174,7 @@ class VersionInfo(_message.Message):
     go_version: str
     os: str
     arch: str
-    def __init__(
-        self,
-        version: str | None = ...,
-        build_hash: str | None = ...,
-        build_date: str | None = ...,
-        go_version: str | None = ...,
-        os: str | None = ...,
-        arch: str | None = ...,
-    ) -> None: ...
+    def __init__(self, version: str | None = ..., build_hash: str | None = ..., build_date: str | None = ..., go_version: str | None = ..., os: str | None = ..., arch: str | None = ...) -> None: ...
 
 class RateLimitInfo(_message.Message):
     __slots__ = ("limit", "remaining", "reset_time", "tier")
@@ -253,13 +186,7 @@ class RateLimitInfo(_message.Message):
     remaining: int
     reset_time: int
     tier: str
-    def __init__(
-        self,
-        limit: int | None = ...,
-        remaining: int | None = ...,
-        reset_time: int | None = ...,
-        tier: str | None = ...,
-    ) -> None: ...
+    def __init__(self, limit: int | None = ..., remaining: int | None = ..., reset_time: int | None = ..., tier: str | None = ...) -> None: ...
 
 class QuotaInfo(_message.Message):
     __slots__ = ("limit", "resource", "used", "utilization_percent")
@@ -271,10 +198,4 @@ class QuotaInfo(_message.Message):
     used: int
     limit: int
     utilization_percent: float
-    def __init__(
-        self,
-        resource: str | None = ...,
-        used: int | None = ...,
-        limit: int | None = ...,
-        utilization_percent: float | None = ...,
-    ) -> None: ...
+    def __init__(self, resource: str | None = ..., used: int | None = ..., limit: int | None = ..., utilization_percent: float | None = ...) -> None: ...

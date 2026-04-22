@@ -26,13 +26,7 @@ class Tick(_message.Message):
     price: float
     timestamp: int
     source: str
-    def __init__(
-        self,
-        ticker: str | None = ...,
-        price: float | None = ...,
-        timestamp: int | None = ...,
-        source: str | None = ...,
-    ) -> None: ...
+    def __init__(self, ticker: str | None = ..., price: float | None = ..., timestamp: int | None = ..., source: str | None = ...) -> None: ...
 
 class TickBatch(_message.Message):
     __slots__ = ("ticks",)
@@ -60,9 +54,7 @@ class HistoryRequest(_message.Message):
     ticker: str
     start_time: int
     end_time: int
-    def __init__(
-        self, ticker: str | None = ..., start_time: int | None = ..., end_time: int | None = ...
-    ) -> None: ...
+    def __init__(self, ticker: str | None = ..., start_time: int | None = ..., end_time: int | None = ...) -> None: ...
 
 class HistoryResponse(_message.Message):
     __slots__ = ("data",)
