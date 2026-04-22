@@ -12,9 +12,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from src.database.base import Base
 

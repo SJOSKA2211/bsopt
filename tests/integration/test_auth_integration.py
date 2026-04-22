@@ -1,8 +1,11 @@
-import pytest
-import grpc
 import os
 import uuid
+
+import grpc
+import pytest
+
 from src.shared.protos import auth_pb2, auth_pb2_grpc
+
 
 @pytest.mark.asyncio
 async def test_auth_grpc_mtls_connection():
