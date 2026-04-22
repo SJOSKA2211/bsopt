@@ -23,7 +23,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.4 /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
 
 # Synchronize dependencies (API specific extras)
-RUN uv sync --no-dev --extra api --extra shared --extra observability --frozen
+RUN uv sync --no-dev --extra api --extra shared --extra observability
 
 # Copy source and protos
 COPY src ./src
