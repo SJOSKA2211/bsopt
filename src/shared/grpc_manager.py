@@ -12,8 +12,8 @@ import grpc
 
 logger = logging.getLogger(__name__)
 
-class gRPCManager:
-    _instance: Optional['gRPCManager'] = None
+class GRPCManager:
+    _instance: Optional['GRPCManager'] = None
     _auth_channel: grpc.aio.Channel | None = None
 
     def __init__(self):
@@ -23,9 +23,9 @@ class gRPCManager:
         self._client_key_path = "/etc/ssl/certs/api_service.key"
 
     @classmethod
-    def get_instance(cls) -> 'gRPCManager':
+    def get_instance(cls) -> 'GRPCManager':
         if cls._instance is None:
-            cls._instance = gRPCManager()
+            cls._instance = GRPCManager()
         return cls._instance
 
     def _get_credentials(self) -> grpc.ChannelCredentials | None:
@@ -80,4 +80,4 @@ class gRPCManager:
             await self._auth_channel.close()
             self._auth_channel = None
 
-grpc_manager = gRPCManager.get_instance()
+grpc_manager = GRPCManager.get_instance()
