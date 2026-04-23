@@ -1,7 +1,6 @@
 """Dependencies for the API."""
 
 import logging
-from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import grpc
@@ -12,6 +11,7 @@ from src.database.crud import get_user_by_id
 from src.database.models import User
 from src.database.session import get_async_db
 from src.shared.protos import auth_pb2, auth_pb2_grpc
+from src.shared.grpc_manager import grpc_manager
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,6 @@ def _raise_auth_exception(detail: str) -> None:
         detail=detail,
     )
 
-from src.shared.grpc_manager import grpc_manager
 
 async def get_auth_client() -> auth_pb2_grpc.AuthServiceStub:
     """Provide a gRPC Auth service client using persistent pooled connections."""

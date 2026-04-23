@@ -7,8 +7,12 @@ both online (connected to DB) and offline (generating SQL) modes.
 
 import os
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config, pool
+
 from alembic import context
+
+from src.database.base import Base
 
 # this is the Alembic Config object
 config = context.config
@@ -28,8 +32,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from src.database.base import Base
-from src.database.models import User, Portfolio, Trade, MLModel # Ensure all models are loaded
+
 target_metadata = Base.metadata
 
 

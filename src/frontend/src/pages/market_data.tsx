@@ -44,26 +44,38 @@ const MarketDataPage = () => {
       {/* Controls for fetching data */}
       <div className="mb-8 p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Historical Data Query</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 items-center">
-          <input
-            type="text"
-            placeholder="Symbol (e.g., AAPL)"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-          />
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="symbol" className="text-sm font-medium text-gray-400">Symbol</label>
+            <input
+              id="symbol"
+              type="text"
+              placeholder="Symbol (e.g., AAPL)"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="start-date" className="text-sm font-medium text-gray-400">Start Date</label>
+            <input
+              id="start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="end-date" className="text-sm font-medium text-gray-400">End Date</label>
+            <input
+              id="end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+            />
+          </div>
           <button 
             onClick={handleFetchData} 
             disabled={!symbol || !startDate || !endDate}
