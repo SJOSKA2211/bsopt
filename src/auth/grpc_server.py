@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import auth
 from src.database.crud import get_user_by_id
 from src.database.session import AsyncSessionLocal, engine as db_engine
+from src.shared.config import settings
 from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 # --- Configuration ---
@@ -22,7 +23,7 @@ LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 logger = logging.getLogger(__name__)
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET", "super-dev-secret-change-me-in-prod")
+JWT_SECRET_KEY = settings.JWT_SECRET
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
