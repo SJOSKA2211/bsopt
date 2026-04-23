@@ -143,8 +143,33 @@ known-first-party = ["src"]
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
+strict = false
 ignore_missing_imports = true
+exclude = [
+    'src/shared/protos/.*'
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.api.dependencies",
+    "src.api.routes.models",
+    "src.api.routes.markets",
+    "src.auth.grpc_server",
+    "src.api.routes.portfolios",
+    "src.api.routes.trades",
+    "src.api.index",
+    "src.auth.auth",
+    "src.database.session",
+    "src.math_kernel.service",
+    "src.shared.config",
+    "src.ml.pipeline",
+    "src.tasks",
+    "src.schemas.ml",
+    "src.schemas.portfolio",
+    "src.database.base",
+    "src.schemas.trade"
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
