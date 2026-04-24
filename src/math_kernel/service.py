@@ -5,7 +5,7 @@ from typing import Any, Dict, Protocol
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, func, case
 
 from src.database.models import Portfolio, Trade
 from src.shared.config import config_registry
@@ -56,19 +56,18 @@ class MathKernelService:
             logger.error("Portfolio %s not found in persistence layer.", portfolio_id)
             raise ValueError(f"Portfolio {portfolio_id} not found")
 
-        stmt = select(Trade).filter(Trade.portfolio_id == portfolio_id)
+        stmt = select(
+            func.sum(
+                case(
+                    (func.lower(Trade.side) == "buy", Trade.quantity * Trade.price),
+                    else_=-Trade.quantity * Trade.price,
+                )
+            )
+        ).filter(Trade.portfolio_id == portfolio_id)
         result = await db.execute(stmt)
-        trades = result.scalars().all()
+        trade_value = result.scalar() or 0.0
 
-        total_value = portfolio.cash
-        for trade in trades:
-            # Note: Real values should be fetched from secondary market_data_service
-            # For this context, we use the last trade price as a baseline
-            current_price = trade.price 
-            if trade.side.lower() == "buy":
-                total_value += trade.quantity * current_price
-            else:
-                total_value -= trade.quantity * current_price
+        total_value = portfolio.cash + trade_value
 
         return round(float(total_value), 2)
 
