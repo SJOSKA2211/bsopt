@@ -12,6 +12,7 @@ from src.database.crud import get_user_by_id
 from src.database.models import User
 from src.database.session import get_async_db
 from src.shared.protos import auth_pb2, auth_pb2_grpc
+from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ async def get_current_user(
     # Handle development mock bypass
     if not auth_header:
         mock_user_id = request.headers.get("X-User-ID")
-        if mock_user_id:
+        if mock_user_id and settings.ENVIRONMENT != "production":
             import uuid
             try:
                 user_uuid = uuid.UUID(mock_user_id)
