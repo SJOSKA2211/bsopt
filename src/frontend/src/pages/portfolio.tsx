@@ -110,20 +110,34 @@ const PortfolioPage = () => {
       <div className="mb-8 p-6 bg-gray-800 bg-opacity-75 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Create New Portfolio</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <input
-            type="text"
-            placeholder="Portfolio Name"
-            value={newPortfolioName}
-            onChange={(e) => setNewPortfolioName(e.target.value)}
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-          />
-          <input
-            type="number"
-            placeholder="Initial Cash"
-            value={newPortfolioCash}
-            onChange={(e) => setNewPortfolioCash(parseFloat(e.target.value) || 0)}
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
-          />
+          <div className="flex flex-col">
+            <label htmlFor="portfolio-name" className="text-sm font-medium mb-1">
+              Portfolio Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="portfolio-name"
+              type="text"
+              placeholder="Portfolio Name"
+              value={newPortfolioName}
+              onChange={(e) => setNewPortfolioName(e.target.value)}
+              required
+              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="portfolio-cash" className="text-sm font-medium mb-1">
+              Initial Cash <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="portfolio-cash"
+              type="number"
+              placeholder="Initial Cash"
+              value={newPortfolioCash}
+              onChange={(e) => setNewPortfolioCash(parseFloat(e.target.value) || 0)}
+              required
+              className="p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-mint"
+            />
+          </div>
         </div>
         <button 
           onClick={handleCreatePortfolio} 
