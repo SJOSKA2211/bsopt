@@ -34,7 +34,7 @@ RUN .venv/bin/python -m grpc_tools.protoc -I./protos \
     --python_out=./src/shared/protos \
     --grpc_python_out=./src/shared/protos \
     protos/*.proto && \
-    sed -i 's/^import \([^ ]*\)_pb2/from . import \1_pb2/g' ./src/shared/protos/*_pb2*.py
+    sed -i 's/^import \([a-zA-Z0-9_]*\)_pb2/from . import \1_pb2/g' ./src/shared/protos/*_pb2*.py
 
 # --- Stage 2: Final Runtime ---
 FROM python@sha256:236173eb74001afe2f60862de935b74fcbd00adfca247b2c27051a70a6a39a2d AS final
