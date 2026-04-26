@@ -1,0 +1,4 @@
+## 2024-04-26 - Remove Hardcoded JWT Secret Fallback
+**Vulnerability:** A hardcoded default JWT secret ("super-dev-secret-change-me-in-prod") was present in the `src/auth/grpc_server.py` as a fallback when the `JWT_SECRET` environment variable was not set.
+**Learning:** Hardcoded fallback secrets, even intended for development, pose a critical risk if accidentally deployed to production without overriding the environment variable. It allows attackers to easily forge valid JWT tokens and bypass authentication entirely. Relying on default environment variable values for critical secrets is a dangerous pattern.
+**Prevention:** Always use a central configuration system that enforces the presence of critical secrets and fails fast on startup if they are missing (e.g., using Pydantic's `Field(...)`). Never provide default values for sensitive keys in code.
