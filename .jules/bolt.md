@@ -1,0 +1,3 @@
+## 2024-04-27 - Database-Level Aggregation for Portfolio Valuation
+**Learning:** Computing sums over large one-to-many relationship rows (like trades in a portfolio) by fetching all records with `.all()` and iterating in Python memory is an N+1 scaling anti-pattern and a significant performance bottleneck.
+**Action:** Always offload aggregation directly to the database using SQLAlchemy's `func.sum()` and conditional logic like `case()` to drastically reduce memory footprint and execution time.
