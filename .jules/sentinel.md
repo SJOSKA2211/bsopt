@@ -1,0 +1,4 @@
+## 2024-06-25 - Hardcoded JWT Secret Fallback Removed
+**Vulnerability:** Found a hardcoded fallback value for the JWT secret key in `src/auth/grpc_server.py`: `JWT_SECRET_KEY = os.getenv("JWT_SECRET", "super-dev-secret-change-me-in-prod")`. This creates a critical risk if the environment variable is unset, as the application would silently use a known, public secret for issuing and validating JWTs.
+**Learning:** Hardcoded fallbacks for cryptographic secrets provide a false sense of security during development but pose a severe risk if they accidentally leak into production deployments due to misconfiguration.
+**Prevention:** Never provide a hardcoded default for sensitive secrets in `os.getenv()`. Instead, rely on centralized configuration validation (like Pydantic `BaseSettings` which is already used in `src/shared/config.py`) to enforce that the secret must be provided via environment variables at startup.
