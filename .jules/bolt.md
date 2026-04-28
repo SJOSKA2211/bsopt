@@ -1,0 +1,3 @@
+## 2024-04-28 - DB-level aggregation versus in-memory iteration over one-to-many relationships
+**Learning:** When computing sums or aggregations over large one-to-many relationship rows (e.g., trades in a portfolio, transactions in an account), fetching all records with `.all()` and iterating in Python memory is highly inefficient and creates an N+1/memory bottleneck.
+**Action:** Always offload the aggregation directly to the database using SQLAlchemy's `func.sum()` and conditional logic like `case()` to drastically improve performance and memory usage.
