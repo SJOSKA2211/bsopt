@@ -1,0 +1,4 @@
+## 2024-05-28 - Replace Insecure Variables with Secure Config
+**Vulnerability:** Found a hardcoded, potentially insecure default fallback value for `JWT_SECRET_KEY` in `src/auth/grpc_server.py`.
+**Learning:** Even if an insecure hardcoded variable seems ostensibly unused or just a fallback, it should not be deleted completely because it may cause an `ImportError` or `NameError` if it happens to be imported by other modules.
+**Prevention:** Instead of deleting it completely or leaving the insecure hardcoded default, replace the hardcoded variable with a secure configuration value (e.g., `settings.JWT_SECRET`) from a centralized config object (e.g., imported from `src.shared.config`).
